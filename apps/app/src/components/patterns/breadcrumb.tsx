@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { useLingui } from '@lingui/react/macro'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -38,6 +39,7 @@ export type BreadcrumbItem = {
  * stays one level deep for nearly every surface.
  */
 export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
+  const { t } = useLingui()
   if (items.length === 0) return null
 
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
@@ -56,7 +58,7 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
     const [item] = items
     if (!item || !item.to) return null
     return (
-      <nav aria-label="Breadcrumb" className={cn('flex items-center', className)}>
+      <nav aria-label={t`Breadcrumb`} className={cn('flex items-center', className)}>
         {/* The back-link is a TextLink variant='muted': the primitive carries
             the muted-tone hover-to-tertiary chrome + the focus-visible ring;
             we just plug in the ChevronLeft + label as children. */}
@@ -74,7 +76,7 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
   const parentIndex = items.length - 2
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t`Breadcrumb`}
       className={cn(
         'flex flex-wrap items-center gap-1 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase',
         className,

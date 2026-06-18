@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
@@ -60,6 +60,15 @@ type NavItem = {
   badgeTone?: 'urgent' | 'inventory'
   tag?: string
   disabledReason?: string
+  /**
+   * Extra active-state predicate. NavLink already flips active on an exact
+   * (or prefix, when `end:false`) href match; `activeMatch` lets one nav row
+   * own additional routes that share no href prefix. Settings uses this so the
+   * sub-pages that live OUTSIDE `/settings/*` (/practice, /members, /workload,
+   * /billing, /reminders) still light the Settings row. Returns true → the row
+   * renders active (data-active), same styling as aria-current.
+   */
+  activeMatch?: (pathname: string) => boolean
 }
 
 type NavConfig = {
@@ -87,6 +96,14 @@ type NavConfig = {
   // settings — see `apps/app/src/routes/settings.tsx`). Personal account
   // settings live in the `UserMenuTrigger` dropdown, not here.
   footer: NavItem[]
+}
+
+// Settings sub-pages that live OUTSIDE `/settings/*` — they have their own
+// top-level routes but are conceptually children of the Settings hub. Without
+// this the Settings nav row goes dark when the user is on any of them.
+const SETTINGS_SIBLING_PATHS = ['/practice', '/members', '/workload', '/billing', '/reminders']
+function matchesSettingsRow(pathname: string): boolean {
+  return pathname.startsWith('/settings') || SETTINGS_SIBLING_PATHS.includes(pathname)
 }
 
 const NAV_ROLE_LABELS = {
@@ -509,7 +526,13 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           // lives as an "Archive" button inside the /alerts page
           // header instead. See features/alerts/AlertsListPage.tsx.
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
-          { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
+          {
+            href: '/settings',
+            label: t`Settings`,
+            icon: SettingsIcon,
+            end: false,
+            activeMatch: matchesSettingsRow,
+          },
         ],
       }
     }
@@ -579,7 +602,15 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       ],
       coverage: [],
       practice: [],
-      footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
+      footer: [
+        {
+          href: '/settings',
+          label: t`Settings`,
+          icon: SettingsIcon,
+          end: false,
+          activeMatch: matchesSettingsRow,
+        },
+      ],
     }
   }, [
     t,
@@ -731,9 +762,15 @@ function NavGroupSection({
 function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boolean }) {
   const Icon = item.icon
   const { collapsed, isMobile, notifySidebarNavigation } = useSidebar()
+  const { pathname } = useLocation()
   const tooltip = navItemTooltip(item, disabled)
   const badgeTone = item.badgeTone ?? 'urgent'
   const tooltipDisabled = !collapsed || isMobile
+  // NavLink owns active state for the row's own href; `activeMatch` lets a row
+  // additionally claim routes that live outside its href prefix (Settings →
+  // /practice, /members, /workload, /billing, /reminders). data-active flips
+  // the same styling as NavLink's aria-current.
+  const extraActive = item.activeMatch?.(pathname) ?? false
 
   // On click, notify the sidebar context so the destination route's
   // auto-collapse-on-panel-mount is absorbed and the rail stays
@@ -753,6 +790,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
         <TooltipTrigger
           render={
             <SidebarMenuButton
+              isActive={extraActive}
               render={
                 <NavLink
                   to={item.href}

@@ -3348,6 +3348,10 @@ msgstr "阻塞中"
 msgid "Body"
 msgstr "正文"
 
+#: src/components/patterns/breadcrumb.tsx
+msgid "Breadcrumb"
+msgstr "面包屑导航"
+
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Brief unavailable — we'll retry shortly."
 msgstr "简报不可用 — 我们稍后会重试。"
@@ -3824,6 +3828,7 @@ msgid "Cleaning up client's books"
 msgstr "正在整理客户账目"
 
 #: src/components/primitives/iso-date-picker.tsx
+#: src/components/primitives/search-input.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -3869,7 +3874,6 @@ msgid "Clear morning sweep"
 msgstr "清除晨间扫描"
 
 #: src/components/patterns/table-header-filter.tsx
-#: src/components/primitives/search-input.tsx
 msgid "Clear search"
 msgstr "清除搜索"
 
@@ -4638,6 +4642,10 @@ msgstr "无法变更状态"
 msgid "Couldn't confirm deadlines"
 msgstr "无法确认截止日期"
 
+#: src/routes/rules.library.tsx
+msgid "Couldn't copy"
+msgstr "无法复制"
+
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
@@ -4646,6 +4654,10 @@ msgstr "无法复制日历 URL"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy client email draft"
 msgstr "无法复制客户邮件草稿"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't copy link"
+msgstr "无法复制链接"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't copy link — your browser blocked clipboard access."
@@ -8485,7 +8497,9 @@ msgstr "时长"
 msgid "Light"
 msgstr "浅色"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/routes/rules.library.tsx
 msgid "Link copied"
 msgstr "链接已复制"
 
@@ -10462,6 +10476,7 @@ msgid "Notification types"
 msgstr "通知类型"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
@@ -13195,6 +13210,10 @@ msgstr "规则已创建"
 msgid "Rule detail"
 msgstr "规则详情"
 
+#: src/routes/rules.library.tsx
+msgid "Rule ID copied"
+msgstr "已复制规则 ID"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule issue reported"
 msgstr "规则问题已报告"
@@ -13909,6 +13928,10 @@ msgstr "已发送 {0}"
 msgid "Sent {0}"
 msgstr "已发送 {0}"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "Sent reminder emails will appear here as they go out."
+msgstr "提醒邮件发送后会显示在这里。"
+
 #. placeholder {0}: latestRequest.recipientEmail ?? t`client`
 #. placeholder {1}: formatDatePretty(latestRequest.expiresAt.slice(0, 10))
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -13972,9 +13995,9 @@ msgstr "正在设置你的事务所…"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
+#: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts

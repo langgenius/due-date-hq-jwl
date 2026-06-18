@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, Edit3Icon, Loader2, PauseCircleIcon } from 'lucide-react'
+import { AlertCircleIcon, Edit3Icon, Loader2, PauseCircleIcon, SendIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -359,7 +359,11 @@ function RecentSendsPanel({
         ) : reminders.length === 0 ? (
           // Canonical EmptyState — same as the sibling Upcoming reminders
           // panel.
-          <EmptyState title={<Trans>No reminders sent yet.</Trans>} />
+          <EmptyState
+            icon={SendIcon}
+            title={<Trans>No reminders sent yet.</Trans>}
+            description={<Trans>Sent reminder emails will appear here as they go out.</Trans>}
+          />
         ) : (
           <Table>
             <TableHeader>

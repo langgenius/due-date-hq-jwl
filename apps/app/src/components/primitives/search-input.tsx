@@ -171,7 +171,7 @@ export const SearchInput = forwardRef(function SearchInput(
         {value ? (
           <button
             type="button"
-            aria-label={t`Clear search`}
+            aria-label={t`Clear`}
             onClick={() => onChange('')}
             className={cn(
               'absolute top-1/2 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',

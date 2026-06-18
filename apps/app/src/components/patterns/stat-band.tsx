@@ -76,7 +76,26 @@ export function StatBand({
   ariaLabel?: string
 }) {
   if (loading) {
-    return <Skeleton className="h-[100px] w-full rounded-none" />
+    // Mirror the loaded band's chrome (same border-y hairlines + py-4 wrapper +
+    // column layout) so only the text slots shimmer — the band frame itself
+    // doesn't pop in on paint. One short label bar + one wider value bar per
+    // column, matching the eyebrow + 26px value grammar.
+    return (
+      <div
+        aria-hidden
+        className="grid shrink-0 grid-cols-2 gap-y-4 border-y border-divider-subtle py-4 sm:flex sm:items-start sm:gap-y-0"
+      >
+        {stats.map((stat) => (
+          <div
+            key={stat.key}
+            className="flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0"
+          >
+            <Skeleton className="h-2.5 w-16 rounded" />
+            <Skeleton className="h-6 w-12 rounded" />
+          </div>
+        ))}
+      </div>
+    )
   }
   return (
     <section

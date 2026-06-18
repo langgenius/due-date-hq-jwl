@@ -1110,7 +1110,7 @@ export function CreateObligationDialog({
               void form.handleSubmit()
             }}
           >
-            <FieldGroup className="gap-4">
+            <FieldGroup className="gap-5">
               <form.Field name="clientId">
                 {(field) => (
                   <Field>

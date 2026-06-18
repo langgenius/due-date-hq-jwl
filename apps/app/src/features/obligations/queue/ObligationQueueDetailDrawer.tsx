@@ -1906,7 +1906,7 @@ export function ObligationQueueDetailDrawer({
           DetailStatusBanner. Mirrors the in-page DeadlineCrumbBar but adapted
           for panel layout — no position read-out (panel lacks paging), slim
           h-[44px] instead of h-[52px], and the panel's own close-X stays in
-          the header (not duplicated here). Path: Deadlines › {clientName} ›
+          the header (not duplicated here). Path: Deadlines / {clientName} /
           {formName}. */}
       {mode === 'panel' ? (
         <div className="flex h-[44px] shrink-0 items-center border-b border-divider-subtle px-5">
@@ -1920,7 +1920,7 @@ export function ObligationQueueDetailDrawer({
             {row && row.clientName ? (
               <>
                 <span className="shrink-0 text-text-muted" aria-hidden>
-                  ›
+                  /
                 </span>
                 <span className="max-w-[200px] truncate text-text-secondary">{row.clientName}</span>
               </>
@@ -1928,7 +1928,7 @@ export function ObligationQueueDetailDrawer({
             {row ? (
               <>
                 <span className="shrink-0 text-text-muted" aria-hidden>
-                  ›
+                  /
                 </span>
                 <span className="max-w-[200px] truncate text-text-secondary">
                   {(() => {

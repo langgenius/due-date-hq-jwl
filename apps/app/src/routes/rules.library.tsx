@@ -3950,9 +3950,10 @@ function RuleTableRow({
                     if (typeof window === 'undefined') return
                     try {
                       void window.navigator.clipboard?.writeText(rule.id)
+                      toast.success(t`Rule ID copied`)
                     } catch {
                       // Clipboard can throw in sandboxed iframes.
-                      // Silent fail — the action is non-critical.
+                      toast.error(t`Couldn't copy`)
                     }
                   },
                 },
@@ -3964,9 +3965,10 @@ function RuleTableRow({
                     try {
                       const url = `${window.location.origin}/rules/library?rule=${rule.id}`
                       void window.navigator.clipboard?.writeText(url)
+                      toast.success(t`Link copied`)
                     } catch {
                       // Clipboard can throw in sandboxed iframes.
-                      // Silent fail — the action is non-critical.
+                      toast.error(t`Couldn't copy`)
                     }
                   },
                 },
@@ -4328,8 +4330,10 @@ function SearchResultsTable({
                                 if (typeof window === 'undefined') return
                                 try {
                                   void window.navigator.clipboard?.writeText(rule.id)
+                                  toast.success(t`Rule ID copied`)
                                 } catch {
                                   // Clipboard can throw in sandboxed iframes.
+                                  toast.error(t`Couldn't copy`)
                                 }
                               },
                             },
@@ -4341,8 +4345,10 @@ function SearchResultsTable({
                                 try {
                                   const url = `${window.location.origin}/rules/library?rule=${rule.id}`
                                   void window.navigator.clipboard?.writeText(url)
+                                  toast.success(t`Link copied`)
                                 } catch {
                                   // Clipboard can throw in sandboxed iframes.
+                                  toast.error(t`Couldn't copy`)
                                 }
                               },
                             },

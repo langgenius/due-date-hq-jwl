@@ -62,7 +62,7 @@ export function WorkloadPage() {
     // Skeletons so the loading rhythm matches the rest of the app.
     return (
       <section
-        className="grid gap-6 p-6"
+        className="mx-auto grid w-full max-w-page-wide gap-6 px-4 pt-8 pb-12 md:px-6"
         role="status"
         aria-live="polite"
         aria-label={t`Loading team workload`}
@@ -83,6 +83,7 @@ export function WorkloadPage() {
   return (
     <section className="mx-auto grid w-full max-w-page-wide gap-6 px-4 pt-8 pb-12 md:px-6">
       <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Team workload` }]}
         title={<Trans>Team workload</Trans>}
         description={
           <>

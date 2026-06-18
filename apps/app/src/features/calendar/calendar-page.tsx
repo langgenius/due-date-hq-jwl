@@ -230,7 +230,13 @@ export function CalendarPage() {
           </AlertDescription>
         </Alert>
       ) : subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
-        <Skeleton className="h-72 max-w-2xl rounded-lg" />
+        // Card-shaped placeholders in the SAME grid the loaded view uses, one
+        // per card config, so the layout doesn't reflow on paint.
+        <div className="grid gap-4" aria-hidden>
+          {cards.map((card) => (
+            <Skeleton key={card.scope} className="h-72 rounded-lg" />
+          ))}
+        </div>
       ) : (
         <div className="grid gap-4">
           {cards.map((card) => (

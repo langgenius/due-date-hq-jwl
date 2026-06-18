@@ -9,6 +9,7 @@ import {
   type RowData,
   type SortingState,
 } from '@tanstack/react-table'
+import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ActivityIcon, AlertTriangleIcon, ExternalLinkIcon, EyeIcon, LinkIcon } from 'lucide-react'
 
@@ -890,10 +891,11 @@ export function ClientFactsWorkspace({
                 try {
                   const url = `${window.location.origin}${detailPath}`
                   void window.navigator.clipboard?.writeText(url)
+                  toast.success(t`Link copied`)
                 } catch {
-                  // Clipboard can throw in sandboxed iframes. Silent
-                  // fail is acceptable here — the action is non-critical
-                  // and the user can fall back to the address bar.
+                  // Clipboard can throw in sandboxed iframes. The user can
+                  // fall back to the address bar.
+                  toast.error(t`Couldn't copy link`)
                 }
               },
             },

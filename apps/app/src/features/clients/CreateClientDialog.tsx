@@ -265,7 +265,7 @@ export function CreateClientDialog({
             void form.handleSubmit()
           }}
         >
-          <FieldGroup className="gap-4">
+          <FieldGroup className="gap-5">
             <div className="grid gap-4 md:grid-cols-[1fr_180px]">
               <form.Field name="name">
                 {(field) => (

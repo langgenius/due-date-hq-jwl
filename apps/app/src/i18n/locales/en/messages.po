@@ -3335,6 +3335,10 @@ msgstr "Blocking"
 msgid "Body"
 msgstr "Body"
 
+#: src/components/patterns/breadcrumb.tsx
+msgid "Breadcrumb"
+msgstr "Breadcrumb"
+
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Brief unavailable — we'll retry shortly."
 msgstr "Brief unavailable — we'll retry shortly."
@@ -3808,6 +3812,7 @@ msgid "Cleaning up client's books"
 msgstr "Cleaning up client's books"
 
 #: src/components/primitives/iso-date-picker.tsx
+#: src/components/primitives/search-input.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -3853,7 +3858,6 @@ msgid "Clear morning sweep"
 msgstr "Clear morning sweep"
 
 #: src/components/patterns/table-header-filter.tsx
-#: src/components/primitives/search-input.tsx
 msgid "Clear search"
 msgstr "Clear search"
 
@@ -4617,6 +4621,10 @@ msgstr "Couldn't change status"
 msgid "Couldn't confirm deadlines"
 msgstr "Couldn't confirm deadlines"
 
+#: src/routes/rules.library.tsx
+msgid "Couldn't copy"
+msgstr "Couldn't copy"
+
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
@@ -4625,6 +4633,10 @@ msgstr "Couldn't copy calendar URL"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy client email draft"
 msgstr "Couldn't copy client email draft"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't copy link"
+msgstr "Couldn't copy link"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't copy link — your browser blocked clipboard access."
@@ -8455,7 +8467,9 @@ msgstr "Length"
 msgid "Light"
 msgstr "Light"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/routes/rules.library.tsx
 msgid "Link copied"
 msgstr "Link copied"
 
@@ -10420,6 +10434,7 @@ msgid "Notification types"
 msgstr "Notification types"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
@@ -13137,6 +13152,10 @@ msgstr "Rule created"
 msgid "Rule detail"
 msgstr "Rule detail"
 
+#: src/routes/rules.library.tsx
+msgid "Rule ID copied"
+msgstr "Rule ID copied"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule issue reported"
 msgstr "Rule issue reported"
@@ -13847,6 +13866,10 @@ msgstr "sent {0}"
 msgid "Sent {0}"
 msgstr "Sent {0}"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "Sent reminder emails will appear here as they go out."
+msgstr "Sent reminder emails will appear here as they go out."
+
 #. placeholder {0}: latestRequest.recipientEmail ?? t`client`
 #. placeholder {1}: formatDatePretty(latestRequest.expiresAt.slice(0, 10))
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -13910,9 +13933,9 @@ msgstr "Setting up your practice…"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
+#: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts

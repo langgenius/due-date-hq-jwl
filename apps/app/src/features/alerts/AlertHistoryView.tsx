@@ -6,6 +6,7 @@ import type { PulseAlertPublic, PulseFirmAlertStatus } from '@duedatehq/contract
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -317,11 +318,20 @@ export function AlertHistoryView() {
             </TableHeader>
             <TableBody>
               {historyQuery.isLoading ? (
-                <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
-                    <Trans>Loading handled alerts…</Trans>
-                  </TableCell>
-                </TableRow>
+                <>
+                  {/* sr-only live region — visual users get the shimmer rows
+                      below; SR users get the status announcement. */}
+                  <TableRow className="even:bg-transparent hover:bg-transparent">
+                    <TableCell colSpan={5} className="p-0">
+                      <span className="sr-only" role="status" aria-live="polite">
+                        <Trans>Loading handled alerts…</Trans>
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <SkeletonHistoryRow key={index} />
+                  ))}
+                </>
               ) : historyQuery.isError ? (
                 // Error-as-empty guard: a failed history query used to fall
                 // through to "No handled alerts match this view." — telling the
@@ -510,6 +520,35 @@ function HistoryRow({
       {/* STATUS */}
       <TableCell>
         <Badge variant={status.variant}>{status.label}</Badge>
+      </TableCell>
+    </TableRow>
+  )
+}
+
+// First-load placeholder row — mirrors HistoryRow's 5 columns (checkbox /
+// date / juris / two-line alert / status badge) so the table doesn't reflow
+// on paint. Only the value slots shimmer; the chrome (row height via
+// [&>td]:py-3) matches the real row.
+function SkeletonHistoryRow() {
+  return (
+    <TableRow aria-hidden className="even:bg-transparent hover:bg-transparent [&>td]:py-3">
+      <TableCell>
+        <Skeleton className="size-4 rounded" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-3.5 w-12 rounded" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-[22px] w-12 rounded" />
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-col gap-1">
+          <Skeleton className="h-3.5 w-3/4 rounded" />
+          <Skeleton className="h-3 w-1/2 rounded" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-[22px] w-20 rounded" />
       </TableCell>
     </TableRow>
   )

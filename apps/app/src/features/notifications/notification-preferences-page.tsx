@@ -166,7 +166,7 @@ export function NotificationPreferencesPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
         breadcrumbs={[
-          { label: t`Settings`, to: '/settings' },
+          { label: t`Notifications`, to: '/notifications' },
           { label: t`Notification preferences` },
         ]}
         title={<Trans>Notification preferences</Trans>}
