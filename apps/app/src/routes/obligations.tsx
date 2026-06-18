@@ -3901,57 +3901,11 @@ export function ObligationQueueRoute() {
                             </DropdownMenuGroup>
                           </DropdownMenuSubContent>
                         </DropdownMenuSub>
-                        {/* Sort-by submenu — drives the same `group` param as
-                            the toolbar "Sort by" pill. 2026-06-16 (audit): label
-                            unified to "Sort by" (was "Group by") so one control
-                            reads one way everywhere. */}
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
-                            <LayersIcon className="size-4" aria-hidden />
-                            <span>
-                              <Trans>Sort by</Trans>
-                            </span>
-                            <span className="ml-auto text-text-tertiary">
-                              {group === 'client' ? (
-                                <Trans>Client</Trans>
-                              ) : group === 'filing' ? (
-                                <Trans>Filing</Trans>
-                              ) : group === 'urgency' ? (
-                                <Trans>Urgency</Trans>
-                              ) : (
-                                <Trans>Due date</Trans>
-                              )}
-                            </span>
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent className="min-w-[160px]">
-                            <DropdownMenuRadioGroup
-                              value={group}
-                              onValueChange={(next) => {
-                                if (
-                                  next === 'due' ||
-                                  next === 'urgency' ||
-                                  next === 'client' ||
-                                  next === 'filing'
-                                ) {
-                                  void setObligationQueueQuery({ group: next })
-                                }
-                              }}
-                            >
-                              <DropdownMenuRadioItem value="urgency">
-                                <Trans>Urgency</Trans>
-                              </DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="due">
-                                <Trans>Due date</Trans>
-                              </DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="client">
-                                <Trans>Client</Trans>
-                              </DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="filing">
-                                <Trans>Filing</Trans>
-                              </DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                        {/* Sort-by lives on the dedicated toolbar pill (added
+                            2026-06-15 to surface grouping out of this menu); the
+                            duplicate submenu here was removed 2026-06-18 (Hick's
+                            — one home per control, the two had drifted to
+                            different option orders). */}
                         {/* Density submenu. */}
                         <DropdownMenuSub>
                           <DropdownMenuSubTrigger>
