@@ -2,6 +2,11 @@ import { getMarketingUrl } from '../lib/site'
 
 export const prerender = true
 
+// Pre-launch posture: ALLOW everything, including AI training crawlers (GPTBot /
+// ClaudeBot / CCBot — covered by `*`), for maximum search + AI-citation
+// visibility (docs/dev-file/13 §7-2). `*` already allows all agents; the named
+// agents below are explicit for clarity. Re-evaluate tightening training-only
+// bots (vs keeping search/citation bots) after launch.
 const USER_AGENTS = [
   '*',
   'Googlebot',

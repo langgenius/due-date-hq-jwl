@@ -1,5 +1,28 @@
-export const CONTENT_REVIEWED_ON = '2026-05-20'
+// Site-wide freshness defaults. `reviewedOn` advances ONLY when content is
+// actually reviewed/changed — never a blind global bump (docs/dev-file/13 §5).
+// The 2026-06-18 SEO/GEO realignment reviewed every public page, so that is the
+// current site-wide reviewed date; `publishedOn` keeps the original launch date.
 export const CONTENT_PUBLISHED_ON = '2026-05-20'
+export const CONTENT_REVIEWED_ON = '2026-06-18'
+
+// Per-slug freshness overrides. Key = page slug (guide / state / compare / rule
+// slug) or a route key ('home' | 'pricing' | 'state-coverage' | trust slug).
+// Add an entry only when a single page changes independently of a site-wide
+// pass, so its JSON-LD dateModified and sitemap lastmod reflect the real edit.
+const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?: string }> = {}
+
+export interface ContentDates {
+  publishedOn: string
+  reviewedOn: string
+}
+
+export function getContentDates(slug?: string): ContentDates {
+  const override = (slug ? CONTENT_DATES_BY_SLUG[slug] : undefined) ?? {}
+  return {
+    publishedOn: override.publishedOn ?? CONTENT_PUBLISHED_ON,
+    reviewedOn: override.reviewedOn ?? CONTENT_REVIEWED_ON,
+  }
+}
 
 export interface OfficialSourceLink {
   label: string

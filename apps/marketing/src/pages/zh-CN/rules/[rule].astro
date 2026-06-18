@@ -34,6 +34,7 @@ const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'zh-CN')
   title={page.meta.title}
   description={page.meta.description}
   ogImage={page.meta.ogImage}
+  ogType="article"
   structuredData={resourceStructuredData(t, page, 'zh-CN', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />

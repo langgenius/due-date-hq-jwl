@@ -2,9 +2,24 @@
 import { defineConfig } from 'astro/config'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
+import { getContentDates } from './src/lib/content-metadata'
 
 const viteConfig = {
   plugins: tailwindcss(),
+}
+
+/**
+ * Map a sitemap URL to its freshness date for <lastmod>. The default locale (en)
+ * is unprefixed; zh-CN pages live under /zh-CN. The last path segment maps to a
+ * content slug (see getContentDates); unknown slugs fall back to the site-wide
+ * reviewed date, so every URL still carries an honest lastmod.
+ * @param {string} url
+ * @returns {string}
+ */
+function lastmodForUrl(url) {
+  const path = new URL(url).pathname.replace(/^\/zh-CN/, '').replace(/\/$/, '')
+  const slug = path.split('/').filter(Boolean).pop() ?? 'home'
+  return getContentDates(slug).reviewedOn
 }
 
 // Marketing static site (duedatehq.com). Per docs/dev-file/12-Marketing-Architecture.md §4.
@@ -28,6 +43,16 @@ export default defineConfig({
       // Keep historical hidden fallback URLs out if Astro or a future config
       // change reintroduces them.
       filter: (page) => !/\/zh-CN\/zh-cn\/?$/i.test(page),
+      // Emit <xhtml:link rel="alternate"> pairs for en <-> zh-CN (mirrors the
+      // in-page hreflang). en is the unprefixed default; zh-CN lives under /zh-CN.
+      i18n: {
+        defaultLocale: 'en',
+        locales: { en: 'en', 'zh-CN': 'zh-CN' },
+      },
+      serialize(item) {
+        item.lastmod = lastmodForUrl(item.url)
+        return item
+      },
     }),
   ],
   vite: viteConfig,

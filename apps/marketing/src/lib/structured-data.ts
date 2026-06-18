@@ -8,7 +8,7 @@ import type {
   StateCoverageCopy,
   StatePageCopy,
 } from '../i18n/types'
-import { CONTENT_PUBLISHED_ON, CONTENT_REVIEWED_ON } from './content-metadata'
+import { getContentDates } from './content-metadata'
 import { MARKETING_SITE_URL, getMarketingUrl } from './site'
 import type { TrustPageCopy } from './trust-pages'
 
@@ -18,65 +18,122 @@ export const SITE = MARKETING_SITE_URL
 const OFFER_AVAILABILITY = 'https://schema.org/OnlineOnly'
 const OFFER_PRICE_CURRENCY = 'USD'
 
+// Stable @id anchors so every node resolves to one shared entity in the graph.
+const ORG_ID = `${SITE}/#organization`
+const WEBSITE_ID = `${SITE}/#website`
+
+// Entity sameAs — fill with the real off-repo profile URLs once they exist
+// (LinkedIn / Crunchbase / G2 / Capterra). Left empty (never fabricated) so the
+// Organization node never claims a profile that does not exist.
+const ORG_SAME_AS: readonly string[] = []
+const ORG_SUPPORT_EMAIL = 'support@duedatehq.com'
+
+// Breadcrumb labels are localized here; leaf crumbs use page-provided copy.
+const CRUMB_LABELS: Record<
+  'home' | 'pricing' | 'resources' | 'stateCoverage',
+  Record<Locale, string>
+> = {
+  home: { en: 'Home', 'zh-CN': '首页' },
+  pricing: { en: 'Pricing', 'zh-CN': '价格' },
+  resources: { en: 'Resources', 'zh-CN': '资源' },
+  stateCoverage: { en: 'State coverage', 'zh-CN': '州覆盖' },
+}
+
 function absoluteUrl(pathname: string): string {
   return getMarketingUrl(pathname)
 }
 
-function baseGraph(t: LandingCopy, lang: Locale): JsonLdDocument[] {
-  return [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: t.geo.structuredData.organizationName,
-      url: SITE,
-      logo: `${SITE}/favicon.svg`,
-      description: t.geo.structuredData.organizationDescription,
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: t.geo.structuredData.websiteName,
-      url: SITE,
-      inLanguage: lang,
-      description: t.meta.description,
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: t.geo.structuredData.productName,
-      applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
-      url: SITE,
-      inLanguage: lang,
-      description: t.geo.structuredData.productDescription,
-      audience: {
-        '@type': 'Audience',
-        audienceType: t.geo.structuredData.audience,
-      },
-    },
-  ]
+function homePath(lang: Locale): string {
+  return lang === 'zh-CN' ? '/zh-CN' : '/'
 }
 
-function webPageDocument(
+function webPageId(pathname: string): string {
+  return `${absoluteUrl(pathname)}#webpage`
+}
+
+function withoutNulls(items: Array<JsonLdDocument | null>): JsonLdDocument[] {
+  return items.filter((item): item is JsonLdDocument => item !== null)
+}
+
+function graph(nodes: Array<JsonLdDocument | null>): JsonLdDocument {
+  return { '@context': 'https://schema.org', '@graph': withoutNulls(nodes) }
+}
+
+function organizationNode(t: LandingCopy): JsonLdDocument {
+  const node: JsonLdDocument = {
+    '@type': 'Organization',
+    '@id': ORG_ID,
+    name: t.geo.structuredData.organizationName,
+    url: SITE,
+    logo: { '@type': 'ImageObject', url: `${SITE}/favicon.svg` },
+    description: t.geo.structuredData.organizationDescription,
+    areaServed: 'US',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: ORG_SUPPORT_EMAIL,
+      areaServed: 'US',
+      availableLanguage: ['en', 'zh'],
+    },
+  }
+  if (ORG_SAME_AS.length > 0) node.sameAs = [...ORG_SAME_AS]
+  return node
+}
+
+function webSiteNode(t: LandingCopy, lang: Locale): JsonLdDocument {
+  return {
+    '@type': 'WebSite',
+    '@id': WEBSITE_ID,
+    name: t.geo.structuredData.websiteName,
+    url: SITE,
+    inLanguage: lang,
+    description: t.meta.description,
+    publisher: { '@id': ORG_ID },
+  }
+}
+
+function softwareApplicationNode(t: LandingCopy, lang: Locale): JsonLdDocument {
+  return {
+    '@type': 'SoftwareApplication',
+    name: t.geo.structuredData.productName,
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: SITE,
+    inLanguage: lang,
+    description: t.geo.structuredData.productDescription,
+    publisher: { '@id': ORG_ID },
+    audience: {
+      '@type': 'Audience',
+      audienceType: t.geo.structuredData.audience,
+    },
+  }
+}
+
+function baseNodes(t: LandingCopy, lang: Locale): JsonLdDocument[] {
+  return [organizationNode(t), webSiteNode(t, lang), softwareApplicationNode(t, lang)]
+}
+
+function webPageNode(
   pathname: string,
   title: string,
   description: string,
   lang: Locale,
+  slug?: string,
 ): JsonLdDocument {
   return {
-    '@context': 'https://schema.org',
     '@type': 'WebPage',
+    '@id': webPageId(pathname),
     name: title,
     url: absoluteUrl(pathname),
     inLanguage: lang,
     description,
-    dateModified: CONTENT_REVIEWED_ON,
+    isPartOf: { '@id': WEBSITE_ID },
+    dateModified: getContentDates(slug).reviewedOn,
   }
 }
 
-function breadcrumbDocument(items: { name: string; pathname: string }[]): JsonLdDocument {
+function breadcrumbNode(items: { name: string; pathname: string }[]): JsonLdDocument {
   return {
-    '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: items.map((item, index) => ({
       '@type': 'ListItem',
@@ -87,11 +144,10 @@ function breadcrumbDocument(items: { name: string; pathname: string }[]): JsonLd
   }
 }
 
-function faqDocument(faq: FaqItemCopy[]): JsonLdDocument | null {
+function faqNode(faq: FaqItemCopy[]): JsonLdDocument | null {
   if (faq.length === 0) return null
 
   return {
-    '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: faq.map((item) => ({
       '@type': 'Question',
@@ -111,7 +167,7 @@ function planPrice(plan: PricingCopy['plans'][number]): number | null {
   return Number(match[0])
 }
 
-function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument {
+function productNode(pricing: PricingCopy, pathname: string): JsonLdDocument {
   const offers: JsonLdDocument[] = pricing.plans.flatMap((plan) => {
     if (plan.priceKind === 'text') return []
 
@@ -132,74 +188,62 @@ function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument
   })
 
   return {
-    '@context': 'https://schema.org',
     '@type': 'Product',
     name: 'DueDateHQ',
     url: absoluteUrl(pathname),
     image: `${SITE}/og/home.en.png`,
     description: pricing.meta.description,
-    brand: {
-      '@type': 'Brand',
-      name: 'DueDateHQ',
-    },
+    brand: { '@id': ORG_ID },
     offers,
   }
 }
 
-function articleDocument(
+function articleNode(
   pathname: string,
   title: string,
   description: string,
   lang: Locale,
+  slug?: string,
 ): JsonLdDocument {
+  const dates = getContentDates(slug)
   return {
-    '@context': 'https://schema.org',
     '@type': 'Article',
     headline: title,
     description,
     url: absoluteUrl(pathname),
+    mainEntityOfPage: { '@id': webPageId(pathname) },
+    isPartOf: { '@id': WEBSITE_ID },
     inLanguage: lang,
     image: `${SITE}/og/home.${lang}.png`,
-    datePublished: CONTENT_PUBLISHED_ON,
-    dateModified: CONTENT_REVIEWED_ON,
-    author: {
-      '@type': 'Organization',
-      name: 'DueDateHQ',
-      url: SITE,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'DueDateHQ',
-      url: SITE,
-    },
+    datePublished: dates.publishedOn,
+    dateModified: dates.reviewedOn,
+    author: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
   }
 }
 
-function withoutNulls(items: Array<JsonLdDocument | null>): JsonLdDocument[] {
-  return items.filter((item): item is JsonLdDocument => item !== null)
-}
-
-export function homeStructuredData(t: LandingCopy, lang: Locale): JsonLdDocument[] {
-  return [
-    ...baseGraph(t, lang),
-    webPageDocument('/', t.meta.title, t.meta.description, lang),
-    breadcrumbDocument([{ name: 'Home', pathname: '/' }]),
-  ]
+export function homeStructuredData(t: LandingCopy, lang: Locale): JsonLdDocument {
+  const path = homePath(lang)
+  return graph([
+    ...baseNodes(t, lang),
+    webPageNode(path, t.meta.title, t.meta.description, lang, 'home'),
+    breadcrumbNode([{ name: CRUMB_LABELS.home[lang], pathname: path }]),
+  ])
 }
 
 export function pricingStructuredData(
   t: LandingCopy,
   lang: Locale,
   pathname: string,
-): JsonLdDocument[] {
-  return withoutNulls([
-    ...baseGraph(t, lang),
-    webPageDocument(pathname, t.pricing.meta.title, t.pricing.meta.description, lang),
-    productDocument(t.pricing, pathname),
-    faqDocument(t.pricing.faq),
-    breadcrumbDocument([
-      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
-      { name: 'Pricing', pathname },
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(t, lang),
+    webPageNode(pathname, t.pricing.meta.title, t.pricing.meta.description, lang, 'pricing'),
+    productNode(t.pricing, pathname),
+    faqNode(t.pricing.faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: CRUMB_LABELS.pricing[lang], pathname },
     ]),
   ])
 }
@@ -209,15 +253,19 @@ export function resourceStructuredData(
   page: ResourcePageCopy | GuidePageCopy,
   lang: Locale,
   pathname: string,
-): JsonLdDocument[] {
-  return withoutNulls([
-    ...baseGraph(siteCopy, lang),
-    webPageDocument(pathname, page.meta.title, page.meta.description, lang),
-    'slug' in page ? articleDocument(pathname, page.meta.title, page.meta.description, lang) : null,
-    faqDocument(page.faq),
-    breadcrumbDocument([
-      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
-      { name: 'Resources', pathname: lang === 'zh-CN' ? '/zh-CN/rules' : '/rules' },
+): JsonLdDocument {
+  const slug = 'slug' in page ? page.slug : undefined
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, page.meta.title, page.meta.description, lang, slug),
+    slug ? articleNode(pathname, page.meta.title, page.meta.description, lang, slug) : null,
+    faqNode(page.faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      {
+        name: CRUMB_LABELS.resources[lang],
+        pathname: lang === 'zh-CN' ? '/zh-CN/rules' : '/rules',
+      },
       { name: page.hero.title, pathname },
     ]),
   ])
@@ -228,14 +276,14 @@ export function stateCoverageStructuredData(
   page: StateCoverageCopy,
   lang: Locale,
   pathname: string,
-): JsonLdDocument[] {
-  return withoutNulls([
-    ...baseGraph(siteCopy, lang),
-    webPageDocument(pathname, page.meta.title, page.meta.description, lang),
-    faqDocument(page.faq),
-    breadcrumbDocument([
-      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
-      { name: 'State coverage', pathname },
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, page.meta.title, page.meta.description, lang, 'state-coverage'),
+    faqNode(page.faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: CRUMB_LABELS.stateCoverage[lang], pathname },
     ]),
   ])
 }
@@ -245,15 +293,15 @@ export function statePageStructuredData(
   page: StatePageCopy,
   lang: Locale,
   pathname: string,
-): JsonLdDocument[] {
-  return withoutNulls([
-    ...baseGraph(siteCopy, lang),
-    webPageDocument(pathname, page.meta.title, page.meta.description, lang),
-    faqDocument(page.faq),
-    breadcrumbDocument([
-      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, page.meta.title, page.meta.description, lang, page.slug),
+    faqNode(page.faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       {
-        name: 'State coverage',
+        name: CRUMB_LABELS.stateCoverage[lang],
         pathname: lang === 'zh-CN' ? '/zh-CN/state-coverage' : '/state-coverage',
       },
       { name: page.name, pathname },
@@ -266,13 +314,13 @@ export function trustPageStructuredData(
   page: TrustPageCopy,
   lang: Locale,
   pathname: string,
-): JsonLdDocument[] {
-  return [
-    ...baseGraph(siteCopy, lang),
-    webPageDocument(pathname, page.meta.title, page.meta.description, lang),
-    breadcrumbDocument([
-      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, page.meta.title, page.meta.description, lang, page.slug),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       { name: page.hero.title, pathname },
     ]),
-  ]
+  ])
 }

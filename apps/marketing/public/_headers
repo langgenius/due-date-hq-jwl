@@ -4,3 +4,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'
+
+# Astro emits content-hashed filenames under /_astro — safe to cache forever.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

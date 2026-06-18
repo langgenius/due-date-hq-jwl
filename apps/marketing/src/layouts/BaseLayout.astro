@@ -16,6 +16,8 @@ interface Props {
   /** Path of the locale-specific OG image under /public, e.g. "/og/home.en.png". */
   ogImage: string
   noindex?: boolean
+  /** og:type — 'website' (default) or 'article' for guide/rule/compare pages. */
+  ogType?: string
   structuredData?: JsonLdDocument | JsonLdDocument[]
 }
 
@@ -28,7 +30,7 @@ const ALTERNATE_OG_LOCALE: Record<Locale, readonly string[]> = {
   'zh-CN': ['en_US'],
 }
 
-const { lang, pathname, title, description, ogImage, noindex = false, structuredData } =
+const { lang, pathname, title, description, ogImage, noindex = false, ogType = 'website', structuredData } =
   Astro.props
 const canonical = getMarketingUrl(pathname)
 const ogImageUrl = `${MARKETING_SITE_URL}${ogImage}`
@@ -54,12 +56,13 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     {!noindex && <link rel="alternate" hreflang="zh-CN" href={zhHref} />}
     {!noindex && <link rel="alternate" hreflang="x-default" href={enHref} />}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="DueDateHQ" />
     <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={title} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content={OG_LOCALE[lang]} />
