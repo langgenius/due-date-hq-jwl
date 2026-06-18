@@ -645,21 +645,27 @@ Tax Period review。
 - `ghost` 静止态没有任何边框/填充，和纯文字标签等同——这是 ghost 的固有取舍。它是全产品**用得最多**
   的 variant，确保真正可点的 ghost 操作不会在页面里"消失"。
 
-#### Size（2026-06-08 flat radius scale）
+#### Size（圆角 scale，2026-06-16 "bigger rounded corners" 修订）
 
 | size      | 高度        | 圆角             | 文字              |
 | --------- | ----------- | ---------------- | ----------------- |
-| `xs`      | `h-7` 28px  | `rounded-md` 6   | `text-xs`         |
-| `sm`      | `h-8` 32px  | `rounded-lg` 8   | `text-sm`         |
-| `default` | `h-9` 36px  | `rounded-[10px]` | `text-sm`         |
-| `lg`      | `h-10` 40px | `rounded-xl` 12  | `text-base` / 600 |
-| `icon-xs` | `size-7`    | `rounded-md`     | —                 |
-| `icon-sm` | `size-8`    | `rounded-lg`     | —                 |
-| `icon`    | `size-9`    | `rounded-[10px]` | —                 |
-| `icon-lg` | `size-10`   | `rounded-xl`     | —                 |
+| `xs`      | `h-7` 28px  | `rounded-xl` 12  | `text-xs`         |
+| `sm`      | `h-8` 32px  | `rounded-xl` 12  | `text-sm`         |
+| `default` | `h-9` 36px  | `rounded-2xl` 16 | `text-sm`         |
+| `lg`      | `h-10` 40px | `rounded-2xl` 16 | `text-base` / 600 |
+| `icon-xs` | `size-7`    | `rounded-xl`     | —                 |
+| `icon-sm` | `size-8`    | `rounded-xl`     | —                 |
+| `icon`    | `size-9`    | `rounded-2xl`    | —                 |
+| `icon-lg` | `size-10`   | `rounded-2xl`    | —                 |
 
 基类统一带 `[corner-shape:squircle]`（iOS 连续圆角，受支持的浏览器自动平滑，其余优雅降级）+
 `focus-visible:ring-2 ring-state-accent-active-alt ring-offset-2`。
+
+**Form-control radius（2026-06-18）：** 可编辑控件 —— `Input` / `Textarea` /
+`SelectTrigger` / `Combobox` / `IsoDatePicker` trigger —— 统一 `h-9 rounded-xl`（12px），
+向上对齐 Button 的软圆角家族（曾是 `rounded-lg` 8px，与 16px 的 button 并排时角差太大）。
+`FilterTrigger` 早已是 `h-9 rounded-xl`。控件的 popup（SelectContent / Combobox list /
+日历格）保留自己的半径，不随 trigger 改。
 
 #### Size → context 映射（2026-06-11 — 强制规则，不要凭感觉选 size）
 
