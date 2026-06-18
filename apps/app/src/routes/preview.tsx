@@ -21,6 +21,11 @@ import {
   CircleAlertIcon,
   ChevronDownIcon,
   CalendarClockIcon,
+  LoaderIcon,
+  HourglassIcon,
+  ConstructionIcon,
+  MessageSquareTextIcon,
+  FileCheckIcon,
   MegaphoneIcon,
   HistoryIcon,
 } from 'lucide-react'
@@ -158,6 +163,7 @@ import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { SeverityChip } from '@/components/primitives/severity-chip'
+import { StatusRing } from '@/components/primitives/status-ring'
 import { TaxCodeLabel, TaxCodeBadge } from '@/components/primitives/tax-code-label'
 
 import { StatTile } from '@/components/patterns/stat-tile'
@@ -1684,6 +1690,94 @@ export function PreviewRoute() {
               <SeverityChip level="neutral" shape="square">
                 Med
               </SeverityChip>
+            </Row>
+            <Row label="Status — current glyph" mono="status-control STATUS_ICON (shipped)">
+              {(
+                [
+                  {
+                    label: 'Not started',
+                    Icon: LoaderIcon,
+                    cls: 'text-text-tertiary bg-background-subtle',
+                  },
+                  {
+                    label: 'Waiting on client',
+                    Icon: HourglassIcon,
+                    cls: 'text-text-warning bg-state-warning-hover',
+                  },
+                  {
+                    label: 'Blocked',
+                    Icon: ConstructionIcon,
+                    cls: 'text-text-destructive bg-state-destructive-hover',
+                  },
+                  {
+                    label: 'In review',
+                    Icon: MessageSquareTextIcon,
+                    cls: 'text-text-accent bg-state-accent-hover',
+                  },
+                  {
+                    label: 'Filed',
+                    Icon: FileCheckIcon,
+                    cls: 'text-text-success bg-state-success-hover',
+                  },
+                  {
+                    label: 'Completed',
+                    Icon: CircleCheckIcon,
+                    cls: 'text-text-success bg-state-success-hover',
+                  },
+                ] as const
+              ).map(({ label, Icon, cls }) => (
+                <span
+                  key={label}
+                  className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ${cls}`}
+                >
+                  <Icon className="size-4 shrink-0" aria-hidden />
+                  {label}
+                </span>
+              ))}
+            </Row>
+            <Row label="Status — ring (proposed)" mono="primitives/status-ring (prototype)">
+              {(
+                [
+                  {
+                    label: 'Not started',
+                    level: 'not_started',
+                    cls: 'text-text-tertiary bg-background-subtle',
+                  },
+                  {
+                    label: 'Waiting on client',
+                    level: 'waiting',
+                    cls: 'text-text-warning bg-state-warning-hover',
+                  },
+                  {
+                    label: 'Blocked',
+                    level: 'blocked',
+                    cls: 'text-text-destructive bg-state-destructive-hover',
+                  },
+                  {
+                    label: 'In review',
+                    level: 'in_review',
+                    cls: 'text-text-accent bg-state-accent-hover',
+                  },
+                  {
+                    label: 'Filed',
+                    level: 'filed',
+                    cls: 'text-text-success bg-state-success-hover',
+                  },
+                  {
+                    label: 'Completed',
+                    level: 'completed',
+                    cls: 'text-text-success bg-state-success-hover',
+                  },
+                ] as const
+              ).map(({ label, level, cls }) => (
+                <span
+                  key={label}
+                  className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ${cls}`}
+                >
+                  <StatusRing level={level} />
+                  {label}
+                </span>
+              ))}
             </Row>
             <Row label="RelativeTime" mono="primitives/relative-time">
               <span className="text-sm">
