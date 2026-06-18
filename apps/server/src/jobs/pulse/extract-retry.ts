@@ -32,12 +32,17 @@ export async function retryFailedPulseExtractions(
   now: Date = new Date(),
 ): Promise<{ queued: number }> {
   const repo = makePulseOpsRepo(createDb(env.DB))
-  const { extracted, failed } = await repo.countRecentExtractionOutcomes({
+  const { aiSucceeded, failed } = await repo.countRecentExtractionOutcomes({
     sinceMs: HEALTH_WINDOW_MS,
     now,
   })
-  const attempted = extracted + failed
-  const healthy = extracted > 0 && failed / attempted < 0.5
+  // Liveness = at least one successful AI verdict in the window and failures not
+  // dominating. `aiSucceeded` counts no-change 'ignored' verdicts too (see
+  // countRecentExtractionOutcomes), so a healthy pipeline whose recent content
+  // happened to be all no-change still drains the failed backlog — `extracted`
+  // alone went to zero in quiet windows and stranded the sweep.
+  const attempted = aiSucceeded + failed
+  const healthy = aiSucceeded > 0 && failed / attempted < 0.5
   if (!healthy) return { queued: 0 }
 
   const snapshots = await repo.listRetryableFailedSnapshots({

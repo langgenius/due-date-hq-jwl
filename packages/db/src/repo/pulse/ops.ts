@@ -1571,6 +1571,7 @@ export function makePulseOpsRepo(db: Db) {
       extracted: number
       failed: number
       total: number
+      aiSucceeded: number
     }> {
       const cutoff = new Date((input.now ?? new Date()).getTime() - input.sinceMs)
       const rows = await db
@@ -1586,7 +1587,24 @@ export function makePulseOpsRepo(db: Db) {
         if (row.parseStatus === 'extracted') extracted += row.n
         if (row.parseStatus === 'failed') failed += row.n
       }
-      return { extracted, failed, total }
+      // A successful AI verdict that finds no actionable change lands as 'ignored'
+      // (carrying an aiOutputId), NOT 'extracted' — so `extracted > 0` alone
+      // misreads a healthy-but-quiet pipeline as down and stalls the retry sweep.
+      // `aiSucceeded` counts every AI-completed snapshot (extracted OR ignored
+      // WITH an aiOutputId; baseline/dedupe 'ignored' rows carry no aiOutputId and
+      // are excluded), giving the retry gate a true liveness signal. The canary
+      // keeps reading extracted/failed and is unaffected.
+      const [aiSucceededRow] = await db
+        .select({ n: rowCount() })
+        .from(pulseSourceSnapshot)
+        .where(
+          and(
+            gte(pulseSourceSnapshot.createdAt, cutoff),
+            isNotNull(pulseSourceSnapshot.aiOutputId),
+            inArray(pulseSourceSnapshot.parseStatus, ['extracted', 'ignored']),
+          ),
+        )
+      return { extracted, failed, total, aiSucceeded: aiSucceededRow?.n ?? 0 }
     },
 
     async createPulseForFirmReviewFromExtract(

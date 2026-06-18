@@ -35,6 +35,7 @@ describe('retryFailedPulseExtractions', () => {
       extracted: 0,
       failed: 12,
       total: 12,
+      aiSucceeded: 0,
     })
     const send = vi.fn()
 
@@ -48,6 +49,7 @@ describe('retryFailedPulseExtractions', () => {
       extracted: 3,
       failed: 9,
       total: 12,
+      aiSucceeded: 3,
     })
     const send = vi.fn()
 
@@ -55,11 +57,29 @@ describe('retryFailedPulseExtractions', () => {
     expect(send).not.toHaveBeenCalled()
   })
 
+  it('opens on no-change ignored successes even when zero snapshots reached extracted', async () => {
+    // The regression that stalled the post-migration backlog: a healthy-but-quiet
+    // window whose successful AI verdicts all landed as no-change 'ignored'
+    // (extracted=0) must still count as live and drain the failed backlog.
+    repoMocks.countRecentExtractionOutcomes.mockResolvedValue({
+      extracted: 0,
+      failed: 1,
+      total: 17,
+      aiSucceeded: 16,
+    })
+    repoMocks.listRetryableFailedSnapshots.mockResolvedValue([{ id: 'snap-9' }])
+    const send = vi.fn().mockResolvedValue(undefined)
+
+    await expect(retryFailedPulseExtractions(env(send), NOW)).resolves.toEqual({ queued: 1 })
+    expect(send).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snap-9' })
+  })
+
   it('re-enqueues retryable failed snapshots when the pipeline is healthy', async () => {
     repoMocks.countRecentExtractionOutcomes.mockResolvedValue({
       extracted: 10,
       failed: 2,
       total: 12,
+      aiSucceeded: 10,
     })
     repoMocks.listRetryableFailedSnapshots.mockResolvedValue([{ id: 'snap-1' }, { id: 'snap-2' }])
     const send = vi.fn().mockResolvedValue(undefined)
@@ -78,6 +98,7 @@ describe('retryFailedPulseExtractions', () => {
       extracted: 5,
       failed: 0,
       total: 5,
+      aiSucceeded: 5,
     })
     repoMocks.listRetryableFailedSnapshots.mockResolvedValue([])
     const send = vi.fn()
