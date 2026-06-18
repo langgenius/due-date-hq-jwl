@@ -131,6 +131,14 @@ export function NotificationPreferencesPage() {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
       },
+      onError: (error) => {
+        // The optimistic toggle has no explicit Save; surface server rejection
+        // and resync to truth so a failed write doesn't silently diverge.
+        toast.error(t`Couldn't save your preference`, {
+          description: rpcErrorMessage(error) ?? t`Try again in a moment.`,
+        })
+        void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
+      },
     }),
   )
   const previewDigest = useMutation(
@@ -171,7 +179,18 @@ export function NotificationPreferencesPage() {
         // save automatically; the per-control optimistic write is the feedback.
       />
 
-      {preferencesQuery.isLoading || !preferences ? (
+      {preferencesQuery.isError ? (
+        <EmptyState
+          icon={TriangleAlertIcon}
+          title={<Trans>Couldn't load your preferences</Trans>}
+          description={<Trans>Something went wrong fetching your notification settings.</Trans>}
+          cta={
+            <Button variant="outline" onClick={() => void preferencesQuery.refetch()}>
+              <Trans>Try again</Trans>
+            </Button>
+          }
+        />
+      ) : preferencesQuery.isLoading || !preferences ? (
         <div className="grid gap-5" aria-busy="true">
           <Skeleton className="h-64 w-full rounded-xl" />
           <Skeleton className="h-96 w-full rounded-xl" />
@@ -421,10 +440,10 @@ function TypesMatrixCard({
             <FieldLabel as="span" variant="group" className="flex-1 text-text-secondary">
               <Trans>Type</Trans>
             </FieldLabel>
-            <MatrixColHead>
+            <MatrixColHead id="notif-col-email">
               <Trans>Email</Trans>
             </MatrixColHead>
-            <MatrixColHead>
+            <MatrixColHead id="notif-col-inapp">
               <Trans>In-app</Trans>
             </MatrixColHead>
             <FieldLabel as="span" variant="group" className="w-[150px] text-text-secondary">
@@ -449,7 +468,12 @@ function TypesMatrixCard({
                     <row.icon className="size-3.5" aria-hidden />
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-base font-semibold text-text-primary">{row.name}</span>
+                    <span
+                      id={`notif-type-${row.id}`}
+                      className="text-base font-semibold text-text-primary"
+                    >
+                      {row.name}
+                    </span>
                     <span className="truncate text-xs text-text-secondary">{row.detail}</span>
                   </div>
                 </div>
@@ -460,11 +484,13 @@ function TypesMatrixCard({
                   on={typeOn && preferences.emailEnabled}
                   interactive={Boolean(flag)}
                   onToggle={toggle}
+                  labelledBy={`notif-col-email notif-type-${row.id}`}
                 />
                 <MatrixCell
                   on={typeOn && preferences.inAppEnabled}
                   interactive={Boolean(flag)}
                   onToggle={toggle}
+                  labelledBy={`notif-col-inapp notif-type-${row.id}`}
                 />
                 <span className="w-[150px]">
                   <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
@@ -481,9 +507,14 @@ function TypesMatrixCard({
   )
 }
 
-function MatrixColHead({ children }: { children: ReactNode }) {
+function MatrixColHead({ children, id }: { children: ReactNode; id?: string }) {
   return (
-    <FieldLabel as="span" variant="group" className="w-[60px] text-center text-text-secondary">
+    <FieldLabel
+      as="span"
+      id={id}
+      variant="group"
+      className="w-[60px] text-center text-text-secondary"
+    >
       {children}
     </FieldLabel>
   )
@@ -493,10 +524,12 @@ function MatrixCell({
   on,
   interactive,
   onToggle,
+  labelledBy,
 }: {
   on: boolean
   interactive?: boolean
   onToggle?: (() => void) | undefined
+  labelledBy?: string
 }) {
   const content = (
     <span
@@ -511,7 +544,13 @@ function MatrixCell({
   return (
     <span className="flex w-[60px] justify-center">
       {interactive && onToggle ? (
-        <button type="button" onClick={onToggle} aria-pressed={on} className="cursor-pointer">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={on}
+          aria-labelledby={labelledBy}
+          className="cursor-pointer"
+        >
           {content}
         </button>
       ) : (
@@ -640,7 +679,7 @@ function MorningDigestCard({
                   key={day.key}
                   selected={preferences.morningDigestDays.includes(day.key)}
                   onClick={() => toggleDay(day.key)}
-                  aria-label={day.key}
+                  aria-label={day.label}
                   disabled={saving && !preferences.morningDigestDays.includes(day.key)}
                   size="md"
                   className="w-[54px] justify-center"

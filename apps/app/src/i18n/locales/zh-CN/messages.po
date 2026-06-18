@@ -4806,6 +4806,10 @@ msgstr "无法加载该客户。"
 msgid "Couldn't load Today"
 msgstr "无法加载今天页面"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Couldn't load your preferences"
+msgstr "无法加载你的偏好设置"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
 msgstr "无法映射列"
@@ -4955,6 +4959,10 @@ msgstr "无法保存风险档案"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't save tax year profile"
 msgstr "无法保存税务年度资料"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Couldn't save your preference"
+msgstr "无法保存你的偏好设置"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't send input request"
@@ -14236,6 +14244,10 @@ msgstr "部分来源需要关注"
 msgid "Some state deadlines need rule review"
 msgstr "部分州级截止日需要先审核规则"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Something went wrong fetching your notification settings."
+msgstr "获取通知设置时出错。"
+
 #: src/lib/i18n-error.ts
 msgid "Something went wrong on our side. Please try again shortly."
 msgstr "我们这边出了点问题，请稍后重试。"
@@ -15592,11 +15604,13 @@ msgstr "使用示例数据进行 30 秒体验"
 msgid "Try a different filter combination, or clear all filters to see the full queue."
 msgstr "请尝试不同的筛选组合，或清除所有筛选以查看完整队列。"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.$clientId.tsx
 #, fuzzy
 msgid "Try again"
 msgstr "请稍后重试。"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.tsx
 #: src/routes/obligations.tsx
 #: src/routes/settings.profile.tsx

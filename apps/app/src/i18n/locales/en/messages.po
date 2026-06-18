@@ -4785,6 +4785,10 @@ msgstr "Couldn't load this client."
 msgid "Couldn't load Today"
 msgstr "Couldn't load Today"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Couldn't load your preferences"
+msgstr "Couldn't load your preferences"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
 msgstr "Couldn't map columns"
@@ -4934,6 +4938,10 @@ msgstr "Couldn't save risk profile"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't save tax year profile"
 msgstr "Couldn't save tax year profile"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Couldn't save your preference"
+msgstr "Couldn't save your preference"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't send input request"
@@ -14174,6 +14182,10 @@ msgstr "Some sources need attention"
 msgid "Some state deadlines need rule review"
 msgstr "Some state deadlines need rule review"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Something went wrong fetching your notification settings."
+msgstr "Something went wrong fetching your notification settings."
+
 #: src/lib/i18n-error.ts
 msgid "Something went wrong on our side. Please try again shortly."
 msgstr "Something went wrong on our side. Please try again shortly."
@@ -15528,10 +15540,12 @@ msgstr "Try a 30-second tour with sample data"
 msgid "Try a different filter combination, or clear all filters to see the full queue."
 msgstr "Try a different filter combination, or clear all filters to see the full queue."
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.$clientId.tsx
 msgid "Try again"
 msgstr "Try again"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.tsx
 #: src/routes/obligations.tsx
 #: src/routes/settings.profile.tsx

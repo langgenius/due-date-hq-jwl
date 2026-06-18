@@ -145,11 +145,14 @@ function FieldDescription({
   // ack) collapse into a single FieldDescription with a tone prop.
   // Default keeps text-text-tertiary; warning/destructive use the
   // matching foreground tokens.
+  // a11y: only `destructive` (an error event) is an assertive `role="alert"`.
+  // `warning` is static guidance read in normal DOM flow — an alert role would
+  // announce it assertively on every mount (full-app-audit-2026-06-18 §1).
   return (
     <p
       data-slot="field-description"
       data-tone={tone}
-      role={tone === 'destructive' || tone === 'warning' ? 'alert' : undefined}
+      role={tone === 'destructive' ? 'alert' : undefined}
       className={cn(
         'text-left text-sm leading-normal font-normal group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
         tone === 'default' && 'text-text-tertiary',

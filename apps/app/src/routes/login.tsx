@@ -693,6 +693,7 @@ function LoginEmailForm({
             value={code}
             disabled={formDisabled}
             aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'login-otp-error' : undefined}
             placeholder={t`6-digit code`}
             onFocus={noteInteraction}
             onChange={(event) => {
@@ -703,7 +704,15 @@ function LoginEmailForm({
             className="h-full flex-1 bg-transparent font-mono text-sm tracking-[0.3em] text-text-primary outline-none placeholder:font-sans placeholder:tracking-normal placeholder:text-text-muted"
           />
         </FieldShell>
-        {error ? <p className="text-xs font-medium text-text-destructive">{error}</p> : null}
+        {error ? (
+          <p
+            id="login-otp-error"
+            role="alert"
+            className="text-xs font-medium text-text-destructive"
+          >
+            {error}
+          </p>
+        ) : null}
 
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
@@ -762,6 +771,7 @@ function LoginEmailForm({
             value={email}
             disabled={formDisabled}
             aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'login-email-error' : undefined}
             onFocus={noteInteraction}
             onChange={(event) => {
               noteInteraction()
@@ -774,7 +784,15 @@ function LoginEmailForm({
             Return ↵
           </span>
         </FieldShell>
-        {error ? <p className="text-xs font-medium text-text-destructive">{error}</p> : null}
+        {error ? (
+          <p
+            id="login-email-error"
+            role="alert"
+            className="text-xs font-medium text-text-destructive"
+          >
+            {error}
+          </p>
+        ) : null}
       </div>
 
       <Button
