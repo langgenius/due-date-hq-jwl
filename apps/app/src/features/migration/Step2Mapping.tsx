@@ -239,20 +239,20 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
             aria-hidden
             className="hidden items-center gap-3 border-b border-divider-regular bg-background-subtle px-4 py-2.5 sm:flex"
           >
-            <FieldLabel as="span" variant="group" className="w-[170px] shrink-0 text-text-muted">
+            <FieldLabel as="span" variant="group" className="w-[170px] shrink-0 text-text-tertiary">
               <Trans>Source column</Trans>
             </FieldLabel>
             <span className="w-7 shrink-0" />
-            <FieldLabel as="span" variant="group" className="w-[200px] shrink-0 text-text-muted">
+            <FieldLabel as="span" variant="group" className="w-[200px] shrink-0 text-text-tertiary">
               <Trans>DueDateHQ field</Trans>
             </FieldLabel>
-            <FieldLabel as="span" variant="group" className="min-w-0 flex-1 text-text-muted">
+            <FieldLabel as="span" variant="group" className="min-w-0 flex-1 text-text-tertiary">
               <Trans>Sample (first row)</Trans>
             </FieldLabel>
             <FieldLabel
               as="span"
               variant="group"
-              className="w-[140px] shrink-0 text-right text-text-muted"
+              className="w-[140px] shrink-0 text-right text-text-tertiary"
             >
               <Trans>Confidence</Trans>
             </FieldLabel>

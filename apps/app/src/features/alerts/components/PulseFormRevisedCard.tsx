@@ -123,7 +123,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
             </span>
           ) : null}
           {/* Mclbt source caption: 12/500 muted. */}
-          <span className="truncate text-xs font-medium text-text-muted">{alert.source}</span>
+          <span className="truncate text-xs font-medium text-text-tertiary">{alert.source}</span>
           {/* Change-kind eyebrow — token tertiary ink (was a hardcoded
               #6B21A8 purple, the only off-palette literal on this card and a
               third rendering of a label the row/detail show in `secondary`). */}
@@ -164,7 +164,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           {alert.title}
         </h3>
         {/* C9rliy "Open" muted: 20/500 ls -0.4 line-height 1.25. */}
-        <span className="shrink-0 text-xl leading-tight font-medium tracking-display text-text-muted">
+        <span className="shrink-0 text-xl leading-tight font-medium tracking-display text-text-tertiary">
           {openLabel}
         </span>
       </div>
@@ -179,7 +179,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
         <div className="grid grid-cols-[5fr_5fr_2fr_2fr] overflow-hidden rounded-xl bg-background-section">
           {/* wdV5a WHAT CHANGED. padding [12,16], gap-1.5. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-muted">
+            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-tertiary">
               <Trans>WHAT CHANGED</Trans>
             </span>
             <div className="flex items-center gap-2.5 text-sm">
@@ -207,7 +207,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           {/* JNTVV AFFECTING (renamed from SCHEMA DIFF). Shows form-code
               pills inline. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-muted">
+            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-tertiary">
               <Trans>AFFECTING</Trans>
             </span>
             <div className="flex flex-wrap items-center gap-1">
@@ -229,7 +229,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           </div>
           {/* DOz2N FIRST YEAR — narrower cell. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-muted">
+            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-tertiary">
               <Trans>FIRST YEAR</Trans>
             </span>
             <span className="text-sm font-medium text-text-secondary">
@@ -238,7 +238,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           </div>
           {/* y3WVFs TRANSITION — narrower cell. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-muted">
+            <span className="text-xs font-semibold tracking-eyebrow-tight text-text-tertiary">
               <Trans>TRANSITION</Trans>
             </span>
             <span className="text-sm font-medium text-text-secondary">

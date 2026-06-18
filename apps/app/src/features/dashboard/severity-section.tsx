@@ -118,7 +118,7 @@ function ReadinessSubgroupHeader({
       )}
     >
       <span>{label}</span>
-      <span className="tabular-nums text-text-muted">({count})</span>
+      <span className="tabular-nums text-text-tertiary">({count})</span>
     </div>
   )
 }

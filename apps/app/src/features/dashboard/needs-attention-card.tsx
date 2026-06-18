@@ -350,7 +350,7 @@ function NeedsAttentionCard({
           // Zero state matches the /alerts row + rail verbatim — "No
           // client impact", muted, no icon (one phrasing for the zero
           // answer across every alert surface).
-          <span className="shrink-0 whitespace-nowrap text-text-muted">
+          <span className="shrink-0 whitespace-nowrap text-text-tertiary">
             <Trans>No client impact</Trans>
           </span>
         )}

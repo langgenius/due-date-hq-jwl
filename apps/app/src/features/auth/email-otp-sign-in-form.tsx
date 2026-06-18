@@ -148,7 +148,7 @@ export function EmailOtpSignInForm({
     return (
       <form onSubmit={handleVerifySubmit} noValidate className={cn('grid w-full gap-2', className)}>
         <div className="rounded-lg border border-border-default bg-bg-panel px-3 py-2">
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-tertiary">
             <Trans>Code sent to</Trans>
           </p>
           <div className="mt-1 flex items-center justify-between gap-3">
@@ -280,7 +280,7 @@ export function EmailOtpSignInForm({
           add-on; submit semantics are already correct. */}
       {/* 2026-06-01: swap hand-rolled <kbd> for the canonical Kbd
           primitive now exported from patterns/kbd.tsx. */}
-      <p className="text-center text-xs leading-relaxed text-text-muted">
+      <p className="text-center text-xs leading-relaxed text-text-tertiary">
         <Trans>
           or press <Kbd>Enter</Kbd>
         </Trans>

@@ -63,7 +63,7 @@ export function DeadlineCrumbBar({
       </nav>
       <div className="flex shrink-0 items-center gap-3">
         {position && position.total > 0 ? (
-          <span className="text-sm text-text-muted tabular-nums">
+          <span className="text-sm text-text-tertiary tabular-nums">
             {t`${position.index + 1} of ${position.total}`}
           </span>
         ) : null}

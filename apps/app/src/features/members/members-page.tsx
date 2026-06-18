@@ -327,7 +327,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             value: (
               <span className="flex items-baseline gap-1.5">
                 <span>{data.usedSeats}</span>
-                <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
+                <span className="text-sm font-medium text-text-tertiary">/ {data.seatLimit}</span>
               </span>
             ),
             sub: (
@@ -827,7 +827,7 @@ function ActiveMembersTable({
                     engineering-precise timestamp is unparseable at a glance.
                     The exact value lives on the tooltip via <RelativeTime>. No
                     font-mono — this column reads as recency, not as data. */}
-                <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-muted">
+                <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-tertiary">
                   <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
                 </TableCell>
                 <TableCell className="py-1.5 pr-2">
@@ -896,7 +896,7 @@ function PendingInvitationsTable({
                   <span className="font-mono text-xs font-medium text-text-primary">
                     {invitation.email}
                   </span>
-                  <span className="text-xs text-text-muted">
+                  <span className="text-xs text-text-tertiary">
                     {invitationDescription(invitation)}
                   </span>
                 </div>
@@ -917,7 +917,7 @@ function PendingInvitationsTable({
                 <span
                   className={cn(
                     'block',
-                    invitation.status === 'expired' ? 'text-text-warning' : 'text-text-muted',
+                    invitation.status === 'expired' ? 'text-text-warning' : 'text-text-tertiary',
                   )}
                 >
                   {invitation.status === 'expired' ? (

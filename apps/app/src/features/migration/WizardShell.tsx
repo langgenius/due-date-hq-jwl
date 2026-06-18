@@ -165,7 +165,7 @@ function WizardFrame({
             <Button
               variant="ghost"
               size="sm"
-              className="text-text-muted"
+              className="text-text-tertiary"
               disabled={busy}
               onClick={onOpenImportHistory}
             >

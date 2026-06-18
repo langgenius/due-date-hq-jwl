@@ -259,7 +259,7 @@ export function AcceptInviteRoute() {
               <>
                 <div className="flex items-center gap-3.5">
                   <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                  <span className="text-[11px] font-medium tracking-[0.2px] text-text-muted">
+                  <span className="text-[11px] font-medium tracking-[0.2px] text-text-tertiary">
                     <Trans>or continue with email</Trans>
                   </span>
                   <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
@@ -342,7 +342,7 @@ export function AcceptInviteRoute() {
           </div>
         )}
 
-        <p className="text-center text-[11px] font-medium text-text-muted">
+        <p className="text-center text-[11px] font-medium text-text-tertiary">
           <Trans>By accepting you agree to the Terms and Privacy Policy.</Trans>
         </p>
       </AuthCard>

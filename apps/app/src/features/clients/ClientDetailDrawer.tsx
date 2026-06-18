@@ -275,7 +275,7 @@ function NextDueLine({
   const isLate = days < 0
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
-      <FieldLabel as="span" variant="group" className="text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-tertiary">
         <Trans>Next due</Trans>
       </FieldLabel>
       <span className="flex flex-wrap items-baseline gap-x-2 text-sm">

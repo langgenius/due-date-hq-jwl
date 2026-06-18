@@ -193,7 +193,7 @@ export function SuccessModal({
 
           {/* What to do next */}
           <div className="flex flex-col gap-2 px-6 py-4">
-            <FieldLabel as="span" variant="group" className="text-text-muted">
+            <FieldLabel as="span" variant="group" className="text-text-tertiary">
               <Trans>What to do next</Trans>
             </FieldLabel>
             <NextStep

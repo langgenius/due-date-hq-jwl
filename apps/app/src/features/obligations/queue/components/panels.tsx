@@ -1080,7 +1080,7 @@ export function PathToFilingSummary({
                   <FieldLabel
                     as="span"
                     variant="group"
-                    className="text-center leading-tight text-text-muted"
+                    className="text-center leading-tight text-text-tertiary"
                   >
                     <Trans>Expected</Trans>
                   </FieldLabel>

@@ -6486,7 +6486,7 @@ function ObligationFiltersPopover({
               {/* Due window — single-select. Past due / Due this week share the
                   date axis, so picking one clears the other. */}
               <div className="flex flex-col gap-1.5">
-                <CapsFieldLabel as="span" variant="group" className="text-text-muted">
+                <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                   <Trans>Due window</Trans>
                 </CapsFieldLabel>
                 <div className="flex flex-wrap gap-1">
@@ -6525,7 +6525,7 @@ function ObligationFiltersPopover({
 
               {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
               <div className="flex flex-col gap-1.5">
-                <CapsFieldLabel as="span" variant="group" className="text-text-muted">
+                <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                   <Trans>Triage</Trans>
                 </CapsFieldLabel>
                 <div className="flex flex-wrap gap-1">
@@ -6560,7 +6560,7 @@ function ObligationFiltersPopover({
             // rhythm; the preset rows use `-mx-2 px-2` so their hover wash can
             // breathe while the row text still lines up with the eyebrow.
             <div className="flex flex-col gap-1 p-4">
-              <CapsFieldLabel as="span" variant="group" className="pb-1 text-text-muted">
+              <CapsFieldLabel as="span" variant="group" className="pb-1 text-text-tertiary">
                 <Trans>Presets</Trans>
               </CapsFieldLabel>
               {presets.map((preset) => (
@@ -7015,7 +7015,7 @@ function ObligationActiveFilterChips({
           key={chip.key}
           className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default py-1 pr-1 pl-2.5 text-caption-xs"
         >
-          <span className="text-text-muted">{chip.dimension}</span>
+          <span className="text-text-tertiary">{chip.dimension}</span>
           <span className="text-text-muted">·</span>
           <span className="truncate font-medium text-text-primary">{chip.label}</span>
           <Button

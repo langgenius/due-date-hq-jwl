@@ -112,11 +112,11 @@ export function StateRuleActivationSelector({
             a single named input. */}
         <p className="text-sm font-medium leading-none text-text-primary">
           <Trans>State rule coverage</Trans>{' '}
-          <span className="font-normal text-text-muted">
+          <span className="font-normal text-text-tertiary">
             <Trans>(optional)</Trans>
           </span>
         </p>
-        <p className="text-sm leading-relaxed text-text-muted">
+        <p className="text-sm leading-relaxed text-text-tertiary">
           <Trans>
             Add state rules alongside federal. Start with federal only and add states later from the
             Rule Library.

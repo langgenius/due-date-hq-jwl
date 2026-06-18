@@ -63,7 +63,7 @@ function LifecycleStripCell({
       <span className="text-xl leading-none font-semibold tabular-nums tracking-tight text-text-primary">
         {value}
       </span>
-      <span className="text-xs font-medium text-text-muted">{label}</span>
+      <span className="text-xs font-medium text-text-tertiary">{label}</span>
     </Link>
   )
 }

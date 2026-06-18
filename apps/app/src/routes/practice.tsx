@@ -724,7 +724,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                         }
                         disabled={priorityUpdateMutation.isPending}
                       />
-                      <div className="flex justify-between text-caption-xs font-medium tabular-nums text-text-muted">
+                      <div className="flex justify-between text-caption-xs font-medium tabular-nums text-text-tertiary">
                         <span>0</span>
                         <span>100</span>
                       </div>
@@ -1068,7 +1068,7 @@ function PriorityKpiTile({
         <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-state-accent-hover text-text-accent">
           {icon}
         </span>
-        <CapsLabel as="span" variant="group" className="text-text-muted">
+        <CapsLabel as="span" variant="group" className="text-text-tertiary">
           {label}
         </CapsLabel>
       </div>
@@ -1190,7 +1190,7 @@ function PriorityPreviewTable({
                       />
                     </div>
                   ) : (
-                    <span className="text-xs text-text-muted">
+                    <span className="text-xs text-text-tertiary">
                       <Trans>No change</Trans>
                     </span>
                   )}

@@ -121,7 +121,7 @@ function CompareCard({
       <FieldLabel
         as="span"
         variant="group"
-        className="inline-flex items-center gap-1.5 text-text-muted"
+        className="inline-flex items-center gap-1.5 text-text-tertiary"
       >
         {/* Both eyebrows carry a same-size icon square so the two cards read
             as balanced (2026-06-12 critique: the iconless neutral card looked

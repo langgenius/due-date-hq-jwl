@@ -1078,7 +1078,7 @@ function OverviewRecentChangesCard({
                   {changeKindLabels[kind]}
                 </span>
                 {relative ? (
-                  <span className="shrink-0 text-sm font-medium text-text-muted tabular-nums">
+                  <span className="shrink-0 text-sm font-medium text-text-tertiary tabular-nums">
                     {relative}
                   </span>
                 ) : null}
@@ -1134,7 +1134,7 @@ function OverviewCaughtUpCard({
           </Trans>
         </p>
         {lastReviewedRelative ? (
-          <span className="text-sm font-medium text-text-muted">
+          <span className="text-sm font-medium text-text-tertiary">
             <Trans>Last rule reviewed {lastReviewedRelative}</Trans>
           </span>
         ) : null}
@@ -4639,7 +4639,7 @@ function BulkMetric({
       >
         {value}
       </span>
-      <span className="text-caption-xs font-medium text-text-muted">{label}</span>
+      <span className="text-caption-xs font-medium text-text-tertiary">{label}</span>
     </div>
   )
 }

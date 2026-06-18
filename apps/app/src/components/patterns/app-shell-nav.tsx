@@ -216,7 +216,7 @@ function SidebarQuickFind() {
       {/* 13px placeholder — a step below the 15px nav labels so the search
           hint reads as a quiet prompt, not a heading. (Was an oversized
           16px, which made the field look clunky.) */}
-      <span className="min-w-0 flex-1 truncate text-sm text-text-muted group-data-[collapsed=true]/sidebar:hidden">
+      <span className="min-w-0 flex-1 truncate text-sm text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint — plain muted mono text (no keycap box) so the field
@@ -299,7 +299,7 @@ function SidebarSystemStatus() {
             <span className="min-w-0 flex-1 truncate text-sm text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
               {scopeLabel}
               {relativeChecked ? (
-                <span className="text-text-muted">
+                <span className="text-text-tertiary">
                   {' · '}
                   <Trans>swept {relativeChecked}</Trans>
                 </span>
@@ -775,7 +775,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
               {item.tag ? (
                 <span
                   data-slot="sidebar-menu-tag"
-                  className="ml-auto text-xs tabular-nums text-text-muted"
+                  className="ml-auto text-xs tabular-nums text-text-tertiary"
                 >
                   {item.tag}
                 </span>

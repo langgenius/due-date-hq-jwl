@@ -97,7 +97,7 @@ function FieldHeaderRow({
         {label}
       </FieldLabel>
       <span aria-hidden className="h-px flex-1" />
-      <span className="shrink-0 text-[11px] font-medium italic text-text-muted">{hint}</span>
+      <span className="shrink-0 text-[11px] font-medium italic text-text-tertiary">{hint}</span>
     </div>
   )
 }
@@ -384,7 +384,7 @@ export function OnboardingRoute() {
                 </>
               )}
             </Button>
-            <p className="text-center text-[11px] font-medium leading-relaxed text-text-muted">
+            <p className="text-center text-[11px] font-medium leading-relaxed text-text-tertiary">
               <Trans>
                 DueDateHQ schedules filing plans from the first applicable deadline on or after your
                 monitoring start date. By continuing you agree to the Terms and Privacy Policy.

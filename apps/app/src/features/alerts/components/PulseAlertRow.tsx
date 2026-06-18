@@ -783,7 +783,7 @@ function PulseAlertRow({
                 <Trans>Why this is urgent · priority {priority.score}</Trans>
               </span>
               <span className="flex-1" aria-hidden />
-              <span className="text-xs font-medium text-text-muted tabular-nums">
+              <span className="text-xs font-medium text-text-tertiary tabular-nums">
                 <Plural value={priority.reasons.length} one="# signal" other="# signals" />
               </span>
             </div>

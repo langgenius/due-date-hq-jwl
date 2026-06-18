@@ -1413,7 +1413,7 @@ function ClientDetailRail({
                       just echo the name — the demo placeholder sets both to
                       "Primary contact", and two identical lines read broken. */}
                     {contact.role && contact.role !== contact.name ? (
-                      <span className="truncate text-xs text-text-muted">{contact.role}</span>
+                      <span className="truncate text-xs text-text-tertiary">{contact.role}</span>
                     ) : null}
                     {/* Email in mono (V1kJX h1oYYg JetBrains Mono), as a mailto —
                       this is the single home for the client email (removed from

@@ -690,7 +690,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         <FieldLabel
           as="div"
           variant="group"
-          className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-text-muted"
+          className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-text-tertiary"
         >
           <RolloverColumnHeader
             label={t`Status`}
@@ -793,7 +793,7 @@ function RolloverMetric({
       <FieldLabel
         as="div"
         variant="group"
-        className="flex min-w-0 items-center gap-1 text-text-muted"
+        className="flex min-w-0 items-center gap-1 text-text-tertiary"
       >
         <span className="truncate">{label}</span>
         <RolloverHelpPopover label={label} description={description} />
@@ -1072,7 +1072,7 @@ function TaxYearCalendarSelect({
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-lg bg-background-subtle px-2 py-1.5">
-      <FieldLabel as="div" variant="group" className="truncate text-text-muted">
+      <FieldLabel as="div" variant="group" className="truncate text-text-tertiary">
         {label}
       </FieldLabel>
       <div className="truncate font-mono text-caption text-text-secondary">{value}</div>
@@ -1091,7 +1091,7 @@ function PreviewField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel as="label" htmlFor={htmlFor} variant="group" className="text-text-muted">
+      <FieldLabel as="label" htmlFor={htmlFor} variant="group" className="text-text-tertiary">
         {label}
       </FieldLabel>
       {children}

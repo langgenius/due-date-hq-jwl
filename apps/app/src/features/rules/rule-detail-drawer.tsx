@@ -316,7 +316,7 @@ function DisclosureCard({
 function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-md bg-background-section px-2.5 py-1">
-      <FieldLabel as="span" variant="group" className="text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-tertiary">
         {label}
       </FieldLabel>
       {/* Value is text-sm (not text-base): a data value must read quieter than
@@ -965,11 +965,11 @@ function RulePracticeReviewCard({
             />
           </TextLink>
         ) : (
-          <span className="text-base text-text-muted">
+          <span className="text-base text-text-tertiary">
             <Trans>No team notes yet</Trans>
           </span>
         )}
-        <span className="ml-auto text-caption font-medium text-text-muted tabular-nums">
+        <span className="ml-auto text-caption font-medium text-text-tertiary tabular-nums">
           {body.length} / 2000
         </span>
         {trimmed.length > 0 ? (
@@ -992,7 +992,7 @@ function RulePracticeReviewCard({
             <li key={note.id} className="flex flex-col gap-0.5">
               <div className="flex items-baseline gap-2">
                 <span className="text-base font-semibold text-text-primary">{note.authorName}</span>
-                <span className="text-caption text-text-muted">
+                <span className="text-caption text-text-tertiary">
                   {formatRelativeTime(note.createdAt)}
                 </span>
               </div>
@@ -1427,7 +1427,7 @@ function CandidateReviewForm({
             <span className="min-w-0 truncate">{acceptDisabledReason}</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+          <span className="inline-flex items-center gap-1.5 text-xs text-text-tertiary">
             <ShieldCheckIcon aria-hidden className="size-3.5 shrink-0" />
             <Trans>Your decision is recorded in the audit log.</Trans>
           </span>
@@ -1724,7 +1724,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-semibold text-text-primary tabular-nums">
               {loading ? '—' : errored ? '—' : deadlines}
             </span>
-            <span className="text-xs font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-tertiary">
               {deadlines === 1 ? t`deadline generated` : t`deadlines generated`}
             </span>
           </div>
@@ -1733,7 +1733,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-semibold text-text-primary tabular-nums">
               {rule.entityApplicability.length}
             </span>
-            <span className="text-xs font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-tertiary">
               {rule.entityApplicability.length === 1 ? t`entity type` : t`entity types`}
             </span>
           </div>

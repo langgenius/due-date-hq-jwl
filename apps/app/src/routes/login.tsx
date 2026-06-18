@@ -283,7 +283,7 @@ export function LoginRoute() {
                   <>
                     <div className="flex items-center gap-3.5">
                       <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                      <span className="text-xs font-medium tracking-[0.2px] text-text-muted">
+                      <span className="text-xs font-medium tracking-[0.2px] text-text-tertiary">
                         <Trans>or continue with email</Trans>
                       </span>
                       <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
@@ -308,7 +308,7 @@ export function LoginRoute() {
                   <p className="text-xs font-semibold text-text-secondary">
                     <Trans>Secured by one-time link</Trans>
                   </p>
-                  <p className="text-xs font-medium leading-[1.45] text-text-muted">
+                  <p className="text-xs font-medium leading-[1.45] text-text-tertiary">
                     <Trans>Links expire in 10 minutes. We never store passwords.</Trans>
                   </p>
                 </div>
@@ -333,11 +333,11 @@ export function LoginRoute() {
 
             {/* Residency */}
             <div className="flex flex-col items-center gap-1 text-center">
-              <p className="flex items-center gap-1 text-xs font-medium text-text-muted">
+              <p className="flex items-center gap-1 text-xs font-medium text-text-tertiary">
                 <MapPinIcon className="size-3 shrink-0" aria-hidden />
                 <Trans>Hosted in US-East · your data never leaves your jurisdiction</Trans>
               </p>
-              <p className="text-xs font-medium text-text-muted">
+              <p className="text-xs font-medium text-text-tertiary">
                 <Trans>ISO 27001 in progress</Trans>
               </p>
             </div>
@@ -431,7 +431,7 @@ function ProductStory() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <span className="font-mono text-caption-xs tracking-[0.4px] text-text-muted">
+                <span className="font-mono text-caption-xs tracking-[0.4px] text-text-tertiary">
                   {cap.index}
                 </span>
                 <span aria-hidden className={cn('h-px w-3.5', TONE_TICK[cap.tone])} />
@@ -448,7 +448,7 @@ function ProductStory() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="text-xs italic text-text-muted">
+          <span className="text-xs italic text-text-tertiary">
             All three ship in v1. See them live in
           </span>
           {['/today', '/deadlines', '/alerts'].map((path) => (
@@ -460,7 +460,7 @@ function ProductStory() {
             </span>
           ))}
           <span className="flex-1" />
-          <span className="text-caption-xs font-medium italic text-text-muted">
+          <span className="text-caption-xs font-medium italic text-text-tertiary">
             no waitlist, no asterisks
           </span>
         </div>
@@ -507,7 +507,7 @@ function LoginFooter() {
       </div>
       <span className="hidden flex-1 sm:block" />
       <div className="flex items-center gap-3.5">
-        <span className="font-mono text-caption-xs text-text-muted">v2.18.4</span>
+        <span className="font-mono text-caption-xs text-text-tertiary">v2.18.4</span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
           <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
           <span className="text-text-secondary">US East</span>
@@ -659,7 +659,7 @@ function LoginEmailForm({
       <form onSubmit={handleVerifySubmit} noValidate className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 rounded-xl bg-bg-subtle px-3.5 py-2.5">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-text-muted">
+            <p className="text-xs font-medium text-text-tertiary">
               <Trans>Code sent to</Trans>
             </p>
             <p className="min-w-0 truncate font-mono text-sm text-text-primary">{sentEmail}</p>
@@ -755,7 +755,7 @@ function LoginEmailForm({
             <Trans>Work email</Trans>
           </label>
           <span className="flex-1" />
-          <span className="text-xs font-medium text-text-muted">
+          <span className="text-xs font-medium text-text-tertiary">
             <Trans>we look up your firm automatically</Trans>
           </span>
         </div>

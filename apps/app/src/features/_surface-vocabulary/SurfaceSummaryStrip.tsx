@@ -75,7 +75,7 @@ export function SurfaceSummaryStrip({
             <Skeleton className="h-4 w-20" />
           </div>
         ) : items.length === 0 ? (
-          <span className="text-xs text-text-muted">Nothing pending</span>
+          <span className="text-xs text-text-tertiary">Nothing pending</span>
         ) : (
           items.map(({ key, ...item }, idx) => (
             <span key={key} className="inline-flex items-baseline gap-1">

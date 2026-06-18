@@ -1796,7 +1796,7 @@ export function PreviewRoute() {
                   }
                   footer={
                     <div className="flex flex-col items-center gap-2">
-                      <p className="font-mono text-column-label text-text-muted uppercase">
+                      <p className="font-mono text-column-label text-text-tertiary uppercase">
                         What gets recorded
                       </p>
                       <div className="flex flex-wrap items-center justify-center gap-2">

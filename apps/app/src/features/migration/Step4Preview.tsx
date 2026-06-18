@@ -418,7 +418,7 @@ function HeroMetric({
       >
         {value}
       </span>
-      <FieldLabel as="span" variant="group" className="text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-tertiary">
         {unit}
       </FieldLabel>
       <span className="text-caption font-medium text-text-secondary">{sub}</span>

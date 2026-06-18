@@ -270,7 +270,7 @@ function UserMenuTrigger({
             in the collapsed rail, leaving just the avatar. */}
         <span className="flex min-w-0 flex-1 flex-col text-left leading-tight group-data-[collapsed=true]/sidebar:hidden">
           <span className="truncate text-base font-semibold text-text-primary">{displayName}</span>
-          <span className="truncate text-xs font-medium text-text-muted" translate="no">
+          <span className="truncate text-xs font-medium text-text-tertiary" translate="no">
             {firm.name}
           </span>
         </span>

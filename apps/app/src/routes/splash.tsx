@@ -134,7 +134,7 @@ export function SplashRoute() {
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />
-              <FieldLabel as="span" variant="group" className="text-text-muted">
+              <FieldLabel as="span" variant="group" className="text-text-tertiary">
                 {data?.sinceLastVisit ? (
                   <Trans>
                     While you were away · since {formatRelativeTime(data.sinceLastVisit)}
@@ -208,7 +208,7 @@ export function SplashRoute() {
       {/* Footer — last sign-in stamp from the session */}
       <footer className="px-4 pb-6 text-center md:pb-10">
         {data?.lastSignInAt ? (
-          <p className="text-[11px] font-medium text-text-muted">
+          <p className="text-[11px] font-medium text-text-tertiary">
             {data.lastSignInIp ? (
               <Trans>
                 Last sign-in: {formatRelativeTime(data.lastSignInAt)} from {data.lastSignInIp}

@@ -635,7 +635,7 @@ function FilingPlanYearSection({
           inline-expand layout exactly so the columns line up. */}
           <div
             className={cn(
-              'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase',
+              'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-semibold tracking-eyebrow-tight text-text-tertiary uppercase',
               compact
                 ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
                 : 'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',

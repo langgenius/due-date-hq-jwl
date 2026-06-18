@@ -288,7 +288,7 @@ export function AlertCard({
                 >
                   {alert.title}
                 </h3>
-                <span className="shrink-0 text-base leading-tight font-medium text-text-muted">
+                <span className="shrink-0 text-base leading-tight font-medium text-text-tertiary">
                   {openLabel}
                 </span>
                 <span className="flex-1" aria-hidden />
@@ -316,7 +316,7 @@ export function AlertCard({
                     the meta row above carries the relative "Nmo ago"). */}
               <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-lg bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-muted">
+                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>What changed</Trans>
                   </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -324,7 +324,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-muted">
+                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>Affecting</Trans>
                   </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -339,7 +339,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-muted">
+                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>Published</Trans>
                   </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary tabular-nums">

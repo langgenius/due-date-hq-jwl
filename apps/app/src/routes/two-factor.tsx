@@ -83,7 +83,7 @@ export function TwoFactorRoute() {
                 <Trans>Verification code</Trans>
               </label>
               <span className="flex-1" />
-              <span className="text-[11px] font-medium italic text-text-muted">
+              <span className="text-[11px] font-medium italic text-text-tertiary">
                 <Trans>refreshes every 30s</Trans>
               </span>
             </div>
@@ -99,7 +99,7 @@ export function TwoFactorRoute() {
             <div className="flex flex-col items-start gap-1.5">
               <span
                 id="two-factor-code-helper"
-                className="whitespace-nowrap text-[11px] font-medium text-text-muted"
+                className="whitespace-nowrap text-[11px] font-medium text-text-tertiary"
               >
                 <Trans>Google Authenticator, 1Password, Authy, or similar.</Trans>
               </span>

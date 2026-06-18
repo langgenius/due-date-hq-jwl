@@ -360,7 +360,7 @@ export function AlertHistoryView() {
                           <span className="text-column-label text-text-secondary uppercase">
                             {month}
                           </span>
-                          <span className="text-column-label text-text-muted uppercase tabular-nums">
+                          <span className="text-column-label text-text-tertiary uppercase tabular-nums">
                             <Plural value={monthAlerts.length} one="# handled" other="# handled" />
                           </span>
                         </div>
@@ -461,7 +461,7 @@ function HistoryRow({
         <div className="flex flex-col">
           <span className="text-sm font-semibold text-text-primary">{dateLabel}</span>
           {relativeSub ? (
-            <span className="text-caption-xs font-medium text-text-muted">{relativeSub}</span>
+            <span className="text-caption-xs font-medium text-text-tertiary">{relativeSub}</span>
           ) : null}
         </div>
       </TableCell>
@@ -479,7 +479,7 @@ function HistoryRow({
             {alert.title}
           </span>
           <span className="flex min-w-0 items-center gap-2 truncate text-xs text-text-tertiary">
-            <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
+            <span className="shrink-0 font-semibold tracking-[0.3px] text-text-tertiary uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>
             <span aria-hidden className="text-divider-regular">

@@ -280,27 +280,27 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                   <TableHeader>
                     <TableRow className="bg-background-section">
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Client · Form</Trans>
                         </FieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>TY {headerFrom} due</Trans>
                         </FieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>TY {headerTo} due</Trans>
                         </FieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Rule change</Trans>
                         </FieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Disposition</Trans>
                         </FieldLabel>
                       </TableHead>

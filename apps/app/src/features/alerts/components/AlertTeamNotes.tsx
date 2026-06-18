@@ -69,7 +69,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
         <span className="text-sm font-semibold text-text-secondary">
           <Trans>Team notes</Trans>
         </span>
-        <span className="text-xs font-medium text-text-muted tabular-nums">
+        <span className="text-xs font-medium text-text-tertiary tabular-nums">
           <Plural value={notes.length} one="# internal" other="# internal" /> ·{' '}
           <Trans>open to add or reply</Trans>
         </span>

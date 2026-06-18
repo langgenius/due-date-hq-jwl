@@ -1101,7 +1101,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   {/* BOTTOM/RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-full shrink-0 flex-col gap-2 overflow-y-auto xl:w-[460px]">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <FieldLabel as="span" variant="group" className="text-text-muted">
+                      <FieldLabel as="span" variant="group" className="text-text-tertiary">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </FieldLabel>
@@ -1644,7 +1644,7 @@ function FilterPillSection<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel as="span" variant="group" className="text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-tertiary">
         {label}
       </FieldLabel>
       <div className="flex flex-wrap gap-1">

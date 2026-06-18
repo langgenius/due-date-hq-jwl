@@ -429,7 +429,7 @@ export function SettingsProfileRoute() {
                           </Badge>
                         ) : null}
                       </div>
-                      <span className="truncate font-mono text-xs text-text-muted">
+                      <span className="truncate font-mono text-xs text-text-tertiary">
                         {s.ipAddress || '—'} ·{' '}
                         {formatDateTimeWithDisplayPreferences(
                           s.createdAt,
@@ -649,7 +649,7 @@ export function SettingsProfileRoute() {
               <p className="font-medium text-text-primary">
                 {pendingSessionRevoke.userAgent || <Trans>Unknown browser</Trans>}
               </p>
-              <p className="font-mono text-xs text-text-muted">
+              <p className="font-mono text-xs text-text-tertiary">
                 {pendingSessionRevoke.ipAddress || '—'} ·{' '}
                 {formatDateTimeWithDisplayPreferences(
                   pendingSessionRevoke.createdAt,
