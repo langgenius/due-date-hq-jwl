@@ -2394,7 +2394,11 @@ export function RulesLibraryRoute() {
       label: t`Total rules`,
       value: totalRules,
       sub: t`${totalActive} active`,
-      subClass: 'text-text-accent',
+      // Anchor/context stat — stays NEUTRAL (2026-06-18 color budget). Color in a
+      // StatBand is reserved for conditionally-actionable stats (the three above
+      // go amber only when there's work); an always-on accent on the vanity total
+      // diluted that signal (von-Restorff).
+      subClass: 'text-text-tertiary',
     },
   ]
 

@@ -39,6 +39,16 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    (default `text-text-tertiary`); omitted entirely when absent
  *  - Narrow viewports fall to a 2-up grid so values never crush together
  *
+ * COLOR BUDGET (von-Restorff, 2026-06-18): color in a band is a SIGNAL, not
+ * decoration — if every column is colored, none stands out. Rules:
+ *  - The value stays neutral (`text-text-primary`); tone lives in the SUB.
+ *  - Anchor / context stats (a "Total", a vanity count) stay NEUTRAL — never an
+ *    always-on accent. They orient; they aren't a call to action.
+ *  - Reserve color for CONDITIONALLY-actionable stats — go amber/destructive
+ *    only when the count > 0 (a warning-toned zero flags a problem that doesn't
+ *    exist). A single steady positive-green KPI is fine, but don't paint the
+ *    expected/dominant column.
+ *
  * Interaction (optional, per stat): pass `href` → the column renders as a
  * `<Link>`; `onClick` → a `<button>`; neither → a read-only `<div>`. The
  * /clients/[id] anchor uses this to drill straight into the matching
