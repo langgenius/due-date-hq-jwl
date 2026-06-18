@@ -1686,6 +1686,7 @@ export function getRuleReferencePages(locale: Locale): GuidePageCopy[] {
 }
 
 interface StateDeadline {
+  name: string
   label: string
   labelZh: string
   due: string
@@ -1702,6 +1703,7 @@ interface StateDeadline {
 // state deadlines are varied/quirky, so we never guess (docs/dev-file/13 §7, §5).
 const STATE_DEADLINES: Record<string, StateDeadline> = {
   texas: {
+    name: 'Texas',
     label: 'Texas Franchise Tax annual report',
     labelZh: '德州 Franchise Tax 年度报告',
     due: 'May 15',
@@ -1712,6 +1714,7 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceHref: 'https://comptroller.texas.gov/taxes/franchise/',
   },
   massachusetts: {
+    name: 'Massachusetts',
     label: 'Form 355 corporate excise return (C corporation)',
     labelZh: 'Form 355 公司 excise 申报（C corporation）',
     due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
@@ -1722,6 +1725,7 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceHref: 'https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions',
   },
   'north-carolina': {
+    name: 'North Carolina',
     label: 'Form CD-405 corporate income & franchise tax return (C corporation)',
     labelZh: 'Form CD-405 公司所得税与 franchise tax 申报（C corporation）',
     due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
@@ -1730,6 +1734,7 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceHref: 'https://www.ncdor.gov/taxes-forms/corporate-income-franchise-tax/when-file',
   },
   florida: {
+    name: 'Florida',
     label: 'Form F-1120 corporate income / franchise tax return',
     labelZh: 'Form F-1120 公司所得税 / franchise tax 申报',
     due: 'May 1 for calendar-year filers — the 1st day of the 5th month after the tax year ends (not April 15).',
@@ -1738,6 +1743,61 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     extZh: 'Form F-7004 可延长申报时间。',
     sourceLabel: 'Florida DOR — Corporate Income Tax',
     sourceHref: 'https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx',
+  },
+  california: {
+    name: 'California',
+    label: 'Form 100 Corporation Franchise or Income Tax Return (C corporation)',
+    labelZh: 'Form 100 公司 Franchise 或所得税申报（C corporation）',
+    due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
+    dueZh: '4 月 15 日——税年结束后第 4 个月的第 15 天。',
+    ext: 'An automatic 7-month extension to file (to November 15); the tax payment is still due by April 15.',
+    extZh: '自动延长 7 个月申报（至 11 月 15 日）；税款仍须在 4 月 15 日前缴清。',
+    sourceLabel: 'California FTB — Due dates for businesses',
+    sourceHref: 'https://www.ftb.ca.gov/file/when-to-file/due-dates-business.html',
+  },
+  'new-york': {
+    name: 'New York',
+    label: 'Form CT-3 General Business Corporation Franchise Tax Return',
+    labelZh: 'Form CT-3 一般营业公司 Franchise Tax 申报',
+    due: 'April 15 — within 3½ months after the reporting period ends.',
+    dueZh: '4 月 15 日——申报期结束后 3 个半月内。',
+    ext: 'A 6-month extension via Form CT-5, with estimated tax paid by the original due date.',
+    extZh: '通过 Form CT-5 延长 6 个月，须在原始截止前预缴估算税。',
+    sourceLabel: 'New York DTF — Instructions for Form CT-3',
+    sourceHref: 'https://www.tax.ny.gov/forms/current-forms/ct/ct3i.htm',
+  },
+  illinois: {
+    name: 'Illinois',
+    label: 'Form IL-1120 Corporation Income and Replacement Tax Return',
+    labelZh: 'Form IL-1120 公司所得税与 Replacement Tax 申报',
+    due: 'April 15 — the 15th day of the 4th month after the tax year ends (non-June-30 year-ends).',
+    dueZh: '4 月 15 日——税年结束后第 4 个月的第 15 天（非 6 月 30 日财年）。',
+    ext: 'An automatic 7-month extension to file (to November 15); tentative tax is still due by April 15.',
+    extZh: '自动延长 7 个月申报（至 11 月 15 日）；预估税仍须在 4 月 15 日前缴清。',
+    sourceLabel: 'Illinois DOR — Form IL-1120 due date',
+    sourceHref: 'https://tax.illinois.gov/questionsandanswers/answer.69.html',
+  },
+  georgia: {
+    name: 'Georgia',
+    label: 'Form 600 Corporation Tax Return',
+    labelZh: 'Form 600 公司税申报',
+    due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
+    dueZh: '4 月 15 日——税年结束后第 4 个月的第 15 天。',
+    ext: 'A 6-month extension to file (to October 15) via Form IT-303 or a valid federal extension.',
+    extZh: '通过 Form IT-303 或有效的联邦延期，延长 6 个月申报（至 10 月 15 日）。',
+    sourceLabel: 'Georgia DOR — Corporate Income Tax',
+    sourceHref: 'https://dor.georgia.gov/',
+  },
+  michigan: {
+    name: 'Michigan',
+    label: 'Form 4891 Corporate Income Tax (CIT) annual return',
+    labelZh: 'Form 4891 公司所得税（CIT）年度申报',
+    due: 'April 30 — the last day of the 4th month after the tax year ends.',
+    dueZh: '4 月 30 日——税年结束后第 4 个月的最后一天。',
+    ext: 'An accepted federal extension extends the CIT filing deadline.',
+    extZh: '获批的联邦延期可延长 CIT 申报截止日。',
+    sourceLabel: 'Michigan Treasury — Corporate Income Tax filing requirements',
+    sourceHref: 'https://www.michigan.gov/taxes/business-taxes/cit/detail/filing-requirements',
   },
 }
 
@@ -1770,6 +1830,15 @@ function buildStateKeyDeadlines(
     sourceHref: d.sourceHref,
     rows,
   }
+}
+
+// Plain-text English summary of the verified state deadlines, for llms-full.txt.
+// Driven by STATE_DEADLINES so the agent-facing file stays in sync with the pages.
+export function getStateDeadlineLines(): string[] {
+  return Object.values(STATE_DEADLINES).map(
+    (d) =>
+      `- ${d.name}: ${d.label} — due ${d.due}${d.ext ? ` Extension: ${d.ext}` : ''} (${d.sourceLabel}: ${d.sourceHref})`,
+  )
 }
 
 export function getStatePages(siteCopy: LandingCopy, locale: Locale): StatePageCopy[] {

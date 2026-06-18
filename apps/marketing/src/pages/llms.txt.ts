@@ -148,6 +148,8 @@ export function GET(): Response {
     '',
     'DueDateHQ is a deadline-and-rule-change radar that layers on top of a firm’s existing Drake, UltraTax, or TaxDome — it replaces the spreadsheet-and-inbox patchwork used to catch what those tools miss, not the tools themselves.',
     '',
+    `A fuller single-file factual reference (definition, coverage, pricing, federal and state filing deadlines) is at ${getMarketingUrl('/llms-full.txt')}.`,
+    '',
     '## Coverage and pricing',
     '',
     '- Coverage: DueDateHQ monitors official IRS and state tax-authority sources across all 50 states and Washington DC for rule and filing-date changes. Source-backed changes are routed through human review before they become reminder-ready work.',
