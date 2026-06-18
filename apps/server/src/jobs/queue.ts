@@ -76,6 +76,20 @@ export function queueMessageType(body: unknown): string {
   return isRecord(body) && typeof body.type === 'string' ? body.type : 'unknown'
 }
 
+// Names the affected source(s) on a dropped/dead-lettered message so an ops
+// alert says WHICH source failed, not just its message type — otherwise the
+// only way to find the culprit is hand-querying pulse_source_state. Pulse
+// ingest messages can ride a host-group of several sources, so report the whole
+// list; other contracts that carry a `sourceId` (rule scans, draft prewarm)
+// fall through to it. `pulse.extract` carries no source id (only snapshotId,
+// surfaced separately), so it returns null.
+export function queueMessageSourceId(body: unknown): string | null {
+  if (isPulseIngestSourceMessage(body)) {
+    return body.sourceIds?.length ? body.sourceIds.join(',') : body.sourceId
+  }
+  return isRecord(body) && typeof body.sourceId === 'string' ? body.sourceId : null
+}
+
 // Dead-letter queues are wired in wrangler.toml (e.g. due-date-hq-pulse-dlq-*).
 // A batch arriving from the Pulse DLQ means a snapshot exhausted max_retries —
 // re-dispatching would just re-run the failing handler, so we alert and ack to
@@ -102,6 +116,7 @@ async function drainDeadLetterBatch(batch: MessageBatch, env: Env): Promise<void
       queue: batch.queue,
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
+      sourceId: queueMessageSourceId(message.body),
       snapshotId: isPulseExtractMessage(message.body) ? message.body.snapshotId : null,
     }
     recordPulseAlert('pulse.queue.dead_letter', fields)
@@ -131,6 +146,7 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     const fields = {
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
+      sourceId: queueMessageSourceId(message.body),
     }
     recordPulseAlert('queue.dispatch.dropped', fields)
     await dispatchOpsAlert(env, 'queue.dispatch.dropped', fields)

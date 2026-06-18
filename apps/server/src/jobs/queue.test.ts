@@ -6,7 +6,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Env } from '../env'
 import { dashboardBriefDebounceKey } from './dashboard-brief/enqueue'
-import { assertQueueDispatchable, isPulseDeadLetterQueue, queue, queueMessageType } from './queue'
+import {
+  assertQueueDispatchable,
+  isPulseDeadLetterQueue,
+  queue,
+  queueMessageSourceId,
+  queueMessageType,
+} from './queue'
 
 function batch(messages: Array<{ body?: unknown }>) {
   return {
@@ -142,6 +148,29 @@ describe('queue consumer', () => {
     expect(queueMessageType({ type: 'email.flush' })).toBe('email.flush')
     expect(queueMessageType({})).toBe('unknown')
     expect(queueMessageType(null)).toBe('unknown')
+  })
+
+  it('names the affected source(s) on a failed message for ops alerts', () => {
+    // Single-source ingest message.
+    expect(
+      queueMessageSourceId({
+        type: 'pulse.ingest.source',
+        sourceId: 'fema.declarations',
+        reason: 'cadence_due',
+      }),
+    ).toBe('fema.declarations')
+    // Host-grouped shape reports the whole list.
+    expect(
+      queueMessageSourceId({
+        type: 'pulse.ingest.source',
+        sourceId: 'ny.due.one',
+        sourceIds: ['ny.due.one', 'ny.due.two'],
+        reason: 'cadence_due',
+      }),
+    ).toBe('ny.due.one,ny.due.two')
+    // pulse.extract carries no source id (snapshotId is reported separately).
+    expect(queueMessageSourceId({ type: 'pulse.extract', snapshotId: 's1' })).toBeNull()
+    expect(queueMessageSourceId(null)).toBeNull()
   })
 
   it('detects pulse dead-letter queues without matching the live queue', () => {
