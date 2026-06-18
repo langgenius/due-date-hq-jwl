@@ -4615,7 +4615,8 @@ export function ObligationQueueRoute() {
                                 // the global J/K hotkeys.
                                 role="button"
                                 tabIndex={0}
-                                aria-selected={tableRow.original.id === explicitActiveRowId}
+                                aria-pressed={tableRow.original.id === explicitActiveRowId}
+                                aria-label={t`Open deadline for ${tableRow.original.clientName}`}
                                 data-row-id={tableRow.original.id}
                                 data-state={tableRow.getIsSelected() ? 'selected' : undefined}
                                 className={cn(

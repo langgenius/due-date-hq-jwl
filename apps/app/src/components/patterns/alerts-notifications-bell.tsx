@@ -24,7 +24,10 @@ import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { toast } from 'sonner'
+
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDatePretty } from '@/lib/utils'
 
 // AlertsNotificationsBell — top-right utility bell that opens a popover
@@ -95,14 +98,20 @@ function AlertsNotificationsBell() {
     void queryClient.invalidateQueries({ queryKey: orpc.notifications.unreadCount.key() })
   }
 
+  const onMutationError = (error: unknown) =>
+    toast.error(t`Couldn't update notifications`, {
+      description: rpcErrorMessage(error) ?? t`Try again in a moment.`,
+    })
   const markReadMutation = useMutation(
     orpc.notifications.markRead.mutationOptions({
       onSuccess: invalidate,
+      onError: onMutationError,
     }),
   )
   const markAllReadMutation = useMutation(
     orpc.notifications.markAllRead.mutationOptions({
       onSuccess: invalidate,
+      onError: onMutationError,
     }),
   )
 
@@ -223,7 +232,14 @@ function AlertsNotificationsBell() {
         </div>
 
         <ul className="max-h-96 overflow-y-auto">
-          {query.isLoading ? (
+          {query.isError ? (
+            <li className="px-4 py-6 text-center text-base text-text-tertiary">
+              <Trans>Couldn't load notifications.</Trans>{' '}
+              <TextLink variant="accent" onClick={() => void query.refetch()}>
+                <Trans>Retry</Trans>
+              </TextLink>
+            </li>
+          ) : query.isLoading ? (
             <li className="px-4 py-6 text-center text-base text-text-tertiary">
               <Trans>Loading…</Trans>
             </li>

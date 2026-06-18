@@ -794,6 +794,11 @@ msgstr "{0} will lose login access immediately. Their assignments and audit hist
 msgid "{0} with gaps"
 msgstr "{0} with gaps"
 
+#. placeholder {0}: fullDateLabelFormatter.format(date)
+#: src/components/primitives/iso-date-picker.tsx
+msgid "{0}, today"
+msgstr "{0}, today"
+
 #. placeholder {0}: cell.name
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "{0}: {count} alerts"
@@ -4748,6 +4753,10 @@ msgstr "Couldn't load import history"
 msgid "Couldn't load notifications"
 msgstr "Couldn't load notifications"
 
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "Couldn't load notifications."
+msgstr "Couldn't load notifications."
+
 #: src/features/rules/sources-tab.tsx
 msgid "Couldn't load rule sources"
 msgstr "Couldn't load rule sources"
@@ -4821,6 +4830,10 @@ msgstr "Couldn't mark e-file rejected"
 #: src/features/notifications/notifications-page.tsx
 msgid "Couldn't mark notification read"
 msgstr "Couldn't mark notification read"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Couldn't open the export"
+msgstr "Couldn't open the export"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Couldn't organize some values"
@@ -5045,6 +5058,10 @@ msgstr "Couldn't update e-file state"
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Couldn't update entity type"
 msgstr "Couldn't update entity type"
+
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "Couldn't update notifications"
+msgstr "Couldn't update notifications"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Couldn't update owner"
@@ -6566,6 +6583,7 @@ msgstr "Expected"
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/members/members-page.tsx
 #: src/features/rules/temporary-rules-tab.tsx
+#: src/routes/readiness.tsx
 msgid "Expired"
 msgstr "Expired"
 
@@ -7836,6 +7854,7 @@ msgid "In force today"
 msgstr "In force today"
 
 #: src/features/obligations/status-control.tsx
+#: src/routes/readiness.tsx
 msgid "In progress"
 msgstr "In progress"
 
@@ -10597,6 +10616,11 @@ msgstr "Open Contacts and click the cloud icon; Admin permissions are required."
 msgid "Open deadline"
 msgstr "Open deadline"
 
+#. placeholder {0}: tableRow.original.clientName
+#: src/routes/obligations.tsx
+msgid "Open deadline for {0}"
+msgstr "Open deadline for {0}"
+
 #: src/features/audit/audit-log-page.tsx
 #: src/features/members/members-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -12613,6 +12637,7 @@ msgstr "Resume your in-progress import?"
 msgid "Retracted"
 msgstr "Retracted"
 
+#: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
@@ -12926,6 +12951,7 @@ msgid "Revoke this session?"
 msgstr "Revoke this session?"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/readiness.tsx
 msgid "Revoked"
 msgstr "Revoked"
 
@@ -15568,6 +15594,7 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 msgid "Try again"
 msgstr "Try again"
 
+#: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.tsx
 #: src/routes/obligations.tsx

@@ -437,6 +437,13 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
       onSuccess: (result) => {
         window.location.assign(result.url)
       },
+      onError: (error) => {
+        toast.error(t`Couldn't open the export`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
     }),
   )
   const latest = packagesQuery.data?.packages[0] ?? null

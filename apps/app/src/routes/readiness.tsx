@@ -222,7 +222,18 @@ export function ReadinessPortalRoute() {
                 <CardTitle>
                   <Trans>Checklist</Trans>
                 </CardTitle>
-                <Badge variant="outline">{portal.status}</Badge>
+                {/* Client-facing surface: map the raw request-status enum to
+                    human, translated copy — never render `sent`/`opened` to a
+                    non-expert tax client (full-app-audit-2026-06-18-pass2). */}
+                <Badge variant="outline">
+                  {portal.status === 'revoked' ? (
+                    <Trans>Revoked</Trans>
+                  ) : portal.status === 'expired' ? (
+                    <Trans>Expired</Trans>
+                  ) : (
+                    <Trans>In progress</Trans>
+                  )}
+                </Badge>
               </div>
               <CardDescription>
                 <Trans>Answer each item so your CPA can confirm filing readiness.</Trans>

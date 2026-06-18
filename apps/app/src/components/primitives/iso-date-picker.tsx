@@ -134,6 +134,20 @@ export function IsoDatePicker({
       }),
     [locale],
   )
+  // Full localized date for the day-cell accessible name — the visible label is
+  // a bare numeral ("15"), which a screen reader announces with no month/year
+  // context (full-app-audit-2026-06-18-pass2 a11y P1).
+  const fullDateLabelFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'UTC',
+      }),
+    [locale],
+  )
   const weekdays = useMemo(
     () =>
       Array.from({ length: CALENDAR_WEEKDAY_COUNT }, (_, index) =>
@@ -235,6 +249,11 @@ export function IsoDatePicker({
                 variant={selected ? 'accent' : 'ghost'}
                 size="xs"
                 aria-pressed={selected}
+                aria-label={
+                  isoDate === todayIsoDate
+                    ? t`${fullDateLabelFormatter.format(date)}, today`
+                    : fullDateLabelFormatter.format(date)
+                }
                 disabled={dateDisabled}
                 className={cn(
                   'h-8 rounded-lg px-0 font-mono text-xs tabular-nums',
