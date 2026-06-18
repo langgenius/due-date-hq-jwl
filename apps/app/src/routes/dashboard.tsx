@@ -20,9 +20,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
+import { ClientsEmptyState } from '@/features/clients/ClientsEmptyState'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
+import { useMigrationWizard } from '@/features/migration/WizardProvider'
+import { useFirmPermission } from '@/features/permissions/permission-gate'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
@@ -192,9 +195,13 @@ export function DashboardRoute() {
     ...orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }),
     placeholderData: keepPreviousData,
   })
-  // Parked: the probe query is kept for its shared cache-warming side effect
-  // (dropdowns/pickers reuse the key); the derived flag is currently unused.
-  const _hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
+  // First-run: a fresh practice with no clients yet. Once the probe resolves
+  // and returns zero rows, /today leads with the get-started hero instead of
+  // three silent sections (onboarding gap #1). Gated on `!isLoading` so the hero
+  // never flashes before the count lands.
+  const showFirstRun = !clientsProbeQuery.isLoading && (clientsProbeQuery.data?.length ?? 0) === 0
+  const { openWizard } = useMigrationWizard()
+  const permission = useFirmPermission()
   // Firm identity for analytics — reuses the layout's `firms.listMine` cache
   // key (no extra fetch). Used only to scope the once-per-firm activation
   // milestone; null until the cache warms.
@@ -423,67 +430,78 @@ export function DashboardRoute() {
           uncommenting the line below. */}
       {/* <ChangesSinceLastSection /> */}
 
-      {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day
+      {showFirstRun ? (
+        // Onboarding gap #1 (2026-06-18): a fresh practice with zero clients
+        // lands here with nothing to act on — the three sections below are all
+        // silent. Lead with the same designed get-started hero /clients shows
+        // (one "import your clients" message) so the first action is always
+        // visible. Primary CTA only — add-manually / sample-data live on /clients.
+        <ClientsEmptyState onImport={openWizard} canImport={permission.can('migration.run')} />
+      ) : (
+        <>
+          {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
-      <NeedsAttentionSection />
+          <NeedsAttentionSection />
 
-      {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
+          {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
           (the page-tab pattern, Yuqi feedback #4) lives INSIDE the card now:
           ✕ folds the band into a small "Daily Brief" tab in the same slot,
           persisted per generation, reopenable with one click. The route just
           mounts it. */}
-      {(() => {
-        const brief =
-          data?.brief ??
-          (scope === 'me' && data
-            ? ({
-                status: 'pending',
-                generatedAt: null,
-                expiresAt: null,
-                text: null,
-                citations: null,
-                aiOutputId: null,
-                errorCode: null,
-              } as const)
-            : null)
-        return (
-          <DailyBriefCard
-            scope={scope}
-            brief={brief}
-            concentration={data?.summary?.overdueConcentration ?? null}
-            todayCounts={{
-              overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-              waitingOnClientCount:
-                facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
-              dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
-            }}
-            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-          />
-        )
-      })()}
+          {(() => {
+            const brief =
+              data?.brief ??
+              (scope === 'me' && data
+                ? ({
+                    status: 'pending',
+                    generatedAt: null,
+                    expiresAt: null,
+                    text: null,
+                    citations: null,
+                    aiOutputId: null,
+                    errorCode: null,
+                  } as const)
+                : null)
+            return (
+              <DailyBriefCard
+                scope={scope}
+                brief={brief}
+                concentration={data?.summary?.overdueConcentration ?? null}
+                todayCounts={{
+                  overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+                  waitingOnClientCount:
+                    facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
+                  dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
+                }}
+                onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+              />
+            )
+          })()}
 
-      {/* Today's brief — the deadline queue itself (by time), opened by a
+          {/* Today's brief — the deadline queue itself (by time), opened by a
           one-line deterministic summary, with the count chips as the view
           selector and the priority-action rows nested as flat sections. One
           surface: replaces the old AI brief AND the Priority Actions table. */}
-      <MergedBriefCard
-        counts={{
-          // This week = today + the next-7-day bin; this month = the next-30-day
-          // bin; overdue as-is. (Yuqi: CPA buckets, drop "ending today".)
-          thisWeek:
-            (facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0) +
-            (facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0),
-          thisMonth: facets?.dueBuckets.find((b) => b.value === 'next_30_days')?.count ?? 0,
-          overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-        }}
-        rows={data?.topRows ?? []}
-        asOfDate={data?.asOfDate ?? null}
-        // While the dashboard query loads, the card renders a column-aligned
-        // skeleton instead of masquerading as "Nothing here. You're clear."
-        isLoading={dashboardQuery.isLoading}
-        onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-      />
+          <MergedBriefCard
+            counts={{
+              // This week = today + the next-7-day bin; this month = the next-30-day
+              // bin; overdue as-is. (Yuqi: CPA buckets, drop "ending today".)
+              thisWeek:
+                (facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0) +
+                (facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0),
+              thisMonth: facets?.dueBuckets.find((b) => b.value === 'next_30_days')?.count ?? 0,
+              overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+            }}
+            rows={data?.topRows ?? []}
+            asOfDate={data?.asOfDate ?? null}
+            // While the dashboard query loads, the card renders a column-aligned
+            // skeleton instead of masquerading as "Nothing here. You're clear."
+            isLoading={dashboardQuery.isLoading}
+            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+          />
+        </>
+      )}
     </div>
   )
 }

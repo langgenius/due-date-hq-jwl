@@ -58,11 +58,13 @@ sent / clients added). Backward-looking only.
 
 ## Proposals (apply the onboarding patterns)
 
-**A — First-run dashboard empty state (fixes 1, 2, 5).** When `clientCount === 0`,
-`/today` leads with a focused "Get started" card instead of empty sections —
-mirroring `ClientsEmptyState`'s CTAs (Import clients · Add one manually · sample
-tour). _Empty-state-as-onboarding_: the first screen a new user spends time on
-must carry the first action, not blank cards. One home for "you have no data yet."
+**A — First-run dashboard empty state (fixes 1, 2, 5). ✅ BUILT 2026-06-18.**
+When the clients probe resolves to zero rows, `/today` now leads with the same
+designed `ClientsEmptyState` hero `/clients` shows (primary "Import clients" CTA →
+`openWizard`), instead of three silent sections. Reused the existing dashboard
+`clientsProbeQuery` signal (the derived flag was parked-unused) — no new backend.
+The sample-data chip was deliberately omitted here (gap #3 below). See
+`docs/dev-log/2026-06-18-first-run-dashboard.md`.
 
 **B — Persistent setup checklist (fixes 1, 2, 4).** A small, dismissible "Finish
 setting up" checklist on `/today` for accounts that skipped steps: ☐ Activate
