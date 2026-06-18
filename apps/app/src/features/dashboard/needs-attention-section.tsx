@@ -190,13 +190,15 @@ function NeedsAttentionSection() {
             ) : null}
           </p>
         </div>
-        <Link
-          to="/rules/sources"
-          className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-text-accent underline-offset-2 outline-none transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={<Link to="/rules/sources" />}
+          className="gap-1.5"
         >
           <SlidersHorizontalIcon className="size-4" aria-hidden />
           <Trans>Configure sources</Trans>
-        </Link>
+        </TextLink>
       </section>
     )
   }

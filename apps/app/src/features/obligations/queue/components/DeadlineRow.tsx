@@ -14,6 +14,7 @@ import { Link, useNavigate } from 'react-router'
 
 import type { ObligationQueueRow, ObligationStatus } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDatePretty } from '@/lib/utils'
@@ -585,15 +586,21 @@ function DeadlineRowExpansion({
       {/* Section E — single exit. The old "Activity on full page" link pointed
           at a tab of the very page this button opens — redundant, removed. */}
       <div className="flex items-center justify-end gap-2 border-t border-divider-subtle pt-2.5">
-        <Link
-          to={summaryHref}
-          state={{ from: 'client' }}
-          onClick={(event) => event.stopPropagation()}
-          className="flex items-center gap-1.5 text-sm font-semibold text-text-accent underline-offset-2 outline-none hover:underline"
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={
+            <Link
+              to={summaryHref}
+              state={{ from: 'client' }}
+              onClick={(event) => event.stopPropagation()}
+            />
+          }
+          className="flex gap-1.5 font-semibold"
         >
           <Trans>Open full deadline</Trans>
           <ArrowUpRightIcon className="size-3 shrink-0" aria-hidden />
-        </Link>
+        </TextLink>
       </div>
     </section>
   )

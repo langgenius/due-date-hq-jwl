@@ -3734,8 +3734,8 @@ msgid "Checkout is not configured"
 msgstr "Checkout is not configured"
 
 #: src/routes/billing.checkout.tsx
-msgid "Checkout is temporarily unavailable for this plan. <link>Email support</link> and we'll set the upgrade up for you."
-msgstr "Checkout is temporarily unavailable for this plan. <link>Email support</link> and we'll set the upgrade up for you."
+msgid "Checkout is temporarily unavailable for this plan. <0>Email support</0> and we'll set the upgrade up for you."
+msgstr "Checkout is temporarily unavailable for this plan. <0>Email support</0> and we'll set the upgrade up for you."
 
 #: src/routes/billing.checkout.tsx
 msgid "Checkout is temporarily unavailable for this plan. Contact support."

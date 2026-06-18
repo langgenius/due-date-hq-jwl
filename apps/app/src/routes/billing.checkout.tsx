@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 
@@ -384,12 +385,12 @@ export function BillingCheckoutRoute() {
                 pattern). */}
             <Trans>
               Checkout is temporarily unavailable for this plan.{' '}
-              <a
-                href="mailto:support@duedatehq.com?subject=Plan%20upgrade"
-                className="font-medium text-text-accent underline-offset-2 hover:underline"
+              <TextLink
+                variant="accent"
+                render={<a href="mailto:support@duedatehq.com?subject=Plan%20upgrade" />}
               >
                 Email support
-              </a>{' '}
+              </TextLink>{' '}
               and we'll set the upgrade up for you.
             </Trans>
           </AlertDescription>

@@ -4957,25 +4957,25 @@ function BulkReviewListModal({
             </Trans>
           </span>
           <div className="flex items-center gap-2 text-xs">
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
               onClick={selectAll}
               disabled={busy || included.length === rules.length}
-              className="cursor-pointer font-medium text-text-accent outline-none hover:underline focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
+              className="focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
             >
               <Trans>Select all</Trans>
-            </button>
+            </TextLink>
             <span aria-hidden className="text-text-muted">
               ·
             </span>
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
               onClick={clearAll}
               disabled={busy || included.length === 0}
-              className="cursor-pointer font-medium text-text-accent outline-none hover:underline focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
+              className="focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
             >
               <Trans>Clear</Trans>
-            </button>
+            </TextLink>
           </div>
         </div>
 
@@ -5658,12 +5658,9 @@ function NewRuleModal({
                   unambiguous. Click "+ Add rule" on a coverage-gap row in a jurisdiction group — or
                   review what's missing across next year's deadlines:
                 </Trans>
-                <Link
-                  to="/rules/preview"
-                  className="w-fit font-medium text-text-accent underline-offset-2 hover:underline"
-                >
+                <TextLink variant="accent" render={<Link to="/rules/preview" />} className="w-fit">
                   <Trans>Open the Annual rollover preview →</Trans>
-                </Link>
+                </TextLink>
               </div>
             ) : (
               <div className="flex flex-col gap-4">

@@ -356,9 +356,9 @@ export function MergedBriefCard({
             // making the user hunt for the footer link.
             <Trans>
               None in the priority shortlist —{' '}
-              <Link to="/deadlines" className="text-text-accent underline-offset-2 hover:underline">
+              <TextLink variant="accent" size="sm" render={<Link to="/deadlines" />}>
                 open the queue
-              </Link>{' '}
+              </TextLink>{' '}
               to see all {activeTotal}.
             </Trans>
           ) : counts.overdue > 0 ? (

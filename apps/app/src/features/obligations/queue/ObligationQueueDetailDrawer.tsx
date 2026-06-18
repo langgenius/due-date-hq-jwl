@@ -2871,13 +2871,9 @@ export function ObligationQueueDetailDrawer({
                             tone="reference"
                             title={<Trans>Recent activity</Trans>}
                             headerRight={
-                              <button
-                                type="button"
-                                onClick={() => jumpToSection('audit')}
-                                className="rounded-sm font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                              >
+                              <TextLink variant="accent" onClick={() => jumpToSection('audit')}>
                                 <Trans>View all in Timeline →</Trans>
-                              </button>
+                              </TextLink>
                             }
                             flush
                           >

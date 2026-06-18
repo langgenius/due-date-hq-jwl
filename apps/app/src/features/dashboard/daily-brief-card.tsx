@@ -410,13 +410,13 @@ function CatchupLine() {
   if (count === 0) return null
   return (
     <p className="min-w-0 text-sm text-text-primary">
-      <Link to="/alerts" className="text-text-accent underline-offset-2 hover:underline">
+      <TextLink variant="accent" size="sm" render={<Link to="/alerts" />}>
         <Plural
           value={count}
           one="# change already in effect affects your clients"
           other="# changes already in effect affect your clients"
         />
-      </Link>
+      </TextLink>
     </p>
   )
 }
@@ -515,9 +515,9 @@ function FirmTodayLine({
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
         </Trans>{' '}
-        <Link to="/deadlines" className="text-text-accent underline-offset-2 hover:underline">
+        <TextLink variant="accent" size="sm" render={<Link to="/deadlines" />}>
           <Trans>View deadlines</Trans>
-        </Link>
+        </TextLink>
       </p>
     )
   }
