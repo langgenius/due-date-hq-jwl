@@ -144,7 +144,7 @@ export function AuthFooter() {
 // internally only if a viewport is too short.
 export function CenteredAuthScreen({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-brand-ivory text-text-primary dark:bg-bg-canvas">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary dark:bg-bg-canvas">
       <header className="flex shrink-0 items-center gap-2.5 px-6 py-6 lg:px-10">
         <AuthBrandAnchor />
         <span className="flex-1" />

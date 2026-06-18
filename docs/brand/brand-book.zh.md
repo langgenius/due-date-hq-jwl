@@ -108,9 +108,9 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 
 - **navy `#0A2540` 作识别色** — 信任、精确、稳重,贴 CPA / 合规受众;比纯黑更有人味,
   比亮蓝更不像通用 SaaS。它是固定的「我们是谁」。
-- **ivory `#F3EEE6`,而非纯白** — navy 上反白的 mark 用暖 ivory 而非冷白。它在 logo 之外**唯一的
-  真实用处**是 **auth / splash 背景**(navy 横杠下的一层奶白品牌底,仅浅色)。它**不是产品 UI 色**;
-  塞进界面只会和暖灰 canvas 重复。
+- **ivory `#F3EEE6`,而非纯白** — navy 上反白的 mark 用暖 ivory 而非冷白。它**仅用于 logo mark**
+  (navy 方块上的反白横杠),**不是产品 UI 色**,也不再做页面底:auth / splash 底曾试过暖 ivory 奶白
+  (2026-06-16),后改回冷灰(`background-subtle`,2026-06-18)——暖底和冷调产品色板不搭。
 - **产品 accent = navy-indigo `#2E368C`,而非 Dify 蓝 `#155AEF`** — 把应用内的 accent 往品牌
   墨色靠,让产品和品牌同源、更深、更不通用;但比识别 navy 亮一档,仍能当 accent 用。
   (曾试 sage 绿 `#566E4C`,弃用——和 success 绿撞,green-on-green。)
@@ -126,12 +126,12 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 
 ### 2.1 品牌识别(不随主题变)— `--color-brand-*`
 
-| Token            | Hex       | 用途                                          |
-| ---------------- | --------- | --------------------------------------------- |
-| `brand-ink`      | `#0A2540` | logo 方块、字标、`<meta theme-color>`         |
-| `brand-ink-deep` | `#071A2E` | 按下态 / 高对比 app icon                      |
-| `brand-ivory`    | `#F3EEE6` | navy 上反白的 mark;auth/splash 的奶白底(浅色) |
-| `brand-gold`     | `#B99B62` | 传承的次级强调色,极少用                       |
+| Token            | Hex       | 用途                                                                                  |
+| ---------------- | --------- | ------------------------------------------------------------------------------------- |
+| `brand-ink`      | `#0A2540` | logo 方块、字标、`<meta theme-color>`                                                 |
+| `brand-ink-deep` | `#071A2E` | 按下态 / 高对比 app icon                                                              |
+| `brand-ivory`    | `#F3EEE6` | 仅用于 navy 上反白的 mark(auth/splash 底已于 2026-06-18 改回冷灰 `background-subtle`) |
+| `brand-gold`     | `#B99B62` | 传承的次级强调色,极少用                                                               |
 
 ### 2.2 产品 UI — 文本与 accent(语义,浅色)
 

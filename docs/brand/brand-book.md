@@ -31,7 +31,7 @@ The system deliberately runs **two palettes**. Conflating them is the most commo
 
 | Layer              | Where it lives                        | Anchor colors                                                                                      | Job                                    |
 | ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| **Brand identity** | Logo, favicon, auth chrome, marketing | Navy `#0A2540` · ivory `#F3EEE6` (auth ground) · serif                                             | Who we are. Fixed, never theme-shifts. |
+| **Brand identity** | Logo, favicon, auth chrome, marketing | Navy `#0A2540` · ivory `#F3EEE6` (logo mark fill only) · serif                                     | Who we are. Fixed, never theme-shifts. |
 | **Product UI**     | The working app (every route)         | Navy `#2E368C` accent (+ a brighter blue **highlight**) · gray neutrals · semantic severity/status | How the tool works. Themes light/dark. |
 
 The brand ink navy `#0A2540` is **identity-only**. Inside the app the accent is two-tier:
@@ -124,9 +124,10 @@ _for CPA firms_ tagline. Serif = trust; the sans tag signals software.
   compliance audience. Warmer than pure black, less generic than a bright SaaS blue. The
   fixed "who we are."
 - **Ivory `#F3EEE6`, not white** — the mark reversed on navy in warm ivory (not cold white).
-  Its one real home beyond the mark is the **auth / splash background** — a cream brand ground
-  under the navy mark (light mode only). It is _not_ a product-UI color; in the app it would
-  just duplicate the warm-gray canvas.
+  It is **logo-mark-fill only** — the ivory bars on the navy square. It is _not_ a
+  product-UI color and is no longer a page ground: the auth / splash background was tried as
+  a warm ivory cream (2026-06-16) but reverted to a cold light gray (`background-subtle`,
+  2026-06-18) — the warm ground read off against the cool product palette.
 - **Product accent = navy-indigo `#2E368C`, not Dify blue `#155AEF`** — pulls the in-app
   accent toward the brand ink so product and brand feel related (deeper, less off-the-shelf),
   while staying a notch brighter than the identity navy so it still works as an accent.
@@ -147,12 +148,12 @@ _for CPA firms_ tagline. Serif = trust; the sans tag signals software.
 
 ### 2.1 Brand identity (theme-invariant) — `--color-brand-*`
 
-| Token            | Hex       | Use                                                              |
-| ---------------- | --------- | ---------------------------------------------------------------- |
-| `brand-ink`      | `#0A2540` | Logo square, wordmark, `<meta theme-color>`                      |
-| `brand-ink-deep` | `#071A2E` | Pressed / high-contrast app icon                                 |
-| `brand-ivory`    | `#F3EEE6` | Mark on navy; the warm cream ground for auth/splash (light mode) |
-| `brand-gold`     | `#B99B62` | Heritage secondary accent, sparing                               |
+| Token            | Hex       | Use                                                                                                   |
+| ---------------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `brand-ink`      | `#0A2540` | Logo square, wordmark, `<meta theme-color>`                                                           |
+| `brand-ink-deep` | `#071A2E` | Pressed / high-contrast app icon                                                                      |
+| `brand-ivory`    | `#F3EEE6` | Logo-mark fill on navy only (auth/splash ground reverted to cold gray `background-subtle` 2026-06-18) |
+| `brand-gold`     | `#B99B62` | Heritage secondary accent, sparing                                                                    |
 
 ### 2.2 Product UI — text & accent (semantic, light mode)
 
