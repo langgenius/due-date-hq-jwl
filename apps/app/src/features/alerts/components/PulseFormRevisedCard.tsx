@@ -8,6 +8,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FieldLabel } from '@/components/primitives/field-label'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -111,16 +112,12 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
       <div className="flex items-center justify-between gap-2">
         {/* uHKcq left cluster, gap-2 (8px). */}
         <div className="flex min-w-0 items-center gap-2">
-          {/* l6Xgs severity pill: 11/600 ls 0.8, rounded-4, fill +
-              text from impactBadgeFromAlert(). padding [3,8,2,8].
-              Gated to HIGH only (see severityLabel note above). */}
+          {/* Severity pill, gated to HIGH only (see severityLabel note above).
+              NEUTRAL tone (2026-06-18): client reach is a quiet tag on a
+              different axis from urgency, never an amber alarm. Shared
+              <SeverityChip>. */}
           {severity.id === 'high' ? (
-            <span
-              className="inline-flex shrink-0 items-center rounded px-2 pt-[3px] pb-[2px] text-xs font-semibold tracking-eyebrow"
-              style={{ backgroundColor: severity.bg, color: severity.text }}
-            >
-              {severityLabel}
-            </span>
+            <SeverityChip level="neutral">{severityLabel}</SeverityChip>
           ) : null}
           {/* Mclbt source caption: 12/500 muted. */}
           <span className="truncate text-xs font-medium text-text-tertiary">{alert.source}</span>

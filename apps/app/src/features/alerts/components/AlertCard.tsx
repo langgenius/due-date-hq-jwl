@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FieldLabel } from '@/components/primitives/field-label'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -229,17 +230,13 @@ export function AlertCard({
                   timestamp + action-status pill on the right. */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  {/* Severity gated to HIGH only (LOW / MEDIUM render
-                      nothing; absence IS the signal), pill chrome aligned
-                      to canonical h-[22px] rounded px-2 text-caption
-                      font-semibold tracking-eyebrow uppercase. */}
+                  {/* Severity gated to HIGH only (LOW / MEDIUM render nothing;
+                      absence IS the signal). NEUTRAL tone (2026-06-18): client
+                      reach sits on a different axis from urgency, so it reads as
+                      a quiet tag, never an amber alarm — red/amber stay on the
+                      priority + action pills. Shared <SeverityChip>. */}
                   {severity.id === 'high' ? (
-                    <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-semibold tracking-eyebrow uppercase"
-                      style={{ backgroundColor: severity.bg, color: severity.text }}
-                    >
-                      {severityLabel}
-                    </span>
+                    <SeverityChip level="neutral">{severityLabel}</SeverityChip>
                   ) : null}
                   {/* Source size pinned to `text-base` — sits refined
                       between the 11px timestamp/facts and the 18px title. */}

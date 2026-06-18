@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { JurisdictionChip } from '@/components/primitives/state-badge'
+import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import {
@@ -97,41 +98,16 @@ import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
  */
 
 /**
- * The leading meta pill is the smart-priority TIER (urgent/high/normal)
- * from the priority queue — not client-impact. URGENT is destructive-red, HIGH is
- * warning-amber, NORMAL is a neutral subtle chip. Geist 10/700,
- * 0.6px tracking, 4px radius, hairline border. Exact hexes are taken
- * straight from the Pencil pills (Rrafe / P3itk / lZ9h8) so the chips
- * match the design 1:1 rather than approximating via tokens.
+ * The leading meta pill is the smart-priority TIER (urgent/high/normal) from the
+ * priority queue — not client-impact. 2026-06-18: routed through the shared
+ * <SeverityChip> (soft-tint `--severity-*` ramp), replacing the inline-style
+ * `--state-*` chips so alert priority, dashboard severity, and rule risk all read
+ * as one family. urgent → critical (red), high → high (orange), normal → neutral.
  */
-// 2026-06-16 (audit): repainted off hardcoded hex onto the token families so
-// the priority pills track the theme and obey the color economy — urgent =
-// destructive red, high = peach `state-warning` (was golden amber #FFF4E5/
-// #B9501A, the caution-tape tone Q1 retired), normal = neutral. Values are
-// CSS `var()` refs because the row applies them via inline `style`. Also drops
-// the one-off `#FCA5A5` urgent border that wasn't on the red ramp.
-const LEVEL_PILL: Record<
-  PulsePriorityLevel,
-  { label: string; bg: string; border: string; text: string }
-> = {
-  urgent: {
-    label: 'URGENT',
-    bg: 'var(--state-destructive-hover)',
-    border: 'var(--state-destructive-border)',
-    text: 'var(--text-destructive)',
-  },
-  high: {
-    label: 'HIGH',
-    bg: 'var(--state-warning-hover)',
-    border: 'var(--state-warning-active)',
-    text: 'var(--text-warning)',
-  },
-  normal: {
-    label: 'NORMAL',
-    bg: 'var(--state-base-hover-subtle)',
-    border: 'var(--border-default)',
-    text: 'var(--text-secondary)',
-  },
+const LEVEL_PILL: Record<PulsePriorityLevel, { label: string; level: SeverityLevel }> = {
+  urgent: { label: 'URGENT', level: 'critical' },
+  high: { label: 'HIGH', level: 'high' },
+  normal: { label: 'NORMAL', level: 'neutral' },
 }
 
 // ZkXFr's HeadRow carries no per-kind lucide icon; the change kind
@@ -522,16 +498,7 @@ function PulseAlertRow({
           {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
           {levelPill ? (
-            <span
-              className="inline-flex h-5 shrink-0 items-center rounded border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
-              style={{
-                backgroundColor: levelPill.bg,
-                borderColor: levelPill.border,
-                color: levelPill.text,
-              }}
-            >
-              {levelPill.label}
-            </span>
+            <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
           ) : null}
 
           {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
@@ -541,9 +508,9 @@ function PulseAlertRow({
               quiet chip; it sits on a different axis from the urgency tier, so it
               must look different from it too. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs font-semibold tracking-[0.3px] text-text-secondary uppercase">
+            <SeverityChip level="neutral">
               <Trans>High impact</Trans>
-            </span>
+            </SeverityChip>
           ) : null}
 
           {/* STATE — shared JurisdictionChip primitive (outline reference

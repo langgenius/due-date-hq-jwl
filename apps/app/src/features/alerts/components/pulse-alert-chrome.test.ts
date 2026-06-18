@@ -6,7 +6,9 @@ import { impactBadgeFromAlert } from './pulse-alert-chrome'
 // (matchedCount + needsReviewCount via alertImpactLevel), NOT inverted
 // AI confidence. `impactBadgeFromAlert` only Picks the two count fields,
 // so confidence cannot structurally leak back into the tier — these
-// tests lock the threshold table + the unified HIGH color.
+// tests lock the threshold table. 2026-06-18: the helper returns the tier ID
+// only; rendering moved to the shared <SeverityChip level="neutral"> (no per-
+// tier colors here anymore), so these assert the threshold table.
 describe('impactBadgeFromAlert', () => {
   it('grades by impacted obligations (matchedCount + needsReviewCount), HIGH at 5+', () => {
     expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 0 }).id).toBe('low')
@@ -17,24 +19,9 @@ describe('impactBadgeFromAlert', () => {
     expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 5 }).id).toBe('high')
   })
 
-  it('paints HIGH with the peach state-warning token family (2026-06-16: tokenized off the old hardcoded amber)', () => {
-    expect(impactBadgeFromAlert({ matchedCount: 6, needsReviewCount: 0 })).toEqual({
-      id: 'high',
-      bg: 'var(--state-warning-hover)',
-      text: 'var(--text-warning)',
-    })
-  })
-
-  it('keeps MEDIUM / LOW neutral gray via tokens (every surface gates the pill to HIGH only)', () => {
-    expect(impactBadgeFromAlert({ matchedCount: 3, needsReviewCount: 0 })).toEqual({
-      id: 'medium',
-      bg: 'var(--state-base-hover)',
-      text: 'var(--text-secondary)',
-    })
-    expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 0 })).toEqual({
-      id: 'low',
-      bg: 'var(--state-base-hover)',
-      text: 'var(--text-secondary)',
-    })
+  it('returns the tier ID only (rendering owns the color via SeverityChip)', () => {
+    expect(impactBadgeFromAlert({ matchedCount: 6, needsReviewCount: 0 })).toEqual({ id: 'high' })
+    expect(impactBadgeFromAlert({ matchedCount: 3, needsReviewCount: 0 })).toEqual({ id: 'medium' })
+    expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 0 })).toEqual({ id: 'low' })
   })
 })

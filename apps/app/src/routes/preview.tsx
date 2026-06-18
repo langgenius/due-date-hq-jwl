@@ -157,6 +157,7 @@ import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { TaxCodeLabel, TaxCodeBadge } from '@/components/primitives/tax-code-label'
 
 import { StatTile } from '@/components/patterns/stat-tile'
@@ -1669,6 +1670,20 @@ export function PreviewRoute() {
               <TaxCodeBadge code="1120" size="compact" />
               <TaxCodeBadge code="1040" size="compact" />
               <TaxCodeBadge code="941" size="compact" />
+            </Row>
+            <Row label="SeverityChip" mono="components/primitives/severity-chip">
+              <SeverityChip level="critical">Urgent</SeverityChip>
+              <SeverityChip level="high">High</SeverityChip>
+              <SeverityChip level="medium">Medium</SeverityChip>
+              <SeverityChip level="neutral">High impact</SeverityChip>
+            </Row>
+            <Row label="SeverityChip square" mono='severity-chip shape="square"'>
+              <SeverityChip level="high" shape="square">
+                High
+              </SeverityChip>
+              <SeverityChip level="neutral" shape="square">
+                Med
+              </SeverityChip>
             </Row>
             <Row label="RelativeTime" mono="primitives/relative-time">
               <span className="text-sm">

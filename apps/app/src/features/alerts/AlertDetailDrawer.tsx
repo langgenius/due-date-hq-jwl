@@ -61,6 +61,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { FieldLabel } from '@/components/primitives/field-label'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { Kbd } from '@/components/patterns/kbd'
@@ -1601,9 +1602,9 @@ export function AlertDetailDrawer({
                       helper's inline hexes): one alert, one pill, every
                       surface (same-entity-same-rendering audit). */}
                     {showSeverityPill ? (
-                      <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+                      <SeverityChip level="neutral">
                         <Trans>High impact</Trans>
-                      </span>
+                      </SeverityChip>
                     ) : null}
                     {/* The shared JurisdictionLabel primitive — seal + mono
                       code + full name. 2026-06-14 (Yuqi "give colour to the

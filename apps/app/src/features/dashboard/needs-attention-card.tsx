@@ -12,6 +12,7 @@ import { alertTone } from '@/features/alerts/alert-tone'
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
 // truncated label with the URL on tooltip hover.
 import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -222,13 +223,14 @@ function NeedsAttentionCard({
             by a justify-between split. */}
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {/* HIGH IMPACT — only renders for high-impact alerts. The SAME
-              chip recipe as the /alerts row + drawer header (h-[20px]
-              rounded-lg bordered) — one alert, one pill, every surface
-              (same-entity-same-rendering audit). */}
+              shared <SeverityChip level="neutral"> as the /alerts row + drawer
+              header — one alert, one pill, every surface (same-entity-same-
+              rendering). NEUTRAL (2026-06-18): reach is a quiet tag, not an
+              alarm; red/amber stay on urgency. */}
           {severity.id === 'high' ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <SeverityChip level="neutral">
               <Trans>High impact</Trans>
-            </span>
+            </SeverityChip>
           ) : null}
 
           {/* STATE — jurisdiction pill (seal + code; full name on hover). */}

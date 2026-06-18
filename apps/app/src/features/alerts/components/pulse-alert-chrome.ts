@@ -70,33 +70,25 @@ import { alertImpactLevel } from '../lib/impact-level'
  * one threshold table (lib/impact-level.ts: low 0–1 / medium 2–4 /
  * high 5+).
  *
- * This is the SINGLE badge mapper for every alert surface — AlertCard,
+ * This is the SINGLE impact-tier mapper for every alert surface — AlertCard,
  * PulseFormRevisedCard, NeedsAttentionCard (/today), PulseAlertRow,
  * AlertDetailDrawer. Impact is distinct from AI confidence: confidence
  * drives its own surfaces (pulsing-dot tone, drawer confidence pill,
  * low-confidence banner, AlertConfidencePill) and must not masquerade
  * as impact.
  *
- * Colors: HIGH uses the peach `state-warning` token family (#fff4f1 /
- * #c83d2f) — "watch out" without crossing into the destructive register
- * reserved for errors / overdue. 2026-06-16 (audit): repainted off the
- * old hardcoded golden amber (`#ffe3d6` / `#92400E`) — the caution-tape
- * tone the Q1 palette walked away from — and onto tokens so it tracks the
- * theme. MEDIUM / LOW stay neutral; in practice every surface gates the
- * pill to HIGH only, so the gray tiers render nothing — absence IS the
- * signal. Values are CSS `var()` refs because callers apply them via
- * inline `style`.
+ * Returns the tier ID only. 2026-06-18: the color fields were dropped — every
+ * surface now renders the pill via the shared `<SeverityChip level="neutral">`
+ * (client reach is a quiet tag on a different axis from urgency, never an
+ * alarm), so there are no per-tier colors to carry here. In practice every
+ * surface gates the pill to HIGH only; the gray tiers render nothing — absence
+ * IS the signal.
  */
 export type SeverityId = 'low' | 'medium' | 'high'
 export function impactBadgeFromAlert(
   alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
-): { id: SeverityId; bg: string; text: string } {
-  const level = alertImpactLevel(alert)
-  if (level === 'high')
-    return { id: 'high', bg: 'var(--state-warning-hover)', text: 'var(--text-warning)' }
-  if (level === 'medium')
-    return { id: 'medium', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
-  return { id: 'low', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
+): { id: SeverityId } {
+  return { id: alertImpactLevel(alert) }
 }
 
 /**

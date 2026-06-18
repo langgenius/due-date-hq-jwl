@@ -33,6 +33,7 @@ import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { FLOATING_ACTION_BAR_SCROLL_PADDING } from '@/components/patterns/floating-action-bar'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import {
   ENTITY_LABELS,
@@ -65,16 +66,19 @@ function isSelectable(status: RuleStatus): boolean {
   return status === 'pending_review' || status === 'candidate'
 }
 
-// Severity (rule riskLevel) → Badge variant (Pencil oJL8o `SevPill`).
-// HIGH reads warning-amber; MED/LOW stay quiet (secondary) so the eye
-// lands on the high-severity rows. LOW additionally mutes its text.
+// Severity (rule riskLevel) → shared <SeverityChip> level (Pencil oJL8o
+// `SevPill`). 2026-06-18: routed onto the canonical severity ramp so rule HIGH
+// reads the same orange as alert/dashboard HIGH (was Badge `warning` amber).
+// MED/LOW stay quiet neutral so the eye lands on the high-severity rows; LOW
+// additionally mutes its text. Rendered `shape="square"` for the registry
+// eyebrow-tag treatment.
 const SEVERITY_PILL: Record<
   ObligationRule['riskLevel'],
-  { label: string; variant: 'warning' | 'secondary'; cls?: string }
+  { label: string; level: SeverityLevel; cls?: string }
 > = {
-  high: { label: 'HIGH', variant: 'warning' },
-  med: { label: 'MED', variant: 'secondary' },
-  low: { label: 'LOW', variant: 'secondary', cls: 'text-text-muted' },
+  high: { label: 'HIGH', level: 'high' },
+  med: { label: 'MED', level: 'neutral' },
+  low: { label: 'LOW', level: 'neutral', cls: 'text-text-muted' },
 }
 
 // Status tone → Badge variant for the row status pill (Pencil oJL8o
@@ -652,9 +656,9 @@ function JurisdictionRuleRow({
       {/* Severity — risk-level eyebrow chip (Badge `square` shape: the
           uppercase-tag treatment, matching the alerts impact chips). */}
       <TableCell className="px-2 py-3 align-middle">
-        <Badge variant={severity.variant} shape="square" className={severity.cls}>
+        <SeverityChip level={severity.level} shape="square" className={severity.cls}>
           {severity.label}
-        </Badge>
+        </SeverityChip>
       </TableCell>
 
       {/* Status — label pill. Hidden in the Review scope (every row would
