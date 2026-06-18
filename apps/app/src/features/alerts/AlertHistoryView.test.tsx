@@ -176,7 +176,7 @@ async function clickTab(label: string): Promise<void> {
 
 async function typeSearch(value: string): Promise<void> {
   const input = document.querySelector<HTMLInputElement>(
-    'input[placeholder="Search handled alerts"]',
+    'input[placeholder="Filter handled alerts"]',
   )
   expect(input).toBeTruthy()
   // React overrides the input's value setter to track controlled state, so
