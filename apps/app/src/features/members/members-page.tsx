@@ -144,7 +144,7 @@ export function MembersPageRoute() {
 
   if (membersQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
         <Alert variant="destructive">
           <AlertTriangleIcon />
           <AlertTitle>
@@ -287,7 +287,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   })
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-12 md:px-6">
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Members` }]}
         title={<Trans>Members</Trans>}
@@ -775,75 +775,77 @@ function ActiveMembersTable({
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
-      <Table>
-        <TableHeader>
-          <TableRow className="h-9 hover:bg-transparent">
-            <TableHead className="w-[304px] px-4">
-              <Trans>Name</Trans>
-            </TableHead>
-            <TableHead className="w-[280px]">
-              <Trans>Email</Trans>
-            </TableHead>
-            <TableHead className="w-44">
-              <Trans>Role</Trans>
-            </TableHead>
-            <TableHead className="w-32">
-              <Trans>Status</Trans>
-            </TableHead>
-            <TableHead className="w-44">
-              <Trans>Joined</Trans>
-            </TableHead>
-            {/* "Last active" column is hidden until real data lands — the
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="h-9 hover:bg-transparent">
+              <TableHead className="w-[304px] px-4">
+                <Trans>Name</Trans>
+              </TableHead>
+              <TableHead className="w-[280px]">
+                <Trans>Email</Trans>
+              </TableHead>
+              <TableHead className="w-44">
+                <Trans>Role</Trans>
+              </TableHead>
+              <TableHead className="w-32">
+                <Trans>Status</Trans>
+              </TableHead>
+              <TableHead className="w-44">
+                <Trans>Joined</Trans>
+              </TableHead>
+              {/* "Last active" column is hidden until real data lands — the
                 server isn't tracking last-active yet, and a column of "Not
                 recorded" eats horizontal real estate to tell the user nothing.
                 Restore the <TableHead className="w-28">Last active</TableHead>
                 + matching cell when the backend grows a `lastActiveAt`
                 field. */}
-            <TableHead className="w-12" />
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&_td]:py-3">
-          {members.map((member) => {
-            const mutable = member.role !== 'owner' && !member.isCurrentUser
-            return (
-              <TableRow key={member.id} className="h-9">
-                <TableCell className="px-4 py-1.5">
-                  <MemberIdentity member={member} />
-                </TableCell>
-                <TableCell className="py-1.5 font-mono text-xs text-text-secondary">
-                  {member.email}
-                </TableCell>
-                <TableCell className="py-1.5">
-                  <RoleControl
-                    role={member.role}
-                    disabled={!mutable || busy}
-                    onChange={(role) => onRoleChange(member.id, role)}
-                  />
-                </TableCell>
-                <TableCell className="py-1.5">
-                  <MemberStatusPill status={member.status} />
-                </TableCell>
-                {/* JOINED uses relative time ("3 weeks ago") — an
+              <TableHead className="w-12" />
+            </TableRow>
+          </TableHeader>
+          <TableBody className="[&_td]:py-3">
+            {members.map((member) => {
+              const mutable = member.role !== 'owner' && !member.isCurrentUser
+              return (
+                <TableRow key={member.id} className="h-9">
+                  <TableCell className="px-4 py-1.5">
+                    <MemberIdentity member={member} />
+                  </TableCell>
+                  <TableCell className="py-1.5 font-mono text-xs text-text-secondary">
+                    {member.email}
+                  </TableCell>
+                  <TableCell className="py-1.5">
+                    <RoleControl
+                      role={member.role}
+                      disabled={!mutable || busy}
+                      onChange={(role) => onRoleChange(member.id, role)}
+                    />
+                  </TableCell>
+                  <TableCell className="py-1.5">
+                    <MemberStatusPill status={member.status} />
+                  </TableCell>
+                  {/* JOINED uses relative time ("3 weeks ago") — an
                     engineering-precise timestamp is unparseable at a glance.
                     The exact value lives on the tooltip via <RelativeTime>. No
                     font-mono — this column reads as recency, not as data. */}
-                <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-tertiary">
-                  <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
-                </TableCell>
-                <TableCell className="py-1.5 pr-2">
-                  <MemberActionsMenu
-                    member={member}
-                    disabled={!mutable || busy}
-                    onSuspend={onSuspend}
-                    onReactivate={onReactivate}
-                    onRemove={onRemove}
-                  />
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+                  <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-tertiary">
+                    <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
+                  </TableCell>
+                  <TableCell className="py-1.5 pr-2">
+                    <MemberActionsMenu
+                      member={member}
+                      disabled={!mutable || busy}
+                      onSuspend={onSuspend}
+                      onReactivate={onReactivate}
+                      onRemove={onRemove}
+                    />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
@@ -865,100 +867,102 @@ function PendingInvitationsTable({
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
-      <Table>
-        <TableHeader>
-          <TableRow className="h-9 hover:bg-transparent">
-            <TableHead className="w-[444px] px-4">
-              <Trans>Email</Trans>
-            </TableHead>
-            <TableHead className="w-[140px]">
-              <Trans>Status</Trans>
-            </TableHead>
-            <TableHead className="w-44">
-              <Trans>Role</Trans>
-            </TableHead>
-            <TableHead className="w-32">
-              <Trans>Invited by</Trans>
-            </TableHead>
-            <TableHead className="w-44">
-              <Trans>Sent · Expires</Trans>
-            </TableHead>
-            <TableHead className="w-24">
-              <Trans>Actions</Trans>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&_td]:py-3">
-          {invitations.map((invitation) => (
-            <TableRow key={invitation.id} className="h-14">
-              <TableCell className="px-4 py-2">
-                <div className="flex flex-col">
-                  <span className="font-mono text-xs font-medium text-text-primary">
-                    {invitation.email}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="h-9 hover:bg-transparent">
+              <TableHead className="w-[444px] px-4">
+                <Trans>Email</Trans>
+              </TableHead>
+              <TableHead className="w-[140px]">
+                <Trans>Status</Trans>
+              </TableHead>
+              <TableHead className="w-44">
+                <Trans>Role</Trans>
+              </TableHead>
+              <TableHead className="w-32">
+                <Trans>Invited by</Trans>
+              </TableHead>
+              <TableHead className="w-44">
+                <Trans>Sent · Expires</Trans>
+              </TableHead>
+              <TableHead className="w-24">
+                <Trans>Actions</Trans>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="[&_td]:py-3">
+            {invitations.map((invitation) => (
+              <TableRow key={invitation.id} className="h-14">
+                <TableCell className="px-4 py-2">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-xs font-medium text-text-primary">
+                      {invitation.email}
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {invitationDescription(invitation)}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="py-2">
+                  <InvitationStatusPill status={invitation.status} />
+                </TableCell>
+                <TableCell className="py-2">
+                  <RoleDisplay role={invitation.role} />
+                </TableCell>
+                <TableCell className="py-2 text-xs text-text-secondary">
+                  {inviterName(members, invitation.inviterId)}
+                </TableCell>
+                <TableCell className="py-2 font-mono text-xs leading-4">
+                  <span className="block text-text-secondary">
+                    <Trans>Sent {formatInvitationDate(invitation.createdAt, firmTimezone)}</Trans>
                   </span>
-                  <span className="text-xs text-text-tertiary">
-                    {invitationDescription(invitation)}
+                  <span
+                    className={cn(
+                      'block',
+                      invitation.status === 'expired' ? 'text-text-warning' : 'text-text-tertiary',
+                    )}
+                  >
+                    {invitation.status === 'expired' ? (
+                      <Trans>
+                        Expired {formatInvitationDate(invitation.expiresAt, firmTimezone)}
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        Expires {formatInvitationDate(invitation.expiresAt, firmTimezone)}
+                      </Trans>
+                    )}
                   </span>
-                </div>
-              </TableCell>
-              <TableCell className="py-2">
-                <InvitationStatusPill status={invitation.status} />
-              </TableCell>
-              <TableCell className="py-2">
-                <RoleDisplay role={invitation.role} />
-              </TableCell>
-              <TableCell className="py-2 text-xs text-text-secondary">
-                {inviterName(members, invitation.inviterId)}
-              </TableCell>
-              <TableCell className="py-2 font-mono text-xs leading-4">
-                <span className="block text-text-secondary">
-                  <Trans>Sent {formatInvitationDate(invitation.createdAt, firmTimezone)}</Trans>
-                </span>
-                <span
-                  className={cn(
-                    'block',
-                    invitation.status === 'expired' ? 'text-text-warning' : 'text-text-tertiary',
-                  )}
-                >
-                  {invitation.status === 'expired' ? (
-                    <Trans>
-                      Expired {formatInvitationDate(invitation.expiresAt, firmTimezone)}
-                    </Trans>
-                  ) : (
-                    <Trans>
-                      Expires {formatInvitationDate(invitation.expiresAt, firmTimezone)}
-                    </Trans>
-                  )}
-                </span>
-              </TableCell>
-              <TableCell className="py-2">
-                {/* Resend = accent variant (the affirmative re-action),
+                </TableCell>
+                <TableCell className="py-2">
+                  {/* Resend = accent variant (the affirmative re-action),
                     Cancel = muted secondary (the quiet backup affordance).
                     Both keep the disabled-while-busy semantics through the
                     underlying Base UI primitive. */}
-                <div className="flex flex-col items-start gap-0.5">
-                  <TextLink
-                    variant="accent"
-                    disabled={busy}
-                    onClick={() => onResend(invitation)}
-                    className="disabled:text-text-disabled"
-                  >
-                    <Trans>Resend</Trans>
-                  </TextLink>
-                  <TextLink
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => onCancel(invitation)}
-                    className="disabled:text-text-disabled"
-                  >
-                    <Trans>Cancel</Trans>
-                  </TextLink>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                  <div className="flex flex-col items-start gap-0.5">
+                    <TextLink
+                      variant="accent"
+                      disabled={busy}
+                      onClick={() => onResend(invitation)}
+                      className="disabled:text-text-disabled"
+                    >
+                      <Trans>Resend</Trans>
+                    </TextLink>
+                    <TextLink
+                      variant="secondary"
+                      disabled={busy}
+                      onClick={() => onCancel(invitation)}
+                      className="disabled:text-text-disabled"
+                    >
+                      <Trans>Cancel</Trans>
+                    </TextLink>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
@@ -1261,7 +1265,7 @@ function InviteMemberDialog({
 
 function MembersSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-12 md:px-6">
       <div className="flex min-h-20 justify-between gap-4">
         <div className="grid gap-2">
           <Skeleton className="h-4 w-20" />

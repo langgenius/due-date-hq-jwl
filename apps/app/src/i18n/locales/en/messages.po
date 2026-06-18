@@ -695,11 +695,6 @@ msgstr "{0} other"
 msgid "{0} overdue — clear the urgent set to pull the week back on track."
 msgstr "{0} overdue — clear the urgent set to pull the week back on track."
 
-#. placeholder {0}: counts.overdueCount
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "{0} overdue deadlines"
-msgstr "{0} overdue deadlines"
-
 #. placeholder {0}: deadlinesNarrative.overdue
 #. placeholder {1}: deadlinesNarrative.dueToday
 #: src/routes/obligations.tsx
@@ -882,10 +877,6 @@ msgstr "{affectedReviewClients, plural, one {# client has state deadlines waitin
 #: src/routes/alerts.tsx
 msgid "{alertCount, plural, one {# open} other {# open}}"
 msgstr "{alertCount, plural, one {# open} other {# open}}"
-
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "{alertCount} client-affecting alerts"
-msgstr "{alertCount} client-affecting alerts"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{alertCount} open alerts"
@@ -2395,7 +2386,6 @@ msgstr "Alert: priority alert review"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/concepts/concept-help.tsx
-#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
@@ -10952,10 +10942,6 @@ msgstr "Over your client limit"
 #: src/routes/obligations.tsx
 msgid "Overdue"
 msgstr "Overdue"
-
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Overdue deadlines"
-msgstr "Overdue deadlines"
 
 #. placeholder {0}: concentration.count
 #. placeholder {1}: concentration.overdueTotal

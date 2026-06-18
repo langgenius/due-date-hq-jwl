@@ -533,6 +533,8 @@
   --color-status-draft: var(--status-draft);
   --color-status-waiting: var(--status-waiting);
   --color-status-review: var(--status-review);
+  --color-status-review-tint: var(--status-review-tint);
+  --color-status-review-text: var(--status-review-text);
 
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);

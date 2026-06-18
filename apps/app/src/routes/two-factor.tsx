@@ -63,7 +63,7 @@ export function TwoFactorRoute() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-7">
           {/* Heading */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.6px] text-text-primary">
+            <h1 className="text-[28px] sm:text-[30px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>Check your phone</Trans>
             </h1>
             <p className="text-sm font-medium leading-normal text-text-tertiary">

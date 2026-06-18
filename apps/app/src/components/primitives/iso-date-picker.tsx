@@ -183,7 +183,7 @@ export function IsoDatePicker({
             aria-invalid={invalid || undefined}
             disabled={disabled}
             className={cn(
-              'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
+              'flex h-9 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
               'hover:bg-components-input-bg-hover',
               'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
               'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',

@@ -196,17 +196,16 @@ const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
 // the gap chip + progress bar) rather than getting its own column.
 const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 
-// The "needs review" signal uses the violet/lavender family — the same hue
-// the Badge `info` variant uses for the obligation "In review" lifecycle —
-// so "pending review" reads identically wherever it appears. 2026-06-16
-// (audit): repainted off the old golden `yellow-700`/`orange-100` (the
-// caution-tape mustard the Q1 palette retired and which double-coded against
-// the peach `state-warning`). Violet sits between blue (FYI) and red (alarm):
-// "attention needed, not urgent," and is visually distinct from the navy
-// brand accent. Held in local consts pending promotion to `--state-review-*`.
-const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-violet-700)]'
-const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-violet-100)]'
-const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-violet-600)]'
+// The "needs review" signal uses the canonical `--status-review` family
+// (violet/lavender), shared with rules-console / generation-preview /
+// SurfaceSummaryStrip so "pending review" reads identically everywhere.
+// 2026-06-18: review-color decision promoted these local consts onto the
+// semantic token (was raw `violet-*` palette; the token itself moved off the
+// navy `primary-*` to violet that day). Violet sits between blue (FYI) and red
+// (alarm): "attention needed, not urgent," distinct from the navy brand accent.
+const REVIEW_TEXT_CLS = 'text-status-review-text'
+const REVIEW_BG_TINT_CLS = 'bg-status-review-tint'
+const REVIEW_DOT_CLS = 'bg-status-review'
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header

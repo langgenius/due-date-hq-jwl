@@ -368,7 +368,9 @@
   --status-done: var(--color-util-colors-green-500);
   --status-draft: var(--color-util-colors-gray-400);
   --status-waiting: var(--color-util-colors-blue-light-500);
-  --status-review: var(--color-util-colors-primary-400);
+  --status-review: var(--color-util-colors-violet-400);
+  --status-review-tint: rgb(164 138 251 / 0.14);
+  --status-review-text: var(--color-util-colors-violet-400);
 
   --brand-primary: var(--text-primary);
   --brand-secondary: var(--text-secondary);

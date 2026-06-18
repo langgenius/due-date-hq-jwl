@@ -3,13 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
-  CalendarClockIcon,
   ChevronDownIcon,
   ClockIcon,
   ExternalLinkIcon,
   NewspaperIcon,
   RotateCwIcon,
-  TriangleAlertIcon,
   XIcon,
 } from 'lucide-react'
 import { Link } from 'react-router'
@@ -50,7 +48,7 @@ export interface DailyBriefTodayCounts {
  *   📰  Daily Brief                                    [freshness]
  *       <one AI sentence: today's focus + where to start, with citation chips>
  *       <catch-up line, only if pre-join changes still await handling>
- *       [Alerts N →] [Waiting N →] [Overdue N →]
+ *       [Waiting on client N →]   (only pill with no twin elsewhere on /today)
  *
  * The AI's role is ONE sentence; the detailed plan is the Priorities table
  * right below, so the card never repeats it. Citation `[n]` tokens resolve to
@@ -285,9 +283,10 @@ export function DailyBriefCard({
           clients. */}
       <CatchupLine />
 
-      {/* Action pills (Pencil t9nO3) — quick jumps to the surfaces the brief
-          summarizes, each with a live count. Self-hiding per pill + whole
-          row, so no empty/fictional pills appear. */}
+      {/* Waiting-on-client quick-jump (Pencil t9nO3) — the one count with no
+          twin elsewhere on /today. Self-hiding at zero. Alerts + Overdue pills
+          were removed 2026-06-18 (they duplicated the Needs-attention section
+          and Priorities overdue bucket directly around this card). */}
       <BriefActionPills counts={todayCounts} />
 
       {/* Failure footnote — a quiet caption, never the headline. */}
@@ -301,48 +300,30 @@ export function DailyBriefCard({
 }
 
 /**
- * Action pills under the brief (Pencil t9nO3) — a row of quick-jump chips,
- * each `icon + label + live count + →`, white on the accent band with a
- * hairline border. Every count is REAL (no fiction): the alert count comes
- * from the same `listAlerts` cache the page already warms; Waiting / Overdue
- * read the `todayCounts` the card already receives. A pill renders only when
- * its count > 0, and the whole row hides when nothing is pending — so the
- * brief never shows an empty or invented pill. (The design's 4th "Sweep"
- * pill is omitted until there's a cheap real change-count to back it.)
+ * Action pill under the brief (Pencil t9nO3) — a quick-jump chip,
+ * `icon + label + live count + →`, white on the accent band with a hairline
+ * border. The count is REAL (from the `todayCounts` the card already receives)
+ * and the pill self-hides at zero, so the brief never shows an empty pill.
+ *
+ * 2026-06-18 (Yuqi — distill): the Alerts and Overdue pills were removed. They
+ * duplicated the Needs-attention section directly above and the Priorities
+ * overdue bucket directly below (same counts, same destinations, all within
+ * ~150px) — one home per fact. Waiting-on-client has no such twin on /today, so
+ * its jump stays. (The row is kept as a list so a future real signal can slot
+ * back in without restructuring.)
  */
 function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
   const { t } = useLingui()
-  // Shares the page's alerts cache (NeedsAttentionSection + CatchupLine use
-  // the same key) — no extra request. "Affecting" = matched a client's
-  // obligation, the same bar the Alerts section uses to earn a card.
-  const alertsQuery = useQuery(useAlertsListQueryOptions(50))
-  const alertCount = (alertsQuery.data?.alerts ?? []).filter(
-    (alert) => alert.matchedCount > 0,
-  ).length
 
   const pills: Array<{
     key: string
-    icon: typeof TriangleAlertIcon
+    icon: typeof ClockIcon
     iconClass: string
     label: React.ReactNode
     count: number
     to: string
     ariaLabel: string
   }> = []
-  if (alertCount > 0) {
-    pills.push({
-      key: 'alerts',
-      icon: TriangleAlertIcon,
-      iconClass: 'text-text-destructive',
-      label: <Trans>Alerts</Trans>,
-      count: alertCount,
-      // Land in the Review queue (pending changes to look at), not the
-      // Active apply-queue — the brief is a "what should I look at" jump, and
-      // the explicit param pins the tab instead of riding the page default.
-      to: '/alerts?queue=review',
-      ariaLabel: t`${alertCount} client-affecting alerts`,
-    })
-  }
   if (counts.waitingOnClientCount > 0) {
     pills.push({
       key: 'waiting',
@@ -354,18 +335,6 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       count: counts.waitingOnClientCount,
       to: '/deadlines',
       ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
-    })
-  }
-  if (counts.overdueCount > 0) {
-    pills.push({
-      key: 'overdue',
-      icon: CalendarClockIcon,
-      iconClass: 'text-text-tertiary',
-      // Name the noun — "Overdue deadlines", not a bare "Overdue".
-      label: <Trans>Overdue deadlines</Trans>,
-      count: counts.overdueCount,
-      to: '/deadlines',
-      ariaLabel: t`${counts.overdueCount} overdue deadlines`,
     })
   }
 
@@ -497,7 +466,7 @@ function TodayLine({
  * where the overdue work CLUSTERS by form type ("Overdue concentrated in
  * Form 1120 (3 of 5)") and deliberately never names a member. Renders
  * only when there is a real cluster (≥2 of one form); scattered overdue
- * is already carried by the action pills below. All-quiet collapses to
+ * is already carried by the Priorities table below. All-quiet collapses to
  * one muted line so the row never sits empty.
  */
 function FirmTodayLine({
@@ -530,7 +499,7 @@ function FirmTodayLine({
       </p>
     )
   }
-  // Scattered or light overdue — the action pills below carry the signal.
+  // Scattered or light overdue — the Priorities table below carries the signal.
   return null
 }
 

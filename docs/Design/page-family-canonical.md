@@ -49,13 +49,13 @@ extra borders around the content area.
 
 ### Tokens
 
-| Slot              | Token                                                                            |
-| ----------------- | -------------------------------------------------------------------------------- |
-| Outer padding (X) | `--space-page-x` (`px-4 md:px-6`)                                                |
-| Outer padding (Y) | `--space-page-y-top` / `--space-page-y-bottom` (`pt-6 md:pt-8` / `pb-4 md:pb-6`) |
-| Vertical rhythm   | `--space-section-gap` (`gap-6`); sticky-footer variant uses `gap-4`.             |
-| Max width         | `--max-w-page-wide`                                                              |
-| Background        | `--background-page` (inherits inset surface canonical)                           |
+| Slot              | Token                                                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Outer padding (X) | `--space-page-x` (`px-4 md:px-6`)                                                                                     |
+| Outer padding (Y) | `--space-page-y-top` / `--space-page-y-bottom` (`pt-8` / `pb-12`) — reconciled 2026-06-18 to the shipped pass-1 value |
+| Vertical rhythm   | `--space-section-gap` (`gap-6`); sticky-footer variant uses `gap-4`.                                                  |
+| Max width         | `--max-w-page-wide`                                                                                                   |
+| Background        | `--background-page` (inherits inset surface canonical)                                                                |
 
 ### Restrictions
 

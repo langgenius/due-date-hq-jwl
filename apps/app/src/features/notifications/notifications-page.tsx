@@ -166,7 +166,7 @@ export function NotificationsPage() {
 
   return (
     // 2026-06-16 (audit): mx-auto + max-w-page-wide cap (was full-bleed).
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-12 md:px-6">
       {/* "Notifications" matches the route title, breadcrumb, nav, and the
           sibling "Notification preferences" — the H1 was the lone "Inbox". */}
       <PageHeader

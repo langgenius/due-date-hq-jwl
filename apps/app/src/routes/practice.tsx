@@ -78,7 +78,7 @@ import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { formatDate } from '@/lib/utils'
-import { FieldLabel as CapsLabel } from '@/components/primitives/field-label'
+import { FieldLabel as CapsFieldLabel } from '@/components/primitives/field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
@@ -132,7 +132,7 @@ export function PracticeRoute() {
 
   if (currentQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -146,7 +146,7 @@ export function PracticeRoute() {
 
   if (!currentQuery.data) {
     return (
-      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -477,7 +477,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     <div
       role="note"
       aria-label={firmSummaryLabel}
-      className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6"
+      className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6"
     >
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Practice profile` }]}
@@ -1068,9 +1068,9 @@ function PriorityKpiTile({
         <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-state-accent-hover text-text-accent">
           {icon}
         </span>
-        <CapsLabel as="span" variant="group" className="text-text-tertiary">
+        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
           {label}
-        </CapsLabel>
+        </CapsFieldLabel>
       </div>
       <span className="text-3xl font-semibold tabular-nums text-text-primary">{value}</span>
       <span className="text-xs leading-4 text-text-tertiary">{hint}</span>
@@ -1252,7 +1252,7 @@ function SmartPriorityRedactedContent() {
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
       <Skeleton className="h-10 w-56" />
       <Skeleton className="h-52 w-full rounded-lg" />
       <Skeleton className="h-40 w-full rounded-lg" />

@@ -1055,7 +1055,7 @@ export function ClientFactsWorkspace({
               filtered directory scrolls here, with the table header pinned
               via `sticky top-0` so column labels stay visible. Matches the
               /deadlines queue's scroll model. */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col overflow-x-auto overflow-y-auto">
             {isLoading ? (
               <ClientTableSkeleton />
             ) : (

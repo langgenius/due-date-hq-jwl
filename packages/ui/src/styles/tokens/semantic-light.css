@@ -414,7 +414,9 @@
   --status-done: var(--color-util-colors-green-600);
   --status-draft: var(--color-util-colors-gray-500);
   --status-waiting: var(--color-util-colors-blue-light-600);
-  --status-review: var(--color-util-colors-primary-600);
+  --status-review: var(--color-util-colors-violet-600);
+  --status-review-tint: var(--color-util-colors-violet-100);
+  --status-review-text: var(--color-util-colors-violet-700);
 
   --brand-primary: var(--text-primary);
   --brand-secondary: var(--text-secondary);

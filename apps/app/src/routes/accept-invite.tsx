@@ -193,13 +193,13 @@ export function AcceptInviteRoute() {
               <Skeleton className="h-9 w-72" />
             </span>
           ) : inviteQuery.data ? (
-            <h1 className="text-[32px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
+            <h1 className="text-[28px] sm:text-[30px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>
                 {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}
               </Trans>
             </h1>
           ) : (
-            <h1 className="text-[32px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
+            <h1 className="text-[28px] sm:text-[30px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>You&apos;ve been invited to a firm</Trans>
             </h1>
           )}
