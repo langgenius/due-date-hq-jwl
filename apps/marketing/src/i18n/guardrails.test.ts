@@ -21,8 +21,9 @@ import {
 const CJK = /[一-鿿]/
 // Intentionally-Chinese values in the EN tree (the language-switcher labels).
 const ALLOWED_CJK_KEYS = new Set(['zhShort', 'zhLong'])
-// Badges that assert deep, multi-agency live coverage (vs. plain "Monitored"/"监控中").
-const DEEP_BADGES = new Set(['Live', '已上线'])
+// Public state coverage is presented uniformly (comprehensive 50 states + DC),
+// never by depth tier — every state card shows this one badge per locale.
+const UNIFORM_BADGE = { en: 'Monitored', 'zh-CN': '监控中' } as const
 
 interface FoundString {
   key: string
@@ -67,17 +68,20 @@ describe('marketing copy guardrails', () => {
     expect(offenders).toEqual([])
   })
 
-  it('state cards claim a deep-coverage badge only for deep-coverage states', () => {
+  it('every state coverage card shows one uniform badge (no depth tiers surfaced)', () => {
     for (const [locale, copy] of [
       ['en', en],
       ['zh-CN', zhCN],
     ] as const) {
       const { states } = getStateCoveragePage(copy, locale)
-      const overclaims = states
-        .filter((state) => DEEP_BADGES.has(state.status))
-        .filter((state) => !DEEP_COVERAGE_STATE_ABBRS.has(state.abbreviation))
+      const offenders = states
+        .filter((state) => state.status !== UNIFORM_BADGE[locale])
         .map((state) => `${locale}:${state.abbreviation}:${state.status}`)
-      expect(overclaims).toEqual([])
+      expect(offenders).toEqual([])
     }
+  })
+
+  it('the internal deep-coverage set stays the known six (retained, not surfaced)', () => {
+    expect([...DEEP_COVERAGE_STATE_ABBRS].toSorted()).toEqual(['CA', 'FL', 'MA', 'NY', 'TX', 'WA'])
   })
 })

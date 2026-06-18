@@ -85,6 +85,25 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
           ],
         },
+        {
+          eyebrow: 'SOURCING & GOVERNANCE',
+          title: 'How the rule catalog is sourced and verified.',
+          body: "DueDateHQ's deadline and rule catalog is curated by accounting-operations practitioners against primary sources, and every entry is human-reviewed from candidate to verified before it becomes reminder-ready.",
+          items: [
+            {
+              title: 'Primary sources',
+              body: "IRS Publication 509, the Internal Revenue Bulletin and IRS form instructions, and each state Department of Revenue's official pages.",
+            },
+            {
+              title: 'Candidate → verified',
+              body: 'Every rule moves from a source-backed candidate through human review before it can become reminder-ready work.',
+            },
+            {
+              title: 'Evidence beside the rule',
+              body: 'The source URL, excerpt, and verification timestamp stay attached to each rule and alert.',
+            },
+          ],
+        },
       ],
       contact: {
         title: 'Talk to the team.',
@@ -393,6 +412,25 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             {
               title: '人工复核闸口',
               body: 'AI 可以辅助分类和总结，但来源证据和复核动作仍是控制点。',
+            },
+          ],
+        },
+        {
+          eyebrow: '来源与治理',
+          title: '规则目录如何取源与核验。',
+          body: 'DueDateHQ 的截止日与规则目录由会计运营实践者对照一手来源整理，每一条都经人工从候选到已核验复核后，才进入可提醒状态。',
+          items: [
+            {
+              title: '一手来源',
+              body: 'IRS Publication 509、Internal Revenue Bulletin 与 IRS 表格说明，以及各州 Department of Revenue 的官方页面。',
+            },
+            {
+              title: '候选 → 已核验',
+              body: '每条规则都从带来源的候选项经人工复核，之后才可能成为可提醒的工作项。',
+            },
+            {
+              title: '证据留在规则旁',
+              body: '来源链接、来源摘录和核验时间戳始终附在每条规则与提醒旁边。',
             },
           ],
         },

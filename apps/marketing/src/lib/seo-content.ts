@@ -39,18 +39,16 @@ interface RuleReferenceSpec {
   clientContextZh: string
 }
 
-// Coverage tiers per docs/dev-file/11-Pulse-Ingest-Source-Catalog.md §3:
-//   `deep`      = explicit multi-agency live adapters (CA/NY/TX/FL/WA/MA).
-//   `monitored` = official temporary/news source watch (all other states + DC).
-// CA/NY/TX/FL/WA are authored directly in i18n stateCoverage copy; MA is the
-// only deep state surfaced via stateSpecs below. The card badge is DERIVED from
-// this set — never hard-code 'Live'/'已上线' on a monitored state.
+// Internal coverage-depth truth per docs/dev-file/11-Pulse-Ingest-Source-Catalog.md
+// §3: these 6 states run deep multi-agency live adapters. Retained for internal /
+// future use ONLY — public state coverage is presented UNIFORMLY (comprehensive
+// 50 states + DC), not by depth tier, so this set no longer drives any visible badge.
 export const DEEP_COVERAGE_STATE_ABBRS = new Set(['CA', 'NY', 'TX', 'FL', 'WA', 'MA'])
 
-function stateStatusLabel(spec: StateSpec, locale: Locale): string {
-  const deep = DEEP_COVERAGE_STATE_ABBRS.has(spec.abbreviation)
-  if (locale === 'zh-CN') return deep ? '已上线' : '监控中'
-  return deep ? 'Live' : 'Monitored'
+// One uniform, honest coverage badge for every state — emphasizes comprehensive
+// monitoring across 50 states + DC, never depth tiers.
+function stateStatusLabel(locale: Locale): string {
+  return locale === 'zh-CN' ? '监控中' : 'Monitored'
 }
 
 const stateSpecs: StateSpec[] = [
@@ -459,7 +457,7 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
       slug: spec.slug,
       name: spec.name,
       abbreviation: spec.abbreviation,
-      status: stateStatusLabel(spec, locale),
+      status: stateStatusLabel(locale),
       body: `${spec.agency} 的公开${spec.sourceSurfaceZh}可进入来源复核，用于${spec.taxFocusZh}的截止日运营判断。`,
       href: `/zh-CN/states/${spec.slug}`,
     }
@@ -469,7 +467,7 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
     slug: spec.slug,
     name: spec.name,
     abbreviation: spec.abbreviation,
-    status: stateStatusLabel(spec, locale),
+    status: stateStatusLabel(locale),
     body: `${spec.agency} ${spec.sourceSurface} can enter source review for ${spec.taxFocus} in deadline operations.`,
     href: `/states/${spec.slug}`,
   }

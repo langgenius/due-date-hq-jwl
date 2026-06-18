@@ -95,6 +95,8 @@ export interface HeroCopy {
   eyebrow: string
   title: string
   description: string
+  /** Add-on positioning line rendered under the hero description. */
+  positioning: string
   primaryCta: string
   secondaryCta: string
   demoCta: string
