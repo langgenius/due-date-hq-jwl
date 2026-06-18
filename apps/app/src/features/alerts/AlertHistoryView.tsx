@@ -22,6 +22,7 @@ import { SearchInput } from '@/components/primitives/search-input'
 import { getJurisdictionName, JurisdictionChip } from '@/components/primitives/state-badge'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { AlertDetailDrawer } from './AlertDetailDrawer'
@@ -319,6 +320,27 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
                     <Trans>Loading handled alerts…</Trans>
+                  </TableCell>
+                </TableRow>
+              ) : historyQuery.isError ? (
+                // Error-as-empty guard: a failed history query used to fall
+                // through to "No handled alerts match this view." — telling the
+                // CPA their archive is empty when the load actually failed.
+                // Mirrors the AlertsListPage list error (message + inline retry).
+                <TableRow className="even:bg-transparent hover:bg-transparent">
+                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
+                    <span className="font-medium text-text-secondary">
+                      <Trans>Couldn't load handled alerts</Trans>
+                    </span>{' '}
+                    {rpcErrorMessage(historyQuery.error) ??
+                      t`Try again in a moment. If it keeps failing, contact support.`}{' '}
+                    <TextLink
+                      variant="accent"
+                      size="sm"
+                      onClick={() => void historyQuery.refetch()}
+                    >
+                      <Trans>Retry</Trans>
+                    </TextLink>
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (

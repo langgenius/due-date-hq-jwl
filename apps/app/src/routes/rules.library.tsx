@@ -1237,6 +1237,19 @@ export function RulesLibraryRoute() {
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
   const temporaryQuery = useQuery(orpc.rules.listTemporaryRules.queryOptions({ input: undefined }))
 
+  // Error-as-empty guard: with `throwOnError: false`, a failed core query only
+  // sets `isError` while its data falls back to `?? []` below — which renders
+  // the "no rules" empty state on what is actually a load failure. Surface a
+  // single error banner + retry above the body instead.
+  const coreQueryError =
+    rulesQuery.error ?? coverageQuery.error ?? sourcesQuery.error ?? temporaryQuery.error
+  const refetchCoreQueries = () => {
+    void rulesQuery.refetch()
+    void coverageQuery.refetch()
+    void sourcesQuery.refetch()
+    void temporaryQuery.refetch()
+  }
+
   const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data])
   const rulesById = useMemo(() => new Map(rules.map((rule) => [rule.id, rule])), [rules])
   const coverageRows = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
@@ -2512,7 +2525,32 @@ export function RulesLibraryRoute() {
               rule search) swaps in the working console: scoped KPI strip,
               progress meter, scope tabs, entity/search filters, and the
               rule table. */}
-            {selectedGroup || isSearching ? (
+            {coreQueryError ? (
+              // Any core query failing renders ONE error banner + retry here,
+              // above the empty/content render below — otherwise the `?? []`
+              // fallbacks make a failed load look like an empty catalog.
+              // Mirrors the canonical AlertsListPage list error (destructive
+              // Alert + message + Button-link Retry).
+              <Alert variant="destructive">
+                <TriangleAlertIcon />
+                <AlertTitle>
+                  <Trans>Couldn't load rules</Trans>
+                </AlertTitle>
+                <AlertDescription>
+                  {rpcErrorMessage(coreQueryError) ??
+                    t`Try again in a moment. If it keeps failing, contact support.`}{' '}
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 align-baseline"
+                    onClick={refetchCoreQueries}
+                  >
+                    <Trans>Retry</Trans>
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            ) : selectedGroup || isSearching ? (
               <>
                 {/* KPI strip — 4-stat band (Total / Effective / Pending /
                   Deprecated) for the selected jurisdiction. */}

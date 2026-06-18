@@ -112,6 +112,13 @@ export function NotificationsPage() {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
       },
+      onError: (error) => {
+        toast.error(t`Couldn't mark all read`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
     }),
   )
 

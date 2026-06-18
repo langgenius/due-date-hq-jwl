@@ -4756,6 +4756,10 @@ msgstr "无法加载截止事项详情。"
 msgid "Couldn't load deadlines."
 msgstr "无法加载截止事项。"
 
+#: src/features/alerts/AlertHistoryView.tsx
+msgid "Couldn't load handled alerts"
+msgstr "无法加载已处理的提醒"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Couldn't load import history"
 msgstr "无法加载导入历史"
@@ -4767,6 +4771,10 @@ msgstr "无法加载通知"
 #: src/features/rules/sources-tab.tsx
 msgid "Couldn't load rule sources"
 msgstr "无法加载规则来源"
+
+#: src/routes/rules.library.tsx
+msgid "Couldn't load rules"
+msgstr "无法加载规则"
 
 #: src/routes/clients.tsx
 msgid "Couldn't load sample data"
@@ -4821,6 +4829,10 @@ msgstr "无法标记为已接受"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't mark alert reviewed"
 msgstr "无法将提醒标记为已查看"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Couldn't mark all read"
+msgstr "无法全部标为已读"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't mark e-file rejected"
@@ -12641,6 +12653,7 @@ msgid "Retracted"
 msgstr "已撤回"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -12649,6 +12662,7 @@ msgstr "已撤回"
 #: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
+#: src/routes/rules.library.tsx
 msgid "Retry"
 msgstr "重试"
 
@@ -15618,6 +15632,7 @@ msgid "Try again in a moment."
 msgstr "请稍后重试。"
 
 #: src/components/patterns/app-shell-user-menu.tsx
+#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -15647,6 +15662,7 @@ msgstr "请稍后重试。"
 #: src/routes/obligations.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
+#: src/routes/rules.library.tsx
 msgid "Try again in a moment. If it keeps failing, contact support."
 msgstr "请稍后重试。如果持续失败，请联系支持团队。"
 
