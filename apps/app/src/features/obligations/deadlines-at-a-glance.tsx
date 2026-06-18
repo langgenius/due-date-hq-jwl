@@ -7,7 +7,7 @@ import type { ObligationQueueRow } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 /**
  * DeadlinesAtAGlance — the "AT A GLANCE" narrative tile row from the
@@ -259,9 +259,9 @@ function NarrativeTile({
         <Icon className="size-3.5" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-col gap-1">
-        <FieldLabel as="span" variant="field">
+        <CapsFieldLabel as="span" variant="field">
           {label}
-        </FieldLabel>
+        </CapsFieldLabel>
         {loading ? (
           <>
             <Skeleton className="h-4 w-48" aria-hidden />

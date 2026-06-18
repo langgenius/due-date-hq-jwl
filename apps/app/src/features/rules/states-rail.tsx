@@ -20,7 +20,7 @@ import {
   ListRailSection,
   ListRailTitle,
 } from '@/components/patterns/list-rail'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 
@@ -258,9 +258,9 @@ export function JurisdictionRail({
 function RailSectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="px-3 pt-3 pb-1">
-      <FieldLabel as="span" variant="group">
+      <CapsFieldLabel as="span" variant="group">
         {children}
-      </FieldLabel>
+      </CapsFieldLabel>
     </div>
   )
 }

@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { formatDatePretty } from '@/lib/utils'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
@@ -643,7 +643,7 @@ function ActionsListHeader({
       <div className="flex flex-col">
         {/* Demoted eyebrow treatment shared with the Alerts h2 — 11px / 600 /
             muted tertiary / wider tracking. See section-header-style.md. */}
-        <FieldLabel as="div" variant="group" className="flex items-center gap-1.5">
+        <CapsFieldLabel as="div" variant="group" className="flex items-center gap-1.5">
           {/* The title links to the full deadlines list (via onOpenAll). The
               Sparkles tooltip stays a non-link sibling. */}
           <Link
@@ -696,7 +696,7 @@ function ActionsListHeader({
               </div>
             </TooltipContent>
           </Tooltip>
-        </FieldLabel>
+        </CapsFieldLabel>
         <p className="text-sm text-text-tertiary">
           <Trans>
             Curated by Smart Priority — the next work most worth handling, not every deadline.

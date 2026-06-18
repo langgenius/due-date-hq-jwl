@@ -31,7 +31,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -145,9 +145,9 @@ export function ReadinessPortalRoute() {
     <main className="min-h-full w-full bg-background-default p-4 text-text-primary md:p-8">
       <div className="mx-auto grid max-w-page-narrow gap-4">
         <header className="grid gap-2">
-          <FieldLabel as="span" variant="field">
+          <CapsFieldLabel as="span" variant="field">
             <Trans>DueDateHQ readiness portal</Trans>
-          </FieldLabel>
+          </CapsFieldLabel>
           <h1 className="text-2xl font-semibold">
             {portal ? portal.clientName : <Trans>Readiness check</Trans>}
           </h1>

@@ -49,7 +49,7 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { StatusBanner } from '@/components/patterns/status-banner'
 import {
@@ -1101,10 +1101,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   {/* BOTTOM/RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-full shrink-0 flex-col gap-2 overflow-y-auto xl:w-[460px]">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                      <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
-                      </FieldLabel>
+                      </CapsFieldLabel>
                     </div>
                     {isFilteredEmpty ? (
                       <FilteredEmptyState
@@ -1644,9 +1644,9 @@ function FilterPillSection<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel as="span" variant="group" className="text-text-tertiary">
+      <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <div className="flex flex-wrap gap-1">
         {options.map((option) => (
           <ToggleChip key={option} selected={option === value} onClick={() => onSelect(option)}>

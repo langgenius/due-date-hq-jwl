@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 /**
  * Compact label / value tile used at the top of migration-wizard steps
@@ -12,9 +12,9 @@ import { FieldLabel } from '@/components/primitives/field-label'
 export function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <FieldLabel as="div" variant="field" className="text-text-secondary">
+      <CapsFieldLabel as="div" variant="field" className="text-text-secondary">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
     </div>
   )

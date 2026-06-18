@@ -5,7 +5,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 /**
  * Canonical one-line stats strip used at the top of table-bearing
@@ -61,9 +61,9 @@ export function SurfaceSummaryStrip({
 }: SurfaceSummaryStripProps) {
   return (
     <div className="flex h-10 items-center gap-3 rounded-lg border border-divider-regular bg-background-default px-4">
-      <FieldLabel as="span" variant="field" className="w-[88px] shrink-0">
+      <CapsFieldLabel as="span" variant="field" className="w-[88px] shrink-0">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <div
         className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1"
         aria-busy={loading || undefined}

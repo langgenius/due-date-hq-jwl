@@ -2,7 +2,7 @@ import { type ReactNode, useId, useState } from 'react'
 import { Trans } from '@lingui/react/macro'
 import { AlertTriangleIcon, type LucideIcon } from 'lucide-react'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 import {
   AlertDialog,
@@ -199,9 +199,9 @@ export function BulkConfirmList({
   const remaining = items.length - visible.length
   return (
     <div className="grid gap-2">
-      <FieldLabel as="span" variant="group">
+      <CapsFieldLabel as="span" variant="group">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <ul className="grid divide-y divide-divider-subtle overflow-hidden rounded-lg border border-divider-subtle bg-background-subtle">
         {visible.map((item) => (
           <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">

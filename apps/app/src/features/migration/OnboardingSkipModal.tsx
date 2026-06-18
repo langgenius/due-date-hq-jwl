@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 interface OnboardingSkipModalProps {
   open: boolean
@@ -118,7 +118,7 @@ function CompareCard({
 }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-divider-regular p-3.5">
-      <FieldLabel
+      <CapsFieldLabel
         as="span"
         variant="group"
         className="inline-flex items-center gap-1.5 text-text-tertiary"
@@ -137,7 +137,7 @@ function CompareCard({
           </span>
         )}
         {eyebrow}
-      </FieldLabel>
+      </CapsFieldLabel>
       <ul className="flex flex-col gap-1.5">
         {rows.map((row) => (
           <li

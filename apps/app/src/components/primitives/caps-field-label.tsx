@@ -23,7 +23,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * match the surrounding semantic shape (`<dt>` in a `<dl>`, `<div>` in flow,
  * `<span>` inline, `<label>` for a control).
  */
-export function FieldLabel({
+export function CapsFieldLabel({
   as: Tag = 'div',
   variant = 'field',
   children,

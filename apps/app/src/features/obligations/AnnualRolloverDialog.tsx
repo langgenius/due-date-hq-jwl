@@ -23,7 +23,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate } from '@/lib/utils'
@@ -280,29 +280,29 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                   <TableHeader>
                     <TableRow className="bg-background-section">
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Client · Form</Trans>
-                        </FieldLabel>
+                        </CapsFieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>TY {headerFrom} due</Trans>
-                        </FieldLabel>
+                        </CapsFieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>TY {headerTo} due</Trans>
-                        </FieldLabel>
+                        </CapsFieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Rule change</Trans>
-                        </FieldLabel>
+                        </CapsFieldLabel>
                       </TableHead>
                       <TableHead>
-                        <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                           <Trans>Disposition</Trans>
-                        </FieldLabel>
+                        </CapsFieldLabel>
                       </TableHead>
                     </TableRow>
                   </TableHeader>

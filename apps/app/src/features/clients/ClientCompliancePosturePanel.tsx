@@ -6,7 +6,7 @@ import type { ClientPublic } from '@duedatehq/contracts'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 /**
  * `ClientCompliancePosturePanel` — surfaces the client-level data the
@@ -180,9 +180,9 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             Active = accent chip with a check; inactive = muted chip, so the
             CPA reads the client's filing-relevant profile at a glance. */}
         <div className="mt-3 flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-          <FieldLabel as="span">
+          <CapsFieldLabel as="span">
             <Trans>Tax attributes</Trans>
-          </FieldLabel>
+          </CapsFieldLabel>
           <div className="flex flex-wrap gap-1.5">
             {taxAttributes.map((attr) => (
               <span
@@ -219,7 +219,7 @@ function IdentityCell({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <FieldLabel as="dt">{label}</FieldLabel>
+      <CapsFieldLabel as="dt">{label}</CapsFieldLabel>
       <dd className="text-sm text-text-primary">{value}</dd>
       {footer}
     </div>

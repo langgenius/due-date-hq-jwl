@@ -47,7 +47,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 import {
   formatMigrationErrorMessage,
@@ -239,23 +239,31 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
             aria-hidden
             className="hidden items-center gap-3 border-b border-divider-regular bg-background-subtle px-4 py-2.5 sm:flex"
           >
-            <FieldLabel as="span" variant="group" className="w-[170px] shrink-0 text-text-tertiary">
+            <CapsFieldLabel
+              as="span"
+              variant="group"
+              className="w-[170px] shrink-0 text-text-tertiary"
+            >
               <Trans>Source column</Trans>
-            </FieldLabel>
+            </CapsFieldLabel>
             <span className="w-7 shrink-0" />
-            <FieldLabel as="span" variant="group" className="w-[200px] shrink-0 text-text-tertiary">
+            <CapsFieldLabel
+              as="span"
+              variant="group"
+              className="w-[200px] shrink-0 text-text-tertiary"
+            >
               <Trans>DueDateHQ field</Trans>
-            </FieldLabel>
-            <FieldLabel as="span" variant="group" className="min-w-0 flex-1 text-text-tertiary">
+            </CapsFieldLabel>
+            <CapsFieldLabel as="span" variant="group" className="min-w-0 flex-1 text-text-tertiary">
               <Trans>Sample (first row)</Trans>
-            </FieldLabel>
-            <FieldLabel
+            </CapsFieldLabel>
+            <CapsFieldLabel
               as="span"
               variant="group"
               className="w-[140px] shrink-0 text-right text-text-tertiary"
             >
               <Trans>Confidence</Trans>
-            </FieldLabel>
+            </CapsFieldLabel>
           </div>
           <ul
             aria-label={t`Column mappings`}
@@ -471,9 +479,9 @@ function MappingBannerRow({
           >
             <div className="grid gap-3 px-3 py-3 sm:grid-cols-[1fr_auto]">
               <div className="flex flex-col gap-1.5">
-                <FieldLabel as="span">
+                <CapsFieldLabel as="span">
                   <Trans>Sample values</Trans>
-                </FieldLabel>
+                </CapsFieldLabel>
                 {samples.length > 0 ? (
                   <ul className="flex flex-col gap-0.5 font-mono text-xs tabular-nums text-text-secondary">
                     {dedupeSamples(samples).map((value) => (
@@ -489,9 +497,9 @@ function MappingBannerRow({
                 )}
               </div>
               <div className="flex flex-col gap-1.5 sm:items-end">
-                <FieldLabel as="span">
+                <CapsFieldLabel as="span">
                   <Trans>Data type</Trans>
-                </FieldLabel>
+                </CapsFieldLabel>
                 <span className="text-xs text-text-secondary">
                   {destinationDataTypeLabel(row.targetField, t)}
                 </span>

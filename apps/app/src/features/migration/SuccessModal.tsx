@@ -19,7 +19,7 @@ import {
 } from '@duedatehq/ui/components/ui/dialog'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 export interface SuccessModalData {
   batchId: string
@@ -193,9 +193,9 @@ export function SuccessModal({
 
           {/* What to do next */}
           <div className="flex flex-col gap-2 px-6 py-4">
-            <FieldLabel as="span" variant="group" className="text-text-tertiary">
+            <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
               <Trans>What to do next</Trans>
-            </FieldLabel>
+            </CapsFieldLabel>
             <NextStep
               tone="warning"
               icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}

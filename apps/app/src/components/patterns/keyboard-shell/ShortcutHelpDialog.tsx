@@ -17,7 +17,7 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { Kbd } from '@/components/patterns/kbd'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 import {
   RESERVED_SHORTCUTS,
@@ -208,9 +208,9 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
                 return (
                   <section key={group.category} className="grid gap-2">
                     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-divider-subtle bg-background-body py-2">
-                      <FieldLabel as="div" variant="group">
+                      <CapsFieldLabel as="div" variant="group">
                         {group.label}
-                      </FieldLabel>
+                      </CapsFieldLabel>
                       <span className="font-mono text-xs tabular-nums text-text-tertiary">
                         {group.items.length}
                       </span>

@@ -7,7 +7,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
@@ -313,17 +313,17 @@ export function AlertCard({
                     the meta row above carries the relative "Nmo ago"). */}
               <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-lg bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                  <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>What changed</Trans>
-                  </FieldLabel>
+                  </CapsFieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
                     {changeKindLabel(alert.changeKind)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                  <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>Affecting</Trans>
-                  </FieldLabel>
+                  </CapsFieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
                     {firstForm ? (
                       <>
@@ -336,9 +336,9 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <FieldLabel as="span" variant="group" className="text-text-tertiary">
+                  <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
                     <Trans>Published</Trans>
-                  </FieldLabel>
+                  </CapsFieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary tabular-nums">
                     {formatDate(alert.publishedAt)}
                   </span>

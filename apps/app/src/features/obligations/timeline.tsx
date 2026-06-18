@@ -8,7 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 import { LIFECYCLE_V2_STATUSES, isObligationStatus, type ObligationStatus } from './status-control'
 
@@ -214,7 +214,7 @@ function OtherActivity({
   const actionLabels = useAuditActionLabels()
   return (
     <div className="mt-4 border-t border-divider-regular pt-3">
-      <FieldLabel>{t`Other activity`}</FieldLabel>
+      <CapsFieldLabel>{t`Other activity`}</CapsFieldLabel>
       <ul className="mt-2 grid gap-2">
         {events.map((event) => (
           <li

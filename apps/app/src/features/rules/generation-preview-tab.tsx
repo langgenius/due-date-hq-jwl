@@ -51,7 +51,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
@@ -687,7 +687,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           preview returns more than ~10 rows. Letting the rows flow
           naturally lets the page scroll handle the overflow. */}
       <div>
-        <FieldLabel
+        <CapsFieldLabel
           as="div"
           variant="group"
           className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-text-tertiary"
@@ -721,7 +721,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
             description={t`Opens the existing duplicate deadline or the newly created deadline after Generate succeeds.`}
             align="right"
           />
-        </FieldLabel>
+        </CapsFieldLabel>
         {result.rows.length === 0 ? (
           <div className="px-3 py-4 text-sm text-text-secondary">
             <Trans>No closed source-year deadlines matched this rollover preview.</Trans>
@@ -790,14 +790,14 @@ function RolloverMetric({
 }) {
   return (
     <div className="min-w-0 border-r border-divider-subtle px-3 py-2 last:border-r-0">
-      <FieldLabel
+      <CapsFieldLabel
         as="div"
         variant="group"
         className="flex min-w-0 items-center gap-1 text-text-tertiary"
       >
         <span className="truncate">{label}</span>
         <RolloverHelpPopover label={label} description={description} />
-      </FieldLabel>
+      </CapsFieldLabel>
       <div className="font-mono text-lg font-semibold tabular-nums text-text-primary">{value}</div>
     </div>
   )
@@ -1072,9 +1072,9 @@ function TaxYearCalendarSelect({
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-lg bg-background-subtle px-2 py-1.5">
-      <FieldLabel as="div" variant="group" className="truncate text-text-tertiary">
+      <CapsFieldLabel as="div" variant="group" className="truncate text-text-tertiary">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <div className="truncate font-mono text-caption text-text-secondary">{value}</div>
     </div>
   )
@@ -1091,9 +1091,9 @@ function PreviewField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel as="label" htmlFor={htmlFor} variant="group" className="text-text-tertiary">
+      <CapsFieldLabel as="label" htmlFor={htmlFor} variant="group" className="text-text-tertiary">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       {children}
     </div>
   )
@@ -1185,13 +1185,13 @@ function PreviewGroupHeader({ tone, label }: { tone: 'success' | 'review'; label
   return (
     <div className="flex min-h-8 items-center gap-2 border-b border-divider-regular bg-background-subtle px-4 py-1">
       <ToneDot tone={tone} />
-      <FieldLabel
+      <CapsFieldLabel
         as="span"
         variant="group"
         className={cn(tone === 'success' ? 'text-status-done' : 'text-status-review')}
       >
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
     </div>
   )
 }

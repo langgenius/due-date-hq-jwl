@@ -3,7 +3,7 @@
 import { DropdownTriggerButton } from './components/primitives'
 import { parseMoneyCents, parseOwnerCount } from './helpers'
 import type { AuthorityRejectionDraft, SignatureReminderTarget } from './types'
-import { FieldLabel as CapsFieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { orpc } from '@/lib/rpc'

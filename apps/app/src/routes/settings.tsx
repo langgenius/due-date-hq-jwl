@@ -5,7 +5,7 @@ import { ChevronRightIcon, type LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SettingsShell, useSettingsNavSections } from '@/features/settings/settings-sub-nav'
 
@@ -78,9 +78,9 @@ function SettingsSection({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
-        <FieldLabel as="div" variant="group">
+        <CapsFieldLabel as="div" variant="group">
           {label}
-        </FieldLabel>
+        </CapsFieldLabel>
         <p className="text-xs text-text-tertiary">{description}</p>
       </div>
       <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">

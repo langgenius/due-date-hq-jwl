@@ -12,7 +12,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import {
   useLifecycleV2StatusLabels,
   useReadinessLabels,
@@ -36,7 +36,7 @@ import {
 function AuditEventField({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
-      <FieldLabel as="dt">{label}</FieldLabel>
+      <CapsFieldLabel as="dt">{label}</CapsFieldLabel>
       <dd className="break-all text-sm text-text-primary">{value}</dd>
     </div>
   )
@@ -199,10 +199,10 @@ function AiTraceSection({
 
   return (
     <section className="grid gap-3">
-      <FieldLabel as="h3" variant="field" className="flex items-center gap-2">
+      <CapsFieldLabel as="h3" variant="field" className="flex items-center gap-2">
         <Astroid className="size-3" aria-hidden />
         <Trans>AI trace</Trans>
-      </FieldLabel>
+      </CapsFieldLabel>
       {hasAny && metadata ? (
         <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">
           {metadata.model ? <AuditEventField label={t`Model`} value={metadata.model} /> : null}
@@ -255,12 +255,12 @@ function AiTraceSection({
 function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
   return (
     <section className="grid gap-3">
-      <FieldLabel as="h3" variant="field">
+      <CapsFieldLabel as="h3" variant="field">
         <Trans>What changed</Trans>
-      </FieldLabel>
+      </CapsFieldLabel>
       {changeView.changes.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-divider-subtle">
-          <FieldLabel
+          <CapsFieldLabel
             as="div"
             className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2"
           >
@@ -273,7 +273,7 @@ function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
             <span>
               <Trans>New</Trans>
             </span>
-          </FieldLabel>
+          </CapsFieldLabel>
           {changeView.changes.map((row) => (
             <div
               key={`${row.field}-${row.previous}-${row.next}`}

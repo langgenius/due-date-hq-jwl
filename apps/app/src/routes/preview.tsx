@@ -152,7 +152,7 @@ import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge
 import { SearchInput } from '@/components/primitives/search-input'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { AiProvenanceBadge } from '@/components/primitives/ai-provenance-badge'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 import { RelativeTime } from '@/components/primitives/relative-time'
@@ -1604,13 +1604,13 @@ export function PreviewRoute() {
                 className="w-full max-w-md"
               />
             </Row>
-            <Row label="FieldLabel" mono="primitives/field-label">
+            <Row label="CapsFieldLabel" mono="primitives/caps-field-label">
               <div className="w-full max-w-md space-y-1">
-                <FieldLabel>Federal EIN</FieldLabel>
+                <CapsFieldLabel>Federal EIN</CapsFieldLabel>
                 <p className="text-sm text-text-primary">12-3456789</p>
               </div>
               <div className="w-full max-w-md space-y-1">
-                <FieldLabel>State filing</FieldLabel>
+                <CapsFieldLabel>State filing</CapsFieldLabel>
                 <p className="text-sm text-text-primary">California · Annual report</p>
               </div>
             </Row>

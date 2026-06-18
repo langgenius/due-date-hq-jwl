@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
@@ -69,14 +69,14 @@ export function Step4Preview({
           (clients to create / already in list / deadlines to generate). */}
       <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5">
         <div className="flex flex-col gap-2">
-          <FieldLabel
+          <CapsFieldLabel
             as="span"
             variant="group"
             className="inline-flex items-center gap-1.5 text-text-success"
           >
             <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
             <Trans>Ready to import</Trans>
-          </FieldLabel>
+          </CapsFieldLabel>
           <p className="text-item-title text-text-primary">
             <Trans>You&apos;re about to create:</Trans>
           </p>
@@ -156,9 +156,9 @@ export function Step4Preview({
           aria-label={t`Clients to create`}
           className="flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-4"
         >
-          <FieldLabel as="div" variant="field" className="text-text-secondary">
+          <CapsFieldLabel as="div" variant="field" className="text-text-secondary">
             <Trans>Clients to create</Trans>
-          </FieldLabel>
+          </CapsFieldLabel>
           <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
             {clientsPreview.map((client) => (
               <li
@@ -257,9 +257,9 @@ export function Step4Preview({
             "Before you import" so the bullets land as preconditions,
             not as a generic footer. Step 1-5 reaudit canonicalized
             tracking — keep `tracking-eyebrow` token, not arbitrary. */}
-        <FieldLabel as="div" variant="field" className="text-text-secondary">
+        <CapsFieldLabel as="div" variant="field" className="text-text-secondary">
           <Trans>Before you import</Trans>
-        </FieldLabel>
+        </CapsFieldLabel>
         <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
@@ -418,9 +418,9 @@ function HeroMetric({
       >
         {value}
       </span>
-      <FieldLabel as="span" variant="group" className="text-text-tertiary">
+      <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
         {unit}
-      </FieldLabel>
+      </CapsFieldLabel>
       <span className="text-caption font-medium text-text-secondary">{sub}</span>
     </div>
   )

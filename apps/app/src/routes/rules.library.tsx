@@ -87,7 +87,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
@@ -4112,7 +4112,7 @@ function StatusSectionHeaderRow({
               />
             ) : null}
           </span>
-          <FieldLabel
+          <CapsFieldLabel
             as="span"
             variant="group"
             className={cn(
@@ -4126,7 +4126,7 @@ function StatusSectionHeaderRow({
             )}
           >
             {label}
-          </FieldLabel>
+          </CapsFieldLabel>
           <span
             className={cn(
               'text-xs font-semibold tabular-nums',
@@ -4206,9 +4206,9 @@ function SearchResultsTable({
                 title={ENTITY_FULL_LABELS[entity]}
                 className="w-12 px-2 text-center"
               >
-                <FieldLabel as="span" variant="group">
+                <CapsFieldLabel as="span" variant="group">
                   {ENTITY_COLUMN_LABELS[entity]}
-                </FieldLabel>
+                </CapsFieldLabel>
               </TableHead>
             ))}
             {/* 2026-05-27 (Yuqi rule library rework — needs-review

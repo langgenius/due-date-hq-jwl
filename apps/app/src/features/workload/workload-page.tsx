@@ -32,7 +32,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { StatBand } from '@/components/patterns/stat-band'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -321,9 +321,9 @@ function ManagerInsights({ insights }: { insights: WorkloadManagerInsights }) {
 function ManagerInsightMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="rounded-lg border border-divider-regular bg-background-subtle p-4">
-      <FieldLabel as="div" variant="field">
+      <CapsFieldLabel as="div" variant="field">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <p className="mt-2 truncate text-sm font-semibold text-text-primary">{value}</p>
     </div>
   )

@@ -5,7 +5,7 @@ import { ArrowUpRightIcon } from 'lucide-react'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { STATUS_VARIANT, useLifecycleV2StatusLabels } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -59,9 +59,9 @@ export function BlockerContextCard({
       aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <FieldLabel as="span" variant="group">
+        <CapsFieldLabel as="span" variant="group">
           <Trans>Blocked by</Trans>
-        </FieldLabel>
+        </CapsFieldLabel>
         <ArrowUpRightIcon
           className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
           aria-hidden

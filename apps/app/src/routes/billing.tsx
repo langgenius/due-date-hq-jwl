@@ -45,7 +45,7 @@ import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 import { PageHeader } from '@/components/patterns/page-header'
-import { FieldLabel } from '@/components/primitives/field-label'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { PermissionGate } from '@/features/permissions/permission-gate'
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant']
@@ -550,9 +550,9 @@ export function BillingRoute() {
       <section className="grid gap-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <FieldLabel as="span" variant="field">
+            <CapsFieldLabel as="span" variant="field">
               <Trans>Plan options</Trans>
-            </FieldLabel>
+            </CapsFieldLabel>
             <h2 className="mt-1 text-lg font-semibold text-text-primary">
               <Trans>Choose a workspace tier</Trans>
             </h2>
@@ -636,9 +636,9 @@ function Metric({ label, value, name }: { label: ReactNode; value: string; name:
       aria-label={name}
       className="inline-flex min-w-0 max-w-full flex-none flex-col rounded-lg border border-divider-regular bg-background-default p-4"
     >
-      <FieldLabel as="span" variant="field">
+      <CapsFieldLabel as="span" variant="field">
         {label}
-      </FieldLabel>
+      </CapsFieldLabel>
       <p className="mt-2 truncate text-base font-semibold text-text-primary">{value}</p>
     </div>
   )
