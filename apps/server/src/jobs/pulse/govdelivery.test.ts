@@ -304,7 +304,7 @@ describe('ingestGovDeliveryEmail', () => {
         '0100019ebd374513-a0b37459-437e-4b0e-8baf-a8e7ac793da5-000000',
         '@bounce-1.public.govdelivery.com',
       ].join(''),
-      to: 'pulse-ingest+oh-tax-alerts@langgenius.app',
+      to: 'pulse-ingest+oh-tax-alerts@duedatehq.com',
       headers: {
         subject: 'The Business Tax Division Seeks Comments on Proposed Rule Change',
       },
@@ -318,7 +318,7 @@ describe('ingestGovDeliveryEmail', () => {
         '\tdmarc=pass header.from=public.govdelivery.com;',
         '\tspf=pass smtp.mailfrom=bounce-1.public.govdelivery.com;',
         'From: Ohio Department of Taxation <OHTAXATION@public.govdelivery.com>',
-        'To: pulse-ingest+oh-tax-alerts@langgenius.app',
+        'To: pulse-ingest+oh-tax-alerts@duedatehq.com',
         'X-Accountcode: OHTAX',
         'Subject: The Business Tax Division Seeks Comments on Proposed Rule Change',
         [
