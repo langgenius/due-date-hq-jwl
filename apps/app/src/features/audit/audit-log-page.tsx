@@ -9,6 +9,7 @@ import {
   FilterIcon,
   Loader2,
   ScrollTextIcon,
+  SlidersHorizontalIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -34,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -42,6 +44,7 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { orpc } from '@/lib/rpc'
@@ -53,6 +56,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -699,6 +703,11 @@ export function AuditLogPage() {
     actionFilter !== '' ||
     actorFilter !== '' ||
     entityTypeFilter !== ''
+  // Refine facets (Action / Actor / Entity type) collapse behind one
+  // "Filters" trigger — mirrors /alerts. Category + Time range stay inline,
+  // so they're intentionally excluded from this count.
+  const refineActiveCount =
+    (actionFilter ? 1 : 0) + (actorFilter ? 1 : 0) + (entityTypeFilter ? 1 : 0)
 
   function resetFilters() {
     setPageIndex(0)
@@ -848,7 +857,7 @@ export function AuditLogPage() {
               scope: 'route',
             }}
           />
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto] xl:items-center">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(2,minmax(0,1fr))_auto_auto] xl:items-center">
             <Select
               value={query.category}
               onValueChange={(value) => {
@@ -889,47 +898,87 @@ export function AuditLogPage() {
               </SelectContent>
             </Select>
 
-            <AuditFilterSelect
-              label={t`Action`}
-              value={actionFilter}
-              allLabel={t`All actions`}
-              fallbackLabel={actionFilter ? formatAuditActionLabel(actionFilter, actionLabels) : ''}
-              options={actionOptions}
-              onValueChange={(value) => {
-                setPageIndex(0)
-                void setQuery({ action: value || null, event: null })
-              }}
-            />
+            {/* Hick's-law: the three refine facets (Action / Actor / Entity
+                type) collapse behind ONE "Filters" trigger — same pattern as
+                /alerts — so the toolbar shows Category · Time range · Filters ·
+                Clear instead of five peer selects competing at once. */}
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <FilterTrigger
+                    active={refineActiveCount > 0}
+                    leadingIcon={SlidersHorizontalIcon}
+                    valueLabel={refineActiveCount > 0 ? String(refineActiveCount) : undefined}
+                    aria-label={t`More filters`}
+                    className="text-base"
+                  >
+                    <span>
+                      <Trans>Filters</Trans>
+                    </span>
+                  </FilterTrigger>
+                }
+              />
+              <PopoverContent align="start" className="w-[300px] p-3">
+                <div className="flex flex-col gap-3.5">
+                  <AuditFilterSelect
+                    label={t`Action`}
+                    value={actionFilter}
+                    allLabel={t`All actions`}
+                    fallbackLabel={
+                      actionFilter ? formatAuditActionLabel(actionFilter, actionLabels) : ''
+                    }
+                    options={actionOptions}
+                    onValueChange={(value) => {
+                      setPageIndex(0)
+                      void setQuery({ action: value || null, event: null })
+                    }}
+                  />
 
-            <AuditFilterSelect
-              label={t`Actor`}
-              value={actorFilter}
-              allLabel={t`All actors`}
-              fallbackLabel={actorFilter ? shortenAuditId(actorFilter) : ''}
-              options={actorOptions}
-              onValueChange={(value) => {
-                setPageIndex(0)
-                void setQuery({ actor: value || null, event: null })
-              }}
-            />
+                  <AuditFilterSelect
+                    label={t`Actor`}
+                    value={actorFilter}
+                    allLabel={t`All actors`}
+                    fallbackLabel={actorFilter ? shortenAuditId(actorFilter) : ''}
+                    options={actorOptions}
+                    onValueChange={(value) => {
+                      setPageIndex(0)
+                      void setQuery({ actor: value || null, event: null })
+                    }}
+                  />
 
-            <AuditFilterSelect
-              label={t`Entity type`}
-              value={entityTypeFilter}
-              allLabel={t`All entity types`}
-              fallbackLabel={
-                // Humanize even when the URL carries a type no loaded event
-                // matches — never show the raw enum ("client_batch").
-                entityTypeFilter
-                  ? formatAuditEntityTypeLabel(entityTypeFilter, entityTypeLabels)
-                  : ''
-              }
-              options={entityTypeOptions}
-              onValueChange={(value) => {
-                setPageIndex(0)
-                void setQuery({ entityType: value || null, event: null })
-              }}
-            />
+                  <AuditFilterSelect
+                    label={t`Entity type`}
+                    value={entityTypeFilter}
+                    allLabel={t`All entity types`}
+                    fallbackLabel={
+                      // Humanize even when the URL carries a type no loaded event
+                      // matches — never show the raw enum ("client_batch").
+                      entityTypeFilter
+                        ? formatAuditEntityTypeLabel(entityTypeFilter, entityTypeLabels)
+                        : ''
+                    }
+                    options={entityTypeOptions}
+                    onValueChange={(value) => {
+                      setPageIndex(0)
+                      void setQuery({ entityType: value || null, event: null })
+                    }}
+                  />
+
+                  {refineActiveCount > 0 ? (
+                    <TextLink
+                      variant="accent"
+                      className="self-start"
+                      onClick={() => {
+                        setPageIndex(0)
+                        void setQuery({ action: null, actor: null, entityType: null, event: null })
+                      }}
+                    >
+                      <Trans>Clear these filters</Trans>
+                    </TextLink>
+                  ) : null}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
               <FilterIcon data-icon="inline-start" />

@@ -3886,6 +3886,7 @@ msgid "Clear the filters to see your full inbox."
 msgstr "清除筛选条件以查看完整收件箱。"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/audit/audit-log-page.tsx
 msgid "Clear these filters"
 msgstr "清除这些筛选条件"
 
@@ -7132,6 +7133,7 @@ msgid "Filter the rule table by entity"
 msgstr "按实体筛选规则表"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filters"
@@ -9223,6 +9225,10 @@ msgstr "更多客户操作"
 #: src/features/clients/ClientsCreateSplitButton.tsx
 msgid "More create options"
 msgstr "更多创建选项"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "More filters"
+msgstr "更多筛选"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest"

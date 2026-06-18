@@ -3870,6 +3870,7 @@ msgid "Clear the filters to see your full inbox."
 msgstr "Clear the filters to see your full inbox."
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/audit/audit-log-page.tsx
 msgid "Clear these filters"
 msgstr "Clear these filters"
 
@@ -7107,6 +7108,7 @@ msgid "Filter the rule table by entity"
 msgstr "Filter the rule table by entity"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filters"
@@ -9186,6 +9188,10 @@ msgstr "More client actions"
 #: src/features/clients/ClientsCreateSplitButton.tsx
 msgid "More create options"
 msgstr "More create options"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "More filters"
+msgstr "More filters"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest"
