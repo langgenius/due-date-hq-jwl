@@ -1,4 +1,10 @@
-import type { GuidePageCopy, LandingCopy, StateCoverageCopy, StatePageCopy } from '../i18n/types'
+import type {
+  GuidePageCopy,
+  KeyDatesBlock,
+  LandingCopy,
+  StateCoverageCopy,
+  StatePageCopy,
+} from '../i18n/types'
 
 type Locale = 'en' | 'zh-CN'
 type StateCard = StateCoverageCopy['states'][number]
@@ -1009,6 +1015,92 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         secondary: 'Open rule library',
       },
     },
+    {
+      slug: 'multi-state-filing-deadlines',
+      meta: {
+        title: 'Multi-State Filing Deadlines for CPA Firms — Federal + State Due Dates',
+        description:
+          'The core federal business and individual filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers, how state deadlines vary, and where to verify each against the official source.',
+        ogImage: '/og/home.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'Multi-state filing deadlines, in one place.',
+        description:
+          'A CPA firm tracks one federal calendar plus a different deadline in every state a client touches. Below are the core federal due dates for calendar-year filers, how state deadlines differ, and where to confirm each.',
+        note: 'Calendar-year filers. Verify every date against the official IRS or state source; this is software-workflow context, not tax advice.',
+      },
+      keyDates: {
+        eyebrow: 'FEDERAL DUE DATES',
+        title: 'Core federal deadlines (calendar-year filers)',
+        note: 'An extension extends time to file, not time to pay. If a date falls on a weekend or legal holiday, it moves to the next business day. Verify against the official IRS source.',
+        sourceLabel: 'IRS Publication 509 — Tax Calendars',
+        sourceHref: 'https://www.irs.gov/publications/p509',
+        rows: [
+          {
+            label: 'Partnership — Form 1065',
+            value: 'March 15 → Form 7004 extension to September 15',
+          },
+          {
+            label: 'S corporation — Form 1120-S',
+            value: 'March 15 → Form 7004 extension to September 15',
+          },
+          {
+            label: 'C corporation — Form 1120',
+            value: 'April 15 → Form 7004 extension to October 15',
+          },
+          {
+            label: 'Individual — Form 1040',
+            value: 'April 15 → Form 4868 extension to October 15',
+          },
+        ],
+      },
+      sections: [
+        {
+          eyebrow: 'STATE VARIATION',
+          title: 'State deadlines do not all match the federal calendar.',
+          body: 'Some states conform to the federal due date; others set their own date and extension rules — and states without an income tax still file on their own schedule. Always confirm the specific state and entity type against the official Department of Revenue.',
+          items: [
+            {
+              title: 'Conforming dates',
+              body: 'Many states align their business return with the federal 15th-day-of-the-3rd-or-4th-month schedule, but extension lengths and tentative-payment rules differ.',
+            },
+            {
+              title: 'Distinct state dates',
+              body: 'Some states set their own date — e.g., Florida’s F-1120 for calendar-year filers is due May 1 (not April 15), and Texas franchise reports are due May 15.',
+            },
+            {
+              title: 'No-income-tax states',
+              body: 'States without an income tax still file — franchise tax in Texas, corporate income tax in Florida, B&O in Washington — each with its own deadline.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'Multi-state deadline questions.' },
+      faq: [
+        {
+          question: 'When are partnership and S-corp returns due?',
+          answer:
+            'For calendar-year filers, Form 1065 and Form 1120-S are due March 15; Form 7004 extends the filing deadline to September 15. An extension extends time to file, not time to pay.',
+        },
+        {
+          question: 'When are C-corp and individual returns due?',
+          answer:
+            'For calendar-year filers, Form 1120 and Form 1040 are due April 15; Form 7004 (C corporation) and Form 4868 (individual) extend the filing deadline to October 15.',
+        },
+        {
+          question: 'Do state deadlines match the federal dates?',
+          answer:
+            'Not always. Some states conform; others set their own dates and extension rules. Verify each state and entity type against the official Department of Revenue — DueDateHQ links the official source for every state it covers.',
+        },
+      ],
+      cta: {
+        title: 'See the deadlines that apply to your clients.',
+        body: 'DueDateHQ tracks each client’s federal and state filings with the official source beside every date.',
+        primary: 'See state coverage',
+        secondary: 'Open rule library',
+      },
+    },
   ],
   'zh-CN': [
     {
@@ -1296,6 +1388,86 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         secondary: '打开规则库',
       },
     },
+    {
+      slug: 'multi-state-filing-deadlines',
+      meta: {
+        title: '面向 CPA 事务所的多州申报截止日 — 联邦 + 各州截止日',
+        description:
+          '日历年纳税人的核心联邦企业与个人申报截止日（Form 1065、1120-S、1120、1040）、各州截止日如何不同，以及在哪里对照官方来源核实。',
+        ogImage: '/og/home.zh-CN.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: '多州申报截止日，集中在一处。',
+        description:
+          'CPA 事务所要盯一套联邦日历，外加客户涉及的每个州各自不同的截止日。下面是日历年纳税人的核心联邦截止日、各州截止日的差异，以及在哪里逐一核实。',
+        note: '日历年纳税人。每个日期都请对照 IRS 或各州官方来源核实；这是软件工作流上下文，不是税务建议。',
+      },
+      keyDates: {
+        eyebrow: '联邦截止日',
+        title: '核心联邦截止日（日历年纳税人）',
+        note: '延期只延长申报时间，不延长付款时间。若日期为周末或法定假日，顺延至下一个工作日。请对照 IRS 官方来源核实。',
+        sourceLabel: 'IRS Publication 509 — Tax Calendars',
+        sourceHref: 'https://www.irs.gov/publications/p509',
+        rows: [
+          { label: '合伙企业 — Form 1065', value: '3 月 15 日 → Form 7004 延期至 9 月 15 日' },
+          {
+            label: 'S corporation — Form 1120-S',
+            value: '3 月 15 日 → Form 7004 延期至 9 月 15 日',
+          },
+          {
+            label: 'C corporation — Form 1120',
+            value: '4 月 15 日 → Form 7004 延期至 10 月 15 日',
+          },
+          { label: '个人 — Form 1040', value: '4 月 15 日 → Form 4868 延期至 10 月 15 日' },
+        ],
+      },
+      sections: [
+        {
+          eyebrow: '各州差异',
+          title: '各州截止日并不都和联邦一致。',
+          body: '有些州与联邦截止日一致；有些州自定日期和延期规则——没有所得税的州也仍有各自的申报。请始终对照官方 Department of Revenue 核实具体的州和实体类型。',
+          items: [
+            {
+              title: '一致的日期',
+              body: '很多州把企业申报对齐到联邦“第 3 或第 4 个月第 15 天”的节奏，但延期时长和预缴规则各不相同。',
+            },
+            {
+              title: '自定的州日期',
+              body: '有些州自定日期——例如 Florida 的 F-1120 日历年纳税人为 5 月 1 日（不是 4 月 15 日），德州 franchise 报告为 5 月 15 日。',
+            },
+            {
+              title: '无所得税的州',
+              body: '没有所得税的州仍要申报——德州的 franchise tax、Florida 的公司所得税、Washington 的 B&O——各有自己的截止日。',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '多州截止日常见问题。' },
+      faq: [
+        {
+          question: '合伙企业和 S corp 的申报什么时候到期？',
+          answer:
+            '日历年纳税人的 Form 1065 和 Form 1120-S 为 3 月 15 日到期；Form 7004 把申报截止日延到 9 月 15 日。延期只延长申报时间，不延长付款时间。',
+        },
+        {
+          question: 'C corp 和个人的申报什么时候到期？',
+          answer:
+            '日历年纳税人的 Form 1120 和 Form 1040 为 4 月 15 日到期；Form 7004（C corporation）和 Form 4868（个人）把申报截止日延到 10 月 15 日。',
+        },
+        {
+          question: '各州截止日和联邦日期一致吗？',
+          answer:
+            '不总是。有些州一致；有些州自定日期和延期规则。请对照官方 Department of Revenue 核实每个州和实体类型——DueDateHQ 为它覆盖的每个州都给出官方来源链接。',
+        },
+      ],
+      cta: {
+        title: '看清适用于你客户的截止日。',
+        body: 'DueDateHQ 跟踪每个客户的联邦与各州申报，每个日期旁都带官方来源。',
+        primary: '查看州覆盖',
+        secondary: '打开规则库',
+      },
+    },
   ],
 }
 
@@ -1513,8 +1685,99 @@ export function getRuleReferencePages(locale: Locale): GuidePageCopy[] {
   return ruleReferencePages[locale]
 }
 
+interface StateDeadline {
+  label: string
+  labelZh: string
+  due: string
+  dueZh: string
+  ext?: string
+  extZh?: string
+  sourceLabel: string
+  sourceHref: string
+}
+
+// Verified, source-cited primary filing deadline per state (calendar-year filers).
+// Only states confirmed high-confidence against an official .gov source are listed;
+// every other state intentionally shows its official-source link with NO date —
+// state deadlines are varied/quirky, so we never guess (docs/dev-file/13 §7, §5).
+const STATE_DEADLINES: Record<string, StateDeadline> = {
+  texas: {
+    label: 'Texas Franchise Tax annual report',
+    labelZh: '德州 Franchise Tax 年度报告',
+    due: 'May 15',
+    dueZh: '5 月 15 日',
+    ext: 'An extension of time to file can be requested by the May 15 due date.',
+    extZh: '可在 5 月 15 日截止前申请延期。',
+    sourceLabel: 'Texas Comptroller — Franchise Tax',
+    sourceHref: 'https://comptroller.texas.gov/taxes/franchise/',
+  },
+  massachusetts: {
+    label: 'Form 355 corporate excise return (C corporation)',
+    labelZh: 'Form 355 公司 excise 申报（C corporation）',
+    due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
+    dueZh: '4 月 15 日——税年结束后第 4 个月的第 15 天。',
+    ext: 'An automatic extension is available when the required payment is made.',
+    extZh: '满足规定付款后可自动延期。',
+    sourceLabel: 'Massachusetts DOR — tax due dates and extensions',
+    sourceHref: 'https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions',
+  },
+  'north-carolina': {
+    label: 'Form CD-405 corporate income & franchise tax return (C corporation)',
+    labelZh: 'Form CD-405 公司所得税与 franchise tax 申报（C corporation）',
+    due: 'April 15 — the 15th day of the 4th month after the tax year ends.',
+    dueZh: '4 月 15 日——税年结束后第 4 个月的第 15 天。',
+    sourceLabel: 'NCDOR — Corporate Income & Franchise Tax',
+    sourceHref: 'https://www.ncdor.gov/taxes-forms/corporate-income-franchise-tax/when-file',
+  },
+  florida: {
+    label: 'Form F-1120 corporate income / franchise tax return',
+    labelZh: 'Form F-1120 公司所得税 / franchise tax 申报',
+    due: 'May 1 for calendar-year filers — the 1st day of the 5th month after the tax year ends (not April 15).',
+    dueZh: '日历年纳税人为 5 月 1 日——税年结束后第 5 个月的第 1 天（不是 4 月 15 日）。',
+    ext: 'Form F-7004 extends the time to file.',
+    extZh: 'Form F-7004 可延长申报时间。',
+    sourceLabel: 'Florida DOR — Corporate Income Tax',
+    sourceHref: 'https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx',
+  },
+}
+
+const STATE_DEADLINE_NOTE: Record<Locale, string> = {
+  en: 'Calendar-year filers. State filing deadlines vary and can change — confirm against the official source before relying on a date. This page describes software workflows, not tax advice.',
+  'zh-CN':
+    '日历年纳税人。各州申报截止日不一、且可能调整——以官方来源为准再据此行事。本页说明软件工作流，不提供税务建议。',
+}
+
+function buildStateKeyDeadlines(
+  slug: string,
+  name: string,
+  locale: Locale,
+): KeyDatesBlock | undefined {
+  const d = STATE_DEADLINES[slug]
+  if (!d) return undefined
+  const zh = locale === 'zh-CN'
+  const rows = [
+    { label: zh ? '申报表' : 'Return', value: zh ? d.labelZh : d.label },
+    { label: zh ? '截止日' : 'Due', value: zh ? d.dueZh : d.due },
+  ]
+  if (d.ext) rows.push({ label: zh ? '延期' : 'Extension', value: zh ? (d.extZh ?? d.ext) : d.ext })
+  return {
+    eyebrow: zh ? '关键日期' : 'KEY DATES',
+    title: zh
+      ? `${name} 主要申报截止日（日历年）`
+      : `${name} primary filing deadline (calendar-year filers)`,
+    note: STATE_DEADLINE_NOTE[locale],
+    sourceLabel: d.sourceLabel,
+    sourceHref: d.sourceHref,
+    rows,
+  }
+}
+
 export function getStatePages(siteCopy: LandingCopy, locale: Locale): StatePageCopy[] {
-  return [...siteCopy.geo.states, ...stateSpecs.map((spec) => statePage(spec, locale))]
+  const pages = [...siteCopy.geo.states, ...stateSpecs.map((spec) => statePage(spec, locale))]
+  return pages.map((page) => {
+    const keyDeadlines = buildStateKeyDeadlines(page.slug, page.name, locale)
+    return keyDeadlines ? { ...page, keyDeadlines } : page
+  })
 }
 
 export function getStateCoveragePage(siteCopy: LandingCopy, locale: Locale): StateCoverageCopy {
@@ -1564,6 +1827,10 @@ export function getResourceCtaHrefs(
     'partnership-form-1065-deadline': {
       primaryHref: `${prefix}/rules`,
       secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'multi-state-filing-deadlines': {
+      primaryHref: `${prefix}/state-coverage`,
+      secondaryHref: `${prefix}/rules`,
     },
   }
 

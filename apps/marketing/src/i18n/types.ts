@@ -368,14 +368,7 @@ export interface ResourcePageCopy {
     secondary: string
   }
   /** Optional dated, sourced fact table — used by rule reference pages for GEO. */
-  keyDates?: {
-    eyebrow: string
-    title: string
-    note: string
-    sourceLabel: string
-    sourceHref: string
-    rows: { label: string; value: string }[]
-  }
+  keyDates?: KeyDatesBlock
 }
 
 export interface StateCoverageCopy {
@@ -406,6 +399,16 @@ export interface StateCoverageCopy {
   faq: FaqItemCopy[]
 }
 
+/** A dated, sourced fact table (rule key-dates, state key-deadlines). */
+export interface KeyDatesBlock {
+  eyebrow: string
+  title: string
+  note: string
+  sourceLabel: string
+  sourceHref: string
+  rows: { label: string; value: string }[]
+}
+
 export interface StatePageCopy {
   slug: string
   name: string
@@ -421,6 +424,8 @@ export interface StatePageCopy {
   coveredSignals: GeoCardCopy[]
   limitations: string[]
   faq: FaqItemCopy[]
+  /** Optional verified, sourced filing deadline (GEO) — only for states we can confirm. */
+  keyDeadlines?: KeyDatesBlock
 }
 
 export interface GuidePageCopy extends ResourcePageCopy {

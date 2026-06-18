@@ -59,6 +59,12 @@ const corePages = [
       'answers why filing extension work, payment timing, readiness, and source evidence need separate review states.',
   },
   {
+    label: 'Multi-state filing deadlines guide',
+    pathname: '/guides/multi-state-filing-deadlines',
+    description:
+      'lists the core federal filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers and how state deadlines vary by state.',
+  },
+  {
     label: 'Form 7004 extension deadline reference',
     pathname: '/rules/form-7004-extension-deadline',
     description:
