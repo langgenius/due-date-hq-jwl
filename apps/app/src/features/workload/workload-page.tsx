@@ -81,7 +81,7 @@ export function WorkloadPage() {
   const data = workloadQuery.data
 
   return (
-    <section className="mx-auto grid w-full max-w-page-wide gap-6 px-4 pt-8 pb-6 md:px-6">
+    <section className="mx-auto grid w-full max-w-page-wide gap-6 px-4 pt-8 pb-12 md:px-6">
       <PageHeader
         title={<Trans>Team workload</Trans>}
         description={

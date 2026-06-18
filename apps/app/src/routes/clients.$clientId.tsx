@@ -106,7 +106,7 @@ export function ClientDetailRoute() {
         // the body workspace — rather than a generic stack of three blocks
         // (8/40/64) that reads the same as the dashboard loader. Reduces the
         // visual jolt when the real layout paints.
-        <div className="flex flex-col gap-4 px-4 pt-5 md:px-8 md:pt-6">
+        <div className="flex flex-col gap-4 px-4 pt-6 md:px-8 md:pt-8">
           <div className="flex flex-col gap-2">
             <Skeleton className="h-7 w-64 rounded-lg" />
             <Skeleton className="h-4 w-40 rounded-lg" />
