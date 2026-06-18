@@ -18,12 +18,12 @@ export class ObligationQueuePage {
     // search field in the filter row above the table. It's always
     // visible, so there is no expand button and no dedicated "Clear
     // search" button anymore.
-    // 2026-06-10 (queue toolbar redesign): the field's accessible name
-    // now spells out the searchable axes ("Search client, form, or
-    // assignee"); the navigator rail keeps its own "Search deadlines".
+    // 2026-06-18 (queue toolbar wording): the field is now the page-level
+    // filter control, and the SearchInput primitive uses the visible
+    // placeholder as its accessible name.
     // 2026-06-11: the toolbar adopted the canonical <SearchInput> primitive,
     // which renders <input type="text"> (role=textbox), not a type=search box.
-    this.searchInput = page.getByRole('textbox', { name: 'Search client, form, or assignee' })
+    this.searchInput = page.getByRole('textbox', { name: 'Filter client, form, or assignee' })
     // The sortable header renders a button with aria-label `Sort ${columnLabel}`
     // (ObligationQueueSortableHeader). The active /deadlines queue (obligations
     // .tsx) labels the internal-due column t`Internal due` — verified against
