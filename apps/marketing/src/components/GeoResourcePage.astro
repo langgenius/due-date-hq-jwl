@@ -37,6 +37,42 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
   </section>
 
   {
+    page.keyDates && (
+      <section class="border-b border-border-default bg-bg-canvas">
+        <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
+          <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
+            {page.keyDates.eyebrow}
+          </span>
+          <h2 class="mt-4 max-w-[720px] text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
+            {page.keyDates.title}
+          </h2>
+          <dl class="mt-8 max-w-[840px] divide-y divide-border-default rounded-xl border border-border-default bg-bg-panel">
+            {page.keyDates.rows.map((row) => (
+              <div class="grid gap-2 px-6 py-4 sm:grid-cols-[210px_1fr] sm:gap-6">
+                <dt class="font-mono text-[13px] font-medium text-text-primary">{row.label}</dt>
+                <dd class="text-[14px] leading-[1.6] text-text-secondary">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p class="mt-5 max-w-[840px] font-mono text-[12px] leading-5 text-text-muted">
+            {page.keyDates.note}
+          </p>
+          <p class="mt-3 text-[13px]">
+            <a
+              href={page.keyDates.sourceHref}
+              class="text-text-accent underline underline-offset-2"
+              rel="nofollow noopener"
+              target="_blank"
+            >
+              {page.keyDates.sourceLabel}
+            </a>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  {
     page.sections.map((section) => (
       <section class="border-b border-border-default bg-bg-canvas">
         <div class="mx-auto grid max-w-[1440px] gap-10 px-6 py-14 md:px-12 lg:grid-cols-12 lg:px-20 lg:py-16">

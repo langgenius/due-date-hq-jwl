@@ -367,6 +367,15 @@ export interface ResourcePageCopy {
     primary: string
     secondary: string
   }
+  /** Optional dated, sourced fact table — used by rule reference pages for GEO. */
+  keyDates?: {
+    eyebrow: string
+    title: string
+    note: string
+    sourceLabel: string
+    sourceHref: string
+    rows: { label: string; value: string }[]
+  }
 }
 
 export interface StateCoverageCopy {

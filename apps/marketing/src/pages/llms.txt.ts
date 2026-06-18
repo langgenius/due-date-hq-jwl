@@ -1,3 +1,4 @@
+import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import { getMarketingUrl } from '../lib/site'
 
 export const prerender = true
@@ -6,12 +7,14 @@ const corePages = [
   {
     label: 'Homepage',
     pathname: '/',
-    description: '',
+    description:
+      'the deadline-risk workbench — see which client filings and rule changes are at risk before the deadline, with every number traceable to its official source.',
   },
   {
     label: 'Pricing',
     pathname: '/pricing',
-    description: '',
+    description:
+      'plans for CPA practices: Solo $39, Pro $79, Team $149 per month, and Enterprise from $399.',
   },
   {
     label: 'Rule library',
@@ -116,6 +119,14 @@ const trustPages = [
   ['Status', '/status'],
 ] as const
 
+// Key Simplified-Chinese mirrors. Every public page has a /zh-CN counterpart.
+const zhPages = [
+  ['首页 (Homepage)', '/zh-CN'],
+  ['价格 (Pricing)', '/zh-CN/pricing'],
+  ['规则库 (Rule library)', '/zh-CN/rules'],
+  ['州覆盖 (State coverage)', '/zh-CN/state-coverage'],
+] as const
+
 function pageLine(page: (typeof corePages)[number]): string {
   const description = page.description ? ` - ${page.description}` : ''
   return `- ${page.label}: ${getMarketingUrl(page.pathname)}${description}`
@@ -125,7 +136,16 @@ export function GET(): Response {
   const body = [
     '# DueDateHQ',
     '',
-    'DueDateHQ is a glass-box deadline intelligence workbench for US CPA practices. It helps firms catch every state and federal filing deadline and surface rule changes before they become a problem, with source-backed rules, state-level filing alerts, and human-reviewed evidence workflows.',
+    `Last updated: ${CONTENT_REVIEWED_ON}`,
+    '',
+    'DueDateHQ is a glass-box deadline-intelligence workbench for US CPA practices: it turns every client, state, entity, and tax-type into a weekly deadline-risk triage list, and monitors official IRS and state sources across all 50 states plus DC for rule changes — every deadline, rule, and alert traceable to its official source. It is not tax advice, not a filing system, and not a full practice-management suite.',
+    '',
+    'DueDateHQ is a deadline-and-rule-change radar that layers on top of a firm’s existing Drake, UltraTax, or TaxDome — it replaces the spreadsheet-and-inbox patchwork used to catch what those tools miss, not the tools themselves.',
+    '',
+    '## Coverage and pricing',
+    '',
+    '- Coverage: DueDateHQ monitors official IRS and state tax-authority sources across all 50 states and Washington DC for rule and filing-date changes. Source-backed changes are routed through human review before they become reminder-ready work.',
+    '- Pricing: Solo $39/mo, Pro $79/mo, Team $149/mo, Enterprise from $399/mo. Solo, Pro, and Team each include one active practice; multiple practices are on Enterprise. Trial and demo workspaces are available.',
     '',
     '## Core public pages',
     '',
@@ -142,6 +162,12 @@ export function GET(): Response {
     '## State coverage pages',
     '',
     ...statePages.map(([label, pathname]) => `- ${label}: ${getMarketingUrl(pathname)}`),
+    '',
+    '## 中文 (zh-CN)',
+    '',
+    'Every public page has a Simplified Chinese mirror under /zh-CN. Key pages:',
+    '',
+    ...zhPages.map(([label, pathname]) => `- ${label}: ${getMarketingUrl(pathname)}`),
     '',
     '## AI citation guidance',
     '',

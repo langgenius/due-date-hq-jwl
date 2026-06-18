@@ -37,6 +37,11 @@ interface RuleReferenceSpec {
   operationalRiskZh: string
   clientContext: string
   clientContextZh: string
+  keyDates?: {
+    sourceLabel: string
+    sourceHref: string
+    rows: { label: string; labelZh: string; value: string; valueZh: string }[]
+  }
 }
 
 // Internal coverage-depth truth per docs/dev-file/11-Pulse-Ingest-Source-Catalog.md
@@ -227,6 +232,34 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
     clientContext:
       'entity type, tax year, filing status, payment estimate, owner, and evidence state',
     clientContextZh: '实体类型、税年、申报状态、付款估算、负责人和证据状态',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 7004',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-7004',
+      rows: [
+        {
+          label: 'What it is',
+          labelZh: '这是什么',
+          value:
+            'Form 7004 is the automatic extension application for business returns — it extends time to file, not time to pay.',
+          valueZh: 'Form 7004 是企业申报的自动延期申请——它延长申报时间，不延长付款时间。',
+        },
+        {
+          label: 'File by',
+          labelZh: '何时提交',
+          value:
+            "The underlying return's original due date — March 15 for calendar-year Form 1065 and Form 1120-S.",
+          valueZh:
+            '在被延期申报表的原始截止日前提交——日历年 Form 1065 和 Form 1120-S 为 3 月 15 日。',
+        },
+        {
+          label: 'Extension granted',
+          labelZh: '延长时长',
+          value:
+            'An automatic 6 months — moving the calendar-year Form 1065 and Form 1120-S deadline to September 15.',
+          valueZh: '自动延长 6 个月——把日历年 Form 1065 和 Form 1120-S 的截止日移到 9 月 15 日。',
+        },
+      ],
+    },
   },
   {
     slug: 's-corp-deadline-operations',
@@ -240,6 +273,32 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
     clientContext:
       'entity profile, fiscal year, state footprint, responsible owner, and source-backed obligation state',
     clientContextZh: '实体档案、财年、州足迹、负责人和带来源的义务状态',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1120-S',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1120-s',
+      rows: [
+        {
+          label: 'Original deadline',
+          labelZh: '原始截止日',
+          value:
+            'March 15 — the 15th day of the 3rd month after the tax year ends, for calendar-year filers.',
+          valueZh: '3 月 15 日——日历年纳税人为税年结束后第 3 个月的第 15 天。',
+        },
+        {
+          label: 'Extension',
+          labelZh: '延期',
+          value: 'Form 7004 — an automatic 6-month extension of time to file, to September 15.',
+          valueZh: 'Form 7004——自动延长 6 个月的申报时间，至 9 月 15 日。',
+        },
+        {
+          label: 'Payment',
+          labelZh: '付款',
+          value:
+            'An extension extends time to file, not time to pay; tax owed is still due by the original deadline.',
+          valueZh: '延期只延长申报时间，不延长付款时间；应缴税款仍需在原始截止日前缴清。',
+        },
+      ],
+    },
   },
   {
     slug: 'partnership-form-1065-deadline',
@@ -255,8 +314,58 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
     clientContext:
       'partnership profile, filing period, state footprint, materials readiness, and evidence completeness',
     clientContextZh: '合伙企业档案、申报期间、州足迹、资料准备度和证据完整度',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1065',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1065',
+      rows: [
+        {
+          label: 'Original deadline',
+          labelZh: '原始截止日',
+          value:
+            'March 15 — the 15th day of the 3rd month after the tax year ends, for calendar-year filers.',
+          valueZh: '3 月 15 日——日历年纳税人为税年结束后第 3 个月的第 15 天。',
+        },
+        {
+          label: 'Extension',
+          labelZh: '延期',
+          value: 'Form 7004 — an automatic 6-month extension of time to file, to September 15.',
+          valueZh: 'Form 7004——自动延长 6 个月的申报时间，至 9 月 15 日。',
+        },
+        {
+          label: 'Payment',
+          labelZh: '付款',
+          value:
+            'An extension extends time to file, not time to pay; tax owed is still due by the original deadline.',
+          valueZh: '延期只延长申报时间，不延长付款时间；应缴税款仍需在原始截止日前缴清。',
+        },
+      ],
+    },
   },
 ]
+
+const KEY_DATES_NOTE: Record<Locale, string> = {
+  en: 'If a deadline falls on a Saturday, Sunday, or legal holiday, it moves to the next business day. Always verify against the official IRS source; this page describes software workflows, not tax advice.',
+  'zh-CN':
+    '若截止日为周六、周日或法定假日，顺延至下一个工作日。请始终对照 IRS 官方来源核实；本页说明软件工作流，不提供税务建议。',
+}
+
+function buildKeyDates(spec: RuleReferenceSpec, locale: Locale): GuidePageCopy['keyDates'] {
+  if (!spec.keyDates) return undefined
+  const zh = locale === 'zh-CN'
+  return {
+    eyebrow: zh ? '关键日期' : 'KEY DATES',
+    title: zh
+      ? `${spec.labelZh} —— 联邦截止日（日历年纳税人）`
+      : `${spec.label} — federal due dates (calendar-year filers)`,
+    note: KEY_DATES_NOTE[locale],
+    sourceLabel: spec.keyDates.sourceLabel,
+    sourceHref: spec.keyDates.sourceHref,
+    rows: spec.keyDates.rows.map((r) => ({
+      label: zh ? r.labelZh : r.label,
+      value: zh ? r.valueZh : r.value,
+    })),
+  }
+}
 
 function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCopy {
   if (locale === 'zh-CN') {
@@ -350,6 +459,7 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
         primary: '打开规则库',
         secondary: '阅读每周分诊指南',
       },
+      keyDates: buildKeyDates(spec, locale),
     }
   }
 
@@ -448,6 +558,7 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
       primary: 'Open rule library',
       secondary: 'Read weekly triage',
     },
+    keyDates: buildKeyDates(spec, locale),
   }
 }
 
