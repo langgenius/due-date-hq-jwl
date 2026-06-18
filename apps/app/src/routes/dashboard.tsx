@@ -1,5 +1,6 @@
-import { AlertCircleIcon, RotateCwIcon } from 'lucide-react'
+import { AlertCircleIcon, RotateCwIcon, ScrollTextIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
+import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -20,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { ClientsEmptyState } from '@/features/clients/ClientsEmptyState'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
@@ -199,9 +201,24 @@ export function DashboardRoute() {
   // and returns zero rows, /today leads with the get-started hero instead of
   // three silent sections (onboarding gap #1). Gated on `!isLoading` so the hero
   // never flashes before the count lands.
-  const showFirstRun = !clientsProbeQuery.isLoading && (clientsProbeQuery.data?.length ?? 0) === 0
+  const clientsResolved = !clientsProbeQuery.isLoading
+  const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
+  const showFirstRun = clientsResolved && !hasClients
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
+  // Second first-run state (onboarding gap #2): clients are in, but no rules
+  // were activated, so no deadlines generate and the queue reads a misleading
+  // "all clear." `rules.coverage` is the precise signal (shares the sidebar's
+  // cache, no extra fetch) — summing activeRuleCount distinguishes "never set up
+  // rules" from a genuinely-done firm (which HAS rules), so no dismiss is needed
+  // and the nudge self-resolves the moment rules generate the first deadline.
+  const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
+  const activeRuleTotal = (coverageQuery.data ?? []).reduce(
+    (sum, row) => sum + (row.activeRuleCount ?? 0),
+    0,
+  )
+  const needsRules =
+    clientsResolved && hasClients && !coverageQuery.isLoading && activeRuleTotal === 0
   // Firm identity for analytics — reuses the layout's `firms.listMine` cache
   // key (no extra fetch). Used only to scope the once-per-firm activation
   // milestone; null until the cache warms.
@@ -437,6 +454,29 @@ export function DashboardRoute() {
         // (one "import your clients" message) so the first action is always
         // visible. Primary CTA only — add-manually / sample-data live on /clients.
         <ClientsEmptyState onImport={openWizard} canImport={permission.can('migration.run')} />
+      ) : needsRules ? (
+        // Onboarding gap #2 (2026-06-18): clients are in but no rules are active,
+        // so no deadlines generate and the sections below would read a misleading
+        // "all clear." Replace them with an actionable nudge — set up rules, and
+        // deadlines flow automatically. Self-resolves once the first rule
+        // generates a deadline (activeRuleTotal > 0).
+        <EmptyState
+          variant="prominent"
+          icon={ScrollTextIcon}
+          title={<Trans>No deadlines yet</Trans>}
+          description={
+            <Trans>
+              Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates
+              every deadline automatically — no manual entry.
+            </Trans>
+          }
+          cta={
+            <Button render={<Link to="/rules/library" />}>
+              <ScrollTextIcon data-icon="inline-start" />
+              <Trans>Set up rules</Trans>
+            </Button>
+          }
+        />
       ) : (
         <>
           {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day

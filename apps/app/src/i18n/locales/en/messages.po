@@ -6645,6 +6645,10 @@ msgstr "Explain rank"
 msgid "Explain Risk profile"
 msgstr "Explain Risk profile"
 
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Explore with sample data"
+msgstr "Explore with sample data"
+
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/obligations.tsx
@@ -9649,6 +9653,10 @@ msgstr "Next week"
 msgid "Next years"
 msgstr "Next years"
 
+#: src/routes/splash.tsx
+msgid "Next: import your clients to start tracking deadlines"
+msgstr "Next: import your clients to start tracking deadlines"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
@@ -9836,6 +9844,7 @@ msgstr "No deadlines match."
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
+#: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines yet"
 msgstr "No deadlines yet"
@@ -13908,6 +13917,10 @@ msgstr "Set to {after}"
 msgid "Set up authenticator"
 msgstr "Set up authenticator"
 
+#: src/routes/dashboard.tsx
+msgid "Set up rules"
+msgstr "Set up rules"
+
 #: src/routes/onboarding.tsx
 msgid "Set up your practice"
 msgstr "Set up your practice"
@@ -15598,10 +15611,6 @@ msgstr "Trial ends {0}"
 msgid "Trust"
 msgstr "Trust"
 
-#: src/features/clients/ClientsEmptyState.tsx
-msgid "Try a 30-second tour with sample data"
-msgstr "Try a 30-second tour with sample data"
-
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
@@ -16831,6 +16840,10 @@ msgstr "Your clients and deadlines were created. You can undo this import within
 #: src/features/dashboard/actions-list.tsx
 msgid "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
 msgstr "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
+
+#: src/routes/dashboard.tsx
+msgid "Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
+msgstr "Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
 
 #: src/routes/billing.checkout.tsx
 msgid "Your current practice"

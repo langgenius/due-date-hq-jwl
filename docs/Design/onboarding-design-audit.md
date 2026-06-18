@@ -66,20 +66,23 @@ designed `ClientsEmptyState` hero `/clients` shows (primary "Import clients" CTA
 The sample-data chip was deliberately omitted here (gap #3 below). See
 `docs/dev-log/2026-06-18-first-run-dashboard.md`.
 
-**B — Persistent setup checklist (fixes 1, 2, 4).** A small, dismissible "Finish
-setting up" checklist on `/today` for accounts that skipped steps: ☐ Activate
-rules → ☐ Import clients → ☐ Review your first alert. This is the
-setup-wizard-as-persistent-checklist pattern — it re-orients users who skipped
-the linear flow and makes the rule→deadline causality explicit ("Activate rules
-to start generating deadlines"). Drives the activation funnel directly.
+**B — clients-but-no-rules nudge (fixes 2). ✅ BUILT 2026-06-18.** Rather than a
+multi-step checklist (most steps lacked a clean signal or are covered by A), built
+the targeted high-value piece: when clients exist but `rules.coverage` sums to
+**zero active rules**, `/today` shows a prominent `EmptyState` ("No deadlines yet
+· Activate rules…" → `/rules/library`) instead of a misleading "all clear." The
+`activeRuleCount` signal is precise (no done-firm false-positive), so it needs no
+dismiss and self-resolves. See `docs/dev-log/2026-06-18-onboarding-bcd.md`.
 
-**C — Forward-looking splash line (fixes 4).** When setup is incomplete, the
-splash recap gains one next-step line ("Finish setup: import your clients →")
-instead of only looking backward.
+**C — Forward-looking splash line (fixes 4). ✅ BUILT 2026-06-18.** A clients
+probe on `/splash`; when the firm has no clients, an accent "Next: import your
+clients to start tracking deadlines" strip points forward (the action lives on
+`/today` via proposal A's hero).
 
-**D — Honest sample data (fixes 3).** Make the sample-tour explicitly labeled
-demo data with a one-click "clear & start fresh," or drop the chip until it's
-real. Never let sample rows masquerade as the user's own clients.
+**D — Honest sample data (fixes 3). ✅ DONE 2026-06-18.** Investigation showed the
+mechanism was already honest (`seedSample` real, per-row `Sample` badge, "Remove
+sample data" path). Only the chip copy overpromised — "Try a 30-second tour" →
+"Explore with sample data."
 
 ## Measurement (instrument the funnel)
 

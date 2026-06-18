@@ -29,6 +29,14 @@ export function SplashRoute() {
   const recapQuery = useQuery(orpc.dashboard.welcomeRecap.queryOptions({ staleTime: 0 }))
   const recordVisit = useMutation(orpc.dashboard.recordDashboardVisit.mutationOptions())
 
+  // Forward-looking nudge (onboarding gap #4): the recap looks backward, but a
+  // returning user who never finished setup needs a NEXT step. A cheap probe
+  // (limit:1, shared cache key with /today) — when the firm still has no
+  // clients, the splash points forward; the "Go to Today" button then lands on
+  // the /today get-started hero that owns the actual import action.
+  const clientsProbeQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }))
+  const needsClients = !clientsProbeQuery.isLoading && (clientsProbeQuery.data?.length ?? 0) === 0
+
   const data = recapQuery.data
 
   function openDashboard() {
@@ -184,6 +192,19 @@ export function SplashRoute() {
                   one="You have # deadline due this week"
                   other="You have # deadlines due this week"
                 />
+              </span>
+            </div>
+          ) : null}
+
+          {/* Forward-looking next step (only when setup is unfinished — no
+              clients yet). Accent strip, mirrors the warning strip's shape. The
+              action itself lives on /today (the get-started hero), reached via
+              the button below — splash just points there. */}
+          {needsClients ? (
+            <div className="flex w-full items-center gap-2.5 rounded-xl bg-state-accent-hover px-3.5 py-2.5">
+              <span aria-hidden className="block size-2 rounded-full bg-accent-default" />
+              <span className="text-sm font-medium text-text-accent">
+                <Trans>Next: import your clients to start tracking deadlines</Trans>
               </span>
             </div>
           ) : null}
