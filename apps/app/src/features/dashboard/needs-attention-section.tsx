@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
+import { AlertCircleIcon, ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
@@ -117,6 +121,43 @@ function NeedsAttentionSection() {
             <Skeleton key={i} className="h-[150px] rounded-xl" />
           ))}
         </div>
+      </section>
+    )
+  }
+
+  // ── Load failed → explicit error, never a false "all caught up".
+  //    queryClient runs throwOnError:false, so a failed alertsQuery would
+  //    otherwise fall through to `alerts = []` → totalAlertCount === 0 → the
+  //    calm empty state below, silently claiming the feed is clear. Surface
+  //    the failure with a Retry instead. Matches the dashboard route's
+  //    canonical destructive Alert + `<Button variant="link">` Retry. ──
+  if (alertsQuery.isError) {
+    return (
+      <section aria-label={t`Alerts`} className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-region-title text-text-primary">
+            <Trans>Alerts</Trans>
+          </h2>
+        </div>
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>
+            <Trans>Couldn't load alerts</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            {rpcErrorMessage(alertsQuery.error) ??
+              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void alertsQuery.refetch()}
+            >
+              <Trans>Retry</Trans>
+            </Button>
+          </AlertDescription>
+        </Alert>
       </section>
     )
   }

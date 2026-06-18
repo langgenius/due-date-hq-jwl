@@ -1365,7 +1365,7 @@ function BulkActionBar({
       {/* Selection read-out */}
       <div className="flex items-center gap-2.5">
         <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-lg bg-state-accent-solid">
-          <CheckIcon className="size-3.5 text-white" aria-hidden />
+          <CheckIcon className="size-3.5 text-text-primary-on-surface" aria-hidden />
         </span>
         <div className="flex flex-col leading-tight">
           <span className="text-base font-semibold">

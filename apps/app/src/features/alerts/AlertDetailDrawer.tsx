@@ -1996,7 +1996,7 @@ export function AlertDetailDrawer({
                           type="button"
                           onClick={handleConfirmAllNeedsReview}
                           disabled={stats.needsReviewCount === 0}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-text-primary-on-surface outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <CheckIcon className="size-3 shrink-0" aria-hidden />
                           {t`Confirm ${stats.needsReviewCount}`}

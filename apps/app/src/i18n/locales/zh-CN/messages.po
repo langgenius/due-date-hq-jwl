@@ -4731,6 +4731,7 @@ msgid "Couldn't import clients"
 msgstr "导入客户失败"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/dashboard/needs-attention-section.tsx
 msgid "Couldn't load alerts"
 msgstr "无法加载提醒列表"
 
@@ -4778,6 +4779,14 @@ msgstr "无法加载通知"
 msgid "Couldn't load notifications."
 msgstr "无法加载通知。"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "Couldn't load recent sends"
+msgstr "无法加载最近发送记录"
+
+#: src/features/reminders/reminders-page.tsx
+msgid "Couldn't load reminder templates"
+msgstr "无法加载提醒模板"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Couldn't load rule sources"
 msgstr "无法加载规则来源"
@@ -4798,6 +4807,10 @@ msgstr "无法加载团队负载"
 msgid "Couldn't load temporary rules"
 msgstr "无法加载临时规则"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't load the extension preview"
+msgstr "无法加载延期预览"
+
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Couldn't load the impact preview"
 msgstr "无法加载影响预览"
@@ -4806,6 +4819,10 @@ msgstr "无法加载影响预览"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Couldn't load the impact preview. You can still accept — the rule will activate for client filings in {0}."
 msgstr "无法加载影响预览。你仍可接受——该规则会为 {0} 的客户申报启用。"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't load the reminder preview"
+msgstr "无法加载提醒预览"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't load this alert"
@@ -12711,7 +12728,9 @@ msgstr "已撤回"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
@@ -15669,6 +15688,7 @@ msgstr "请稍后重试。"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/migration/Wizard.tsx

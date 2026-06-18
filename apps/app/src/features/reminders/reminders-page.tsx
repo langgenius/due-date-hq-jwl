@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Edit3Icon, Loader2, PauseCircleIcon } from 'lucide-react'
+import { AlertCircleIcon, Edit3Icon, Loader2, PauseCircleIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -10,6 +11,7 @@ import type {
   ReminderRecipientKind,
   ReminderTemplatePublic,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -154,11 +156,18 @@ export function RemindersPage() {
         <TemplatesPanel
           templates={templatesQuery.data ?? []}
           loading={templatesQuery.isLoading}
+          // throwOnError:false means a failed load otherwise renders an empty
+          // table — a false "no templates" state. Surface the error + Retry.
+          error={templatesQuery.isError ? templatesQuery.error : null}
+          onRetry={() => void templatesQuery.refetch()}
           onEdit={setEditingTemplate}
         />
         <RecentSendsPanel
           reminders={recentQuery.data?.reminders ?? []}
           loading={recentQuery.isLoading}
+          // Same guard: without it a failed load shows "No reminders sent yet."
+          error={recentQuery.isError ? recentQuery.error : null}
+          onRetry={() => void recentQuery.refetch()}
           timezone={timezone}
         />
       </div>
@@ -177,13 +186,50 @@ export function RemindersPage() {
   )
 }
 
+// Shared panel-body error state — canonical destructive `<Alert>` + the
+// app-wide `<Button variant="link">` Retry (same shape as the Today / alerts
+// list error branches), wired to the failed query's refetch.
+function RemindersErrorState({
+  title,
+  error,
+  onRetry,
+}: {
+  title: ReactNode
+  error: unknown
+  onRetry: () => void
+}) {
+  const { t } = useLingui()
+  return (
+    <Alert variant="destructive">
+      <AlertCircleIcon />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>
+        {rpcErrorMessage(error) ?? t`Try again in a moment. If it keeps failing, contact support.`}{' '}
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="h-auto p-0 align-baseline"
+          onClick={onRetry}
+        >
+          <Trans>Retry</Trans>
+        </Button>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
 function TemplatesPanel({
   templates,
   loading,
+  error,
+  onRetry,
   onEdit,
 }: {
   templates: ReminderTemplatePublic[]
   loading: boolean
+  error: unknown
+  onRetry: () => void
   onEdit: (template: ReminderTemplatePublic) => void
 }) {
   return (
@@ -200,7 +246,15 @@ function TemplatesPanel({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {error ? (
+          // Load failed → explicit error, not an empty table (throwOnError is
+          // off, so a failed query would silently read as "no templates").
+          <RemindersErrorState
+            title={<Trans>Couldn't load reminder templates</Trans>}
+            error={error}
+            onRetry={onRetry}
+          />
+        ) : loading ? (
           // Skeleton row stacks shaped to the eventual table row, matching the
           // queue / audit / opportunities skeleton register.
           <div className="grid gap-2" aria-busy="true">
@@ -271,10 +325,14 @@ function TemplatesPanel({
 function RecentSendsPanel({
   reminders,
   loading,
+  error,
+  onRetry,
   timezone,
 }: {
   reminders: ReminderRecentSend[]
   loading: boolean
+  error: unknown
+  onRetry: () => void
   timezone: string
 }) {
   return (
@@ -285,7 +343,14 @@ function RecentSendsPanel({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {error ? (
+          // Load failed → explicit error, not "No reminders sent yet."
+          <RemindersErrorState
+            title={<Trans>Couldn't load recent sends</Trans>}
+            error={error}
+            onRetry={onRetry}
+          />
+        ) : loading ? (
           <div className="grid gap-2" aria-busy="true">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />

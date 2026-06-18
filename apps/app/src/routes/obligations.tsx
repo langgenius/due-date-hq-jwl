@@ -5623,6 +5623,29 @@ function SignatureReminderDialog({
           <p className="text-sm text-text-tertiary">
             <Trans>Loading preview…</Trans>
           </p>
+        ) : (isBulk ? bulkQuery.isError : singleQuery.isError) ? (
+          // throwOnError:false → a failed preview would otherwise render with
+          // eligibleCount=0 / recipientEmail=null, masquerading as the
+          // misleading "No email address on file" body. Surface the failure +
+          // Retry instead. Matches this file's list-error Alert pattern.
+          <Alert variant="destructive">
+            <AlertTitle>
+              <Trans>Couldn't load the reminder preview</Trans>
+            </AlertTitle>
+            <AlertDescription className="flex items-center gap-2">
+              {rpcErrorMessage(isBulk ? bulkQuery.error : singleQuery.error) ??
+                t`Try again in a moment.`}
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0"
+                onClick={() => void (isBulk ? bulkQuery.refetch() : singleQuery.refetch())}
+                disabled={isBulk ? bulkQuery.isFetching : singleQuery.isFetching}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : (
           <div className="grid gap-3">
             {isBulk ? (
@@ -5847,6 +5870,28 @@ function BulkExtensionDialog({
           <p className="text-sm text-text-tertiary">
             <Trans>Loading preview…</Trans>
           </p>
+        ) : query.isError ? (
+          // throwOnError:false → a failed preview would otherwise render the
+          // all-zeros "Extending 0 deadlines…" body with Send disabled — a
+          // dead end. Surface the failure + Retry instead. Matches this file's
+          // list-error Alert pattern.
+          <Alert variant="destructive">
+            <AlertTitle>
+              <Trans>Couldn't load the extension preview</Trans>
+            </AlertTitle>
+            <AlertDescription className="flex items-center gap-2">
+              {rpcErrorMessage(query.error) ?? t`Try again in a moment.`}
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0"
+                onClick={() => void query.refetch()}
+                disabled={query.isFetching}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : (
           <div className="grid gap-3">
             <p className="text-sm text-text-secondary">

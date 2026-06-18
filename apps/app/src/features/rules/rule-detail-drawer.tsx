@@ -47,6 +47,7 @@ import { formatDatePretty, formatDateTimeWithTimezone, formatRelativeTime } from
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { FieldLabel } from '@/components/primitives/field-label'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
+import { Kbd } from '@/components/patterns/kbd'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
@@ -1894,9 +1895,7 @@ function RejectReasonDialog({
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
-              Esc
-            </kbd>
+            <Kbd>Esc</Kbd>
             <Button
               variant="ghost"
               size="icon-sm"
