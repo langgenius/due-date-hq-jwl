@@ -79,17 +79,19 @@
   .eyebrow .tick { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
 
   /* serif display (AutoSend hero) */
+  /* serif is reserved for the ONE hero headline only */
   .display {
     font-family: "Instrument Serif", Georgia, serif; font-weight: 400;
-    font-size: clamp(48px, 6.6vw, 80px); line-height: 1.0; letter-spacing: -0.01em;
+    font-size: clamp(40px, 4.6vw, 60px); line-height: 1.06; letter-spacing: -0.01em;
     color: var(--ink);
   }
   .display .ital { font-style: italic; }
+  /* all other big titles are sans */
   .h2 {
-    font-family: "Instrument Serif", Georgia, serif; font-weight: 400;
-    font-size: clamp(34px, 4.6vw, 54px); line-height: 1.04; letter-spacing: -0.01em;
+    font-family: "Instrument Sans", -apple-system, Inter, system-ui, sans-serif; font-weight: 600;
+    font-size: clamp(29px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink);
   }
-  .h2 .ital { font-style: italic; }
+  .h2 .ital { font-style: italic; font-weight: 600; }
   .accent { color: var(--accent); }
   .muted { color: var(--muted); }
   .lead {
@@ -125,17 +127,17 @@
     border-bottom: 1px solid transparent; transition: border-color .2s ease;
   }
   .nav.is-scrolled { border-bottom-color: var(--hairline); }
-  .nav__inner { display: flex; align-items: center; justify-content: space-between; height: 70px; gap: 20px; }
-  .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 600; letter-spacing: -0.01em; font-size: 18px; color: var(--ink); }
+  .nav__inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 70px; gap: 20px; }
+  .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 600; letter-spacing: -0.01em; font-size: 18px; color: var(--ink); justify-self: start; }
   .brand__mark { width: 22px; height: 22px; flex: none; }
-  .brand__tag {
-    font-size: 11px; color: var(--muted); letter-spacing: 0.02em; font-weight: 500;
-    border-left: 1px solid var(--hairline); padding-left: 11px; margin-left: 2px;
-  }
-  .nav__links { display: flex; align-items: center; gap: 28px; font-size: 14px; font-weight: 500; }
-  .nav__links a { color: var(--muted); transition: color .15s ease; }
-  .nav__links a:hover { color: var(--ink); }
-  .nav__right { display: flex; align-items: center; gap: 18px; }
+
+  /* centered floating-pill nav + sliding glider (Voiceflow-style) */
+  .nav__pillbar { position: relative; justify-self: center; display: flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 999px; padding: 5px; }
+  .nav__glider { position: absolute; top: 5px; bottom: 5px; left: 0; width: 0; background: var(--paper); border-radius: 999px; box-shadow: 0 1px 2px rgba(18,20,28,.06); transform: translateX(0); opacity: 0; transition: transform .32s cubic-bezier(.4,0,.1,1), width .32s cubic-bezier(.4,0,.1,1), opacity .2s ease; pointer-events: none; z-index: 0; }
+  .nav__pillbar.is-ready .nav__glider { opacity: 1; }
+  .nav__link { position: relative; z-index: 1; padding: 8px 15px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); transition: color .2s ease; white-space: nowrap; }
+  .nav__link:hover, .nav__link.is-active { color: var(--ink); }
+  .nav__right { display: inline-flex; align-items: center; gap: 14px; justify-self: end; }
   .nav__pill {
     font-size: 11.5px; letter-spacing: 0.02em; font-weight: 500; color: var(--muted);
     border: 1px solid var(--hairline); padding: 5px 12px; border-radius: 999px;
@@ -153,50 +155,100 @@
   /* ============================================================
      HERO
      ============================================================ */
-  .hero { padding-top: clamp(48px, 6vw, 86px); padding-bottom: clamp(40px, 5vw, 64px); }
-  .hero__head { max-width: 19ch; }
-  .hero__eyebrow { margin-bottom: 26px; }
-  .hero__sub { margin-top: 26px; max-width: 50ch; font-size: clamp(17px, 1.4vw, 19px); color: var(--ink-2); line-height: 1.5; }
-  .hero__cta { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; }
-  .hero__micro { margin-top: 22px; display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--muted); }
-  .hero__micro .gicon { width: 15px; height: 15px; flex: none; }
+  .hero { padding-top: clamp(34px, 4vw, 60px); padding-bottom: clamp(48px, 6vw, 84px); }
+  .hero__grid { display: grid; grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr); gap: clamp(34px, 5vw, 68px); align-items: start; }
+  .hero__copy { max-width: 540px; }
+  .hero__eyebrow { margin-bottom: 22px; }
+  .hero__head { max-width: 15ch; }
+  .hero__sub { margin-top: 22px; max-width: 44ch; font-size: clamp(16px, 1.25vw, 18px); color: var(--ink-2); line-height: 1.5; }
+  .hero__points { margin-top: 24px; display: grid; gap: 11px; }
+  .hero__point { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--ink-2); line-height: 1.4; }
+  .hero__point svg { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--accent); }
+  .hero__point b { color: var(--ink); font-weight: 600; }
+  .hero__cta { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+  .hero__note { margin-top: 15px; font-size: 13px; color: var(--muted); }
 
-  /* ===== HERO: Alerts this week panel (clear product image) ===== */
+  /* ===== HERO: live Alerts panel — faithful product replica, interactive ===== */
   .alerts-panel {
-    margin-top: clamp(44px, 5vw, 64px);
-    background: var(--surface-2); border: 1px solid var(--hairline);
+    background: #fff; border: 1px solid var(--hairline);
     border-radius: 14px; overflow: hidden;
-    box-shadow: 0 1px 2px rgba(18,20,28,.03), 0 24px 64px -40px rgba(18,20,28,.30);
+    box-shadow: 0 1px 2px rgba(18,20,28,.04), 0 22px 50px -36px rgba(18,20,28,.30);
   }
-  .alerts-panel__bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--hairline); background: var(--surface); }
-  .alerts-panel__title { font-size: 13px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 9px; }
-  .alerts-panel__title .live { width: 7px; height: 7px; border-radius: 999px; background: var(--ok); flex: none; position: relative; }
-  .alerts-panel__title .live::after { content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 1px solid var(--ok); opacity: 0; animation: ripple 2.6s ease-out infinite; }
-  .alerts-panel__count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
-  .alerts-panel__cap { font-size: 11px; color: var(--faint); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; }
+  .ap__bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--hairline); }
+  .ap__title { font-size: 13px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 8px; flex: none; }
+  .ap__title .live { width: 7px; height: 7px; border-radius: 999px; background: var(--ok); flex: none; position: relative; }
+  .ap__title .live::after { content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 1px solid var(--ok); opacity: 0; animation: ripple 2.6s ease-out infinite; }
+  .ap__count { font-size: 11.5px; color: var(--muted); }
+  .ap__cap { margin-left: auto; font-size: 10px; color: var(--faint); letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
 
-  .alert-row {
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px 18px;
-    padding: 16px 20px;
-  }
-  .alert-row + .alert-row { border-top: 1px solid var(--hairline-2); }
-  .alert-row:hover { background: var(--surface); }
-  .alert-row__sev {
-    display: inline-flex; align-items: center; gap: 6px; flex: none;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 4px 10px; border-radius: 999px; width: 82px; justify-content: center;
-  }
-  .sev--urgent { color: var(--urgent); background: var(--urgent-tint); }
-  .sev--urgent .d { width: 5px; height: 5px; border-radius: 999px; background: var(--urgent); }
-  .sev--fyi { color: var(--muted); background: var(--surface); border: 1px solid var(--hairline); }
-  .alert-row__main { min-width: 0; }
-  .alert-row__title { font-size: 14.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; line-height: 1.35; }
-  .alert-row__meta { margin-top: 4px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .alert-row__meta .src { color: var(--accent); }
-  .alert-row__affected { text-align: right; flex: none; }
-  .alert-row__num { font-size: 14px; font-weight: 600; color: var(--ink); }
-  .alert-row__num b { color: var(--accent); }
-  .alert-row__split { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .ap__filter { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--hairline-2); overflow-x: auto; scrollbar-width: none; }
+  .ap__filter::-webkit-scrollbar { display: none; }
+  .ap__chip { flex: none; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--muted); padding: 5px 11px; border-radius: 999px; border: 1px solid var(--hairline); background: #fff; cursor: pointer; white-space: nowrap; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+  .ap__chip:hover { color: var(--ink); border-color: var(--ink-2); }
+  .ap__chip.is-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ap__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .ap__empty { display: none; padding: 30px 16px; text-align: center; font-size: 13px; color: var(--muted); }
+
+  /* alert row — mirrors PulseAlertRow anatomy */
+  .ar { position: relative; padding: 13px 16px 14px; border-top: 1px solid var(--hairline-2); cursor: pointer; outline: none; transition: background .15s ease; }
+  .ar:first-of-type { border-top: none; }
+  .ar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); opacity: 0; transition: opacity .15s ease; }
+  .ar:hover, .ar.is-open { background: var(--surface); }
+  .ar:hover::before, .ar.is-open::before, .ar:focus-visible::before { opacity: 1; }
+  .ar:focus-visible { background: var(--surface); }
+  .ar__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sev { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; flex: none; }
+  .sev--urgent { background: #FEF3F2; color: #D92D20; }
+  .sev--high { background: #FEF6EE; color: #E04F16; }
+  .sev--normal { background: #F9FAFB; color: #495464; border: 1px solid var(--hairline); }
+  .ar__juris { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-family: "Geist Mono", monospace; font-size: 11px; font-weight: 600; color: var(--ink-2); background: var(--surface); border: 1px solid var(--hairline); letter-spacing: 0.02em; flex: none; }
+  .ar__kind { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
+  .ar__kind svg { width: 13px; height: 13px; flex: none; color: var(--muted); }
+  .ar__src { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-family: "Geist Mono", monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .ar__src svg { width: 11px; height: 11px; flex: none; }
+  .ar__chev { width: 15px; height: 15px; color: var(--faint); transition: transform .2s ease; flex: none; }
+  .ar.is-open .ar__chev { transform: rotate(180deg); }
+  .ar__title { margin-top: 9px; font-size: 14.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; line-height: 1.35; }
+  .ar__change { margin-top: 9px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ar__from { font-family: "Geist Mono", monospace; font-size: 12.5px; color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .ar__arrow { width: 13px; height: 13px; color: var(--muted); flex: none; }
+  .ar__to { font-family: "Geist Mono", monospace; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .ar__diff { font-size: 12px; font-weight: 500; }
+  .ar__diff--later { color: var(--ok); }
+  .ar__diff--sooner { color: #D92D20; }
+  .ar__diff--flat { color: var(--muted); }
+  .ar__affect { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--hairline-2); display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--ink); }
+  .ar__affect svg { width: 14px; height: 14px; flex: none; color: var(--muted); }
+  .ar__affect b { color: var(--accent); font-weight: 600; }
+  .ar__affect--none { color: var(--muted); font-weight: 500; }
+  .ar__affect .split { margin-left: auto; font-size: 10.5px; font-weight: 500; color: var(--muted); font-family: "Geist Mono", monospace; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* row expand */
+  .ar__detail { display: none; margin-top: 12px; padding: 12px 13px; border: 1px solid var(--hairline-2); border-radius: 10px; background: var(--paper); }
+  .ar.is-open .ar__detail { display: block; }
+  .ar__excerpt { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+  .ar__excerpt .doc { font-family: "Geist Mono", monospace; font-size: 11px; color: var(--muted); }
+  .ar__excerpt .q { color: var(--ink); }
+  .ar__clients { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+  .ar__client { display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px 3px 3px; border-radius: 999px; border: 1px solid var(--hairline); font-size: 12px; color: var(--ink-2); background: #fff; }
+  .ar__client .av { width: 18px; height: 18px; border-radius: 999px; background: var(--accent-tint); color: var(--accent); font-size: 9px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .ar__apply { margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ar__applybtn { display: inline-flex; align-items: center; gap: 7px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--accent); border: 1px solid var(--accent); padding: 8px 13px; border-radius: 8px; cursor: pointer; transition: background .15s ease; }
+  .ar__applybtn:hover { background: var(--accent-hover); }
+  .ar__applybtn svg { width: 13px; height: 13px; flex: none; }
+  .ar__applybtn .i-done, .ar__applybtn .t-done { display: none; }
+  .ar.is-applied .ar__applybtn { background: var(--ok); border-color: var(--ok); pointer-events: none; }
+  .ar.is-applied .ar__applybtn .i-apply, .ar.is-applied .ar__applybtn .t-apply { display: none; }
+  .ar.is-applied .ar__applybtn .i-done { display: inline-flex; }
+  .ar.is-applied .ar__applybtn .t-done { display: inline; }
+  .ar__undo { font-size: 11px; color: var(--muted); font-family: "Geist Mono", monospace; }
+  .ar__undo .u-post { display: none; }
+  .ar.is-applied .ar__undo .u-pre { display: none; }
+  .ar.is-applied .ar__undo .u-post { display: inline; }
+  .ar__undolink { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  .ar__review { font-size: 12px; color: var(--urgent); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .ar__review svg { width: 13px; height: 13px; flex: none; }
 
   /* ============================================================
      SOUND FAMILIAR (villain beat — quiet)
@@ -208,7 +260,7 @@
     max-width: 40ch; letter-spacing: -0.01em;
   }
   .villain .body .dim { color: var(--muted); }
-  .villain .body strong { color: var(--ink); font-weight: 500; font-style: italic; font-family: "Instrument Serif", serif; }
+  .villain .body strong { color: var(--ink); font-weight: 600; }
 
   /* ============================================================
      HOW IT WORKS — Watch → Match → Apply flow diagram
@@ -265,7 +317,7 @@
   .clip__sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-weight: 500; }
   .clip__ref { margin-left: auto; font-size: 11px; color: var(--muted); text-align: right; line-height: 1.5; flex: none; }
   .clip__ref b { color: var(--ink); font-weight: 600; }
-  .clip__body { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; line-height: 1.4; color: var(--ink-2); }
+  .clip__body { font-family: "Instrument Sans", -apple-system, Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
   .clip__body p + p { margin-top: 9px; }
   .clip__body mark { background: var(--urgent-tint); color: var(--ink); padding: 0 3px; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
   .clip__body .ds { color: var(--ink); }
@@ -293,7 +345,7 @@
     color: var(--accent); background: var(--accent-tint); padding: 3px 9px; border-radius: 5px; margin-bottom: 10px;
   }
   .field__label svg { width: 11px; height: 11px; }
-  .field__quote { font-family: "Instrument Serif", serif; font-size: 16px; line-height: 1.3; color: var(--ink); }
+  .field__quote { font-family: "Instrument Sans", -apple-system, Inter, system-ui, sans-serif; font-size: 14.5px; line-height: 1.45; color: var(--ink); }
   .field__src { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); margin-top: 9px; font-family: "Geist Mono", monospace; flex-wrap: wrap; }
   .field__src .verified { color: var(--ok); display: inline-flex; align-items: center; gap: 4px; }
   .field__src .verified svg { width: 12px; height: 12px; }
@@ -371,6 +423,33 @@
   .feed-row__when { font-family: "Geist Mono", monospace; font-size: 11px; color: var(--faint); text-align: right; white-space: nowrap; }
   .feed-row__when.alert { color: var(--urgent); font-weight: 500; }
 
+  /* ---------- US coverage map (replicates PulseAlertsMap) ---------- */
+  .usmap-wrap { display: flex; flex-direction: column; gap: 14px; }
+  .usmap__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .usmap__fed { display: inline-flex; align-items: center; gap: 8px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent); background: #EEF0FB; border: 1px solid #D7DCF4; border-radius: 8px; padding: 6px 11px; cursor: pointer; transition: border-color .15s ease, transform .12s ease; }
+  .usmap__fed:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .usmap__fed:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .usmap__fed .n { background: #fff; border-radius: 999px; padding: 1px 7px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .usmap__legend { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .usmap__legend li { display: inline-flex; align-items: center; gap: 5px; }
+  .usmap__legend .sw { width: 11px; height: 11px; border-radius: 3px; border: 1px solid; }
+  .usmap-scroll { overflow-x: auto; scrollbar-width: none; }
+  .usmap-scroll::-webkit-scrollbar { display: none; }
+  .usmap { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(34px, 1fr)); gap: 5px; min-width: 458px; }
+  .ust { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ust .c { font-size: 11px; font-weight: 600; }
+  .ust .n { font-size: 9px; font-weight: 500; margin-top: 1.5px; }
+  .ust--act { cursor: pointer; font-family: inherit; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+  .ust--act:hover { transform: translateY(-2px); box-shadow: 0 5px 12px -5px rgba(18,20,28,.28); border-color: var(--accent) !important; }
+  .ust--act:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .t0 { background: #F1F3F6; border-color: #E6E9ED; color: #A2A7B1; }
+  .t1 { background: #EEF0FB; border-color: #D5DAF3; color: #2E368C; }
+  .t2 { background: #D6DBF3; border-color: #AFB8E8; color: #2E368C; }
+  .t3 { background: #FBEAD4; border-color: #F2CD9F; color: #A8550A; }
+  .t4 { background: #FAE0DB; border-color: #F2BBB0; color: #D92D20; }
+  .usmap__foot { font-size: 12.5px; color: var(--muted); line-height: 1.55; max-width: 62ch; }
+  .usmap__foot b { color: var(--ink); font-weight: 600; }
+
   /* ============================================================
      SEE IT WORK (product-UI beat — risk-ranked worklist)
      ============================================================ */
@@ -414,10 +493,10 @@
   .trustband { background: var(--surface); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
   .trustband .wrap { padding-block: clamp(48px, 6vw, 80px); }
   .trustband__intro { max-width: 600px; margin-bottom: clamp(36px, 4vw, 52px); }
-  .trustband__intro .glass { font-family: "Instrument Serif", serif; font-style: italic; color: var(--ink); }
+  .trustband__intro .glass { font-weight: 600; color: var(--accent); }
   .trustband__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 3vw, 44px); }
   .tstat { padding-top: 22px; border-top: 1px solid var(--ink); }
-  .tstat__n { font-family: "Instrument Serif", serif; font-size: clamp(40px, 5vw, 60px); line-height: 0.95; color: var(--accent); letter-spacing: -0.01em; }
+  .tstat__n { font-weight: 600; font-size: clamp(34px, 4.2vw, 52px); line-height: 0.98; color: var(--accent); letter-spacing: -0.02em; }
   .tstat__t { font-weight: 600; color: var(--ink); font-size: 15px; margin: 14px 0 7px; }
   .tstat__b { font-size: 13.5px; color: var(--muted); line-height: 1.55; max-width: 32ch; }
   .boundary {
@@ -494,6 +573,8 @@
      RESPONSIVE
      ============================================================ */
   @media (max-width: 1000px) {
+    .hero__grid { grid-template-columns: 1fr; gap: clamp(32px, 5vw, 46px); }
+    .hero__copy { max-width: 620px; }
     .villain__grid { grid-template-columns: 1fr; gap: 18px; }
     .flow__diagram { grid-template-columns: 1fr; gap: 0; }
     .flow-conn { transform: rotate(90deg); padding: 12px 0; }
@@ -509,19 +590,19 @@
     .footer__top { grid-template-columns: 1fr 1fr; }
     .footer__brandblock { grid-column: 1 / -1; }
   }
-  @media (max-width: 720px) {
-    .nav__links, .nav__pill { display: none; }
+  @media (max-width: 940px) {
+    .nav__pillbar, .nav__pill { display: none; }
     .nav__toggle { display: flex; }
-    .nav__right .btn--primary { display: none; }
-    .alert-row { grid-template-columns: 1fr auto; gap: 8px 14px; }
-    .alert-row__sev { grid-column: 1 / -1; width: auto; align-self: start; }
+  }
+  @media (max-width: 720px) {
     .wl-hide { display: none; }
     .footer__top { grid-template-columns: 1fr; }
   }
   @media (max-width: 440px) {
     body { font-size: 16px; }
+    .nav__right .btn--primary { display: none; }
     .hero__cta .btn--primary { flex: 1 1 100%; justify-content: center; }
-    .alert-row__affected { display: none; }
+    .ar__src { display: none; }
     .client__form { display: none; }
     .feed-row__state { display: none; }
   }
@@ -565,17 +646,16 @@
         <rect x="20" y="9"  width="2.4" height="13" rx="1" fill="#2E368C"/>
       </svg>
       <span>DueDateHQ</span>
-      <span class="brand__tag">For US CPA practices</span>
     </a>
-    <nav class="nav__links" aria-label="Primary">
-      <a href="#how">How it works</a>
-      <a href="#sources">Sources</a>
-      <a href="#work">See it work</a>
-      <a href="#faq">FAQ</a>
+    <nav class="nav__pillbar" id="navPill" aria-label="Primary">
+      <span class="nav__glider" id="navGlider" aria-hidden="true"></span>
+      <a class="nav__link" href="#how">How it works</a>
+      <a class="nav__link" href="#sources">Sources</a>
+      <a class="nav__link" href="#work">See it work</a>
+      <a class="nav__link" href="#faq">FAQ</a>
     </nav>
     <div class="nav__right">
-      <span class="nav__pill"><span class="dot" aria-hidden="true"></span>Early access · FED + 50 states + DC</span>
-      <a class="btn btn--primary" href="#close">Open the workbench <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="btn btn--primary" href="#close">Get early access <span class="arrow" aria-hidden="true">→</span></a>
       <button class="nav__toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
@@ -586,7 +666,7 @@
     <a href="#sources">Sources</a>
     <a href="#work">See it work</a>
     <a href="#faq">FAQ</a>
-    <a class="btn btn--primary" href="#close">Open the workbench</a>
+    <a class="btn btn--primary" href="#close">Get early access</a>
   </div>
 </header>
 
@@ -594,75 +674,209 @@
 
   <!-- ============================ HERO ============================ -->
   <section class="hero wrap" aria-labelledby="hero-h">
-    <p class="hero__eyebrow eyebrow"><span class="tick" aria-hidden="true"></span> Never miss a deadline change · FED + 50 states + DC</p>
-    <h1 class="display hero__head" id="hero-h">Catch every tax-deadline change — and see exactly <span class="ital">who</span> it affects.</h1>
-    <p class="hero__sub">A deadline moves at the IRS or a state — and you know which clients it touches, with the source on every date.</p>
+    <div class="hero__grid">
+      <div class="hero__copy">
+        <p class="hero__eyebrow eyebrow"><span class="tick" aria-hidden="true"></span> Never miss a deadline change · FED + 50 states + DC</p>
+        <h1 class="display hero__head" id="hero-h">Catch every tax-deadline change — and see exactly <span class="ital">who</span> it affects.</h1>
+        <p class="hero__sub">A deadline moves at the IRS or a state, and you see which clients it touches — with the official source on every date.</p>
+        <div class="hero__points">
+          <p class="hero__point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.4 4.6-5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Watches the <b>IRS, all 50 states &amp; FEMA</b> around the clock</span></p>
+          <p class="hero__point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.4 4.6-5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Flags the <b>exact clients</b> each change touches — by jurisdiction, form &amp; entity type</span></p>
+          <p class="hero__point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.4 4.6-5" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Source on every date</b> — checkable in two clicks</span></p>
+        </div>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#close">Get early access <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn--ghost" href="#how">See how it works</a>
+        </div>
+        <p class="hero__note">Free while in early access · set up in minutes.</p>
+      </div>
 
-    <div class="hero__cta">
-      <a class="btn btn--primary" href="#close">Open the workbench <span class="arrow" aria-hidden="true">→</span></a>
-      <a class="btn btn--ghost" href="#work">Try it live</a>
+      <!-- ===== live Alerts panel — faithful, interactive product replica ===== -->
+      <section class="alerts-panel" id="alertsDemo" aria-label="Alerts this week — interactive sample">
+        <div class="ap__bar">
+          <span class="ap__title"><span class="live" aria-hidden="true"></span>Alerts · this week</span>
+          <span class="ap__count mono" id="alertsCount">6 changes · 31 clients</span>
+          <span class="ap__cap">live preview · not your data</span>
+        </div>
+        <div class="ap__filter" role="group" aria-label="Filter alerts by jurisdiction">
+          <button class="ap__chip is-active" type="button" data-juris="all" aria-pressed="true">All</button>
+          <button class="ap__chip" type="button" data-juris="FED" aria-pressed="false">Federal</button>
+          <button class="ap__chip" type="button" data-juris="CA" aria-pressed="false">CA</button>
+          <button class="ap__chip" type="button" data-juris="TX" aria-pressed="false">TX</button>
+          <button class="ap__chip" type="button" data-juris="NY" aria-pressed="false">NY</button>
+          <button class="ap__chip" type="button" data-juris="WA" aria-pressed="false">WA</button>
+          <button class="ap__chip" type="button" data-juris="FL" aria-pressed="false">FL</button>
+        </div>
+
+        <!-- FED · Urgent · deadline shift -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="FED" data-clients="8">
+          <div class="ar__head">
+            <span class="sev sev--urgent">Urgent</span>
+            <span class="ar__juris">FED</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>Deadline shift</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>irs.gov</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">IRS postpones filing &amp; payment deadlines after disaster declaration</p>
+          <div class="ar__change">
+            <span class="ar__from">Apr 15</span>
+            <svg class="ar__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span class="ar__to">Nov 3, 2026</span>
+            <span class="ar__diff ar__diff--later">202 days later</span>
+          </div>
+          <div class="ar__affect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>Affects <b>8 clients</b></span><span class="split">6 ready · 2 review</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">IRS · IR-2026-41</span> — <span class="q">“Affected taxpayers have until Nov 3, 2026 to file returns and make payments originally due on or after Apr 15, 2026.”</span></p>
+            <div class="ar__clients">
+              <span class="ar__client"><span class="av">HM</span>Hudson &amp; Marsh LLC</span>
+              <span class="ar__client"><span class="av">BR</span>Bryant Retail Co</span>
+              <span class="ar__client"><span class="av">+6</span>6 more</span>
+            </div>
+            <div class="ar__apply">
+              <button class="ar__applybtn" type="button" aria-label="Apply the new date to 8 clients"><svg class="i-apply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><svg class="i-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="t-apply">Apply to 8 clients</span><span class="t-done">Applied</span></button>
+              <span class="ar__undo"><span class="u-pre">one click · reversible 24h</span><span class="u-post">applied · <span class="ar__undolink" role="button" tabindex="0">Undo</span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CA · High · deadline shift -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="CA" data-clients="12">
+          <div class="ar__head">
+            <span class="sev sev--high">High</span>
+            <span class="ar__juris">CA</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>Deadline shift</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>ftb.ca.gov</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">California FTB extends the Q3 estimated-tax deadline after wildfire declaration</p>
+          <div class="ar__change">
+            <span class="ar__from">Sep 15</span>
+            <svg class="ar__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span class="ar__to">Sep 29, 2026</span>
+            <span class="ar__diff ar__diff--later">14 days later</span>
+          </div>
+          <div class="ar__affect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>Affects <b>12 clients</b></span><span class="split">9 ready · 3 review</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">CA FTB · News release</span> — <span class="q">“The Q3 estimated payment due Sep 15 is postponed to Sep 29, 2026 for taxpayers in the declared disaster area.”</span></p>
+            <div class="ar__clients">
+              <span class="ar__client"><span class="av">VH</span>Vega Holdings</span>
+              <span class="ar__client"><span class="av">CF</span>Castellano Foods</span>
+              <span class="ar__client"><span class="av">+10</span>10 more</span>
+            </div>
+            <div class="ar__apply">
+              <button class="ar__applybtn" type="button" aria-label="Apply the new date to 12 clients"><svg class="i-apply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><svg class="i-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="t-apply">Apply to 12 clients</span><span class="t-done">Applied</span></button>
+              <span class="ar__undo"><span class="u-pre">one click · reversible 24h</span><span class="u-post">applied · <span class="ar__undolink" role="button" tabindex="0">Undo</span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TX · High · new filing -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="TX" data-clients="5">
+          <div class="ar__head">
+            <span class="sev sev--high">High</span>
+            <span class="ar__juris">TX</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12.5v4M10 14.5h4"/></svg>New filing</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>comptroller.texas.gov</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">Texas adds a franchise-tax filing requirement for remote sellers</p>
+          <div class="ar__change">
+            <span class="ar__to">Effective Jan 1, 2026</span>
+            <span class="ar__diff ar__diff--flat">new obligation</span>
+          </div>
+          <div class="ar__affect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>Affects <b>5 clients</b></span><span class="split">5 ready</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">TX Comptroller · Rule 3.586</span> — <span class="q">“Remote sellers exceeding the economic-nexus threshold must file Form 05-102 beginning with the 2026 report year.”</span></p>
+            <div class="ar__clients">
+              <span class="ar__client"><span class="av">DL</span>Delgado Logistics</span>
+              <span class="ar__client"><span class="av">OL</span>Okafor &amp; Lane</span>
+              <span class="ar__client"><span class="av">+3</span>3 more</span>
+            </div>
+            <div class="ar__apply">
+              <button class="ar__applybtn" type="button" aria-label="Add this obligation to 5 clients"><svg class="i-apply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><svg class="i-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="t-apply">Add to 5 clients</span><span class="t-done">Added</span></button>
+              <span class="ar__undo"><span class="u-pre">one click · reversible 24h</span><span class="u-post">added · <span class="ar__undolink" role="button" tabindex="0">Undo</span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- NY · Normal · guidance (review-only) -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="NY" data-clients="4">
+          <div class="ar__head">
+            <span class="sev sev--normal">Normal</span>
+            <span class="ar__juris">NY</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.5a8 8 0 0 1-11.5 7.2L4 20.5l1.8-4.9A8 8 0 1 1 20.5 11.5z"/></svg>Guidance</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>tax.ny.gov</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">New York clarifies the pass-through entity tax election procedure</p>
+          <div class="ar__change">
+            <span class="ar__to">Guidance updated</span>
+            <span class="ar__diff ar__diff--flat">no date change</span>
+          </div>
+          <div class="ar__affect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>Affects <b>4 clients</b></span><span class="split">4 review</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">NY DTF · TSB-M-26(1)</span> — <span class="q">“Guidance clarifies the annual PTET election procedure and the binding election deadline.”</span></p>
+            <div class="ar__clients">
+              <span class="ar__client"><span class="av">NF</span>Nguyen Family LP</span>
+              <span class="ar__client"><span class="av">PP</span>Park Ave Partners</span>
+              <span class="ar__client"><span class="av">+2</span>2 more</span>
+            </div>
+            <p class="ar__review" style="margin-top:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.5M12 16h.01"/></svg>Needs your review — election scope isn't certain yet</p>
+          </div>
+        </div>
+
+        <!-- WA · Urgent · action window -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="WA" data-clients="2">
+          <div class="ar__head">
+            <span class="sev sev--urgent">Urgent</span>
+            <span class="ar__juris">WA</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>Action window</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>dor.wa.gov</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">Washington B&amp;O refund protective-claim window is closing</p>
+          <div class="ar__change">
+            <span class="ar__to">Closes Jun 30, 2026</span>
+            <span class="ar__diff ar__diff--sooner">12 days left</span>
+          </div>
+          <div class="ar__affect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>Affects <b>2 clients</b></span><span class="split">2 ready</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">WA DOR · B&amp;O notice</span> — <span class="q">“Protective refund claims for the 2022–2023 B&amp;O periods must be filed on or before Jun 30, 2026.”</span></p>
+            <div class="ar__clients">
+              <span class="ar__client"><span class="av">SC</span>Sound Coffee Roasters</span>
+              <span class="ar__client"><span class="av">RT</span>Rainier Tools</span>
+            </div>
+            <div class="ar__apply">
+              <button class="ar__applybtn" type="button" aria-label="Add this deadline to 2 clients"><svg class="i-apply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><svg class="i-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="t-apply">Add to 2 clients</span><span class="t-done">Added</span></button>
+              <span class="ar__undo"><span class="u-pre">one click · reversible 24h</span><span class="u-post">added · <span class="ar__undolink" role="button" tabindex="0">Undo</span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FL · Normal · threshold (no impact) -->
+        <div class="ar" role="button" tabindex="0" aria-expanded="false" data-juris="FL" data-clients="0">
+          <div class="ar__head">
+            <span class="sev sev--normal">Normal</span>
+            <span class="ar__juris">FL</span>
+            <span class="ar__kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="7" cy="17" r="2.2"/></svg>Threshold</span>
+            <span class="ar__src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/></svg>floridarevenue.com</span>
+            <svg class="ar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <p class="ar__title">Florida adjusts its 2026 estimated-tax safe-harbor thresholds</p>
+          <div class="ar__change">
+            <span class="ar__to">Thresholds adjusted</span>
+            <span class="ar__diff ar__diff--flat">no change to your dates</span>
+          </div>
+          <div class="ar__affect ar__affect--none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"/></svg><span>No clients affected</span><span class="split">on watch</span></div>
+          <div class="ar__detail">
+            <p class="ar__excerpt"><span class="doc">FL DOR · TIP 26A01-01</span> — <span class="q">“The 2026 estimated-tax safe-harbor thresholds are adjusted for inflation; no filing dates change.”</span></p>
+            <p class="ar__review" style="margin-top:12px; color: var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>On watch — we'll alert you the moment this affects a client</p>
+          </div>
+        </div>
+
+        <div class="ap__empty" id="alertsEmpty">No changes for this state this week — we're still watching.</div>
+      </section>
     </div>
-    <span class="hero__micro">
-      <svg class="gicon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.57c2.08-1.92 3.27-4.74 3.27-8.09Z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.76c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.84 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.84Z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/></svg>
-      Start free with Google — your whole book of clients, watched, in about 30 minutes.
-    </span>
-
-    <!-- ===== HERO PRODUCT IMAGE: Alerts this week ===== -->
-    <section class="alerts-panel reveal" aria-label="Alerts this week — sample preview">
-      <div class="alerts-panel__bar">
-        <span class="alerts-panel__title"><span class="live" aria-hidden="true"></span>Alerts · this week</span>
-        <span class="alerts-panel__count mono">4 changes · 31 clients affected</span>
-        <span class="alerts-panel__cap">live preview · not your data</span>
-      </div>
-
-      <div class="alert-row">
-        <span class="alert-row__sev sev--urgent"><span class="d" aria-hidden="true"></span>Urgent</span>
-        <div class="alert-row__main">
-          <p class="alert-row__title">IRS postpones filing &amp; payment deadlines after disaster declaration</p>
-          <p class="alert-row__meta"><span class="src mono">irs.gov · IR-2026-41</span><span aria-hidden="true">·</span><span>Apr 15 → Nov 3, 2026</span></p>
-        </div>
-        <div class="alert-row__affected">
-          <div class="alert-row__num"><b>5</b> clients</div>
-          <div class="alert-row__split">3 eligible · 2 review</div>
-        </div>
-      </div>
-
-      <div class="alert-row">
-        <span class="alert-row__sev sev--urgent"><span class="d" aria-hidden="true"></span>Urgent</span>
-        <div class="alert-row__main">
-          <p class="alert-row__title">Texas raises the franchise-tax no-tax-due threshold</p>
-          <p class="alert-row__meta"><span class="src mono">comptroller.texas.gov</span><span aria-hidden="true">·</span><span>$1.23M → $2.47M</span></p>
-        </div>
-        <div class="alert-row__affected">
-          <div class="alert-row__num"><b>12</b> clients</div>
-          <div class="alert-row__split">9 eligible · 3 review</div>
-        </div>
-      </div>
-
-      <div class="alert-row">
-        <span class="alert-row__sev sev--fyi">FYI</span>
-        <div class="alert-row__main">
-          <p class="alert-row__title">California confirms estimated-payment due dates for 2026</p>
-          <p class="alert-row__meta"><span class="src mono">ftb.ca.gov</span><span aria-hidden="true">·</span><span>No change · verified</span></p>
-        </div>
-        <div class="alert-row__affected">
-          <div class="alert-row__num"><b>9</b> clients</div>
-          <div class="alert-row__split">on watch</div>
-        </div>
-      </div>
-
-      <div class="alert-row">
-        <span class="alert-row__sev sev--fyi">FYI</span>
-        <div class="alert-row__main">
-          <p class="alert-row__title">New York posts updated PTET election guidance</p>
-          <p class="alert-row__meta"><span class="src mono">tax.ny.gov</span><span aria-hidden="true">·</span><span>Guidance update</span></p>
-        </div>
-        <div class="alert-row__affected">
-          <div class="alert-row__num"><b>5</b> clients</div>
-          <div class="alert-row__split">review</div>
-        </div>
-      </div>
-    </section>
   </section>
 
   <!-- ===================== SOUND FAMILIAR (villain) ===================== -->
@@ -842,17 +1056,87 @@
         <span class="sources__label"><span class="live" aria-hidden="true"></span>Sources we watch · around the clock</span>
         <span class="sources__note">FED + 50 states + DC — CA, NY, TX, FL, WA deepest.</span>
       </div>
+      <ul class="sources__list">
+        <li class="source-chip"><span class="glyph g-irs" aria-hidden="true">IRS</span>IRS</li>
+        <li class="source-chip"><span class="glyph g-ca" aria-hidden="true">CA</span>CA FTB</li>
+        <li class="source-chip"><span class="glyph g-ny" aria-hidden="true">NY</span>NY DTF</li>
+        <li class="source-chip"><span class="glyph g-tx" aria-hidden="true">TX</span>TX Comptroller</li>
+        <li class="source-chip"><span class="glyph g-fl" aria-hidden="true">FL</span>FL DOR</li>
+        <li class="source-chip"><span class="glyph g-wa" aria-hidden="true">WA</span>WA DOR</li>
+        <li class="source-chip"><span class="glyph g-fema" aria-hidden="true">FE</span>FEMA</li>
+        <li class="source-chip source-chip--more">+ disaster declarations nationwide</li>
+      </ul>
+
       <div class="sources__grid">
-        <ul class="sources__list">
-          <li class="source-chip"><span class="glyph g-irs" aria-hidden="true">IRS</span>IRS</li>
-          <li class="source-chip"><span class="glyph g-ca" aria-hidden="true">CA</span>CA FTB</li>
-          <li class="source-chip"><span class="glyph g-ny" aria-hidden="true">NY</span>NY DTF</li>
-          <li class="source-chip"><span class="glyph g-tx" aria-hidden="true">TX</span>TX Comptroller</li>
-          <li class="source-chip"><span class="glyph g-fl" aria-hidden="true">FL</span>FL DOR</li>
-          <li class="source-chip"><span class="glyph g-wa" aria-hidden="true">WA</span>WA DOR</li>
-          <li class="source-chip"><span class="glyph g-fema" aria-hidden="true">FE</span>FEMA</li>
-          <li class="source-chip source-chip--more">+ disaster declarations nationwide</li>
-        </ul>
+        <!-- US coverage map — replicates the product's PulseAlertsMap -->
+        <div class="usmap-wrap">
+          <div class="usmap__bar">
+            <button class="usmap__fed" type="button" data-juris="FED" title="Federal · 3 changes this season" aria-label="Federal, 3 changes this season — see alerts">Federal <span class="n">3</span></button>
+            <ul class="usmap__legend" aria-label="Changes per state legend">
+              <li><span class="sw t0"></span>0</li>
+              <li><span class="sw t1"></span>1</li>
+              <li><span class="sw t2"></span>2–3</li>
+              <li><span class="sw t3"></span>4–6</li>
+              <li><span class="sw t4"></span>7+</li>
+            </ul>
+          </div>
+          <div class="usmap-scroll">
+            <div class="usmap" id="usmap" role="group" aria-label="US coverage map — deadline changes caught this season, by state">
+              <div class="ust t0" style="grid-row:1;grid-column:1" aria-hidden="true"><span class="c">AK</span></div>
+              <div class="ust t0" style="grid-row:1;grid-column:11" aria-hidden="true"><span class="c">ME</span></div>
+              <div class="ust t0" style="grid-row:2;grid-column:10" aria-hidden="true"><span class="c">VT</span></div>
+              <div class="ust t0" style="grid-row:2;grid-column:11" aria-hidden="true"><span class="c">NH</span></div>
+              <button class="ust t3 ust--act" type="button" style="grid-row:3;grid-column:2" data-juris="WA" title="Washington · 4 changes" aria-label="Washington, 4 changes — see alerts"><span class="c">WA</span><span class="n">4</span></button>
+              <div class="ust t0" style="grid-row:3;grid-column:3" aria-hidden="true"><span class="c">ID</span></div>
+              <div class="ust t0" style="grid-row:3;grid-column:4" aria-hidden="true"><span class="c">MT</span></div>
+              <div class="ust t0" style="grid-row:3;grid-column:5" aria-hidden="true"><span class="c">ND</span></div>
+              <div class="ust t0" style="grid-row:3;grid-column:6" aria-hidden="true"><span class="c">MN</span></div>
+              <div class="ust t0" style="grid-row:3;grid-column:7" aria-hidden="true"><span class="c">WI</span></div>
+              <div class="ust t0" style="grid-row:3;grid-column:8" aria-hidden="true"><span class="c">MI</span></div>
+              <button class="ust t4 ust--act" type="button" style="grid-row:3;grid-column:10" data-juris="NY" title="New York · 7 changes" aria-label="New York, 7 changes — see alerts"><span class="c">NY</span><span class="n">7</span></button>
+              <button class="ust t2 ust--act" type="button" style="grid-row:3;grid-column:11" data-juris="MA" title="Massachusetts · 2 changes" aria-label="Massachusetts, 2 changes — see alerts"><span class="c">MA</span><span class="n">2</span></button>
+              <button class="ust t1 ust--act" type="button" style="grid-row:4;grid-column:2" data-juris="OR" title="Oregon · 1 change" aria-label="Oregon, 1 change — see alerts"><span class="c">OR</span><span class="n">1</span></button>
+              <div class="ust t0" style="grid-row:4;grid-column:3" aria-hidden="true"><span class="c">NV</span></div>
+              <div class="ust t0" style="grid-row:4;grid-column:4" aria-hidden="true"><span class="c">WY</span></div>
+              <div class="ust t0" style="grid-row:4;grid-column:5" aria-hidden="true"><span class="c">SD</span></div>
+              <div class="ust t0" style="grid-row:4;grid-column:6" aria-hidden="true"><span class="c">IA</span></div>
+              <button class="ust t2 ust--act" type="button" style="grid-row:4;grid-column:7" data-juris="IL" title="Illinois · 3 changes" aria-label="Illinois, 3 changes — see alerts"><span class="c">IL</span><span class="n">3</span></button>
+              <div class="ust t0" style="grid-row:4;grid-column:8" aria-hidden="true"><span class="c">IN</span></div>
+              <button class="ust t1 ust--act" type="button" style="grid-row:4;grid-column:9" data-juris="OH" title="Ohio · 1 change" aria-label="Ohio, 1 change — see alerts"><span class="c">OH</span><span class="n">1</span></button>
+              <button class="ust t1 ust--act" type="button" style="grid-row:4;grid-column:10" data-juris="PA" title="Pennsylvania · 1 change" aria-label="Pennsylvania, 1 change — see alerts"><span class="c">PA</span><span class="n">1</span></button>
+              <div class="ust t0" style="grid-row:4;grid-column:11" aria-hidden="true"><span class="c">NJ</span></div>
+              <div class="ust t0" style="grid-row:4;grid-column:12" aria-hidden="true"><span class="c">CT</span></div>
+              <div class="ust t0" style="grid-row:4;grid-column:13" aria-hidden="true"><span class="c">RI</span></div>
+              <button class="ust t4 ust--act" type="button" style="grid-row:5;grid-column:2" data-juris="CA" title="California · 14 changes" aria-label="California, 14 changes — see alerts"><span class="c">CA</span><span class="n">14</span></button>
+              <div class="ust t0" style="grid-row:5;grid-column:3" aria-hidden="true"><span class="c">UT</span></div>
+              <button class="ust t2 ust--act" type="button" style="grid-row:5;grid-column:4" data-juris="CO" title="Colorado · 2 changes" aria-label="Colorado, 2 changes — see alerts"><span class="c">CO</span><span class="n">2</span></button>
+              <div class="ust t0" style="grid-row:5;grid-column:5" aria-hidden="true"><span class="c">NE</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:6" aria-hidden="true"><span class="c">MO</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:7" aria-hidden="true"><span class="c">KY</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:8" aria-hidden="true"><span class="c">WV</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:9" aria-hidden="true"><span class="c">VA</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:10" aria-hidden="true"><span class="c">MD</span></div>
+              <div class="ust t0" style="grid-row:5;grid-column:11" aria-hidden="true"><span class="c">DE</span></div>
+              <button class="ust t1 ust--act" type="button" style="grid-row:6;grid-column:3" data-juris="AZ" title="Arizona · 1 change" aria-label="Arizona, 1 change — see alerts"><span class="c">AZ</span><span class="n">1</span></button>
+              <div class="ust t0" style="grid-row:6;grid-column:4" aria-hidden="true"><span class="c">NM</span></div>
+              <div class="ust t0" style="grid-row:6;grid-column:5" aria-hidden="true"><span class="c">KS</span></div>
+              <div class="ust t0" style="grid-row:6;grid-column:6" aria-hidden="true"><span class="c">AR</span></div>
+              <div class="ust t0" style="grid-row:6;grid-column:7" aria-hidden="true"><span class="c">TN</span></div>
+              <button class="ust t1 ust--act" type="button" style="grid-row:6;grid-column:8" data-juris="NC" title="North Carolina · 1 change" aria-label="North Carolina, 1 change — see alerts"><span class="c">NC</span><span class="n">1</span></button>
+              <div class="ust t0" style="grid-row:6;grid-column:9" aria-hidden="true"><span class="c">SC</span></div>
+              <div class="ust t0" style="grid-row:6;grid-column:10" aria-hidden="true"><span class="c">DC</span></div>
+              <div class="ust t0" style="grid-row:7;grid-column:1" aria-hidden="true"><span class="c">HI</span></div>
+              <div class="ust t0" style="grid-row:7;grid-column:5" aria-hidden="true"><span class="c">OK</span></div>
+              <div class="ust t0" style="grid-row:7;grid-column:6" aria-hidden="true"><span class="c">LA</span></div>
+              <div class="ust t0" style="grid-row:7;grid-column:7" aria-hidden="true"><span class="c">MS</span></div>
+              <div class="ust t0" style="grid-row:7;grid-column:8" aria-hidden="true"><span class="c">AL</span></div>
+              <button class="ust t2 ust--act" type="button" style="grid-row:7;grid-column:9" data-juris="GA" title="Georgia · 2 changes" aria-label="Georgia, 2 changes — see alerts"><span class="c">GA</span><span class="n">2</span></button>
+              <button class="ust t4 ust--act" type="button" style="grid-row:8;grid-column:5" data-juris="TX" title="Texas · 9 changes" aria-label="Texas, 9 changes — see alerts"><span class="c">TX</span><span class="n">9</span></button>
+              <button class="ust t3 ust--act" type="button" style="grid-row:8;grid-column:9" data-juris="FL" title="Florida · 5 changes" aria-label="Florida, 5 changes — see alerts"><span class="c">FL</span><span class="n">5</span></button>
+            </div>
+          </div>
+          <p class="usmap__foot">Live monitoring runs deepest on the <b>IRS, CA, NY, TX, FL, WA, MA</b> and <b>FEMA</b> — and every one of the <b>50 states + DC</b> is covered in your rule library. <span class="muted">Sample activity · not your data — tap a state to see its alerts.</span></p>
+        </div>
 
         <!-- live monitoring feed (new product-UI snippet) -->
         <div class="feed" aria-label="Source-monitoring feed — sample preview">
@@ -1013,7 +1297,7 @@
           <p class="tstat__b">Nothing touches a client's deadline on its own. Apply is always your call.</p>
         </div>
         <div class="tstat">
-          <div class="tstat__n serif">Audited</div>
+          <div class="tstat__n">Audited</div>
           <div class="tstat__t">Every action recorded</div>
           <p class="tstat__b">Every apply, undo, and revert is recorded and inspectable.</p>
         </div>
@@ -1056,10 +1340,10 @@
   <section class="close" id="close" aria-labelledby="close-h">
     <div class="wrap">
       <span class="close__pill"><span class="dot" aria-hidden="true"></span>Be ready before busy season</span>
-      <h2 class="display" id="close-h">Walk into next busy season already <span class="ital">ahead.</span></h2>
+      <h2 class="h2" id="close-h">Walk into next busy season already <span class="ital">ahead.</span></h2>
       <p class="close__body">Paste your clients, and a sourced year of deadlines is ready in about 30 minutes. From there, DueDateHQ watches every change — so the next time a state moves a deadline, you'll already know who it affects.</p>
       <div class="close__cta">
-        <a class="btn btn--primary" href="#main">Open the workbench <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn--primary" href="#main">Get early access <span class="arrow" aria-hidden="true">→</span></a>
         <a class="btn btn--ghost" href="#work">Get a guided setup</a>
       </div>
       <p class="close__reassure">Start free · no card · your data stays in your own practice.</p>
@@ -1161,6 +1445,110 @@
       }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
       reveals.forEach(function (el) { io.observe(el); });
     }
+
+    // centered nav — sliding glider that follows hover + rests on the current section
+    var pill = document.getElementById("navPill");
+    if (pill) {
+      var glider = document.getElementById("navGlider");
+      var links = Array.prototype.slice.call(pill.querySelectorAll(".nav__link"));
+      var activeLink = null, hovering = false;
+      var moveTo = function (link) {
+        if (!link || !link.offsetWidth) { pill.classList.remove("is-ready"); return; }
+        glider.style.width = link.offsetWidth + "px";
+        glider.style.transform = "translateX(" + link.offsetLeft + "px)";
+        pill.classList.add("is-ready");
+      };
+      links.forEach(function (link) {
+        link.addEventListener("mouseenter", function () { hovering = true; moveTo(link); });
+        link.addEventListener("focus", function () { hovering = true; moveTo(link); });
+        link.addEventListener("blur", function () { hovering = false; moveTo(activeLink); });
+      });
+      pill.addEventListener("mouseleave", function () { hovering = false; moveTo(activeLink); });
+      var sections = links.map(function (l) { return document.getElementById(l.getAttribute("href").slice(1)); });
+      if ("IntersectionObserver" in window) {
+        var spyIO = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            var idx = sections.indexOf(e.target);
+            if (idx < 0) return;
+            links.forEach(function (l) { l.classList.remove("is-active"); });
+            links[idx].classList.add("is-active");
+            activeLink = links[idx];
+            if (!hovering) moveTo(activeLink);
+          });
+        }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+        sections.forEach(function (s) { if (s) spyIO.observe(s); });
+      }
+      window.addEventListener("resize", function () { if (activeLink && !hovering) moveTo(activeLink); }, { passive: true });
+    }
+
+    // hero alerts demo — jurisdiction filter + row expand + apply/undo
+    var demo = document.getElementById("alertsDemo");
+    if (demo) {
+      var chips = Array.prototype.slice.call(demo.querySelectorAll(".ap__chip"));
+      var rows = Array.prototype.slice.call(demo.querySelectorAll(".ar"));
+      var countEl = document.getElementById("alertsCount");
+      var emptyEl = document.getElementById("alertsEmpty");
+      var plural = function (n, w) { return n + " " + w + (n === 1 ? "" : "s"); };
+      var setFilter = function (juris) {
+        var changes = 0, clients = 0;
+        rows.forEach(function (row) {
+          var show = juris === "all" || row.getAttribute("data-juris") === juris;
+          row.style.display = show ? "" : "none";
+          if (show) { changes++; clients += parseInt(row.getAttribute("data-clients"), 10) || 0; }
+          row.classList.remove("is-open"); row.setAttribute("aria-expanded", "false");
+        });
+        if (countEl) countEl.textContent = plural(changes, "change") + " · " + plural(clients, "client");
+        if (emptyEl) emptyEl.style.display = changes === 0 ? "block" : "none";
+      };
+      chips.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          chips.forEach(function (c) { c.classList.remove("is-active"); c.setAttribute("aria-pressed", "false"); });
+          chip.classList.add("is-active"); chip.setAttribute("aria-pressed", "true");
+          setFilter(chip.getAttribute("data-juris"));
+        });
+      });
+      var toggleRow = function (row) {
+        var open = row.classList.contains("is-open");
+        rows.forEach(function (r) { r.classList.remove("is-open"); r.setAttribute("aria-expanded", "false"); });
+        if (!open) { row.classList.add("is-open"); row.setAttribute("aria-expanded", "true"); }
+      };
+      rows.forEach(function (row) {
+        row.addEventListener("click", function (e) {
+          if (e.target.closest(".ar__applybtn") || e.target.closest(".ar__undolink")) return;
+          toggleRow(row);
+        });
+        row.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleRow(row); }
+        });
+        var applyBtn = row.querySelector(".ar__applybtn");
+        if (applyBtn) applyBtn.addEventListener("click", function (e) { e.stopPropagation(); row.classList.add("is-applied"); });
+        var undoLink = row.querySelector(".ar__undolink");
+        if (undoLink) {
+          undoLink.addEventListener("click", function (e) { e.stopPropagation(); row.classList.remove("is-applied"); });
+          undoLink.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); row.classList.remove("is-applied"); } });
+        }
+      });
+    }
+
+    // US coverage map — click a state to jump up to its alerts
+    var usmap = document.getElementById("usmap");
+    var fedTile = document.querySelector(".usmap__fed");
+    var jumpToState = function (code) {
+      var hero = document.getElementById("alertsDemo");
+      if (!hero) return;
+      var chip = hero.querySelector('.ap__chip[data-juris="' + code + '"]') || hero.querySelector('.ap__chip[data-juris="all"]');
+      if (chip) chip.click();
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var y = hero.getBoundingClientRect().top + window.scrollY - 84;
+      window.scrollTo({ top: y, behavior: reduce ? "auto" : "smooth" });
+    };
+    if (usmap) {
+      Array.prototype.slice.call(usmap.querySelectorAll(".ust--act")).forEach(function (tile) {
+        tile.addEventListener("click", function () { jumpToState(tile.getAttribute("data-juris")); });
+      });
+    }
+    if (fedTile) fedTile.addEventListener("click", function () { jumpToState("FED"); });
   })();
 </script>
 </body>
