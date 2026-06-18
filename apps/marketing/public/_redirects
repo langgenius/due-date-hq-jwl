@@ -1,7 +1,0 @@
-# Canonical-host redirects. Activates once www.duedatehq.com is bound to this
-# Worker's custom domains (migration runbook). The apex (duedatehq.com) is the
-# canonical host used for <link rel="canonical"> and the sitemap.
-# http -> https is enforced by the Cloudflare zone "Always Use HTTPS" edge
-# setting, not here.
-https://www.duedatehq.com/* https://duedatehq.com/:splat 301
-http://www.duedatehq.com/* https://duedatehq.com/:splat 301
