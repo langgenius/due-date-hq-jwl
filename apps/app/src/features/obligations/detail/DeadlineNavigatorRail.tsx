@@ -29,7 +29,7 @@ import { daysBetween } from '@/lib/utils'
 import {
   LIFECYCLE_V2_STATUS_SETS,
   LIFECYCLE_V2_STATUSES,
-  STATUS_ICON,
+  StatusMark,
   STATUS_ICON_COLOR,
   useLifecycleV2StatusLabels,
   type ObligationStatus,
@@ -414,7 +414,6 @@ function DeadlineNavigatorRow({
   // repeating "Form 1040" as both badge AND title was redundant (Yuqi). Mirrors
   // the detail hero's "{code} — {description}".
   const title = describeTaxCode(row.taxType).description ?? row.formName ?? row.taxType
-  const StatusIcon = STATUS_ICON[row.status]
 
   return (
     <Link
@@ -484,9 +483,9 @@ function DeadlineNavigatorRow({
             {title}
           </span>
           <span className="flex shrink-0 items-center gap-1 pt-0.5" title={statusLabel}>
-            <StatusIcon
+            <StatusMark
+              status={row.status}
               className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[row.status])}
-              aria-hidden
             />
             {active ? (
               <span className="text-xs font-medium text-text-tertiary">{statusLabel}</span>

@@ -1,14 +1,35 @@
 # Obligation status icon vocabulary
 
-> Canonical map from `ObligationStatus` to its lucide icon + tinted
+> Canonical map from `ObligationStatus` to its status mark + tinted
 > color class. Sets the visual grammar for every surface that
 > renders a status — pills, dropdowns, filter tabs, status reads.
 > Established 2026-05-25 to replace the abstract status-dot
 > (`BadgeStatusDot`) with recognizable glyphs.
 
+> **2026-06-18 — the mark is now a progress ring, not a per-status lucide glyph.**
+> The status mark renders via `<StatusMark status>` →
+> [`<StatusRing>`](../../apps/app/src/components/primitives/status-ring.tsx):
+> the ring **fills along the happy path** so a queue scan reads HOW FAR ALONG each
+> deadline is, not just what state. Off-path states break the ring with a distinct
+> glyph (not "more progress"). The DB-status → tone-class mapping below is
+> unchanged (`STATUS_ICON_COLOR` / `_ON_PILL` still drive the hue); only the mark
+> shape changed. Mapping `STATUS_RING_LEVEL`:
+>
+> | v2 label          | ring level    | mark                         |
+> | ----------------- | ------------- | ---------------------------- |
+> | Not started       | `not_started` | empty dashed ring            |
+> | Waiting on client | `waiting`     | ring + pause bars (off-path) |
+> | Blocked           | `blocked`     | ring + slash (off-path)      |
+> | In review         | `in_review`   | ~50% filled arc              |
+> | Filed             | `filed`       | ~85% filled arc              |
+> | Completed         | `completed`   | solid disc + check           |
+>
+> The lucide glyph rationale below is retained as the historical record of why
+> glyphs replaced dots (2026-05-25); the glyph set itself is superseded.
+
 ## Anchor
 
-- Implementation: [`apps/app/src/features/obligations/status-control.tsx`](../../apps/app/src/features/obligations/status-control.tsx) — `STATUS_ICON` + `STATUS_ICON_COLOR` exports
+- Implementation: [`apps/app/src/features/obligations/status-control.tsx`](../../apps/app/src/features/obligations/status-control.tsx) — `StatusMark` + `STATUS_RING_LEVEL` + `STATUS_ICON_COLOR` exports; mark in [`status-ring.tsx`](../../apps/app/src/components/primitives/status-ring.tsx)
 - Lifecycle brief (canonical state model): [`obligation-lifecycle-design-brief.md`](./obligation-lifecycle-design-brief.md)
 - Label collapse map (10 → 6 states): same module, `useLifecycleV2StatusLabels`
 

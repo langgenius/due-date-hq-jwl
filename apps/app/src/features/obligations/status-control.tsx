@@ -1,14 +1,6 @@
-import { useEffect, useMemo, useRef, type ComponentType, type SVGProps } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { motion, useAnimationControls } from 'motion/react'
 import { useLingui } from '@lingui/react/macro'
-import {
-  CircleCheck,
-  Construction,
-  FileCheck,
-  Hourglass,
-  Loader,
-  MessageSquareText,
-} from 'lucide-react'
 
 import type { ObligationInstancePublic, ObligationQueueRow } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
@@ -22,6 +14,7 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { StatusRing, type StatusRingLevel } from '@/components/primitives/status-ring'
 import { EASE_APPLE } from '@/lib/motion'
 
 type ObligationStatus = ObligationInstancePublic['status']
@@ -108,33 +101,46 @@ const STATUS_VARIANT: Record<
   completed: 'success',
 }
 
-// Every status ships a lucide icon + a tinted color class so the
-// chrome reads as recognizable glyphs ("hourglass = waiting on
-// client", "barrier = blocked") rather than tone-dot abstractions.
-// The icon set mirrors the lifecycle v2 collapse (see useLifecycleV2StatusLabels):
-//   pending / not_applicable           → Loader            (gray)
-//   waiting_on_client                  → Hourglass         (amber)
-//   blocked                            → Construction      (red)
-//   in_progress / review / extended    → MessageSquareText (blue)
-//   done / paid                        → FileCheck         (green)
-//   completed                          → CircleCheck       (green)
-// Used by ObligationStatusReadBadge, ObligationQueueStatusControl,
-// the obligations-page filter tabs, and any other surface that
-// renders a status label — single source of truth for the
-// "status as glyph" vocabulary across the product.
-type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>
+// Maps each DB status to its v2 lifecycle level for the shared <StatusRing>
+// progress mark (status-ring.tsx). 2026-06-18: replaced the per-status lucide
+// glyph set (Loader/Hourglass/Construction/MessageSquareText/FileCheck/
+// CircleCheck) — the ring fills along the happy path so a queue scan reads HOW
+// FAR ALONG each row is, off-path states (waiting/blocked) break the pattern.
+// Mirrors the v2 collapse exactly:
+//   pending / not_applicable        → not_started (empty dashed ring)
+//   waiting_on_client               → waiting     (pause bars, off-path)
+//   blocked                         → blocked     (slash, off-path)
+//   in_progress / review / extended → in_review   (~50% arc)
+//   done / paid                     → filed       (~85% arc)
+//   completed                       → completed   (solid disc + check)
+const STATUS_RING_LEVEL: Record<ObligationStatus, StatusRingLevel> = {
+  pending: 'not_started',
+  not_applicable: 'not_started',
+  waiting_on_client: 'waiting',
+  blocked: 'blocked',
+  in_progress: 'in_review',
+  review: 'in_review',
+  extended: 'in_review',
+  done: 'filed',
+  paid: 'filed',
+  completed: 'completed',
+}
 
-const STATUS_ICON: Record<ObligationStatus, LucideIcon> = {
-  pending: Loader,
-  not_applicable: Loader,
-  waiting_on_client: Hourglass,
-  blocked: Construction,
-  in_progress: MessageSquareText,
-  review: MessageSquareText,
-  extended: MessageSquareText,
-  done: FileCheck,
-  paid: FileCheck,
-  completed: CircleCheck,
+/**
+ * StatusMark — the canonical status glyph renderer. Wraps `<StatusRing>` with
+ * the DB-status → level mapping so callers pass a raw `ObligationStatus`.
+ * Monochrome via `currentColor` — pass the tone class (`STATUS_ICON_COLOR` on
+ * white, `STATUS_ICON_COLOR_ON_PILL` on a chip) via `className`. Single source
+ * of truth for the "status as mark" vocabulary across the product.
+ */
+function StatusMark({
+  status,
+  className,
+}: {
+  status: ObligationStatus
+  className?: string | undefined
+}) {
+  return <StatusRing level={STATUS_RING_LEVEL[status]} className={className} />
 }
 
 // Tinted text-color class that pairs with the icon. Applied to
@@ -286,7 +292,6 @@ function ObligationQueueStatusControl({
 }) {
   const { t } = useLingui()
   const triggerStatus = displayStatus ?? row.status
-  const TriggerIcon = STATUS_ICON[triggerStatus]
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -313,7 +318,10 @@ function ObligationQueueStatusControl({
             )}
             onClick={(event) => event.stopPropagation()}
           >
-            <TriggerIcon className={STATUS_ICON_COLOR_ON_PILL[triggerStatus]} aria-hidden />
+            <StatusMark
+              status={triggerStatus}
+              className={STATUS_ICON_COLOR_ON_PILL[triggerStatus]}
+            />
             {compact ? null : labels[triggerStatus]}
           </button>
         }
@@ -339,7 +347,6 @@ function ObligationQueueStatusControl({
             // seeing which targets aren't reachable, with the cell
             // tooltip explaining when relevant. Server rejects too.
             const illegal = !isLegalObligationTransition(row.status, status)
-            const ItemIcon = STATUS_ICON[status]
             return (
               <DropdownMenuRadioItem
                 key={status}
@@ -355,7 +362,7 @@ function ObligationQueueStatusControl({
                       : undefined
                 }
               >
-                <ItemIcon className={cn('size-3.5', STATUS_ICON_COLOR[status])} aria-hidden />
+                <StatusMark status={status} className={cn('size-3.5', STATUS_ICON_COLOR[status])} />
                 <span>{labels[status]}</span>
               </DropdownMenuRadioItem>
             )
@@ -392,7 +399,6 @@ function ObligationStatusReadBadge({
   const v2Labels = useLifecycleV2StatusLabels()
   const legacyLabels = useStatusLabels()
   const labels = useV2Labels ? v2Labels : legacyLabels
-  const Icon = STATUS_ICON[status]
 
   // Status is *observed, not chosen* — it auto-advances from monitored
   // events, often while the user is looking elsewhere. A one-shot scale
@@ -423,7 +429,7 @@ function ObligationStatusReadBadge({
   return (
     <motion.span animate={controls} className="inline-flex origin-center">
       <Badge variant={STATUS_VARIANT[status]} className={className}>
-        <Icon className={STATUS_ICON_COLOR_ON_PILL[status]} aria-hidden />
+        <StatusMark status={status} className={STATUS_ICON_COLOR_ON_PILL[status]} />
         {labels[status]}
       </Badge>
     </motion.span>
@@ -436,8 +442,9 @@ export {
   LIFECYCLE_V2_STATUS_SETS,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
-  STATUS_ICON,
+  StatusMark,
   STATUS_ICON_COLOR,
+  STATUS_RING_LEVEL,
   STATUS_VARIANT,
   isObligationStatus,
   useLifecycleV2StatusLabels,

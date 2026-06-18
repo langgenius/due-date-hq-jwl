@@ -1,12 +1,11 @@
 import { cn } from '@/lib/utils'
 
 /**
- * StatusRing — PROTOTYPE (2026-06-18, not yet adopted app-wide). A progress-ring
- * status mark for the obligation lifecycle, an alternative to the semantic-glyph
- * set in `obligation-status-icon-vocabulary.md` (Loader / Hourglass / …). The
- * ring fills as a deadline advances down the happy path so a queue scan reads
- * *how far along* each row is, not just *what state* — "status is the primary
- * key of the product."
+ * StatusRing — the obligation lifecycle status mark (adopted 2026-06-18,
+ * replacing the per-status lucide glyph set). Rendered app-wide via `StatusMark`
+ * in status-control.tsx. The ring fills as a deadline advances down the happy
+ * path so a queue scan reads *how far along* each row is, not just *what state*
+ * — "status is the primary key of the product."
  *
  *   not_started → empty dashed ring
  *   in_review   → ~50% filled arc
