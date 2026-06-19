@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Astroid, CircleHelpIcon } from 'lucide-react'
+import { SparklesIcon, CircleHelpIcon } from 'lucide-react'
 import { useLingui } from '@lingui/react/macro'
 
 import {
@@ -206,11 +206,11 @@ export function ConceptHelp({
   const { t } = useLingui()
   const copy = useConceptCopy(concept)
   const label = triggerLabel ?? copy.title
-  // AI-specific concepts swap CircleHelpIcon → Astroid on the trigger so the
+  // AI-specific concepts swap CircleHelpIcon → SparklesIcon on the trigger so the
   // help popover's icon reinforces "this concept is about AI" before the user
   // reads the popover body. Non-AI concepts keep the canonical question-mark.
   const isAiConcept = concept === 'aiConfidence' || concept === 'deadlineTip'
-  const TriggerIcon = isAiConcept ? Astroid : CircleHelpIcon
+  const TriggerIcon = isAiConcept ? SparklesIcon : CircleHelpIcon
 
   return (
     <Popover>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
+import { CircleAlertIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -536,7 +536,7 @@ export function ClientsRoute() {
 
       {clientsQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load clients</Trans>
           </AlertTitle>

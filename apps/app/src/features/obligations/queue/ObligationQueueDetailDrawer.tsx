@@ -121,10 +121,10 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlarmClockIcon,
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   BookOpenIcon,
   CalendarClockIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
   CheckIcon,
   ChevronDownIcon,
   CircleOffIcon,
@@ -1985,7 +1985,7 @@ export function ObligationQueueDetailDrawer({
                   // the overdue banner now carries the full destructive band
                   // (not the white `subtle` surface) — a real red bar under the
                   // white hero. The band IS the edge, so it has no border-b.
-                  icon={AlertTriangleIcon}
+                  icon={TriangleAlertIcon}
                   title={
                     // Compact shared vocabulary ("5d late") so the banner reads
                     // the same word as the column + dashboard (was "N days
@@ -2011,7 +2011,7 @@ export function ObligationQueueDetailDrawer({
                 <DetailStatusBanner
                   compact
                   tone="success"
-                  icon={CheckCircle2Icon}
+                  icon={CircleCheckIcon}
                   title={
                     row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>
                   }
@@ -2232,7 +2232,7 @@ export function ObligationQueueDetailDrawer({
                   className="inline-flex items-center gap-1 text-caption text-text-warning"
                   title={t`Client record missing — deadline may be orphaned`}
                 >
-                  <AlertTriangleIcon className="size-3.5" aria-hidden />
+                  <TriangleAlertIcon className="size-3.5" aria-hidden />
                   <Trans>Client record missing</Trans>
                 </span>
               ) : null}
@@ -3348,7 +3348,7 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                         {correctionMaterialsMode ? (
                           <div className="flex items-start gap-2 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive">
-                            <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+                            <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
                             <div className="grid gap-1">
                               <p className="font-medium">
                                 <Trans>Request corrected materials</Trans>
@@ -3510,7 +3510,7 @@ export function ObligationQueueDetailDrawer({
                         not transient. */}
                               {checklistDegraded ? (
                                 <div className="flex items-start gap-2 rounded-lg border border-state-warning-active bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
-                                  <AlertTriangleIcon
+                                  <TriangleAlertIcon
                                     className="mt-0.5 size-3.5 shrink-0"
                                     aria-hidden
                                   />
@@ -3781,12 +3781,12 @@ export function ObligationQueueDetailDrawer({
                                         {correctionMaterialsMode ? (
                                           <>
                                             <Trans>Mark needs correction</Trans>
-                                            <AlertTriangleIcon data-icon="inline-end" />
+                                            <TriangleAlertIcon data-icon="inline-end" />
                                           </>
                                         ) : (
                                           <>
                                             <Trans>Mark client docs received</Trans>
-                                            <CheckCircle2Icon data-icon="inline-end" />
+                                            <CircleCheckIcon data-icon="inline-end" />
                                           </>
                                         )}
                                       </Button>
@@ -4185,7 +4185,7 @@ export function ObligationQueueDetailDrawer({
                             </div>
                             {estimatedTaxCents && estimatedTaxCents > 0 ? (
                               <p className="flex items-start gap-1.5 pb-1 pt-2 text-caption text-text-warning">
-                                <AlertTriangleIcon
+                                <TriangleAlertIcon
                                   className="mt-0.5 size-3.5 shrink-0"
                                   aria-hidden
                                 />

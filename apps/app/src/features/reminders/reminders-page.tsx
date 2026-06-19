@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, Edit3Icon, Loader2, PauseCircleIcon, SendIcon } from 'lucide-react'
+import { CircleAlertIcon, Edit3Icon, Loader2, PauseCircleIcon, SendIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -201,7 +201,7 @@ function RemindersErrorState({
   const { t } = useLingui()
   return (
     <Alert variant="destructive">
-      <AlertCircleIcon />
+      <CircleAlertIcon />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>
         {rpcErrorMessage(error) ?? t`Try again in a moment. If it keeps failing, contact support.`}{' '}

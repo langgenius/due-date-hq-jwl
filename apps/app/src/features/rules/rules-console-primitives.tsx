@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { AlertCircleIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { CircleAlertIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { RuleSource } from '@duedatehq/contracts'
@@ -205,7 +205,7 @@ export function QueryPanelState({
 
   return (
     <SectionFrame className="flex items-center gap-2 p-4 text-sm text-text-secondary">
-      <AlertCircleIcon className="size-4 text-text-warning" aria-hidden />
+      <CircleAlertIcon className="size-4 text-text-warning" aria-hidden />
       <span>{message}</span>
     </SectionFrame>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Astroid, UserRoundIcon } from 'lucide-react'
+import { SparklesIcon, UserRoundIcon } from 'lucide-react'
 
 import { getAssigneeTint } from '@/lib/assignee-tint'
 import { initialsFromName } from '@/lib/auth'
@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 //   size='lg' → size-10 (40px), text-base, icon size-5
 //
 //   type='human' (default) → initials + isMine/tint background
-//   type='ai'              → bg-state-accent-hover + Astroid glyph
+//   type='ai'              → bg-state-accent-hover + SparklesIcon glyph
 //   type='unassigned'      → bg-background-subtle + UserRoundIcon
 //                            (also triggered automatically when
 //                            `name === null` so callers don't have
@@ -110,7 +110,7 @@ export function AssigneeAvatar({
         title={title}
         className={cn(baseClasses, 'bg-state-accent-hover text-text-accent')}
       >
-        <Astroid className={styles.icon} aria-hidden />
+        <SparklesIcon className={styles.icon} aria-hidden />
       </span>
     )
   }

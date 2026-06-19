@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useCallback, useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Astroid } from 'lucide-react'
+import { SparklesIcon } from 'lucide-react'
 
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -288,7 +288,7 @@ function AuditTimelineRow({
               shape="square"
               title={t`AI produced the value; the user applied it.`}
             >
-              <Astroid data-icon="inline-start" aria-hidden />
+              <SparklesIcon data-icon="inline-start" aria-hidden />
               <Trans>AI-assisted</Trans>
             </Badge>
           ) : null}

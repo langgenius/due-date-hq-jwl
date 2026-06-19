@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, CheckCircle2Icon, Loader2Icon, MinusCircleIcon } from 'lucide-react'
+import { CircleAlertIcon, CircleCheckIcon, Loader2Icon, MinusCircleIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ClientPublic } from '@duedatehq/contracts'
@@ -240,7 +240,7 @@ export function ClassificationImpactDialog({
             </div>
           ) : previewQuery.isError ? (
             <Alert variant="destructive">
-              <AlertCircleIcon />
+              <CircleAlertIcon />
               <AlertTitle>
                 <Trans>Couldn't load the impact preview</Trans>
               </AlertTitle>
@@ -272,7 +272,7 @@ export function ClassificationImpactDialog({
 
               {orphanConfirmRows.length > 0 ? (
                 <ImpactSection
-                  icon={<AlertCircleIcon className="size-4 text-text-warning" aria-hidden />}
+                  icon={<CircleAlertIcon className="size-4 text-text-warning" aria-hidden />}
                   title={<Trans>Needs your confirmation</Trans>}
                 >
                   <p className="text-xs text-text-tertiary">
@@ -380,7 +380,7 @@ export function ClassificationImpactDialog({
 
               {summary && summary.unchangedCount > 0 ? (
                 <p className="flex items-center gap-2 text-sm text-text-tertiary">
-                  <CheckCircle2Icon className="size-4" aria-hidden />
+                  <CircleCheckIcon className="size-4" aria-hidden />
                   <Plural
                     value={summary.unchangedCount}
                     one="# obligation unchanged"

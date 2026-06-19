@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   ArrowLeftIcon,
   CalendarDaysIcon,
   CopyIcon,
@@ -211,7 +211,7 @@ export function CalendarPage() {
         // user having no subscriptions). Same Alert + Retry pattern as
         // the alerts/clients lists.
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load calendar subscriptions</Trans>
           </AlertTitle>

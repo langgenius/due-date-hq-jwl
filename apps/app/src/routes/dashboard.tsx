@@ -1,4 +1,4 @@
-import { AlertCircleIcon, RotateCwIcon, ScrollTextIcon } from 'lucide-react'
+import { CircleAlertIcon, RotateCwIcon, ScrollTextIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
@@ -412,7 +412,7 @@ export function DashboardRoute() {
 
       {dashboardQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load Today</Trans>
           </AlertTitle>

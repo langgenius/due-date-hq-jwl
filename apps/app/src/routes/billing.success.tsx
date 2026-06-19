@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   ArrowRightIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
   ClockIcon,
   RefreshCwIcon,
 } from 'lucide-react'
@@ -137,7 +137,7 @@ export function BillingSuccessRoute() {
             </>
           ) : activated ? (
             <Alert>
-              <CheckCircle2Icon />
+              <CircleCheckIcon />
               <AlertTitle>
                 <Trans>
                   {currentFirm?.name} is on {expectedPlanName}
@@ -153,7 +153,7 @@ export function BillingSuccessRoute() {
             // with a manual refresh CTA and a contact-support line. Polling
             // continues in the background.
             <Alert variant="warning">
-              <AlertTriangleIcon />
+              <TriangleAlertIcon />
               <AlertTitle>
                 <Trans>Still confirming — taking longer than usual</Trans>
               </AlertTitle>

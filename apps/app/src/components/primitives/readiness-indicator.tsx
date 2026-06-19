@@ -61,7 +61,7 @@ function ReadinessIndicator({
   //     verb) lead.
   //   • Empty    (attached === 0)      → tertiary (gray). The readiness
   //     cell renders the count in muted gray (#98a2b2) at every fill
-  //     level, never red — the AlertCircle trailing icon + the count
+  //     level, never red — the CircleAlert trailing icon + the count
   //     itself ("0/3") already name the gap. Red here would pile onto
   //     the due-countdown red and over-saturate the row. The due-date
   //     column carries the row's single intentional red.

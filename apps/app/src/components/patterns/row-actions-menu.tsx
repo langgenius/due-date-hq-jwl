@@ -1,4 +1,4 @@
-import { MoreHorizontalIcon } from 'lucide-react'
+import { EllipsisIcon } from 'lucide-react'
 import type { ComponentType, KeyboardEvent, MouseEvent, ReactNode, SVGProps } from 'react'
 
 import {
@@ -32,7 +32,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  * Visual contract:
  *   - Trigger: `size-7 rounded-lg` ghost button, lucide
- *     `MoreHorizontalIcon` at `size-4`, hover bg `bg-state-base-hover`.
+ *     `EllipsisIcon` at `size-4`, hover bg `bg-state-base-hover`.
  *   - Hover-reveal default: trigger is `opacity-0 group-hover:opacity-100
  *     focus-visible:opacity-100 data-[popup-open]:opacity-100`. Rows
  *     must carry `group/row` (or override via `alwaysVisible`).
@@ -137,7 +137,7 @@ export function RowActionsMenu({
           />
         }
       >
-        <MoreHorizontalIcon className="size-4" aria-hidden />
+        <EllipsisIcon className="size-4" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

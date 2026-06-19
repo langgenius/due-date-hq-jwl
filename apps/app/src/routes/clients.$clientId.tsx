@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon } from 'lucide-react'
+import { CircleAlertIcon } from 'lucide-react'
 import { Link, Navigate, useLocation, useParams } from 'react-router'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -123,7 +123,7 @@ export function ClientDetailRoute() {
         </div>
       ) : isError ? (
         <Alert variant="destructive" className="mx-4 mt-5 md:mx-8 md:mt-6">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load this client</Trans>
           </AlertTitle>
@@ -134,7 +134,7 @@ export function ClientDetailRoute() {
         </Alert>
       ) : !client ? (
         <Alert className="mx-4 mt-5 md:mx-8 md:mt-6">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Client not found</Trans>
           </AlertTitle>

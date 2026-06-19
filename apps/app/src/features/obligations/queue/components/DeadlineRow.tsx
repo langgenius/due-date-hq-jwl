@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlarmClockIcon,
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   ArrowUpRightIcon,
   CheckIcon,
   ChevronRightIcon,
@@ -362,7 +362,7 @@ export function DeadlineRow({
             'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
             isActive && 'bg-background-subtle',
             dim && 'opacity-80',
-            // Overdue is signaled by the leading AlertTriangle + the red
+            // Overdue is signaled by the leading TriangleAlertIcon + the red
             // countdown pill — no colored left-stripe. A >1px side border as
             // an accent is the most overused "design touch" in dashboards and
             // never reads as intentional; the leading icon is the canonical
@@ -379,7 +379,7 @@ export function DeadlineRow({
           >
             <span className="flex items-center gap-1.5">
               {overdue ? (
-                <AlertTriangleIcon
+                <TriangleAlertIcon
                   className="size-3.5 shrink-0 text-text-destructive"
                   aria-hidden
                 />

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
-  Astroid,
+  TriangleAlertIcon,
+  SparklesIcon,
   BanIcon,
   CheckIcon,
   ChevronDownIcon,
@@ -13,7 +13,6 @@ import {
   LockIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
-  TriangleAlertIcon,
   XIcon,
 } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
@@ -2058,7 +2057,7 @@ function AiDraftReviewPanel({
               disabled={generating}
               className="w-full"
             >
-              <Astroid data-icon="inline-start" />
+              <SparklesIcon data-icon="inline-start" />
               {generating ? <Trans>Generating…</Trans> : <Trans>Generate draft</Trans>}
             </Button>
           ) : null}
@@ -2309,7 +2308,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
   if (rule.status === 'candidate' || rule.status === 'pending_review') {
     return (
       <Alert variant="info" aria-label="Review required">
-        <AlertTriangleIcon />
+        <TriangleAlertIcon />
         <AlertTitle>
           <Trans>Needs CPA review</Trans>
         </AlertTitle>
@@ -2320,7 +2319,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
 
   return (
     <Alert variant="warning" aria-label="Applicability review required">
-      <AlertTriangleIcon />
+      <TriangleAlertIcon />
       <AlertTitle>
         <Trans>Needs CPA confirmation each year</Trans>
       </AlertTitle>

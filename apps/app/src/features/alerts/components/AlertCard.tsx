@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircle, Astroid, BriefcaseIcon, Building2, UserRound, UsersIcon } from 'lucide-react'
+import { CircleAlertIcon, SparklesIcon, BriefcaseIcon, Building2, UserRound, UsersIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -292,11 +292,11 @@ export function AlertCard({
               </div>
 
               {/* AI summary — only render when meaningfully different
-                  from the title. Leading Astroid icon marks it as
+                  from the title. Leading SparklesIcon icon marks it as
                   AI-generated (Step 9 AI Visibility Audit F-010). */}
               {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
                 <p className="line-clamp-1 max-w-[700px] text-sm text-text-secondary">
-                  <Astroid
+                  <SparklesIcon
                     className="mr-1 inline size-3 shrink-0 align-[-1px] text-text-tertiary"
                     aria-label={t`AI-generated summary`}
                   />
@@ -383,7 +383,7 @@ export function AlertCard({
               // Client chip leads with an entity icon — `Building2` for business
               // clients (LLC / Inc / Corp / Co / Ltd suffixes),
               // `UserRound` for individuals. Needs-review clients get a
-              // trailing AlertCircle so the "needs your attention" signal
+              // trailing CircleAlertIcon so the "needs your attention" signal
               // sits directly on the chip.
               const EntityIcon = isEnterpriseClientName(client.name) ? Building2 : UserRound
               return (
@@ -410,7 +410,7 @@ export function AlertCard({
                             onClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => event.stopPropagation()}
                           >
-                            <AlertCircle className="size-3" aria-hidden />
+                            <CircleAlertIcon className="size-3" aria-hidden />
                           </span>
                         }
                       />

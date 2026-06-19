@@ -7,7 +7,7 @@ import { type RefObject, useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type ColumnDef } from '@tanstack/react-table'
 import type { SetValues } from 'nuqs'
-import { CheckCircle2Icon, CircleDollarSignIcon, EyeIcon, Hourglass } from 'lucide-react'
+import { CircleCheckIcon, CircleDollarSignIcon, EyeIcon, Hourglass } from 'lucide-react'
 
 import {
   type MemberAssigneeOption,
@@ -692,7 +692,7 @@ export function useObligationQueueColumns(
                   className="text-caption-xs"
                   title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
                 >
-                  <CheckCircle2Icon className="size-3" aria-hidden />
+                  <CircleCheckIcon className="size-3" aria-hidden />
                   <Trans>Accepted</Trans>
                 </Badge>
               ) : null}

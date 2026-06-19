@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
+import { CircleAlertIcon, ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
@@ -140,7 +140,7 @@ function NeedsAttentionSection() {
           </h2>
         </div>
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load alerts</Trans>
           </AlertTitle>

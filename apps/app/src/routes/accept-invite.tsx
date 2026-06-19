@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowRightIcon, Loader2Icon, MailIcon } from 'lucide-react'
+import { CircleAlertIcon, ArrowRightIcon, Loader2Icon, MailIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -148,7 +148,7 @@ export function AcceptInviteRoute() {
         <AuthCard className="gap-5">
           <InvitePill />
           <Alert variant="destructive">
-            <AlertCircleIcon />
+            <CircleAlertIcon />
             <AlertTitle>
               <Trans>Invite link is missing</Trans>
             </AlertTitle>
@@ -217,7 +217,7 @@ export function AcceptInviteRoute() {
 
         {signedIn && inviteQuery.isError ? (
           <Alert variant="destructive">
-            <AlertCircleIcon />
+            <CircleAlertIcon />
             <AlertTitle>
               <Trans>Invitation couldn't load</Trans>
             </AlertTitle>

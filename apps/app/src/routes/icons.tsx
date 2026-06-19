@@ -4,9 +4,10 @@
  * Click an icon to copy its import name. Internal design utility — plain English,
  * not localized, same as `/preview`.
  *
- * SNAPSHOT generated 2026-06-18. To refresh after icons change, re-run:
+ * SNAPSHOT generated 2026-06-18 (post icon-audit merge). To refresh after icons
+ * change, re-run:
  *   perl -0777 -ne 'while (/import\s*\{([^}]*)\}\s*from\s*["\x27]lucide-react["\x27]/gs){print "$1\n"}' \
- *     $(grep -rl "from '"'"'lucide-react'"'"'" apps/app/src packages/ui/src) \
+ *     $(grep -rl "from '"'"'lucide-react'"'"'" apps/app/src packages/ui/src | grep -v routes/icons.tsx) \
  *     | tr ',' '\n' | sed -E 's#//.*##; s/\s//g' | grep -E '^[A-Za-z]' \
  *     | grep -v '^typeLucideIcon$' | sed -E 's/Icon$//' | sort -u | sed 's/$/Icon/'
  * then rebuild the ICONS array below.
@@ -15,8 +16,6 @@ import { useMemo, useState } from 'react'
 import {
   ActivityIcon,
   AlarmClockIcon,
-  AlertCircleIcon,
-  AlertTriangleIcon,
   AppWindowIcon,
   ArchiveIcon,
   ArrowDownIcon,
@@ -27,7 +26,6 @@ import {
   ArrowUpIcon,
   ArrowUpFromLineIcon,
   ArrowUpRightIcon,
-  AstroidIcon,
   AtSignIcon,
   BanIcon,
   BellIcon,
@@ -45,7 +43,6 @@ import {
   CalendarSearchIcon,
   CheckIcon,
   CheckCheckIcon,
-  CheckCircle2Icon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -130,7 +127,6 @@ import {
   MinusCircleIcon,
   MonitorIcon,
   MoonIcon,
-  MoreHorizontalIcon,
   NewspaperIcon,
   OctagonAlertIcon,
   OctagonXIcon,
@@ -188,7 +184,6 @@ import {
   UserRoundIcon,
   UserRoundCogIcon,
   UsersIcon,
-  WandSparklesIcon,
   XIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -198,8 +193,6 @@ import { toast } from 'sonner'
 const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'ActivityIcon', Icon: ActivityIcon },
   { name: 'AlarmClockIcon', Icon: AlarmClockIcon },
-  { name: 'AlertCircleIcon', Icon: AlertCircleIcon },
-  { name: 'AlertTriangleIcon', Icon: AlertTriangleIcon },
   { name: 'AppWindowIcon', Icon: AppWindowIcon },
   { name: 'ArchiveIcon', Icon: ArchiveIcon },
   { name: 'ArrowDownIcon', Icon: ArrowDownIcon },
@@ -210,7 +203,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'ArrowUpIcon', Icon: ArrowUpIcon },
   { name: 'ArrowUpFromLineIcon', Icon: ArrowUpFromLineIcon },
   { name: 'ArrowUpRightIcon', Icon: ArrowUpRightIcon },
-  { name: 'AstroidIcon', Icon: AstroidIcon },
   { name: 'AtSignIcon', Icon: AtSignIcon },
   { name: 'BanIcon', Icon: BanIcon },
   { name: 'BellIcon', Icon: BellIcon },
@@ -228,7 +220,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'CalendarSearchIcon', Icon: CalendarSearchIcon },
   { name: 'CheckIcon', Icon: CheckIcon },
   { name: 'CheckCheckIcon', Icon: CheckCheckIcon },
-  { name: 'CheckCircle2Icon', Icon: CheckCircle2Icon },
   { name: 'ChevronDownIcon', Icon: ChevronDownIcon },
   { name: 'ChevronLeftIcon', Icon: ChevronLeftIcon },
   { name: 'ChevronRightIcon', Icon: ChevronRightIcon },
@@ -313,7 +304,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'MinusCircleIcon', Icon: MinusCircleIcon },
   { name: 'MonitorIcon', Icon: MonitorIcon },
   { name: 'MoonIcon', Icon: MoonIcon },
-  { name: 'MoreHorizontalIcon', Icon: MoreHorizontalIcon },
   { name: 'NewspaperIcon', Icon: NewspaperIcon },
   { name: 'OctagonAlertIcon', Icon: OctagonAlertIcon },
   { name: 'OctagonXIcon', Icon: OctagonXIcon },
@@ -371,7 +361,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'UserRoundIcon', Icon: UserRoundIcon },
   { name: 'UserRoundCogIcon', Icon: UserRoundCogIcon },
   { name: 'UsersIcon', Icon: UsersIcon },
-  { name: 'WandSparklesIcon', Icon: WandSparklesIcon },
   { name: 'XIcon', Icon: XIcon },
 ]
 

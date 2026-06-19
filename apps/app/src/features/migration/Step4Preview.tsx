@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
+  TriangleAlertIcon,
+  CircleCheckIcon,
   CopyIcon,
   Link2Icon,
   PlayIcon,
@@ -262,18 +262,18 @@ export function Step4Preview({
         </CapsFieldLabel>
         <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
-            <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
+            <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
             <Trans>Undo this import for 24 hours — the audit log records every change</Trans>
           </li>
           {/* No info-icon — the bullet text already paraphrases the concept;
               audit-trail detail belongs on the audit page, not in a passing
               safety bullet. */}
           <li className="flex items-center gap-2">
-            <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
+            <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
             <Trans>The audit log records every mapping and value change</Trans>
           </li>
           <li className="flex items-center gap-2">
-            <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
+            <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
             <Trans>No emails will be sent automatically</Trans>
           </li>
         </ul>
@@ -298,7 +298,7 @@ export function Step4Preview({
       {ruleReviewWarnings.length > 0 ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle className="flex items-center gap-2">
-            <AlertTriangleIcon className="size-4" aria-hidden />
+            <TriangleAlertIcon className="size-4" aria-hidden />
             <Trans>Some state deadlines need rule review</Trans>
           </AlertTitle>
           <AlertDescription>
@@ -359,7 +359,7 @@ export function Step4Preview({
 
       {summary && summary.errors.length > 0 ? (
         <Alert variant="destructive" data-slot="step4-bad-rows">
-          <AlertTriangleIcon />
+          <TriangleAlertIcon />
           <AlertTitle>
             <Plural
               value={summary.errors.length}

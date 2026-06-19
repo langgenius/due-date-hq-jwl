@@ -3,7 +3,7 @@
 import { type ComponentProps, type ReactNode } from 'react'
 
 import { Trans } from '@lingui/react/macro'
-import { AlertTriangleIcon } from 'lucide-react'
+import { TriangleAlertIcon } from 'lucide-react'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
@@ -115,7 +115,7 @@ export function EmptyPanel({ children, className }: { children: ReactNode; class
 export function AlertPanel({ children }: { children: ReactNode }) {
   return (
     <div className="flex gap-2 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover p-3 text-sm text-text-primary">
-      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
       <p>{children}</p>
     </div>
   )
@@ -219,7 +219,7 @@ export function PaymentStillDueCallout({
 }) {
   return (
     <div className="flex gap-2 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover p-3 text-sm">
-      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
       <div className="grid gap-0.5">
         <p className="font-medium text-text-warning">{title}</p>
         <p className="text-text-secondary">{children}</p>

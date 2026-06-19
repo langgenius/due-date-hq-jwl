@@ -6,6 +6,22 @@
 > Icons are the app's one icon library (lucide `1.16.0`); bespoke marks
 > (`StatusRing`, brand bars, `StateBadge` seals) are out of scope.
 
+## Resolution (2026-06-18, same day)
+
+- **#1 rename-twins — DONE.** Codemod merged every twin to one canonical name:
+  `AlertCircle*`/`CircleAlert*` → `CircleAlertIcon`; `AlertTriangle*` →
+  `TriangleAlertIcon`; `CheckCircle2*`/`CircleCheck` → `CircleCheckIcon`;
+  `MoreHorizontal*`/`Ellipsis` → `EllipsisIcon`. Verified pixel-identical via
+  lucide's export map before running. Pixel count unchanged.
+- **#3 AI marker — DONE (Yuqi: Sparkles).** `Astroid*` + `WandSparkles*` →
+  `SparklesIcon`. The unique-glyph count dropped 177 → **171**; `/icons` reflects
+  it (no Astroid / WandSparkles / AlertCircle; SparklesIcon present).
+- **#2 `X`/`XIcon` naming — DEFERRED.** Holding: a blind `\bCheck\b`/`\bPlus\b`/
+  `\bCircle\b` regex would corrupt those words inside strings/identifiers, and
+  it's cosmetic-only (both render identically + typecheck). Needs a real codemod
+  (ts-morph), not regex — out of scope for a safe same-day pass.
+- **#4 / #5 / #6 — open** (edit-glyph pick, concept-sprawl table, a11y `/audit`).
+
 ## Severity summary
 
 | #   | Finding                                          | Class      | Severity               |

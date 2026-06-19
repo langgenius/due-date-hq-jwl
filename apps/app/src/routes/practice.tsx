@@ -3,13 +3,12 @@ import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   ArrowDownIcon,
   ArrowUpIcon,
   ArrowUpRightIcon,
   Building2Icon,
   CalculatorIcon,
-  CircleAlertIcon,
   GaugeIcon,
   Loader2,
   MinusIcon,
@@ -134,7 +133,7 @@ export function PracticeRoute() {
     return (
       <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Practice profile couldn't load</Trans>
           </AlertTitle>

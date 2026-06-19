@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  CheckCircle2Icon,
+  CircleCheckIcon,
   ExternalLinkIcon,
   FileSearchIcon,
   FileTextIcon,
@@ -285,7 +285,7 @@ function EvidenceSourceIcon({ sourceType }: { sourceType: string }) {
     return <UserCheckIcon className={className} aria-hidden />
   }
   if (sourceType.includes('revert')) return <RotateCcwIcon className={className} aria-hidden />
-  if (sourceType === 'verified_rule') return <CheckCircle2Icon className={className} aria-hidden />
+  if (sourceType === 'verified_rule') return <CircleCheckIcon className={className} aria-hidden />
   return <FileTextIcon className={className} aria-hidden />
 }
 

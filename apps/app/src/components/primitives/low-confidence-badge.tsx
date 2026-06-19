@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Astroid } from 'lucide-react'
+import { SparklesIcon } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -10,7 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * review before applying" badge.
  *
  * The canonical shape for *all* low-confidence signals across the
- * product (a `bg-state-warning-hover` pill + Astroid icon + uppercase
+ * product (a `bg-state-warning-hover` pill + SparklesIcon icon + uppercase
  * tracked text) so consumers reference one component instead of
  * hand-rolling the same visual.
  *
@@ -19,13 +19,13 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * human look." That's distinct from:
  *  - **"Needs review"** (Step3Normalize, Step4Preview row marker) —
  *    that's the downstream consequence; the row in the table needs
- *    a human to confirm. Use the existing `AlertTriangleIcon + Needs
+ *    a human to confirm. Use the existing `TriangleAlertIcon + Needs
  *    review` inline badge there. Different label, different icon,
  *    same tone family.
  *  - Alert confidence pills (in `AlertCard` / drawer) — those
  *    are the 3-tier (Low/Medium/High) per-alert qualitative pill,
  *    keyed off the canonical `aiConfidenceTier` helper. Both surfaces
- *    use the Astroid icon as the "AI signal" mark — confidence is
+ *    use the SparklesIcon icon as the "AI signal" mark — confidence is
  *    communicated by the pill TONE (warning amber / neutral gray /
  *    info blue), not by the icon. This badge primitive is the same
  *    family for surfaces that only need the binary "AI is unsure"
@@ -42,9 +42,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    audit's §3.1 ladder, amber means "external pause / not urgent
  *    error". Low confidence isn't a failure; it's a "human, please
  *    double-check this before it lands."
- *  - Astroid icon (over AlertTriangle) per the rationale at the
+ *  - SparklesIcon icon (over TriangleAlertIcon) per the rationale at the
  *    original site: triangle reads as "warning, something's wrong";
- *    Astroid reads as "AI / cosmic uncertainty", which is the
+ *    SparklesIcon reads as "AI / cosmic uncertainty", which is the
  *    accurate framing.
  *
  * ## Current consumers
@@ -66,7 +66,7 @@ export function LowConfidenceBadge({ className }: { className?: string }) {
             className={cn('cursor-help uppercase tracking-wide', className)}
             {...props}
           >
-            <Astroid aria-hidden />
+            <SparklesIcon aria-hidden />
             <Trans>Low confidence</Trans>
           </Badge>
         )}

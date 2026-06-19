@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowRightIcon, CheckCircle2Icon } from 'lucide-react'
+import { ArrowRightIcon, CircleCheckIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
@@ -166,7 +166,7 @@ export function SplashRoute() {
                     key={index}
                     className="flex items-center gap-2.5 text-sm font-medium text-text-primary"
                   >
-                    <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
+                    <CircleCheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                     <span>{line}</span>
                   </li>
                 ))}

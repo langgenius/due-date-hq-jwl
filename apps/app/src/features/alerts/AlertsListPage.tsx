@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   ArchiveIcon,
   CheckIcon,
   CoffeeIcon,
@@ -678,7 +678,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
 
       {alertsQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Couldn't load alerts</Trans>
           </AlertTitle>
@@ -1324,7 +1324,7 @@ function closingProtectiveWindows(alerts: readonly PulseAlertPublic[]): PulseAle
 function ClosingWindowWarning({ count }: { count: number }) {
   return (
     <Alert variant="destructive">
-      <AlertCircleIcon className="size-4" aria-hidden />
+      <CircleAlertIcon className="size-4" aria-hidden />
       <AlertTitle>
         <Plural
           value={count}

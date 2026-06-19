@@ -3,9 +3,9 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import { Link } from 'react-router'
 import {
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   ArrowUpRightIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
   ChevronDownIcon,
   LockIcon,
   ShieldCheckIcon,
@@ -662,7 +662,7 @@ function MatrixControls({
                      the adjacent "Verified" badge which keeps the calmer
                      treatment as a passing reassurance. */
                   <span className="inline-flex h-5 items-center gap-1 rounded-lg border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
-                    <AlertTriangleIcon className="size-3" aria-hidden />
+                    <TriangleAlertIcon className="size-3" aria-hidden />
                     <Trans>Needs review</Trans>
                   </span>
                 ) : (
@@ -692,7 +692,7 @@ function GroupStatus({ group }: { group: NormalizationValueGroup }) {
   if (!group.usesFallback) {
     return (
       <span className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success">
-        <CheckCircle2Icon className="size-3" aria-hidden />
+        <CircleCheckIcon className="size-3" aria-hidden />
         <Trans>Ready</Trans>
       </span>
     )
@@ -702,7 +702,7 @@ function GroupStatus({ group }: { group: NormalizationValueGroup }) {
       className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
       role="status"
     >
-      <AlertTriangleIcon className="size-3" aria-hidden />
+      <TriangleAlertIcon className="size-3" aria-hidden />
       <FallbackStatus group={group} />
     </span>
   )

@@ -6,7 +6,7 @@ import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
@@ -17,7 +17,7 @@ import {
   MailIcon,
   MapPinIcon,
   MegaphoneIcon,
-  MoreHorizontalIcon,
+  EllipsisIcon,
   PhoneIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -1638,7 +1638,7 @@ function ClientActiveAlertsExtensionCard({
   )
   return (
     <div className="flex flex-wrap items-start gap-3 px-4 py-3">
-      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-text-primary">
           {obligations.length === 1 ? (
@@ -1686,7 +1686,7 @@ function ClientHeaderOverflowMenu({
           // size="icon-sm" (h-8 w-8, true square) rather than size="sm"
           // (h-8 with horizontal padding, which produces a rectangle).
           <Button variant="outline" size="icon-sm" aria-label={t`More client actions`}>
-            <MoreHorizontalIcon className="size-4" aria-hidden />
+            <EllipsisIcon className="size-4" aria-hidden />
           </Button>
         }
       />

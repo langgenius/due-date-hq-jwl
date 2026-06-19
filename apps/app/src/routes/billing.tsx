@@ -3,7 +3,7 @@ import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   ArrowRightIcon,
   CheckIcon,
   CreditCardIcon,
@@ -348,7 +348,7 @@ export function BillingRoute() {
 
       {portalMutation.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Billing portal couldn't open</Trans>
           </AlertTitle>
@@ -358,7 +358,7 @@ export function BillingRoute() {
 
       {firmsQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Practice context couldn't load</Trans>
           </AlertTitle>
@@ -368,7 +368,7 @@ export function BillingRoute() {
 
       {subscriptionsQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Billing status couldn't load</Trans>
           </AlertTitle>
@@ -462,7 +462,7 @@ export function BillingRoute() {
                 </div>
                 {clientOverLimit ? (
                   <Alert>
-                    <AlertCircleIcon />
+                    <CircleAlertIcon />
                     <AlertTitle>
                       <Trans>Over your client limit</Trans>
                     </AlertTitle>

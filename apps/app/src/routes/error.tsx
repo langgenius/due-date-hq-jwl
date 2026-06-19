@@ -1,5 +1,5 @@
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router'
-import { AlertTriangleIcon } from 'lucide-react'
+import { TriangleAlertIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -49,7 +49,7 @@ export function RouteErrorBoundary() {
       <div className="flex min-h-screen items-center justify-center bg-bg-canvas p-6">
         <div className="flex w-full max-w-[560px] flex-col gap-4">
           <Alert variant="destructive">
-            <AlertTriangleIcon />
+            <TriangleAlertIcon />
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>

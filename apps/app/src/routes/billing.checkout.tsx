@@ -5,7 +5,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { FirmBillingCheckoutConfig } from '@duedatehq/contracts'
 import { useQueryStates } from 'nuqs'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   ArrowRightIcon,
   Building2Icon,
   CheckIcon,
@@ -212,7 +212,7 @@ export function BillingCheckoutRoute() {
     return (
       <div className="p-4 md:p-6">
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>No practice selected</Trans>
           </AlertTitle>
@@ -342,7 +342,7 @@ export function BillingCheckoutRoute() {
 
       {!owner ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Owner permission required</Trans>
           </AlertTitle>
@@ -354,7 +354,7 @@ export function BillingCheckoutRoute() {
 
       {subscriptionsQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Billing status couldn't load</Trans>
           </AlertTitle>
@@ -364,7 +364,7 @@ export function BillingCheckoutRoute() {
 
       {checkoutConfigQuery.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Checkout configuration couldn't load</Trans>
           </AlertTitle>
@@ -374,7 +374,7 @@ export function BillingCheckoutRoute() {
 
       {checkoutUnavailable ? (
         <Alert>
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Checkout is not configured</Trans>
           </AlertTitle>
@@ -399,7 +399,7 @@ export function BillingCheckoutRoute() {
 
       {checkoutMutation.isError ? (
         <Alert variant="destructive">
-          <AlertCircleIcon />
+          <CircleAlertIcon />
           <AlertTitle>
             <Trans>Checkout couldn't start</Trans>
           </AlertTitle>
@@ -557,7 +557,7 @@ export function BillingCheckoutRoute() {
             />
             {alreadyOnPlan ? (
               <Alert>
-                <AlertCircleIcon />
+                <CircleAlertIcon />
                 <AlertTitle>
                   <Trans>Already active</Trans>
                 </AlertTitle>

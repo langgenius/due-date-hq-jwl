@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { msg } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { I18n } from '@lingui/core'
-import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon } from 'lucide-react'
+import { TriangleAlertIcon, EllipsisIcon, Loader2, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
   MemberInvitationPublic,
@@ -146,7 +146,7 @@ export function MembersPageRoute() {
     return (
       <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
         <Alert variant="destructive">
-          <AlertTriangleIcon />
+          <TriangleAlertIcon />
           <AlertTitle>
             <Trans>Members couldn't load</Trans>
           </AlertTitle>
@@ -373,7 +373,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
 
       {mutationError ? (
         <Alert variant="destructive">
-          <AlertTriangleIcon />
+          <TriangleAlertIcon />
           <AlertTitle>
             <Trans>Member action failed</Trans>
           </AlertTitle>
@@ -708,7 +708,7 @@ function SeatLimitBanner() {
   return (
     <section className="flex min-h-14 items-center gap-3 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover px-4 py-3">
       <span className="grid size-8 shrink-0 place-items-center text-text-warning">
-        <AlertTriangleIcon className="size-4" aria-hidden />
+        <TriangleAlertIcon className="size-4" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-base font-medium text-text-primary">

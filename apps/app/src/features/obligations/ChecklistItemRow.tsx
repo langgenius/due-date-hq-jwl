@@ -1,7 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
+  TriangleAlertIcon,
+  CircleCheckIcon,
   CircleOffIcon,
   EllipsisVerticalIcon,
   RotateCcwIcon,
@@ -151,12 +151,12 @@ export function ChecklistItemRow({
                 (missing) shows nothing; the absence is the signal. */}
             {received ? (
               <Badge variant="success" className="text-caption-xs uppercase tracking-wide">
-                <CheckCircle2Icon className="size-3" aria-hidden />
+                <CircleCheckIcon className="size-3" aria-hidden />
                 <Trans>Received</Trans>
               </Badge>
             ) : needsReview ? (
               <Badge variant="destructive" className="text-caption-xs uppercase tracking-wide">
-                <AlertTriangleIcon className="size-3" aria-hidden />
+                <TriangleAlertIcon className="size-3" aria-hidden />
                 {correctionMode ? <Trans>Needs correction</Trans> : <Trans>Needs review</Trans>}
               </Badge>
             ) : waived ? (
@@ -216,7 +216,7 @@ export function ChecklistItemRow({
           <DropdownMenuContent align="end" className="min-w-[11rem] whitespace-nowrap">
             {!needsReview ? (
               <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
-                <AlertTriangleIcon className="size-4" aria-hidden />
+                <TriangleAlertIcon className="size-4" aria-hidden />
                 <span>
                   {correctionMode ? (
                     <Trans>Mark needs correction</Trans>

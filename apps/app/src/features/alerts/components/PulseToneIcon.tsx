@@ -1,5 +1,5 @@
 import {
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   BellIcon,
   CalendarClockIcon,
   CrosshairIcon,
@@ -47,8 +47,8 @@ const ICON_BY_CHANGE_KIND: Record<PulseAlertPublic['changeKind'], LucideIcon> = 
   source_status: SatelliteDishIcon,
   rule_source_drift: SatelliteDishIcon,
   new_obligation: PlusCircleIcon,
-  protective_claim_window: AlertTriangleIcon,
-  threshold_advisory: AlertTriangleIcon,
+  protective_claim_window: TriangleAlertIcon,
+  threshold_advisory: TriangleAlertIcon,
   other: BellIcon,
 }
 
@@ -73,7 +73,7 @@ function PulseToneIcon({ alert, className }: { alert: PulseAlertPublic; classNam
   // shape ("FL DOR bulletin has very-low-confidence extracted
   // deadline details").
   const Icon = lowConfidence
-    ? AlertTriangleIcon
+    ? TriangleAlertIcon
     : (ICON_BY_CHANGE_KIND[alert.changeKind] ?? BellIcon)
   const colorClass = lowConfidence ? 'text-text-destructive' : TONE_COLOR_CLASS[tone]
   return <Icon className={cn('size-[18px] shrink-0', colorClass, className)} aria-hidden />

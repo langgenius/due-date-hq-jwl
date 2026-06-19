@@ -2,7 +2,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useMemo, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  Astroid,
+  SparklesIcon,
   ChevronDownIcon,
   CircleAlertIcon,
   CircleCheckIcon,
@@ -799,10 +799,10 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
-        // Step 9 F-001/F-014: SparklesIcon → canonical Astroid AI
+        // Step 9 F-001/F-014: SparklesIcon → canonical SparklesIcon AI
         // provenance icon. Sparkles reserved for billing/opportunities.
         <Badge variant="outline">
-          <Astroid data-icon="inline-start" />
+          <SparklesIcon data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
       }

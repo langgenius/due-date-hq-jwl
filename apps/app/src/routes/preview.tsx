@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  AlertCircleIcon,
+  CircleAlertIcon,
   PlusIcon,
   CheckIcon,
   XIcon,
@@ -18,7 +18,6 @@ import {
   DollarSignIcon,
   AtSignIcon,
   CircleCheckIcon,
-  CircleAlertIcon,
   ChevronDownIcon,
   CalendarClockIcon,
   MegaphoneIcon,
@@ -1175,7 +1174,7 @@ export function PreviewRoute() {
           >
             <Row label="Default">
               <Alert className="max-w-2xl">
-                <AlertCircleIcon className="size-4" />
+                <CircleAlertIcon className="size-4" />
                 <AlertTitle>Heads up — 3 deadlines move to waiting</AlertTitle>
                 <AlertDescription>
                   We've drafted requests for the missing K-1s. Review before sending.
@@ -1805,7 +1804,7 @@ export function PreviewRoute() {
             </Row>
             <Row label="InfoBanner" mono="patterns/info-banner">
               <InfoBanner
-                icon={AlertCircleIcon}
+                icon={CircleAlertIcon}
                 message="We auto-paused 3 reminders because the client replied. Review before resuming."
                 className="max-w-2xl"
               />

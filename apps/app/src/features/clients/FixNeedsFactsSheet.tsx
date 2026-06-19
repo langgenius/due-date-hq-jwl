@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, CheckCircle2Icon } from 'lucide-react'
+import { ArrowUpRightIcon, CircleCheckIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ClientPublic } from '@duedatehq/contracts'
@@ -116,7 +116,7 @@ export function FixNeedsFactsSheet({
             // Canonical success Badge so the chip inherits the same
             // height/icon-sizing as the rest of the app's success pills.
             <Badge variant="success">
-              <CheckCircle2Icon aria-hidden />
+              <CircleCheckIcon aria-hidden />
               <Trans>All resolved</Trans>
             </Badge>
           ) : null}
@@ -125,7 +125,7 @@ export function FixNeedsFactsSheet({
         {totalCount === 0 ? (
           <div className="px-6 py-10">
             <EmptyState
-              icon={CheckCircle2Icon}
+              icon={CircleCheckIcon}
               title={<Trans>Nothing to fix</Trans>}
               description={
                 <Trans>
@@ -137,7 +137,7 @@ export function FixNeedsFactsSheet({
         ) : visibleClients.length === 0 ? (
           <div className="px-6 py-10">
             <EmptyState
-              icon={CheckCircle2Icon}
+              icon={CircleCheckIcon}
               title={<Trans>All done</Trans>}
               description={
                 <Trans>

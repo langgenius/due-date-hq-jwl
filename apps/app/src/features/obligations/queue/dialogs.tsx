@@ -44,8 +44,8 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
+  TriangleAlertIcon,
+  CircleCheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -108,7 +108,7 @@ export function ExportAxisOption({
           selected && 'border-text-primary bg-text-primary text-text-inverted',
         )}
       >
-        {selected ? <CheckCircle2Icon className="size-3" /> : icon}
+        {selected ? <CircleCheckIcon className="size-3" /> : icon}
       </span>
       <span className="grid min-w-0 gap-0.5">
         <span className="text-sm font-medium text-text-primary">{title}</span>
@@ -835,7 +835,7 @@ export function AuthorityRejectionDialog({
             {submitting ? (
               <Loader2 data-icon="inline-start" className="animate-spin" />
             ) : (
-              <AlertTriangleIcon data-icon="inline-start" />
+              <TriangleAlertIcon data-icon="inline-start" />
             )}
             <Trans>Record rejection</Trans>
           </Button>

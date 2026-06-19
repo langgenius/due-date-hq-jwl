@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Astroid } from 'lucide-react'
+import { SparklesIcon } from 'lucide-react'
 
 import type { AiEventMetadata, AuditActorType, AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -113,14 +113,14 @@ function AuditEventDrawerContent({
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">{actionLabel}</Badge>
               <Badge variant={event.actorId ? 'secondary' : 'outline'}>{actor}</Badge>
-              {/* η pass — F-035 / F-023: provenance chips. The Astroid
+              {/* η pass — F-035 / F-023: provenance chips. The SparklesIcon
                   pill is the canonical "AI was involved" marker; the
                   "Overrode AI" pill surfaces F-023 reverse-provenance
                   (a user who edited a previously-AI value). Both are
                   optional — non-AI events show neither. */}
               {event.actorType === 'ai' || event.actorType === 'ai_assisted' ? (
                 <Badge shape="square" variant="info">
-                  <Astroid aria-hidden />
+                  <SparklesIcon aria-hidden />
                   {event.actorType === 'ai' ? <Trans>AI</Trans> : <Trans>AI-assisted</Trans>}
                 </Badge>
               ) : null}
@@ -200,7 +200,7 @@ function AiTraceSection({
   return (
     <section className="grid gap-3">
       <CapsFieldLabel as="h3" variant="field" className="flex items-center gap-2">
-        <Astroid className="size-3" aria-hidden />
+        <SparklesIcon className="size-3" aria-hidden />
         <Trans>AI trace</Trans>
       </CapsFieldLabel>
       {hasAny && metadata ? (

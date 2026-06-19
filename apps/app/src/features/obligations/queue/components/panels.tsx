@@ -51,9 +51,9 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
+  TriangleAlertIcon,
   ArrowUpRightIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
   ChevronRightIcon,
   CircleCheck,
   ClipboardListIcon,
@@ -247,9 +247,9 @@ export function ReadinessOverview({
         )}
       >
         {isReady ? (
-          <CheckCircle2Icon className="size-3 text-text-inverted" aria-hidden />
+          <CircleCheckIcon className="size-3 text-text-inverted" aria-hidden />
         ) : needsCpaAction ? (
-          <AlertTriangleIcon className="size-3 text-text-inverted" aria-hidden />
+          <TriangleAlertIcon className="size-3 text-text-inverted" aria-hidden />
         ) : (
           <ClipboardListIcon className="size-3 text-text-secondary" aria-hidden />
         )}
@@ -1165,7 +1165,7 @@ export function AuthorityResponsePanel({
             </p>
           </div>
           <Badge variant="destructive">
-            <AlertTriangleIcon className="size-3" aria-hidden />
+            <TriangleAlertIcon className="size-3" aria-hidden />
             <Trans>Rejected</Trans>
           </Badge>
         </div>
@@ -1248,7 +1248,7 @@ export function AuthorityResponsePanel({
           {accepting ? (
             <Loader2 data-icon="inline-start" className="animate-spin" />
           ) : (
-            <CheckCircle2Icon data-icon="inline-start" />
+            <CircleCheckIcon data-icon="inline-start" />
           )}
           <Trans>Confirm authority accepted</Trans>
         </Button>
@@ -1259,7 +1259,7 @@ export function AuthorityResponsePanel({
           onClick={onRecordRejection}
           disabled={accepting || rejecting}
         >
-          <AlertTriangleIcon data-icon="inline-start" />
+          <TriangleAlertIcon data-icon="inline-start" />
           <Trans>Record authority rejection</Trans>
         </Button>
       </div>
@@ -2094,7 +2094,7 @@ export function ActiveStageDetailCard({
                     : t`Authority accepted the return`
                 }
               >
-                <CheckCircle2Icon className="size-3" aria-hidden />
+                <CircleCheckIcon className="size-3" aria-hidden />
                 <Trans>Accepted</Trans>
               </Badge>
             ) : null}
@@ -2142,7 +2142,7 @@ export function ActiveStageDetailCard({
           stat, not a call-to-action. */}
       {showOverdueBanner ? (
         // A neutral surface (not a filled red bg, which would make the
-        // banner the loudest element on the panel): the red AlertTriangle
+        // banner the loudest element on the panel): the red TriangleAlertIcon
         // + red title line carry the urgency cue, and the action line
         // drops to text-secondary so the eye lands on the urgent line
         // first and the "what to do" reads as a calmer follow-up.
@@ -2416,7 +2416,7 @@ export function ActiveStageDetailCard({
                 <li key={key} className="flex flex-col">
                   <div className="flex items-start gap-2 text-sm">
                     {state === 'done' ? (
-                      <CheckCircle2Icon
+                      <CircleCheckIcon
                         className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
                         aria-hidden
                       />
@@ -2482,7 +2482,7 @@ export function ActiveStageDetailCard({
                 <li key={key} className="flex flex-col">
                   <div className="flex items-start gap-2 text-sm">
                     {state === 'done' ? (
-                      <CheckCircle2Icon
+                      <CircleCheckIcon
                         className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
                         aria-hidden
                       />
@@ -2557,7 +2557,7 @@ export function ActiveStageDetailCard({
           <ul className="flex flex-col gap-1.5">
             {stageEvents.map((event) => (
               <li key={event.id} className="flex items-start gap-2 text-xs">
-                <CheckCircle2Icon
+                <CircleCheckIcon
                   className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
                   aria-hidden
                 />
@@ -2607,7 +2607,7 @@ export function ActiveStageDetailCard({
                       )}
                       aria-hidden
                     />
-                    <CheckCircle2Icon
+                    <CircleCheckIcon
                       className="size-3.5 shrink-0 text-state-success-solid"
                       aria-hidden
                     />

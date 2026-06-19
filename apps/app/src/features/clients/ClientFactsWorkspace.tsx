@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ActivityIcon, AlertTriangleIcon, ExternalLinkIcon, EyeIcon, LinkIcon } from 'lucide-react'
+import { ActivityIcon, TriangleAlertIcon, ExternalLinkIcon, EyeIcon, LinkIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -1458,7 +1458,7 @@ function ClientsActionStrip({
 
   // Chrome mirrors the canonical InfoBanner sibling that sits right
   // above it (the import-CSV tip): h-12 row, `bg-background-subtle`,
-  // `border border-divider-subtle`, `rounded-lg`. AlertTriangle + red
+  // `border border-divider-subtle`, `rounded-lg`. TriangleAlertIcon + red
   // button keep the destructive tone — this is "warning + action," not
   // "tip + dismiss."
   return (
@@ -1467,7 +1467,7 @@ function ClientsActionStrip({
       className="flex flex-col gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 sm:h-12 sm:flex-row sm:items-center sm:gap-3 sm:py-0"
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+        <TriangleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <p className="min-w-0 text-sm text-text-secondary">
           <Plural
             value={needsFactsCount}

@@ -24,7 +24,7 @@ import {
   Loader2,
   ArrowUpRightIcon,
   CalendarDaysIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -2710,7 +2710,7 @@ export function ObligationQueueRoute() {
                     className="h-5 gap-1 px-1.5 text-caption-xs"
                     title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
                   >
-                    <CheckCircle2Icon className="size-3" aria-hidden />
+                    <CircleCheckIcon className="size-3" aria-hidden />
                     <Trans>Accepted</Trans>
                   </Badge>
                 ) : null}
@@ -5137,7 +5137,7 @@ function ExportAxisOption({
           selected && 'border-text-primary bg-text-primary text-text-inverted',
         )}
       >
-        {selected ? <CheckCircle2Icon className="size-3" /> : icon}
+        {selected ? <CircleCheckIcon className="size-3" /> : icon}
       </span>
       <span className="grid min-w-0 gap-0.5">
         <span className="text-sm font-medium text-text-primary">{title}</span>

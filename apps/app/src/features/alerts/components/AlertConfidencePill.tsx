@@ -1,5 +1,5 @@
 import { Trans } from '@lingui/react/macro'
-import { Astroid } from 'lucide-react'
+import { SparklesIcon } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 
@@ -24,7 +24,7 @@ export function AlertConfidencePill({ confidence }: { confidence: 'low' | 'mediu
   if (confidence === 'low') {
     return (
       <Badge variant="warning">
-        <Astroid aria-hidden />
+        <SparklesIcon aria-hidden />
         <Trans>Low</Trans>
       </Badge>
     )
@@ -32,14 +32,14 @@ export function AlertConfidencePill({ confidence }: { confidence: 'low' | 'mediu
   if (confidence === 'medium') {
     return (
       <Badge variant="outline">
-        <Astroid aria-hidden />
+        <SparklesIcon aria-hidden />
         <Trans>Medium</Trans>
       </Badge>
     )
   }
   return (
     <Badge variant="info">
-      <Astroid aria-hidden />
+      <SparklesIcon aria-hidden />
       <Trans>High</Trans>
     </Badge>
   )

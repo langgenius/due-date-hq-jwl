@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans } from '@lingui/react/macro'
-import { ArrowLeftIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
+import { ArrowLeftIcon, CircleCheckIcon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
@@ -293,7 +293,7 @@ function MigrationActivationIntro({
             ·
           </span>
           <span role="listitem" className="inline-flex items-center gap-1.5">
-            <CheckCircle2Icon aria-hidden className="size-4 text-text-accent" />
+            <CircleCheckIcon aria-hidden className="size-4 text-text-accent" />
             <Trans>Deadlines</Trans>
           </span>
           <span aria-hidden className="text-text-tertiary">

@@ -1,6 +1,6 @@
 import { type ReactNode, useId, useState } from 'react'
 import { Trans } from '@lingui/react/macro'
-import { AlertTriangleIcon, type LucideIcon } from 'lucide-react'
+import { TriangleAlertIcon, type LucideIcon } from 'lucide-react'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
@@ -228,7 +228,7 @@ export function BulkConfirmList({
 export function BulkConfirmWarnCard({ children }: { children: ReactNode }) {
   return (
     <div className="flex gap-2.5 rounded-lg border border-state-destructive-border bg-state-destructive-hover p-3 text-sm text-text-destructive">
-      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
       <div className="grid gap-1 leading-snug">{children}</div>
     </div>
   )

@@ -10,7 +10,6 @@ import {
   CircleAlertIcon,
   SparklesIcon,
   UsersIcon,
-  WandSparklesIcon,
 } from 'lucide-react'
 
 import type {
@@ -728,7 +727,7 @@ function PulseAlertRow({
                     that a genuinely accented control (the detail CTA) keeps its
                     meaning. */}
                 <span className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-text-accent">
-                  <WandSparklesIcon className="size-3 shrink-0" aria-hidden />
+                  <SparklesIcon className="size-3 shrink-0" aria-hidden />
                   {actionText}
                 </span>
               </div>
