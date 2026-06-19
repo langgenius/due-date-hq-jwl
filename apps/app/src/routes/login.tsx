@@ -630,7 +630,14 @@ function LoginEmailForm({
 
   if (codeSent) {
     return (
-      <form onSubmit={handleVerifySubmit} noValidate className="flex flex-col gap-3">
+      // The code screen replaces the email field in place; a soft rise (not an
+      // instant swap) reads as "your code is on its way" — the felt handoff of
+      // the send. Reduced-motion safe.
+      <form
+        onSubmit={handleVerifySubmit}
+        noValidate
+        className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
+      >
         <div className="flex items-center justify-between gap-3 rounded-xl bg-bg-subtle px-3.5 py-2.5">
           <div className="min-w-0">
             <p className="text-xs font-medium text-text-tertiary">
