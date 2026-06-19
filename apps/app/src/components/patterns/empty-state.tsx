@@ -32,6 +32,7 @@ export function EmptyState({
   density = 'default',
   variant = 'default',
   iconTone = 'accent',
+  visual = 'icon',
   fill = false,
 }: {
   icon?: LucideIcon
@@ -55,6 +56,12 @@ export function EmptyState({
   // #155aef icon); `neutral` is the quieter gray tint (Pencil /alerts/history
   // empty — 72px #f9fafb circle, #98a2b2 icon). Ignored outside `prominent`.
   iconTone?: 'accent' | 'neutral'
+  // Prominent visual: `icon` (default) = the tinted icon-circle above; `ghost-cards`
+  // = a restrained fanned deck of placeholder cards (img-055), for a list surface
+  // that fills with cards/rows ("your alerts will stack here"). Implies content
+  // without faking data — the cards are explicitly blank skeletons, so it honours
+  // the "no fiction on canvas" rule. `icon` prop is ignored when `ghost-cards`.
+  visual?: 'icon' | 'ghost-cards'
   // When true the prominent card stretches to fill its parent's
   // height and vertically centers its column — matches the canvas cards which
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
@@ -63,6 +70,7 @@ export function EmptyState({
 }) {
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
+  const showGhostCards = isProminent && visual === 'ghost-cards'
   return (
     <div
       data-density={density}
@@ -83,7 +91,21 @@ export function EmptyState({
         className,
       )}
     >
-      {Icon ? (
+      {showGhostCards ? (
+        // Fanned placeholder deck (img-055): two faint cards angled behind a
+        // front card carrying three blank skeleton bars. Borders + section-tint
+        // only — no shadows (restrained-shadows canon). Decorative, so aria-hidden;
+        // the title/description carry the meaning to assistive tech.
+        <div className="relative flex h-[76px] w-[184px] items-center justify-center" aria-hidden>
+          <div className="absolute h-14 w-40 -rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
+          <div className="absolute h-14 w-40 rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
+          <div className="relative flex h-16 w-44 flex-col gap-1.5 rounded-lg border border-divider-regular bg-background-default px-3 py-3">
+            <div className="h-2 w-2/3 rounded-full bg-background-section" />
+            <div className="h-2 w-full rounded-full bg-background-section" />
+            <div className="h-2 w-1/2 rounded-full bg-background-section" />
+          </div>
+        </div>
+      ) : Icon ? (
         isProminent ? (
           <div
             className={cn(

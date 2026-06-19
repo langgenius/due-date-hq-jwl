@@ -14,7 +14,6 @@ import {
   HistoryIcon,
   ListIcon,
   MapIcon,
-  MegaphoneIcon,
   SatelliteDishIcon,
   SlidersHorizontalIcon,
   XIcon,
@@ -1786,7 +1785,10 @@ function AlertsEmptyState({ sources }: { sources: readonly PulseSourceHealth[] }
       // Pencil O3s4ie: the active empty card owns the whole content area
       // (canvas frame is 600px tall, vertically centered).
       fill
-      icon={MegaphoneIcon}
+      // Ghost-card deck (img-055) over the megaphone icon: an empty feed fills
+      // with alert CARDS, so a fanned placeholder deck reads as "your alerts will
+      // stack here" — congruent with the copy below — without faking rows.
+      visual="ghost-cards"
       title={<Trans>No alerts right now</Trans>}
       description={
         lastChecked ? (

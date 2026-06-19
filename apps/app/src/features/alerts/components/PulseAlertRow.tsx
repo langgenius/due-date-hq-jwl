@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
-  ArrowRightIcon,
   ArchiveIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -25,6 +24,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { ValueDiff } from '@/components/primitives/value-diff'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import {
   dueDateDiffTone,
@@ -685,32 +685,25 @@ function PulseAlertRow({
           // block already has 8px breathing.
           <div className={cn('flex flex-col gap-2', recede)}>
             {showDateRow ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-sm font-medium text-text-muted line-through tabular-nums">
-                  {oldDateLabel}
-                </span>
-                <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-                <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
-                  {newDateLabel}
-                </span>
-                {daysDiff !== null ? (
-                  // Tone shared with the detail's DeadlineChangeCard via the one
-                  // `due-date-diff` helper (critique #8/#9): sooner = red, later =
-                  // green (relief), no change = neutral — so one alert never reads
-                  // amber here and green in its detail, and a 0-day shift isn't a
-                  // coloured "0 days later".
-                  <span
-                    className={cn(
-                      'text-sm font-medium',
-                      DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(daysDiff)],
-                    )}
-                  >
-                    {daysDiff === 0
-                      ? t`No change`
-                      : `${Math.abs(daysDiff)} ${daysDiff < 0 ? t`days sooner` : t`days later`}`}
-                  </span>
-                ) : null}
-              </div>
+              // Canonical before→after via <ValueDiff> (one home for the pattern).
+              // Tone shared with the detail's DeadlineChangeCard via the one
+              // `due-date-diff` helper (critique #8/#9): sooner = red, later =
+              // green (relief), no change = neutral — so one alert never reads
+              // amber here and green in its detail, and a 0-day shift isn't a
+              // coloured "0 days later".
+              <ValueDiff
+                from={oldDateLabel}
+                to={newDateLabel}
+                {...(daysDiff !== null
+                  ? {
+                      delta:
+                        daysDiff === 0
+                          ? t`No change`
+                          : `${Math.abs(daysDiff)} ${daysDiff < 0 ? t`days sooner` : t`days later`}`,
+                      deltaClassName: DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(daysDiff)],
+                    }
+                  : {})}
+              />
             ) : null}
 
             {/* This region is reserved for action-status semantics —

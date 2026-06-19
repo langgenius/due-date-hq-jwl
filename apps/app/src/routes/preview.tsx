@@ -20,7 +20,6 @@ import {
   CircleCheckIcon,
   ChevronDownIcon,
   CalendarClockIcon,
-  MegaphoneIcon,
   HistoryIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -160,6 +159,7 @@ import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StatusRing } from '@/components/primitives/status-ring'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { TaxCodeLabel, TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { ValueDiff } from '@/components/primitives/value-diff'
 
 import { StatTile } from '@/components/patterns/stat-tile'
 import { Kbd, KbdHint } from '@/components/patterns/kbd'
@@ -1686,6 +1686,23 @@ export function PreviewRoute() {
                 Med
               </SeverityChip>
             </Row>
+            <Row label="ValueDiff — inline" mono="primitives/value-diff (canonical before→after, img-153)">
+              <div className="flex flex-col gap-2">
+                <ValueDiff from="Mar 15" to="Apr 15" delta="31 days later" deltaClassName="text-text-success" />
+                <ValueDiff from="Apr 15" to="Mar 15" delta="31 days sooner" deltaClassName="text-text-destructive" />
+                <ValueDiff from="1040" to="1040-X" delta="superseded" deltaClassName="text-text-muted" />
+              </div>
+            </Row>
+            <Row label="ValueDiff — compact (hover for delta)" mono='value-diff mode="compact"'>
+              <ValueDiff
+                mode="compact"
+                label="Due date"
+                from="Mar 15"
+                to="Apr 15"
+                delta="31 days later"
+              />
+              <ValueDiff mode="compact" label="Form" from="1040" to="1040-X" delta="superseded" />
+            </Row>
             <Row
               label="Status (StatusRing)"
               mono="status-control StatusMark · primitives/status-ring"
@@ -1852,9 +1869,9 @@ export function PreviewRoute() {
                 />
                 <EmptyState
                   variant="prominent"
-                  icon={MegaphoneIcon}
+                  visual="ghost-cards"
                   title="No alerts right now"
-                  description="When IRS, CA FTB, or another monitored source publishes a change, it will land here."
+                  description="When IRS, CA FTB, or another monitored source publishes a change, it will land here. The fanned deck (img-055) implies cards will stack here without faking rows."
                   className="w-full"
                 />
                 <EmptyState
