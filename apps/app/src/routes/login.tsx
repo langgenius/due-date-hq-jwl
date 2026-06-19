@@ -239,7 +239,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="w-full gap-3 rounded-lg"
+                  className="w-full gap-3 rounded-xl"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -262,7 +262,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="w-full gap-3 rounded-lg"
+                    className="w-full gap-3 rounded-xl"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -401,73 +401,47 @@ const TRUST_ITEMS: { Icon: ComponentType<{ className?: string }>; label: string 
 
 function ProductStory() {
   return (
-    <section className="hidden min-w-0 flex-1 flex-col gap-5 pr-[72px] pt-2 lg:flex">
+    <section className="hidden min-w-0 flex-1 flex-col gap-8 pr-[72px] pt-2 lg:flex">
       {/* Brand anchor */}
       <AuthBrandAnchor />
 
-      <h2 className="text-[44px] font-semibold leading-[1.1] tracking-[-1px] text-text-primary">
-        <Trans>
-          Every CPA deadline.
-          <br />
-          One source of truth.
-        </Trans>
-      </h2>
-      <p className="text-sm font-medium leading-[1.55] text-text-tertiary">
-        <Trans>
-          DueDateHQ replaces the spreadsheet that runs every busy season. Track every 1040, 1120,
-          payroll, and BOI filing across the firm — with auto-rollover, blocking-item triggers, and
-          audit-grade history.
-        </Trans>
-      </p>
-
-      <div className="mt-2 flex flex-col gap-3.5">
-        <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-divider-subtle bg-background-default sm:grid-cols-3">
-          {CAPABILITIES.map((cap, i) => (
-            <div
-              key={cap.index}
-              className={cn(
-                'flex flex-col gap-3 p-6',
-                i > 0 && 'border-t border-divider-subtle sm:border-l sm:border-t-0',
-              )}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="font-mono text-caption-xs tracking-[0.4px] text-text-tertiary">
-                  {cap.index}
-                </span>
-                <span aria-hidden className={cn('h-px w-3.5', TONE_TICK[cap.tone])} />
-                <span className="text-[9px] font-semibold tracking-[1.6px] text-text-tertiary">
-                  {cap.eyebrow}
-                </span>
-              </div>
-              <p className="text-base font-medium leading-[1.3] tracking-[-0.3px] text-text-primary">
-                {cap.title}
-              </p>
-              <p className="text-xs leading-[1.6] text-text-tertiary">{cap.body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="text-xs italic text-text-tertiary">
-            All three ship in v1. See them live in
-          </span>
-          {['/today', '/deadlines', '/alerts'].map((path) => (
-            <span
-              key={path}
-              className="rounded-lg bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold tracking-[0.2px] text-text-secondary"
-            >
-              {path}
-            </span>
-          ))}
-          <span className="flex-1" />
-          <span className="text-caption-xs font-medium italic text-text-tertiary">
-            no waitlist, no asterisks
-          </span>
-        </div>
+      {/* Headline + one-line promise. The old trailing "auto-rollover, triggers,
+          audit history" clause was cut — the three proof points below already say
+          it, so it was a double-statement. */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-[44px] font-semibold leading-[1.08] tracking-[-1px] text-text-primary">
+          <Trans>
+            Every CPA deadline.
+            <br />
+            One source of truth.
+          </Trans>
+        </h2>
+        <p className="max-w-[460px] text-base leading-[1.6] text-text-tertiary">
+          <Trans>
+            The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and
+            BOI filing across the firm, in one place.
+          </Trans>
+        </p>
       </div>
 
-      {/* Trust strip */}
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pt-2">
+      {/* Three proof points — a colored tone tick + claim + one line. Dropped the
+          bordered card, the 01/02/03 index chrome, and the 9px eyebrows (below the
+          legibility floor + redundant with the titles); the open grid breathes. */}
+      <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-3">
+        {CAPABILITIES.map((cap) => (
+          <div key={cap.index} className="flex flex-col gap-2.5">
+            <span aria-hidden className={cn('h-0.5 w-6 rounded-full', TONE_TICK[cap.tone])} />
+            <p className="text-base font-medium leading-[1.25] tracking-[-0.3px] text-text-primary">
+              {cap.title}
+            </p>
+            <p className="text-xs leading-[1.6] text-text-tertiary">{cap.body}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Trust strip — pushed to the bottom so the panel fills its height with an
+          even rhythm instead of stacking everything at the top. */}
+      <div className="mt-auto flex flex-wrap items-center gap-x-2.5 gap-y-2">
         {TRUST_ITEMS.map((item, i) => (
           <Fragment key={item.label}>
             {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
@@ -718,7 +692,7 @@ function LoginEmailForm({
           <Button
             type="submit"
             size="lg"
-            className="justify-center gap-2 rounded-lg font-semibold"
+            className="justify-center gap-2 rounded-xl font-semibold"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -731,7 +705,7 @@ function LoginEmailForm({
             type="button"
             variant="outline"
             size="lg"
-            className="rounded-lg px-4"
+            className="rounded-xl px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -798,7 +772,7 @@ function LoginEmailForm({
       <Button
         type="submit"
         size="lg"
-        className="w-full justify-center gap-2 rounded-lg font-semibold"
+        className="w-full justify-center gap-2 rounded-xl font-semibold"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >
@@ -812,13 +786,13 @@ function LoginEmailForm({
   )
 }
 
-// Shared 48px field shell — white surface, rounded-lg, inner-aligned
+// Shared 44px field shell — white surface, rounded-xl, inner-aligned
 // content, focus-within ring, destructive recolor on error.
 function FieldShell({ children, error }: { children: ReactNode; error: string | null }) {
   return (
     <div
       className={cn(
-        'flex h-11 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-11 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',

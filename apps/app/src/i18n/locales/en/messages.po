@@ -6062,10 +6062,6 @@ msgstr "DueDateHQ only auto-generates active filing plans from statutory deadlin
 msgid "DueDateHQ readiness portal"
 msgstr "DueDateHQ readiness portal"
 
-#: src/routes/login.tsx
-msgid "DueDateHQ replaces the spreadsheet that runs every busy season. Track every 1040, 1120, payroll, and BOI filing across the firm — with auto-rollover, blocking-item triggers, and audit-grade history."
-msgstr "DueDateHQ replaces the spreadsheet that runs every busy season. Track every 1040, 1120, payroll, and BOI filing across the firm — with auto-rollover, blocking-item triggers, and audit-grade history."
-
 #: src/routes/onboarding.tsx
 msgid "DueDateHQ schedules filing plans from the first applicable deadline on or after your monitoring start date. By continuing you agree to the Terms and Privacy Policy."
 msgstr "DueDateHQ schedules filing plans from the first applicable deadline on or after your monitoring start date. By continuing you agree to the Terms and Privacy Policy."
@@ -15179,6 +15175,10 @@ msgstr "The selected plan is still available from Billing."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "The server rejected the change."
 msgstr "The server rejected the change."
+
+#: src/routes/login.tsx
+msgid "The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and BOI filing across the firm, in one place."
+msgstr "The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and BOI filing across the firm, in one place."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
