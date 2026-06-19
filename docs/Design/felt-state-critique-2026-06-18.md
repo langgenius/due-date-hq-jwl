@@ -72,10 +72,13 @@ Went back through the deferred residue. Two were real and are now fixed; two mor
   (short label), matching the honest peer voice.
 - **FIXED — login security messaging de-duped.** Expiry ("links expire in 10
   minutes") appeared in both the left trust strip and the form note; data-residency
-  appeared in both the strip and the footer. Each fact now has one home: expiry → the
-  form note (point of action), residency → the strip, "Hosted in US-East" → the
-  footer (pure residency, paired with the ISO line). Dropped the now-unused
-  `MailCheckIcon` import.
+  appeared in both the strip and the footer. The key constraint (caught live): the
+  left strip is **desktop-only** (hidden < `lg`), while the form note + footer are
+  **always visible** — so the always-visible auth column must stay the canonical home,
+  or facts vanish on mobile. Resolution: expiry stays in the form note, residency
+  stays in the footer (both always-visible), and the desktop strip is trimmed to its
+  one distinct line — "No password, no token to lose." Each fact appears exactly once
+  per viewport. Dropped the now-unused `MailCheckIcon` + `ShieldIcon` imports.
 - **NOT A BUG — `ClientDetailWorkspace` `py-1.5`/`py-2.5` header bands.** These
   _match_ `detail-section-card`'s two canonical header variants (`min-h-8 py-1.5`
   compact / `min-h-9 py-2.5` primary). They're the canon, not off-scale jank.

@@ -16,10 +16,17 @@ for a design decision.
   no-fiction violation. Two strings: the status line → "Tax estimate needed", the
   short pipeline label → "Estimate needed".
 - **`login.tsx` — de-duped security messaging.** Expiry appeared in the left trust
-  strip _and_ the form note; residency appeared in the strip _and_ the footer. Now
-  one home each: expiry → form note (point of action), residency → trust strip,
-  "Hosted in US-East" → footer. Removed the trust strip's expiry item + its now-unused
-  `MailCheckIcon` import.
+  strip _and_ the form note; residency appeared in the strip _and_ the footer.
+  **Caught live:** the left strip is desktop-only (hidden < `lg`); the form note +
+  footer are always visible. So the always-visible auth column stays canonical —
+  expiry in the form note, residency in the footer — and the desktop strip is trimmed
+  to its one distinct line, "No password, no token to lose." Each fact now appears
+  once per viewport, with no mobile gap. Removed the now-unused `MailCheckIcon` +
+  `ShieldIcon` imports.
+
+  > First attempt (commit `50efb85e`) moved residency _out_ of the always-visible
+  > footer into the desktop-only strip — which dropped it entirely on mobile. The
+  > live mobile/desktop check caught it; this commit corrects the direction.
 
 ## Verified canon-correct — left as-is (sweep false-positives)
 

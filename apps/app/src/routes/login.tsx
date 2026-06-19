@@ -19,7 +19,6 @@ import {
   LockIcon,
   MailIcon,
   MapPinIcon,
-  ShieldIcon,
 } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -334,7 +333,7 @@ export function LoginRoute() {
             <div className="flex flex-col items-center gap-1 text-center">
               <p className="flex items-center gap-1 text-xs font-medium text-text-tertiary">
                 <MapPinIcon className="size-3 shrink-0" aria-hidden />
-                <Trans>Hosted in US-East</Trans>
+                <Trans>Hosted in US-East · your data never leaves your jurisdiction</Trans>
               </p>
               <p className="text-xs font-medium text-text-tertiary">
                 <Trans>ISO 27001 in progress</Trans>
@@ -394,7 +393,6 @@ const CAPABILITIES: {
 
 const TRUST_ITEMS: { Icon: ComponentType<{ className?: string }>; label: string }[] = [
   { Icon: LockIcon, label: 'No password, no token to lose' },
-  { Icon: ShieldIcon, label: 'Your client data never leaves your jurisdiction' },
 ]
 
 function ProductStory() {

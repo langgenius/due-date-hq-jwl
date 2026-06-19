@@ -7608,8 +7608,8 @@ msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
 
 #: src/routes/login.tsx
-msgid "Hosted in US-East"
-msgstr "Hosted in US-East"
+msgid "Hosted in US-East · your data never leaves your jurisdiction"
+msgstr "Hosted in US-East · your data never leaves your jurisdiction"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your clients and your team."
