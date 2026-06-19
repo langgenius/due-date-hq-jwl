@@ -454,6 +454,16 @@ export function createAppRouter() {
             return { Component: PreviewRoute }
           },
         },
+        // Icon reference gallery — every lucide icon used across the app, one
+        // per glyph, click to copy the import name. Same public/no-shell
+        // treatment as /preview. See `apps/app/src/routes/icons.tsx`.
+        {
+          path: '/icons',
+          lazy: async () => {
+            const { IconsRoute } = await import('@/routes/icons')
+            return { Component: IconsRoute }
+          },
+        },
         // Post-login welcome screen (Pencil QGZta). Auth-gated via the
         // shared protectedLoader but rendered STANDALONE — it owns the
         // full viewport with its own centered layout, no dashboard shell
