@@ -140,11 +140,7 @@
         gap: 10px;
       }
       .eyebrow .tick {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: var(--accent);
-        flex: none;
+        display: none;
       }
 
       /* serif display (AutoSend hero) */
@@ -262,11 +258,11 @@
         background: rgba(255, 255, 255, 0.84);
         -webkit-backdrop-filter: saturate(150%) blur(12px);
         backdrop-filter: saturate(150%) blur(12px);
-        border-bottom: 1px solid transparent;
-        transition: border-color 0.2s ease;
+        border-bottom: none;
+        transition: box-shadow 0.25s ease;
       }
       .nav.is-scrolled {
-        border-bottom-color: var(--hairline);
+        box-shadow: 0 10px 30px -22px rgba(18, 20, 28, 0.35);
       }
       .nav__inner {
         display: grid;
@@ -310,8 +306,9 @@
         display: flex;
         align-items: center;
         gap: 2px;
-        background: var(--surface);
-        border: 1px solid var(--hairline);
+        background: rgba(244, 246, 248, 0.55);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
         border-radius: 999px;
         padding: 5px;
       }
@@ -356,6 +353,9 @@
         align-items: center;
         gap: 14px;
         justify-self: end;
+      }
+      .nav__right .btn {
+        border-radius: 999px;
       }
       .nav__pill {
         font-size: 11px;
@@ -436,35 +436,36 @@
      HERO
      ============================================================ */
       .hero {
-        padding-top: clamp(34px, 4vw, 60px);
+        max-width: 1240px;
+        padding-top: clamp(28px, 3.2vw, 48px);
         padding-bottom: clamp(48px, 6vw, 84px);
       }
       .hero__grid {
         display: grid;
-        grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
-        gap: clamp(34px, 5vw, 68px);
+        grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+        gap: clamp(36px, 5vw, 72px);
         align-items: start;
       }
       .hero__copy {
-        max-width: 540px;
+        max-width: 600px;
       }
       .hero__eyebrow {
         margin-bottom: 22px;
       }
       .hero__head {
-        max-width: 15ch;
+        max-width: 20ch;
       }
       .hero__sub {
-        margin-top: 22px;
-        max-width: 44ch;
-        font-size: clamp(16px, 1.25vw, 18px);
+        margin-top: 18px;
+        max-width: 42ch;
+        font-size: clamp(15px, 1.1vw, 16px);
         color: var(--ink-2);
-        line-height: 1.5;
+        line-height: 1.45;
       }
       .hero__points {
-        margin-top: 24px;
+        margin-top: 22px;
         display: grid;
-        gap: 11px;
+        gap: 9px;
       }
       .hero__point {
         display: flex;
@@ -486,11 +487,11 @@
         font-weight: 600;
       }
       .hero__cta {
-        margin-top: 28px;
+        margin-top: 26px;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 10px 22px;
+        gap: 8px 14px;
       }
       .hero__note {
         margin-top: 15px;
@@ -608,6 +609,20 @@
         font-size: 13px;
         color: var(--muted);
       }
+      .ap__list {
+        max-height: 440px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--hairline) transparent;
+      }
+      .ap__list::-webkit-scrollbar {
+        width: 9px;
+      }
+      .ap__list::-webkit-scrollbar-thumb {
+        background: var(--hairline);
+        border-radius: 999px;
+        border: 3px solid #fff;
+      }
 
       /* alert row — mirrors PulseAlertRow anatomy */
       .ar {
@@ -671,10 +686,8 @@
         color: #e04f16;
       }
       .sev--normal {
-        background: #f9fafb;
-        color: #495464;
-        border: 1px solid var(--hairline);
-      }
+        display: none;
+      } /* normal-priority: no pill, matches the real product */
       .ar__juris {
         display: inline-flex;
         align-items: center;
@@ -691,14 +704,8 @@
         flex: none;
       }
       .ar__kind {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--ink-2);
-        white-space: nowrap;
-      }
+        display: none;
+      } /* change-kind is already implied by the title — strip it */
       .ar__kind svg {
         width: 13px;
         height: 13px;
@@ -721,14 +728,21 @@
         flex: none;
       }
       .ar__chev {
-        width: 15px;
-        height: 15px;
-        color: var(--faint);
-        transition: transform 0.2s ease;
+        width: 16px;
+        height: 16px;
+        color: var(--muted);
+        transition:
+          transform 0.2s ease,
+          color 0.15s ease;
         flex: none;
+      }
+      .ar:hover .ar__chev,
+      .ar:focus-visible .ar__chev {
+        color: var(--accent);
       }
       .ar.is-open .ar__chev {
         transform: rotate(180deg);
+        color: var(--accent);
       }
       .ar__title {
         margin-top: 9px;
@@ -804,12 +818,9 @@
       }
       .ar__affect .split {
         margin-left: auto;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 500;
         color: var(--muted);
-        font-family: 'Geist Mono', monospace;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
       }
 
       /* row expand */
@@ -976,7 +987,16 @@
         align-items: start;
       }
       .villain h2 {
-        max-width: 15ch;
+        max-width: 16ch;
+        font-weight: 500;
+      }
+      .villain h2 .ital {
+        font-weight: 500;
+      }
+      .villain__q {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--muted);
       }
       .villain .body {
         font-size: clamp(19px, 1.7vw, 23px);
@@ -1099,7 +1119,7 @@
       .extract {
         margin-top: clamp(40px, 5vw, 60px);
         display: grid;
-        grid-template-columns: minmax(0, 0.92fr) 64px minmax(0, 1.08fr);
+        grid-template-columns: minmax(0, 1fr) 108px minmax(0, 0.88fr);
         align-items: stretch;
         gap: 0;
       }
@@ -2142,6 +2162,117 @@
       /* ============================================================
      FOOTER
      ============================================================ */
+      /* ---------- product surfaces (Legora "highlights"-style grid) ---------- */
+      .surfaces__head {
+        max-width: 620px;
+      }
+      .surfaces__grid {
+        margin-top: clamp(34px, 4vw, 52px);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: clamp(18px, 2.2vw, 28px);
+      }
+      .surface {
+        display: flex;
+        flex-direction: column;
+      }
+      .surface__thumb {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        border-radius: 12px;
+        border: 1px solid var(--hairline);
+        background: linear-gradient(155deg, #fff, var(--surface));
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .surface__ico {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: var(--accent-tint);
+        color: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .surface__ico svg {
+        width: 23px;
+        height: 23px;
+      }
+      .surface__phlabel {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--faint);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .surface__tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--faint);
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--hairline-2);
+        border-radius: 999px;
+        padding: 2px 8px;
+        letter-spacing: 0.02em;
+      }
+      .surface__t {
+        margin-top: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+      .surface__d {
+        margin-top: 6px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .surface__link {
+        margin-top: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: gap 0.15s ease;
+      }
+      .surface__link:hover {
+        gap: 9px;
+      }
+      @media (max-width: 1000px) {
+        .surfaces__grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 540px) {
+        .surfaces__grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ---------- big wordmark footer (Legora-style) ---------- */
+      .footer__wordmark {
+        margin: clamp(36px, 5vw, 72px) 0 clamp(20px, 3vw, 36px);
+        font-size: clamp(52px, 13.5vw, 184px);
+        font-weight: 600;
+        line-height: 0.9;
+        letter-spacing: -0.035em;
+        color: rgba(46, 54, 140, 0.13);
+        text-align: center;
+        user-select: none;
+        overflow: hidden;
+      }
+
       .footer {
         border-top: 1px solid var(--hairline);
         background: var(--surface);
@@ -2609,9 +2740,6 @@
       <section class="hero wrap" aria-labelledby="hero-h">
         <div class="hero__grid">
           <div class="hero__copy">
-            <p class="hero__eyebrow eyebrow">
-              <span class="tick" aria-hidden="true"></span> Never miss a deadline change
-            </p>
             <h1 class="display hero__head" id="hero-h">
               Catch every tax-deadline change — and see exactly <span class="ital">who</span> it
               affects.
@@ -2651,10 +2779,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   /></svg
-                ><span
-                  >Flags the <b>exact clients</b> each change touches — by jurisdiction, form &amp;
-                  entity type</span
-                >
+                ><span>Flags the <b>exact clients</b> each change touches</span>
               </p>
               <p class="hero__point">
                 <svg
@@ -2670,7 +2795,23 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   /></svg
-                ><span><b>Source on every date</b> — checkable in two clicks</span>
+                ><span><b>A source on every date</b> — checkable in two clicks</span>
+              </p>
+              <p class="hero__point">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path
+                    d="m8.5 12 2.4 2.4 4.6-5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  /></svg
+                ><span><b>Free during the beta</b> — set up in minutes</span>
               </p>
             </div>
             <div class="hero__cta">
@@ -2679,7 +2820,6 @@
               >
               <a class="btn btn--ghost" href="#how">See how it works</a>
             </div>
-            <p class="hero__note">Free during the beta · set up in minutes.</p>
           </div>
 
           <!-- ===== live Alerts panel — faithful, interactive product replica ===== -->
@@ -2719,118 +2859,21 @@
               </button>
             </div>
 
-            <!-- FED · Urgent · deadline shift -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="FED"
-              data-clients="8"
-            >
-              <div class="ar__head">
-                <span class="sev sev--urgent">Urgent</span>
-                <span class="ar__juris">FED</span>
-                <span class="ar__kind"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
-                    <path d="M3.5 9.5h17M8 3v4M16 3v4" /></svg
-                  >Deadline shift</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
-                    /></svg
-                  >irs.gov</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">
-                IRS postpones filing &amp; payment deadlines after disaster declaration
-              </p>
-              <div class="ar__change">
-                <span class="ar__from">Apr 15</span>
-                <svg
-                  class="ar__arrow"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-                <span class="ar__to">Nov 3, 2026</span>
-                <span class="ar__diff ar__diff--later">202 days later</span>
-              </div>
-              <div class="ar__affect">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>Affects <b>8 clients</b></span
-                ><span class="split">6 ready · 2 review</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">IRS · IR-2026-41</span> —
-                  <span class="q"
-                    >“Affected taxpayers have until Nov 3, 2026 to file returns and make payments
-                    originally due on or after Apr 15, 2026.”</span
-                  >
-                </p>
-                <div class="ar__clients">
-                  <span class="ar__client"><span class="av">HM</span>Hudson &amp; Marsh LLC</span>
-                  <span class="ar__client"><span class="av">BR</span>Bryant Retail Co</span>
-                  <span class="ar__client"><span class="av">+6</span>6 more</span>
-                </div>
-                <div class="ar__apply">
-                  <button
-                    class="ar__applybtn"
-                    type="button"
-                    aria-label="Apply the new date to 8 clients"
-                  >
-                    <svg
-                      class="i-apply"
+            <div class="ap__list">
+              <!-- FED · Urgent · deadline shift -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="FED"
+                data-clients="8"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--urgent">Urgent</span>
+                  <span class="ar__juris">FED</span>
+                  <span class="ar__kind"
+                    ><svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -2839,144 +2882,12 @@
                       stroke-linejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+                      <path d="M3.5 9.5h17M8 3v4M16 3v4" /></svg
+                    >Deadline shift</span
+                  >
+                  <span class="ar__src"
                     ><svg
-                      class="i-done"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6 9 17l-5-5" /></svg
-                    ><span class="t-apply">Apply to 8 clients</span
-                    ><span class="t-done">Applied</span>
-                  </button>
-                  <span class="ar__undo"
-                    ><span class="u-pre">one click · reversible 24h</span
-                    ><span class="u-post"
-                      >applied ·
-                      <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
-                    ></span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- CA · High · deadline shift -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="CA"
-              data-clients="12"
-            >
-              <div class="ar__head">
-                <span class="sev sev--high">High</span>
-                <span class="ar__juris">CA</span>
-                <span class="ar__kind"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
-                    <path d="M3.5 9.5h17M8 3v4M16 3v4" /></svg
-                  >Deadline shift</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
-                    /></svg
-                  >ftb.ca.gov</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">
-                California FTB extends the Q3 estimated-tax deadline after wildfire declaration
-              </p>
-              <div class="ar__change">
-                <span class="ar__from">Sep 15</span>
-                <svg
-                  class="ar__arrow"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-                <span class="ar__to">Sep 29, 2026</span>
-                <span class="ar__diff ar__diff--later">14 days later</span>
-              </div>
-              <div class="ar__affect">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>Affects <b>12 clients</b></span
-                ><span class="split">9 ready · 3 review</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">CA FTB · News release</span> —
-                  <span class="q"
-                    >“The Q3 estimated payment due Sep 15 is postponed to Sep 29, 2026 for taxpayers
-                    in the declared disaster area.”</span
-                  >
-                </p>
-                <div class="ar__clients">
-                  <span class="ar__client"><span class="av">VH</span>Vega Holdings</span>
-                  <span class="ar__client"><span class="av">CF</span>Castellano Foods</span>
-                  <span class="ar__client"><span class="av">+10</span>10 more</span>
-                </div>
-                <div class="ar__apply">
-                  <button
-                    class="ar__applybtn"
-                    type="button"
-                    aria-label="Apply the new date to 12 clients"
-                  >
-                    <svg
-                      class="i-apply"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -2985,257 +2896,45 @@
                       stroke-linejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
-                    ><svg
-                      class="i-done"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6 9 17l-5-5" /></svg
-                    ><span class="t-apply">Apply to 12 clients</span
-                    ><span class="t-done">Applied</span>
-                  </button>
-                  <span class="ar__undo"
-                    ><span class="u-pre">one click · reversible 24h</span
-                    ><span class="u-post"
-                      >applied ·
-                      <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
-                    ></span
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >irs.gov</span
                   >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </div>
-              </div>
-            </div>
-
-            <!-- TX · High · new filing -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="TX"
-              data-clients="5"
-            >
-              <div class="ar__head">
-                <span class="sev sev--high">High</span>
-                <span class="ar__juris">TX</span>
-                <span class="ar__kind"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                    <path d="M14 3v5h5M12 12.5v4M10 14.5h4" /></svg
-                  >New filing</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
-                    /></svg
-                  >comptroller.texas.gov</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">
-                Texas adds a franchise-tax filing requirement for remote sellers
-              </p>
-              <div class="ar__change">
-                <span class="ar__to">Effective Jan 1, 2026</span>
-                <span class="ar__diff ar__diff--flat">new obligation</span>
-              </div>
-              <div class="ar__affect">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>Affects <b>5 clients</b></span
-                ><span class="split">5 ready</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">TX Comptroller · Rule 3.586</span> —
-                  <span class="q"
-                    >“Remote sellers exceeding the economic-nexus threshold must file Form 05-102
-                    beginning with the 2026 report year.”</span
-                  >
+                <p class="ar__title">
+                  IRS postpones filing &amp; payment deadlines after disaster declaration
                 </p>
-                <div class="ar__clients">
-                  <span class="ar__client"><span class="av">DL</span>Delgado Logistics</span>
-                  <span class="ar__client"><span class="av">OL</span>Okafor &amp; Lane</span>
-                  <span class="ar__client"><span class="av">+3</span>3 more</span>
-                </div>
-                <div class="ar__apply">
-                  <button
-                    class="ar__applybtn"
-                    type="button"
-                    aria-label="Add this obligation to 5 clients"
-                  >
-                    <svg
-                      class="i-apply"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
-                    ><svg
-                      class="i-done"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6 9 17l-5-5" /></svg
-                    ><span class="t-apply">Add to 5 clients</span><span class="t-done">Added</span>
-                  </button>
-                  <span class="ar__undo"
-                    ><span class="u-pre">one click · reversible 24h</span
-                    ><span class="u-post"
-                      >added ·
-                      <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
-                    ></span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- NY · Normal · guidance (review-only) -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="NY"
-              data-clients="4"
-            >
-              <div class="ar__head">
-                <span class="sev sev--normal">Normal</span>
-                <span class="ar__juris">NY</span>
-                <span class="ar__kind"
-                  ><svg
+                <div class="ar__change">
+                  <span class="ar__from">Apr 15</span>
+                  <svg
+                    class="ar__arrow"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.8"
+                    stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     aria-hidden="true"
                   >
-                    <path
-                      d="M20.5 11.5a8 8 0 0 1-11.5 7.2L4 20.5l1.8-4.9A8 8 0 1 1 20.5 11.5z"
-                    /></svg
-                  >Guidance</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
-                    /></svg
-                  >tax.ny.gov</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">
-                New York clarifies the pass-through entity tax election procedure
-              </p>
-              <div class="ar__change">
-                <span class="ar__to">Guidance updated</span>
-                <span class="ar__diff ar__diff--flat">no date change</span>
-              </div>
-              <div class="ar__affect">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>Affects <b>4 clients</b></span
-                ><span class="split">4 review</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">NY DTF · TSB-M-26(1)</span> —
-                  <span class="q"
-                    >“Guidance clarifies the annual PTET election procedure and the binding election
-                    deadline.”</span
-                  >
-                </p>
-                <div class="ar__clients">
-                  <span class="ar__client"><span class="av">NF</span>Nguyen Family LP</span>
-                  <span class="ar__client"><span class="av">PP</span>Park Ave Partners</span>
-                  <span class="ar__client"><span class="av">+2</span>2 more</span>
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                  <span class="ar__to">Nov 3, 2026</span>
+                  <span class="ar__diff ar__diff--later">202 days later</span>
                 </div>
-                <p class="ar__review" style="margin-top: 12px">
+                <div class="ar__affect">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -3245,109 +2944,82 @@
                     stroke-linejoin="round"
                     aria-hidden="true"
                   >
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path d="M12 8v4.5M12 16h.01" /></svg
-                  >Needs your review — election scope isn't certain yet
-                </p>
-              </div>
-            </div>
-
-            <!-- WA · Urgent · action window -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="WA"
-              data-clients="2"
-            >
-              <div class="ar__head">
-                <span class="sev sev--urgent">Urgent</span>
-                <span class="ar__juris">WA</span>
-                <span class="ar__kind"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path d="M12 7.5v5l3.2 1.8" /></svg
-                  >Action window</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
+                    <circle cx="9" cy="8" r="3.2" />
                     <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
                     /></svg
-                  >dor.wa.gov</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">Washington B&amp;O refund protective-claim window is closing</p>
-              <div class="ar__change">
-                <span class="ar__to">Closes Jun 30, 2026</span>
-                <span class="ar__diff ar__diff--sooner">12 days left</span>
-              </div>
-              <div class="ar__affect">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>Affects <b>2 clients</b></span
-                ><span class="split">2 ready</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">WA DOR · B&amp;O notice</span> —
-                  <span class="q"
-                    >“Protective refund claims for the 2022–2023 B&amp;O periods must be filed on or
-                    before Jun 30, 2026.”</span
-                  >
-                </p>
-                <div class="ar__clients">
-                  <span class="ar__client"><span class="av">SC</span>Sound Coffee Roasters</span>
-                  <span class="ar__client"><span class="av">RT</span>Rainier Tools</span>
+                  ><span>Affects <b>8 clients</b></span
+                  ><span class="split">6 ready · 2 review</span>
                 </div>
-                <div class="ar__apply">
-                  <button
-                    class="ar__applybtn"
-                    type="button"
-                    aria-label="Add this deadline to 2 clients"
-                  >
-                    <svg
-                      class="i-apply"
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">IRS · IR-2026-41</span> —
+                    <span class="q"
+                      >“Affected taxpayers have until Nov 3, 2026 to file returns and make payments
+                      originally due on or after Apr 15, 2026.”</span
+                    >
+                  </p>
+                  <div class="ar__clients">
+                    <span class="ar__client"><span class="av">HM</span>Hudson &amp; Marsh LLC</span>
+                    <span class="ar__client"><span class="av">BR</span>Bryant Retail Co</span>
+                    <span class="ar__client"><span class="av">+6</span>6 more</span>
+                  </div>
+                  <div class="ar__apply">
+                    <button
+                      class="ar__applybtn"
+                      type="button"
+                      aria-label="Apply the new date to 8 clients"
+                    >
+                      <svg
+                        class="i-apply"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      ><svg
+                        class="i-done"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                      ><span class="t-apply">Apply to 8 clients</span
+                      ><span class="t-done">Applied</span>
+                    </button>
+                    <span class="ar__undo"
+                      ><span class="u-pre">one click · reversible 24h</span
+                      ><span class="u-post"
+                        >applied ·
+                        <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
+                      ></span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- CA · High · deadline shift -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="CA"
+                data-clients="12"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--high">High</span>
+                  <span class="ar__juris">CA</span>
+                  <span class="ar__kind"
+                    ><svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -3356,116 +3028,59 @@
                       stroke-linejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+                      <path d="M3.5 9.5h17M8 3v4M16 3v4" /></svg
+                    >Deadline shift</span
+                  >
+                  <span class="ar__src"
                     ><svg
-                      class="i-done"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="2.4"
+                      stroke-width="1.8"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M20 6 9 17l-5-5" /></svg
-                    ><span class="t-apply">Add to 2 clients</span><span class="t-done">Added</span>
-                  </button>
-                  <span class="ar__undo"
-                    ><span class="u-pre">one click · reversible 24h</span
-                    ><span class="u-post"
-                      >added ·
-                      <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
-                    ></span
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >ftb.ca.gov</span
                   >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </div>
-              </div>
-            </div>
-
-            <!-- FL · Normal · threshold (no impact) -->
-            <div
-              class="ar"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              data-juris="FL"
-              data-clients="0"
-            >
-              <div class="ar__head">
-                <span class="sev sev--normal">Normal</span>
-                <span class="ar__juris">FL</span>
-                <span class="ar__kind"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
-                    <circle cx="15" cy="7" r="2.2" />
-                    <circle cx="7" cy="17" r="2.2" /></svg
-                  >Threshold</span
-                >
-                <span class="ar__src"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
-                    /></svg
-                  >floridarevenue.com</span
-                >
-                <svg
-                  class="ar__chev"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-              <p class="ar__title">Florida adjusts its 2026 estimated-tax safe-harbor thresholds</p>
-              <div class="ar__change">
-                <span class="ar__to">Thresholds adjusted</span>
-                <span class="ar__diff ar__diff--flat">no change to your dates</span>
-              </div>
-              <div class="ar__affect ar__affect--none">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="9" cy="8" r="3.2" />
-                  <path
-                    d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
-                  /></svg
-                ><span>No clients affected</span><span class="split">on watch</span>
-              </div>
-              <div class="ar__detail">
-                <p class="ar__excerpt">
-                  <span class="doc">FL DOR · TIP 26A01-01</span> —
-                  <span class="q"
-                    >“The 2026 estimated-tax safe-harbor thresholds are adjusted for inflation; no
-                    filing dates change.”</span
-                  >
+                <p class="ar__title">
+                  California FTB extends the Q3 estimated-tax deadline after wildfire declaration
                 </p>
-                <p class="ar__review" style="margin-top: 12px; color: var(--muted)">
+                <div class="ar__change">
+                  <span class="ar__from">Sep 15</span>
+                  <svg
+                    class="ar__arrow"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                  <span class="ar__to">Sep 29, 2026</span>
+                  <span class="ar__diff ar__diff--later">14 days later</span>
+                </div>
+                <div class="ar__affect">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -3475,15 +3090,548 @@
                     stroke-linejoin="round"
                     aria-hidden="true"
                   >
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path d="M12 7.5v5l3.2 1.8" /></svg
-                  >On watch — we'll alert you the moment this affects a client
-                </p>
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
+                    /></svg
+                  ><span>Affects <b>12 clients</b></span
+                  ><span class="split">9 ready · 3 review</span>
+                </div>
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">CA FTB · News release</span> —
+                    <span class="q"
+                      >“The Q3 estimated payment due Sep 15 is postponed to Sep 29, 2026 for
+                      taxpayers in the declared disaster area.”</span
+                    >
+                  </p>
+                  <div class="ar__clients">
+                    <span class="ar__client"><span class="av">VH</span>Vega Holdings</span>
+                    <span class="ar__client"><span class="av">CF</span>Castellano Foods</span>
+                    <span class="ar__client"><span class="av">+10</span>10 more</span>
+                  </div>
+                  <div class="ar__apply">
+                    <button
+                      class="ar__applybtn"
+                      type="button"
+                      aria-label="Apply the new date to 12 clients"
+                    >
+                      <svg
+                        class="i-apply"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      ><svg
+                        class="i-done"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                      ><span class="t-apply">Apply to 12 clients</span
+                      ><span class="t-done">Applied</span>
+                    </button>
+                    <span class="ar__undo"
+                      ><span class="u-pre">one click · reversible 24h</span
+                      ><span class="u-post"
+                        >applied ·
+                        <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
+                      ></span
+                    >
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="ap__empty" id="alertsEmpty">
-              No changes for this state this week — we're still watching.
+              <!-- TX · High · new filing -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="TX"
+                data-clients="5"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--high">High</span>
+                  <span class="ar__juris">TX</span>
+                  <span class="ar__kind"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                      <path d="M14 3v5h5M12 12.5v4M10 14.5h4" /></svg
+                    >New filing</span
+                  >
+                  <span class="ar__src"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >comptroller.texas.gov</span
+                  >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                <p class="ar__title">
+                  Texas adds a franchise-tax filing requirement for remote sellers
+                </p>
+                <div class="ar__change">
+                  <span class="ar__to">Effective Jan 1, 2026</span>
+                  <span class="ar__diff ar__diff--flat">new obligation</span>
+                </div>
+                <div class="ar__affect">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
+                    /></svg
+                  ><span>Affects <b>5 clients</b></span
+                  ><span class="split">5 ready</span>
+                </div>
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">TX Comptroller · Rule 3.586</span> —
+                    <span class="q"
+                      >“Remote sellers exceeding the economic-nexus threshold must file Form 05-102
+                      beginning with the 2026 report year.”</span
+                    >
+                  </p>
+                  <div class="ar__clients">
+                    <span class="ar__client"><span class="av">DL</span>Delgado Logistics</span>
+                    <span class="ar__client"><span class="av">OL</span>Okafor &amp; Lane</span>
+                    <span class="ar__client"><span class="av">+3</span>3 more</span>
+                  </div>
+                  <div class="ar__apply">
+                    <button
+                      class="ar__applybtn"
+                      type="button"
+                      aria-label="Add this obligation to 5 clients"
+                    >
+                      <svg
+                        class="i-apply"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      ><svg
+                        class="i-done"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                      ><span class="t-apply">Add to 5 clients</span
+                      ><span class="t-done">Added</span>
+                    </button>
+                    <span class="ar__undo"
+                      ><span class="u-pre">one click · reversible 24h</span
+                      ><span class="u-post"
+                        >added ·
+                        <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
+                      ></span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- NY · Normal · guidance (review-only) -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="NY"
+                data-clients="4"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--normal">Normal</span>
+                  <span class="ar__juris">NY</span>
+                  <span class="ar__kind"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M20.5 11.5a8 8 0 0 1-11.5 7.2L4 20.5l1.8-4.9A8 8 0 1 1 20.5 11.5z"
+                      /></svg
+                    >Guidance</span
+                  >
+                  <span class="ar__src"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >tax.ny.gov</span
+                  >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                <p class="ar__title">
+                  New York clarifies the pass-through entity tax election procedure
+                </p>
+                <div class="ar__change">
+                  <span class="ar__to">Guidance updated</span>
+                  <span class="ar__diff ar__diff--flat">no date change</span>
+                </div>
+                <div class="ar__affect">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
+                    /></svg
+                  ><span>Affects <b>4 clients</b></span
+                  ><span class="split">4 review</span>
+                </div>
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">NY DTF · TSB-M-26(1)</span> —
+                    <span class="q"
+                      >“Guidance clarifies the annual PTET election procedure and the binding
+                      election deadline.”</span
+                    >
+                  </p>
+                  <div class="ar__clients">
+                    <span class="ar__client"><span class="av">NF</span>Nguyen Family LP</span>
+                    <span class="ar__client"><span class="av">PP</span>Park Ave Partners</span>
+                    <span class="ar__client"><span class="av">+2</span>2 more</span>
+                  </div>
+                  <p class="ar__review" style="margin-top: 12px">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="8.5" />
+                      <path d="M12 8v4.5M12 16h.01" /></svg
+                    >Needs your review — election scope isn't certain yet
+                  </p>
+                </div>
+              </div>
+
+              <!-- WA · Urgent · action window -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="WA"
+                data-clients="2"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--urgent">Urgent</span>
+                  <span class="ar__juris">WA</span>
+                  <span class="ar__kind"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="8.5" />
+                      <path d="M12 7.5v5l3.2 1.8" /></svg
+                    >Action window</span
+                  >
+                  <span class="ar__src"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >dor.wa.gov</span
+                  >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                <p class="ar__title">
+                  Washington B&amp;O refund protective-claim window is closing
+                </p>
+                <div class="ar__change">
+                  <span class="ar__to">Closes Jun 30, 2026</span>
+                  <span class="ar__diff ar__diff--sooner">12 days left</span>
+                </div>
+                <div class="ar__affect">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
+                    /></svg
+                  ><span>Affects <b>2 clients</b></span
+                  ><span class="split">2 ready</span>
+                </div>
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">WA DOR · B&amp;O notice</span> —
+                    <span class="q"
+                      >“Protective refund claims for the 2022–2023 B&amp;O periods must be filed on
+                      or before Jun 30, 2026.”</span
+                    >
+                  </p>
+                  <div class="ar__clients">
+                    <span class="ar__client"><span class="av">SC</span>Sound Coffee Roasters</span>
+                    <span class="ar__client"><span class="av">RT</span>Rainier Tools</span>
+                  </div>
+                  <div class="ar__apply">
+                    <button
+                      class="ar__applybtn"
+                      type="button"
+                      aria-label="Add this deadline to 2 clients"
+                    >
+                      <svg
+                        class="i-apply"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                      ><svg
+                        class="i-done"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                      ><span class="t-apply">Add to 2 clients</span
+                      ><span class="t-done">Added</span>
+                    </button>
+                    <span class="ar__undo"
+                      ><span class="u-pre">one click · reversible 24h</span
+                      ><span class="u-post"
+                        >added ·
+                        <span class="ar__undolink" role="button" tabindex="0">Undo</span></span
+                      ></span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- FL · Normal · threshold (no impact) -->
+              <div
+                class="ar"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                data-juris="FL"
+                data-clients="0"
+              >
+                <div class="ar__head">
+                  <span class="sev sev--normal">Normal</span>
+                  <span class="ar__juris">FL</span>
+                  <span class="ar__kind"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+                      <circle cx="15" cy="7" r="2.2" />
+                      <circle cx="7" cy="17" r="2.2" /></svg
+                    >Threshold</span
+                  >
+                  <span class="ar__src"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M14 5h5v5M19 5l-8 8M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"
+                      /></svg
+                    >floridarevenue.com</span
+                  >
+                  <svg
+                    class="ar__chev"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                <p class="ar__title">
+                  Florida adjusts its 2026 estimated-tax safe-harbor thresholds
+                </p>
+                <div class="ar__change">
+                  <span class="ar__to">Thresholds adjusted</span>
+                  <span class="ar__diff ar__diff--flat">no change to your dates</span>
+                </div>
+                <div class="ar__affect ar__affect--none">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path
+                      d="M3.6 19a5.4 5.4 0 0 1 10.8 0M16 5.4a3.2 3.2 0 0 1 0 6.2M18.4 19a5.4 5.4 0 0 0-3-4.8"
+                    /></svg
+                  ><span>No clients affected</span><span class="split">on watch</span>
+                </div>
+                <div class="ar__detail">
+                  <p class="ar__excerpt">
+                    <span class="doc">FL DOR · TIP 26A01-01</span> —
+                    <span class="q"
+                      >“The 2026 estimated-tax safe-harbor thresholds are adjusted for inflation; no
+                      filing dates change.”</span
+                    >
+                  </p>
+                  <p class="ar__review" style="margin-top: 12px; color: var(--muted)">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="8.5" />
+                      <path d="M12 7.5v5l3.2 1.8" /></svg
+                    >On watch — we'll alert you the moment this affects a client
+                  </p>
+                </div>
+              </div>
+
+              <div class="ap__empty" id="alertsEmpty">
+                No changes for this state this week — we're still watching.
+              </div>
             </div>
           </section>
         </div>
@@ -3493,8 +3641,8 @@
       <section class="villain section">
         <div class="wrap villain__grid reveal">
           <div>
-            <p class="eyebrow">Sound familiar?</p>
-            <h2 class="h2" style="margin-top: 18px">
+            <p class="villain__q">Sound familiar?</p>
+            <h2 class="h2" style="margin-top: 10px">
               It's not missing a deadline that keeps you up. It's
               <span class="ital">not knowing</span> if you did.
             </h2>
@@ -4482,6 +4630,114 @@
         </div>
       </section>
 
+      <!-- ===================== PRODUCT SURFACES (Legora "highlights"-style grid) ===================== -->
+      <section class="surfaces section" aria-labelledby="surfaces-h">
+        <div class="wrap">
+          <div class="surfaces__head reveal">
+            <p class="eyebrow">The product</p>
+            <h2 class="h2" id="surfaces-h" style="margin-top: 14px">
+              Everything in one workbench.
+            </h2>
+            <p class="lead" style="margin-top: 16px">
+              From the first alert to the applied change — four surfaces, one calm place to work.
+            </p>
+          </div>
+          <div class="surfaces__grid reveal-group">
+            <article class="surface">
+              <div class="surface__thumb">
+                <span class="surface__tag">placeholder</span
+                ><span class="surface__ico"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg></span
+                ><span class="surface__phlabel">Alerts preview</span>
+              </div>
+              <h3 class="surface__t">Alerts</h3>
+              <p class="surface__d">
+                Every deadline change, triaged by risk and matched to the clients it touches.
+              </p>
+              <a class="surface__link" href="#main">See it <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="surface">
+              <div class="surface__thumb">
+                <span class="surface__tag">placeholder</span
+                ><span class="surface__ico"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m9 5-6 2.5v13l6-2.5 6 2.5 6-2.5v-13L15 7 9 5z" />
+                    <path d="M9 5v13M15 7v13" /></svg></span
+                ><span class="surface__phlabel">Coverage map</span>
+              </div>
+              <h3 class="surface__t">Coverage</h3>
+              <p class="surface__d">
+                FED, all 50 states &amp; DC, and FEMA — watched around the clock.
+              </p>
+              <a class="surface__link" href="#sources">See it <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="surface">
+              <div class="surface__thumb">
+                <span class="surface__tag">placeholder</span
+                ><span class="surface__ico"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span
+                ><span class="surface__phlabel">Worklist preview</span>
+              </div>
+              <h3 class="surface__t">Worklist</h3>
+              <p class="surface__d">
+                Your week, ranked by who's most at risk — before your first call.
+              </p>
+              <a class="surface__link" href="#work">See it <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="surface">
+              <div class="surface__thumb">
+                <span class="surface__tag">placeholder</span
+                ><span class="surface__ico"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
+                    <path d="m9 12 2 2 4-4" /></svg></span
+                ><span class="surface__phlabel">Apply &amp; audit</span>
+              </div>
+              <h3 class="surface__t">Apply &amp; audit</h3>
+              <p class="surface__d">
+                Push the new date to every affected client — sourced, reversible, audited.
+              </p>
+              <a class="surface__link" href="#trust">See it <span aria-hidden="true">→</span></a>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== TRUST BAND (full-bleed) ===================== -->
       <section class="trustband" id="trust" aria-labelledby="trust-h">
         <div class="wrap reveal">
@@ -4768,6 +5024,7 @@
             </ul>
           </div>
         </div>
+        <div class="footer__wordmark" aria-hidden="true">DueDateHQ</div>
         <div class="footer__bottom">
           <p class="footer__legal">
             DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. ©
@@ -5006,6 +5263,45 @@
             jumpToState('FED')
           })
       })()
+    </script>
+
+    <!-- Agentation visual-feedback devtool — localhost ONLY, so it never ships with the page.
+     Click any element on this mockup, leave a note, hit Copy → structured Markdown
+     (selector + position + comment) to paste back into Claude Code.
+     Import map pins react / react-dom / react/jsx-runtime to ONE instance, and
+     agentation is loaded with ?external so it shares that instance (avoids the
+     duplicate-React "invalid hook call" that renders nothing). -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.2.6",
+          "react/jsx-runtime": "https://esm.sh/react@19.2.6/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@19.2.6",
+          "react-dom/client": "https://esm.sh/react-dom@19.2.6/client"
+        }
+      }
+    </script>
+    <script type="module">
+      if (
+        (location.hostname === 'localhost' || location.hostname === '127.0.0.1') &&
+        !location.search.includes('noagent')
+      ) {
+        ;(async function () {
+          try {
+            const React = (await import('react')).default
+            const { createRoot } = await import('react-dom/client')
+            const { Agentation } =
+              await import('https://esm.sh/agentation@3.0.2?external=react,react-dom')
+            const mount = document.createElement('div')
+            mount.id = 'agentation-root'
+            document.body.appendChild(mount)
+            createRoot(mount).render(React.createElement(Agentation))
+            console.info('[Agentation] mounted')
+          } catch (e) {
+            console.error('[Agentation] failed to load:', e)
+          }
+        })()
+      }
     </script>
   </body>
 </html>
