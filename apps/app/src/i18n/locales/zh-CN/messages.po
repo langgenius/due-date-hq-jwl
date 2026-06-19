@@ -3427,14 +3427,6 @@ msgstr "计算应缴税款预估"
 msgid "Calculating impact…"
 msgstr "正在计算影响…"
 
-#: src/features/obligations/queue/components/panels.tsx
-msgid "Calculating tax estimate"
-msgstr "计算税款预估中"
-
-#: src/features/obligations/queue/components/panels.tsx
-msgid "Calculating the tax estimate"
-msgstr "计算税款预估中"
-
 #: src/routes/practice.tsx
 msgid "Calculating…"
 msgstr "正在计算…"
@@ -6465,6 +6457,10 @@ msgstr "预估截止事项"
 msgid "Estate"
 msgstr "遗产"
 
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Estimate needed"
+msgstr "需要估算"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Estimated"
 msgstr "预估"
@@ -7640,8 +7636,8 @@ msgid "HomeBase contacts CSV"
 msgstr "HomeBase 联系人 CSV"
 
 #: src/routes/login.tsx
-msgid "Hosted in US-East · your data never leaves your jurisdiction"
-msgstr "托管于美国东部 · 您的数据绝不离开所在辖区"
+msgid "Hosted in US-East"
+msgstr "托管于美国东部"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your clients and your team."
@@ -14865,6 +14861,10 @@ msgstr "税务分类"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Tax election (2553 / 8832)"
 msgstr "税务选择（2553 / 8832）"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Tax estimate needed"
+msgstr "需要税款估算"
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Tax period"

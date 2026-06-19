@@ -3414,14 +3414,6 @@ msgstr "Calculate the tax payment estimate"
 msgid "Calculating impact…"
 msgstr "Calculating impact…"
 
-#: src/features/obligations/queue/components/panels.tsx
-msgid "Calculating tax estimate"
-msgstr "Calculating tax estimate"
-
-#: src/features/obligations/queue/components/panels.tsx
-msgid "Calculating the tax estimate"
-msgstr "Calculating the tax estimate"
-
 #: src/routes/practice.tsx
 msgid "Calculating…"
 msgstr "Calculating…"
@@ -6441,6 +6433,10 @@ msgstr "Est. deadlines"
 msgid "Estate"
 msgstr "Estate"
 
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Estimate needed"
+msgstr "Estimate needed"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Estimated"
 msgstr "Estimated"
@@ -7612,8 +7608,8 @@ msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
 
 #: src/routes/login.tsx
-msgid "Hosted in US-East · your data never leaves your jurisdiction"
-msgstr "Hosted in US-East · your data never leaves your jurisdiction"
+msgid "Hosted in US-East"
+msgstr "Hosted in US-East"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your clients and your team."
@@ -14802,6 +14798,10 @@ msgstr "Tax classification"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Tax election (2553 / 8832)"
 msgstr "Tax election (2553 / 8832)"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Tax estimate needed"
+msgstr "Tax estimate needed"
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Tax period"

@@ -1430,7 +1430,7 @@ export function ActiveStageDetailCard({
         if (row.efileState === 'final_package_delivered') return t`Final package sent to client`
         return null
       case 'paid':
-        if (row.paymentState === 'estimate_needed') return t`Calculating the tax estimate`
+        if (row.paymentState === 'estimate_needed') return t`Tax estimate needed`
         if (row.paymentState === 'client_approval_needed')
           return t`Awaiting client approval of estimate`
         if (row.paymentState === 'scheduled') return t`Payment scheduled with authority`
@@ -1860,7 +1860,7 @@ export function ActiveStageDetailCard({
     final_package_delivered: t`Final package sent to client`,
   }
   const paymentPipelineLabels: Record<(typeof PAYMENT_PIPELINE_KEYS)[number], string> = {
-    estimate_needed: t`Calculating tax estimate`,
+    estimate_needed: t`Estimate needed`,
     client_approval_needed: t`Awaiting client approval of estimate`,
     scheduled: t`Payment scheduled with authority`,
     confirmed: t`Authority confirmed payment cleared`,
