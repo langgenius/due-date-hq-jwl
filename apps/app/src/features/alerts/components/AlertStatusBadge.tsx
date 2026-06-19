@@ -1,5 +1,11 @@
 import { useLingui } from '@lingui/react/macro'
-import { CheckCheckIcon, CircleCheckBigIcon, FileCheckIcon, Undo2Icon, type LucideIcon } from 'lucide-react'
+import {
+  CheckCheckIcon,
+  CircleCheckBigIcon,
+  FileCheckIcon,
+  Undo2Icon,
+  type LucideIcon,
+} from 'lucide-react'
 
 import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'

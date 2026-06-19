@@ -101,9 +101,15 @@ type NavConfig = {
 // Settings sub-pages that live OUTSIDE `/settings/*` — they have their own
 // top-level routes but are conceptually children of the Settings hub. Without
 // this the Settings nav row goes dark when the user is on any of them.
-const SETTINGS_SIBLING_PATHS = ['/practice', '/members', '/workload', '/billing', '/reminders']
+const SETTINGS_SIBLING_PATHS = new Set([
+  '/practice',
+  '/members',
+  '/workload',
+  '/billing',
+  '/reminders',
+])
 function matchesSettingsRow(pathname: string): boolean {
-  return pathname.startsWith('/settings') || SETTINGS_SIBLING_PATHS.includes(pathname)
+  return pathname.startsWith('/settings') || SETTINGS_SIBLING_PATHS.has(pathname)
 }
 
 const NAV_ROLE_LABELS = {

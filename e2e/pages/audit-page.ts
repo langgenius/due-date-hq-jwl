@@ -2,16 +2,18 @@ import type { Locator, Page } from '@playwright/test'
 
 export class AuditPage {
   readonly heading: Locator
-  readonly actionSelect: Locator
+  readonly moreFiltersButton: Locator
+  readonly actionFilterSelect: Locator
   readonly entityTypeInput: Locator
   readonly resetButton: Locator
   readonly detailDrawer: Locator
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Audit log', level: 1 })
-    this.actionSelect = page.getByRole('combobox', { name: 'Action', exact: true })
+    this.moreFiltersButton = page.getByRole('button', { name: 'More filters' })
+    this.actionFilterSelect = page.getByRole('combobox', { name: 'Action', exact: true })
     this.entityTypeInput = page.getByLabel('Entity type')
-    this.resetButton = page.getByRole('button', { name: 'Reset' })
+    this.resetButton = page.getByRole('button', { name: 'Clear filters' })
     this.detailDrawer = page.getByRole('dialog', { name: 'Audit detail' })
   }
 
@@ -21,7 +23,8 @@ export class AuditPage {
   }
 
   async selectAction(action: string) {
-    await this.actionSelect.click()
+    await this.moreFiltersButton.click()
+    await this.actionFilterSelect.click()
     await this.page.locator(`[data-audit-filter-value="${cssAttributeValue(action)}"]`).click()
   }
 

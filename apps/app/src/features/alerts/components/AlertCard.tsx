@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, SparklesIcon, BriefcaseIcon, Building2Icon, UserRoundIcon, UsersIcon } from 'lucide-react'
+import {
+  CircleAlertIcon,
+  SparklesIcon,
+  BriefcaseIcon,
+  Building2Icon,
+  UserRoundIcon,
+  UsersIcon,
+} from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'

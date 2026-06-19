@@ -45,7 +45,8 @@ export function SortableHeader({
   className?: string
   children?: ReactNode
 }) {
-  const SortIcon = direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
+  const SortIcon =
+    direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
 
   return (
     <span

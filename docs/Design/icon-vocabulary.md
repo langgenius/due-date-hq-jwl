@@ -23,25 +23,25 @@
 
 ## Canonical concept → glyph
 
-| Concept | Canonical glyph | Notes / don't-use |
-| --- | --- | --- |
-| Warning, attention (circle) | `CircleAlertIcon` | not `AlertCircle(Icon)` (deprecated alias) |
-| Warning, caution (triangle) | `TriangleAlertIcon` | not `AlertTriangle(Icon)` |
-| Success, done (circle) | `CircleCheckIcon` | `CircleCheckBigIcon` only when a bolder filled mark is genuinely needed |
-| Plain check / applied | `CheckIcon` · `CheckCheckIcon` (double = "all") | — |
-| Blocked / hard stop | `ConstructionIcon` (barrier) · `BanIcon` (prohibition) | distinct meanings — barrier = environmental, ban = not-allowed |
-| AI / automated | `SparklesIcon` | not `Astroid`, not `WandSparkles` (retired 2026-06-18) |
-| Edit | `PencilIcon` | not `Edit3Icon` / `PenLineIcon` |
-| Delete | `Trash2Icon` | — |
-| Add / new | `PlusIcon` | bare button affordance; `CirclePlusIcon` only for a distinct "add row" mark |
-| Time / clock | `ClockIcon` | not `Clock3Icon` (retired → ClockIcon) |
-| Waiting (external) | `HourglassIcon` | the obligation status mark is `StatusRing` (status-control); this is the standalone glyph |
-| Overflow menu (horizontal) | `EllipsisIcon` | not `MoreHorizontal(Icon)` |
-| Overflow menu (vertical) | `EllipsisVerticalIcon` | not `MoreVertical(Icon)` |
-| External link / open out | `ExternalLinkIcon` (standalone) · `ArrowUpRightIcon` (inline ↗) | deliberate split — see the external-link order canon |
-| Premium / paid tier | `CrownIcon` | reserved for billing; not an AI/feature mark |
-| Loading / spinner | `Loader2Icon` (animate-spin) | — |
-| Obligation status | **not a lucide glyph** — use `<StatusMark>` (`StatusRing`) | see obligation-status-icon-vocabulary.md |
+| Concept                     | Canonical glyph                                                 | Notes / don't-use                                                                         |
+| --------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Warning, attention (circle) | `CircleAlertIcon`                                               | not `AlertCircle(Icon)` (deprecated alias)                                                |
+| Warning, caution (triangle) | `TriangleAlertIcon`                                             | not `AlertTriangle(Icon)`                                                                 |
+| Success, done (circle)      | `CircleCheckIcon`                                               | `CircleCheckBigIcon` only when a bolder filled mark is genuinely needed                   |
+| Plain check / applied       | `CheckIcon` · `CheckCheckIcon` (double = "all")                 | —                                                                                         |
+| Blocked / hard stop         | `ConstructionIcon` (barrier) · `BanIcon` (prohibition)          | distinct meanings — barrier = environmental, ban = not-allowed                            |
+| AI / automated              | `SparklesIcon`                                                  | not `Astroid`, not `WandSparkles` (retired 2026-06-18)                                    |
+| Edit                        | `PencilIcon`                                                    | not `Edit3Icon` / `PenLineIcon`                                                           |
+| Delete                      | `Trash2Icon`                                                    | —                                                                                         |
+| Add / new                   | `PlusIcon`                                                      | bare button affordance; `CirclePlusIcon` only for a distinct "add row" mark               |
+| Time / clock                | `ClockIcon`                                                     | not `Clock3Icon` (retired → ClockIcon)                                                    |
+| Waiting (external)          | `HourglassIcon`                                                 | the obligation status mark is `StatusRing` (status-control); this is the standalone glyph |
+| Overflow menu (horizontal)  | `EllipsisIcon`                                                  | not `MoreHorizontal(Icon)`                                                                |
+| Overflow menu (vertical)    | `EllipsisVerticalIcon`                                          | not `MoreVertical(Icon)`                                                                  |
+| External link / open out    | `ExternalLinkIcon` (standalone) · `ArrowUpRightIcon` (inline ↗) | deliberate split — see the external-link order canon                                      |
+| Premium / paid tier         | `CrownIcon`                                                     | reserved for billing; not an AI/feature mark                                              |
+| Loading / spinner           | `Loader2Icon` (animate-spin)                                    | —                                                                                         |
+| Obligation status           | **not a lucide glyph** — use `<StatusMark>` (`StatusRing`)      | see obligation-status-icon-vocabulary.md                                                  |
 
 ## Concept families that legitimately have several glyphs
 

@@ -2,15 +2,15 @@
 
 A reusable "brand skill": the design language of acctual.com, captured in enough detail to rebuild the look on DueDateHQ. Same depth/format standard as `legora-design-system.md` (the canonical reference in this folder) — read its **§0 Global build rules** first; they apply here too. Source: acctual.com + the document-parsing reference (`references - build/Screenshot 2026-06-18 at 14.49.33.png` — an invoice parsed into labeled fields) and the editorial-serif hero clipping (`…14.31.42.png`, Popcorn). 2026-06-18.
 
-> **Inherits §0 from Legora.** Light only · adapt the copy to *this* voice (keep the locked headline + every fact + every honesty rule) · polish every detail. Acctual's voice is the bright, conversational, SMB-friendly end of the spectrum: a smart friend who already did the boring part for you.
+> **Inherits §0 from Legora.** Light only · adapt the copy to _this_ voice (keep the locked headline + every fact + every honesty rule) · polish every detail. Acctual's voice is the bright, conversational, SMB-friendly end of the spectrum: a smart friend who already did the boring part for you.
 
 ---
 
 ## 1 · Essence
 
-**Bright · friendly · confident · effortless.** Where Legora earns authority by *withholding*, Acctual earns trust by feeling *easy*. It's the consumer-grade fintech look applied to a back-office job: clean white, generous air, soft rounded everything, one happy green that means "go," and copy that talks to you like a person, not a procurement committee. The promise the look makes is **"this is going to be simple."**
+**Bright · friendly · confident · effortless.** Where Legora earns authority by _withholding_, Acctual earns trust by feeling _easy_. It's the consumer-grade fintech look applied to a back-office job: clean white, generous air, soft rounded everything, one happy green that means "go," and copy that talks to you like a person, not a procurement committee. The promise the look makes is **"this is going to be simple."**
 
-The single most distinctive move: **the document-intelligence visual is the hero, not a footnote.** A real document (an invoice, a notice, a form) sits on the page like paper on a desk, and the product is shown *reading it* — a scanline passing over it, key regions lighting up, the important facts lifted out into small, clean, labeled cards beside it. The whole product story (we read the messy thing so you don't) is told in one image.
+The single most distinctive move: **the document-intelligence visual is the hero, not a footnote.** A real document (an invoice, a notice, a form) sits on the page like paper on a desk, and the product is shown _reading it_ — a scanline passing over it, key regions lighting up, the important facts lifted out into small, clean, labeled cards beside it. The whole product story (we read the messy thing so you don't) is told in one image.
 
 The second move: **a green CTA anchors every section.** It's a long, calm scroll, and at the end of each beat the same friendly green button reappears — never pushy, always there. The page never traps you on a wall of text without an obvious next step.
 
@@ -18,50 +18,50 @@ The second move: **a green CTA anchors every section.** It's a long, calm scroll
 
 Bright and clean: white ground, soft-gray rest bands, near-black ink, and **one** confident emerald that owns every action. Color is mostly absent so the green pops; status colors (amber/navy) appear only on real status, never as decoration.
 
-| Token | Hex | Role |
-|---|---|---|
-| `white` | `#FFFFFF` | Primary page ground |
-| `band` | `#F6F7F9` | Soft-gray rest band (alternating sections) |
-| `band-2` | `#FBFCFD` | Barely-lifted surface (card insets, nav blur) |
-| `ink` | `#14141A` | Headlines, primary text |
-| `ink-2` | `#3A4150` | Strong body |
-| `muted` | `#5B6470` | Secondary text, captions, nav links |
-| `faint` | `#8A929E` | Eyebrows fallback, fine print |
-| `line` | `#E6E8EC` | Card borders, dividers |
-| `line-soft` | `#EEF0F3` | Hairline section separators, inner rules |
-| `green` | `#12B981` | **The accent** — CTAs, links, "go," highlights |
-| `green-700` | `#0E9A6C` | CTA hover/pressed, link text on white |
-| `green-50` | `#E7F8F1` | Accent tint — icon chips, pills, scan glow |
-| `green-100` | `#D2F2E5` | Stronger accent tint — active scan region |
-| `amber` | `#C9821B` | Severity: urgent / "waiting on you" (text) |
-| `amber-50` | `#FBF1DF` | Urgent pill / waiting tint |
-| `navy` | `#23304A` | "Needs review" status, mono data, deep label |
+| Token       | Hex       | Role                                           |
+| ----------- | --------- | ---------------------------------------------- |
+| `white`     | `#FFFFFF` | Primary page ground                            |
+| `band`      | `#F6F7F9` | Soft-gray rest band (alternating sections)     |
+| `band-2`    | `#FBFCFD` | Barely-lifted surface (card insets, nav blur)  |
+| `ink`       | `#14141A` | Headlines, primary text                        |
+| `ink-2`     | `#3A4150` | Strong body                                    |
+| `muted`     | `#5B6470` | Secondary text, captions, nav links            |
+| `faint`     | `#8A929E` | Eyebrows fallback, fine print                  |
+| `line`      | `#E6E8EC` | Card borders, dividers                         |
+| `line-soft` | `#EEF0F3` | Hairline section separators, inner rules       |
+| `green`     | `#12B981` | **The accent** — CTAs, links, "go," highlights |
+| `green-700` | `#0E9A6C` | CTA hover/pressed, link text on white          |
+| `green-50`  | `#E7F8F1` | Accent tint — icon chips, pills, scan glow     |
+| `green-100` | `#D2F2E5` | Stronger accent tint — active scan region      |
+| `amber`     | `#C9821B` | Severity: urgent / "waiting on you" (text)     |
+| `amber-50`  | `#FBF1DF` | Urgent pill / waiting tint                     |
+| `navy`      | `#23304A` | "Needs review" status, mono data, deep label   |
 
-**Rules:** white is the default; the soft-gray `band` is the *only* alternate ground (never a dark band — see §0). **One** accent (green) carries action, links, and the "this is done / good" signal. Severity color lives only on status (an Urgent pill, a Waiting badge, a Needs-review dot) — never as page decoration, never green text where green would imply "go" falsely. Contrast: ink on white ≈ 15:1; green-700 on white ≈ 4.0:1 (use green-700, not green, for text/links to clear AA); white on green ≈ 2.4 → so green buttons use **white text at 16px/600** which clears AA large, and never set small green-on-white body.
+**Rules:** white is the default; the soft-gray `band` is the _only_ alternate ground (never a dark band — see §0). **One** accent (green) carries action, links, and the "this is done / good" signal. Severity color lives only on status (an Urgent pill, a Waiting badge, a Needs-review dot) — never as page decoration, never green text where green would imply "go" falsely. Contrast: ink on white ≈ 15:1; green-700 on white ≈ 4.0:1 (use green-700, not green, for text/links to clear AA); white on green ≈ 2.4 → so green buttons use **white text at 16px/600** which clears AA large, and never set small green-on-white body.
 
 ## 3 · Typography
 
-One friendly, slightly-rounded grotesk does almost everything; a mono carries data. Acctual's headlines are **bold and warm, not severe** — heavier weight, slightly looser tracking than an editorial grotesk, so they read as confident-friendly rather than institutional. (The editorial-serif reference is borrowed only as an *option* for a single hero word, never for the whole page — Acctual's default hero is the bold sans.)
+One friendly, slightly-rounded grotesk does almost everything; a mono carries data. Acctual's headlines are **bold and warm, not severe** — heavier weight, slightly looser tracking than an editorial grotesk, so they read as confident-friendly rather than institutional. (The editorial-serif reference is borrowed only as an _option_ for a single hero word, never for the whole page — Acctual's default hero is the bold sans.)
 
-| Family | Font (Google) | Fallback | Use |
-|---|---|---|---|
-| Display / UI | **Onest** | `Inter, -apple-system, sans-serif` | Headlines, nav, labels, body-UI — friendly geometric grotesk |
-| Body fallback | **Inter** | `-apple-system, sans-serif` | Long body where Onest isn't loaded; also the data/caption companion |
-| Numerals / data | **Geist Mono** *(or* `ui-monospace`*)* | `ui-monospace` | EINs, form numbers, dates, extracted-field values (tabular-nums) |
+| Family          | Font (Google)                          | Fallback                           | Use                                                                 |
+| --------------- | -------------------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| Display / UI    | **Onest**                              | `Inter, -apple-system, sans-serif` | Headlines, nav, labels, body-UI — friendly geometric grotesk        |
+| Body fallback   | **Inter**                              | `-apple-system, sans-serif`        | Long body where Onest isn't loaded; also the data/caption companion |
+| Numerals / data | **Geist Mono** _(or_ `ui-monospace`_)_ | `ui-monospace`                     | EINs, form numbers, dates, extracted-field values (tabular-nums)    |
 
 **Scale (px · weight · line-height · tracking):**
 
-| Token | Size | Wt | LH | Tracking |
-|---|---|---|---|---|
-| eyebrow | 13 | 700 | 1 | `0.08em` UPPERCASE |
-| body-sm | 15 | 400 | 1.55 | 0 |
-| body | 17 | 400 | 1.6 | 0 |
-| lead | 19 | 400 | 1.55 | `-0.005em` |
-| h3 | 21–22 | 700 | 1.25 | `-0.02em` |
-| h2 (section) | clamp(30–42) | 700 | 1.12 | `-0.03em` |
-| display (hero) | clamp(38–58) | 800 | 1.08 | `-0.035em` |
+| Token          | Size         | Wt  | LH   | Tracking           |
+| -------------- | ------------ | --- | ---- | ------------------ |
+| eyebrow        | 13           | 700 | 1    | `0.08em` UPPERCASE |
+| body-sm        | 15           | 400 | 1.55 | 0                  |
+| body           | 17           | 400 | 1.6  | 0                  |
+| lead           | 19           | 400 | 1.55 | `-0.005em`         |
+| h3             | 21–22        | 700 | 1.25 | `-0.02em`          |
+| h2 (section)   | clamp(30–42) | 700 | 1.12 | `-0.03em`          |
+| display (hero) | clamp(38–58) | 800 | 1.08 | `-0.035em`         |
 
-**Usage:** headlines are **bold (700) and oversized**, hero at **800** — the weight is the personality. Tracking tightens as size grows (`-0.035em` on the hero). The hero highlight is set in **green** (`.hl{color:var(--green)}`) on the second clause — Acctual highlights *with color*, not italic. Eyebrows are short, uppercase, tracked, and usually **green-700** (the accent doubles as the section-label color). Body is generous (17px/1.6). All numbers, dates, EINs, and form codes are **mono + tabular-nums**, which also makes the extracted-field visual read as "data the machine pulled out."
+**Usage:** headlines are **bold (700) and oversized**, hero at **800** — the weight is the personality. Tracking tightens as size grows (`-0.035em` on the hero). The hero highlight is set in **green** (`.hl{color:var(--green)}`) on the second clause — Acctual highlights _with color_, not italic. Eyebrows are short, uppercase, tracked, and usually **green-700** (the accent doubles as the section-label color). Body is generous (17px/1.6). All numbers, dates, EINs, and form codes are **mono + tabular-nums**, which also makes the extracted-field visual read as "data the machine pulled out."
 
 ## 4 · Spacing & layout
 
@@ -72,7 +72,7 @@ One friendly, slightly-rounded grotesk does almost everything; a mono carries da
 
 ## 5 · Radius · borders · elevation
 
-- **Radius:** this is a defining trait — **everything is softly rounded.** `999px` on buttons, pills, chips, status badges, and the brand-mark dot (Acctual's buttons read as fully-rounded *pills*, not rectangles). `18px` on feature cards / containers. `22–24px` on the large preview/visual panels. `12px` on small inset rows and the brand mark square. `7–8px` on keycaps and tiny chips. Never freelance odd values.
+- **Radius:** this is a defining trait — **everything is softly rounded.** `999px` on buttons, pills, chips, status badges, and the brand-mark dot (Acctual's buttons read as fully-rounded _pills_, not rectangles). `18px` on feature cards / containers. `22–24px` on the large preview/visual panels. `12px` on small inset rows and the brand mark square. `7–8px` on keycaps and tiny chips. Never freelance odd values.
 - **Borders:** 1px `line` on cards; `line-soft` for inner hairlines and section separators. A `1px dashed line` is allowed for the one quiet "boundary / not-tax-advice" note.
 - **Elevation:** **soft and sparing.** Cards default to border + white (no shadow). The hero preview panel and the alternating feature visuals get **one gentle card shadow** (`0 1px 0 rgba(20,20,26,.03), 0 8px 24px rgba(20,20,26,.05)`) to read as "a real object on the desk." Buttons get a tiny tinted micro-shadow in the accent color and a `translateY(-1px)` lift on hover. Never blur ≥ 24; never a glow on a section.
 
@@ -98,7 +98,7 @@ This is where Acctual's identity concentrates. **The signature visual is a docum
 2. **A scanline / detection pass** moves down it: a thin bright green vertical rule (or a soft `green-100` highlight band) with small region-tick marks, plus a tiny "scanning" node. This is the one moment of motion (see §8).
 3. **The extracted fields** appear to the right as small, separate, rounded cards — each with a **colored tab label** (e.g. `address`, `table`, `line items`, `total` in the reference) and the pulled value inside in **mono**. They're connected back to the document by faint leader lines or simple proximity.
 
-Adapted for DueDateHQ, the document is **an IRS / state notice**, and the extracted fields are the things the product lifts out: `deadline` (the new date, mono), `jurisdiction`, `form`, `change type`, and `affected clients (N)` — each in its own labeled mini-card, with the key sentence in the notice highlighted by a `green` left-border quote. The message is identical to Acctual's: *we read the official document and hand you only the facts that matter.*
+Adapted for DueDateHQ, the document is **an IRS / state notice**, and the extracted fields are the things the product lifts out: `deadline` (the new date, mono), `jurisdiction`, `form`, `change type`, and `affected clients (N)` — each in its own labeled mini-card, with the key sentence in the notice highlighted by a `green` left-border quote. The message is identical to Acctual's: _we read the official document and hand you only the facts that matter._
 
 - **No stock 3D, no gradient blobs, no mascots.** Product UI (the Alerts preview, the worklist, the evidence card) is rendered cleanly: white, soft borders, rounded rows, mono data, soft status pills.
 - **Icons:** Tabler / outline, 1.5–2px stroke, 18–24px, usually inside a `green-50` rounded chip. Friendly and consistent; used liberally (every feature gets one), unlike Legora's sparseness.
@@ -113,7 +113,7 @@ Adapted for DueDateHQ, the document is **an IRS / state notice**, and the extrac
 
 ## 9 · Voice & visual copy treatment
 
-**Bright, plain-spoken, second-person, confident-but-never-hypey.** Acctual writes like a sharp friend: short sentences, contractions, the benefit first, the mechanism second. Eyebrows are quick labels ("How it works," "The workbench"). Section titles are conversational and often a two-beat ("It runs the long tail. You make the calls."). The green highlight in the hero does the emphasis that Legora gives to a serif-italic word. Microcopy is warm ("so you don't," "the emails you'd otherwise write by hand") and data is mono. **Honesty unchanged:** the locked headline and every fact/honesty rule stay exactly; only the *supporting* copy gets the bright-conversational lift. No fabricated proof, no "5,000+ businesses," no "AI/Radar," no pricing on the page.
+**Bright, plain-spoken, second-person, confident-but-never-hypey.** Acctual writes like a sharp friend: short sentences, contractions, the benefit first, the mechanism second. Eyebrows are quick labels ("How it works," "The workbench"). Section titles are conversational and often a two-beat ("It runs the long tail. You make the calls."). The green highlight in the hero does the emphasis that Legora gives to a serif-italic word. Microcopy is warm ("so you don't," "the emails you'd otherwise write by hand") and data is mono. **Honesty unchanged:** the locked headline and every fact/honesty rule stay exactly; only the _supporting_ copy gets the bright-conversational lift. No fabricated proof, no "5,000+ businesses," no "AI/Radar," no pricing on the page.
 
 ## 10 · Signature section patterns
 
@@ -123,7 +123,7 @@ Adapted for DueDateHQ, the document is **an IRS / state notice**, and the extrac
 4. **How it works** — three numbered step cards, each with a green numbered badge, conversational headline, and mono keycaps.
 5. **Why you can trust it (soft-gray band)** — a glass-box pill + the principle paragraph on the left, the **stat trio** (`100%` Sourced · `0` Auto-applied · `Audited`) as white cards on the right, plus the dashed "not tax advice" boundary note. Green stat numbers.
 6. **The document-intelligence deep-dive** — the alternating blurb where the parsing visual gets full real-estate: the highlighted notice quote + the extracted mini-cards, opposite a checklist of what's pulled.
-7. **The repeating green CTA** — **every** major section ends with the green button (or a green text-link with a nudging arrow). The closing section is a **light/emerald** treatment (white or soft-green-tinted card with a green CTA), *not* a dark band.
+7. **The repeating green CTA** — **every** major section ends with the green button (or a green text-link with a nudging arrow). The closing section is a **light/emerald** treatment (white or soft-green-tinted card with a green CTA), _not_ a dark band.
 
 Sections alternate **white ↔ soft-gray band**; the green CTA is the through-line.
 
@@ -134,7 +134,7 @@ Sections alternate **white ↔ soft-gray band**; the green CTA is the through-li
 
 ## 12 · Applying to DueDateHQ
 
-- **Hero (split):** pill eyebrow "Never miss a deadline change · FED + 50 states + DC" → locked headline **"Catch every tax-deadline change —"** + **green** "and see exactly who it affects." → 19px lead (bright-conversational rewrite) → green **"Open the workbench"** + ghost **"Try it live ↓"** → Google microline → trust chips. Right: the **document-intelligence preview** parsing an IRS notice into extracted fields (deadline · jurisdiction · form · affected clients) with a green scanline — *this is the hallmark, lead with it.*
+- **Hero (split):** pill eyebrow "Never miss a deadline change · FED + 50 states + DC" → locked headline **"Catch every tax-deadline change —"** + **green** "and see exactly who it affects." → 19px lead (bright-conversational rewrite) → green **"Open the workbench"** + ghost **"Try it live ↓"** → Google microline → trust chips. Right: the **document-intelligence preview** parsing an IRS notice into extracted fields (deadline · jurisdiction · form · affected clients) with a green scanline — _this is the hallmark, lead with it._
 - **Villain beat ("Sound familiar"):** soft-gray band, conversational and warm ("The work was never the hard part; the not-knowing is.") + the Scattered / Easy-to-miss / All-manual trio.
 - **How it works (Watch · Match · Apply):** three numbered green-badge cards, two-beat title "It runs the long tail. You make the calls."
 - **Why you can trust it:** glass-box pill + paragraph; green stat trio `100%` Sourced · `0` Auto-applied · `Audited`; dashed boundary note. The Cloudflare-isolation + email-first trust line stays.

@@ -5180,7 +5180,8 @@ function ObligationQueueSortableHeader({
   //     the accent color — quieter than bold arrows and matches the
   //     chevron vocabulary used elsewhere (dropdowns, breadcrumbs,
   //     drawer triggers).
-  const SortIcon = direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
+  const SortIcon =
+    direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
 
   return (
     <span className="-mx-1 inline-flex min-w-0 items-center gap-0.5">

@@ -154,8 +154,8 @@ export class ObligationQueuePage {
   rowFor(clientName: string) {
     const escapedName = escapeRegex(clientName)
     return this.page
-      .getByRole('row', { name: new RegExp(escapedName) })
-      .or(this.page.getByRole('button', { name: new RegExp(`^Select ${escapedName}\\b`) }))
+      .getByRole('button', { name: new RegExp(`^Open deadline for ${escapedName}\\b`) })
+      .or(this.page.getByRole('row', { name: new RegExp(escapedName) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Deadline detail: ${escapedName}`) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Open deadlines: ${escapedName}`) }))
   }

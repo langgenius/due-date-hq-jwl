@@ -57,16 +57,19 @@ Copy only. Final strings for a concise, **early-access** landing page (7 content
 **Intro:** A CPA's deadline work is a thousand small things — watching every state, knowing who's affected, sending the reminders, chasing the missing docs. DueDateHQ runs that long tail for you and stops at the one step only you should make. (Set up once: paste your clients, get a sourced year of deadlines in about 30 minutes.)
 
 **Step 01 — Watch · around the clock**
+
 - Headline: We watch the sources, so you don't.
 - Body: DueDateHQ watches the IRS, all 50 state tax agencies, and FEMA disaster declarations 24/7. It reads each change, classifies it (a moved deadline, a relief postponement, a new filing requirement), and only surfaces it when the new dates are grounded in the official text. No invented deadlines.
 - Keys: A Alerts · E Evidence
 
 **Step 02 — Match · who's affected**
+
 - Headline: See exactly who it hits.
 - Body: Every change is matched to your clients by jurisdiction, form, and entity type, with a "needs review" flag where it's unsure. The affected-client list is computed before you even open the alert — "Texas raised the franchise-tax threshold; 12 clients may be affected."
 - Keys: J / K Move · ↵ Open
 
 **Step 03 — Apply · one click**
+
 - Headline: One click. The follow-up's already done.
 - Body: Push the change across every affected client in a single click — up to a hundred at once, sourced, audited, undo within 24h. The client email's drafted, the reminders are set, your worklist's re-ranked. Nothing's applied without your approval.
 - Keys: ⌘↵ Apply · ⌘Z Undo
@@ -198,27 +201,31 @@ DueDateHQ supports evidence-backed review; it is not tax advice or a filing syst
 
 # Hero options (to compare)
 
-Shared eyebrow, CTAs, chips, and promise strip above — only the headline + subhead change. Bar for all: clear on first read, and honest about what it does (it *catches changes and shows who's affected* — it doesn't claim to do everything for you). Pair any with the subhead in use above.
+Shared eyebrow, CTAs, chips, and promise strip above — only the headline + subhead change. Bar for all: clear on first read, and honest about what it does (it _catches changes and shows who's affected_ — it doesn't claim to do everything for you). Pair any with the subhead in use above.
 
 **Option A — clear + honest (✓ LOCKED — the hero headline)**
+
 - Headline: Catch every tax-deadline change — and see exactly who it affects.
-- *Says the two real things plainly: it catches the change, and it tells you which clients. No jargon, no overclaim.*
+- _Says the two real things plainly: it catches the change, and it tells you which clients. No jargon, no overclaim._
 
 **Option B — conversational**
+
 - Headline: When a tax rule changes, know which of your clients it affects.
-- *Reads like a colleague explaining it. Clearest of the set; slightly longer.*
+- _Reads like a colleague explaining it. Clearest of the set; slightly longer._
 
 **Option C — benefit, with scope (✓ now the hero eyebrow)**
+
 - Headline: Never miss a deadline change across all 50 states.
-- *Outcome-first; the "50 states" makes the scope concrete. Promoted to the eyebrow above the locked headline, so both liked lines ship together. Also the strongest A/B challenger if you want to test it as the headline.*
+- _Outcome-first; the "50 states" makes the scope concrete. Promoted to the eyebrow above the locked headline, so both liked lines ship together. Also the strongest A/B challenger if you want to test it as the headline._
 
 **Option D — professional, broad**
+
 - Headline: Stay on top of every client's filing deadlines.
-- *Plainest and most professional; safe but the least differentiated.*
+- _Plainest and most professional; safe but the least differentiated._
 
 > **Shipping together (all three liked lines, each in its role):** eyebrow = Option C ("Never miss a deadline change · all 50 states") · headline = Option A ("Catch every tax-deadline change — and see exactly who it affects") · promise strip = the punchy four-beat "Every deadline. Every change. Every client. Handled." The four-beat reinforces as a tagline; it doesn't stand alone as the literal promise (where "Handled" would risk overclaiming).
 
-> Two patterns to avoid (both flagged): overclaim — anything implying it *does the busywork for you* ("runs / handles it all") reads as misleading; and compression — insider shorthand like "who's hit" / "fix it in one click" that a cold reader can't parse. Stay concrete and literal.
+> Two patterns to avoid (both flagged): overclaim — anything implying it _does the busywork for you_ ("runs / handles it all") reads as misleading; and compression — insider shorthand like "who's hit" / "fix it in one click" that a cold reader can't parse. Stay concrete and literal.
 
 ---
 
@@ -235,5 +242,6 @@ Held for a long-form variant, a second page, or when the page needs more depth.
 **Standalone Coverage section** (folded into the nav pill + the Source-monitoring tile): Federal, fifty states, and DC — CA/NY/TX/FL/WA deepest, the rest held as candidates a human verifies before they become a reminder.
 
 **Dropped FAQs** (kept for a help/FAQ page):
-- *How long until I see value?* — Migration turns a paste or export into a full year of deadlines in about 30 minutes. Most owners run a real Monday triage the same day they load their clients.
-- *Is this tax advice?* — No — and it's careful never to pretend to be. It surfaces sources, risk, and next steps so you can decide faster. The professional judgment stays yours.
+
+- _How long until I see value?_ — Migration turns a paste or export into a full year of deadlines in about 30 minutes. Most owners run a real Monday triage the same day they load their clients.
+- _Is this tax advice?_ — No — and it's careful never to pretend to be. It surfaces sources, risk, and next steps so you can decide faster. The professional judgment stays yours.

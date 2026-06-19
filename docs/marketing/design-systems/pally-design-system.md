@@ -2,78 +2,78 @@
 
 A reusable "brand skill": the design language of pally.com, captured in enough detail to rebuild the look on DueDateHQ. Mirrors the 12-section structure and depth of `legora-design-system.md` (the format standard in this folder), but describes **Pally's own** language — which is the opposite temperament from Legora's editorial restraint. Source: pally.com (warm cream ground, friendly geometric sans, a single happy accent, emoji-anchored numbered use-case cards — ✈️ "Plan the trip", 💬 "Chase the reply", 🎂 "Never miss a birthday" … — and small app-badge chips for every connected tool) + the two `references - build/` clippings: the **document-parsing visual** (a notice on a gridded ground, parsed into labeled `address`/`table`/`line items`/`total` chips beside a "data-crystal" thumbnail) and the **editorial-serif hero** (Popcorn: rounded app-icon mark, "Now live!" pill, oversized serif headline, soft cloud gradient, phone mockups). 2026-06-18.
 
-> **§0 GLOBAL BUILD RULES apply (see `legora-design-system.md §0`): LIGHT ONLY.** This file describes Pally's *warm* version of those rules — every ground here is a light/warm one. Where Pally's site would reach for an inverted band for a "moment," DueDateHQ stays light and instead changes the *warmth* of the ground (recessed cream → coral-wash → a soft warm-gradient "spotlight"), never a dark section. The locked hero headline + every fact + every honesty rule are preserved; only the *supporting* copy is rewritten into Pally's warm-conversational voice.
+> **§0 GLOBAL BUILD RULES apply (see `legora-design-system.md §0`): LIGHT ONLY.** This file describes Pally's _warm_ version of those rules — every ground here is a light/warm one. Where Pally's site would reach for an inverted band for a "moment," DueDateHQ stays light and instead changes the _warmth_ of the ground (recessed cream → coral-wash → a soft warm-gradient "spotlight"), never a dark section. The locked hero headline + every fact + every honesty rule are preserved; only the _supporting_ copy is rewritten into Pally's warm-conversational voice.
 
 ---
 
 ## 1 · Essence
 
-**Warm · human · playful-modern · confidently friendly.** Where Legora withholds to earn authority, Pally *welcomes* to earn trust. The feeling is a capable friend's product, not an enterprise tool: warm off-white paper, soft-rounded everything, a single happy coral accent, friendly geometric sans, and tasteful emoji used as wayfinding rather than decoration. It feels approachable without being cute — the rounding and warmth do the work, the copy stays plain and grown-up.
+**Warm · human · playful-modern · confidently friendly.** Where Legora withholds to earn authority, Pally _welcomes_ to earn trust. The feeling is a capable friend's product, not an enterprise tool: warm off-white paper, soft-rounded everything, a single happy coral accent, friendly geometric sans, and tasteful emoji used as wayfinding rather than decoration. It feels approachable without being cute — the rounding and warmth do the work, the copy stays plain and grown-up.
 
-The single most distinctive move: **the "app-badge" chip is the atomic unit of the visual language** — a small rounded card with a colored rounded-square glyph + a short label, repeated everywhere (sources, integrations, parsed fields, queue rows). Information is presented as a *friendly inventory of small labeled tiles* rather than dense tables. The second signature: **the document-intelligence visual rendered warmly** — a real notice on a soft gridded ground, a "data-crystal" thumbnail with little corner tabs, and the extracted facts floating out as labeled chips (`address`, `table`, `line items`, `total`). It says "we read the messy paper and hand you clean, labeled facts" without a single line of jargon.
+The single most distinctive move: **the "app-badge" chip is the atomic unit of the visual language** — a small rounded card with a colored rounded-square glyph + a short label, repeated everywhere (sources, integrations, parsed fields, queue rows). Information is presented as a _friendly inventory of small labeled tiles_ rather than dense tables. The second signature: **the document-intelligence visual rendered warmly** — a real notice on a soft gridded ground, a "data-crystal" thumbnail with little corner tabs, and the extracted facts floating out as labeled chips (`address`, `table`, `line items`, `total`). It says "we read the messy paper and hand you clean, labeled facts" without a single line of jargon.
 
 ## 2 · Color
 
-Warm and optimistic: a cream ground, deep-navy ink (not black — friendlier), and **one coral accent** carrying all the energy. Status greens/ambers exist but stay quiet. Color here is allowed to feel *good*, not just mean something — but it's still disciplined to one hero hue.
+Warm and optimistic: a cream ground, deep-navy ink (not black — friendlier), and **one coral accent** carrying all the energy. Status greens/ambers exist but stay quiet. Color here is allowed to feel _good_, not just mean something — but it's still disciplined to one hero hue.
 
-| Token | Hex | Role |
-|---|---|---|
-| `ground` | `#FBF8F4` | Page ground (warm cream, slightly pinker than Legora's ivory) |
-| `ground-2` | `#F4EEE5` | Recessed bands, chip fills, inset wells |
-| `card` | `#FFFFFF` | Lifted card surface (cards ARE used here — see §5) |
-| `ink` | `#1B2A4A` | Primary text, headlines (warm deep navy, never pure black) |
-| `ink-soft` | `#4A5670` | Body / secondary |
-| `ink-faint` | `#7A859B` | Captions, meta, nav-secondary, eyebrows on light |
-| `coral` | `#FF6B4A` | THE accent — primary CTA, links, active state, energy |
-| `coral-deep` | `#E8512F` | CTA hover/pressed, coral text on light (AA) |
-| `coral-wash` | `#FFEDE7` | Coral eyebrow pills, step-number tiles, soft accent fills |
-| `mint` | `#1D9E75` | "Watching / live / verified / yes" status only |
-| `mint-wash` | `#E1F5EE` | Live-status pill fill, "next step" well |
-| `amber` | `#BA7517` text / `#FAEEDA` wash | Severity: urgent (warm, never alarm-red) |
-| `line` | `#E9E1D5` | Hairlines, card borders (warm, not gray) |
-| `line-strong` | `#DCD2C2` | Ghost-button border, stronger dividers |
-| `spotlight` | radial `coral-wash → ground` | The warm "moment" ground that *replaces* a dark band (emotional beats, consolidation) |
+| Token         | Hex                             | Role                                                                                  |
+| ------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `ground`      | `#FBF8F4`                       | Page ground (warm cream, slightly pinker than Legora's ivory)                         |
+| `ground-2`    | `#F4EEE5`                       | Recessed bands, chip fills, inset wells                                               |
+| `card`        | `#FFFFFF`                       | Lifted card surface (cards ARE used here — see §5)                                    |
+| `ink`         | `#1B2A4A`                       | Primary text, headlines (warm deep navy, never pure black)                            |
+| `ink-soft`    | `#4A5670`                       | Body / secondary                                                                      |
+| `ink-faint`   | `#7A859B`                       | Captions, meta, nav-secondary, eyebrows on light                                      |
+| `coral`       | `#FF6B4A`                       | THE accent — primary CTA, links, active state, energy                                 |
+| `coral-deep`  | `#E8512F`                       | CTA hover/pressed, coral text on light (AA)                                           |
+| `coral-wash`  | `#FFEDE7`                       | Coral eyebrow pills, step-number tiles, soft accent fills                             |
+| `mint`        | `#1D9E75`                       | "Watching / live / verified / yes" status only                                        |
+| `mint-wash`   | `#E1F5EE`                       | Live-status pill fill, "next step" well                                               |
+| `amber`       | `#BA7517` text / `#FAEEDA` wash | Severity: urgent (warm, never alarm-red)                                              |
+| `line`        | `#E9E1D5`                       | Hairlines, card borders (warm, not gray)                                              |
+| `line-strong` | `#DCD2C2`                       | Ghost-button border, stronger dividers                                                |
+| `spotlight`   | radial `coral-wash → ground`    | The warm "moment" ground that _replaces_ a dark band (emotional beats, consolidation) |
 
-**Rules:** cream ground everywhere; navy ink for type. **One** accent (coral) owns action, links, and emphasis — never introduce a second decorative hue. Status mint/amber appear *only* on status (a live blip, an Urgent pill, a verified check), never as decoration; urgency is warm amber, never red-alarm. App-badge glyphs may use per-source gradient fills (a small navy IRS tile, a coral CA tile, etc.) — this is the ONE place multi-color is sanctioned, because each glyph is an identity token, not decoration. Navy is used *only* as ink, as a glyph fill, and as the brand-mark square — **never as a section background** (§0 LIGHT ONLY). Contrast: ink on cream ≈ 12:1; coral-deep on cream ≈ 4.6:1 (AA for ≥18px / bold); always pair coral text with weight ≥600 or size ≥18px.
+**Rules:** cream ground everywhere; navy ink for type. **One** accent (coral) owns action, links, and emphasis — never introduce a second decorative hue. Status mint/amber appear _only_ on status (a live blip, an Urgent pill, a verified check), never as decoration; urgency is warm amber, never red-alarm. App-badge glyphs may use per-source gradient fills (a small navy IRS tile, a coral CA tile, etc.) — this is the ONE place multi-color is sanctioned, because each glyph is an identity token, not decoration. Navy is used _only_ as ink, as a glyph fill, and as the brand-mark square — **never as a section background** (§0 LIGHT ONLY). Contrast: ink on cream ≈ 12:1; coral-deep on cream ≈ 4.6:1 (AA for ≥18px / bold); always pair coral text with weight ≥600 or size ≥18px.
 
 ## 3 · Typography
 
 One friendly geometric sans does almost everything; a serif is reserved for the rare editorial "big moment" (the Popcorn reference hero), and a mono for data.
 
-| Family | Font (Google) | Fallback | Use |
-|---|---|---|---|
-| Display / UI | **Plus Jakarta Sans** | `-apple-system, Inter, system-ui` | Headlines, nav, body, labels, buttons — the workhorse. Rounded-humanist geometric; warmer than Inter, more modern than Nunito |
-| Editorial accent (optional) | **Fraunces** (opt. soft) or **Newsreader** italic | `Georgia, serif` | The one oversized "moment" headline or a single emphasis word, à la the serif reference |
-| Numerals / data | **Geist Mono** / `ui-monospace` | `SF Mono` | Stats, dates, EINs, queue counts, source meta (`tabular-nums`) |
+| Family                      | Font (Google)                                     | Fallback                          | Use                                                                                                                           |
+| --------------------------- | ------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Display / UI                | **Plus Jakarta Sans**                             | `-apple-system, Inter, system-ui` | Headlines, nav, body, labels, buttons — the workhorse. Rounded-humanist geometric; warmer than Inter, more modern than Nunito |
+| Editorial accent (optional) | **Fraunces** (opt. soft) or **Newsreader** italic | `Georgia, serif`                  | The one oversized "moment" headline or a single emphasis word, à la the serif reference                                       |
+| Numerals / data             | **Geist Mono** / `ui-monospace`                   | `SF Mono`                         | Stats, dates, EINs, queue counts, source meta (`tabular-nums`)                                                                |
 
 **Scale (px · weight · line-height · tracking):**
 
-| Token | Size | Wt | LH | Tracking |
-|---|---|---|---|---|
-| eyebrow | 12.5 | 700 | 1 | `0.12em` UPPERCASE |
-| body-sm | 14 | 400–500 | 1.55 | 0 |
-| body | 16 | 400 | 1.6 | 0 |
-| lead | 18–20 | 400–500 | 1.6 | `-0.005em` |
-| h3 (card title) | 19–21 | 800 | 1.2 | `-0.02em` |
-| h2 (section) | clamp(28–42) | 800 | 1.1 | `-0.02em` |
-| display (hero) | clamp(34–62) | 800 | 1.04 | `-0.03em` |
-| serif moment (opt.) | clamp(40–72) | 500–600 *serif* | 1.05 | `-0.02em` |
+| Token               | Size         | Wt              | LH   | Tracking           |
+| ------------------- | ------------ | --------------- | ---- | ------------------ |
+| eyebrow             | 12.5         | 700             | 1    | `0.12em` UPPERCASE |
+| body-sm             | 14           | 400–500         | 1.55 | 0                  |
+| body                | 16           | 400             | 1.6  | 0                  |
+| lead                | 18–20        | 400–500         | 1.6  | `-0.005em`         |
+| h3 (card title)     | 19–21        | 800             | 1.2  | `-0.02em`          |
+| h2 (section)        | clamp(28–42) | 800             | 1.1  | `-0.02em`          |
+| display (hero)      | clamp(34–62) | 800             | 1.04 | `-0.03em`          |
+| serif moment (opt.) | clamp(40–72) | 500–600 _serif_ | 1.05 | `-0.02em`          |
 
-**Usage:** headlines are **bold (800)**, tight, friendly — Pally leans *heavier* than Legora (which sits at 600), because weight reads as confidence-with-warmth here. Eyebrows are coral, uppercase, tracked, set in a `coral-wash` pill (not bare text). Body is generous at 16/1.6. Numbers are mono + tabular. The serif is optional and rare: use it for at most one oversized hero or one pull-moment, never for UI. Emoji sit on the text baseline at ~1.2–1.4× the cap height, treated as a glyph in the type stream (see §7).
+**Usage:** headlines are **bold (800)**, tight, friendly — Pally leans _heavier_ than Legora (which sits at 600), because weight reads as confidence-with-warmth here. Eyebrows are coral, uppercase, tracked, set in a `coral-wash` pill (not bare text). Body is generous at 16/1.6. Numbers are mono + tabular. The serif is optional and rare: use it for at most one oversized hero or one pull-moment, never for UI. Emoji sit on the text baseline at ~1.2–1.4× the cap height, treated as a glyph in the type stream (see §7).
 
 ## 4 · Spacing & layout
 
 - **Base** 4px. Vertical section padding **80–96px** desktop / **56–64px** mobile. Roomy, but not the cathedral-whitespace of Legora — warmth wants things a touch closer and more populated.
 - **Max content width** ~1120px, centered.
 - **Grid** 12-col, 24px gutter. **The hero is centered** (this is the big departure from Legora's left-aligned editorial hero) — Pally is unashamedly a friendly landing page, so the hero centers headline + subhead + CTAs and drops the product surface beneath, centered.
-- **Rhythm:** alternating *grounds* are allowed and encouraged — a cream section, then a recessed `ground-2` band, then a warm **`spotlight`** band (a soft `coral-wash → ground` radial) for a "moment" (villain beat, consolidation). The mood changes section to section by shifting *warmth*, not by going dark; this is a guided tour, not one continuous sheet, and never an inverted band (§0 LIGHT ONLY). Cards (§5) carry content within sections.
+- **Rhythm:** alternating _grounds_ are allowed and encouraged — a cream section, then a recessed `ground-2` band, then a warm **`spotlight`** band (a soft `coral-wash → ground` radial) for a "moment" (villain beat, consolidation). The mood changes section to section by shifting _warmth_, not by going dark; this is a guided tour, not one continuous sheet, and never an inverted band (§0 LIGHT ONLY). Cards (§5) carry content within sections.
 - **Card grids** are the default content container — 3-up on desktop, 2-up tablet, 1-up mobile — with comfortable 18–20px gaps.
 
 ## 5 · Radius · borders · elevation
 
 This is where Pally most diverges from Legora's low-radius seriousness.
 
-- **Radius scale (generous, soft):** **24px** on content cards/surfaces · **32px** on the big CTA "pillow" card · **14px** on buttons, inputs, and app-badge chips · **8–12px** on small glyph tiles & kbd · **999px** on pills/eyebrows/status. Nothing is sharp. The rounding *is* the friendliness.
+- **Radius scale (generous, soft):** **24px** on content cards/surfaces · **32px** on the big CTA "pillow" card · **14px** on buttons, inputs, and app-badge chips · **8–12px** on small glyph tiles & kbd · **999px** on pills/eyebrows/status. Nothing is sharp. The rounding _is_ the friendliness.
 - **Borders:** 1px warm `line` on cards (a hairline, but on a rounded box). Ghost buttons get 1.5px `line-strong`. Borders are present but quiet — the radius + soft shadow does most of the separating.
 - **Elevation:** **soft, real, but restrained.** Cards rest on a two-stop soft shadow (`0 1px 2px rgba(27,42,74,.04), 0 8px 28px rgba(27,42,74,.06)`); on hover they lift ~3–4px to a deeper but still gentle shadow. The coral CTA carries a tinted coral shadow (`0 6px 16px rgba(255,107,74,.28)`) — the one place a shadow is allowed color. No hard drop-shadows, no glow, no glass. Shadow blur stays ≤ ~48px and opacity ≤ ~.12.
 
@@ -97,7 +97,7 @@ This is where Pally most diverges from Legora's low-radius seriousness.
 
 ## 7 · Imagery & iconography
 
-- **The signature image is the warm document-intelligence visual.** Rebuild the reference clipping in DueDateHQ's terms: a real **official notice** (IRS / state comptroller) rendered as a paper document on a **soft gridded ground**, beside a small **"data-crystal" thumbnail card with little corner tabs** (the "we read this" moment), with the change *extracted* into a cluster of floating **app-badge field chips** — here `deadline`, `jurisdiction`, `form`, `affected clients` (the tax analogue of the reference's `address`/`table`/`line items`/`total`). It must look like a friendly tool quietly handing you clean labeled facts, not a SaaS hero illustration.
+- **The signature image is the warm document-intelligence visual.** Rebuild the reference clipping in DueDateHQ's terms: a real **official notice** (IRS / state comptroller) rendered as a paper document on a **soft gridded ground**, beside a small **"data-crystal" thumbnail card with little corner tabs** (the "we read this" moment), with the change _extracted_ into a cluster of floating **app-badge field chips** — here `deadline`, `jurisdiction`, `form`, `affected clients` (the tax analogue of the reference's `address`/`table`/`line items`/`total`). It must look like a friendly tool quietly handing you clean labeled facts, not a SaaS hero illustration.
 - **App icons / glyph tiles** are a core asset: small rounded-square tiles with a per-source gradient and a 2–3 letter abbreviation (IRS, CA, NY, TX, FL, WA, FEMA, DC). These stand in for "logos we watch" honestly — no real agency seals, no fake partner logos.
 - **Emoji as wayfinding, not decoration:** one emoji anchors each use-case/villain/FAQ card (👀 watch, 🎯 match, ✉️ draft, ⏰ remind, 📎 evidence, ↩️ undo; 🌐/📨/📊 for the villain threads). One per card, baseline-aligned, `aria-hidden`. Never sprinkle emoji into body copy or use more than one per element.
 - **Product UI**, when shown, is rendered warmly: cream/white cards, rounded corners, mono numbers, app-badge leads, a soft browser-chrome bar with three dots and a "live preview · not your data" caption.
@@ -112,7 +112,7 @@ This is where Pally most diverges from Legora's low-radius seriousness.
 
 ## 9 · Voice & visual copy treatment
 
-Plain, warm, confident — like a sharp, capable friend, never a chatbot or a hype-machine. Outcomes stated simply; the emoji and rounding carry the friendliness so the *words* can stay grown-up and honest. Eyebrows are short coral labels in a pill. The "principle" beat (glass-box trust) is stated plainly in a paragraph with one tag-pill ("🔍 We call it glass-box"), not a serif manifesto. Microcopy is mono where it's data (dates, counts, sources). Crucially: warmth never tips into overclaim — the honesty rules (§12) override the friendly tone.
+Plain, warm, confident — like a sharp, capable friend, never a chatbot or a hype-machine. Outcomes stated simply; the emoji and rounding carry the friendliness so the _words_ can stay grown-up and honest. Eyebrows are short coral labels in a pill. The "principle" beat (glass-box trust) is stated plainly in a paragraph with one tag-pill ("🔍 We call it glass-box"), not a serif manifesto. Microcopy is mono where it's data (dates, counts, sources). Crucially: warmth never tips into overclaim — the honesty rules (§12) override the friendly tone.
 
 ## 10 · Signature section patterns
 
