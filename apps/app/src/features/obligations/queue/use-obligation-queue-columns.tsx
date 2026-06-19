@@ -7,7 +7,7 @@ import { type RefObject, useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type ColumnDef } from '@tanstack/react-table'
 import type { SetValues } from 'nuqs'
-import { CircleCheckIcon, CircleDollarSignIcon, EyeIcon, Hourglass } from 'lucide-react'
+import { CircleCheckIcon, CircleDollarSignIcon, EyeIcon, HourglassIcon } from 'lucide-react'
 
 import {
   type MemberAssigneeOption,
@@ -673,7 +673,7 @@ export function useObligationQueueColumns(
                     aria-label={t`Awaiting signature`}
                     className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
                   >
-                    <Hourglass className="size-3.5" aria-hidden />
+                    <HourglassIcon className="size-3.5" aria-hidden />
                   </span>
                 ) : (
                   <Badge
@@ -681,7 +681,7 @@ export function useObligationQueueColumns(
                     className="h-5 gap-1 px-1.5 text-caption-xs"
                     title={t`Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign.`}
                   >
-                    <Hourglass className="size-3" aria-hidden />
+                    <HourglassIcon className="size-3" aria-hidden />
                     <Trans>Awaiting signature</Trans>
                   </Badge>
                 )

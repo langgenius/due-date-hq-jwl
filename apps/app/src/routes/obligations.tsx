@@ -16,16 +16,14 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
-  ChevronsUpDown,
-  ChevronUp,
-  ChevronDown,
-  CircleCheck,
-  Hourglass,
-  Loader2,
+  ChevronsUpDownIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  CircleCheckIcon,
+  HourglassIcon,
+  Loader2Icon,
   ArrowUpRightIcon,
   CalendarDaysIcon,
-  CircleCheckIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CircleDollarSignIcon,
@@ -2693,7 +2691,7 @@ export function ObligationQueueRoute() {
                       aria-label={t`Awaiting signature`}
                       className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
                     >
-                      <Hourglass className="size-3.5" aria-hidden />
+                      <HourglassIcon className="size-3.5" aria-hidden />
                     </span>
                   ) : null
                 ) : null}
@@ -4160,7 +4158,7 @@ export function ObligationQueueRoute() {
                 }
                 onClick={confirmSelectedProjected}
               >
-                <CircleCheck data-icon="inline-start" />
+                <CircleCheckIcon data-icon="inline-start" />
                 <Trans>Confirm projected</Trans>
               </Button>
               {/* Secondary actions collapse under a single "More" overflow
@@ -4991,7 +4989,7 @@ export function ObligationQueueRoute() {
             >
               {exportMutation.isPending ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                   <Trans>Exporting…</Trans>
                 </>
               ) : (
@@ -5174,15 +5172,15 @@ function ObligationQueueSortableHeader({
   //   - The range filter trigger stays a sibling icon button. Keeping
   //     sort and filter as siblings avoids invalid nested button
   //     markup when this header renders inside a dropdown trigger.
-  //   - Unsorted columns render a faint ChevronsUpDown so the
+  //   - Unsorted columns render a faint ChevronsUpDownIcon so the
   //     "this is sortable" affordance is always visible. The faint icon
   //     sits at `text-text-tertiary/40` so it disappears against busy
   //     content but resolves into a "click me to sort" hint on scan.
-  //   - Sorted columns render a small ChevronUp / ChevronDown inline in
+  //   - Sorted columns render a small ChevronUpIcon / ChevronDownIcon inline in
   //     the accent color — quieter than bold arrows and matches the
   //     chevron vocabulary used elsewhere (dropdowns, breadcrumbs,
   //     drawer triggers).
-  const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
+  const SortIcon = direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
 
   return (
     <span className="-mx-1 inline-flex min-w-0 items-center gap-0.5">
@@ -5214,7 +5212,7 @@ function ObligationQueueSortableHeader({
           // neutral, not accent-blue — its presence + direction is the signal.
           <SortIcon className="size-3 shrink-0 text-text-secondary" aria-hidden />
         ) : (
-          <ChevronsUpDown
+          <ChevronsUpDownIcon
             className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover:text-text-tertiary"
             aria-hidden
           />
@@ -7246,7 +7244,7 @@ function CalendarSyncPopover() {
                 aria-busy={upsertMutation.isPending}
               >
                 {upsertMutation.isPending ? (
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                 ) : null}
                 <Trans>Enable subscription</Trans>
               </Button>
@@ -7309,7 +7307,7 @@ function CalendarSyncPopover() {
             >
               {regenerateMutation.isPending ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                   <Trans>Regenerating…</Trans>
                 </>
               ) : (

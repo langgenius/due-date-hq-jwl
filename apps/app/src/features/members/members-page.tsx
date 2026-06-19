@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { msg } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { I18n } from '@lingui/core'
-import { TriangleAlertIcon, EllipsisIcon, Loader2, PlusIcon } from 'lucide-react'
+import { TriangleAlertIcon, EllipsisIcon, Loader2Icon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
   MemberInvitationPublic,
@@ -1240,7 +1240,7 @@ function InviteMemberDialog({
             </Alert>
           ) : null}
           <DialogFooter>
-            {/* Send-invite announces aria-busy + shows a Loader2 spinner while
+            {/* Send-invite announces aria-busy + shows a Loader2Icon spinner while
                 pending. */}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
@@ -1252,7 +1252,7 @@ function InviteMemberDialog({
               aria-busy={inviteMutation.isPending}
             >
               {inviteMutation.isPending ? (
-                <Loader2 data-icon="inline-start" className="animate-spin" />
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
               ) : null}
               {inviteMutation.isPending ? <Trans>Sending…</Trans> : <Trans>Send invite</Trans>}
             </Button>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon, ChevronsUpDownIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -10,11 +10,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * different icon vocabularies and idle policies — clients used up/down ARROWS
  * with no idle icon; deadlines used CHEVRONS + a faint idle dual-chevron. This
  * unifies on the deadlines treatment (it's the better-designed one):
- *   - idle  → faint `ChevronsUpDown` at 40% so "this is sortable" is always
+ *   - idle  → faint `ChevronsUpDownIcon` at 40% so "this is sortable" is always
  *             visible and resolves into a hint on hover (clients used to look
  *             inert until clicked).
- *   - asc   → `ChevronUp` in the accent color.
- *   - desc  → `ChevronDown` in the accent color.
+ *   - asc   → `ChevronUpIcon` in the accent color.
+ *   - desc  → `ChevronDownIcon` in the accent color.
  * Chevrons (not arrows) match the app's chevron vocabulary (dropdowns,
  * breadcrumbs, drawer triggers).
  *
@@ -45,7 +45,7 @@ export function SortableHeader({
   className?: string
   children?: ReactNode
 }) {
-  const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
+  const SortIcon = direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
 
   return (
     <span
@@ -71,7 +71,7 @@ export function SortableHeader({
         {SortIcon ? (
           <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
         ) : (
-          <ChevronsUpDown
+          <ChevronsUpDownIcon
             className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover/sort:text-text-tertiary"
             aria-hidden
           />

@@ -555,7 +555,7 @@ export function CreateClientDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            {/* Step 6 UX #78: Loader2 spinner during pending matches
+            {/* Step 6 UX #78: Loader2Icon spinner during pending matches
                 cross-app pattern. `aria-busy={isPending}` (raw bool)
                 stays semantic for AT even with disabled; HEAD's
                 `|| undefined` defaulted to bare attribute when truthy

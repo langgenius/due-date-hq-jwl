@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ExternalLinkIcon, Plus } from 'lucide-react'
+import { ArrowUpRightIcon, ExternalLinkIcon, PlusIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -500,7 +500,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       )}
     >
       <span className="inline-flex items-center gap-1 text-sm">
-        <Plus
+        <PlusIcon
           className="size-3.5 transition-transform group-hover/overflow:rotate-90"
           aria-hidden
         />

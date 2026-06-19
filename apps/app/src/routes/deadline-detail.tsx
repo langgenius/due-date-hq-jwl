@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
-import { SearchX } from 'lucide-react'
+import { SearchXIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -167,7 +167,7 @@ export function DeadlineDetailRoute() {
             variant="prominent"
             iconTone="neutral"
             fill
-            icon={SearchX}
+            icon={SearchXIcon}
             title={<Trans>Deadline not found</Trans>}
             description={
               <Trans>

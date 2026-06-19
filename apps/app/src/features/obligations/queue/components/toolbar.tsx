@@ -50,13 +50,13 @@ export function ObligationQueueSortableHeader({
   //   - The range filter trigger stays a sibling icon button. Keeping
   //     sort and filter as siblings avoids invalid nested button
   //     markup when this header renders inside a dropdown trigger.
-  //   - Unsorted columns render a faint ChevronsUpDown so the
+  //   - Unsorted columns render a faint ChevronsUpDownIcon so the
   //     "this is sortable" affordance is always visible (the column
   //     would otherwise look inert until you clicked). The faint icon
   //     sits at `text-text-tertiary/40` so it disappears against busy
   //     content but resolves into a "click me to sort" hint on
   //     scan.
-  //   - Sorted columns render a small ChevronUp / ChevronDown
+  //   - Sorted columns render a small ChevronUpIcon / ChevronDownIcon
   //     inline in the accent color — quieter than the bold arrows
   //     and matches the chevron vocabulary used elsewhere
   //     (dropdowns, breadcrumbs, drawer triggers).

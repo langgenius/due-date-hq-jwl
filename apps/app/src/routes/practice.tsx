@@ -10,7 +10,7 @@ import {
   Building2Icon,
   CalculatorIcon,
   GaugeIcon,
-  Loader2,
+  Loader2Icon,
   MinusIcon,
   RotateCcwIcon,
   SlidersHorizontalIcon,
@@ -469,7 +469,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
 
   return (
     // Canonical `<PageHeader>` for the breadcrumb + header block. The
-    // brand-tinted Building2 icon stays inside the title prop as a
+    // brand-tinted Building2Icon icon stays inside the title prop as a
     // leading flourish; the role badge moves to the `actions` slot.
     // The firm-summary wrapper keeps its `role="note"` so screen
     // readers announce it as a complementary annotation.
@@ -803,7 +803,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                             }
                           >
                             {previewMutation.isPending ? (
-                              <Loader2 className="size-4 animate-spin" aria-hidden />
+                              <Loader2Icon className="size-4 animate-spin" aria-hidden />
                             ) : (
                               <CalculatorIcon className="size-4" aria-hidden />
                             )}
@@ -832,7 +832,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   >
                     {priorityUpdateMutation.isPending ? (
                       <>
-                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                        <Loader2Icon className="size-4 animate-spin" aria-hidden />
                         <Trans>Saving…</Trans>
                       </>
                     ) : (

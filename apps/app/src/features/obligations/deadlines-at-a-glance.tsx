@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { CircleAlertIcon, Clock3Icon, FlameIcon } from 'lucide-react'
+import { CircleAlertIcon, ClockIcon, FlameIcon } from 'lucide-react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
@@ -148,7 +148,7 @@ export function DeadlinesAtAGlance({
             ariaLabel={t`View overdue deadlines`}
           />
           <NarrativeTile
-            icon={Clock3Icon}
+            icon={ClockIcon}
             tone="warning"
             label={<Trans>This week</Trans>}
             loading={isLoading}

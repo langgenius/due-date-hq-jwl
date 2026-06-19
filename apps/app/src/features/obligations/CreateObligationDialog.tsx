@@ -1429,7 +1429,7 @@ export function CreateObligationDialog({
                 }
                 aria-busy={createMutation.isPending || undefined}
               >
-                {/* Loader2 spinner during pending matches the cross-app
+                {/* Loader2Icon spinner during pending matches the cross-app
                     mutation-button pattern: spinner + label text together. */}
                 {createMutation.isPending ? (
                   <Loader2Icon className="size-4 animate-spin" aria-hidden />

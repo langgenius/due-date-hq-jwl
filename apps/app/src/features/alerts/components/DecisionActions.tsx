@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Loader2, type LucideIcon } from 'lucide-react'
+import { Loader2Icon, type LucideIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -47,7 +47,7 @@ export function DecisionActions({
     <div className={cn('flex w-full flex-wrap items-center gap-2.5', className)}>
       <Button onClick={primary.onClick} disabled={loading || primary.disabled}>
         {loading ? (
-          <Loader2 data-icon="inline-start" className="animate-spin" />
+          <Loader2Icon data-icon="inline-start" className="animate-spin" />
         ) : PrimaryIcon ? (
           <PrimaryIcon data-icon="inline-start" />
         ) : null}

@@ -7,7 +7,7 @@ import {
   CheckCheckIcon,
   CheckIcon,
   InboxIcon,
-  Loader2,
+  Loader2Icon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -415,7 +415,7 @@ export function NotificationsPage() {
             >
               {notificationsQuery.isFetchingNextPage ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                   <Trans>Loading…</Trans>
                 </>
               ) : (

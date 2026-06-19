@@ -169,7 +169,7 @@ export function ReadinessPortalRoute() {
         {portalQuery.isLoading ? (
           // Public-portal clients waiting 2+ seconds on a slow connection
           // need a motion signal so the page doesn't read as static. The
-          // Loader2 spin gives an unambiguous "system is working" beat.
+          // Loader2Icon spin gives an unambiguous "system is working" beat.
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-10 text-center text-sm text-text-tertiary">
               <Loader2Icon className="size-5 animate-spin" aria-hidden />
@@ -291,7 +291,7 @@ export function ReadinessPortalRoute() {
                 )
               })}
               <Separator />
-              {/* The Loader2 spin matches the cross-app submit-pending pattern
+              {/* The Loader2Icon spin matches the cross-app submit-pending pattern
                   + the label switches to "Submitting…" so the client knows
                   something is happening while the button is disabled. */}
               <Button

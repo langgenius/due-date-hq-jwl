@@ -4,8 +4,8 @@
  * Click an icon to copy its import name. Internal design utility — plain English,
  * not localized, same as `/preview`.
  *
- * SNAPSHOT generated 2026-06-18 (post icon-audit merge). To refresh after icons
- * change, re-run:
+ * SNAPSHOT generated 2026-06-18 (post icon-audit consolidation + naming pass). To
+ * refresh, re-run:
  *   perl -0777 -ne 'while (/import\s*\{([^}]*)\}\s*from\s*["\x27]lucide-react["\x27]/gs){print "$1\n"}' \
  *     $(grep -rl "from '"'"'lucide-react'"'"'" apps/app/src packages/ui/src | grep -v routes/icons.tsx) \
  *     | tr ',' '\n' | sed -E 's#//.*##; s/\s//g' | grep -E '^[A-Za-z]' \
@@ -60,7 +60,6 @@ import {
   ClipboardCheckIcon,
   ClipboardListIcon,
   ClockIcon,
-  Clock3Icon,
   CoffeeIcon,
   Columns3Icon,
   ConstructionIcon,
@@ -71,7 +70,6 @@ import {
   CrownIcon,
   DollarSignIcon,
   DownloadIcon,
-  Edit3Icon,
   EllipsisIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
@@ -237,7 +235,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'ClipboardCheckIcon', Icon: ClipboardCheckIcon },
   { name: 'ClipboardListIcon', Icon: ClipboardListIcon },
   { name: 'ClockIcon', Icon: ClockIcon },
-  { name: 'Clock3Icon', Icon: Clock3Icon },
   { name: 'CoffeeIcon', Icon: CoffeeIcon },
   { name: 'Columns3Icon', Icon: Columns3Icon },
   { name: 'ConstructionIcon', Icon: ConstructionIcon },
@@ -248,7 +245,6 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'CrownIcon', Icon: CrownIcon },
   { name: 'DollarSignIcon', Icon: DollarSignIcon },
   { name: 'DownloadIcon', Icon: DownloadIcon },
-  { name: 'Edit3Icon', Icon: Edit3Icon },
   { name: 'EllipsisIcon', Icon: EllipsisIcon },
   { name: 'EllipsisVerticalIcon', Icon: EllipsisVerticalIcon },
   { name: 'ExternalLinkIcon', Icon: ExternalLinkIcon },

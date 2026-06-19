@@ -133,8 +133,8 @@ import {
   FileTextIcon,
   HistoryIcon,
   LinkIcon,
-  Loader2,
-  MessageSquareText,
+  Loader2Icon,
+  MessageSquareTextIcon,
   PaperclipIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -2253,7 +2253,7 @@ export function ObligationQueueDetailDrawer({
                   className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
                   title={latestInputRequestTitle}
                 >
-                  <MessageSquareText className="size-3.5" aria-hidden />
+                  <MessageSquareTextIcon className="size-3.5" aria-hidden />
                   <Trans>Input requested</Trans>
                 </Badge>
               ) : null}
@@ -4053,11 +4053,11 @@ export function ObligationQueueDetailDrawer({
                                 {/* 2026-05-27 (σ cross-route audit D10):
                                 Save in tax-year-profile drawer drifted
                                 from the cross-app mutation-button
-                                pattern — relabel only, no Loader2 + no
+                                pattern — relabel only, no Loader2Icon + no
                                 aria-busy. Step 6 cont X2 canon: spinner
                                 + busy state + label-change together. */}
                                 {updateTaxYearProfileMutation.isPending ? (
-                                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                                  <Loader2Icon className="size-4 animate-spin" aria-hidden />
                                 ) : null}
                                 {updateTaxYearProfileMutation.isPending ? (
                                   <Trans>Saving…</Trans>
@@ -4988,7 +4988,7 @@ export function ObligationQueueDetailDrawer({
                   onClick={openRequestInputDialog}
                   disabled={requestInputMutation.isPending}
                 >
-                  <MessageSquareText data-icon="inline-start" />
+                  <MessageSquareTextIcon data-icon="inline-start" />
                   <Trans>Request input</Trans>
                 </Button>
               ) : null}

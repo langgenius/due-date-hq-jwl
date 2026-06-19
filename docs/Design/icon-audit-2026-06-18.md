@@ -16,11 +16,22 @@
 - **#3 AI marker — DONE (Yuqi: Sparkles).** `Astroid*` + `WandSparkles*` →
   `SparklesIcon`. The unique-glyph count dropped 177 → **171**; `/icons` reflects
   it (no Astroid / WandSparkles / AlertCircle; SparklesIcon present).
-- **#2 `X`/`XIcon` naming — DEFERRED.** Holding: a blind `\bCheck\b`/`\bPlus\b`/
-  `\bCircle\b` regex would corrupt those words inside strings/identifiers, and
-  it's cosmetic-only (both render identically + typecheck). Needs a real codemod
-  (ts-morph), not regex — out of scope for a safe same-day pass.
-- **#4 / #5 / #6 — open** (edit-glyph pick, concept-sprawl table, a11y `/audit`).
+- **#2 `X`/`XIcon` naming — DONE.** The risk was overstated: the precise
+  bare-import set was 14 mostly-icon-specific compounds (`Check`/`Circle`/`Clock`
+  turned out to be 0 files; `Plus` 1, verified collision-free). Codemod suffixed
+  them all (`Plus`→`PlusIcon`, `Loader2`→`Loader2Icon`, `Building2`→`Building2Icon`,
+  …); `Crown` done targeted to preserve its explanatory comments.
+- **#4 edit glyph — DONE.** `Edit3Icon` → `PencilIcon` (the only real feature
+  usage was reminders; Pencil/PenLine otherwise appeared only in galleries).
+- **#5 concept sprawl — DONE.** `Clock3Icon` → `ClockIcon` (one clock glyph); and
+  added `icon-vocabulary.md` — the canonical concept→glyph table (icon analogue of
+  §4.11) to stop future synonym drift.
+- **#6 icon-button a11y — VERIFIED CLEAN.** A focused audit found **zero** genuine
+  violations: every icon-only control already carries an accessible name
+  (`aria-label` / `title` / `sr-only` / Tooltip-or-Popover wrapper). The rough ~43
+  count was all false-positives (label on an adjacent line). No fixes needed.
+
+All audit findings are now closed. Unique glyph count: 177 → **169**.
 
 ## Severity summary
 

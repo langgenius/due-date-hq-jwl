@@ -55,15 +55,14 @@ import {
   ArrowUpRightIcon,
   CircleCheckIcon,
   ChevronRightIcon,
-  CircleCheck,
   ClipboardListIcon,
-  Clock,
-  Construction,
-  FileCheck,
-  Hourglass,
-  Loader,
-  Loader2,
-  MessageSquareText,
+  ClockIcon,
+  ConstructionIcon,
+  FileCheckIcon,
+  HourglassIcon,
+  LoaderIcon,
+  Loader2Icon,
+  MessageSquareTextIcon,
 } from 'lucide-react'
 import { Fragment, type ReactNode, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -979,16 +978,16 @@ export function PathToFilingSummary({
                     // pill, the scope tabs, and the status dropdown.
                     const StageIcon = (
                       stage.key === 'pending'
-                        ? Loader
+                        ? LoaderIcon
                         : stage.key === 'waiting_on_client'
-                          ? Hourglass
+                          ? HourglassIcon
                           : stage.key === 'blocked'
-                            ? Construction
+                            ? ConstructionIcon
                             : stage.key === 'review'
-                              ? MessageSquareText
+                              ? MessageSquareTextIcon
                               : stage.key === 'done'
-                                ? FileCheck
-                                : CircleCheck
+                                ? FileCheckIcon
+                                : CircleCheckIcon
                     ) as React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
                     return <StageIcon className="size-3" aria-hidden />
                   })()}
@@ -1227,7 +1226,7 @@ export function AuthorityResponsePanel({
           </p>
         </div>
         <Badge variant="warning">
-          <Clock className="size-3" aria-hidden />
+          <ClockIcon className="size-3" aria-hidden />
           <Trans>Pending</Trans>
         </Badge>
       </div>
@@ -1246,7 +1245,7 @@ export function AuthorityResponsePanel({
           aria-busy={accepting}
         >
           {accepting ? (
-            <Loader2 data-icon="inline-start" className="animate-spin" />
+            <Loader2Icon data-icon="inline-start" className="animate-spin" />
           ) : (
             <CircleCheckIcon data-icon="inline-start" />
           )}

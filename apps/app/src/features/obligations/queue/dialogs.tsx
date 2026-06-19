@@ -50,7 +50,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ExternalLinkIcon,
-  Loader2,
+  Loader2Icon,
   SendIcon,
 } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
@@ -668,7 +668,7 @@ export function DeadlineInputRequestDialog({
           </Button>
           <Button type="button" onClick={onSubmit} disabled={submitDisabled} aria-busy={submitting}>
             {submitting ? (
-              <Loader2 data-icon="inline-start" className="animate-spin" />
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
             ) : (
               <SendIcon data-icon="inline-start" />
             )}
@@ -833,7 +833,7 @@ export function AuthorityRejectionDialog({
           </Button>
           <Button type="button" onClick={onSubmit} disabled={submitting} aria-busy={submitting}>
             {submitting ? (
-              <Loader2 data-icon="inline-start" className="animate-spin" />
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
             ) : (
               <TriangleAlertIcon data-icon="inline-start" />
             )}

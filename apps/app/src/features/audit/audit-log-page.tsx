@@ -7,7 +7,7 @@ import {
   ChevronRightIcon,
   DownloadIcon,
   FilterIcon,
-  Loader2,
+  Loader2Icon,
   ScrollTextIcon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
@@ -523,7 +523,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             )}
           </div>
           <DialogFooter>
-            {/* Download / request buttons announce aria-busy + show a Loader2
+            {/* Download / request buttons announce aria-busy + show a Loader2Icon
                 spinner while pending. */}
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Close</Trans>
@@ -532,7 +532,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
               // Hold the action until the lookup resolves so we don't offer
               // "Request export" when a ready package is about to appear.
               <Button disabled aria-busy>
-                <Loader2 data-icon="inline-start" className="animate-spin" />
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
                 <Trans>Loading…</Trans>
               </Button>
             ) : latest?.status === 'ready' ? (
@@ -542,7 +542,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={createDownloadUrl.isPending}
               >
                 {createDownloadUrl.isPending ? (
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                 ) : (
                   <DownloadIcon data-icon="inline-start" />
                 )}
@@ -555,7 +555,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={requestPackage.isPending}
               >
                 {requestPackage.isPending ? (
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                 ) : null}
                 <Trans>Request export</Trans>
               </Button>

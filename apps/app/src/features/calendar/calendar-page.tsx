@@ -9,7 +9,7 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   LinkIcon,
-  Loader2,
+  Loader2Icon,
   RefreshCwIcon,
   ShieldIcon,
   UnlinkIcon,
@@ -315,11 +315,11 @@ export function CalendarPage() {
                 }
               }}
             >
-              {/* Loader2 spinner on the pending Regenerate action so the user
+              {/* Loader2Icon spinner on the pending Regenerate action so the user
                   has a visible signal. */}
               {regenerateMutation.isPending ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                   <Trans>Regenerating…</Trans>
                 </>
               ) : (
@@ -387,10 +387,10 @@ export function CalendarPage() {
                 }
               }}
             >
-              {/* Loader2 spinner on the pending Disable action. */}
+              {/* Loader2Icon spinner on the pending Disable action. */}
               {disableMutation.isPending ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
                   <Trans>Disabling…</Trans>
                 </>
               ) : (

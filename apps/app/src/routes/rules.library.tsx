@@ -7,20 +7,20 @@ import {
   ArrowUpFromLineIcon,
   ArrowRightIcon,
   ArrowUpRightIcon,
-  CalendarClock,
-  Check,
-  Clock3,
-  Sparkles,
+  CalendarClockIcon,
+  CheckIcon,
+  ClockIcon,
+  SparklesIcon,
   ChevronRightIcon,
-  Circle,
-  CircleCheck,
-  ShieldCheck,
+  CircleIcon,
+  CircleCheckIcon,
+  ShieldCheckIcon,
   ExternalLinkIcon,
   EyeIcon,
   LayersIcon,
   LibraryIcon,
   LinkIcon,
-  Loader2,
+  Loader2Icon,
   LockIcon,
   PlusIcon,
   TriangleAlertIcon,
@@ -406,14 +406,14 @@ function EntityApplicabilityCell({ applies, status }: { applies: boolean; status
     // hover treatment. The whole row's "active" identity reads as one
     // motion — bullet greens + every applicable-entity tick greens together.
     return (
-      <Check
+      <CheckIcon
         aria-hidden
         className="mx-auto size-3.5 text-text-tertiary transition-colors group-hover/row:text-state-success-solid"
       />
     )
   }
   if (tone === 'review') {
-    return <Circle aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
+    return <CircleIcon aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
   }
   return (
     <span
@@ -975,7 +975,7 @@ function OverviewRecentChangesCard({
             status and change activity are different things. */}
         <EmptyState
           density="compact"
-          icon={CircleCheck}
+          icon={CircleCheckIcon}
           iconTone="neutral"
           title={<Trans>No rule changes in the last 30 days</Trans>}
           description={
@@ -1121,7 +1121,7 @@ function OverviewCaughtUpCard({
           aria-hidden
           className="flex size-12 items-center justify-center rounded-full bg-state-success-hover"
         >
-          <Check className="size-[22px] text-state-success-solid" />
+          <CheckIcon className="size-[22px] text-state-success-solid" />
         </span>
         <span className="text-xl font-semibold tracking-title text-text-primary">
           <Trans>Review queue is clear</Trans>
@@ -3216,7 +3216,7 @@ function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <EmptyState
-        icon={CircleCheck}
+        icon={CircleCheckIcon}
         title={<Trans>No missing rules</Trans>}
         description={
           <Trans>
@@ -4476,9 +4476,9 @@ function RuleDetailHeroCard({
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
         <Badge variant={isReviewable ? 'warning' : 'success'} className="gap-1 px-2 font-semibold">
           {isReviewable ? (
-            <Clock3 aria-hidden className="size-2.5" />
+            <ClockIcon aria-hidden className="size-2.5" />
           ) : (
-            <CircleCheck aria-hidden className="size-2.5" />
+            <CircleCheckIcon aria-hidden className="size-2.5" />
           )}
           {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
         </Badge>
@@ -4503,7 +4503,7 @@ function RuleDetailHeroCard({
               ·
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
-              <Sparkles aria-hidden className="size-2.5" />
+              <SparklesIcon aria-hidden className="size-2.5" />
               <Trans>AI {aiPct}%</Trans>
             </span>
           </>
@@ -4541,7 +4541,7 @@ function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
   return (
     <div className="shrink-0 px-5 pt-4">
       <Alert variant="warning" aria-label="Scheduled change">
-        <CalendarClock />
+        <CalendarClockIcon />
         <AlertTitle>
           <Plural value={days} one="Effective in # day" other="Effective in # days" />
         </AlertTitle>
@@ -5076,7 +5076,7 @@ function BulkReviewListModal({
                         variant="success"
                         className="shrink-0 gap-1 text-caption-xs font-semibold"
                       >
-                        <Check className="size-2.5" aria-hidden />
+                        <CheckIcon className="size-2.5" aria-hidden />
                         <Trans>AI draft ready</Trans>
                       </Badge>
                     ) : draftNeedsReviewIds.has(rule.id) ? (
@@ -5092,7 +5092,7 @@ function BulkReviewListModal({
                         variant="success"
                         className="shrink-0 gap-1 text-caption-xs font-semibold"
                       >
-                        <Check className="size-2.5" aria-hidden />
+                        <CheckIcon className="size-2.5" aria-hidden />
                         <Trans>Ready</Trans>
                       </Badge>
                     ) : null
@@ -5201,7 +5201,7 @@ function BulkReviewListModal({
                 : 'text-text-destructive hover:bg-state-destructive-hover hover:text-text-destructive'
             }
           >
-            {rejecting ? <Loader2 data-icon="inline-start" className="animate-spin" /> : null}
+            {rejecting ? <Loader2Icon data-icon="inline-start" className="animate-spin" /> : null}
             {rejectArmed ? (
               <Trans>Confirm — reject {included.length}</Trans>
             ) : (
@@ -5213,12 +5213,12 @@ function BulkReviewListModal({
           </Button>
           <Button type="button" size="sm" onClick={handleAccept} disabled={!canAccept}>
             {acceptMutation.isPending ? (
-              <Loader2 data-icon="inline-start" className="animate-spin" />
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
             ) : !canAccept && !busy ? (
               // Locked Accept reads as gated (TkpJG/Fzzoq), not merely greyed.
               <LockIcon data-icon="inline-start" />
             ) : (
-              <ShieldCheck data-icon="inline-start" />
+              <ShieldCheckIcon data-icon="inline-start" />
             )}
             {/* No fabricated "Accept 0" while readiness is unknown — the
                 count only appears once the impact preview has reported it. */}
@@ -5807,7 +5807,7 @@ function NewRuleModal({
               <Button type="submit" size="sm" disabled={!canSubmit} aria-busy={mutation.isPending}>
                 {mutation.isPending ? (
                   <>
-                    <Loader2 data-icon="inline-start" className="animate-spin" />
+                    <Loader2Icon data-icon="inline-start" className="animate-spin" />
                     <Trans>Creating…</Trans>
                   </>
                 ) : (

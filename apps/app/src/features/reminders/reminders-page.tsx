@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, Edit3Icon, Loader2, PauseCircleIcon, SendIcon } from 'lucide-react'
+import { CircleAlertIcon, PencilIcon, Loader2Icon, PauseCircleIcon, SendIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -308,7 +308,7 @@ function TemplatesPanel({
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => onEdit(template)}>
-                      <Edit3Icon data-icon="inline-start" />
+                      <PencilIcon data-icon="inline-start" />
                       <Trans>Edit</Trans>
                     </Button>
                   </TableCell>
@@ -506,7 +506,7 @@ function TemplateDialog({
             <Switch id="reminder-template-active" checked={active} onCheckedChange={setActive} />
           </Field>
           <DialogFooter>
-            {/* Save announces aria-busy + shows a Loader2 spinner while
+            {/* Save announces aria-busy + shows a Loader2Icon spinner while
                 pending. */}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
@@ -517,7 +517,7 @@ function TemplateDialog({
               aria-busy={updateTemplate.isPending}
             >
               {updateTemplate.isPending ? (
-                <Loader2 data-icon="inline-start" className="animate-spin" />
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
               ) : null}
               <Trans>Save template</Trans>
             </Button>

@@ -1,5 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
-import { CheckCheck, CircleCheckBig, FileCheck, Undo2, type LucideIcon } from 'lucide-react'
+import { CheckCheckIcon, CircleCheckBigIcon, FileCheckIcon, Undo2Icon, type LucideIcon } from 'lucide-react'
 
 import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -9,17 +9,17 @@ interface AlertStatusBadgeProps {
 }
 
 // Per-status lucide icon, kept distinct from the obligation status icon
-// set — this vocabulary is alert-specific: CircleCheckBig = the alert
-// is open / active; CheckCheck = applied ("task completed"); Undo2 = a
+// set — this vocabulary is alert-specific: CircleCheckBigIcon = the alert
+// is open / active; CheckCheckIcon = applied ("task completed"); Undo2Icon = a
 // reverseable terminal state (partially_applied / reverted / dismissed);
-// FileCheck = reviewed (acknowledged + closed).
+// FileCheckIcon = reviewed (acknowledged + closed).
 export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
-  matched: CircleCheckBig,
-  applied: CheckCheck,
-  partially_applied: Undo2,
-  reviewed: FileCheck,
-  reverted: Undo2,
-  dismissed: Undo2,
+  matched: CircleCheckBigIcon,
+  applied: CheckCheckIcon,
+  partially_applied: Undo2Icon,
+  reviewed: FileCheckIcon,
+  reverted: Undo2Icon,
+  dismissed: Undo2Icon,
 }
 
 // Single source of truth for "what does the firm-level alert state look like".

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, SparklesIcon, BriefcaseIcon, Building2, UserRound, UsersIcon } from 'lucide-react'
+import { CircleAlertIcon, SparklesIcon, BriefcaseIcon, Building2Icon, UserRoundIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -380,12 +380,12 @@ export function AlertCard({
               {visibleClients.length > 0 ? ':' : '.'}
             </span>
             {visibleClients.map((client) => {
-              // Client chip leads with an entity icon — `Building2` for business
+              // Client chip leads with an entity icon — `Building2Icon` for business
               // clients (LLC / Inc / Corp / Co / Ltd suffixes),
-              // `UserRound` for individuals. Needs-review clients get a
+              // `UserRoundIcon` for individuals. Needs-review clients get a
               // trailing CircleAlertIcon so the "needs your attention" signal
               // sits directly on the chip.
-              const EntityIcon = isEnterpriseClientName(client.name) ? Building2 : UserRound
+              const EntityIcon = isEnterpriseClientName(client.name) ? Building2Icon : UserRoundIcon
               return (
                 <span
                   key={client.name}
