@@ -255,14 +255,16 @@
         position: sticky;
         top: 0;
         z-index: 50;
-        background: rgba(255, 255, 255, 0.84);
-        -webkit-backdrop-filter: saturate(150%) blur(12px);
-        backdrop-filter: saturate(150%) blur(12px);
+        background: transparent;
         border-bottom: none;
-        transition: box-shadow 0.25s ease;
       }
-      .nav.is-scrolled {
-        box-shadow: 0 10px 30px -22px rgba(18, 20, 28, 0.35);
+      /* scroll action: bar stays transparent; the floating pill condenses + lifts */
+      .nav.is-scrolled .nav__inner {
+        height: 60px;
+      }
+      .nav.is-scrolled .nav__pillbar {
+        background: rgba(244, 246, 248, 0.82);
+        box-shadow: 0 8px 22px -12px rgba(18, 20, 28, 0.2);
       }
       .nav__inner {
         display: grid;
@@ -270,6 +272,7 @@
         align-items: center;
         height: 70px;
         gap: 20px;
+        transition: height 0.28s ease;
       }
       .brand {
         display: inline-flex;
@@ -311,6 +314,9 @@
         backdrop-filter: blur(10px);
         border-radius: 999px;
         padding: 5px;
+        transition:
+          background 0.25s ease,
+          box-shadow 0.25s ease;
       }
       .nav__glider {
         position: absolute;
@@ -779,17 +785,22 @@
         color: var(--ink);
       }
       .ar__diff {
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 7px;
+        border-radius: 999px;
       }
       .ar__diff--later {
         color: var(--ok);
+        background: var(--ok-tint);
       }
       .ar__diff--sooner {
         color: #d92d20;
+        background: #fef3f2;
       }
       .ar__diff--flat {
         color: var(--muted);
+        background: var(--surface);
       }
       .ar__affect {
         margin-top: 11px;
@@ -2163,6 +2174,11 @@
      FOOTER
      ============================================================ */
       /* ---------- product surfaces (Legora "highlights"-style grid) ---------- */
+      /* faint dotted-grid canvas (depth without shadow — ref 140149/164983) */
+      .surfaces {
+        background-image: radial-gradient(rgba(46, 54, 140, 0.05) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
       .surfaces__head {
         max-width: 620px;
       }
@@ -2181,7 +2197,9 @@
         aspect-ratio: 4 / 3;
         border-radius: 12px;
         border: 1px solid var(--hairline);
-        background: linear-gradient(155deg, #fff, var(--surface));
+        background:
+          radial-gradient(rgba(46, 54, 140, 0.08) 1px, transparent 1px) 0 0 / 14px 14px,
+          linear-gradient(155deg, #fff, var(--surface));
         overflow: hidden;
         display: flex;
         flex-direction: column;
