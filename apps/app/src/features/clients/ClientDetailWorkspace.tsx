@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
 import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -66,6 +66,7 @@ import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns
 import { PageHeader } from '@/components/patterns/page-header'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -636,33 +637,45 @@ export function ClientDetailWorkspace({
               // statutory-late unextended filings, "Healthy" otherwise.
               <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                 <ClientTitleSwitcher client={client} />
-                {readiness?.status === 'needs_facts' ? (
-                  // Badge tone is warning, not destructive: "Add filing
-                  // state" is incomplete configuration, not a destructive
-                  // state; warning matches the needs-facts banner tone.
-                  <Badge
-                    variant="warning"
-                    className="cursor-pointer text-xs"
-                    render={<button type="button" onClick={openMissingFacts} />}
-                  >
-                    <SettingsIcon className="size-3" aria-hidden />
-                    <MissingFactsActionLabel readiness={readiness} />
-                  </Badge>
-                ) : workPlan.statutoryLateUnextendedCount > 0 ? (
-                  // Destructive tone (red), matching Pencil V1kJX's At-Risk
-                  // pill (state-destructive-hover): statutory-late unextended
-                  // filings are a genuine-risk state, not a config warning, so
-                  // it reads red — distinct from the amber needs-facts chip.
-                  <Badge variant="destructive" className="text-xs">
-                    <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
-                    <Trans>At risk</Trans>
-                  </Badge>
-                ) : (
-                  <Badge variant="success" className="text-xs">
-                    <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
-                    <Trans>Healthy</Trans>
-                  </Badge>
-                )}
+                {/* Cross-fade the health pill when the derived state flips
+                    (needs-facts → at-risk → healthy) instead of a hard swap.
+                    Each branch carries a stable per-state key so AnimatePresence
+                    knows which one left. */}
+                <AnimatePresence mode="wait" initial={false}>
+                  {readiness?.status === 'needs_facts' ? (
+                    // Badge tone is warning, not destructive: "Add filing
+                    // state" is incomplete configuration, not a destructive
+                    // state; warning matches the needs-facts banner tone.
+                    <motion.span key="needs-facts" {...fadeMotion} className="inline-flex">
+                      <Badge
+                        variant="warning"
+                        className="cursor-pointer text-xs"
+                        render={<button type="button" onClick={openMissingFacts} />}
+                      >
+                        <SettingsIcon className="size-3" aria-hidden />
+                        <MissingFactsActionLabel readiness={readiness} />
+                      </Badge>
+                    </motion.span>
+                  ) : workPlan.statutoryLateUnextendedCount > 0 ? (
+                    // Destructive tone (red), matching Pencil V1kJX's At-Risk
+                    // pill (state-destructive-hover): statutory-late unextended
+                    // filings are a genuine-risk state, not a config warning, so
+                    // it reads red — distinct from the amber needs-facts chip.
+                    <motion.span key="at-risk" {...fadeMotion} className="inline-flex">
+                      <Badge variant="destructive" className="text-xs">
+                        <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
+                        <Trans>At risk</Trans>
+                      </Badge>
+                    </motion.span>
+                  ) : (
+                    <motion.span key="healthy" {...fadeMotion} className="inline-flex">
+                      <Badge variant="success" className="text-xs">
+                        <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
+                        <Trans>Healthy</Trans>
+                      </Badge>
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </span>
             }
             // `ClientContactMetaRow` (entity badge / owner pill / state

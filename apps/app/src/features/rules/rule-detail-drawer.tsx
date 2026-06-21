@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'motion/react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   TriangleAlertIcon,
@@ -42,6 +43,7 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { formatDatePretty, formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -759,19 +761,21 @@ function RuleImpactCard({ rule, flat = false }: { rule: ObligationRule; flat?: b
         ) : count !== null && count > 0 ? (
           // irBJ8 Impact line — real affected-clients + obligation counts (the
           // canvas's "+X% coverage" is dropped: no coverage-lift metric exists).
-          <p className="text-sm text-text-primary">
+          // Fade the resolved line in as it replaces the Skeleton. Counts stay
+          // in <Plural> — opacity-only, no digit-rolling.
+          <motion.p className="text-sm text-text-primary" {...fadeMotion}>
             <Trans>
               Activates this rule for{' '}
               <Plural value={clientCount} one="# client" other="# clients" /> →{' '}
               <Plural value={count} one="# new obligation" other="# new obligations" />
             </Trans>
-          </p>
+          </motion.p>
         ) : (
-          <p className="text-sm text-text-secondary">
+          <motion.p className="text-sm text-text-secondary" {...fadeMotion}>
             <Trans>
               No client obligations yet — accepting activates this rule for future filings.
             </Trans>
-          </p>
+          </motion.p>
         )
       }
       detail={
@@ -982,7 +986,7 @@ function RulePracticeReviewCard({
             disabled={!canSubmit}
           >
             {addMutation.isPending ? (
-              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
             ) : null}
             <Trans>Add note</Trans>
           </Button>
@@ -990,17 +994,27 @@ function RulePracticeReviewCard({
       </div>
       {showNotes && notes.length > 0 ? (
         <ul className="flex flex-col gap-2 border-t border-divider-subtle pt-2">
-          {notes.map((note) => (
-            <li key={note.id} className="flex flex-col gap-0.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-base font-semibold text-text-primary">{note.authorName}</span>
-                <span className="text-caption text-text-tertiary">
-                  {formatRelativeTime(note.createdAt)}
-                </span>
-              </div>
-              <p className="text-sm whitespace-pre-wrap text-text-secondary">{note.body}</p>
-            </li>
-          ))}
+          <AnimatePresence initial={false}>
+            {notes.map((note) => (
+              <motion.li
+                key={note.id}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                className="flex flex-col gap-0.5"
+              >
+                <div className="flex items-baseline gap-2">
+                  <span className="text-base font-semibold text-text-primary">
+                    {note.authorName}
+                  </span>
+                  <span className="text-caption text-text-tertiary">
+                    {formatRelativeTime(note.createdAt)}
+                  </span>
+                </div>
+                <p className="text-sm whitespace-pre-wrap text-text-secondary">{note.body}</p>
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
       ) : null}
     </>
@@ -1642,7 +1656,7 @@ export function RuleAcceptErrorDialog({
           ) : (
             <Button size="sm" onClick={onRetry} disabled={retrying}>
               {retrying ? (
-                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
               ) : (
                 <RotateCcwIcon data-icon="inline-start" />
               )}

@@ -561,7 +561,9 @@ export function CreateClientDialog({
                 `|| undefined` defaulted to bare attribute when truthy
                 which Step 6's cleaner shape replaces. */}
             <Button type="submit" disabled={isPending} aria-busy={isPending}>
-              {isPending ? <Loader2Icon className="size-4 animate-spin" aria-hidden /> : null}
+              {isPending ? (
+                <Loader2Icon className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+              ) : null}
               {isPending ? t`Creating…` : t`Create client`}
             </Button>
           </DialogFooter>

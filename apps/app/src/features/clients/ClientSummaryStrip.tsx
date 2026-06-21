@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
@@ -9,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
+import { fadeMotion } from '@/lib/motion'
 
 import { useClientNextDue } from './use-client-next-due'
 
@@ -88,15 +90,22 @@ export function ClientSummaryStrip({
   // as four mismatched numbers). The band's single chromatic accent is the
   // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
   // here", not a loud signal.
+  // Cross-fade the numeral on refetch instead of a hard snap. `tabular-nums`
+  // keeps the width stable so the swap is pure opacity, no jitter. Keyed on the
+  // value so only a changed count animates.
   const num = (value: number) => (
-    <span
-      className={cn(
-        'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
-        value > 0 ? 'text-text-primary' : 'text-text-tertiary',
-      )}
-    >
-      {value}
-    </span>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={value}
+        {...fadeMotion}
+        className={cn(
+          'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+          value > 0 ? 'text-text-primary' : 'text-text-tertiary',
+        )}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
   )
 
   const cells: SummaryCell[] = [

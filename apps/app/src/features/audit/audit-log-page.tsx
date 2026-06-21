@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'motion/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import {
@@ -48,6 +49,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { orpc } from '@/lib/rpc'
+import { fadeMotion } from '@/lib/motion'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
@@ -535,7 +537,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
               // Hold the action until the lookup resolves so we don't offer
               // "Request export" when a ready package is about to appear.
               <Button disabled aria-busy>
-                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
                 <Trans>Loading…</Trans>
               </Button>
             ) : latest?.status === 'ready' ? (
@@ -545,7 +547,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={createDownloadUrl.isPending}
               >
                 {createDownloadUrl.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
                 ) : (
                   <DownloadIcon data-icon="inline-start" />
                 )}
@@ -558,7 +560,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={requestPackage.isPending}
               >
                 {requestPackage.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                  <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
                 ) : null}
                 <Trans>Request export</Trans>
               </Button>
@@ -1039,61 +1041,71 @@ export function AuditLogPage() {
             </Alert>
           ) : null}
 
-          {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
-            /* Shared EmptyState component so the chrome matches the rest of
-               the app's empty surfaces. Filtered state gets a Clear filters
-               CTA — same affordance the toolbar carries above so the user has
-               an inline way to recover without scrolling back up. */
-            <EmptyState
-              icon={ScrollTextIcon}
-              title={
-                filtersActive ? (
-                  <Trans>No audit events match these filters.</Trans>
-                ) : (
-                  <Trans>No audit events yet.</Trans>
-                )
-              }
-              description={
-                filtersActive ? (
-                  <Trans>Clear filters to return to the latest practice-wide events.</Trans>
-                ) : (
-                  <Trans>
-                    Deadline status updates and client imports will appear here when they write
-                    audit rows.
-                  </Trans>
-                )
-              }
-              cta={
-                filtersActive ? (
-                  <Button variant="outline" size="sm" onClick={resetFilters}>
-                    <FilterIcon data-icon="inline-start" />
-                    <Trans>Clear filters</Trans>
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : null}
-
-          {filteredEvents.length > 0 ? (
-            <>
-              <AuditLogTable
-                events={currentPageEvents}
-                firmTimezone={firmTimezone}
-                onOpenEvent={openEvent}
-              />
-              <AuditLogPagination
-                pageIndex={currentPageIndex}
-                firstItemNumber={firstItemNumber}
-                lastItemNumber={lastItemNumber}
-                loadedCount={filteredEvents.length}
-                hasMoreOnServer={Boolean(auditQuery.hasNextPage)}
-                hasPreviousPage={hasPreviousPage}
-                hasNextPage={hasNextPage}
-                isFetchingNextPage={auditQuery.isFetchingNextPage}
-                onPreviousPage={goToPreviousPage}
-                onNextPage={goToNextPage}
-              />
-            </>
+          {/* One AnimatePresence over the mutually-exclusive empty ↔ table
+              branches. The table is keyed on currentPageIndex so paging
+              crossfades; the empty-state carries its own stable key so the
+              empty↔table flip also crossfades. KPI/filter changes don't
+              double-animate — they only swap content within the same keyed
+              branch when the page index is unchanged. */}
+          {!auditQuery.isLoading && !auditQuery.isError ? (
+            <AnimatePresence mode="wait" initial={false}>
+              {filteredEvents.length === 0 ? (
+                /* Shared EmptyState component so the chrome matches the rest of
+                   the app's empty surfaces. Filtered state gets a Clear filters
+                   CTA — same affordance the toolbar carries above so the user has
+                   an inline way to recover without scrolling back up. */
+                <motion.div key="audit-empty" {...fadeMotion}>
+                  <EmptyState
+                    icon={ScrollTextIcon}
+                    title={
+                      filtersActive ? (
+                        <Trans>No audit events match these filters.</Trans>
+                      ) : (
+                        <Trans>No audit events yet.</Trans>
+                      )
+                    }
+                    description={
+                      filtersActive ? (
+                        <Trans>Clear filters to return to the latest practice-wide events.</Trans>
+                      ) : (
+                        <Trans>
+                          Deadline status updates and client imports will appear here when they
+                          write audit rows.
+                        </Trans>
+                      )
+                    }
+                    cta={
+                      filtersActive ? (
+                        <Button variant="outline" size="sm" onClick={resetFilters}>
+                          <FilterIcon data-icon="inline-start" />
+                          <Trans>Clear filters</Trans>
+                        </Button>
+                      ) : undefined
+                    }
+                  />
+                </motion.div>
+              ) : (
+                <motion.div key={currentPageIndex} {...fadeMotion} className="grid gap-4">
+                  <AuditLogTable
+                    events={currentPageEvents}
+                    firmTimezone={firmTimezone}
+                    onOpenEvent={openEvent}
+                  />
+                  <AuditLogPagination
+                    pageIndex={currentPageIndex}
+                    firstItemNumber={firstItemNumber}
+                    lastItemNumber={lastItemNumber}
+                    loadedCount={filteredEvents.length}
+                    hasMoreOnServer={Boolean(auditQuery.hasNextPage)}
+                    hasPreviousPage={hasPreviousPage}
+                    hasNextPage={hasNextPage}
+                    isFetchingNextPage={auditQuery.isFetchingNextPage}
+                    onPreviousPage={goToPreviousPage}
+                    onNextPage={goToNextPage}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           ) : null}
         </CardContent>
       </Card>

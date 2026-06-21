@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SparklesIcon } from 'lucide-react'
 
@@ -12,6 +13,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import {
   useLifecycleV2StatusLabels,
@@ -259,7 +261,14 @@ function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
         <Trans>What changed</Trans>
       </CapsFieldLabel>
       {changeView.changes.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-divider-subtle">
+        // Stagger the diff rows in on mount (35ms cadence). The header row is
+        // a static child without variants, so staggerChildren leaves it put.
+        <motion.div
+          className="overflow-hidden rounded-lg border border-divider-subtle"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.035 } } }}
+        >
           <CapsFieldLabel
             as="div"
             className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2"
@@ -275,16 +284,18 @@ function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
             </span>
           </CapsFieldLabel>
           {changeView.changes.map((row) => (
-            <div
+            <motion.div
               key={`${row.field}-${row.previous}-${row.next}`}
+              variants={{ hidden: { opacity: 0, x: -4 }, show: { opacity: 1, x: 0 } }}
+              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle px-3 py-2 text-sm last:border-b-0"
             >
               <span className="font-medium text-text-primary">{row.field}</span>
               <span className="break-words text-text-secondary">{row.previous}</span>
               <span className="break-words text-text-primary">{row.next}</span>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       ) : null}
       {changeView.notes.length > 0 ? (
         <div className="grid gap-1 text-sm text-text-secondary">
