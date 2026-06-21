@@ -26,6 +26,15 @@ Verified live on /preview: 10 chips, correct tone pairs (e.g. accent navy on
   ([[reference_button_token_theme_mapping]]).
 - No new i18n strings (purely visual).
 
-## Next (app-wide adoption — after Yuqi's nod)
-Candidate homes: SetupProgressCard / first-run empty-state heroes / SuccessModal /
-the create-choice cards. Held until the aesthetic is approved on /preview.
+## Adoption (Yuqi: "yes")
+- **SetupProgressCard header** — a brand `RocketIcon` DuotoneIcon now leads the
+  card, warming the onboarding moment (pairs with the cyan→navy TickProgress + navy
+  % badge). Verified live on /preview (light-cyan chip + glyph).
+
+Audited the other candidate homes; held with reasons:
+- **SuccessModal hero** — already IS the duotone treatment (a `size-14 rounded-xl`
+  tinted square + green check, animated). No churn.
+- **Empty-state heroes** — deliberately use a tinted CIRCLE / integration strip;
+  swapping to the square chip would churn a deliberate treatment with no clear win.
+- **Header StatBand on /deadlines** — skipped: the page's narrative banner ("N
+  overdue — …") already carries those at-a-glance counts (one-home-per-fact).

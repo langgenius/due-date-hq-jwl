@@ -1,11 +1,12 @@
 import { type ReactNode } from 'react'
 import { Trans } from '@lingui/react/macro'
-import { ArrowRightIcon, CircleCheckIcon, CircleDashedIcon, LoaderIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DuotoneIcon } from '@/components/primitives/duotone-icon'
 import { TickProgress } from '@/components/primitives/tick-progress'
 
 export interface SetupStep {
@@ -50,8 +51,12 @@ export function SetupProgressCard({
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex items-start gap-3">
+        {/* Brand duotone glyph warms the onboarding moment (Yuqi duotone-icon
+            aesthetic) — a launch cue that pairs with the cyan→navy TickProgress
+            + the navy % badge. */}
+        <DuotoneIcon icon={RocketIcon} tone="brand" className="mt-0.5" />
+        <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-text-primary">
             {title ?? <Trans>Almost there</Trans>}
           </h3>
