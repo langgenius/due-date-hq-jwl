@@ -41,6 +41,7 @@ import {
   COMMAND_PALETTE_HOTKEY,
   formatShortcutForDisplay,
 } from '@/components/patterns/keyboard-shell/display'
+import { aggregateRuleLibraryPendingCount } from '@/components/patterns/app-shell-nav-model'
 import { useNavV2 } from '@/components/patterns/use-nav-v2'
 import { useKeyboardShell } from '@/components/patterns/keyboard-shell/hooks'
 
@@ -380,15 +381,7 @@ function useRuleLibraryPendingCount(): number {
   // sidebar badge next to "Rule library". Pulls from the same coverage
   // query the page uses, so no extra fetch.
   const query = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
-  const rows = query.data ?? []
-  let total = 0
-  // 2026-06-16 (audit): the /rules/library StatBand + scope tab count
-  // "needs review" = pending_review + candidate (statusGroupOf === 'needs_review').
-  // These are DISJOINT coverage buckets, so the badge must SUM them. The old
-  // `pendingReviewCount ?? candidateCount` took only one bucket, so the badge
-  // drifted below the page's count whenever a jurisdiction had both.
-  for (const row of rows) total += (row.pendingReviewCount ?? 0) + row.candidateCount
-  return total
+  return aggregateRuleLibraryPendingCount(query.data ?? [])
 }
 
 // Total active-clients count for the sidebar badge next to "Clients".
