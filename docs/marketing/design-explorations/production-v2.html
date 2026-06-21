@@ -1082,6 +1082,7 @@
         grid-template-columns: 1fr auto 1fr auto 1fr;
         align-items: stretch;
         gap: 0;
+        position: relative;
       }
       .flow-node {
         background: var(--surface-2);
@@ -1091,6 +1092,8 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        position: relative;
+        z-index: 1;
         box-shadow:
           0 1px 2px rgba(18, 20, 28, 0.03),
           0 20px 52px -44px rgba(18, 20, 28, 0.3);
@@ -1137,16 +1140,40 @@
         color: var(--ink-2);
         font-weight: 600;
       }
+      /* connectors thread the three nodes into one pipeline (dashed spine + node marker) */
       .flow-conn {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 0 6px;
+        padding: 33px 4px 0;
+        min-width: clamp(46px, 5vw, 68px);
         color: var(--accent);
+        position: relative;
+        z-index: 1;
       }
-      .flow-conn svg {
-        width: 26px;
-        height: 26px;
+      .flow-conn::before {
+        content: '';
+        position: absolute;
+        left: -3px;
+        right: -3px;
+        top: 44px;
+        border-top: 2px dashed rgba(46, 54, 140, 0.3);
+        z-index: 0;
+      }
+      .flow-conn__node {
+        position: relative;
+        z-index: 1;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        border: 1.5px solid rgba(46, 54, 140, 0.34);
+        display: grid;
+        place-items: center;
+      }
+      .flow-conn__node svg {
+        width: 12px;
+        height: 12px;
       }
       .flow__loop {
         margin-top: 16px;
@@ -1974,18 +2001,24 @@
         border-radius: 999px;
         white-space: nowrap;
       }
-      .wl-stat.ready {
-        color: var(--ok);
-        background: var(--ok-tint);
-      }
-      .wl-stat.waiting {
-        color: var(--urgent);
-        background: var(--urgent-tint);
+      /* canonical 6-state status palette (see status-control.tsx) — adapted to the page register */
+      .wl-stat.blocked {
+        color: #d92d20;
+        background: #fef3f2;
       }
       .wl-stat.review {
+        color: var(--accent);
+        background: var(--accent-tint);
+      }
+      .wl-stat.waiting {
+        /* waiting_on_client is intentionally an uncoloured outline pill = "paused, on them" */
         color: var(--muted);
-        background: var(--surface);
+        background: transparent;
         border: 1px solid var(--hairline);
+      }
+      .wl-stat.notstarted {
+        color: var(--faint);
+        background: var(--surface);
       }
       .wl-note {
         margin-top: 18px;
@@ -2210,10 +2243,80 @@
         gap: 10px 26px;
         align-items: center;
       }
-      .close__reassure {
-        margin-top: 20px;
+      .close__trust {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px 22px;
+      }
+      .close__trust span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
         font-size: 13px;
-        color: var(--muted);
+        color: var(--ink-2);
+      }
+      .close__trust svg {
+        width: 15px;
+        height: 15px;
+        color: var(--accent);
+        flex: none;
+      }
+      /* audit "receipt" proof object — scalloped bottom edge (ref 139930) */
+      .close__receipt {
+        --r: 9px;
+        margin: 36px 0 0;
+        max-width: 380px;
+        text-align: left;
+        background: var(--surface);
+        padding: 15px 18px calc(15px + var(--r));
+        border-radius: 12px 12px 0 0;
+        -webkit-mask:
+          radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
+            var(--r) repeat-x,
+          linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
+        mask:
+          radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
+            var(--r) repeat-x,
+          linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
+      }
+      .receipt__eyebrow {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'Geist Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+      .receipt__change {
+        margin-top: 9px;
+        font-family: 'Geist Mono', monospace;
+        font-size: 12px;
+        color: var(--ink);
+      }
+      .receipt__change s {
+        color: var(--faint);
+      }
+      .receipt__rows {
+        margin-top: 11px;
+        padding-top: 11px;
+        border-top: 1px dashed var(--hairline);
+        display: grid;
+        gap: 7px;
+      }
+      .receipt__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .receipt__row svg {
+        width: 13px;
+        height: 13px;
+        color: var(--accent);
+        flex: none;
       }
 
       /* ============================================================
@@ -2382,11 +2485,34 @@
       }
       .mini__client {
         flex: 1;
+        min-width: 0;
         font-size: 11px;
         color: var(--ink);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .mini__status {
+        flex: none;
+        font-size: 9px;
+        font-weight: 600;
+        line-height: 1.5;
+        padding: 2px 7px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .mini__status.blocked {
+        color: #d92d20;
+        background: #fef3f2;
+      }
+      .mini__status.review {
+        color: var(--accent);
+        background: var(--accent-tint);
+      }
+      .mini__status.waiting {
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid var(--hairline);
       }
       .mini__due {
         font-family: 'Geist Mono', monospace;
@@ -3950,17 +4076,18 @@
             </div>
 
             <div class="flow-conn" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M5 12h14" />
-                <path d="M13 6l6 6-6 6" />
-              </svg>
+              <span class="flow-conn__node">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
             </div>
 
             <div class="flow-node">
@@ -3990,17 +4117,18 @@
             </div>
 
             <div class="flow-conn" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M5 12h14" />
-                <path d="M13 6l6 6-6 6" />
-              </svg>
+              <span class="flow-conn__node">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
             </div>
 
             <div class="flow-node">
@@ -4812,7 +4940,7 @@
                     <div class="wl-sub">1120-S · TX · franchise tax</div>
                   </td>
                   <td class="wl-hide"><span class="wl-due late">2d late</span></td>
-                  <td><span class="wl-stat waiting">Waiting on client</span></td>
+                  <td><span class="wl-stat blocked">Blocked</span></td>
                 </tr>
                 <tr>
                   <td>
@@ -4827,7 +4955,7 @@
                     <div class="wl-sub">1120 · TX · disaster relief</div>
                   </td>
                   <td class="wl-hide"><span class="wl-due">in 3d</span></td>
-                  <td><span class="wl-stat review">Needs review</span></td>
+                  <td><span class="wl-stat review">In review</span></td>
                 </tr>
                 <tr>
                   <td>
@@ -4842,7 +4970,7 @@
                     <div class="wl-sub">1120-S · TX · franchise tax</div>
                   </td>
                   <td class="wl-hide"><span class="wl-due">in 9d</span></td>
-                  <td><span class="wl-stat ready">Ready to file</span></td>
+                  <td><span class="wl-stat waiting">Waiting on client</span></td>
                 </tr>
                 <tr>
                   <td>
@@ -4857,7 +4985,7 @@
                     <div class="wl-sub">05-158 · TX · no-tax-due</div>
                   </td>
                   <td class="wl-hide"><span class="wl-due">in 16d</span></td>
-                  <td><span class="wl-stat ready">Ready to file</span></td>
+                  <td><span class="wl-stat notstarted">Not started</span></td>
                 </tr>
               </tbody>
             </table>
@@ -4945,16 +5073,19 @@
                   <div class="mini__row">
                     <span class="mini__bar hi"></span>
                     <span class="mini__client">Hudson &amp; Marsh</span>
+                    <span class="mini__status blocked">Blocked</span>
                     <span class="mini__due late">2d late</span>
                   </div>
                   <div class="mini__row">
                     <span class="mini__bar"></span>
                     <span class="mini__client">Brightway Logistics</span>
+                    <span class="mini__status review">In review</span>
                     <span class="mini__due">in 3d</span>
                   </div>
                   <div class="mini__row">
                     <span class="mini__bar"></span>
                     <span class="mini__client">Cedar Park Dental</span>
+                    <span class="mini__status waiting">Waiting</span>
                     <span class="mini__due">in 9d</span>
                   </div>
                 </div>
@@ -5027,9 +5158,12 @@
               </p>
             </div>
             <div class="tstat">
-              <div class="tstat__n">Audited</div>
-              <div class="tstat__t">Every action recorded</div>
-              <p class="tstat__b">Every apply, undo, and revert is recorded and inspectable.</p>
+              <div class="tstat__n mono">24h</div>
+              <div class="tstat__t">Reversible</div>
+              <p class="tstat__b">
+                Any apply undoes cleanly within 24 hours — and every apply, undo, and revert is
+                recorded and inspectable.
+              </p>
             </div>
           </div>
 
@@ -5226,9 +5360,101 @@
             >
             <a class="btn btn--ghost" href="#work">Get a guided setup</a>
           </div>
-          <p class="close__reassure">
-            Free during the beta · no card · your data stays in your own practice.
-          </p>
+          <div class="close__trust">
+            <span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Free during the beta
+            </span>
+            <span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              No card required
+            </span>
+            <span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Data stays in your practice
+            </span>
+          </div>
+          <div class="close__receipt" aria-label="Sample audit receipt for one applied change">
+            <div class="receipt__eyebrow">
+              <span>Audit receipt</span><span>Apply #DDH-2240</span>
+            </div>
+            <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 · 8 clients</p>
+            <div class="receipt__rows">
+              <div class="receipt__row">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                </svg>
+                Sourced to irs.gov · verified
+              </div>
+              <div class="receipt__row">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9 14 4 9l5-5" />
+                  <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
+                </svg>
+                Reversible for 24 hours
+              </div>
+              <div class="receipt__row">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                </svg>
+                Recorded to the audit trail
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>
