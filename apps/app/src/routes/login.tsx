@@ -1,24 +1,20 @@
-import {
-  Fragment,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-  type ComponentType,
-  type FormEvent,
-  type ReactNode,
-} from 'react'
+import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
+  BellIcon,
+  CalendarDaysIcon,
+  ClipboardListIcon,
   GlobeIcon,
   Loader2Icon,
   LockIcon,
   MailIcon,
   MapPinIcon,
+  SearchIcon,
+  UsersIcon,
 } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -34,7 +30,6 @@ import {
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
 import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
-import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 
 // /login is a full-bleed two-column split — a product-story column (left)
 // beside the sign-in card (right), with a dedicated footer. The page owns its
@@ -208,36 +203,58 @@ export function LoginRoute() {
         <Trans>Skip to sign-in</Trans>
       </a>
 
-      <div className="flex min-h-0 flex-1 gap-8 overflow-hidden px-4 py-6 lg:px-[72px] lg:py-10">
-        <ProductStory />
-
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        {/* Sign-in — a centered, airy column on a plain panel. Email-first, SSO
+            below; brand mark + heading centered above. */}
         <main
           id="sign-in"
-          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-xl border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_4px_16px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
+          className="flex w-full flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:w-[46%] lg:shrink-0 lg:px-16"
         >
-          <div className="mx-auto flex w-full max-w-[440px] flex-col gap-7">
-            {/* Frame 21 — brand, heading, form, reassurance, and foot share the
-                24px rhythm (canvas dGFth gap 24); residency sits 28px below. */}
-            <div className="flex flex-col gap-6">
-              {/* Brand lockup — compact (no tagline) */}
-              <AuthBrandAnchor tagline={false} />
-
-              {/* Heading */}
+          <div className="flex w-full max-w-[360px] flex-col gap-7">
+            {/* Centered brand mark + heading */}
+            <div className="flex flex-col items-center gap-4 text-center">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-text-primary text-base font-bold text-text-primary-on-surface">
+                D
+              </span>
               <div className="flex flex-col gap-2">
-                <h1 className="text-[28px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
-                  <Trans>Welcome back</Trans>
+                <h1 className="text-2xl font-semibold tracking-[-0.4px] text-text-primary">
+                  <Trans>Sign in to DueDateHQ</Trans>
                 </h1>
+                <p className="text-sm leading-normal text-text-tertiary">
+                  <Trans>One source of truth for every filing deadline across your firm.</Trans>
+                </p>
+              </div>
+            </div>
+
+            {/* Email first, then SSO below the divider */}
+            <div className="flex flex-col gap-4">
+              {emailOtpEnabled ? (
+                <LoginEmailForm
+                  disabled={submittingProvider !== null}
+                  initialEmail={linkEmail ?? undefined}
+                  initialCode={linkCode ?? undefined}
+                  onInteraction={() => setEmailFlowActive(true)}
+                  onPendingChange={setEmailBusy}
+                  onSignedIn={() => navigate(postSignInTarget, { replace: true })}
+                />
+              ) : null}
+
+              <div className="flex items-center gap-3.5">
+                <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
+                <span className="text-xs font-medium tracking-[0.2px] text-text-tertiary">
+                  <Trans>or continue with</Trans>
+                </span>
+                <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
               </div>
 
-              {/* Form card — Google + divider + email at 16px */}
-              <div className="flex flex-col gap-4">
+              <div className={cn('grid gap-3', microsoftEnabled ? 'grid-cols-2' : 'grid-cols-1')}>
                 <Button
                   variant="secondary"
                   size="lg"
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="w-full gap-3 rounded-xl"
+                  className="w-full gap-2.5 rounded-xl"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -245,11 +262,7 @@ export function LoginRoute() {
                     <GoogleIcon />
                   )}
                   <span>
-                    {submittingProvider === 'google' ? (
-                      <Trans>Signing in with Google…</Trans>
-                    ) : (
-                      <Trans>Continue with Google</Trans>
-                    )}
+                    {microsoftEnabled ? <Trans>Google</Trans> : <Trans>Continue with Google</Trans>}
                   </span>
                 </Button>
 
@@ -260,7 +273,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="w-full gap-3 rounded-xl"
+                    className="w-full gap-2.5 rounded-xl"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -268,54 +281,24 @@ export function LoginRoute() {
                       <MicrosoftIcon />
                     )}
                     <span>
-                      {submittingProvider === 'microsoft' ? (
-                        <Trans>Signing in with Microsoft…</Trans>
-                      ) : (
-                        <Trans>Continue with Microsoft</Trans>
-                      )}
+                      <Trans>Microsoft</Trans>
                     </span>
                   </Button>
                 ) : null}
-
-                {emailOtpEnabled ? (
-                  <>
-                    <div className="flex items-center gap-3.5">
-                      <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                      <span className="text-xs font-medium tracking-[0.2px] text-text-tertiary">
-                        <Trans>or continue with email</Trans>
-                      </span>
-                      <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                    </div>
-
-                    <LoginEmailForm
-                      disabled={submittingProvider !== null}
-                      initialEmail={linkEmail ?? undefined}
-                      initialCode={linkCode ?? undefined}
-                      onInteraction={() => setEmailFlowActive(true)}
-                      onPendingChange={setEmailBusy}
-                      onSignedIn={() => navigate(postSignInTarget, { replace: true })}
-                    />
-                  </>
-                ) : null}
               </div>
+            </div>
 
-              {/* Reassurance */}
-              <div className="flex items-center gap-2.5 rounded-xl bg-bg-subtle px-3.5 py-3">
+            {/* Reassurance + magic-link recovery — one quiet centered line each. */}
+            <div className="flex flex-col items-center gap-2.5 text-center">
+              <p className="flex items-center justify-center gap-1.5">
                 <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-xs font-semibold text-text-secondary">
-                    <Trans>Secured by one-time link</Trans>
-                  </p>
-                  <p className="text-xs font-medium leading-[1.45] text-text-tertiary">
-                    <Trans>Links expire in 10 minutes. We never store passwords.</Trans>
-                  </p>
-                </div>
-              </div>
-
-              {/* "Open it now" focuses the email field to begin sign-in —
-                  there is no separate paste-link surface; a real magic link is
-                  a URL the user opens straight from their inbox. */}
-              <p className="flex items-center justify-center gap-1.5 text-center">
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>No password — one-time links expire in 10 minutes.</Trans>
+                </span>
+              </p>
+              {/* "Open it now" focuses the email field — a magic link is a URL the
+                  user opens from their inbox; there's no separate paste surface. */}
+              <p className="flex items-center justify-center gap-1.5">
                 <span className="text-xs font-medium text-text-tertiary">
                   <Trans>Already have a sign-in link?</Trans>
                 </span>
@@ -330,17 +313,14 @@ export function LoginRoute() {
             </div>
 
             {/* Residency */}
-            <div className="flex flex-col items-center gap-1 text-center">
-              <p className="flex items-center gap-1 text-xs font-medium text-text-tertiary">
-                <MapPinIcon className="size-3 shrink-0" aria-hidden />
-                <Trans>Hosted in US-East · your data never leaves your jurisdiction</Trans>
-              </p>
-              <p className="text-xs font-medium text-text-tertiary">
-                <Trans>ISO 27001 in progress</Trans>
-              </p>
-            </div>
+            <p className="flex items-center justify-center gap-1 text-center text-caption-xs font-medium text-text-muted">
+              <MapPinIcon className="size-3 shrink-0" aria-hidden />
+              <Trans>Hosted in US-East · ISO 27001 in progress</Trans>
+            </p>
           </div>
         </main>
+
+        <ProductStory />
       </div>
 
       <LoginFooter />
@@ -353,100 +333,184 @@ export function LoginRoute() {
 // takes the full width on laptops/phones. All copy is marketing, not live data.
 // ---------------------------------------------------------------------------
 
-type CapabilityTone = 'warning' | 'accent' | 'success'
+type PreviewTone = 'destructive' | 'warning' | 'accent' | 'success' | 'muted'
 
-const TONE_TICK: Record<CapabilityTone, string> = {
+const PREVIEW_DOT: Record<PreviewTone, string> = {
+  destructive: 'bg-state-destructive-solid',
   warning: 'bg-state-warning-solid',
   accent: 'bg-state-accent-solid',
   success: 'bg-state-success-solid',
+  muted: 'bg-text-muted',
 }
 
-const CAPABILITIES: {
-  index: string
-  tone: CapabilityTone
-  eyebrow: string
-  title: string
-  body: string
+const PREVIEW_TEXT: Record<PreviewTone, string> = {
+  destructive: 'text-text-destructive',
+  warning: 'text-text-warning',
+  accent: 'text-text-accent',
+  success: 'text-text-success',
+  muted: 'text-text-tertiary',
+}
+
+// Illustrative product preview — a static marketing mock of the Deadlines view,
+// not the visitor's live data (they're logged out). Bleeds off the panel's right
+// + bottom edge behind a soft gradient, mirroring the reference style.
+const PREVIEW_ROWS: {
+  form: string
+  client: string
+  status: string
+  tone: PreviewTone
+  due: string
 }[] = [
   {
-    index: '01',
+    form: '1040',
+    client: 'Hudson Family',
+    status: 'Due in 2 days',
+    tone: 'destructive',
+    due: 'Apr 15',
+  },
+  {
+    form: '1120-S',
+    client: 'Mercer LLC',
+    status: 'Waiting on client',
     tone: 'warning',
-    eyebrow: 'STATUS CONTROL',
-    title: 'Status updates itself.',
-    body: 'Stages move forward when the work does. Uploads, e-file acks, client replies — the deadline knows.',
+    due: 'Apr 18',
   },
-  {
-    index: '02',
-    tone: 'accent',
-    eyebrow: 'MONITORING STATE ALERTS',
-    title: 'Constant monitoring',
-    body: 'If a deadline stalls or a rule changes, the partner who owns it gets a heads-up.',
-  },
-  {
-    index: '03',
-    tone: 'success',
-    eyebrow: 'EVERY CHANGE SOURCED',
-    title: 'Every change is logged.',
-    body: 'Who, when, what triggered it, what changed — captured automatically. Export in one click.',
-  },
+  { form: 'Q2 941', client: 'Patel Holdings', status: 'In review', tone: 'accent', due: 'Apr 30' },
+  { form: 'BOI', client: 'Kim Consulting', status: 'Filed Mar 14', tone: 'success', due: '—' },
+  { form: '1065', client: 'Lakeside Partners', status: 'Not started', tone: 'muted', due: 'May 1' },
 ]
 
-const TRUST_ITEMS: { Icon: ComponentType<{ className?: string }>; label: string }[] = [
-  { Icon: LockIcon, label: 'No password, no token to lose' },
+const PREVIEW_NAV: {
+  label: string
+  Icon: (props: { className?: string }) => ReactNode
+  count?: string
+  active?: boolean
+}[] = [
+  { label: 'Today', Icon: CalendarDaysIcon },
+  { label: 'Alerts', Icon: BellIcon, count: '7' },
+  { label: 'Deadlines', Icon: ClipboardListIcon, count: '28', active: true },
+  { label: 'Clients', Icon: UsersIcon, count: '10' },
 ]
 
 function ProductStory() {
   return (
-    <section className="hidden min-w-0 flex-1 flex-col gap-8 pr-[72px] pt-2 lg:flex">
-      {/* Brand anchor */}
-      <AuthBrandAnchor />
+    <section className="relative hidden min-w-0 flex-1 overflow-hidden border-l border-divider-subtle bg-gradient-to-br from-background-subtle via-background-default to-state-accent-hover lg:block">
+      {/* Ambient accent glow behind the window for depth. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -right-20 size-[460px] rounded-full bg-state-accent-hover opacity-70 blur-[120px]"
+      />
 
-      {/* Headline + one-line promise. The old trailing "auto-rollover, triggers,
-          audit history" clause was cut — the three proof points below already say
-          it, so it was a double-statement. */}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-[44px] font-semibold leading-[1.08] tracking-[-1px] text-text-primary">
-          <Trans>
-            Every CPA deadline.
-            <br />
-            One source of truth.
-          </Trans>
-        </h2>
-        <p className="max-w-[460px] text-base leading-[1.6] text-text-tertiary">
-          <Trans>
-            The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and
-            BOI filing across the firm, in one place.
-          </Trans>
-        </p>
-      </div>
+      {/* One-line promise, top-left of the panel. */}
+      <p className="absolute top-14 left-14 z-10 max-w-[330px] text-lg leading-snug font-medium text-balance text-text-secondary">
+        <Trans>
+          Every 1040, 1120, payroll, and BOI filing across the firm — monitored, sourced, and on
+          schedule.
+        </Trans>
+      </p>
 
-      {/* Three proof points — a colored tone tick + claim + one line. Dropped the
-          bordered card, the 01/02/03 index chrome, and the 9px eyebrows (below the
-          legibility floor + redundant with the titles); the open grid breathes. */}
-      <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-3">
-        {CAPABILITIES.map((cap) => (
-          <div key={cap.index} className="flex flex-col gap-2.5">
-            <span aria-hidden className={cn('h-0.5 w-6 rounded-full', TONE_TICK[cap.tone])} />
-            <p className="text-base font-medium leading-[1.25] tracking-[-0.3px] text-text-primary">
-              {cap.title}
-            </p>
-            <p className="text-xs leading-[1.6] text-text-tertiary">{cap.body}</p>
+      {/* Product window — bleeds off the right + bottom edge. */}
+      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-2xl border border-divider-subtle bg-background-default shadow-[0_30px_80px_-28px_rgba(16,24,40,0.32)] ring-1 ring-black/[0.03]">
+        <div className="flex h-full w-[880px]">
+          {/* Sidebar */}
+          <aside className="flex w-[212px] shrink-0 flex-col gap-3 border-r border-divider-subtle bg-bg-subtle/50 p-3">
+            <div className="flex items-center gap-2 px-1.5 pt-1">
+              <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-caption-xs font-bold text-text-primary-on-surface">
+                D
+              </span>
+              <span className="truncate text-sm font-semibold text-text-primary">Whitmore CPA</span>
+              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-text-accent">
+                PRO
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border border-divider-subtle bg-background-default px-2.5 py-1.5 text-caption-xs text-text-muted">
+              <SearchIcon className="size-3 shrink-0" aria-hidden />
+              Search…
+            </div>
+            <nav className="flex flex-col gap-0.5">
+              {PREVIEW_NAV.map((item) => (
+                <span
+                  key={item.label}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium',
+                    item.active ? 'bg-state-accent-hover text-text-accent' : 'text-text-secondary',
+                  )}
+                >
+                  <item.Icon className="size-4 shrink-0" />
+                  <span className="flex-1">{item.label}</span>
+                  {item.count ? (
+                    <span
+                      className={cn(
+                        'text-caption-xs font-semibold tabular-nums',
+                        item.active ? 'text-text-accent' : 'text-text-muted',
+                      )}
+                    >
+                      {item.count}
+                    </span>
+                  ) : null}
+                </span>
+              ))}
+            </nav>
+            <div className="mt-auto rounded-xl bg-text-primary px-3.5 py-3 text-text-primary-on-surface">
+              <p className="text-xs font-semibold">Busy-season ready</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-text-secondary-on-surface">
+                142 rules active across FED + 6 states.
+              </p>
+            </div>
+          </aside>
+
+          {/* Main */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            {/* Header */}
+            <div className="flex shrink-0 items-center gap-2.5 px-5 py-4">
+              <span className="text-base font-semibold text-text-primary">Deadlines</span>
+              <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                28
+              </span>
+              <span className="flex-1" />
+              <span className="rounded-lg border border-divider-subtle px-2.5 py-1 text-caption-xs font-medium text-text-tertiary">
+                This week
+              </span>
+              <span className="rounded-lg border border-divider-subtle px-2.5 py-1 text-caption-xs font-medium text-text-tertiary">
+                Filters
+              </span>
+            </div>
+            {/* Column header */}
+            <div className="flex shrink-0 items-center gap-4 border-y border-divider-subtle bg-bg-subtle px-5 py-2 text-caption-xs font-semibold tracking-wide text-text-muted uppercase">
+              <span className="w-16">Form</span>
+              <span className="flex-1">Client</span>
+              <span className="w-32">Status</span>
+              <span className="w-16 text-right">Due</span>
+            </div>
+            {/* Rows */}
+            {PREVIEW_ROWS.map((row) => (
+              <div
+                key={row.client}
+                className="flex items-center gap-4 border-b border-divider-subtle px-5 py-3.5"
+              >
+                <span className="w-16 rounded-md bg-bg-subtle px-2 py-1 text-center font-mono text-caption-xs font-semibold text-text-secondary">
+                  {row.form}
+                </span>
+                <span className="flex-1 text-sm font-medium text-text-primary">{row.client}</span>
+                <span
+                  className={cn(
+                    'inline-flex w-32 items-center gap-1.5 text-xs font-medium',
+                    PREVIEW_TEXT[row.tone],
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn('size-1.5 rounded-full', PREVIEW_DOT[row.tone])}
+                  />
+                  {row.status}
+                </span>
+                <span className="w-16 text-right text-xs font-medium tabular-nums text-text-tertiary">
+                  {row.due}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {/* Trust strip — pushed to the bottom so the panel fills its height with an
-          even rhythm instead of stacking everything at the top. */}
-      <div className="mt-auto flex flex-wrap items-center gap-x-2.5 gap-y-2">
-        {TRUST_ITEMS.map((item, i) => (
-          <Fragment key={item.label}>
-            {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
-            <span className="flex items-center gap-1.5 text-xs font-medium italic text-text-tertiary">
-              <item.Icon className="size-[11px] shrink-0 text-text-muted" />
-              {item.label}
-            </span>
-          </Fragment>
-        ))}
+        </div>
       </div>
     </section>
   )
