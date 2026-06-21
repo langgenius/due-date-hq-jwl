@@ -918,6 +918,10 @@ msgid "{buffer} days before filing"
 msgstr "{buffer} days before filing"
 
 #: src/features/obligations/queue/components/panels.tsx
+msgid "{buffer} days earlier"
+msgstr "{buffer} days earlier"
+
+#: src/features/obligations/queue/components/panels.tsx
 msgid "{checklistCount, plural, one {No client materials received yet; # item is still waiting on the client.} other {No client materials received yet; all # items are still waiting on the client.}}"
 msgstr "{checklistCount, plural, one {No client materials received yet; # item is still waiting on the client.} other {No client materials received yet; all # items are still waiting on the client.}}"
 
@@ -1533,6 +1537,10 @@ msgstr "1 client may be affected"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "1 day before filing"
 msgstr "1 day before filing"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "1 day earlier"
+msgstr "1 day earlier"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filed or completed deadline for this client"
@@ -7099,6 +7107,7 @@ msgstr "Files"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/audit/audit-log-table.tsx
+#: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
@@ -8114,6 +8123,7 @@ msgstr "Instant"
 msgid "Instructions"
 msgstr "Instructions"
 
+#: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Internal"
 msgstr "Internal"
@@ -8194,6 +8204,10 @@ msgstr "Internal target"
 #: src/routes/obligations.tsx
 msgid "Internal target date"
 msgstr "Internal target date"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Internal target vs. filing deadline"
+msgstr "Internal target vs. filing deadline"
 
 #: src/routes/rules.library.tsx
 msgid "Invalid rule"
@@ -13461,6 +13475,10 @@ msgid "Sales tax"
 msgstr "Sales tax"
 
 #: src/features/obligations/queue/components/panels.tsx
+msgid "Same date"
+msgstr "Same date"
+
+#: src/features/obligations/queue/components/panels.tsx
 msgid "same day"
 msgstr "same day"
 
@@ -15233,6 +15251,10 @@ msgstr "The dates below were extracted by AI from the source notice. Open the of
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
 
+#: src/features/obligations/queue/components/panels.tsx
+msgid "The filing deadline is the hard date the IRS or state enforces. The internal target is the firm's earlier goal — work toward it to keep a safety buffer."
+msgstr "The filing deadline is the hard date the IRS or state enforces. The internal target is the firm's earlier goal — work toward it to keep a safety buffer."
+
 #: src/features/concepts/concept-help.tsx
 msgid "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
 msgstr "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
@@ -16638,6 +16660,10 @@ msgstr "what changed and what to verify"
 #: src/routes/billing.checkout.tsx
 msgid "What changes"
 msgstr "What changes"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "What is the internal target?"
+msgstr "What is the internal target?"
 
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"
