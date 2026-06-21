@@ -32,4 +32,8 @@ The glass-box stat triplet read `100% · 0 · Audited` — a word masquerading a
 - File still embeds the **Agentation devtool** (localhost-gated, `?noagent` escape); strip before wiring into `apps/marketing`.
 - `vp fmt --write` + `--check` clean (the file is prettier-managed on `origin/main`).
 - All four verified live at `:4599` by section isolation + screenshot.
-- Pre-existing data-consistency nit left untouched: the worklist **mini** still leads with "Hudson & Marsh" while the full table's #1 is "Hill Country Partners" — worth aligning in a later data pass.
+
+## Follow-up (same day)
+
+- **Notice beam — dark callout bubbles (ref 166001).** Replaced the busy stacked-caps `Reads · Classifies · Matches` run-on with three small near-black (`--ink`) **callout-bubble pills** strung on the beam's dashed line — the engine's three steps read as discrete callouts on the pipeline (white-on-dark, depth without the caps clutter). Goes horizontal on mobile.
+- **Data-consistency fix.** The worklist **mini** led with "Hudson & Marsh" while the full table's #1 is "Hill Country Partners" — same list, different top client. Aligned the mini to the table (`Hill Country Partners`, Blocked, 2d late); the mini's three rows now mirror the table's top three exactly.

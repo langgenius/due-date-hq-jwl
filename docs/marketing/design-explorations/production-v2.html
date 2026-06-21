@@ -1319,15 +1319,25 @@
         width: 21px;
         height: 21px;
       }
-      .beam__label {
+      /* dark callout bubbles strung on the beam — the three things it does (ref 166001) */
+      .beam__steps {
+        position: relative;
+        z-index: 2;
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+      }
+      .beam__step {
         font-size: 10px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-top: 12px;
-        text-align: center;
-        line-height: 1.5;
         font-weight: 600;
+        letter-spacing: 0.02em;
+        color: #fff;
+        background: var(--ink);
+        padding: 3px 11px;
+        border-radius: 999px;
+        white-space: nowrap;
       }
 
       /* the extracted, structured change */
@@ -2861,8 +2871,11 @@
           gap: 14px;
           padding: 24px 0;
         }
-        .beam__label {
+        .beam__steps {
           margin-top: 0;
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: center;
         }
         .extract__out {
           max-width: 480px;
@@ -4257,7 +4270,11 @@
                   <path d="M9 9h6v6H9z" />
                 </svg>
               </span>
-              <span class="beam__label">Reads ·<br />Classifies ·<br />Matches</span>
+              <span class="beam__steps">
+                <span class="beam__step">Reads</span>
+                <span class="beam__step">Classifies</span>
+                <span class="beam__step">Matches</span>
+              </span>
             </div>
 
             <!-- the extracted structure -->
@@ -5072,7 +5089,7 @@
                 <div class="mini mini--list">
                   <div class="mini__row">
                     <span class="mini__bar hi"></span>
-                    <span class="mini__client">Hudson &amp; Marsh</span>
+                    <span class="mini__client">Hill Country Partners</span>
                     <span class="mini__status blocked">Blocked</span>
                     <span class="mini__due late">2d late</span>
                   </div>
