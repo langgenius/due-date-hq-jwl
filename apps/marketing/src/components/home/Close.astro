@@ -1,0 +1,244 @@
+---
+/** Close — framed CTA card with a scalloped audit "receipt". Welcoming, restrained. */
+interface Props {
+  ctaHref: string
+}
+const { ctaHref } = Astro.props
+
+const trust = ['Free during the beta', 'No card required', 'Data stays in your practice']
+const receiptRows = [
+  { glyph: 'link', text: 'Sourced to irs.gov · verified' },
+  { glyph: 'undo', text: 'Reversible for 24 hours' },
+  { glyph: 'shield', text: 'Recorded to the audit trail' },
+]
+---
+
+<section class="close" id="close" aria-labelledby="close-h">
+  <div class="close__card">
+    <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>Be ready before busy season</span>
+    <h2 class="m-h2 close__h" id="close-h">
+      Walk into next busy season already <span class="ital">ahead.</span>
+    </h2>
+    <p class="close__body">
+      Paste your clients, and a sourced year of deadlines is ready in about 30 minutes. From there,
+      we watch every change for you — so the next time a state moves a deadline, you'll already know
+      who it affects. <strong>We'll be watching the whole time.</strong>
+    </p>
+
+    <div class="close__cta">
+      <a class="btn btn--primary" href={ctaHref} data-event="marketing.close.cta">
+        Start free <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="btn btn--ghost" href={ctaHref}>Get a guided setup</a>
+    </div>
+
+    <div class="close__trust">
+      {
+        trust.map((t) => (
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            {t}
+          </span>
+        ))
+      }
+    </div>
+
+    <div class="receipt" aria-label="Sample audit receipt for one applied change">
+      <div class="receipt__eyebrow"><span>Audit receipt</span><span>Apply #DDH-2240</span></div>
+      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 · 8 clients</p>
+      <div class="receipt__rows">
+        {
+          receiptRows.map((r) => (
+            <div class="receipt__row">
+              {r.glyph === 'link' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                </svg>
+              )}
+              {r.glyph === 'undo' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 14 4 9l5-5" />
+                  <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
+                </svg>
+              )}
+              {r.glyph === 'shield' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                </svg>
+              )}
+              {r.text}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .close {
+    padding-block: clamp(44px, 6vw, 84px);
+  }
+  .close__card {
+    max-width: 900px;
+    margin-inline: auto;
+    padding-inline: clamp(28px, 5vw, 60px);
+    padding-block: clamp(48px, 7vw, 80px);
+    background: var(--m-section);
+    border-radius: 12px;
+  }
+  .close__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--m-muted);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-bottom: 28px;
+  }
+  .close__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-accent);
+  }
+  .close__h {
+    font-size: clamp(36px, 5.4vw, 64px);
+  }
+  .close__body {
+    margin-top: 24px;
+    max-width: 52ch;
+    font-size: clamp(17px, 1.4vw, 19px);
+    line-height: 1.55;
+    color: var(--m-ink-2);
+  }
+  .close__body strong {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .close__cta {
+    margin-top: 34px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 26px;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.12s ease;
+  }
+  .btn--primary {
+    background: var(--m-accent);
+    color: #fff;
+    padding: 12px 20px;
+  }
+  .btn--primary:hover {
+    background: var(--m-accent-strong);
+  }
+  .btn--primary:active {
+    transform: translateY(1px);
+  }
+  .btn--primary .arrow {
+    transition: transform 0.18s ease;
+  }
+  .btn--primary:hover .arrow {
+    transform: translateX(3px);
+  }
+  .btn--ghost {
+    color: var(--m-ink);
+    padding: 12px 4px;
+  }
+  .btn--ghost:hover {
+    color: var(--m-accent);
+    box-shadow: inset 0 -1.5px 0 var(--m-accent);
+  }
+  .close__trust {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px 22px;
+  }
+  .close__trust span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--m-ink-2);
+  }
+  .close__trust svg {
+    width: 15px;
+    height: 15px;
+    color: var(--m-accent);
+    flex: none;
+  }
+  .receipt {
+    --r: 9px;
+    margin-top: 36px;
+    max-width: 380px;
+    background: var(--m-surface);
+    padding: 16px 20px calc(16px + var(--r));
+    border-radius: 12px 12px 0 0;
+    -webkit-mask:
+      radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
+        var(--r) repeat-x,
+      linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
+    mask:
+      radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
+        var(--r) repeat-x,
+      linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
+  }
+  .receipt__eyebrow {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .receipt__change {
+    margin-top: 9px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-ink);
+  }
+  .receipt__change s {
+    color: var(--m-faint);
+  }
+  .receipt__rows {
+    margin-top: 11px;
+    padding-top: 11px;
+    border-top: 1px dashed var(--m-hairline);
+    display: grid;
+    gap: 7px;
+  }
+  .receipt__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--m-ink-2);
+  }
+  .receipt__row svg {
+    width: 13px;
+    height: 13px;
+    color: var(--m-accent);
+    flex: none;
+  }
+</style>

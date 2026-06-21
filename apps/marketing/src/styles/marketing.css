@@ -50,3 +50,44 @@
   --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
   --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
 }
+
+/* ============================================================================
+   Shared marketing primitives — one section/eyebrow/title/lead used across all
+   home components (DRY type system). Global classes (not Astro-scoped) so every
+   section pulls from the same source.
+   ============================================================================ */
+@layer components {
+  .m-section {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    padding-block: clamp(56px, 8vw, 104px);
+  }
+  .m-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--m-eyebrow-gap);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .m-h2 {
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(29px, 3.6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .m-h2 .ital {
+    font-style: italic;
+  }
+  .m-lead {
+    font-size: clamp(17px, 1.4vw, 20px);
+    line-height: 1.55;
+    color: var(--m-ink-2);
+  }
+}
