@@ -220,9 +220,21 @@ export function DailyBriefCard({
   }
 
   return (
-    <section
-      aria-label={t`Daily brief`}
-      // The accent-tinted banner of /today (Yuqi: "background blue tint") —
+    <div className="relative">
+      {/* Aurora "generating" glow (Yuqi ref: the "Brief is generating" pill) — a
+          soft brand-cyan → violet → warm halo that drifts behind the banner ONLY
+          while the AI writes the brief, so the wait reads as alive thinking, not
+          a dead spinner. A blurred gradient layer sits behind the card and leaks
+          a few px past the edge as a halo; reduced-motion freezes the drift. */}
+      {isPending ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 rounded-2xl bg-[linear-gradient(115deg,var(--color-brand-highlight),#a78bfa,#f0a35e,var(--color-brand-highlight))] bg-[length:300%_300%] opacity-55 blur-lg animate-[ddhq-aurora-drift_4.5s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-40"
+        />
+      ) : null}
+      <section
+        aria-label={t`Daily brief`}
+        // The accent-tinted banner of /today (Yuqi: "background blue tint") —
       // the page's ONE chromatic surface, marking the AI digest apart from
       // the neutral monitor (alerts) and work (priorities) sections. No
       // border: the tint alone defines the edge (avoid too much borders).
@@ -231,7 +243,7 @@ export function DailyBriefCard({
       // docs/Design/brief-banner-language.md.
       // The unfold: expanding from the tab plays the house animate-in recipe
       // (fade + 4px slide from the tab's position) — the paper opens.
-      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+      className="group relative z-10 flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
     >
       {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}
@@ -300,7 +312,8 @@ export function DailyBriefCard({
           <Trans>Brief unavailable — we'll retry shortly.</Trans>
         </p>
       ) : null}
-    </section>
+      </section>
+    </div>
   )
 }
 

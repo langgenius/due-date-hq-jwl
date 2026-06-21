@@ -1,4 +1,4 @@
-import { CircleAlertIcon, RotateCwIcon, ScrollTextIcon, UserIcon, UsersIcon } from 'lucide-react'
+import { CircleAlertIcon, RotateCwIcon, UserIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
@@ -21,8 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
-import { EmptyState } from '@/components/patterns/empty-state'
 import { ClientsEmptyState } from '@/features/clients/ClientsEmptyState'
+import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
@@ -474,26 +474,37 @@ export function DashboardRoute() {
       ) : needsRules ? (
         // Onboarding gap #2 (2026-06-18): clients are in but no rules are active,
         // so no deadlines generate and the sections below would read a misleading
-        // "all clear." Replace them with an actionable nudge — set up rules, and
-        // deadlines flow automatically. Self-resolves once the first rule
-        // generates a deadline (activeRuleTotal > 0).
-        <EmptyState
-          variant="prominent"
-          icon={ScrollTextIcon}
-          title={<Trans>No deadlines yet</Trans>}
-          description={
-            <Trans>
-              Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates
-              every deadline automatically — no manual entry.
-            </Trans>
-          }
-          cta={
-            <Button render={<Link to="/rules/library" />}>
-              <ScrollTextIcon data-icon="inline-start" />
-              <Trans>Set up rules</Trans>
-            </Button>
-          }
-        />
+        // "all clear." Replace them with the setup-progress card (Yuqi aesthetic
+        // refs) — it reinforces the done step (clients ✓), shows how close they
+        // are, and CTAs straight to rules. Self-resolves once the first rule
+        // generates a deadline (activeRuleTotal > 0), at which point the card's
+        // own all-done guard hides it and the real dashboard takes over.
+        <div className="flex flex-1 items-start justify-center pt-8">
+          <SetupProgressCard
+            className="w-full max-w-md"
+            title={<Trans>You're almost set up</Trans>}
+            description={
+              <Trans>
+                Activate rules for your clients' jurisdictions and DueDateHQ generates every
+                deadline automatically — no manual entry.
+              </Trans>
+            }
+            steps={[
+              {
+                key: 'clients',
+                label: <Trans>Add your clients</Trans>,
+                done: hasClients,
+                href: '/clients',
+              },
+              {
+                key: 'rules',
+                label: <Trans>Activate filing rules</Trans>,
+                done: activeRuleTotal > 0,
+                href: '/rules/library',
+              },
+            ]}
+          />
+        </div>
       ) : (
         <>
           {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day

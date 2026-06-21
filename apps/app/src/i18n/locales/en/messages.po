@@ -1635,6 +1635,10 @@ msgstr "A dry run that shows which deadline rules would create for a client befo
 msgid "A few details so DueDateHQ can schedule your deadlines. You can change any of this later in Settings."
 msgstr "A few details so DueDateHQ can schedule your deadlines. You can change any of this later in Settings."
 
+#: src/features/dashboard/SetupProgressCard.tsx
+msgid "A few steps left before DueDateHQ starts watching your deadlines."
+msgstr "A few steps left before DueDateHQ starts watching your deadlines."
+
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 msgid "A fresh URL — same scope, same privacy mode"
@@ -1840,9 +1844,17 @@ msgstr "Actions"
 msgid "Actions for {0}"
 msgstr "Actions for {0}"
 
+#: src/routes/dashboard.tsx
+msgid "Activate filing rules"
+msgstr "Activate filing rules"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activate rule"
 msgstr "Activate rule"
+
+#: src/routes/dashboard.tsx
+msgid "Activate rules for your clients' jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
+msgstr "Activate rules for your clients' jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
 
 #: src/routes/migration.new.tsx
 msgid "Activate your practice."
@@ -2087,6 +2099,10 @@ msgstr "Add this client's filing state to start generating deadlines."
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Add workpaper"
 msgstr "Add workpaper"
+
+#: src/routes/dashboard.tsx
+msgid "Add your clients"
+msgstr "Add your clients"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Added evidence to this deadline."
@@ -2596,6 +2612,10 @@ msgstr "all with reason"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Allowed"
 msgstr "Allowed"
+
+#: src/features/dashboard/SetupProgressCard.tsx
+msgid "Almost there"
+msgstr "Almost there"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Already"
@@ -4441,6 +4461,10 @@ msgstr "Continue"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Continue collecting before drafting."
 msgstr "Continue collecting before drafting."
+
+#: src/features/dashboard/SetupProgressCard.tsx
+msgid "Continue setup"
+msgstr "Continue setup"
 
 #: src/routes/billing.checkout.tsx
 msgid "Continue to secure checkout"
@@ -9856,7 +9880,6 @@ msgstr "No deadlines match."
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines yet"
 msgstr "No deadlines yet"
@@ -13929,10 +13952,6 @@ msgstr "Set to {after}"
 msgid "Set up authenticator"
 msgstr "Set up authenticator"
 
-#: src/routes/dashboard.tsx
-msgid "Set up rules"
-msgstr "Set up rules"
-
 #: src/routes/onboarding.tsx
 msgid "Set up your practice"
 msgstr "Set up your practice"
@@ -16813,6 +16832,10 @@ msgstr "You'll write a brief reason below."
 msgid "You're about to create:"
 msgstr "You're about to create:"
 
+#: src/routes/dashboard.tsx
+msgid "You're almost set up"
+msgstr "You're almost set up"
+
 #: src/components/patterns/app-shell.tsx
 msgid "You're exploring a live, read-only demo."
 msgstr "You're exploring a live, read-only demo."
@@ -16856,10 +16879,6 @@ msgstr "Your clients and deadlines were created. You can undo this import within
 #: src/features/dashboard/actions-list.tsx
 msgid "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
 msgstr "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
-
-#: src/routes/dashboard.tsx
-msgid "Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
-msgstr "Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates every deadline automatically — no manual entry."
 
 #: src/routes/billing.checkout.tsx
 msgid "Your current practice"

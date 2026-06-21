@@ -203,6 +203,8 @@ import { BlockedByChip } from '@/features/obligations/blocked-by-chip'
 import { RejectionChip } from '@/features/obligations/rejection-chip'
 import { StageActions } from '@/features/obligations/StageActions'
 import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
+import { TickProgress } from '@/components/primitives/tick-progress'
+import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary/SurfaceSummaryStrip'
 import { ConceptHelp } from '@/features/concepts/concept-help'
@@ -2149,6 +2151,29 @@ export function PreviewRoute() {
             </Row>
             <Row label="ApplyingPill" mono="features/alerts/components/ApplyingPill (img-043)">
               <ApplyingPill />
+            </Row>
+            <Row label="TickProgress" mono="components/primitives/tick-progress (Yuqi ref: tick-mark bar)">
+              <div className="flex w-full max-w-[420px] flex-col gap-3">
+                <TickProgress value={23} />
+                <TickProgress value={50} />
+                <TickProgress value={85} />
+              </div>
+            </Row>
+            <Row
+              label="SetupProgressCard"
+              mono="features/dashboard/SetupProgressCard (Yuqi refs: Almost-There card + checklist)"
+            >
+              <div className="w-full max-w-md">
+                <SetupProgressCard
+                  title="You're almost set up"
+                  description="Activate rules for your clients' jurisdictions and DueDateHQ generates every deadline automatically."
+                  steps={[
+                    { key: 'clients', label: 'Add your clients', done: true, href: '#' },
+                    { key: 'rules', label: 'Activate filing rules', done: false, href: '#' },
+                    { key: 'review', label: 'Review your first deadlines', done: false, href: '#' },
+                  ]}
+                />
+              </div>
             </Row>
             <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
               <div className="w-full max-w-[520px]">

@@ -128,6 +128,22 @@ a[href]:where(:not([data-slot='button']):not([data-slot='sidebar-menu-button']))
   }
 }
 
+/* Aurora drift — a soft multi-hue glow that slides across an AI "generating"
+   surface (the daily brief while it writes its sentence). Brand cyan leads with
+   a violet + warm sweep so the "thinking" moment feels alive, not a dead
+   spinner. Consumed via `animate-[ddhq-aurora-drift_…]` on a blurred gradient
+   layer set behind the card; reduced-motion freezes it to a static glow. */
+@keyframes ddhq-aurora-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pulse-strip-breathing::before {
     opacity: 0.2;
