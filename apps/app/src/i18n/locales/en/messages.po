@@ -1975,9 +1975,17 @@ msgstr "Add {0} rule"
 msgid "Add {0}% across factors to balance. Weights must total 100%."
 msgstr "Add {0}% across factors to balance. Weights must total 100%."
 
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Add a client"
+msgstr "Add a client"
+
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a client to this practice."
 msgstr "Add a client to this practice."
+
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Add a deadline"
+msgstr "Add a deadline"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Add a note for your team — explain assumptions, scope decisions, or follow-ups."
@@ -1995,6 +2003,10 @@ msgstr "Add a review note to enable Accept and Reject — it's logged to the aud
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Add a short note explaining the rejection…"
 msgstr "Add a short note explaining the rejection…"
+
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Add a single rule-backed deadline for a client. DueDateHQ calculates the due date from the rule library."
+msgstr "Add a single rule-backed deadline for a client. DueDateHQ calculates the due date from the rule library."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Add a state to at least one client before running deadline preview."
@@ -2106,6 +2118,10 @@ msgstr "Add workpaper"
 #: src/routes/dashboard.tsx
 msgid "Add your clients"
 msgstr "Add your clients"
+
+#: src/routes/dashboard.tsx
+msgid "Add your first work"
+msgstr "Add your first work"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Added evidence to this deadline."
@@ -3392,6 +3408,10 @@ msgstr "Brief unavailable — we'll retry shortly."
 msgid "Briefing unavailable."
 msgstr "Briefing unavailable."
 
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Bring your whole book from TaxDome, Karbon, Drake, QuickBooks and more — every deadline shows up on its own."
+msgstr "Bring your whole book from TaxDome, Karbon, Drake, QuickBooks and more — every deadline shows up on its own."
+
 #: src/features/migration/SuccessModal.tsx
 msgid "Browse your first deadlines"
 msgstr "Browse your first deadlines"
@@ -3436,6 +3456,7 @@ msgid "By accepting you agree to the Terms and Privacy Policy."
 msgstr "By accepting you agree to the Terms and Privacy Policy."
 
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/routes/clients.tsx
 msgid "C corp"
 msgstr "C corp"
@@ -3986,6 +4007,7 @@ msgstr "Client batch created"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Client created"
@@ -4700,6 +4722,7 @@ msgid "Couldn't copy to clipboard"
 msgstr "Couldn't copy to clipboard"
 
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Couldn't create client"
@@ -5260,6 +5283,10 @@ msgstr "Create materials link"
 #: src/features/dashboard/add-menu.tsx
 msgid "Create one client by hand"
 msgstr "Create one client by hand"
+
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Create one client by hand — name, entity type, and jurisdiction. Good for trying it out with a single account."
+msgstr "Create one client by hand — name, entity type, and jurisdiction. Good for trying it out with a single account."
 
 #: src/routes/billing.checkout.tsx
 msgid "Create or select a practice before starting checkout."
@@ -7553,6 +7580,7 @@ msgstr "Generating…"
 
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/routes/billing.tsx
+#: src/routes/dashboard.tsx
 msgid "Get started"
 msgstr "Get started"
 
@@ -7825,6 +7853,7 @@ msgstr "Import batch created"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -8037,6 +8066,7 @@ msgstr "Include Federal"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Individual"
@@ -8587,6 +8617,7 @@ msgid "Live in your workspace. {0, plural, one {# deadline is now scheduled} oth
 msgstr "Live in your workspace. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. No emails go out until you turn the matching rule on — you control every send."
 
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "LLC"
@@ -10997,6 +11028,7 @@ msgstr "Original entry"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/clients.tsx
@@ -11252,6 +11284,7 @@ msgstr "partners"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Partnership"
@@ -11544,6 +11577,10 @@ msgstr "Pick a scope, format, and recipient."
 #: src/routes/rules.library.tsx
 msgid "Pick a tax type…"
 msgstr "Pick a tax type…"
+
+#: src/routes/dashboard.tsx
+msgid "Pick how you want to begin. Import your whole book, add a single client, or drop in one deadline — DueDateHQ tracks every due date from there."
+msgstr "Pick how you want to begin. Import your whole book, add a single client, or drop in one deadline — DueDateHQ tracks every due date from there."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -12716,6 +12753,7 @@ msgstr "Required: {requiredRoleText}"
 #. placeholder {0}: requiredRolesLabel('client.write')
 #. placeholder {0}: requiredRolesLabel('migration.run')
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 msgid "Requires {0} access"
 msgstr "Requires {0} access"
 
@@ -13405,6 +13443,7 @@ msgid "Running…"
 msgstr "Running…"
 
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/routes/clients.tsx
 msgid "S corp"
 msgstr "S corp"
@@ -14344,6 +14383,7 @@ msgid "Snooze cleared"
 msgstr "Snooze cleared"
 
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/routes/clients.tsx
 msgid "Sole prop"
 msgstr "Sole prop"
@@ -15725,6 +15765,7 @@ msgstr "Trial ends {0}"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Trust"
@@ -15760,6 +15801,7 @@ msgstr "Try again in a moment."
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/dashboard/add-menu.tsx
+#: src/features/dashboard/create-choice-cards.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx

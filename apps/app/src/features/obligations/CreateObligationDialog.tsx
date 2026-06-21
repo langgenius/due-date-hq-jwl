@@ -728,6 +728,7 @@ export function CreateObligationDialog({
   onCreated,
   open: controlledOpen,
   onOpenChange,
+  hideTrigger,
 }: {
   trigger?: ReactElement
   defaultClientId?: string
@@ -737,6 +738,10 @@ export function CreateObligationDialog({
   // Uncontrolled by default.
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  // Suppress the built-in trigger button entirely when an external caller
+  // drives the dialog programmatically (e.g. the first-run choice cards open
+  // it from their own primary Button). Mirrors CreateClientDialog's prop.
+  hideTrigger?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -1068,6 +1073,7 @@ export function CreateObligationDialog({
           setOpen(nextOpen)
         }}
       >
+        {hideTrigger ? null : (
         <DialogTrigger
           render={
             trigger ?? (
@@ -1090,6 +1096,7 @@ export function CreateObligationDialog({
             )
           }
         />
+        )}
         <DialogContent className="w-[42rem] max-w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>

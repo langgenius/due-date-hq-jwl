@@ -21,13 +21,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
-import { ClientsEmptyState } from '@/features/clients/ClientsEmptyState'
 import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
+import { CreateChoiceCards } from '@/features/dashboard/create-choice-cards'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
-import { useMigrationWizard } from '@/features/migration/WizardProvider'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
@@ -205,8 +203,6 @@ export function DashboardRoute() {
   const clientsResolved = !clientsProbeQuery.isLoading
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const showFirstRun = clientsResolved && !hasClients
-  const { openWizard } = useMigrationWizard()
-  const permission = useFirmPermission()
   // Second first-run state (onboarding gap #2): clients are in, but no rules
   // were activated, so no deadlines generate and the queue reads a misleading
   // "all clear." `rules.coverage` is the precise signal (shares the sidebar's
@@ -466,12 +462,30 @@ export function DashboardRoute() {
       {/* <ChangesSinceLastSection /> */}
 
       {showFirstRun ? (
-        // Onboarding gap #1 (2026-06-18): a fresh practice with zero clients
-        // lands here with nothing to act on — the three sections below are all
-        // silent. Lead with the same designed get-started hero /clients shows
-        // (one "import your clients" message) so the first action is always
-        // visible. Primary CTA only — add-manually / sample-data live on /clients.
-        <ClientsEmptyState onImport={openWizard} canImport={permission.can('migration.run')} />
+        // Onboarding gap #1 (2026-06-18, revisited 2026-06-21): a fresh practice
+        // with zero clients lands here with nothing to act on. Rather than a
+        // single-CTA hero, lead with the three real "ways to add" as choice
+        // cards (Yuqi create-choice-card refs) — Import clients / Add a client /
+        // Add a deadline — so the get-started moment is a richer chooser, every
+        // card wired to its real action. Gated to the same showFirstRun signal.
+        <div className="flex flex-1 flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-1.5">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1 text-column-label font-semibold tracking-wide text-text-secondary">
+              <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
+              <Trans>Get started</Trans>
+            </span>
+            <h2 className="text-section-title font-semibold tracking-tight text-text-primary">
+              <Trans>Add your first work</Trans>
+            </h2>
+            <p className="max-w-xl text-sm leading-relaxed text-text-secondary">
+              <Trans>
+                Pick how you want to begin. Import your whole book, add a single client, or drop in
+                one deadline — DueDateHQ tracks every due date from there.
+              </Trans>
+            </p>
+          </div>
+          <CreateChoiceCards />
+        </div>
       ) : needsRules ? (
         // Onboarding gap #2 (2026-06-18): clients are in but no rules are active,
         // so no deadlines generate and the sections below would read a misleading
