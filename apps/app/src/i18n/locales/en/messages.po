@@ -1344,6 +1344,10 @@ msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows
 msgid "{skipped} skipped (already closed)"
 msgstr "{skipped} skipped (already closed)"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "{sourceErrorCount, plural, one {# source error} other {# source errors}}"
+msgstr "{sourceErrorCount, plural, one {# source error} other {# source errors}}"
+
 #: src/routes/obligations.tsx
 msgid "{stagedTotal, plural, =0 {No filters staged} one {# filter staged} other {# filters staged}}"
 msgstr "{stagedTotal, plural, =0 {No filters staged} one {# filter staged} other {# filters staged}}"
@@ -14689,10 +14693,6 @@ msgstr "Suspended"
 #: src/features/members/members-page.tsx
 msgid "Suspending…"
 msgstr "Suspending…"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "swept {relativeChecked}"
-msgstr "swept {relativeChecked}"
 
 #. placeholder {0}: account.name
 #: src/components/patterns/app-shell-user-menu.tsx

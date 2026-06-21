@@ -1349,6 +1349,10 @@ msgstr "{skipped, plural, other {# 行将被跳过（见错误明细）}}"
 msgid "{skipped} skipped (already closed)"
 msgstr "跳过 {skipped} 个（已关闭）"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "{sourceErrorCount, plural, one {# source error} other {# source errors}}"
+msgstr "{sourceErrorCount, plural, other {# 个数据源异常}}"
+
 #: src/routes/obligations.tsx
 msgid "{stagedTotal, plural, =0 {No filters staged} one {# filter staged} other {# filters staged}}"
 msgstr "{stagedTotal, plural, =0 {未暂存任何筛选} other {已暂存 # 个筛选}}"
@@ -14752,10 +14756,6 @@ msgstr "已暂停"
 #: src/features/members/members-page.tsx
 msgid "Suspending…"
 msgstr "正在暂停…"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "swept {relativeChecked}"
-msgstr "扫描于 {relativeChecked}"
 
 #. placeholder {0}: account.name
 #: src/components/patterns/app-shell-user-menu.tsx

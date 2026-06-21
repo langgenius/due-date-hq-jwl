@@ -304,6 +304,13 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+  // Failing monitored sources are the one source-health fact worth surfacing in
+  // the header — a CPA needs to know if a feed they rely on has gone dark. The
+  // healthy/paused ratio stays silent (absence = all-clear, per the list's own
+  // grammar). Real data: pulse source-health status (img-151, scoped to errors).
+  const sourceErrorCount = sourceHealth.filter(
+    (s) => s.healthStatus === 'degraded' || s.healthStatus === 'failing',
+  ).length
 
   // 2026-06-12 (Yuqi "if it is active already, you should land in the right
   // tab"): opening an alert (deep link from /today, URL share, prev/next
@@ -628,6 +635,23 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     />
                     <Trans>Live</Trans>
                   </Badge>
+                  {/* Source-error chip — only when a monitored source is
+                      degraded/failing. Destructive tint + links to /rules/sources
+                      so the CPA can act. Silent when all sources are healthy. */}
+                  {sourceErrorCount > 0 ? (
+                    <Badge
+                      variant="destructive"
+                      size="lg"
+                      className="gap-1 tabular-nums"
+                      render={<Link to="/rules/sources" />}
+                    >
+                      <Plural
+                        value={sourceErrorCount}
+                        one="# source error"
+                        other="# source errors"
+                      />
+                    </Badge>
+                  ) : null}
                 </>
               ) : null}
             </span>
