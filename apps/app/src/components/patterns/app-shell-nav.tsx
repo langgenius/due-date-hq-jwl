@@ -34,6 +34,7 @@ import { AlertsNotificationsBell } from '@/components/patterns/alerts-notificati
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { SidebarSetupCard } from '@/features/dashboard/sidebar-setup-card'
 import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
@@ -665,7 +666,20 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             <NavMenuItem key={item.href} item={item} />
           ))}
         </NavGroupSection>
-        <NavGroupSection muted footerSlot={<SidebarSystemStatus />}>
+        {/* Footer slot stacks the gentle setup nudge ABOVE the ambient system-
+            status caption: the card is the only one that ever asks for an
+            action (and self-hides the moment both signals go true), so it reads
+            as the brief "finish setup" prompt sitting over the passive
+            "what we're watching" line. Both step aside in the collapsed rail. */}
+        <NavGroupSection
+          muted
+          footerSlot={
+            <div className="flex flex-col gap-2">
+              <SidebarSetupCard />
+              <SidebarSystemStatus />
+            </div>
+          }
+        >
           {items.footer.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}

@@ -965,6 +965,7 @@ msgstr "{count, plural, one {# protective claim window closes within 60 days} ot
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
 msgstr "{count, plural, one {# rule selected} other {# rules selected}}"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{count, plural, one {# selected} other {# selected}}"
 msgstr "{count, plural, one {# selected} other {# selected}}"
@@ -1844,6 +1845,7 @@ msgstr "Actions"
 msgid "Actions for {0}"
 msgstr "Actions for {0}"
 
+#: src/features/dashboard/sidebar-setup-card.tsx
 #: src/routes/dashboard.tsx
 msgid "Activate filing rules"
 msgstr "Activate filing rules"
@@ -2100,6 +2102,7 @@ msgstr "Add this client's filing state to start generating deadlines."
 msgid "Add workpaper"
 msgstr "Add workpaper"
 
+#: src/features/dashboard/sidebar-setup-card.tsx
 #: src/routes/dashboard.tsx
 msgid "Add your clients"
 msgstr "Add your clients"
@@ -4474,6 +4477,7 @@ msgstr "Contacts"
 msgid "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
 msgstr "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
 
+#: src/features/dashboard/sidebar-setup-card.tsx
 #: src/features/migration/WizardShell.tsx
 msgid "Continue"
 msgstr "Continue"
@@ -5895,6 +5899,10 @@ msgstr "Dismiss alerts"
 msgid "Dismiss at-a-glance summary"
 msgstr "Dismiss at-a-glance summary"
 
+#: src/features/dashboard/sidebar-setup-card.tsx
+msgid "Dismiss setup nudge"
+msgstr "Dismiss setup nudge"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -7258,6 +7266,10 @@ msgstr "Fine-tune which events reach you and how."
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Finish cleaning up the client's books"
 msgstr "Finish cleaning up the client's books"
+
+#: src/features/dashboard/sidebar-setup-card.tsx
+msgid "Finish setup"
+msgstr "Finish setup"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Firm"
@@ -14055,6 +14067,10 @@ msgstr "Settings sections"
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "Setup"
+
+#: src/features/dashboard/sidebar-setup-card.tsx
+msgid "Setup progress"
+msgstr "Setup progress"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Setup URI"
