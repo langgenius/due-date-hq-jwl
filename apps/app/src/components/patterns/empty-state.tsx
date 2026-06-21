@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DuotoneIcon, type DuotoneTone } from '@/components/primitives/duotone-icon'
+
 /**
  * EmptyState — the shared "nothing here yet" surface.
  *
@@ -33,6 +35,7 @@ export function EmptyState({
   variant = 'default',
   iconTone = 'accent',
   visual = 'icon',
+  duotoneTone = 'accent',
   fill = false,
 }: {
   icon?: LucideIcon
@@ -61,7 +64,13 @@ export function EmptyState({
   // that fills with cards/rows ("your alerts will stack here"). Implies content
   // without faking data — the cards are explicitly blank skeletons, so it honours
   // the "no fiction on canvas" rule. `icon` prop is ignored when `ghost-cards`.
-  visual?: 'icon' | 'ghost-cards'
+  // `duotone` = a soft two-tone icon chip (rounded tinted square + accent glyph)
+  // instead of the tinted circle — the Yuqi delight-glyph aesthetic, for warm
+  // onboarding / first-run empties. Uses the `icon` prop; pick the tint with
+  // `duotoneTone`. Works in both prominent and default sizes.
+  visual?: 'icon' | 'ghost-cards' | 'duotone'
+  // Tint for `visual="duotone"`.
+  duotoneTone?: DuotoneTone
   // When true the prominent card stretches to fill its parent's
   // height and vertically centers its column — matches the canvas cards which
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
@@ -71,6 +80,7 @@ export function EmptyState({
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
   const showGhostCards = isProminent && visual === 'ghost-cards'
+  const showDuotone = visual === 'duotone' && Boolean(Icon)
   return (
     <div
       data-density={density}
@@ -108,6 +118,10 @@ export function EmptyState({
             <div className="h-2 w-1/2 rounded-full bg-background-section" />
           </div>
         </div>
+      ) : showDuotone && Icon ? (
+        // Two-tone delight chip (Yuqi duotone aesthetic) — a warmer alternative
+        // to the tinted icon-circle for onboarding / first-run empties.
+        <DuotoneIcon icon={Icon} tone={duotoneTone} size={isProminent ? 'lg' : 'md'} />
       ) : Icon ? (
         isProminent ? (
           <div
