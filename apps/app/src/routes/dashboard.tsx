@@ -349,7 +349,10 @@ export function DashboardRoute() {
                       className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <RotateCwIcon
-                        className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')}
+                        className={cn(
+                          'size-3.5',
+                          dashboardQuery.isFetching && 'animate-spin motion-reduce:animate-none',
+                        )}
                         aria-hidden
                       />
                     </button>

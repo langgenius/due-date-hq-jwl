@@ -504,7 +504,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                       ) : (
                         <CornerDownLeftIcon
                           aria-hidden
-                          className="size-3.5 text-text-tertiary opacity-0 group-data-[selected=true]/command-item:opacity-100"
+                          className="size-3.5 text-text-tertiary opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
                         />
                       )}
                     </CommandItem>

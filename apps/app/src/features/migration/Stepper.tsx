@@ -81,7 +81,16 @@ export function Stepper({ current }: { current: StepIndex }) {
                   circleTone,
                 )}
               >
-                {isDone ? <CheckIcon className="size-3" aria-hidden /> : step.index}
+                {isDone ? (
+                  // The check pops in (zoom 50%→100%) when a step completes — a
+                  // small "done" beat that pairs with the SuccessModal check.
+                  <CheckIcon
+                    className="size-3 animate-in zoom-in-50 duration-200 motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                ) : (
+                  step.index
+                )}
               </span>
               <span>{step.label}</span>
             </div>

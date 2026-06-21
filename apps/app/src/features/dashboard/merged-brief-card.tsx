@@ -340,7 +340,9 @@ export function MergedBriefCard({
         // brand's idea of a party. Every word is real state — no fiction.
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
           <span
-            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover"
+            // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
+            // fade — a small "you're clear" beat. Calm, not confetti.
+            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
             <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />

@@ -513,7 +513,10 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   if (pending) {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
-        <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
+        <RotateCwIcon
+          className="size-3 animate-spin text-text-secondary motion-reduce:animate-none"
+          aria-hidden
+        />
         <span className="font-mono text-chip-label text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
