@@ -2505,6 +2505,10 @@ msgstr "All clear — nothing due, nothing late."
 msgid "All clients"
 msgstr "All clients"
 
+#: src/routes/obligations.tsx
+msgid "all deadlines"
+msgstr "all deadlines"
+
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "All deadlines"
 msgstr "All deadlines"
@@ -2550,6 +2554,10 @@ msgstr "all matched"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "All materials are in."
 msgstr "All materials are in."
+
+#: src/routes/obligations.tsx
+msgid "all on time"
+msgstr "all on time"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "All quiet — nothing new needs your attention right now."
@@ -3268,6 +3276,10 @@ msgstr "Before you accept"
 #: src/features/migration/Step4Preview.tsx
 msgid "Before you import"
 msgstr "Before you import"
+
+#: src/routes/obligations.tsx
+msgid "being prepared"
+msgstr "being prepared"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Best match"
@@ -5668,6 +5680,10 @@ msgstr "Deadlines exported"
 msgid "deadlines generated"
 msgstr "deadlines generated"
 
+#: src/routes/obligations.tsx
+msgid "Deadlines portfolio summary"
+msgstr "Deadlines portfolio summary"
+
 #: src/routes/practice.tsx
 msgid "Deadlines whose rank shifts > 5 places"
 msgstr "Deadlines whose rank shifts > 5 places"
@@ -6983,6 +6999,7 @@ msgstr "File type"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
+#: src/routes/obligations.tsx
 msgid "Filed"
 msgstr "Filed"
 
@@ -7950,6 +7967,7 @@ msgstr "In queue {0}"
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/status-control.tsx
+#: src/routes/obligations.tsx
 msgid "In review"
 msgstr "In review"
 
@@ -9439,6 +9457,10 @@ msgstr "need review"
 msgid "Need review"
 msgstr "Need review"
 
+#: src/routes/obligations.tsx
+msgid "needs action"
+msgstr "needs action"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Needs action"
 msgstr "Needs action"
@@ -9657,6 +9679,10 @@ msgstr "Next"
 #: src/routes/obligations.tsx
 msgid "Next {THIS_WEEK_MAX_DAYS} days"
 msgstr "Next {THIS_WEEK_MAX_DAYS} days"
+
+#: src/routes/obligations.tsx
+msgid "next 7 days"
+msgstr "next 7 days"
 
 #: src/features/clients/ClientCycleArrows.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -10266,6 +10292,10 @@ msgstr "None"
 #: src/routes/rules.library.tsx
 msgid "None awaiting"
 msgstr "None awaiting"
+
+#: src/routes/obligations.tsx
+msgid "none due"
+msgstr "none due"
 
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "none in 90 days"
@@ -15444,6 +15474,10 @@ msgstr "This official source changed. Re-verify each rule against the source, th
 msgid "This page will keep checking. You can also return to Billing and refresh later."
 msgstr "This page will keep checking. You can also return to Billing and refresh later."
 
+#: src/routes/obligations.tsx
+msgid "this period"
+msgstr "this period"
+
 #: src/routes/billing.checkout.tsx
 msgid "This practice already has the selected plan."
 msgstr "This practice already has the selected plan."
@@ -15636,6 +15670,10 @@ msgstr "Total clients"
 #: src/routes/rules.library.tsx
 msgid "Total rules"
 msgstr "Total rules"
+
+#: src/routes/obligations.tsx
+msgid "Total tracked"
+msgstr "Total tracked"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

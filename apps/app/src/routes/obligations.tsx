@@ -163,6 +163,7 @@ import {
   FLOATING_ACTION_BAR_SCROLL_PADDING,
 } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
@@ -2898,6 +2899,7 @@ export function ObligationQueueRoute() {
   const deadlinesNarrative = useMemo(() => {
     let overdue = 0
     let dueToday = 0
+    let dueThisWeek = 0
     for (const r of glanceRows) {
       // Terminal set mirrors workload's open-statuses complement (a `paid`
       // payment can't be overdue) — the banner and /workload must publish
@@ -2910,10 +2912,14 @@ export function ObligationQueueRoute() {
       const days = daysUntilEffectiveInternalDueDate(r)
       if (!terminal && days < 0) overdue++
       if (!terminal && days === 0) dueToday++
+      // "Due this week" = the urgency-band semantics from urgencyBandOf
+      // (0..7, non-terminal) — the same 0–7 window the toolbar's "Due this
+      // week" chip uses, so the StatBand cell and the chip agree.
+      if (!terminal && days >= 0 && days <= 7) dueThisWeek++
     }
     const entities =
       facetsQuery.data?.clients.length ?? new Set(glanceRows.map((r) => r.clientId)).size
-    return { overdue, dueToday, entities }
+    return { overdue, dueToday, dueThisWeek, entities }
   }, [glanceRows, facetsQuery.data?.clients])
   // Eyebrow date for the narrative banner — "TUE JUN 9". Built from the
   // as-of date when one is pinned (demo / time-travel), else today.
@@ -2925,6 +2931,60 @@ export function ObligationQueueRoute() {
     )
     return `${weekday} ${monthDay}`.toUpperCase()
   }, [asOf])
+  // Portfolio summary cells for the shared StatBand (the same "card summary"
+  // component on /clients, /rules/sources, /rules/library, /alerts/history).
+  // It sits ALONGSIDE the narrative banner: the banner reads ONE editorial
+  // sentence about the week, the band breaks the portfolio into the CPA's
+  // triage dimensions. Every cell traces to a real aggregate — total tracked
+  // and the In review / Filed counts come from the same status facets that
+  // drive the scope tabs (LIFECYCLE_V2_STATUS_SETS so merged stages count
+  // their full raw-status set, never just the canonical one); overdue + due
+  // this week come from the same glance aggregates as the banner.
+  const statBandCells = useMemo<StatBandItem[]>(() => {
+    const sumStatuses = (statuses: readonly ObligationStatus[]) =>
+      statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
+    const inReview = sumStatuses(LIFECYCLE_V2_STATUS_SETS.review)
+    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
+    const { overdue, dueThisWeek } = deadlinesNarrative
+    return [
+      {
+        key: 'tracked',
+        label: t`Total tracked`,
+        value: scopeTotal,
+        // Anchor stat — orients, never an always-on accent (StatBand color
+        // budget: a "Total" stays neutral).
+        sub: t`all deadlines`,
+      },
+      {
+        key: 'overdue',
+        label: t`Overdue`,
+        value: overdue,
+        // Color is a signal: destructive only when something IS overdue, so a
+        // warning-toned zero never flags a problem that doesn't exist.
+        sub: overdue > 0 ? t`needs action` : t`all on time`,
+        subClass: overdue > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+      },
+      {
+        key: 'this-week',
+        label: t`Due this week`,
+        value: dueThisWeek,
+        sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
+        subClass: dueThisWeek > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      },
+      {
+        key: 'in-review',
+        label: t`In review`,
+        value: inReview,
+        sub: t`being prepared`,
+      },
+      {
+        key: 'filed',
+        label: t`Filed`,
+        value: filed,
+        sub: t`this period`,
+      },
+    ]
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
@@ -3477,6 +3537,21 @@ export function ObligationQueueRoute() {
           </>
         }
       />
+
+      {/* Portfolio summary band — the shared StatBand "card summary" that also
+          drives /clients, /rules/sources, /rules/library, and /alerts/history.
+          It sits ALONGSIDE the narrative banner, not in place of it: the band
+          is multi-dimensional triage cells (tracked · overdue · due this week ·
+          in review · filed), the banner below is the one editorial sentence.
+          Hidden while a detail panel is open so the split view keeps its
+          vertical budget for the table, matching the banner. */}
+      {!panelOpenIntent ? (
+        <StatBand
+          stats={statBandCells}
+          loading={glanceQuery.isLoading || facetsQuery.isLoading}
+          ariaLabel={t`Deadlines portfolio summary`}
+        />
+      ) : null}
 
       {/* A single narrative banner — an editorial read of where the week
           stands (eyebrow date + one headline + a metric line). Derived from

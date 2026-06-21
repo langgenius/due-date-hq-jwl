@@ -2516,6 +2516,10 @@ msgstr "一切就绪 — 没有到期，没有逾期。"
 msgid "All clients"
 msgstr "所有客户"
 
+#: src/routes/obligations.tsx
+msgid "all deadlines"
+msgstr "所有截止任务"
+
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "All deadlines"
 msgstr "所有截止日期"
@@ -2562,6 +2566,10 @@ msgstr "无匹配"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "All materials are in."
 msgstr "所有材料均已齐备。"
+
+#: src/routes/obligations.tsx
+msgid "all on time"
+msgstr "全部按时"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "All quiet — nothing new needs your attention right now."
@@ -3281,6 +3289,10 @@ msgstr "接受前请注意"
 #: src/features/migration/Step4Preview.tsx
 msgid "Before you import"
 msgstr "导入前确认"
+
+#: src/routes/obligations.tsx
+msgid "being prepared"
+msgstr "准备中"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Best match"
@@ -5690,6 +5702,10 @@ msgstr "截止事项已导出"
 msgid "deadlines generated"
 msgstr "已生成截止日"
 
+#: src/routes/obligations.tsx
+msgid "Deadlines portfolio summary"
+msgstr "截止任务概览"
+
 #: src/routes/practice.tsx
 msgid "Deadlines whose rank shifts > 5 places"
 msgstr "排名变动超过 5 位的截止日期"
@@ -7007,6 +7023,7 @@ msgstr "文件类型"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
+#: src/routes/obligations.tsx
 msgid "Filed"
 msgstr "已申报"
 
@@ -7978,6 +7995,7 @@ msgstr "{0} 加入队列"
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/status-control.tsx
+#: src/routes/obligations.tsx
 msgid "In review"
 msgstr "审核中"
 
@@ -9477,6 +9495,10 @@ msgstr "需复核"
 msgid "Need review"
 msgstr "待审核"
 
+#: src/routes/obligations.tsx
+msgid "needs action"
+msgstr "需处理"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Needs action"
 msgstr "需处理"
@@ -9695,6 +9717,10 @@ msgstr "下一页"
 #: src/routes/obligations.tsx
 msgid "Next {THIS_WEEK_MAX_DAYS} days"
 msgstr "未来 {THIS_WEEK_MAX_DAYS} 天"
+
+#: src/routes/obligations.tsx
+msgid "next 7 days"
+msgstr "未来 7 天"
 
 #: src/features/clients/ClientCycleArrows.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -10306,6 +10332,10 @@ msgstr "无"
 #: src/routes/rules.library.tsx
 msgid "None awaiting"
 msgstr "无待处理"
+
+#: src/routes/obligations.tsx
+msgid "none due"
+msgstr "无到期"
 
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "none in 90 days"
@@ -15508,6 +15538,10 @@ msgstr "此官方来源已变更。请对照来源重新核验每条规则，然
 msgid "This page will keep checking. You can also return to Billing and refresh later."
 msgstr "此页面会继续检查。你也可以返回账单页稍后刷新。"
 
+#: src/routes/obligations.tsx
+msgid "this period"
+msgstr "本期"
+
 #: src/routes/billing.checkout.tsx
 msgid "This practice already has the selected plan."
 msgstr "此事务所已经是所选计划。"
@@ -15700,6 +15734,10 @@ msgstr "客户总数"
 #: src/routes/rules.library.tsx
 msgid "Total rules"
 msgstr "规则总数"
+
+#: src/routes/obligations.tsx
+msgid "Total tracked"
+msgstr "跟踪总数"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"
