@@ -100,6 +100,9 @@ export const ObligationInstancePublicSchema = z.object({
   // view / needs-attention strip until the instant passes; NULL = active.
   assigneeId: z.string().nullable(),
   snoozedUntil: z.iso.datetime().nullable(),
+  // Pinned-items marker (/today "Pinned" section). Personal-workspace flag,
+  // not part of the obligation's regulatory state. Defaults to false.
+  isPinned: z.boolean(),
   migrationBatchId: EntityIdSchema.nullable(),
   estimatedTaxDueCents: z.number().int().min(0).nullable(),
   estimatedExposureCents: z.number().int().min(0).nullable(),

@@ -262,6 +262,13 @@ export const obligationInstance = sqliteTable(
     assigneeId: text('assignee_id').references(() => user.id, { onDelete: 'set null' }),
     snoozedUntil: integer('snoozed_until', { mode: 'timestamp_ms' }),
 
+    // Pinned-items affordance (/today "Pinned" section). When true the CPA
+    // has manually starred this deadline so it surfaces in the dashboard's
+    // Pinned section regardless of due window or assignee. Defaults to false;
+    // a per-firm flag with no FK — it's a personal-workspace marker, not part
+    // of the obligation's regulatory state.
+    isPinned: integer('is_pinned', { mode: 'boolean' }).notNull().default(false),
+
     // Nullable: rows created outside of a migration batch (manual add,
     // Pulse-apply in Phase 1 via exception) do not carry a batch id.
     migrationBatchId: text('migration_batch_id'),

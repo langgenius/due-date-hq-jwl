@@ -4914,6 +4914,10 @@ msgstr "Couldn't open the export"
 msgid "Couldn't organize some values"
 msgstr "Couldn't organize some values"
 
+#: src/features/obligations/PinButton.tsx
+msgid "Couldn't pin deadline"
+msgstr "Couldn't pin deadline"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't prepare materials request preview"
 msgstr "Couldn't prepare materials request preview"
@@ -5109,6 +5113,10 @@ msgstr "Couldn't undo client"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't undo import"
 msgstr "Couldn't undo import"
+
+#: src/features/obligations/PinButton.tsx
+msgid "Couldn't unpin deadline"
+msgstr "Couldn't unpin deadline"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Couldn't update"
@@ -11519,7 +11527,12 @@ msgstr "Pick a tax type…"
 msgid "Pick state"
 msgstr "Pick state"
 
+#: src/features/obligations/PinButton.tsx
+msgid "Pin to Today"
+msgstr "Pin to Today"
+
 #: src/features/audit/audit-log-labels.ts
+#: src/features/dashboard/pinned-section.tsx
 msgid "Pinned"
 msgstr "Pinned"
 
@@ -15741,6 +15754,7 @@ msgstr "Try again in a moment."
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/obligations/PinButton.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -16019,6 +16033,10 @@ msgstr "Unlimited clients"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Unmapped"
 msgstr "Unmapped"
+
+#: src/features/obligations/PinButton.tsx
+msgid "Unpin from Today"
+msgstr "Unpin from Today"
 
 #. placeholder {0}: item.title
 #: src/features/notifications/notifications-page.tsx

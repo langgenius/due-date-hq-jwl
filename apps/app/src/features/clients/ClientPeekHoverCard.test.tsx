@@ -151,6 +151,7 @@ const obligation = {
   efileRejectedAt: null,
   assigneeId: null,
   snoozedUntil: null,
+  isPinned: false,
   migrationBatchId: null,
   estimatedTaxDueCents: null,
   estimatedExposureCents: null,

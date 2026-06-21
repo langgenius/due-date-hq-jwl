@@ -83,6 +83,7 @@ import {
   formatRelativeTime,
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { PinButton } from '@/features/obligations/PinButton'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
@@ -229,6 +230,10 @@ function DeadlineTopActions({
   ]
   return (
     <div className="flex shrink-0 items-center gap-1.5">
+      {/* Pin / unpin — the entry point for the /today Pinned section. Quiet
+          icon-only control, leftmost so the labeled action buttons stay the
+          row's loud cluster. */}
+      <PinButton obligationId={row.id} isPinned={row.isPinned} />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={

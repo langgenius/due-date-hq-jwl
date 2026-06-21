@@ -716,6 +716,7 @@ export type AnnualRolloverOutput = z.infer<typeof AnnualRolloverOutputSchema>
 export const obligationsContract = oc.router({
   list: obligationQueueContract.list,
   getDetail: obligationQueueContract.getDetail,
+  setPinned: obligationQueueContract.setPinned,
   facets: obligationQueueContract.facets,
   listSavedViews: obligationQueueContract.listSavedViews,
   createSavedView: obligationQueueContract.createSavedView,

@@ -4935,6 +4935,10 @@ msgstr "无法打开导出"
 msgid "Couldn't organize some values"
 msgstr "部分数值无法整理"
 
+#: src/features/obligations/PinButton.tsx
+msgid "Couldn't pin deadline"
+msgstr "无法置顶此截止事项"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't prepare materials request preview"
 msgstr "无法准备材料请求预览"
@@ -5130,6 +5134,10 @@ msgstr "无法撤销客户"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't undo import"
 msgstr "无法撤销导入"
+
+#: src/features/obligations/PinButton.tsx
+msgid "Couldn't unpin deadline"
+msgstr "无法取消置顶此截止事项"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Couldn't update"
@@ -11573,7 +11581,12 @@ msgstr "选择一个客户…"
 msgid "Pick state"
 msgstr "选择州"
 
+#: src/features/obligations/PinButton.tsx
+msgid "Pin to Today"
+msgstr "置顶到今日"
+
 #: src/features/audit/audit-log-labels.ts
+#: src/features/dashboard/pinned-section.tsx
 msgid "Pinned"
 msgstr "已置顶"
 
@@ -15806,6 +15819,7 @@ msgstr "请稍后重试。"
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/obligations/PinButton.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -16086,6 +16100,10 @@ msgstr "客户数不限"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Unmapped"
 msgstr "Unmapped"
+
+#: src/features/obligations/PinButton.tsx
+msgid "Unpin from Today"
+msgstr "从今日取消置顶"
 
 #. placeholder {0}: item.title
 #: src/features/notifications/notifications-page.tsx

@@ -32,6 +32,7 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import { PinnedSection } from '@/features/dashboard/pinned-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -511,6 +512,14 @@ export function DashboardRoute() {
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
           <NeedsAttentionSection />
+
+          {/* Pinned deadlines — the CPA's hand-starred shortlist. Sits just under
+          Alerts (their personal focus, above the time-bucketed queue) and renders
+          ONLY when something is pinned, so it never claims space it hasn't earned. */}
+          <PinnedSection
+            asOfDate={data?.asOfDate ?? null}
+            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+          />
 
           {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
           (the page-tab pattern, Yuqi feedback #4) lives INSIDE the card now:

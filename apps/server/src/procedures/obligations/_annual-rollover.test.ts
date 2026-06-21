@@ -115,6 +115,7 @@ function makeSeed(overrides: Partial<ObligationInstanceRow> = {}): ObligationIns
     efileRejectedAt: null,
     assigneeId: null,
     snoozedUntil: null,
+    isPinned: false,
     migrationBatchId: null,
     estimatedTaxDueCents: null,
     estimatedExposureCents: null,

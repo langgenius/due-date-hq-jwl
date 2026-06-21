@@ -66,6 +66,8 @@ export const ObligationAuditActions = [
   'obligation.assignee.updated',
   'obligation.snooze.set',
   'obligation.snooze.cleared',
+  'obligation.pin.set',
+  'obligation.pin.cleared',
   'obligations.saved_view.created',
   'obligations.saved_view.updated',
   'obligations.saved_view.deleted',

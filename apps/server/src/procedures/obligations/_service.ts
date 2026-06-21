@@ -105,6 +105,7 @@ interface ObligationRow {
   efileRejectedAt?: Date | null
   assigneeId?: string | null
   snoozedUntil?: Date | null
+  isPinned?: boolean
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
   estimatedExposureCents: number | null
@@ -217,6 +218,7 @@ export function toObligationPublic(
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
     assigneeId: row.assigneeId ?? null,
     snoozedUntil: row.snoozedUntil?.toISOString() ?? null,
+    isPinned: row.isPinned ?? false,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: row.estimatedTaxDueCents,
     estimatedExposureCents: row.estimatedExposureCents,
