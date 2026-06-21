@@ -10,6 +10,7 @@ import {
   CalendarClockIcon,
   CheckIcon,
   ClockIcon,
+  DownloadIcon,
   SparklesIcon,
   ChevronRightIcon,
   CircleIcon,
@@ -89,6 +90,7 @@ import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { FunIconButton } from '@/components/primitives/fun-icon-button'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
@@ -3197,11 +3199,20 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
           </Trans>
         }
         cta={
+          // First-run empty state = a delight surface, so the primary "Import
+          // from sources" jump gets the marquee FunIconButton (download chip,
+          // brand tone). Rendered as a real <Link> so it keeps href semantics.
+          // The secondary "New rule" stays the quiet outline Button — only ONE
+          // loud action per surface.
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button size="sm" nativeButton={false} render={<Link to="/rules/sources" />}>
-              <PlusIcon data-icon="inline-start" />
+            <FunIconButton
+              icon={DownloadIcon}
+              tone="brand"
+              nativeButton={false}
+              render={<Link to="/rules/sources" />}
+            >
               <Trans>Import from sources</Trans>
-            </Button>
+            </FunIconButton>
             <Button variant="outline" size="sm" onClick={onNewRule}>
               <PlusIcon data-icon="inline-start" />
               <Trans>New rule</Trans>

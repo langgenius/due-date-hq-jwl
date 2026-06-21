@@ -1,12 +1,12 @@
 import { type ReactNode } from 'react'
 import { Trans } from '@lingui/react/macro'
-import { ArrowRightIcon, CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
+import { CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DuotoneIcon } from '@/components/primitives/duotone-icon'
+import { FunIconButton } from '@/components/primitives/fun-icon-button'
 import { TickProgress } from '@/components/primitives/tick-progress'
 
 export interface SetupStep {
@@ -106,10 +106,19 @@ export function SetupProgressCard({
       </ul>
 
       {next ? (
-        <Button size="sm" className="w-full" nativeButton={false} render={<Link to={next.href} />}>
+        // The launch CTA gets the marquee FunIconButton (delight surface — a
+        // first-run onboarding moment, not the dense workbench). The rocket chip
+        // echoes the card's brand DuotoneIcon + cyan→navy TickProgress. Rendered
+        // as a real <Link> so it keeps href semantics (cmd/right-click).
+        <FunIconButton
+          icon={RocketIcon}
+          tone="brand"
+          className="w-full justify-center"
+          nativeButton={false}
+          render={<Link to={next.href} />}
+        >
           <Trans>Continue setup</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+        </FunIconButton>
       ) : null}
     </section>
   )
