@@ -50,3 +50,12 @@ Closing the loop on `design-direction-inspiration-map.md` §"Priority quick-wins
   - *Dark inverted pill for the most-urgent worklist row* (#2 variant) — row 1 already carries a red `Blocked` chip + amber `2d late`; a third emphasis would double-highlight (violates "one emphasis per row").
   - *Callout bubbles **with tails** in the extract cards* (#3 fuller spec) — the beam already delivers the callout concept; adding tail-bubbles in the adjacent extract would over-decorate an already-rich section.
   - *Extra diagonal-grain texture* (#4 variant) — the dotted-grid already supplies depth; more texture risks over-patterning.
+
+## Responsive QA pass (caught two mobile regressions)
+
+A real mobile sweep at 390px (each new element isolated + screenshotted) — not just the desktop checks — turned up two issues:
+
+1. **Node-timeline connector (my regression).** The desktop `.flow-conn::before` dashed line is positioned for the horizontal layout (`top: 44px`); under the ≤1000px override the cell was rotated 90°, dragging that line into a stray dash that cut vertically through the stacked step cards. Fixed: on mobile the connector no longer rotates the whole cell — `::before` becomes a proper short **vertical** dashed segment and only the chevron rotates to point down. Now reads as a clean vertical timeline.
+2. **`.beam__line` (pre-existing).** The notice beam's decorative vertical dashed SVG bled through the stacked extract cards on mobile (meaningless once the beam is a horizontal row). Hidden under ≤1000px.
+
+Verified fixed at 390px; console clean (no errors). Desktop untouched (edits scoped to the `@media (max-width: 1000px)` block). Pre-existing, out-of-scope note: the US coverage map overflows horizontally on narrow phones — not introduced here, left for a later map pass.
