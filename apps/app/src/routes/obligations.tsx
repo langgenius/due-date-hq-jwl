@@ -3690,12 +3690,13 @@ export function ObligationQueueRoute() {
                     {visibleScopeStatuses.map((status) => (
                       <DropdownMenuRadioItem key={status} value={status}>
                         <span className="flex w-full items-center gap-2">
-                          <span
-                            className={cn(
-                              'size-1.5 shrink-0 rounded-full bg-current',
-                              STATUS_ICON_COLOR[status],
-                            )}
-                            aria-hidden
+                          {/* The canonical StatusRing glyph (dashed ring → filling
+                              arc → check disc) replaces the plain dot here so the
+                              status filter reads its progression at a glance — the
+                              "the icons are cool" ref. Tone via STATUS_ICON_COLOR. */}
+                          <StatusMark
+                            status={status}
+                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
                           />
                           <span className="whitespace-nowrap">{statusLabels[status]}</span>
                           <span className="ml-auto tabular-nums text-text-tertiary">
