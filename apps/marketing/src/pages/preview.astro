@@ -1,0 +1,26 @@
+---
+/**
+ * Homepage redesign preview (noindex). New production-v2-style components live in
+ * components/home/ and are assembled here; this route gets swapped into index.astro
+ * only once the whole page is complete and approved. Keeps the live homepage intact
+ * during the migration.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/home/Hero.astro'
+import { getCtaHref } from '../lib/app-url'
+
+const ctaHref = getCtaHref()
+---
+
+<BaseLayout
+  lang="en"
+  pathname="/preview"
+  title="DueDateHQ — homepage preview"
+  description="Homepage redesign preview."
+  ogImage="/og/home.en.png"
+  noindex={true}
+>
+  <main>
+    <Hero ctaHref={ctaHref} workflowAnchor="#how" />
+  </main>
+</BaseLayout>
