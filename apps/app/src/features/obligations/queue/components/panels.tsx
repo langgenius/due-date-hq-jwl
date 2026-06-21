@@ -1049,7 +1049,7 @@ export function PathToFilingSummary({
                   className={cn(
                     // Continuous solid track; entered edges fill accent up to
                     // the active stage, the rest stays a neutral rule.
-                    'h-0 flex-1 border-t',
+                    'h-0 flex-1 border-t transition-colors',
                     (() => {
                       if (i === 0) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'

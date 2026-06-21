@@ -458,17 +458,18 @@ export function AffectedClientsTable({
                           aria-expanded={!isCollapsed}
                           className="flex w-full cursor-pointer items-center gap-2 px-[18px] py-1.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
                         >
-                          {isCollapsed ? (
-                            <ChevronRightIcon
-                              className="size-3.5 shrink-0 text-text-tertiary"
-                              aria-hidden
-                            />
-                          ) : (
-                            <ChevronDownIcon
-                              className="size-3.5 shrink-0 text-text-tertiary"
-                              aria-hidden
-                            />
-                          )}
+                          {/* One chevron that ROTATES 90° when the group is
+                              expanded (the same disclosure motif DeadlineRow
+                              uses) so the glyph eases instead of cutting between
+                              right/down. The body rows stay un-animated —
+                              height-animating table rows is a known trap. */}
+                          <ChevronRightIcon
+                            className={cn(
+                              'size-3.5 shrink-0 text-text-tertiary transition-transform',
+                              !isCollapsed && 'rotate-90',
+                            )}
+                            aria-hidden
+                          />
                           <StatusMark
                             status={stage}
                             className={cn('shrink-0', STATUS_ICON_COLOR[stage])}

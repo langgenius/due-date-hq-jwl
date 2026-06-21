@@ -613,11 +613,21 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 // 高度应该一样，但是 style 不一样".)
                 <>
                   <Badge variant="secondary" size="lg" className="tabular-nums">
-                    {alerts.length === 0 ? (
-                      <Trans>0 ongoing</Trans>
-                    ) : (
-                      <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
-                    )}
+                    {/* Key the value span on the live count so it REMOUNTS
+                        when alerts come/go, re-firing the once-only quiet
+                        opacity pulse (`.animate-stat-bump`) — same micro-bump
+                        the StatBand numbers use. Opacity-only, no layout shift;
+                        the Badge chrome itself stays mounted. */}
+                    <span
+                      key={alerts.length}
+                      className="animate-stat-bump motion-reduce:animate-none"
+                    >
+                      {alerts.length === 0 ? (
+                        <Trans>0 ongoing</Trans>
+                      ) : (
+                        <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
+                      )}
+                    </span>
                   </Badge>
                   {/* LIVE chip — the live-signal semantics that used to
                       ride a bare floating PulsingDot now live INSIDE a
@@ -1800,10 +1810,7 @@ function FilterCheckboxSection<T extends string>({
             key={option}
             className="flex cursor-pointer items-center gap-2 rounded-sm py-1 text-base text-text-primary"
           >
-            <Checkbox
-              checked={isChecked(option)}
-              onCheckedChange={() => toggleOption(option)}
-            />
+            <Checkbox checked={isChecked(option)} onCheckedChange={() => toggleOption(option)} />
             <span className="flex-1 truncate">{getLabel(option)}</span>
           </label>
         ))}

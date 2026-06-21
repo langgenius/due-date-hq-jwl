@@ -214,6 +214,7 @@ import {
   DETAIL_PANEL_CONTENT_EXIT_ANIM,
 } from '@/features/obligations/queue/constants'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -4150,221 +4151,244 @@ export function ObligationQueueRoute() {
             )}
           </div>
 
-          {selectedIds.length > 0 ? (
-            /*
-             * Floating bulk-action toolbar.
-             *
-             * Uses the shared `<FloatingActionBar>` primitive on the elevated
-             * dark tone — a white pill would read as page chrome, not as a
-             * distinct selection-mode surface, so darkening the fill makes the
-             * "you are now in batch mode" signal unmistakable.
-             *
-             * Action layout:
-             *   • Primary (always inline): Assign owner, Set status,
-             *     Confirm projected (lifted to accent when in the
-             *     Projected lens).
-             *   • Secondary (collapsed under "More"): Snooze (coming
-             *     soon), Export selected, Remind to sign, Decide
-             *     extension. Collapsing them keeps the bar to 5 buttons +
-             *     counter + clear so it stays within the queue's optical
-             *     center.
-             *   • Trailing: Clear selection, separated by a divider.
-             *
-             * Fixed at `bottom-12` (48px from viewport bottom, baked into the
-             * primitive) rather than a sticky bar inside the queue column — a
-             * sticky bar reflowed the table downward 50px the moment a row was
-             * checked, breaking the reading flow ("where did my row go?").
-             */
-            <FloatingActionBar
-              ariaLabel={t`Bulk actions`}
-              tone="elevated"
-              // The default position centers on the viewport, but the
-              // persistent sidebar (220px / 13.75rem) pushes the queue panel's
-              // optical center ~110px right of the viewport center.
-              // `md:!left-[calc(50%+6.875rem)]` restores center alignment over
-              // the queue at md+ widths; at narrow viewports the sidebar
-              // collapses to an off-canvas drawer, so the bar falls back to the
-              // viewport-centered default.
-              className="md:!left-[calc(50%+6.875rem)]"
-            >
-              {/* The COUNT leads in semibold tabular-nums with the "deadlines
+          {/*
+           * Floating bulk-action toolbar.
+           *
+           * Uses the shared `<FloatingActionBar>` primitive on the elevated
+           * dark tone — a white pill would read as page chrome, not as a
+           * distinct selection-mode surface, so darkening the fill makes the
+           * "you are now in batch mode" signal unmistakable.
+           *
+           * Action layout:
+           *   • Primary (always inline): Assign owner, Set status,
+           *     Confirm projected (lifted to accent when in the
+           *     Projected lens).
+           *   • Secondary (collapsed under "More"): Snooze (coming
+           *     soon), Export selected, Remind to sign, Decide
+           *     extension. Collapsing them keeps the bar to 5 buttons +
+           *     counter + clear so it stays within the queue's optical
+           *     center.
+           *   • Trailing: Clear selection, separated by a divider.
+           *
+           * Fixed at `bottom-12` (48px from viewport bottom) rather than a
+           * sticky bar inside the queue column — a sticky bar reflowed the
+           * table downward 50px the moment a row was checked, breaking the
+           * reading flow ("where did my row go?").
+           *
+           * Mirrors the alerts bulk-bar (AlertsListPage `"alerts-bulk-bar"`):
+           * the AnimatePresence motion.div owns the fixed centering so the
+           * y/opacity enter+exit is actually visible — a y-transform on a
+           * plain wrapper can't move a `fixed` child. The primitive's own
+           * fixed centering + slide-in keyframes are neutralized so they
+           * don't fight the wrapper. The sidebar (220px / 13.75rem) pushes the
+           * queue's optical center ~110px right at md+, so the wrapper carries
+           * `md:left-[calc(50%+6.875rem)]`; below md the sidebar collapses and
+           * it falls back to viewport-centered.
+           */}
+          <AnimatePresence>
+            {selectedIds.length > 0 ? (
+              <motion.div
+                key="deadlines-bulk-bar"
+                className="fixed bottom-12 left-1/2 z-40 md:left-[calc(50%+6.875rem)]"
+                initial={{ opacity: 0, x: '-50%', y: 8 }}
+                animate={{ opacity: 1, x: '-50%', y: 0 }}
+                exit={{ opacity: 0, x: '-50%', y: 8 }}
+                transition={{ duration: MOTION_DURATION.exit, ease: EASE_APPLE }}
+              >
+                <FloatingActionBar
+                  ariaLabel={t`Bulk actions`}
+                  tone="elevated"
+                  // Positioning is owned by the AnimatePresence motion.div
+                  // wrapper so the enter/exit can animate the `fixed` bar —
+                  // neutralize the primitive's own fixed centering + slide-in
+                  // keyframes (they'd double-up / fight the wrapper's
+                  // y-transform). Visual recipe (fill/shadow/radius) untouched.
+                  className="!static !bottom-auto !left-auto !translate-x-0 !animate-none"
+                >
+                  {/* The COUNT leads in semibold tabular-nums with the "deadlines
                   selected" label dropped to 70% so the eye lands on the number
                   first ("28 · deadlines selected") and the bar has an anchor. */}
-              <span className="flex items-baseline gap-1.5 whitespace-nowrap pl-1 text-xs">
-                <span className="font-semibold tabular-nums">{selectedIds.length}</span>
-                <span className="text-text-inverted/70">
-                  <Plural
-                    value={selectedIds.length}
-                    one="deadline selected"
-                    other="deadlines selected"
-                  />
-                </span>
-              </span>
-              <Separator orientation="vertical" className="mx-0.5 h-4" />
-              {/* Every action leads with an icon so the bar scans as one
+                  <span className="flex items-baseline gap-1.5 whitespace-nowrap pl-1 text-xs">
+                    <span className="font-semibold tabular-nums">{selectedIds.length}</span>
+                    <span className="text-text-inverted/70">
+                      <Plural
+                        value={selectedIds.length}
+                        one="deadline selected"
+                        other="deadlines selected"
+                      />
+                    </span>
+                  </span>
+                  <Separator orientation="vertical" className="mx-0.5 h-4" />
+                  {/* Every action leads with an icon so the bar scans as one
                   consistent control row (no mixed icon/no-icon cluster). */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm">
-                      <UserRoundIcon data-icon="inline-start" />
-                      <Trans>Assign owner</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
-                    <Trans>Unassigned</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {assignableMembers.length === 0 ? (
-                    <DropdownMenuItem disabled>
-                      <Trans>No assignable members</Trans>
-                    </DropdownMenuItem>
-                  ) : (
-                    assignableMembers.map((member) => (
-                      <DropdownMenuItem
-                        key={member.assigneeId}
-                        onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
-                      >
-                        <span className="truncate">{member.name}</span>
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  disabled={!canUpdateObligationStatus}
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canUpdateObligationStatus}
-                      title={
-                        canUpdateObligationStatus
-                          ? undefined
-                          : t`Status changes require owner, partner, manager, or preparer access.`
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="sm">
+                          <UserRoundIcon data-icon="inline-start" />
+                          <Trans>Assign owner</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
                       }
-                    >
-                      <CircleDotIcon data-icon="inline-start" />
-                      <Trans>Set status</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  {statusDropdownOptions.map((status) =>
-                    status === 'extended' ? (
-                      <DropdownMenuItem
-                        key={status}
-                        disabled={bulkStatusMutation.isPending}
-                        onClick={() => {
-                          setExtendedMemo('')
-                          setExtendedMemoOpen(true)
-                        }}
-                      >
-                        <span className="flex items-center gap-2">
-                          <StatusMark
-                            status={status}
-                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
-                          />
-                          {statusLabels[status]}
-                        </span>
+                    />
+                    <DropdownMenuContent align="start" className="w-64">
+                      <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                        <Trans>Unassigned</Trans>
                       </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem
-                        key={status}
-                        disabled={bulkStatusMutation.isPending}
-                        onClick={() => changeSelectedStatus(status)}
-                      >
-                        <span className="flex items-center gap-2">
-                          <StatusMark
-                            status={status}
-                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
-                          />
-                          {statusLabels[status]}
-                        </span>
-                      </DropdownMenuItem>
-                    ),
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {/* Confirm projected stays inline because it's the primary
+                      <DropdownMenuSeparator />
+                      {assignableMembers.length === 0 ? (
+                        <DropdownMenuItem disabled>
+                          <Trans>No assignable members</Trans>
+                        </DropdownMenuItem>
+                      ) : (
+                        assignableMembers.map((member) => (
+                          <DropdownMenuItem
+                            key={member.assigneeId}
+                            onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
+                          >
+                            <span className="truncate">{member.name}</span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      disabled={!canUpdateObligationStatus}
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canUpdateObligationStatus}
+                          title={
+                            canUpdateObligationStatus
+                              ? undefined
+                              : t`Status changes require owner, partner, manager, or preparer access.`
+                          }
+                        >
+                          <CircleDotIcon data-icon="inline-start" />
+                          <Trans>Set status</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="start">
+                      {statusDropdownOptions.map((status) =>
+                        status === 'extended' ? (
+                          <DropdownMenuItem
+                            key={status}
+                            disabled={bulkStatusMutation.isPending}
+                            onClick={() => {
+                              setExtendedMemo('')
+                              setExtendedMemoOpen(true)
+                            }}
+                          >
+                            <span className="flex items-center gap-2">
+                              <StatusMark
+                                status={status}
+                                className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                              />
+                              {statusLabels[status]}
+                            </span>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            key={status}
+                            disabled={bulkStatusMutation.isPending}
+                            onClick={() => changeSelectedStatus(status)}
+                          >
+                            <span className="flex items-center gap-2">
+                              <StatusMark
+                                status={status}
+                                className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                              />
+                              {statusLabels[status]}
+                            </span>
+                          </DropdownMenuItem>
+                        ),
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {/* Confirm projected stays inline because it's the primary
                   action in the Projected lens (lifted to accent). */}
-              <Button
-                variant={projected ? 'accent' : 'ghost'}
-                size="sm"
-                disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
-                title={
-                  canUpdateObligationStatus
-                    ? t`Confirm projected deadlines so they enter the reminder pipeline`
-                    : t`Confirming requires owner, partner, manager, or preparer access.`
-                }
-                onClick={confirmSelectedProjected}
-              >
-                <CircleCheckIcon data-icon="inline-start" />
-                <Trans>Confirm projected</Trans>
-              </Button>
-              {/* Secondary actions collapse under a single "More" overflow
+                  <Button
+                    variant={projected ? 'accent' : 'ghost'}
+                    size="sm"
+                    disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
+                    title={
+                      canUpdateObligationStatus
+                        ? t`Confirm projected deadlines so they enter the reminder pipeline`
+                        : t`Confirming requires owner, partner, manager, or preparer access.`
+                    }
+                    onClick={confirmSelectedProjected}
+                  >
+                    <CircleCheckIcon data-icon="inline-start" />
+                    <Trans>Confirm projected</Trans>
+                  </Button>
+                  {/* Secondary actions collapse under a single "More" overflow
                   menu so the bar reads as ~5 affordances instead of 8. Order
                   is Export → Remind to sign → Decide extension. */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm" aria-label={t`More bulk actions`}>
-                      <Trans>More</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => openExportDialog('selected')}>
-                    <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Export selected</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
-                    title={
-                      canUpdateObligationStatus
-                        ? t`Email selected clients a Form 8879 signature reminder`
-                        : t`Requires status-update access`
-                    }
-                    onClick={() => setRemindToSignConfirmOpen(true)}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="sm" aria-label={t`More bulk actions`}>
+                          <Trans>More</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => openExportDialog('selected')}>
+                        <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Export selected</Trans>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={
+                          !canUpdateObligationStatus || bulkRemindSignatureMutation.isPending
+                        }
+                        title={
+                          canUpdateObligationStatus
+                            ? t`Email selected clients a Form 8879 signature reminder`
+                            : t`Requires status-update access`
+                        }
+                        onClick={() => setRemindToSignConfirmOpen(true)}
+                      >
+                        <SendIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Remind to sign</Trans>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={
+                          !canUpdateObligationStatus || bulkDecideExtensionMutation.isPending
+                        }
+                        title={
+                          canUpdateObligationStatus
+                            ? t`Apply an internal extension plan to the selected deadlines`
+                            : t`Requires status-update access`
+                        }
+                        onClick={() => setBulkExtensionOpen(true)}
+                      >
+                        <CalendarClockIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Set extension date</Trans>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Separator orientation="vertical" className="mx-0.5 h-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setRowSelection({})
+                      lastSelectedIdRef.current = null
+                    }}
+                    aria-label={t`Clear selection`}
                   >
-                    <SendIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Remind to sign</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
-                    title={
-                      canUpdateObligationStatus
-                        ? t`Apply an internal extension plan to the selected deadlines`
-                        : t`Requires status-update access`
-                    }
-                    onClick={() => setBulkExtensionOpen(true)}
-                  >
-                    <CalendarClockIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Set extension date</Trans>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Separator orientation="vertical" className="mx-0.5 h-4" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setRowSelection({})
-                  lastSelectedIdRef.current = null
-                }}
-                aria-label={t`Clear selection`}
-              >
-                <XIcon data-icon="inline-start" />
-                <Trans>Clear</Trans>
-              </Button>
-            </FloatingActionBar>
-          ) : null}
+                    <XIcon data-icon="inline-start" />
+                    <Trans>Clear</Trans>
+                  </Button>
+                </FloatingActionBar>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
           {isInitialLoading ? (
             // Skeleton rows match the rest of the app's loading rhythm;
@@ -4559,18 +4583,25 @@ export function ObligationQueueRoute() {
                     {tableRows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={visibleColumnCount} className="py-8">
-                          <ObligationQueueEmptyState
-                            onOpenWizard={openWizard}
-                            canRunMigration={canRunMigration}
-                            // 2026-06-16 (audit): reuse the canonical
-                            // `queueFiltersActive` predicate instead of a partial
-                            // inline copy that omitted projected / rule / obligation
-                            // — those filters could yield zero rows yet wrongly show
-                            // the "import deadlines" empty state instead of "no
-                            // matches · clear filters".
-                            hasActiveFilters={queueFiltersActive}
-                            onClearFilters={resetObligationQueue}
-                          />
+                          {/* Sanctioned zero-state fade — the empty state
+                              would otherwise snap in the instant the query
+                              returns zero rows. Quiet opacity-only fade
+                              (fadeMotion); reduced-motion handled globally by
+                              the root MotionConfig. */}
+                          <motion.div {...fadeMotion}>
+                            <ObligationQueueEmptyState
+                              onOpenWizard={openWizard}
+                              canRunMigration={canRunMigration}
+                              // 2026-06-16 (audit): reuse the canonical
+                              // `queueFiltersActive` predicate instead of a partial
+                              // inline copy that omitted projected / rule / obligation
+                              // — those filters could yield zero rows yet wrongly show
+                              // the "import deadlines" empty state instead of "no
+                              // matches · clear filters".
+                              hasActiveFilters={queueFiltersActive}
+                              onClearFilters={resetObligationQueue}
+                            />
+                          </motion.div>
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -5885,9 +5916,7 @@ function SignatureReminderDialog({
               })
             }}
           >
-            {sending ? (
-              <Loader2Icon data-icon="inline-start" className="animate-spin" />
-            ) : null}
+            {sending ? <Loader2Icon data-icon="inline-start" className="animate-spin" /> : null}
             {sending ? (
               <Trans>Sending…</Trans>
             ) : needsResendConfirm ? (
@@ -6078,9 +6107,7 @@ function BulkExtensionDialog({
               })
             }
           >
-            {sending ? (
-              <Loader2Icon data-icon="inline-start" className="animate-spin" />
-            ) : null}
+            {sending ? <Loader2Icon data-icon="inline-start" className="animate-spin" /> : null}
             {sending ? <Trans>Setting…</Trans> : <Trans>Set extension date</Trans>}
           </Button>
         </DialogFooter>

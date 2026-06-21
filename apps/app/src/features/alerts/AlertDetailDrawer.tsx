@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -1546,16 +1546,22 @@ export function AlertDetailDrawer({
               scrolled out of view (Yuqi: "when you scroll up, still show the
               alert title, smaller"). At the top the big hero title is visible,
               so repeating it here would be redundant. */}
-          {detail && heroScrolled ? (
-            <>
-              <span className="shrink-0 text-text-muted" aria-hidden>
-                /
-              </span>
-              <span className="max-w-[420px] truncate text-text-secondary">
-                {detail.alert.title}
-              </span>
-            </>
-          ) : null}
+          <AnimatePresence mode="wait">
+            {detail && heroScrolled ? (
+              <motion.span
+                key="title"
+                {...fadeMotion}
+                className="flex min-w-0 items-center gap-1.5"
+              >
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  /
+                </span>
+                <span className="max-w-[420px] truncate text-text-secondary">
+                  {detail.alert.title}
+                </span>
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
         </nav>
         <div className="flex shrink-0 items-center gap-3">
           {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
