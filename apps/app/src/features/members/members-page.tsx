@@ -148,7 +148,7 @@ export function MembersPageRoute() {
         <Alert variant="destructive">
           <TriangleAlertIcon />
           <AlertTitle>
-            <Trans>Members couldn't load</Trans>
+            <Trans>We couldn't load your team. Retry.</Trans>
           </AlertTitle>
           <AlertDescription>{membersQuery.error.message}</AlertDescription>
         </Alert>
@@ -375,7 +375,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <Alert variant="destructive">
           <TriangleAlertIcon />
           <AlertTitle>
-            <Trans>Member action failed</Trans>
+            <Trans>That change didn't go through. Try again.</Trans>
           </AlertTitle>
           <AlertDescription>{mutationError.message}</AlertDescription>
         </Alert>
@@ -394,6 +394,10 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           members={data.members}
           firmTimezone={firmTimezone}
           onRoleChange={(memberId, role) => {
+            // Guard against a double-fire: the table is disabled while busy,
+            // but `busy` only reflects after a re-render — bail if a role
+            // change is already in flight so a fast second pick can't refire.
+            if (updateRoleMutation.isPending) return
             // Downgrades go through a confirm dialog; upgrades + sideways
             // apply directly.
             const member = data.members.find((candidate) => candidate.id === memberId)
@@ -420,7 +424,12 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             )
           }}
           onSuspend={(member) => setPendingSuspend(member)}
-          onReactivate={(member) => reactivateMutation.mutate({ memberId: member.id })}
+          onReactivate={(member) => {
+            // Reactivate applies directly from the menu (no confirm); guard
+            // against a double-fire while the previous call is still pending.
+            if (reactivateMutation.isPending) return
+            reactivateMutation.mutate({ memberId: member.id })
+          }}
           onRemove={setPendingRemoval}
           busy={
             updateRoleMutation.isPending ||

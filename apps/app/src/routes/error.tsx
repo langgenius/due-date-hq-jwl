@@ -20,22 +20,22 @@ function useErrorCopy(error: unknown): { title: string; message: string } {
 
     const translated = translateServerErrorCode(error.statusText)
     return {
-      title: t`Route failed`,
-      message: `${error.status} ${translated ?? error.statusText}`,
+      title: t`Something went wrong`,
+      message: t`We couldn't load this page. Try again, or head back home. (${error.status} ${translated ?? error.statusText})`,
     }
   }
 
   if (error instanceof Error) {
     const translated = translateServerErrorCode(error.message)
     return {
-      title: t`Route failed`,
-      message: translated ?? error.message,
+      title: t`Something went wrong`,
+      message: translated ?? t`We couldn't load this page. Try again, or head back home.`,
     }
   }
 
   return {
-    title: t`Route failed`,
-    message: t`Unexpected route error`,
+    title: t`Something went wrong`,
+    message: t`We couldn't load this page. Try again, or head back home.`,
   }
 }
 
@@ -53,9 +53,14 @@ export function RouteErrorBoundary() {
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
-          <Button nativeButton={false} render={<Link to="/" />}>
-            <Trans>Return home</Trans>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => window.location.reload()}>
+              <Trans>Try again</Trans>
+            </Button>
+            <Button variant="outline" nativeButton={false} render={<Link to="/" />}>
+              <Trans>Return home</Trans>
+            </Button>
+          </div>
         </div>
       </div>
     </>

@@ -310,7 +310,7 @@ export function OnboardingRoute() {
                 <FieldHeaderRow
                   htmlFor="monitoring-start-date"
                   label={t`Monitoring start date`}
-                  hint={t`ISO date`}
+                  hint={t`watch deadlines from`}
                 />
                 <IsoDatePicker
                   id="monitoring-start-date"
@@ -352,7 +352,7 @@ export function OnboardingRoute() {
               <FieldHeaderRow
                 htmlFor="firm-timezone"
                 label={t`Time zone`}
-                hint={t`drives alert + digest timing`}
+                hint={t`when reminders send`}
               />
               <FirmTimezoneSelect id="firm-timezone" value={timezone} onValueChange={setTimezone} />
             </Field>

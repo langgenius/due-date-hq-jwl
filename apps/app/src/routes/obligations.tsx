@@ -4346,7 +4346,7 @@ export function ObligationQueueRoute() {
                     onClick={() => setBulkExtensionOpen(true)}
                   >
                     <CalendarClockIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Decide extension</Trans>
+                    <Trans>Set extension date</Trans>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -5871,6 +5871,7 @@ function SignatureReminderDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() => {
               // Single: first click on a recently-reminded client just confirms.
               if (needsResendConfirm) {
@@ -5884,7 +5885,12 @@ function SignatureReminderDialog({
               })
             }}
           >
-            {needsResendConfirm ? (
+            {sending ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : null}
+            {sending ? (
+              <Trans>Sending…</Trans>
+            ) : needsResendConfirm ? (
               <Trans>Send anyway</Trans>
             ) : isBulk ? (
               <Trans>Send reminders</Trans>
@@ -5959,7 +5965,7 @@ function BulkExtensionDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            <Trans>Decide extension for selected deadlines</Trans>
+            <Trans>Set extension date for selected deadlines</Trans>
           </DialogTitle>
           <DialogDescription>
             <Trans>
@@ -6063,6 +6069,7 @@ function BulkExtensionDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() =>
               onSend({
                 memo: memo.trim(),
@@ -6071,7 +6078,10 @@ function BulkExtensionDialog({
               })
             }
           >
-            <Trans>Decide extensions</Trans>
+            {sending ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : null}
+            {sending ? <Trans>Setting…</Trans> : <Trans>Set extension date</Trans>}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -7234,7 +7244,7 @@ function ObligationQueueEmptyState({
       icon={hasActiveFilters ? CalendarDaysIcon : CalendarClockIcon}
       title={
         hasActiveFilters ? (
-          <Trans>No deadlines match these filters.</Trans>
+          <Trans>No deadlines match these filters</Trans>
         ) : (
           <Trans>No deadlines yet</Trans>
         )

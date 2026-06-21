@@ -5734,17 +5734,11 @@ msgstr "Deadlines portfolio summary"
 msgid "Deadlines whose rank shifts > 5 places"
 msgstr "Deadlines whose rank shifts > 5 places"
 
-#: src/routes/obligations.tsx
-msgid "Decide extension"
-msgstr "Decide extension"
-
 #: src/features/obligations/queue/dialogs.tsx
-#: src/routes/obligations.tsx
 msgid "Decide extension for selected deadlines"
 msgstr "Decide extension for selected deadlines"
 
 #: src/features/obligations/queue/dialogs.tsx
-#: src/routes/obligations.tsx
 msgid "Decide extensions"
 msgstr "Decide extensions"
 
@@ -6099,10 +6093,6 @@ msgstr "Drafting started without all client materials in hand."
 #: src/routes/practice.tsx
 msgid "Driver"
 msgstr "Driver"
-
-#: src/routes/onboarding.tsx
-msgid "drives alert + digest timing"
-msgstr "drives alert + digest timing"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
@@ -8297,10 +8287,6 @@ msgstr "IRS"
 msgid "IRS / CA FTB"
 msgstr "IRS / CA FTB"
 
-#: src/routes/onboarding.tsx
-msgid "ISO date"
-msgstr "ISO date"
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Issued"
 msgstr "Issued"
@@ -9154,10 +9140,6 @@ msgstr "Member"
 msgid "Member accepted"
 msgstr "Member accepted"
 
-#: src/features/members/members-page.tsx
-msgid "Member action failed"
-msgstr "Member action failed"
-
 #: src/features/members/member-model.ts
 msgid "Member admin and billing access"
 msgstr "Member admin and billing access"
@@ -9213,10 +9195,6 @@ msgstr "Members"
 #: src/features/members/members-page.tsx
 msgid "Members are managed by the practice owner. Contact the owner if you need to invite teammates or change roles."
 msgstr "Members are managed by the practice owner. Contact the owner if you need to invite teammates or change roles."
-
-#: src/features/members/members-page.tsx
-msgid "Members couldn't load"
-msgstr "Members couldn't load"
 
 #: src/features/members/members-page.tsx
 msgid "Members summary"
@@ -9977,8 +9955,11 @@ msgstr "No deadlines due in the next 7 days"
 msgid "No deadlines due in the selected window."
 msgstr "No deadlines due in the selected window."
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
+msgid "No deadlines match these filters"
+msgstr "No deadlines match these filters"
+
+#: src/features/obligations/queue/components/toolbar.tsx
 msgid "No deadlines match these filters."
 msgstr "No deadlines match these filters."
 
@@ -13239,10 +13220,6 @@ msgstr "Roll over all {totalCount} (review {requiresReviewCount})"
 msgid "Rolled over {0} deadlines into {toYear}"
 msgstr "Rolled over {0} deadlines into {toYear}"
 
-#: src/routes/error.tsx
-msgid "Route failed"
-msgstr "Route failed"
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "Row"
 msgstr "Row"
@@ -14027,6 +14004,7 @@ msgstr "Sending to {eligibleCount} clients · {0} not awaiting signature · {1} 
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/members/members-page.tsx
+#: src/routes/obligations.tsx
 msgid "Sending…"
 msgstr "Sending…"
 
@@ -14089,6 +14067,14 @@ msgid "Session revoked"
 msgstr "Session revoked"
 
 #: src/routes/obligations.tsx
+msgid "Set extension date"
+msgstr "Set extension date"
+
+#: src/routes/obligations.tsx
+msgid "Set extension date for selected deadlines"
+msgstr "Set extension date for selected deadlines"
+
+#: src/routes/obligations.tsx
 msgid "Set status"
 msgstr "Set status"
 
@@ -14120,6 +14106,10 @@ msgstr "Set up your practice"
 #: src/routes/onboarding.tsx
 msgid "Setting up your practice…"
 msgstr "Setting up your practice…"
+
+#: src/routes/obligations.tsx
+msgid "Setting…"
+msgstr "Setting…"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
@@ -14459,6 +14449,10 @@ msgstr "Some sources need attention"
 #: src/features/migration/Step4Preview.tsx
 msgid "Some state deadlines need rule review"
 msgstr "Some state deadlines need rule review"
+
+#: src/routes/error.tsx
+msgid "Something went wrong"
+msgstr "Something went wrong"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Something went wrong fetching your notification settings."
@@ -15174,6 +15168,10 @@ msgstr "Temporary rules appear here after {0} apply an alert to matched deadline
 msgid "Thanks — you're all set"
 msgstr "Thanks — you're all set"
 
+#: src/features/members/members-page.tsx
+msgid "That change didn't go through. Try again."
+msgstr "That change didn't go through. Try again."
+
 #: src/routes/settings.profile.tsx
 msgid "That code didn't match this setup. In Microsoft Authenticator, delete older DueDateHQ entries for this email, scan the current QR code again, then enter the newest 6-digit code. Also make sure your phone's time is set automatically."
 msgstr "That code didn't match this setup. In Microsoft Authenticator, delete older DueDateHQ entries for this email, scan the current QR code again, then enter the newest 6-digit code. Also make sure your phone's time is set automatically."
@@ -15817,6 +15815,7 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/clients.$clientId.tsx
+#: src/routes/error.tsx
 msgid "Try again"
 msgstr "Try again"
 
@@ -16097,9 +16096,9 @@ msgstr "Undo window closed {0} — 24 hours after apply."
 msgid "Undoing this import will commit these changes"
 msgstr "Undoing this import will commit these changes"
 
-#: src/routes/error.tsx
-msgid "Unexpected route error"
-msgstr "Unexpected route error"
+#: src/features/migration/Wizard.tsx
+msgid "Undoing…"
+msgstr "Undoing…"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Unique clients represented by the source-year deadlines in this preview."
@@ -16584,6 +16583,10 @@ msgstr "Waived"
 msgid "Watch"
 msgstr "Watch"
 
+#: src/routes/onboarding.tsx
+msgid "watch deadlines from"
+msgstr "watch deadlines from"
+
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Watched"
@@ -16606,6 +16609,20 @@ msgstr "We couldn't find what you were looking for."
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "We couldn't generate today's brief — we'll retry shortly."
 msgstr "We couldn't generate today's brief — we'll retry shortly."
+
+#: src/routes/error.tsx
+msgid "We couldn't load this page. Try again, or head back home."
+msgstr "We couldn't load this page. Try again, or head back home."
+
+#. placeholder {0}: error.status
+#. placeholder {1}: translated ?? error.statusText
+#: src/routes/error.tsx
+msgid "We couldn't load this page. Try again, or head back home. ({0} {1})"
+msgstr "We couldn't load this page. Try again, or head back home. ({0} {1})"
+
+#: src/features/members/members-page.tsx
+msgid "We couldn't load your team. Retry."
+msgstr "We couldn't load your team. Retry."
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "We couldn't reach AI and no preset was selected. Map your columns below to continue."
@@ -16739,6 +16756,10 @@ msgstr "When is it due?"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "When it's due"
 msgstr "When it's due"
+
+#: src/routes/onboarding.tsx
+msgid "when reminders send"
+msgstr "when reminders send"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "When something gets at-risk — a stalled document request, a rejected filing, a client gone quiet — Smart Priority will surface it here. Right now everything is on track."

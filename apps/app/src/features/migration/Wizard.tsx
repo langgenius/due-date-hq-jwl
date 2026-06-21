@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Loader2Icon } from 'lucide-react'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useNavigate } from 'react-router'
@@ -831,9 +832,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             <AlertDialogAction
               variant="destructive-primary"
               disabled={revertMutation.isPending}
+              aria-busy={revertMutation.isPending}
               onClick={handleConfirmRevert}
             >
-              <Trans>Undo import</Trans>
+              {revertMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              {revertMutation.isPending ? <Trans>Undoing…</Trans> : <Trans>Undo import</Trans>}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
