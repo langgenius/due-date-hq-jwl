@@ -156,6 +156,11 @@ msgstr "{0, plural, one {# deadline synced from your rules} other {# deadlines s
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 
+#. placeholder {0}: counts.dueThisWeekCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# due this week} other {# due this week}}"
+msgstr "{0, plural, one {# due this week} other {# due this week}}"
+
 #. placeholder {0}: rule.entityApplicability.length
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{0, plural, one {# entity} other {# entities}}"
@@ -281,6 +286,11 @@ msgstr "{0, plural, one {# open} other {# open}}"
 msgid "{0, plural, one {# option} other {# options}}"
 msgstr "{0, plural, one {# option} other {# options}}"
 
+#. placeholder {0}: counts.overdueCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# overdue} other {# overdue}}"
+msgstr "{0, plural, one {# overdue} other {# overdue}}"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# projected filing} other {# projected filings}}"
@@ -341,6 +351,11 @@ msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# to review} other {# to review}}"
 msgstr "{0, plural, one {# to review} other {# to review}}"
+
+#. placeholder {0}: counts.waitingOnClientCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# waiting on client} other {# waiting on client}}"
+msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
@@ -2811,6 +2826,7 @@ msgid "Apply tax type suggestions"
 msgstr "Apply tax type suggestions"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/ApplyingPill.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Applying…"
 msgstr "Applying…"

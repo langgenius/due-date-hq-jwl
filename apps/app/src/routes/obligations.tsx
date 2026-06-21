@@ -5434,10 +5434,15 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
   // color already carries the late-urgency signal. Extra markers were
   // redundant signals on the same axis and added to the row's red overload.
   // Wording from the shared DueCountdownText ("5d late" / "in 5d" / "today").
+  // Overdue rows get SIZE, not weight (type-weight-restraint canon: urgency is
+  // the one signal allowed to scale up — 14px vs the 12px baseline — while the
+  // red tone already carries the alarm; never red+bold). Mirrors the primitives
+  // DueDaysPill (dual-live: this local copy drives the main /deadlines table).
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 text-sm tabular-nums leading-tight',
+        'inline-flex items-center gap-1 tabular-nums leading-tight',
+        days < 0 ? 'text-base' : 'text-sm',
         tintedTextClass,
       )}
     >

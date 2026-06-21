@@ -209,7 +209,12 @@ export function DailyBriefCard({
                 framing here. */}
             <Trans>All quiet — nothing new needs your attention right now.</Trans>
           </p>
-        ) : null}
+        ) : (
+          // No AI headline yet (generating / couldn't update / firm scope) but
+          // real work is pending — the tab still states the facts from the
+          // deterministic counts instead of a blank line above the fold.
+          <DeterministicBriefTeaser counts={todayCounts} onOpen={() => setCollapsed(false)} />
+        )}
       </section>
     )
   }
@@ -296,6 +301,52 @@ export function DailyBriefCard({
         </p>
       ) : null}
     </section>
+  )
+}
+
+/**
+ * Deterministic above-the-fold teaser — the collapsed tab's one-line preview
+ * when there is no AI headline (generating / couldn't update / firm scope)
+ * but real work is pending. Pure `todayCounts` (no model), joined "·", so the
+ * tab never shows a blank line beside it. Clicking opens the brief like the
+ * AI teaser does. Self-empties to nothing when every count is zero.
+ */
+function DeterministicBriefTeaser({
+  counts,
+  onOpen,
+}: {
+  counts: DailyBriefTodayCounts
+  onOpen: () => void
+}) {
+  const parts: React.ReactNode[] = []
+  if (counts.overdueCount > 0)
+    parts.push(<Plural value={counts.overdueCount} one="# overdue" other="# overdue" />)
+  if (counts.waitingOnClientCount > 0)
+    parts.push(
+      <Plural
+        value={counts.waitingOnClientCount}
+        one="# waiting on client"
+        other="# waiting on client"
+      />,
+    )
+  if (counts.dueThisWeekCount > 0)
+    parts.push(
+      <Plural value={counts.dueThisWeekCount} one="# due this week" other="# due this week" />,
+    )
+  if (parts.length === 0) return null
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      {parts.map((part, i) => (
+        <Fragment key={i}>
+          {i > 0 ? ' · ' : null}
+          {part}
+        </Fragment>
+      ))}
+    </button>
   )
 }
 

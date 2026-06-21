@@ -78,9 +78,17 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
   // look like the Status pill next to it, and a dot would be a redundant signal
   // on the same axis.
   const tintedTextClass = DUE_COUNTDOWN_TEXT_CLASS[dueCountdownTone(days)]
+  // Overdue rows get SIZE, not weight (type-weight-restraint canon: urgency is
+  // the one signal allowed to scale up — 14px vs the 12px baseline — while the
+  // red tone already carries the alarm; never red+bold). Future/today stay
+  // text-sm so only genuine lateness grows on the page.
   return (
     <span
-      className={cn('inline-flex items-center text-sm tabular-nums leading-tight', tintedTextClass)}
+      className={cn(
+        'inline-flex items-center tabular-nums leading-tight',
+        days < 0 ? 'text-base' : 'text-sm',
+        tintedTextClass,
+      )}
     >
       <DueCountdownText days={days} />
     </span>
