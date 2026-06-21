@@ -14,6 +14,16 @@
 
 Verified desktop (1280) + mobile (390): villain stacks to one column, all text readable; hero is 1240 wide; ghost link has no resting underline.
 
+## Batch 2 — hero alerts panel made delicate
+
+"Everything except the alert title smaller / more delicate." Kept `.ar__title` at **14px** (the anchor) and quieted everything around it so it stands clearly apart:
+- panel header `.ap__title` 13 → **12px**, `--ink` → `--ink-2`
+- filter chips `.ap__chip` 12 → **11px**, padding tightened
+- `.ar__affect` ("Affects N clients") 13 → **12px**, weight 500 → **400**, `--ink` → `--ink-2`
+- ready·review `.split` 12 → **11px**, weight 500 → **400**, `--muted` → `--faint`
+
+The row now has one solid element (the title) and a quiet field of metadata, rather than five competing weights.
+
 ## Still queued (next batches)
 
 - **Hero delicacy** (orig) — everything in the alerts panel except the alert title smaller / lighter.
