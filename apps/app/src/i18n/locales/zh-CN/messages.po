@@ -12239,6 +12239,10 @@ msgstr "最近投递"
 msgid "Recent digest runs"
 msgstr "最近 digest 运行记录"
 
+#: src/features/obligations/BlockerContextCard.tsx
+msgid "Recent status changes"
+msgstr "最近状态变更"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/reminders/reminders-page.tsx

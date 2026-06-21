@@ -12184,6 +12184,10 @@ msgstr "Recent delivery"
 msgid "Recent digest runs"
 msgstr "Recent digest runs"
 
+#: src/features/obligations/BlockerContextCard.tsx
+msgid "Recent status changes"
+msgstr "Recent status changes"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/reminders/reminders-page.tsx
