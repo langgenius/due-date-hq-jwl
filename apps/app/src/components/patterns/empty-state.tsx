@@ -96,7 +96,10 @@ export function EmptyState({
         // front card carrying three blank skeleton bars. Borders + section-tint
         // only — no shadows (restrained-shadows canon). Decorative, so aria-hidden;
         // the title/description carry the meaning to assistive tech.
-        <div className="relative flex h-[76px] w-[184px] items-center justify-center" aria-hidden>
+        <div
+          className="relative flex h-[76px] w-[184px] items-center justify-center animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
+          aria-hidden
+        >
           <div className="absolute h-14 w-40 -rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="absolute h-14 w-40 rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="relative flex h-16 w-44 flex-col gap-1.5 rounded-lg border border-divider-regular bg-background-default px-3 py-3">

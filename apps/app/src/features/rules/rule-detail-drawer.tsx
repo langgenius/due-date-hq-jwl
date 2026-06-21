@@ -262,7 +262,9 @@ function DisclosureCard({
     detail != null ? (
       <>
         {expanded ? (
-          <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">{detail}</div>
+          <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
+            {detail}
+          </div>
         ) : null}
         <TextLink
           variant="accent"

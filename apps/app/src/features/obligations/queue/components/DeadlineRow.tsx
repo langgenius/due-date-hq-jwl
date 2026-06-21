@@ -560,7 +560,7 @@ function DeadlineRowExpansion({
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
           {isTerminal ? (
-            <span className="flex items-center gap-1.5 text-sm font-medium text-text-success">
+            <span className="flex items-center gap-1.5 text-sm font-medium text-text-success animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none">
               <CheckIcon className="size-4 shrink-0" aria-hidden />
               <Trans>Filed</Trans>
             </span>

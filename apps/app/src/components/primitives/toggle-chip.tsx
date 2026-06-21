@@ -51,7 +51,7 @@ export function ToggleChip({
       aria-pressed={selected}
       disabled={disabled}
       className={cn(
-        'group inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border font-medium whitespace-nowrap outline-none transition-colors',
+        'group inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border font-medium whitespace-nowrap outline-none transition active:scale-[0.97] motion-reduce:active:scale-100',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'disabled:cursor-not-allowed disabled:opacity-50',
         size === 'md' ? 'h-8 px-3.5 text-sm' : 'h-7 px-3 text-xs',
