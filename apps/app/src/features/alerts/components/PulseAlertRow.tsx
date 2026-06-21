@@ -793,7 +793,11 @@ function PulseAlertRow({
             explicitly). The hover Dismiss/Review cluster floats separately (below)
             so a no-impact row carries no empty shelf at rest. */}
         {impacted > 0 ? (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm">
+          // 2026-06-21 (design-critique): dropped the hard `border-t` + extra
+          // top padding — for a single "Affects N clients" line it read as a
+          // heavy separate footer block (rows measured 133px). The parent
+          // `gap-2` already spaces it; it now sits as a quiet footer line.
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
               <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />

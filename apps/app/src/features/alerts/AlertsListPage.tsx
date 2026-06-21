@@ -1151,7 +1151,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           <Trans>Needs action</Trans>
                         </span>
                       </span>
-                      <span className="text-sm tabular-nums text-text-tertiary">
+                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
                         {actionAlerts.length}
                       </span>
                     </div>
@@ -1187,11 +1187,17 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       toggle); keeps the day bands. Hidden entirely when empty. */}
                   {awarenessAlerts.length > 0 ? (
                     <section className="flex flex-col">
+                      {/* The whole band is the collapse toggle — `w-full` +
+                          cursor + hover tint so it reads as the interactive
+                          section header it is (design-critique: it had no hover
+                          affordance). The rotating chevron + hover carry the
+                          expand/collapse affordance; no "click to show" caption
+                          (tutorial ceremony the chevron already conveys). */}
                       <button
                         type="button"
                         onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
                         aria-expanded={!awarenessCollapsed}
-                        className="flex items-center gap-2 px-5 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-5 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <ChevronDownIcon
                           className={cn(
@@ -1204,7 +1210,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         <span className="text-sm font-medium text-text-secondary">
                           <Trans>For your awareness</Trans>
                         </span>
-                        <span className="text-sm tabular-nums text-text-tertiary">
+                        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
                           {awarenessAlerts.length}
                         </span>
                       </button>
