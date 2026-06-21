@@ -272,7 +272,7 @@ export function DailyBriefCard({
             className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
             aria-hidden
           />
-          <h2 className="text-region-title text-text-primary">
+          <h2 className="text-base font-semibold text-text-secondary">
             <Trans>Daily Brief</Trans>
           </h2>
         </span>

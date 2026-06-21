@@ -152,7 +152,7 @@ export function MergedBriefCard({
       >
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <h2 className="text-region-title text-text-primary">
+            <h2 className="text-base font-semibold text-text-secondary">
               <Trans>Priorities</Trans>
             </h2>
             {/* lede slot — tight under the title, mirroring the loaded view */}
@@ -241,7 +241,7 @@ export function MergedBriefCard({
           <div className="flex items-center gap-2">
             {/* "Priorities", not "Today's brief" — the card leads with overdue
                 work, so a "today" headline would lie about its own content. */}
-            <h2 className="text-region-title text-text-primary">
+            <h2 className="text-base font-semibold text-text-secondary">
               <Trans>Priorities</Trans>
             </h2>
             {/* The sparkles marks the list as Smart-Priority curated and opens
