@@ -26,6 +26,7 @@
   --m-faint: var(--text-quaternary); /* eyebrows / meta */
   --m-on-accent: var(--text-inverted); /* text on the navy band */
 
+  --m-canvas: var(--color-util-colors-gray-100); /* cold light gray page base (#f2f4f7) */
   --m-surface: var(--background-default); /* white card */
   --m-section: var(--background-section); /* gray band */
 
