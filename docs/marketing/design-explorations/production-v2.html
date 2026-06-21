@@ -46,11 +46,13 @@
         --ok: #2e7d52;
         --ok-tint: #e7f0e8;
 
-        --maxw: 1140px;
+        --maxw: 1240px;
         --gutter: clamp(22px, 5vw, 64px);
         /* shared 12-column grid gutter — one value so every section's columns align */
         --col-gap: clamp(20px, 2.4vw, 32px);
         --ls-eyebrow: 0.14em;
+        /* one canonical gap from an eyebrow to its title — replaces ad-hoc inline margins */
+        --eyebrow-gap: 16px;
       }
 
       * {
@@ -137,9 +139,10 @@
         text-transform: uppercase;
         font-weight: 600;
         color: var(--faint);
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: 10px;
+        margin-bottom: var(--eyebrow-gap);
       }
       .eyebrow .tick {
         display: none;
@@ -228,7 +231,6 @@
         color: var(--ink);
         border: none;
         border-radius: 0;
-        box-shadow: inset 0 -1.5px 0 var(--ink);
       }
       .btn--ghost:hover {
         color: var(--accent);
@@ -1000,22 +1002,26 @@
       /* ============================================================
      SOUND FAMILIAR (villain beat — quiet)
      ============================================================ */
+      /* accent band — a dark navy beat between two light sections */
+      .villain {
+        background: var(--accent);
+      }
       .villain__grid {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: clamp(32px, 6vw, 84px);
+        gap: clamp(28px, 5vw, 56px);
         column-gap: var(--col-gap);
         align-items: start;
       }
       .villain__grid > :nth-child(1) {
-        grid-column: span 5;
+        grid-column: span 6;
       }
       .villain__grid > :nth-child(2) {
-        grid-column: span 7;
+        grid-column: span 6;
       }
       .villain h2 {
-        max-width: 16ch;
         font-weight: 500;
+        color: #fff;
       }
       .villain h2 .ital {
         font-weight: 500;
@@ -1023,20 +1029,21 @@
       .villain__q {
         font-size: 15px;
         font-weight: 500;
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.62);
+        margin-bottom: clamp(20px, 3vw, 32px);
       }
       .villain .body {
-        font-size: clamp(19px, 1.7vw, 23px);
-        line-height: 1.5;
-        color: var(--ink-2);
-        max-width: 40ch;
+        font-size: clamp(18px, 1.5vw, 21px);
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.82);
         letter-spacing: -0.01em;
+        align-self: start;
       }
       .villain .body .dim {
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.5);
       }
       .villain .body strong {
-        color: var(--ink);
+        color: #fff;
         font-weight: 600;
       }
 
@@ -4122,22 +4129,22 @@
 
       <!-- ===================== SOUND FAMILIAR (villain) ===================== -->
       <section class="villain section">
-        <div class="wrap villain__grid reveal">
-          <div>
-            <p class="villain__q">Sound familiar?</p>
-            <h2 class="h2" style="margin-top: 10px">
+        <div class="wrap reveal">
+          <p class="villain__q">Sound familiar?</p>
+          <div class="villain__grid">
+            <h2 class="h2">
               It's not missing a deadline that keeps you up. It's
               <span class="ital">not knowing</span> if you did.
             </h2>
+            <p class="body">
+              Fifty state websites. An inbox you can't keep up with.
+              <span class="dim"
+                >A rule changed back in March, and you won't hear until your client gets the
+                notice.</span
+              >
+              The work was never the hard part — <strong>the not-knowing is.</strong>
+            </p>
           </div>
-          <p class="body">
-            Fifty state websites. An inbox you can't keep up with.
-            <span class="dim"
-              >A rule changed back in March, and you won't hear until your client gets the
-              notice.</span
-            >
-            The work was never the hard part — <strong>the not-knowing is.</strong>
-          </p>
         </div>
       </section>
 
@@ -4147,7 +4154,7 @@
           <div class="flow__head reveal">
             <div>
               <p class="eyebrow"><span class="tick" aria-hidden="true"></span> How it works</p>
-              <h2 class="h2" id="how-h" style="margin-top: 18px">
+              <h2 class="h2" id="how-h">
                 It runs the long tail. You make the <span class="ital">calls.</span>
               </h2>
             </div>
@@ -4298,7 +4305,7 @@
         <div class="wrap">
           <div class="docint__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> The document, read</p>
-            <h2 class="h2" id="notice-h" style="margin-top: 18px">
+            <h2 class="h2" id="notice-h">
               It reads the official notice — and pulls out what changed and
               <span class="ital">who it hits.</span>
             </h2>
@@ -5030,7 +5037,7 @@
         <div class="wrap">
           <div class="work__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> See it work</p>
-            <h2 class="h2" id="work-h" style="margin-top: 18px">
+            <h2 class="h2" id="work-h">
               Your week, ranked by who's most at <span class="ital">risk.</span>
             </h2>
             <p class="lead">The clients that matter rise to the top — before your first call.</p>
@@ -5150,9 +5157,7 @@
           <div class="surfaces__head reveal">
             <div>
               <p class="eyebrow">The product</p>
-              <h2 class="h2" id="surfaces-h" style="margin-top: 14px">
-                Everything in one workbench.
-              </h2>
+              <h2 class="h2" id="surfaces-h">Everything in one workbench.</h2>
             </div>
             <p class="surfaces__intro">
               From the first alert to the applied change — four surfaces, one calm place to work.
@@ -5268,10 +5273,10 @@
             <p class="eyebrow">
               <span class="tick" aria-hidden="true"></span> Why you can trust it
             </p>
-            <h2 class="h2" id="trust-h" style="margin: 18px 0 0">
+            <h2 class="h2" id="trust-h">
               Every date clicks back to its <span class="ital">source.</span>
             </h2>
-            <p class="lead" style="margin-top: 18px">
+            <p class="lead">
               We call it <span class="glass">glass-box</span> — a link, the exact quote, and a
               verified date on every change, or it's held back.
             </p>
@@ -5338,7 +5343,7 @@
               <p class="eyebrow">
                 <span class="tick" aria-hidden="true"></span> Security &amp; privacy
               </p>
-              <h2 class="h2" id="sec-h" style="margin-top: 18px">
+              <h2 class="h2" id="sec-h">
                 Built for the data you're <span class="ital">trusted</span> with.
               </h2>
               <p class="security__body">
@@ -5432,7 +5437,7 @@
         <div class="wrap">
           <div class="faq__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> Questions</p>
-            <h2 class="h2" id="faq-h" style="margin-top: 18px">The short answers.</h2>
+            <h2 class="h2" id="faq-h">The short answers.</h2>
           </div>
           <div class="faq__grid reveal-group">
             <details class="faq__item reveal">
