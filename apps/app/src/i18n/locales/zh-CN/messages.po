@@ -7065,6 +7065,10 @@ msgstr "文件大小"
 msgid "File type"
 msgstr "文件类型"
 
+#: src/routes/obligations.tsx
+msgid "filed"
+msgstr "已申报"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -8036,6 +8040,10 @@ msgstr "生效中 · 须在 {0} 前处理"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "In force today"
 msgstr "今日生效"
+
+#: src/routes/obligations.tsx
+msgid "in progress"
+msgstr "进行中"
 
 #: src/features/obligations/status-control.tsx
 #: src/routes/readiness.tsx
@@ -11141,6 +11149,10 @@ msgstr "未交"
 msgid "Over your client limit"
 msgstr "已超出客户数上限"
 
+#: src/routes/obligations.tsx
+msgid "overdue"
+msgstr "已逾期"
+
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -11703,6 +11715,10 @@ msgstr "政策"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Portal link copied"
 msgstr "门户链接已复制"
+
+#: src/routes/obligations.tsx
+msgid "Portfolio mix: {filed} filed, {overdue} overdue, {inFlight} in progress"
+msgstr "组合分布：已申报 {filed} 项，已逾期 {overdue} 项，进行中 {inFlight} 项"
 
 #. placeholder {0}: neighbors.position
 #. placeholder {1}: neighbors.total

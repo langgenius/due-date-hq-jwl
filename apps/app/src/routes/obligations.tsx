@@ -2989,6 +2989,56 @@ export function ObligationQueueRoute() {
       },
     ]
   }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
+  // Proportion bar for the StatBand — a thin visual echo of the portfolio mix
+  // BELOW the cells (no legend; the cells already label the counts). Restrained
+  // 3-tone register only (green filed / red overdue / neutral in-flight), per
+  // the StatBand color budget — NOT one segment per status. Every value traces
+  // to the SAME real aggregates the cells use: `filed` = LIFECYCLE_V2 done set,
+  // `overdue` from the glance narrative, in-flight = everything not yet settled
+  // and not late (scopeTotal − filed − overdue: not-started + waiting + blocked
+  // + in-review + due-this-week, all rolled into one neutral lane). No
+  // period-over-period / trend data exists, so the bar shows only the present
+  // mix — never a delta. Returns no bar when the portfolio is empty (the band
+  // already renders the empty case).
+  const statBandProportion = useMemo(() => {
+    if (scopeTotal <= 0) return undefined
+    const sumStatuses = (statuses: readonly ObligationStatus[]) =>
+      statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
+    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
+    const { overdue } = deadlinesNarrative
+    // Clamp so a transient skew between facets (filed) and glance (overdue)
+    // can never produce a negative width.
+    const inFlight = Math.max(0, scopeTotal - filed - overdue)
+    return {
+      segments: [
+        {
+          key: 'filed',
+          value: filed,
+          // Settled / green — the "done" lane (done + paid).
+          toneClass: 'bg-state-success-solid',
+          label: t`filed`,
+        },
+        {
+          key: 'overdue',
+          value: overdue,
+          // The band's only red — genuine risk, matching the Overdue cell.
+          toneClass: 'bg-state-destructive-solid',
+          label: t`overdue`,
+        },
+        {
+          key: 'in-flight',
+          value: inFlight,
+          // Neutral gray — everything in progress (not-started, waiting,
+          // blocked, in-review, due-this-week). One quiet lane, not five colors.
+          toneClass: 'bg-state-base-handle',
+          label: t`in progress`,
+        },
+      ],
+      // Plain-string summary for the bar's aria-label. Trans-free: built with
+      // `t` so the translatable string lives here, not in the shared band.
+      ariaLabel: t`Portfolio mix: ${filed} filed, ${overdue} overdue, ${inFlight} in progress`,
+    }
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
@@ -3554,6 +3604,8 @@ export function ObligationQueueRoute() {
           stats={statBandCells}
           loading={glanceQuery.isLoading || facetsQuery.isLoading}
           ariaLabel={t`Deadlines portfolio summary`}
+          proportionBar={statBandProportion?.segments}
+          proportionBarLabel={statBandProportion?.ariaLabel}
         />
       ) : null}
 

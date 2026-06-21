@@ -1818,6 +1818,22 @@ Top-level pages use `pt-8`: the page `<h1>` centers on the sidebar's firm
 avatar (both centers at ~50px). Shell bottom padding ≈ the sidebar's ~18px
 bottom inset, so page and rail end together.
 
+### §16.24 StatBand proportion bar (2026-06-21)
+
+`StatBand` accepts an OPTIONAL `proportionBar` (a `{ key, value, toneClass,
+label }[]`) + `proportionBarLabel` (the bar's `role="img"` aria-label, supplied
+by the caller so the band stays i18n-free). When present it renders a thin
+`h-2 rounded-full` segmented bar INSIDE the band, below the stat columns and
+above the bottom hairline (`mt-4`, inset `px-5`). Segment width =
+`value / sum(values)`; zero-value segments and an all-zero set render nothing;
+bands without the prop are unchanged. It is a **visual echo** of the counts the
+columns already label — **no legend** (Toloka "Tolokers completing tasks" ref),
+and **no trend / delta / sparkline** (no period-over-period data exists; that
+would be fiction). Keep to the **restrained 3-tone budget** — on /deadlines:
+green `bg-state-success-solid` filed · red `bg-state-destructive-solid` overdue ·
+neutral `bg-state-base-handle` everything-in-flight — never one chromatic segment
+per status. All values trace to the same real aggregates as the cells.
+
 ---
 
 _This document is a single source of truth. If in doubt, choose density over decoration, precision over friendliness._

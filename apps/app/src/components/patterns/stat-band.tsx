@@ -74,16 +74,49 @@ export interface StatBandItem {
   ariaLabel?: string
 }
 
+/**
+ * A single segment of the optional proportion bar — a thin visual echo of the
+ * stat columns' real counts. No legend: the columns above already label the
+ * numbers, so the bar just shows their MIX. Restrained register only (the
+ * /deadlines wiring uses green filed / red overdue / neutral in-flight) — keep
+ * to the 3-tone color budget, never one chromatic segment per status.
+ */
+export interface StatBandProportionSegment {
+  key: string
+  /** Real count for this segment. Width = value / sum(values). Zero renders nothing. */
+  value: number
+  /** Tailwind bg utility for the fill (e.g. `bg-state-success-solid`). */
+  toneClass: string
+  /** Human label for the segment (used in tooltips / future legends, not rendered inline). */
+  label: ReactNode
+}
+
 export function StatBand({
   stats,
   loading,
   ariaLabel,
+  proportionBar,
+  proportionBarLabel,
 }: {
   stats: StatBandItem[]
   /** Renders a band-height skeleton while the source query is in flight. */
   loading?: boolean
   /** Accessible name for the band region. */
   ariaLabel?: string
+  /**
+   * Optional thin proportion bar rendered BELOW the stat columns, inside the
+   * band. A visual echo of the same real counts the columns already label — no
+   * legend, no trend. Each segment width = value / sum(values); zero-value
+   * segments render nothing. Omit (or pass an all-zero set) to render exactly
+   * as a band without the prop. Keep to the restrained 3-tone budget.
+   */
+  proportionBar?: StatBandProportionSegment[] | undefined
+  /**
+   * aria-label for the proportion bar summarizing the mix (e.g. "Portfolio:
+   * 6 filed, 5 overdue, 17 in progress"). Supplied by the caller so the
+   * translatable string lives where `t` already does; the band stays i18n-free.
+   */
+  proportionBarLabel?: string | undefined
 }) {
   if (loading) {
     // Mirror the loaded band's chrome (same border-y hairlines + py-4 wrapper +
@@ -107,6 +140,91 @@ export function StatBand({
       </div>
     )
   }
+  // Only segments with a real, positive count occupy width; the rest render
+  // nothing (a zero-count tone would be an invisible 0%-wide sliver anyway).
+  const barSegments = proportionBar?.filter((seg) => seg.value > 0) ?? []
+  const barTotal = barSegments.reduce((n, seg) => n + seg.value, 0)
+  const showBar = barTotal > 0
+
+  // The stat columns. Carries the grid/flex layout itself when the bar is
+  // present (so the section can stack column-row over bar); otherwise the
+  // section keeps that layout and the columns render as its direct children —
+  // bands without the prop are byte-for-byte the same as before.
+  const columnsLayoutClass = 'grid grid-cols-2 gap-y-4 sm:flex sm:items-start sm:gap-y-0'
+  const columns = stats.map((stat) => {
+    const body = (
+      <>
+        {/* 2026-06-14 (Yuqi): tracked-CAPS eyebrow label — the "CAPS title ·
+                big number · small caption" stat grammar, restored over the
+                sentence-case label tried 2026-06-12. All summary surfaces
+                (clients ×2, sources, library overview + jurisdiction detail,
+                alert history, audit) pick this up together — one design. */}
+        <CapsFieldLabel as="span" variant="group" className="truncate">
+          {stat.label}
+        </CapsFieldLabel>
+        <span
+          className={cn(
+            'text-stat-value font-semibold tracking-tight tabular-nums',
+            stat.valueClass ?? 'text-text-primary',
+          )}
+        >
+          {stat.value}
+        </span>
+        {stat.sub != null ? (
+          <span
+            className={cn('truncate text-xs font-medium', stat.subClass ?? 'text-text-tertiary')}
+          >
+            {stat.sub}
+          </span>
+        ) : null}
+      </>
+    )
+
+    // Subtle vertical hairline between columns (row layout only) gives the
+    // band structure without re-introducing a card border; the first
+    // column and the mobile 2-up grid stay divider-free.
+    const columnClass =
+      'flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0'
+    // Interactive columns gain a hover wash + focus ring so they read
+    // as tappable; the read-only column stays dead-quiet.
+    const interactiveClass = cn(
+      columnClass,
+      'cursor-pointer rounded-lg py-1 -my-1 text-left transition-colors hover:bg-state-base-hover',
+      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
+    )
+
+    if (stat.href) {
+      return (
+        <Link
+          key={stat.key}
+          to={stat.href}
+          aria-label={stat.ariaLabel}
+          className={interactiveClass}
+        >
+          {body}
+        </Link>
+      )
+    }
+    if (stat.onClick) {
+      return (
+        <button
+          key={stat.key}
+          type="button"
+          onClick={stat.onClick}
+          aria-label={stat.ariaLabel}
+          className={interactiveClass}
+        >
+          {body}
+        </button>
+      )
+    }
+    return (
+      <div key={stat.key} className={columnClass}>
+        {body}
+      </div>
+    )
+  })
+
   return (
     <section
       aria-label={ariaLabel}
@@ -114,84 +232,37 @@ export function StatBand({
       // clean"): tightened the band — py-7→py-4, column gap-2→gap-1, number
       // 32→26 — so it carries the same info in ~40px less height. The shared
       // band drives all 5 summary surfaces, so they all densify together.
-      className="grid shrink-0 grid-cols-2 gap-y-4 border-y border-divider-subtle py-4 sm:flex sm:items-start sm:gap-y-0"
+      // The bar (when present) stacks below the columns inside the band, above
+      // the bottom hairline.
+      className={cn(
+        'shrink-0 border-y border-divider-subtle py-4',
+        showBar ? 'block' : columnsLayoutClass,
+      )}
     >
-      {stats.map((stat) => {
-        const body = (
-          <>
-            {/* 2026-06-14 (Yuqi): tracked-CAPS eyebrow label — the "CAPS title ·
-                big number · small caption" stat grammar, restored over the
-                sentence-case label tried 2026-06-12. All summary surfaces
-                (clients ×2, sources, library overview + jurisdiction detail,
-                alert history, audit) pick this up together — one design. */}
-            <CapsFieldLabel as="span" variant="group" className="truncate">
-              {stat.label}
-            </CapsFieldLabel>
-            <span
-              className={cn(
-                'text-stat-value font-semibold tracking-tight tabular-nums',
-                stat.valueClass ?? 'text-text-primary',
-              )}
-            >
-              {stat.value}
-            </span>
-            {stat.sub != null ? (
-              <span
-                className={cn(
-                  'truncate text-xs font-medium',
-                  stat.subClass ?? 'text-text-tertiary',
-                )}
-              >
-                {stat.sub}
-              </span>
-            ) : null}
-          </>
-        )
-
-        // Subtle vertical hairline between columns (row layout only) gives the
-        // band structure without re-introducing a card border; the first
-        // column and the mobile 2-up grid stay divider-free.
-        const columnClass =
-          'flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0'
-        // Interactive columns gain a hover wash + focus ring so they read
-        // as tappable; the read-only column stays dead-quiet.
-        const interactiveClass = cn(
-          columnClass,
-          'cursor-pointer rounded-lg py-1 -my-1 text-left transition-colors hover:bg-state-base-hover',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
-        )
-
-        if (stat.href) {
-          return (
-            <Link
-              key={stat.key}
-              to={stat.href}
-              aria-label={stat.ariaLabel}
-              className={interactiveClass}
-            >
-              {body}
-            </Link>
-          )
-        }
-        if (stat.onClick) {
-          return (
-            <button
-              key={stat.key}
-              type="button"
-              onClick={stat.onClick}
-              aria-label={stat.ariaLabel}
-              className={interactiveClass}
-            >
-              {body}
-            </button>
-          )
-        }
-        return (
-          <div key={stat.key} className={columnClass}>
-            {body}
+      {showBar ? <div className={columnsLayoutClass}>{columns}</div> : columns}
+      {showBar ? (
+        <div className="mt-4 px-5">
+          <div
+            role="img"
+            aria-label={proportionBarLabel}
+            // Thin full-width segmented proportion bar — a quiet visual echo of
+            // the counts above (no legend, no trend). Inset px-5 aligns it to
+            // the column content. Seamless segments (no gap) read as one
+            // continuous mix like the Toloka reference; h-2 keeps it
+            // hairline-weight. overflow-hidden + rounded-full clip the segment
+            // ends into the rounded track.
+            className="flex h-2 w-full overflow-hidden rounded-full bg-divider-subtle"
+          >
+            {barSegments.map((seg) => (
+              <div
+                key={seg.key}
+                className={cn('h-full', seg.toneClass)}
+                style={{ width: `${(seg.value / barTotal) * 100}%` }}
+              />
+            ))}
           </div>
-        )
-      })}
+        </div>
+      ) : null}
     </section>
   )
 }
