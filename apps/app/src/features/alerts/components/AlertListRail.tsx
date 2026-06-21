@@ -4,6 +4,7 @@ import { CircleAlertIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -169,7 +170,7 @@ export function AlertListRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Filter alerts`}
+          placeholder={t`Filter by title or source`}
           className="w-full"
         />
       </ListRailSection>
@@ -177,9 +178,23 @@ export function AlertListRail({
       {/* ListBody — compact items, the open one accented. */}
       <ListRailBody>
         {visible.length === 0 ? (
-          <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
-            <Trans>No alerts match.</Trans>
-          </p>
+          // Zero-results is a recovery moment, not a dead-end: offer a one-click
+          // way back to the full list (matches the page-level empties).
+          <div className="px-[18px] py-10 text-center">
+            <p className="text-base text-text-tertiary">
+              <Trans>No alerts match.</Trans>
+            </p>
+            {search.trim().length > 0 ? (
+              <TextLink
+                variant="accent"
+                size="sm"
+                onClick={() => setSearch('')}
+                className="mt-2 inline-block"
+              >
+                <Trans>Clear filter</Trans>
+              </TextLink>
+            ) : null}
+          </div>
         ) : (
           visible.map((alert) => (
             <RailItem

@@ -389,7 +389,7 @@ export function IconsRoute() {
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Filter icons…"
+          placeholder="Filter icons"
           className="max-w-xs"
           aria-label="Filter icons"
         />

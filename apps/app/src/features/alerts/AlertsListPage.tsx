@@ -879,16 +879,28 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
 
                 {/* Canonical collapsing toolbar search — ghost magnifier that
                     expands on hover/click and retains focus + query. Same
-                    control as /clients · /rules/library. (No `/` hotkey here:
-                    /alerts never registered one and there's no alerts shortcut
-                    category to file it under.) */}
+                    control as /clients · /rules/library, including the `/`
+                    hotkey (2026-06-21 search-UX audit: /alerts was the only
+                    primary list page missing it; the `alerts` shortcut category
+                    was added so it registers in the help dialog like the rest).
+                    Placeholder names the matched fields (title + source);
+                    aria-label + help-dialog name stay the plain "Filter alerts"
+                    so the `/` rows read consistently across surfaces. */}
                 <CollapsibleSearch
                   value={searchQuery}
                   onChange={setSearchQuery}
-                  placeholder={t`Filter alerts`}
+                  placeholder={t`Filter by title or source`}
                   ariaLabel={t`Filter alerts`}
                   size="icon"
                   expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
+                  hotkey="/"
+                  hotkeyMeta={{
+                    id: 'alerts.focus-search',
+                    name: 'Filter alerts',
+                    description: 'Focus the Alerts filter input.',
+                    category: 'alerts',
+                    scope: 'route',
+                  }}
                 />
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the

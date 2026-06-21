@@ -2625,7 +2625,7 @@ export function RulesLibraryRoute() {
                       <CollapsibleSearch
                         value={search ?? ''}
                         onChange={(next) => void setSearch(next || null)}
-                        placeholder={t`Filter rules…`}
+                        placeholder={t`Filter rules`}
                         ariaLabel={t`Filter rules`}
                         collapsedLabel={t`Filter rules`}
                         hotkey="/"

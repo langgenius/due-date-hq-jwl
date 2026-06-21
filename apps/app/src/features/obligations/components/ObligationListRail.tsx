@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -87,7 +88,7 @@ export function ObligationListRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Filter deadlines`}
+          placeholder={t`Filter by client or form`}
           className="w-full"
         />
       </ListRailSection>
@@ -95,9 +96,24 @@ export function ObligationListRail({
       {/* ListBody — compact items, the open one accented. */}
       <ListRailBody>
         {visible.length === 0 ? (
-          <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
-            <Trans>No deadlines match.</Trans>
-          </p>
+          // Zero-results is a recovery moment, not a dead-end: when a filter is
+          // narrowing the list to nothing, offer a one-click way back to the
+          // full list (matches the page-level alerts/audit/notifications empties).
+          <div className="px-[18px] py-10 text-center">
+            <p className="text-base text-text-tertiary">
+              <Trans>No deadlines match.</Trans>
+            </p>
+            {search.trim().length > 0 ? (
+              <TextLink
+                variant="accent"
+                size="sm"
+                onClick={() => setSearch('')}
+                className="mt-2 inline-block"
+              >
+                <Trans>Clear filter</Trans>
+              </TextLink>
+            ) : null}
+          </div>
         ) : (
           <>
             {visible.map((row) => (
