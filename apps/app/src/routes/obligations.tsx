@@ -6679,36 +6679,37 @@ function ObligationFiltersPopover({
           )}
         </div>
 
-        {/* Footer — staged summary + Clear on the left, Cancel / Apply on the
-            right (Apply is the clear dark primary with a trailing arrow, per
-            `ZAciP`/`IruSl`). Distinct section tint anchors the action band. */}
-        <div className="flex items-center justify-between border-t border-divider-subtle bg-background-section px-4 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-caption-xs tabular-nums text-text-tertiary">
-              <Plural
-                value={stagedTotal}
-                _0="No filters staged"
-                one="# filter staged"
-                other="# filters staged"
-              />
-            </span>
-            {stagedTotal > 0 ? (
-              <Button
-                variant="ghost"
-                size="xs"
-                type="button"
-                onClick={() => setStage(emptyStage)}
-                className="h-auto px-1.5 py-0.5 text-caption-xs"
-              >
-                <Trans>Reset</Trans>
-              </Button>
-            ) : null}
-          </div>
+        {/* Footer — the reference's clean Reset / Apply PAIR (ref filter sheet
+            #3): Reset = outline counterpart on the left, Apply = the dark
+            primary with a trailing arrow on the right, each `flex-1` so the pair
+            splits the band evenly and reads as one deliberate action couplet
+            (not a tiny ghost link + a buried Cancel). The staged-count caption
+            sits above as a quiet line. Esc/✕/outside-click already cancel-
+            without-applying (header Esc chip), so the redundant Cancel button is
+            folded to keep the pair clean. Distinct section tint anchors the
+            band. Reset disables — instead of vanishing — when nothing is
+            staged, so the pair never reflows. */}
+        <div className="flex flex-col gap-2 border-t border-divider-subtle bg-background-section px-4 py-3">
+          <span className="text-caption-xs tabular-nums text-text-tertiary">
+            <Plural
+              value={stagedTotal}
+              _0="No filters staged"
+              one="# filter staged"
+              other="# filters staged"
+            />
+          </span>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              <Trans>Cancel</Trans>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => setStage(emptyStage)}
+              disabled={stagedTotal === 0}
+              className="flex-1"
+            >
+              <Trans>Reset</Trans>
             </Button>
-            <Button size="sm" onClick={apply}>
+            <Button size="sm" onClick={apply} className="flex-1">
               <Trans>Apply</Trans>
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
