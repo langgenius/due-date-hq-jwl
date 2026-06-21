@@ -518,6 +518,15 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     bulkDismissMutation.mutate({ alertIds: [...selectedIds] })
     clearSelection()
   }
+  // "Dismiss all" on the For-your-awareness band — sweeps the FYI digest in one
+  // move (the anti-junk-drawer affordance promised by the triage model). Selects
+  // every awareness alert, then routes through the SAME bulk-dismiss
+  // confirmation as a manual selection, so the CPA still previews what's leaving.
+  const dismissAllAwareness = () => {
+    if (awarenessAlerts.length === 0) return
+    setSelectedIds(new Set(awarenessAlerts.map((alert) => alert.id)))
+    setDismissConfirmOpen(true)
+  }
   // Alerts currently selected, resolved to their display rows so the
   // confirmation modal can preview titles (capped at 5 + "N more").
   const selectedAlerts = useMemo(
@@ -1193,33 +1202,48 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       toggle); keeps the day bands. Hidden entirely when empty. */}
                   {awarenessAlerts.length > 0 ? (
                     <section className="flex flex-col">
-                      {/* The whole band is the collapse toggle — `w-full` +
-                          cursor + hover tint so it reads as the interactive
-                          section header it is (design-critique: it had no hover
-                          affordance). The rotating chevron + hover carry the
-                          expand/collapse affordance; no "click to show" caption
-                          (tutorial ceremony the chevron already conveys). */}
-                      <button
-                        type="button"
-                        onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
-                        aria-expanded={!awarenessCollapsed}
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-5 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                      >
-                        <ChevronDownIcon
-                          className={cn(
-                            'size-4 shrink-0 text-text-tertiary transition-transform',
-                            awarenessCollapsed && '-rotate-90',
-                          )}
-                          aria-hidden
-                        />
-                        <EyeIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                        <span className="text-sm font-medium text-text-secondary">
-                          <Trans>For your awareness</Trans>
-                        </span>
-                        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
-                          {awarenessAlerts.length}
-                        </span>
-                      </button>
+                      {/* Band = the collapse toggle (left, flex-1, hover tint so
+                          it reads as the interactive section header it is) + a
+                          hover-revealed "Dismiss all" sweep (right) so the FYI
+                          digest can be cleared in one move (the anti-junk-drawer
+                          affordance). Sibling buttons — no nested interactives. */}
+                      <div className="group/awareband flex items-center gap-2 px-5 py-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
+                          aria-expanded={!awarenessCollapsed}
+                          className="-mx-2 flex flex-1 cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          <ChevronDownIcon
+                            className={cn(
+                              'size-4 shrink-0 text-text-tertiary transition-transform',
+                              awarenessCollapsed && '-rotate-90',
+                            )}
+                            aria-hidden
+                          />
+                          <EyeIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                          <span className="text-sm font-medium text-text-secondary">
+                            <Trans>For your awareness</Trans>
+                          </span>
+                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
+                            {awarenessAlerts.length}
+                          </span>
+                        </button>
+                        {/* Dismiss-all sweeps the whole FYI digest through the
+                            same confirm dialog as a manual selection. List-view
+                            only (the bulk flow is selection-backed). */}
+                        {selectionEnabled ? (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={dismissAllAwareness}
+                            className="shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover/awareband:opacity-100 hover:text-text-secondary focus-visible:opacity-100"
+                          >
+                            <ArchiveIcon data-icon="inline-start" />
+                            <Trans>Dismiss all</Trans>
+                          </Button>
+                        ) : null}
+                      </div>
                       {!awarenessCollapsed ? (
                         <PulseAlertList
                           alerts={awarenessAlerts}

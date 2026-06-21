@@ -387,9 +387,18 @@ function PulseAlertRow({
   // and the KeyChange/action all drop to a quiet tier so the list scans as a
   // clean column of titles. Hovering a row, or opening it (`active`), lifts its
   // detail back to full. The title <h3> never recedes.
+  // 2026-06-21 (Yuqi "the chips are still quite faint"): the recede is now
+  // zone-aware. The "Needs action" queue keeps its identity chips LEGIBLE — a
+  // light recessive dim (opacity-80) so state / change-kind / urgency read at a
+  // glance for triage, while the title still leads on size + weight. The muted
+  // "For your awareness" digest dims further (opacity-60) so it stays the quiet
+  // zone. Both lift to full on hover/active.
   const recede = active
     ? undefined
-    : 'opacity-60 transition-opacity duration-150 group-hover/row:opacity-100'
+    : cn(
+        'transition-opacity duration-150 group-hover/row:opacity-100',
+        muted ? 'opacity-60' : 'opacity-80',
+      )
 
   return (
     <article
