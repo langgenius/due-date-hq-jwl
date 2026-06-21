@@ -1,0 +1,374 @@
+---
+/** Notice — "it reads the official notice". Doc → connector → extracted fields (equal width).
+ *  Re-houses the evidence/verify depth from the original site: source quote + verified date,
+ *  "no provenance, no render". */
+const affected = [
+  { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', status: 'ELIGIBLE', tone: 'ok' },
+  { in: 'BC', name: 'Brazos Co', meta: '05-158 · TX', status: 'ELIGIBLE', tone: 'ok' },
+  { in: 'HC', name: 'Hill Country Partners', meta: '05-158 · TX', status: 'REVIEW', tone: 'warn' },
+]
+---
+
+<section class="m-section" id="notice" aria-labelledby="notice-h">
+  <p class="m-eyebrow">The document, read</p>
+  <h2 class="m-h2" id="notice-h">
+    It reads the official notice — and pulls out what changed and <span class="ital">who it hits.</span>
+  </h2>
+  <p class="m-lead notice__lead">
+    No provenance, no render — every field below carries its <b>source quote</b> and a
+    <b>verified date</b>, or it's held back rather than guessed.
+  </p>
+
+  <div class="extract">
+    <!-- the source document -->
+    <article class="clip" aria-hidden="true">
+      <header class="clip__head">
+        <span class="clip__seal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+        </span>
+        <div class="clip__org">
+          <div class="clip__name">Texas Comptroller</div>
+          <div class="clip__sub">Tax Policy News · Franchise Tax</div>
+        </div>
+        <div class="clip__posted">
+          Posted <b>Jan 30, 2026</b>
+          <div class="clip__url">comptroller.texas.gov</div>
+        </div>
+      </header>
+      <div class="clip__body">
+        <p>
+          Entities with annualized total revenue at or below the revised threshold are no longer
+          required to file a No Tax Due report for the period.
+        </p>
+        <p>
+          Texas <mark>raises the franchise-tax no-tax-due threshold to $2.47&nbsp;million</mark> for
+          reports originally due on or after January&nbsp;1, 2026.
+        </p>
+      </div>
+    </article>
+
+    <!-- minimal connector: the document is read into the fields -->
+    <div class="beam" aria-hidden="true">
+      <span class="beam__conn">
+        <span class="beam__dot"></span>
+        <span class="beam__dash"></span>
+        <span class="beam__arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+        </span>
+      </span>
+    </div>
+
+    <!-- the extracted structure -->
+    <div class="extract__out">
+      <div class="field">
+        <span class="field__label">Source quote</span>
+        <p class="field__quote">"…raises the franchise-tax no-tax-due threshold to $2.47 million."</p>
+        <p class="field__verify">
+          comptroller.texas.gov <span class="field__ok">✓ Verified Jan 30</span>
+        </p>
+      </div>
+      <div class="field">
+        <span class="field__label">The change</span>
+        <p class="field__change"><s>$1.23M</s> <span class="arrow">→</span> <b>$2.47M no-tax-due</b></p>
+      </div>
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label">Who's affected</span>
+          <span class="field__count">12 clients</span>
+        </div>
+        <div class="field__rows">
+          {
+            affected.map((c) => (
+              <div class="arow">
+                <span class="arow__in">{c.in}</span>
+                <span class="arow__name">{c.name}</span>
+                <span class="arow__meta">{c.meta}</span>
+                <span class={`arow__status arow__status--${c.tone}`}>{c.status}</span>
+              </div>
+            ))
+          }
+          <p class="field__more">+ 9 more on the same form &amp; entity type</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .notice__lead {
+    margin-top: 16px;
+    max-width: 60ch;
+  }
+  .notice__lead :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .extract {
+    margin-top: clamp(40px, 5vw, 60px);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: center;
+  }
+  .clip {
+    grid-column: span 5;
+  }
+  .beam {
+    grid-column: span 2;
+  }
+  .extract__out {
+    grid-column: span 5;
+  }
+
+  /* ---- the document ---- */
+  .clip {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 24px 26px 22px;
+  }
+  .clip__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .clip__seal {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--m-accent);
+    border: 1px solid var(--m-hairline);
+  }
+  .clip__seal svg {
+    width: 16px;
+    height: 16px;
+  }
+  .clip__org {
+    flex: 1;
+  }
+  .clip__name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-ink);
+  }
+  .clip__sub {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .clip__posted {
+    text-align: right;
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .clip__posted b {
+    color: var(--m-ink-2);
+    font-weight: 600;
+  }
+  .clip__url {
+    margin-top: 2px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+  .clip__body {
+    margin-top: 16px;
+    display: grid;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--m-ink-2);
+  }
+  .clip__body mark {
+    background: color-mix(in srgb, var(--m-urgent) 18%, transparent);
+    color: var(--m-ink);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+
+  /* ---- connector ---- */
+  .beam {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+  }
+  .beam__conn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: var(--m-accent);
+  }
+  .beam__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-accent);
+    flex: none;
+  }
+  .beam__dash {
+    flex: 1;
+    border-top: 1.5px dashed color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .beam__arrow svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  /* ---- extracted fields ---- */
+  .extract__out {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .field {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .field__label {
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .field__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .field__count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+  .field__quote {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--m-ink);
+  }
+  .field__verify {
+    margin-top: 8px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .field__ok {
+    color: var(--m-ok);
+  }
+  .field__change {
+    margin-top: 10px;
+    font-family: var(--m-font-mono);
+    font-size: 15px;
+    color: var(--m-ink);
+  }
+  .field__change s {
+    color: var(--m-faint);
+  }
+  .field__change .arrow {
+    color: var(--m-muted);
+    margin: 0 4px;
+  }
+  .field__rows {
+    margin-top: 12px;
+    display: grid;
+    gap: 2px;
+  }
+  .arow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 0;
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .arow:first-child {
+    border-top: none;
+  }
+  .arow__in {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .arow__name {
+    font-size: 13px;
+    color: var(--m-ink);
+    white-space: nowrap;
+  }
+  .arow__meta {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .arow__status {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .arow__status--ok {
+    color: var(--m-ok);
+  }
+  .arow__status--warn {
+    color: var(--m-urgent);
+  }
+  .field__more {
+    margin-top: 9px;
+    font-size: 12px;
+    color: var(--m-faint);
+  }
+
+  @media (max-width: 1000px) {
+    .extract {
+      grid-template-columns: 1fr;
+    }
+    .clip,
+    .beam,
+    .extract__out {
+      grid-column: auto;
+    }
+    .beam {
+      padding: 14px 0;
+    }
+    .beam__conn {
+      flex-direction: column;
+      height: 46px;
+      width: auto;
+    }
+    .beam__dash {
+      border-top: 0;
+      border-left: 1.5px dashed color-mix(in srgb, var(--m-accent) 32%, transparent);
+      width: 0;
+    }
+    .beam__arrow svg {
+      transform: rotate(90deg);
+    }
+  }
+</style>

@@ -9,6 +9,7 @@ import TopNav from '../components/home/TopNav.astro'
 import Hero from '../components/home/Hero.astro'
 import Villain from '../components/home/Villain.astro'
 import HowItWorks from '../components/home/HowItWorks.astro'
+import Notice from '../components/home/Notice.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import { getCtaHref } from '../lib/app-url'
@@ -29,6 +30,7 @@ const ctaHref = getCtaHref()
     <Hero ctaHref={ctaHref} workflowAnchor="#how" />
     <Villain />
     <HowItWorks />
+    <Notice />
     <Close ctaHref={ctaHref} />
   </main>
   <Footer />
