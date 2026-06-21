@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
+import { RocketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { DuotoneIcon } from '@/components/primitives/duotone-icon'
 import { FunIconButton } from '@/components/primitives/fun-icon-button'
 import { TickProgress } from '@/components/primitives/tick-progress'
+import { SetupStepIcon } from './setup-step-icon'
 
 export interface SetupStep {
   key: string
@@ -79,16 +80,7 @@ export function SetupProgressCard({
           const isNext = step === next
           return (
             <li key={step.key} className="flex items-center gap-2.5 text-sm">
-              {step.done ? (
-                <CircleCheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
-              ) : isNext ? (
-                <LoaderIcon
-                  className="size-4 shrink-0 animate-spin text-text-accent motion-reduce:animate-none"
-                  aria-hidden
-                />
-              ) : (
-                <CircleDashedIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-              )}
+              <SetupStepIcon done={step.done} isNext={isNext} />
               <span
                 className={cn(
                   'truncate',

@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo, useState } from 'react'
+import { motion } from 'motion/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -23,6 +24,7 @@ import { CreateObligationDialog } from '@/features/obligations/CreateObligationD
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -67,6 +69,21 @@ function useEntityLabels(): Record<ClientEntityType, string> {
     [t],
   )
 }
+
+// Grid stagger (replaces the old single-block animate-in fade): the parent
+// holds an empty `hidden`, then `show` cascades its children 50ms apart so the
+// three choice cards arrive left→right rather than as one fade. Each child rises
+// 8px + fades on the house enter curve. Reduced-motion is governed globally by
+// the root <MotionConfig reducedMotion="user">.
+const CHOICE_GRID_VARIANTS = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05 } },
+} as const
+
+const CHOICE_CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0 },
+} as const
 
 function ChoiceCard({
   icon,
@@ -119,16 +136,14 @@ function ChoiceCard({
           type="button"
           variant="outline"
           size="sm"
-          className="w-full justify-center"
+          className="w-full justify-center [&_svg[data-icon=inline-end]]:transition-transform group-hover:[&_svg[data-icon=inline-end]]:translate-x-0.5"
           disabled={disabled}
           onClick={onAction}
         >
           {cta}
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
-        {disabled ? (
-          <span className="text-caption text-text-tertiary">{disabledHint}</span>
-        ) : null}
+        {disabled ? <span className="text-caption text-text-tertiary">{disabledHint}</span> : null}
       </div>
     </div>
   )
@@ -176,61 +191,75 @@ export function CreateChoiceCards({ className }: { className?: string }) {
 
   return (
     <>
-      <div
-        className={cn(
-          'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3',
-          'animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
-          className,
-        )}
+      <motion.div
+        variants={CHOICE_GRID_VARIANTS}
+        initial="hidden"
+        animate="show"
+        className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', className)}
       >
-        <ChoiceCard
-          icon={UploadIcon}
-          tone="brand"
-          title={<Trans>Import clients</Trans>}
-          description={
-            <Trans>
-              Bring your whole book from TaxDome, Karbon, Drake, QuickBooks and more — every deadline
-              shows up on its own.
-            </Trans>
-          }
-          cta={<Trans>Import clients</Trans>}
-          disabled={!canRunMigration}
-          disabledHint={<Trans>Requires {requiredRolesLabel('migration.run')} access</Trans>}
-          onAction={() => openWizard()}
-        />
+        <motion.div
+          variants={CHOICE_CARD_VARIANTS}
+          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+        >
+          <ChoiceCard
+            icon={UploadIcon}
+            tone="brand"
+            title={<Trans>Import clients</Trans>}
+            description={
+              <Trans>
+                Bring your whole book from TaxDome, Karbon, Drake, QuickBooks and more — every
+                deadline shows up on its own.
+              </Trans>
+            }
+            cta={<Trans>Import clients</Trans>}
+            disabled={!canRunMigration}
+            disabledHint={<Trans>Requires {requiredRolesLabel('migration.run')} access</Trans>}
+            onAction={() => openWizard()}
+          />
+        </motion.div>
 
-        <ChoiceCard
-          icon={UserPlusIcon}
-          tone="accent"
-          title={<Trans>Add a client</Trans>}
-          description={
-            <Trans>
-              Create one client by hand — name, entity type, and jurisdiction. Good for trying it out
-              with a single account.
-            </Trans>
-          }
-          cta={<Trans>Add a client</Trans>}
-          disabled={!canCreateClient}
-          disabledHint={<Trans>Requires {requiredRolesLabel('client.write')} access</Trans>}
-          onAction={() => setCreateClientOpen(true)}
-        />
+        <motion.div
+          variants={CHOICE_CARD_VARIANTS}
+          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+        >
+          <ChoiceCard
+            icon={UserPlusIcon}
+            tone="accent"
+            title={<Trans>Add a client</Trans>}
+            description={
+              <Trans>
+                Create one client by hand — name, entity type, and jurisdiction. Good for trying it
+                out with a single account.
+              </Trans>
+            }
+            cta={<Trans>Add a client</Trans>}
+            disabled={!canCreateClient}
+            disabledHint={<Trans>Requires {requiredRolesLabel('client.write')} access</Trans>}
+            onAction={() => setCreateClientOpen(true)}
+          />
+        </motion.div>
 
-        <ChoiceCard
-          icon={CalendarPlusIcon}
-          tone="success"
-          title={<Trans>Add a deadline</Trans>}
-          description={
-            <Trans>
-              Add a single rule-backed deadline for a client. DueDateHQ calculates the due date from
-              the rule library.
-            </Trans>
-          }
-          cta={<Trans>Add a deadline</Trans>}
-          disabled={!canCreateDeadline}
-          disabledHint={<Trans>Requires {requiredRolesLabel('client.write')} access</Trans>}
-          onAction={() => setCreateDeadlineOpen(true)}
-        />
-      </div>
+        <motion.div
+          variants={CHOICE_CARD_VARIANTS}
+          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+        >
+          <ChoiceCard
+            icon={CalendarPlusIcon}
+            tone="success"
+            title={<Trans>Add a deadline</Trans>}
+            description={
+              <Trans>
+                Add a single rule-backed deadline for a client. DueDateHQ calculates the due date
+                from the rule library.
+              </Trans>
+            }
+            cta={<Trans>Add a deadline</Trans>}
+            disabled={!canCreateDeadline}
+            disabledHint={<Trans>Requires {requiredRolesLabel('client.write')} access</Trans>}
+            onAction={() => setCreateDeadlineOpen(true)}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Controlled, trigger-less dialogs — the cards drive them programmatically. */}
       <CreateClientDialog
