@@ -2180,7 +2180,19 @@
         background-size: 18px 18px;
       }
       .surfaces__head {
-        max-width: 620px;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: clamp(28px, 5vw, 72px);
+        align-items: start;
+      }
+      .surfaces__head .h2 {
+        max-width: 14ch;
+      }
+      .surfaces__intro {
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.55;
+        max-width: 42ch;
       }
       .surfaces__grid {
         margin-top: clamp(34px, 4vw, 52px);
@@ -2194,18 +2206,176 @@
       }
       .surface__thumb {
         position: relative;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 5 / 4;
         border-radius: 12px;
         border: 1px solid var(--hairline);
-        background:
-          radial-gradient(rgba(46, 54, 140, 0.08) 1px, transparent 1px) 0 0 / 14px 14px,
-          linear-gradient(155deg, #fff, var(--surface));
+        background-color: var(--surface-2);
+        background-image:
+          linear-gradient(rgba(46, 54, 140, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(46, 54, 140, 0.05) 1px, transparent 1px);
+        background-size: 15px 15px;
         overflow: hidden;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 12px;
+        padding: 16px;
+      }
+      /* embedded product mini-UI fragments on the graph-paper card (ref 165139) */
+      .mini {
+        width: 100%;
+        background: #fff;
+        border: 1px solid var(--hairline);
+        border-radius: 10px;
+        padding: 11px 12px;
+        box-shadow: 0 6px 18px -10px rgba(18, 20, 28, 0.22);
+      }
+      .mini__sevrow {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .mini__sev {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #d92d20;
+        background: #fef3f2;
+        padding: 1px 6px;
+        border-radius: 999px;
+      }
+      .mini__juris {
+        font-family: 'Geist Mono', monospace;
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--ink-2);
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+      .mini__title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink);
+        line-height: 1.3;
+      }
+      .mini__change {
+        margin-top: 7px;
+        font-family: 'Geist Mono', monospace;
+        font-size: 11px;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .mini__change s {
+        color: var(--muted);
+      }
+      .mini__delta {
+        font-family: 'Instrument Sans', sans-serif;
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--ok);
+        background: var(--ok-tint);
+        padding: 0 5px;
+        border-radius: 999px;
+      }
+      .mini__affect {
+        margin-top: 8px;
+        padding-top: 7px;
+        border-top: 1px solid var(--hairline-2);
+        font-size: 11px;
+        color: var(--ink);
+      }
+      .mini__affect b {
+        color: var(--accent);
+      }
+      .mini--map {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+        padding: 12px;
+      }
+      .mini__tile {
+        aspect-ratio: 1;
+        border-radius: 4px;
+        background: var(--surface);
+      }
+      .mini__tile.r {
+        background: #fae0db;
+      }
+      .mini__tile.a {
+        background: #fbead4;
+      }
+      .mini__tile.n {
+        background: #dce0f6;
+      }
+      .mini--list {
+        padding: 6px 8px;
+      }
+      .mini__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 2px;
+      }
+      .mini__row + .mini__row {
+        border-top: 1px solid var(--hairline-2);
+      }
+      .mini__bar {
+        width: 4px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--hairline);
+        flex: none;
+      }
+      .mini__bar.hi {
+        background: var(--urgent);
+      }
+      .mini__client {
+        flex: 1;
+        font-size: 11px;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mini__due {
+        font-family: 'Geist Mono', monospace;
+        font-size: 10px;
+        color: var(--muted);
+        flex: none;
+      }
+      .mini__due.late {
+        color: var(--urgent);
+      }
+      .mini--apply {
+        text-align: center;
+      }
+      .mini__applybtn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 8px;
+      }
+      .mini__applybtn svg {
+        width: 12px;
+        height: 12px;
+      }
+      .mini__audit {
+        margin-top: 9px;
+        font-size: 10px;
+        color: var(--muted);
+        font-family: 'Geist Mono', monospace;
       }
       .surface__ico {
         width: 46px;
@@ -2268,6 +2438,10 @@
         gap: 9px;
       }
       @media (max-width: 1000px) {
+        .surfaces__head {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
         .surfaces__grid {
           grid-template-columns: 1fr 1fr;
         }
@@ -4652,31 +4826,31 @@
       <section class="surfaces section" aria-labelledby="surfaces-h">
         <div class="wrap">
           <div class="surfaces__head reveal">
-            <p class="eyebrow">The product</p>
-            <h2 class="h2" id="surfaces-h" style="margin-top: 14px">
-              Everything in one workbench.
-            </h2>
-            <p class="lead" style="margin-top: 16px">
+            <div>
+              <p class="eyebrow">The product</p>
+              <h2 class="h2" id="surfaces-h" style="margin-top: 14px">
+                Everything in one workbench.
+              </h2>
+            </div>
+            <p class="surfaces__intro">
               From the first alert to the applied change — four surfaces, one calm place to work.
             </p>
           </div>
           <div class="surfaces__grid reveal-group">
             <article class="surface">
               <div class="surface__thumb">
-                <span class="surface__tag">placeholder</span
-                ><span class="surface__ico"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg></span
-                ><span class="surface__phlabel">Alerts preview</span>
+                <div class="mini">
+                  <div class="mini__sevrow">
+                    <span class="mini__sev">Urgent</span>
+                    <span class="mini__juris">FED</span>
+                  </div>
+                  <p class="mini__title">IRS postpones filing deadlines</p>
+                  <div class="mini__change">
+                    <s>Apr 15</s> → <b>Nov 3</b>
+                    <span class="mini__delta">+202d</span>
+                  </div>
+                  <p class="mini__affect">Affects <b>8 clients</b></p>
+                </div>
               </div>
               <h3 class="surface__t">Alerts</h3>
               <p class="surface__d">
@@ -4686,20 +4860,20 @@
             </article>
             <article class="surface">
               <div class="surface__thumb">
-                <span class="surface__tag">placeholder</span
-                ><span class="surface__ico"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m9 5-6 2.5v13l6-2.5 6 2.5 6-2.5v-13L15 7 9 5z" />
-                    <path d="M9 5v13M15 7v13" /></svg></span
-                ><span class="surface__phlabel">Coverage map</span>
+                <div class="mini mini--map" aria-hidden="true">
+                  <span class="mini__tile"></span><span class="mini__tile"></span
+                  ><span class="mini__tile n"></span><span class="mini__tile"></span
+                  ><span class="mini__tile r"></span><span class="mini__tile"></span
+                  ><span class="mini__tile"></span><span class="mini__tile a"></span
+                  ><span class="mini__tile"></span><span class="mini__tile"></span
+                  ><span class="mini__tile"></span><span class="mini__tile n"></span
+                  ><span class="mini__tile r"></span><span class="mini__tile"></span
+                  ><span class="mini__tile"></span><span class="mini__tile a"></span
+                  ><span class="mini__tile"></span><span class="mini__tile"></span
+                  ><span class="mini__tile"></span><span class="mini__tile"></span
+                  ><span class="mini__tile r"></span><span class="mini__tile"></span
+                  ><span class="mini__tile"></span><span class="mini__tile"></span>
+                </div>
               </div>
               <h3 class="surface__t">Coverage</h3>
               <p class="surface__d">
@@ -4709,19 +4883,23 @@
             </article>
             <article class="surface">
               <div class="surface__thumb">
-                <span class="surface__tag">placeholder</span
-                ><span class="surface__ico"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span
-                ><span class="surface__phlabel">Worklist preview</span>
+                <div class="mini mini--list">
+                  <div class="mini__row">
+                    <span class="mini__bar hi"></span>
+                    <span class="mini__client">Hudson &amp; Marsh</span>
+                    <span class="mini__due late">2d late</span>
+                  </div>
+                  <div class="mini__row">
+                    <span class="mini__bar"></span>
+                    <span class="mini__client">Brightway Logistics</span>
+                    <span class="mini__due">in 3d</span>
+                  </div>
+                  <div class="mini__row">
+                    <span class="mini__bar"></span>
+                    <span class="mini__client">Cedar Park Dental</span>
+                    <span class="mini__due">in 9d</span>
+                  </div>
+                </div>
               </div>
               <h3 class="surface__t">Worklist</h3>
               <p class="surface__d">
@@ -4731,20 +4909,22 @@
             </article>
             <article class="surface">
               <div class="surface__thumb">
-                <span class="surface__tag">placeholder</span
-                ><span class="surface__ico"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
+                <div class="mini mini--apply">
+                  <span class="mini__applybtn"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg
+                    >Apply to 8 clients</span
                   >
-                    <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-                    <path d="m9 12 2 2 4-4" /></svg></span
-                ><span class="surface__phlabel">Apply &amp; audit</span>
+                  <p class="mini__audit">sourced · reversible 24h · logged</p>
+                </div>
               </div>
               <h3 class="surface__t">Apply &amp; audit</h3>
               <p class="surface__d">
