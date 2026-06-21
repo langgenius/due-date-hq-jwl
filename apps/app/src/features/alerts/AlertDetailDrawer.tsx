@@ -68,6 +68,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { Kbd } from '@/components/patterns/kbd'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertSourceLink } from './components/AlertSourceLink'
+import { ApplyingPill } from './components/ApplyingPill'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
@@ -2671,6 +2672,10 @@ export function DrawerActions({
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {/* Apply is the product's core one-click moment but the button only went
+            aria-busy with no visible progress — the sweep pill makes "applying
+            across your clients" legible (img-043). Additive; the buttons stay. */}
+        {isMutating ? <ApplyingPill className="mr-1" /> : null}
         {canRequestReview ? (
           <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
             <MessageSquareIcon data-icon="inline-start" />

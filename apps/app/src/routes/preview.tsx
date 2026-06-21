@@ -183,6 +183,7 @@ import { ActiveQueueChip } from '@/features/alerts/components/ActiveQueueChip'
 import { AlertStatusBadge } from '@/features/alerts/components/AlertStatusBadge'
 import { AlertStatusChip } from '@/features/alerts/components/AlertStatusChip'
 import { DecisionActions } from '@/features/alerts/components/DecisionActions'
+import { ApplyingPill } from '@/features/alerts/components/ApplyingPill'
 import { RelatedRuleRow } from '@/features/alerts/components/RelatedRuleRow'
 import { RuleAcceptErrorDialog } from '@/features/rules/rule-detail-drawer'
 import { AlertSourceStatusBadge } from '@/features/alerts/components/AlertSourceStatusBadge'
@@ -2145,6 +2146,9 @@ export function PreviewRoute() {
                   tertiary={{ label: 'Dismiss alert', icon: XIcon }}
                 />
               </div>
+            </Row>
+            <Row label="ApplyingPill" mono="features/alerts/components/ApplyingPill (img-043)">
+              <ApplyingPill />
             </Row>
             <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
               <div className="w-full max-w-[520px]">
