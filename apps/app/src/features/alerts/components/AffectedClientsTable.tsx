@@ -1,9 +1,15 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import {
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+} from 'lucide-react'
 import { useNavigate } from 'react-router'
 
-import type { PulseAffectedClient } from '@duedatehq/contracts'
+import type { ObligationStatus, PulseAffectedClient } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -27,8 +33,38 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDatePretty } from '@/lib/utils'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
+import {
+  LIFECYCLE_V2_STATUSES,
+  LIFECYCLE_V2_STATUS_SETS,
+  StatusMark,
+  STATUS_ICON_COLOR,
+  useLifecycleV2StatusLabels,
+} from '@/features/obligations/status-control'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
+
+// Each affected client carries its obligation's real lifecycle status
+// (PulseAffectedClient.status). When an alert spans clients in different
+// stages — some not-started, some already in review, some filed — a flat
+// table buries that signal; grouping by the v2 lifecycle stage answers
+// "where does the firm stand on this relief?" at a glance (Pencil img-026).
+//
+// Grouping is keyed on the SIX collapsed v2 stages, not the raw 10-value
+// enum, so in_progress / review / extended (all "In review") don't fragment
+// into three headers. This inverse map sends each raw status to its v2
+// stage; it's the exact inverse of LIFECYCLE_V2_STATUS_SETS (same source of
+// truth the queue counts against), so a row's header label always matches
+// the ObligationStatusReadBadge it would wear elsewhere.
+type V2Stage = (typeof LIFECYCLE_V2_STATUSES)[number]
+const RAW_STATUS_TO_V2_STAGE: Record<ObligationStatus, V2Stage> = (() => {
+  const map = {} as Record<ObligationStatus, V2Stage>
+  for (const stage of LIFECYCLE_V2_STATUSES) {
+    for (const raw of LIFECYCLE_V2_STATUS_SETS[stage]) {
+      map[raw] = stage
+    }
+  }
+  return map
+})()
 
 interface AffectedClientsTableProps {
   rows: readonly PulseAffectedClient[]
@@ -125,6 +161,56 @@ export function AffectedClientsTable({
   const visibleRows =
     collapsible && !showAll ? orderedRows.slice(0, VISIBLE_COLLAPSED) : orderedRows
 
+  // Group-by-status only in the 'apply' variant, and only when the rows
+  // actually SPAN more than one v2 stage — a single-status set (the common
+  // case) renders flat, so we never fragment "5 not-started clients" behind
+  // one redundant "Not started · 5" header. The 'review' variant is a clean
+  // informational list with no status column, so it stays ungrouped.
+  const distinctStages = useMemo(() => {
+    const stages = new Set<V2Stage>()
+    for (const row of rows) stages.add(RAW_STATUS_TO_V2_STAGE[row.status])
+    return stages
+  }, [rows])
+  const grouped = !isReview && distinctStages.size > 1
+  // Partition the VISIBLE window (post-collapse slice) into ordered groups.
+  // Iterating LIFECYCLE_V2_STATUSES gives the lifecycle reading order
+  // (Not started → Waiting → Blocked → In review → Filed → Completed); the
+  // filter preserves each row's position in orderedRows, so the
+  // needs_review-first sort survives inside every group. Empty groups (no
+  // visible rows after the collapse slice) are dropped so the fold stays
+  // honest about what's shown.
+  const groups = useMemo(() => {
+    if (!grouped) return []
+    return LIFECYCLE_V2_STATUSES.map((stage) => ({
+      stage,
+      // Full-set count for the header — the collapse may hide some rows of a
+      // stage, but the header still tells the truth about the whole alert.
+      total: rows.reduce(
+        (acc, row) => (RAW_STATUS_TO_V2_STAGE[row.status] === stage ? acc + 1 : acc),
+        0,
+      ),
+      visible: visibleRows.filter((row) => RAW_STATUS_TO_V2_STAGE[row.status] === stage),
+    })).filter((group) => group.visible.length > 0)
+  }, [grouped, rows, visibleRows])
+
+  // Per-group collapse. Default: every group expanded. Tracks the COLLAPSED
+  // set so a fresh alert (groups change) starts fully expanded without a
+  // reset effect. Collapsing a group only hides its rows visually — it never
+  // touches selection, so select-all still operates on every row.
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<V2Stage>>(new Set())
+  const toggleGroup = (stage: V2Stage) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(stage)) next.delete(stage)
+      else next.add(stage)
+      return next
+    })
+  }
+  const v2Labels = useLifecycleV2StatusLabels()
+  // Body column count for the group-header band's colSpan: select + Client +
+  // Entity + Location + Current→New + Match = 6 in the apply variant.
+  const bodyColSpan = 6
+
   const handleToggleAll = (checked: boolean) => {
     onChangeSelection(setAllSelection(rows, checked, confirmedReviewIds))
   }
@@ -190,164 +276,215 @@ export function AffectedClientsTable({
             </TableRow>
           </TableHeader>
           <TableBody className="[&_td]:py-2 [&_td]:text-sm">
-            {visibleRows.map((row) => {
-              const checked = selection.has(row.obligationId)
-              const reviewConfirmed = confirmedReviewIds.has(row.obligationId)
-              const excluded = excludedIds.has(row.obligationId)
-              const selectable = isSelectable(row, confirmedReviewIds) && !readOnly
-              return (
-                <TableRow
-                  key={row.obligationId}
-                  data-status={row.matchStatus}
-                  // Clicking anywhere on the row TOGGLES the checkbox
-                  // (the dominant action: select clients to apply).
-                  // Navigation to the deadline detail happens via the
-                  // hover-revealed arrow button on the right edge of the
-                  // row. The 'review' variant has no select/apply columns,
-                  // so there a row click navigates straight to the deadline
-                  // detail instead of toggling selection.
-                  onClick={() =>
-                    isReview
-                      ? void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
-                      : handleToggleRow(row)
-                  }
-                  className={cn(
-                    'group/affected-row',
-                    isReview || (selectable && !excluded)
-                      ? 'cursor-pointer'
-                      : 'cursor-default opacity-80',
-                  )}
-                >
-                  {isReview ? null : (
-                    <TableCell>
-                      <Checkbox
-                        aria-label={t`Select ${row.clientName}`}
-                        checked={checked}
-                        disabled={!selectable || excluded}
-                        // No onCheckedChange here — the row click owns
-                        // the toggle now. Checkbox is presentational +
-                        // accessible (still announces state via the
-                        // checked attr; the row's onClick is the
-                        // toggle handler).
-                        onCheckedChange={() => handleToggleRow(row)}
-                        onClick={(event) => event.stopPropagation()}
-                      />
-                    </TableCell>
-                  )}
-                  {/* Client name only — the state code moved to its own
+            {(() => {
+              const renderRow = (row: PulseAffectedClient) => {
+                const checked = selection.has(row.obligationId)
+                const reviewConfirmed = confirmedReviewIds.has(row.obligationId)
+                const excluded = excludedIds.has(row.obligationId)
+                const selectable = isSelectable(row, confirmedReviewIds) && !readOnly
+                return (
+                  <TableRow
+                    key={row.obligationId}
+                    data-status={row.matchStatus}
+                    // Clicking anywhere on the row TOGGLES the checkbox
+                    // (the dominant action: select clients to apply).
+                    // Navigation to the deadline detail happens via the
+                    // hover-revealed arrow button on the right edge of the
+                    // row. The 'review' variant has no select/apply columns,
+                    // so there a row click navigates straight to the deadline
+                    // detail instead of toggling selection.
+                    onClick={() =>
+                      isReview
+                        ? void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
+                        : handleToggleRow(row)
+                    }
+                    className={cn(
+                      'group/affected-row',
+                      isReview || (selectable && !excluded)
+                        ? 'cursor-pointer'
+                        : 'cursor-default opacity-80',
+                    )}
+                  >
+                    {isReview ? null : (
+                      <TableCell>
+                        <Checkbox
+                          aria-label={t`Select ${row.clientName}`}
+                          checked={checked}
+                          disabled={!selectable || excluded}
+                          // No onCheckedChange here — the row click owns
+                          // the toggle now. Checkbox is presentational +
+                          // accessible (still announces state via the
+                          // checked attr; the row's onClick is the
+                          // toggle handler).
+                          onCheckedChange={() => handleToggleRow(row)}
+                          onClick={(event) => event.stopPropagation()}
+                        />
+                      </TableCell>
+                    )}
+                    {/* Client name only — the state code moved to its own
                       Location column (Pencil KwfpP), so the name reads clean at
                       the obligations-queue size/weight. */}
-                  <TableCell className="min-w-0 whitespace-normal">
-                    <span className="break-words text-sm font-medium leading-tight text-text-primary">
-                      {row.clientName}
-                    </span>
-                  </TableCell>
-                  {/* ENTITY — humanized entity type (Sole prop / LLC / …). */}
-                  <TableCell className="whitespace-nowrap text-text-secondary">
-                    {ENTITY_LABEL[row.entityType]}
-                  </TableCell>
-                  {/* LOCATION — state · county. */}
-                  <TableCell className="whitespace-nowrap text-text-secondary">
-                    {formatLocation(row)}
-                  </TableCell>
-                  {/* CURRENT → NEW — one column: struck-through current date, an
-                      arrow, then the live new date. */}
-                  {isReview ? null : (
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap leading-tight">
-                        <span className="text-xs text-text-tertiary tabular-nums line-through">
-                          {formatDatePretty(row.currentDueDate)}
-                        </span>
-                        <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-                        <span className="text-xs font-medium text-text-primary tabular-nums">
-                          {row.newDueDate ? (
-                            formatDatePretty(row.newDueDate)
-                          ) : (
-                            <Trans>Not yet set</Trans>
-                          )}
-                        </span>
+                    <TableCell className="min-w-0 whitespace-normal">
+                      <span className="break-words text-sm font-medium leading-tight text-text-primary">
+                        {row.clientName}
                       </span>
                     </TableCell>
-                  )}
-                  {isReview ? null : (
-                    <TableCell className="relative">
-                      {/* The hover-arrow is an actual button — click
+                    {/* ENTITY — humanized entity type (Sole prop / LLC / …). */}
+                    <TableCell className="whitespace-nowrap text-text-secondary">
+                      {ENTITY_LABEL[row.entityType]}
+                    </TableCell>
+                    {/* LOCATION — state · county. */}
+                    <TableCell className="whitespace-nowrap text-text-secondary">
+                      {formatLocation(row)}
+                    </TableCell>
+                    {/* CURRENT → NEW — one column: struck-through current date, an
+                      arrow, then the live new date. */}
+                    {isReview ? null : (
+                      <TableCell>
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap leading-tight">
+                          <span className="text-xs text-text-tertiary tabular-nums line-through">
+                            {formatDatePretty(row.currentDueDate)}
+                          </span>
+                          <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+                          <span className="text-xs font-medium text-text-primary tabular-nums">
+                            {row.newDueDate ? (
+                              formatDatePretty(row.newDueDate)
+                            ) : (
+                              <Trans>Not yet set</Trans>
+                            )}
+                          </span>
+                        </span>
+                      </TableCell>
+                    )}
+                    {isReview ? null : (
+                      <TableCell className="relative">
+                        {/* The hover-arrow is an actual button — click
                         navigates to the deadline detail. The row click
                         toggles the checkbox (dominant action); the arrow
                         handles the secondary "open deadline detail" path.
                         Surfaces on row hover via group/affected-row. */}
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
-                        }}
-                        aria-label={t`Open ${row.clientName} in deadlines`}
-                        className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
-                      >
-                        <ArrowUpRightIcon className="size-3.5" aria-hidden />
-                      </button>
-                      <div className="flex flex-col items-start gap-1.5">
-                        <MatchStatusBadge row={row} />
-                        {/* Confirm-applies is a real outline button with
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
+                          }}
+                          aria-label={t`Open ${row.clientName} in deadlines`}
+                          className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
+                        >
+                          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                        </button>
+                        <div className="flex flex-col items-start gap-1.5">
+                          <MatchStatusBadge row={row} />
+                          {/* Confirm-applies is a real outline button with
                             an explicit frame so it reads as a decisive
                             action on a row the AI flagged as needing human
                             review. Confirm / Unconfirm use the canonical
                             Button primitive (accent + secondary, size=xs). */}
-                        {row.matchStatus === 'needs_review' ? (
-                          reviewConfirmed ? (
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="xs"
-                              disabled={readOnly || excluded}
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                onToggleNeedsReviewConfirmation(row.obligationId, false)
-                              }}
-                              aria-label={t`Unconfirm ${row.clientName}`}
+                          {row.matchStatus === 'needs_review' ? (
+                            reviewConfirmed ? (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="xs"
+                                disabled={readOnly || excluded}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  onToggleNeedsReviewConfirmation(row.obligationId, false)
+                                }}
+                                aria-label={t`Unconfirm ${row.clientName}`}
+                              >
+                                <Trans>Unconfirm</Trans>
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="accent"
+                                size="xs"
+                                disabled={readOnly || excluded}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  setConfirmTarget(row)
+                                }}
+                                aria-label={t`Confirm ${row.clientName} applies to this relief`}
+                              >
+                                <Trans>Confirm</Trans>
+                              </Button>
+                            )
+                          ) : null}
+                          {onToggleExcluded &&
+                          (row.matchStatus === 'eligible' || row.matchStatus === 'needs_review') ? (
+                            <label
+                              onClick={(event) => event.stopPropagation()}
+                              className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
                             >
-                              <Trans>Unconfirm</Trans>
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              variant="accent"
-                              size="xs"
-                              disabled={readOnly || excluded}
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                setConfirmTarget(row)
-                              }}
-                              aria-label={t`Confirm ${row.clientName} applies to this relief`}
-                            >
-                              <Trans>Confirm</Trans>
-                            </Button>
-                          )
-                        ) : null}
-                        {onToggleExcluded &&
-                        (row.matchStatus === 'eligible' || row.matchStatus === 'needs_review') ? (
-                          <label
-                            onClick={(event) => event.stopPropagation()}
-                            className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
-                          >
-                            <Checkbox
-                              aria-label={t`Exclude ${row.clientName} from manager review`}
-                              checked={excluded}
-                              disabled={readOnly}
-                              onCheckedChange={(value) => onToggleExcluded(row.obligationId, value)}
+                              <Checkbox
+                                aria-label={t`Exclude ${row.clientName} from manager review`}
+                                checked={excluded}
+                                disabled={readOnly}
+                                onCheckedChange={(value) =>
+                                  onToggleExcluded(row.obligationId, value)
+                                }
+                              />
+                              <span>
+                                <Trans>Exclude</Trans>
+                              </span>
+                            </label>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              }
+
+              // Flat list when not grouping (single-status set, or the
+              // 'review' variant). Same render as before grouping landed.
+              if (!grouped) return visibleRows.map(renderRow)
+
+              // Grouped: a collapsible band header per v2 stage, then its
+              // rows. The header is a real button (Fitts-friendly full-width
+              // hit area) toggling only that group's visibility — selection
+              // is untouched, so select-all still spans every row.
+              return groups.map(({ stage, total, visible }) => {
+                const isCollapsed = collapsedGroups.has(stage)
+                return (
+                  <Fragment key={stage}>
+                    <TableRow className="cursor-default even:bg-transparent hover:!bg-background-subtle">
+                      <TableCell colSpan={bodyColSpan} className="bg-background-subtle p-0">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(stage)}
+                          aria-expanded={!isCollapsed}
+                          className="flex w-full cursor-pointer items-center gap-2 px-[18px] py-1.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+                        >
+                          {isCollapsed ? (
+                            <ChevronRightIcon
+                              className="size-3.5 shrink-0 text-text-tertiary"
+                              aria-hidden
                             />
-                            <span>
-                              <Trans>Exclude</Trans>
-                            </span>
-                          </label>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              )
-            })}
+                          ) : (
+                            <ChevronDownIcon
+                              className="size-3.5 shrink-0 text-text-tertiary"
+                              aria-hidden
+                            />
+                          )}
+                          <StatusMark
+                            status={stage}
+                            className={cn('shrink-0', STATUS_ICON_COLOR[stage])}
+                          />
+                          <span className="text-sm font-medium text-text-primary">
+                            {v2Labels[stage]}
+                          </span>
+                          <span className="text-sm text-text-tertiary tabular-nums">{total}</span>
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                    {isCollapsed ? null : visible.map(renderRow)}
+                  </Fragment>
+                )
+              })
+            })()}
           </TableBody>
         </Table>
         {/* Expander footer — only when there's something folded. A quiet
