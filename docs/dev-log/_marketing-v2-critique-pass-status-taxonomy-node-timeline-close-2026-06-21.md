@@ -37,3 +37,16 @@ The glass-box stat triplet read `100% · 0 · Audited` — a word masquerading a
 
 - **Notice beam — dark callout bubbles (ref 166001).** Replaced the busy stacked-caps `Reads · Classifies · Matches` run-on with three small near-black (`--ink`) **callout-bubble pills** strung on the beam's dashed line — the engine's three steps read as discrete callouts on the pipeline (white-on-dark, depth without the caps clutter). Goes horizontal on mobile.
 - **Data-consistency fix.** The worklist **mini** led with "Hudson & Marsh" while the full table's #1 is "Hill Country Partners" — same list, different top client. Aligned the mini to the table (`Hill Country Partners`, Blocked, 2d late); the mini's three rows now mirror the table's top three exactly.
+- **Coverage piano-key bar (ref 140156).** Added a **segmented progress bar** to the Sources section — 16 filled navy keys + a mono `52 / 52 jurisdictions watched` count — between the header and the source chips. Quantifies *completeness* (a distinct message from the activity map below it). Honest: FED + 50 states + DC = 52, all watched, so the bar is full.
+
+## "Work through all" — final accounting of the priority quick-win list
+
+Closing the loop on `design-direction-inspiration-map.md` §"Priority quick-wins" so nothing is silently dropped:
+
+- **Shipped this session:** status/risk chip system (#2, canonical 6-state), dark callout bubbles (#3), node-timeline connector for Watch→Match→Apply (#7), receipt-scallop on the close (#8), segmented piano-key coverage bar (#6).
+- **Already present before this pass:** Geist Mono on all data + navy focus-visible ring (#1, `outline: 2px var(--accent)`), faint dotted-grid behind the surfaces panel (#4), old→new value pill + delta badge in alerts/extract (#5).
+- **Deliberately skipped (with reason):**
+  - *Sticky scroll-spy rail* for the 4-card surfaces grid (#8) — overkill for four cards in a single row; nothing to spy-scroll.
+  - *Dark inverted pill for the most-urgent worklist row* (#2 variant) — row 1 already carries a red `Blocked` chip + amber `2d late`; a third emphasis would double-highlight (violates "one emphasis per row").
+  - *Callout bubbles **with tails** in the extract cards* (#3 fuller spec) — the beam already delivers the callout concept; adding tail-bubbles in the adjacent extract would over-decorate an already-rich section.
+  - *Extra diagonal-grain texture* (#4 variant) — the dotted-grid already supplies depth; more texture risks over-patterning.

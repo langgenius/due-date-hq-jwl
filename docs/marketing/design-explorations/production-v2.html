@@ -1574,6 +1574,43 @@
         font-size: 13px;
         color: var(--muted);
       }
+      /* coverage completeness — segmented piano-key bar (ref 140156) */
+      .cov {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+      .cov__bar {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        gap: 3px;
+      }
+      .cov__seg {
+        flex: 1;
+        height: 12px;
+        border-radius: 3px;
+        background: var(--accent);
+      }
+      .cov__meta {
+        flex: none;
+        font-family: 'Geist Mono', monospace;
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .cov__meta b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      @media (max-width: 560px) {
+        .cov {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+      }
       .sources__grid {
         display: grid;
         grid-template-columns: 1fr 0.92fr;
@@ -4420,6 +4457,19 @@
               clock</span
             >
             <span class="sources__note">FED + 50 states + DC — CA, NY, TX, FL, WA deepest.</span>
+          </div>
+          <div class="cov reveal">
+            <span class="cov__bar" aria-hidden="true">
+              <span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span
+              ><span class="cov__seg"></span><span class="cov__seg"></span>
+            </span>
+            <span class="cov__meta"><b>52</b> / 52 jurisdictions watched</span>
           </div>
           <ul class="sources__list reveal-group">
             <li class="source-chip"><span class="glyph g-irs" aria-hidden="true">IRS</span>IRS</li>
