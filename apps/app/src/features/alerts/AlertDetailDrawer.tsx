@@ -58,7 +58,6 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -552,12 +551,88 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
 }
 
 /**
- * The colored top-of-panel status banner — amber "Pending your review",
- * red "Couldn't apply", green "Applied · undo". Exactly one renders,
- * picked from the real alert state. Right-side meta (confidence, due-in,
- * confirmed-by-N-sources) is wired to real fields; "rank #X of Y" + exact
- * undo countdown + audit-ref strings are omitted rather than fabricated.
+ * img-067 — single-line apply-gate diagnostic. Sits directly above the Apply
+ * button in the decision footer and answers "why can't I apply yet" in ONE
+ * line, instead of the old verbose low-confidence Alert (a title + two-bullet
+ * checklist) and the silent not-ready gate (which rendered nothing at all).
+ *
+ * Demote-don't-delete: the decision info is preserved (what's missing / what to
+ * verify), just compressed to a single reason + a "Review source" jump. The
+ * Apply button itself owns the disabled state and its own micro-copy; this bar
+ * only explains the gate. One purpose: diagnosis, not action.
+ *
+ * The reason is derived from real backend fields only — `applyReadiness.missing`
+ * (PulseApplyReadinessMissing enum) and `alert.confidence` (low-confidence
+ * gate). Nothing fabricated.
+ *
+ * The reason is computed inline with the macro-bound `t` (not a passed-in
+ * helper): the lingui `t` macro only extracts template strings when `t` comes
+ * straight from `useLingui()` in the component body — a `t` parameter is
+ * invisible to the extractor (the i18n footgun in MEMORY).
  */
+function ApplyGateDiagnostic({
+  detail,
+  onReviewSource,
+}: {
+  detail: PulseDetail
+  onReviewSource: () => void
+}) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  // Only relevant while the alert is still awaiting a decision (the primary
+  // footer button is live). Applied / dismissed / reverted / reviewed alerts
+  // are past the gate. `no_current_match` alerts keep the bar too — there the
+  // primary action is "Mark reviewed" and the low-confidence verify cue still
+  // applies (the verbose banner that used to carry it was removed).
+  if (alert.status !== 'matched') {
+    return null
+  }
+
+  let reason: string | null = null
+  const readiness = detail.applyReadiness
+  if (readiness.status === 'needs_details') {
+    // Name the first missing piece — the footer button's count/label already
+    // carries the secondary "select deadlines" nudge, so the bar leads with the
+    // structural blocker the CPA has to resolve before the apply is honest.
+    const missing = readiness.missing
+    if (missing.includes('affected_clients')) {
+      reason = t`Confirm at least one affected client before applying.`
+    } else if (missing.includes('original_due_date') || missing.includes('new_due_date')) {
+      reason = t`Confirm the original and new due dates before applying.`
+    } else if (missing.includes('forms')) {
+      reason = t`Set the affected forms before applying.`
+    } else if (missing.includes('entity_types')) {
+      reason = t`Set the affected entity types before applying.`
+    } else {
+      // needs_details with no enumerated field — generic but honest.
+      reason = t`Some required details are missing — confirm them before applying.`
+    }
+  } else if (isLowAiConfidence(alert.confidence)) {
+    // No blocking detail gap, but the model was unsure: a quiet verify-first
+    // nudge replaces the old multi-line low-confidence banner. The wording
+    // matches the action that follows (mark-reviewed vs. apply-to-clients).
+    reason =
+      alert.firmImpact === 'no_current_match'
+        ? t`Low AI confidence — verify the parsed fields against the source before marking reviewed.`
+        : t`Low AI confidence — verify the parsed fields against the source before applying.`
+  }
+
+  if (reason === null) {
+    return null
+  }
+  return (
+    <div className="flex w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-background-subtle px-3 py-2">
+      <span className="flex min-w-0 items-center gap-2 text-sm text-text-secondary">
+        <TriangleAlertIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+        <span className="min-w-0 truncate">{reason}</span>
+      </span>
+      <TextLink variant="accent" size="sm" onClick={onReviewSource} className="shrink-0">
+        <Trans>Review source</Trans>
+      </TextLink>
+    </div>
+  )
+}
+
 function DecisionBanners({
   detail,
   applyError,
@@ -1895,47 +1970,12 @@ export function AlertDetailDrawer({
                 </Alert>
               ) : null}
 
-              {/* LOW-CONFIDENCE banner (Pencil gsl8K) — when the model is unsure
-                  (<50%), the "double-check this" cue is hoisted to the TOP of the
-                  body (it used to sit buried inside the Source section) so it is
-                  the first thing the CPA reads, with a concrete verify checklist
-                  instead of one prose sentence. Warning tone; the source excerpt
-                  + structured scope it points at live in the Change / Source
-                  sections below. */}
-              {isLowAiConfidence(detail.alert.confidence) ? (
-                <Alert variant="warning">
-                  <TriangleAlertIcon />
-                  <AlertTitle>
-                    <ConceptLabel concept="aiConfidence">
-                      <Trans>
-                        Low AI confidence ({Math.round(detail.alert.confidence * 100)}%) — verify
-                        before you act
-                      </Trans>
-                    </ConceptLabel>
-                  </AlertTitle>
-                  <AlertDescription>
-                    {detail.alert.firmImpact === 'no_current_match' ? (
-                      <Trans>
-                        The model extracted these fields with low confidence. Before marking this
-                        reviewed, confirm:
-                      </Trans>
-                    ) : (
-                      <Trans>
-                        The model extracted these fields with low confidence. Before pushing changes
-                        to clients, confirm:
-                      </Trans>
-                    )}
-                    <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4">
-                      <li>
-                        <Trans>the parsed fields match the source excerpt below</Trans>
-                      </li>
-                      <li>
-                        <Trans>the structured scope is right for your clients</Trans>
-                      </li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+              {/* img-067: the verbose low-confidence Alert (title + two-bullet
+                  verify checklist) that used to sit at the top of the body has
+                  been demoted into the single-line ApplyGateDiagnostic bar above
+                  the decision button (see the footer). The "verify before you
+                  act" cue now lands exactly where the act happens, in one line,
+                  rather than as a multi-line banner the CPA scrolls past. */}
 
               {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
@@ -2345,11 +2385,11 @@ export function AlertDetailDrawer({
           {detail ? (
             <div
               className={cn(
-                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-row items-center gap-6 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
                 decisionDocked ? 'border-transparent' : 'border-divider-subtle',
               )}
               // Float elevation as an inline style — an arbitrary
-              // `shadow-[…rgba(),…]` class gets dropped by tailwind-merge in cn()
+              // `shadow-[…rgba(…),…]` class gets dropped by tailwind-merge in cn()
               // (commas/parens), so the lift never rendered. Only while floating.
               style={
                 decisionDocked
@@ -2357,51 +2397,66 @@ export function AlertDetailDrawer({
                   : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
               }
             >
-              {detail ? (
-                // Critique #7 (standing signals aren't events): the reassurance
-                // line reads tertiary with only the shield icon in green — a
-                // permanently green sentence claimed success-event semantics.
-                <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
-                  <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
-                  <Trans>Every decision captured to audit ledger</Trans>
-                </span>
-              ) : null}
-              <div className="flex min-w-0 flex-1">
+              {/* img-067 — single-line apply-gate diagnostic, directly above the
+                  decision button. Explains the gate in one line ("why can't I
+                  apply yet") + jumps to the Source section to verify. */}
+              <ApplyGateDiagnostic
+                detail={detail}
+                onReviewSource={() =>
+                  document
+                    .getElementById('alert-section-source')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              />
+              <div className="flex flex-row items-center gap-6">
                 {detail ? (
-                  <DrawerActions
-                    alertStatus={detail.alert.status}
-                    sourceStatus={detail.alert.sourceStatus}
-                    selectionCount={stats?.selectedCount ?? 0}
-                    actionMode={detail.alert.actionMode}
-                    firmImpact={detail.alert.firmImpact}
-                    requiresDeadlineDetails={missingDeadlineDetails}
-                    appliedAt={detail.alert.appliedAt}
-                    canApply={canApply}
-                    // ROH-D15 — Undo button now gates on `pulse.revert` instead
-                    // of the `pulse.apply` proxy.
-                    canRevert={permissions.canRevert}
-                    canRequestReview={canRequestAlertReview({
-                      role: permissions.role,
-                      alertStatus: detail.alert.status,
-                      sourceStatus: detail.alert.sourceStatus,
-                    })}
-                    canApplyReviewed={permissions.canManagePriorityReview}
-                    canDismiss={canDismiss}
-                    reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-                    reverifyIncomplete={reverifyIncomplete}
-                    isMutating={isMutating}
-                    onApply={handleApply}
-                    onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-                    onApplyReviewed={() =>
-                      applyReviewedMutation.mutate({ alertId: detail.alert.id })
-                    }
-                    onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-                    onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-                    onRequestReview={() => setReviewDialogOpen(true)}
-                    onCopyDraft={handleCopyDraft}
-                    onDismiss={handleDismiss}
-                  />
+                  // Critique #7 (standing signals aren't events): the reassurance
+                  // line reads tertiary with only the shield icon in green — a
+                  // permanently green sentence claimed success-event semantics.
+                  <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
+                    <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
+                    <Trans>Every decision captured to audit ledger</Trans>
+                  </span>
                 ) : null}
+                <div className="flex min-w-0 flex-1">
+                  {detail ? (
+                    <DrawerActions
+                      alertStatus={detail.alert.status}
+                      sourceStatus={detail.alert.sourceStatus}
+                      selectionCount={stats?.selectedCount ?? 0}
+                      actionMode={detail.alert.actionMode}
+                      firmImpact={detail.alert.firmImpact}
+                      requiresDeadlineDetails={missingDeadlineDetails}
+                      appliedAt={detail.alert.appliedAt}
+                      canApply={canApply}
+                      // ROH-D15 — Undo button now gates on `pulse.revert` instead
+                      // of the `pulse.apply` proxy.
+                      canRevert={permissions.canRevert}
+                      canRequestReview={canRequestAlertReview({
+                        role: permissions.role,
+                        alertStatus: detail.alert.status,
+                        sourceStatus: detail.alert.sourceStatus,
+                      })}
+                      canApplyReviewed={permissions.canManagePriorityReview}
+                      canDismiss={canDismiss}
+                      reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+                      reverifyIncomplete={reverifyIncomplete}
+                      isMutating={isMutating}
+                      onApply={handleApply}
+                      onMarkReviewed={() =>
+                        markReviewedMutation.mutate({ alertId: detail.alert.id })
+                      }
+                      onApplyReviewed={() =>
+                        applyReviewedMutation.mutate({ alertId: detail.alert.id })
+                      }
+                      onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+                      onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+                      onRequestReview={() => setReviewDialogOpen(true)}
+                      onCopyDraft={handleCopyDraft}
+                      onDismiss={handleDismiss}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}

@@ -4350,6 +4350,10 @@ msgstr "Confirm all review-needed"
 msgid "Confirm applies"
 msgstr "Confirm applies"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Confirm at least one affected client before applying."
+msgstr "Confirm at least one affected client before applying."
+
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Confirm authority accepted"
 msgstr "Confirm authority accepted"
@@ -4401,6 +4405,10 @@ msgstr "Confirm the due date and select deadlines above before applying."
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "Confirm the due date and select deadlines to apply."
 msgstr "Confirm the due date and select deadlines to apply."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Confirm the original and new due dates before applying."
+msgstr "Confirm the original and new due dates before applying."
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Confirm the payment cleared (offline)"
@@ -8688,10 +8696,13 @@ msgstr "Lost your authenticator?"
 msgid "Low"
 msgstr "Low"
 
-#. placeholder {0}: Math.round(detail.alert.confidence * 100)
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Low AI confidence ({0}%) — verify before you act"
-msgstr "Low AI confidence ({0}%) — verify before you act"
+msgid "Low AI confidence — verify the parsed fields against the source before applying."
+msgstr "Low AI confidence — verify the parsed fields against the source before applying."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Low AI confidence — verify the parsed fields against the source before marking reviewed."
+msgstr "Low AI confidence — verify the parsed fields against the source before marking reviewed."
 
 #: src/components/primitives/low-confidence-badge.tsx
 #: src/features/alerts/components/AlertListRail.tsx
@@ -12904,6 +12915,10 @@ msgstr "Review sign-off and client assignments"
 msgid "Review sign-off authority"
 msgstr "Review sign-off authority"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Review source"
+msgstr "Review source"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
 msgstr "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
@@ -13943,6 +13958,14 @@ msgstr "Session revoked"
 msgid "Set status"
 msgstr "Set status"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Set the affected entity types before applying."
+msgstr "Set the affected entity types before applying."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Set the affected forms before applying."
+msgstr "Set the affected forms before applying."
+
 #. placeholder {0}: after.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Set to {0}"
@@ -14288,6 +14311,10 @@ msgstr "Solo, Pro, and Team each apply to one active practice. Enterprise covers
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
 msgstr "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Some required details are missing — confirm them before applying."
+msgstr "Some required details are missing — confirm them before applying."
 
 #: src/routes/rules.library.tsx
 msgid "Some sources need attention"
@@ -15126,14 +15153,6 @@ msgstr "The late-filing count where history reaches its maximum Smart Priority c
 msgid "The matched active practice rule and period, or the reason this row is duplicate or skipped."
 msgstr "The matched active practice rule and period, or the reason this row is duplicate or skipped."
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The model extracted these fields with low confidence. Before marking this reviewed, confirm:"
-msgstr "The model extracted these fields with low confidence. Before marking this reviewed, confirm:"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The model extracted these fields with low confidence. Before pushing changes to clients, confirm:"
-msgstr "The model extracted these fields with low confidence. Before pushing changes to clients, confirm:"
-
 #. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
 #: src/routes/rules.library.tsx
 msgid "The most recent rule or source change was {0}."
@@ -15158,10 +15177,6 @@ msgstr "The operating surface for deadline work: filter, sort, assign owners, up
 #: src/routes/not-found.tsx
 msgid "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 msgstr "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "the parsed fields match the source excerpt below"
-msgstr "the parsed fields match the source excerpt below"
 
 #: src/routes/billing.tsx
 msgid "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
@@ -15226,10 +15241,6 @@ msgstr "The status assigned if this row is generated: pending for reminder-ready
 #: src/features/concepts/concept-help.tsx
 msgid "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
 msgstr "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "the structured scope is right for your clients"
-msgstr "the structured scope is right for your clients"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
