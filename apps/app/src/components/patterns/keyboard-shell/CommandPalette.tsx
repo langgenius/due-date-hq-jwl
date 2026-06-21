@@ -1,6 +1,7 @@
 import { type ReactNode, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
+import { motion } from 'motion/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
@@ -38,6 +39,7 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -441,7 +443,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
         <CommandList>
           <CommandEmpty>
-            <Trans>No results found.</Trans>
+            {/* Only the empty branch fades in — the results list re-renders per
+                keystroke and must stay instant. */}
+            <motion.div {...fadeMotion}>
+              <Trans>No results found.</Trans>
+            </motion.div>
           </CommandEmpty>
 
           {clientResults.length > 0 ? (

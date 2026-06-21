@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'motion/react'
 import { Loader2Icon } from 'lucide-react'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -48,6 +49,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 import { canContinueNormalization } from './continue-rules'
@@ -123,6 +125,16 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
   }, [open, variant])
   // Guards one-time HYDRATE per resumed batch so user edits aren't clobbered.
   const hydratedBatchIdRef = useRef<string | null>(null)
+
+  // Track the previous step so the panel transition can pick a direction:
+  // forward (step increased) enters from the right (x:12→0), back from the
+  // left (x:-12→0). Defaults to forward on first mount. Updated after each
+  // render so the next transition reads the prior step.
+  const prevStepRef = useRef<StepIndex>(state.step)
+  const stepForward = state.step >= prevStepRef.current
+  useEffect(() => {
+    prevStepRef.current = state.step
+  }, [state.step])
 
   const invalidateMigration = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: orpc.migration.key() })
@@ -746,55 +758,71 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
           </Alert>
         ) : null}
 
-        {state.step === 1 ? (
-          <Step1Intake
-            density={variant === 'route' ? 'compact' : 'comfortable'}
-            intake={state.intake}
-            onText={(text, fileName, options) =>
-              dispatch({ type: 'INTAKE_TEXT', text, fileName, ...options })
-            }
-            onPreset={(preset, source) =>
-              dispatch({
-                type: 'INTAKE_PRESET',
-                preset,
-                ...(source ? { source } : {}),
-              })
-            }
-            onParsed={(args) => dispatch({ type: 'INTAKE_PARSED', ...args })}
-            onParseError={(error) => dispatch({ type: 'INTAKE_PARSE_ERROR', error })}
-          />
-        ) : null}
+        {/* Directional step panels: the active step animates in keyed on
+            state.step. Forward (step increased) enters from x:12→0, back from
+            x:-12→0 — `contentEnterMotion` grammar with the sign flipped by
+            direction. `mode="wait"` lets the outgoing panel finish its quick
+            fade before the next mounts. Reduced-motion is handled globally by
+            the root <MotionConfig reducedMotion="user">. */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={state.step}
+            initial={{ x: stepForward ? 12 : -12, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+          >
+            {state.step === 1 ? (
+              <Step1Intake
+                density={variant === 'route' ? 'compact' : 'comfortable'}
+                intake={state.intake}
+                onText={(text, fileName, options) =>
+                  dispatch({ type: 'INTAKE_TEXT', text, fileName, ...options })
+                }
+                onPreset={(preset, source) =>
+                  dispatch({
+                    type: 'INTAKE_PRESET',
+                    preset,
+                    ...(source ? { source } : {}),
+                  })
+                }
+                onParsed={(args) => dispatch({ type: 'INTAKE_PARSED', ...args })}
+                onParseError={(error) => dispatch({ type: 'INTAKE_PARSE_ERROR', error })}
+              />
+            ) : null}
 
-        {state.step === 2 ? (
-          <Step2Mapping
-            mapping={state.mapping}
-            sampleByHeader={sampleByHeader}
-            errors={state.errors}
-            onUserEdit={(rows: MappingRow[]) => dispatch({ type: 'MAPPER_USER_EDIT', rows })}
-            onRerun={handleStep2Rerun}
-          />
-        ) : null}
+            {state.step === 2 ? (
+              <Step2Mapping
+                mapping={state.mapping}
+                sampleByHeader={sampleByHeader}
+                errors={state.errors}
+                onUserEdit={(rows: MappingRow[]) => dispatch({ type: 'MAPPER_USER_EDIT', rows })}
+                onRerun={handleStep2Rerun}
+              />
+            ) : null}
 
-        {state.step === 3 ? (
-          <Step3Normalize
-            normalize={state.normalize}
-            matrix={matrixPreview}
-            rawText={state.intake.rawText}
-            mappings={state.mapping.rows}
-            onToggleApplyToAll={(key, value) =>
-              dispatch({ type: 'NORMALIZE_TOGGLE_APPLY_TO_ALL', key, value })
-            }
-          />
-        ) : null}
+            {state.step === 3 ? (
+              <Step3Normalize
+                normalize={state.normalize}
+                matrix={matrixPreview}
+                rawText={state.intake.rawText}
+                mappings={state.mapping.rows}
+                onToggleApplyToAll={(key, value) =>
+                  dispatch({ type: 'NORMALIZE_TOGGLE_APPLY_TO_ALL', key, value })
+                }
+              />
+            ) : null}
 
-        {state.step === 4 ? (
-          <Step4Preview
-            summary={state.dryRun.summary}
-            duplicateHandling={duplicateHandling}
-            onDuplicateHandlingChange={handleDuplicateHandlingChange}
-            isUpdatingPreview={dryRunMutation.isPending}
-          />
-        ) : null}
+            {state.step === 4 ? (
+              <Step4Preview
+                summary={state.dryRun.summary}
+                duplicateHandling={duplicateHandling}
+                onDuplicateHandlingChange={handleDuplicateHandlingChange}
+                isUpdatingPreview={dryRunMutation.isPending}
+              />
+            ) : null}
+          </motion.div>
+        </AnimatePresence>
       </>
     ),
   }

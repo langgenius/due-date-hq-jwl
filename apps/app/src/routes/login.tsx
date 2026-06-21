@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -29,6 +30,7 @@ import {
   startGoogleOneTap,
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
 
 // /login is a full-bleed two-column split — a product-story column (left)
@@ -213,9 +215,17 @@ export function LoginRoute() {
           <div className="flex w-full max-w-[360px] flex-col gap-7">
             {/* Centered brand mark + heading */}
             <div className="flex flex-col items-center gap-4 text-center">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-text-primary text-base font-bold text-text-primary-on-surface">
+              {/* The mark settles in on mount (calm fade + scale, not a snap).
+                  Smaller move than the SuccessModal hero check. Reduced-motion
+                  handled globally by the root <MotionConfig reducedMotion="user">. */}
+              <motion.span
+                className="flex size-11 items-center justify-center rounded-2xl bg-text-primary text-base font-bold text-text-primary-on-surface"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
                 D
-              </span>
+              </motion.span>
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.4px] text-text-primary">
                   <Trans>Sign in to DueDateHQ</Trans>

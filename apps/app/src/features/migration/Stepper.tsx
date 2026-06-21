@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
+import { motion } from 'motion/react'
 import { CheckIcon, ChevronRightIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import type { StepIndex } from './state'
 
 /**
@@ -204,7 +206,23 @@ function VerticalStepper({ current }: { current: StepIndex }) {
                 // sits at px-3 + half the size-4 circle = ~20px from the rail
                 // edge, so the connector is nudged to ml-[1.25rem] to line up
                 // under the circle centers.
-                <span aria-hidden className="ml-[1.25rem] h-2 w-px bg-divider-subtle" />
+                //
+                // When the step BEFORE this connector is done, the hairline
+                // turns success-green and grows in from the top (scaleY 0→1) —
+                // pairs with the check-pop in the marker above. The static
+                // gray hairline stays the same size/layout for pending steps.
+                isDone ? (
+                  <motion.span
+                    aria-hidden
+                    className="ml-[1.25rem] h-2 w-px bg-state-success-solid"
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    style={{ transformOrigin: 'top' }}
+                    transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                  />
+                ) : (
+                  <span aria-hidden className="ml-[1.25rem] h-2 w-px bg-divider-subtle" />
+                )
               ) : null}
             </li>
           )

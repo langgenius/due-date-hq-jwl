@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -1064,7 +1064,6 @@ export function SidebarTrigger({
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, hovered, toggleCollapsed } = useSidebar()
-  const Icon = collapsed ? ChevronRightIcon : ChevronLeftIcon
   const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
   // 2026-06-09 (Yuqi "the arrow does not move when it expanded"): the
   // handle must track the CARD's *visible* right edge, which follows
@@ -1102,7 +1101,21 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Icon className="size-3.5" aria-hidden />
+      {/* 2026-06-22 (motion sweep): one fixed ChevronRightIcon that ROTATES
+          in lockstep with the rail (same 360ms ease-apple as the width
+          transition) instead of an instant Right↔Left glyph swap. Collapsed =
+          rotate-0 (points right = "pull open"); expanded = rotate-180 (points
+          left = "push closed"). CSS-only; reduced-motion handled by
+          motion-reduce:transition-none on the same element. */}
+      <span
+        aria-hidden
+        className={cn(
+          'inline-flex transition-transform duration-[360ms] ease-apple motion-reduce:transition-none',
+          collapsed ? 'rotate-0' : 'rotate-180',
+        )}
+      >
+        <ChevronRightIcon className="size-3.5" aria-hidden />
+      </span>
     </button>
   )
 }

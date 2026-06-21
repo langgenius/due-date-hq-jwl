@@ -181,7 +181,13 @@ function DropdownMenuCheckboxItem({
       {...props}
     >
       <span
-        className={overlayCheckboxIndicatorClassName}
+        // The check pops in on selection (zoom-from-75% + fade, 150ms) — the
+        // exact recipe from checkbox.tsx. Fires once per click, so dense menus
+        // are unaffected. motion-reduce guard per the raw-CSS-keyframe rule.
+        className={cn(
+          overlayCheckboxIndicatorClassName,
+          '[&>svg]:animate-in [&>svg]:fade-in [&>svg]:zoom-in-75 [&>svg]:duration-150 motion-reduce:[&>svg]:animate-none',
+        )}
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
         <MenuPrimitive.CheckboxItemIndicator>
@@ -224,7 +230,8 @@ function DropdownMenuRadioItem({
       {...props}
     >
       <span
-        className="pointer-events-none absolute right-2 flex items-center justify-center text-text-accent"
+        // Selection glyph pops in once per click — same checkbox.tsx recipe.
+        className="pointer-events-none absolute right-2 flex items-center justify-center text-text-accent [&>svg]:animate-in [&>svg]:fade-in [&>svg]:zoom-in-75 [&>svg]:duration-150 motion-reduce:[&>svg]:animate-none"
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <MenuPrimitive.RadioItemIndicator>

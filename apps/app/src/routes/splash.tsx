@@ -110,7 +110,7 @@ export function SplashRoute() {
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
           {/* Brand lockup — frameless bars mark + serif wordmark (no navy square here). */}
-          <AuthBrandAnchor tagline={false} frame={false} markClassName="h-5" />
+          <AuthBrandAnchor tagline={false} frame={false} markClassName="h-5" animated />
 
           {/* Greeting */}
           <div className="flex w-full flex-col items-center gap-2.5">

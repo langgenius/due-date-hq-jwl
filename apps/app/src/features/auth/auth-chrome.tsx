@@ -1,10 +1,12 @@
 import { Fragment, type ComponentType, type ReactNode } from 'react'
+import { motion } from 'motion/react'
 import { Trans } from '@lingui/react/macro'
 import { GlobeIcon, LockIcon, MailCheckIcon, ShieldIcon } from 'lucide-react'
 
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { BrandMark } from '@/components/primitives/brand-mark'
 
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
@@ -27,16 +29,36 @@ export function AuthBrandAnchor({
   tagline = true,
   frame = true,
   markClassName,
+  animated = false,
 }: {
   className?: string
   tagline?: boolean
   frame?: boolean
   /** Override the mark size, e.g. `h-5` for a smaller splash lockup. */
   markClassName?: string
+  /**
+   * Opt-in: settle the mark in with a calm fade + scale on mount (splash /
+   * login entrances). Off by default so the always-present chrome surfaces
+   * (2FA / accept-invite headers) keep their instant render. Reduced-motion is
+   * handled globally via the root <MotionConfig reducedMotion="user">.
+   */
+  animated?: boolean
 }) {
+  const mark = <BrandMark frame={frame} {...(markClassName ? { className: markClassName } : {})} />
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
-      <BrandMark frame={frame} {...(markClassName ? { className: markClassName } : {})} />
+      {animated ? (
+        <motion.span
+          className="inline-flex"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+        >
+          {mark}
+        </motion.span>
+      ) : (
+        mark
+      )}
       <span className="flex items-baseline gap-1 leading-none">
         <span className="font-serif text-[17px] font-medium tracking-[-0.1px] text-text-primary">
           DueDate
