@@ -1,0 +1,52 @@
+/* ============================================================================
+   Marketing semantic layer (--m-*)
+   ----------------------------------------------------------------------------
+   The editorial design from the production-v2 exploration, expressed as tokens
+   that map onto the SHARED @duedatehq/ui primitives — never raw hex. This is the
+   marketing-specific semantic tier: the product UI keeps its own (denser) tier;
+   both pull from the same primitives, so the brand navy/cyan/scales stay in one
+   source of truth.
+
+   Light only this pass, but every colour resolves through a semantic token that
+   already has a dark variant in semantic-dark.css — so dark mode is a later
+   retrofit, not a rewrite. New marketing components reference --m-* (and never
+   hardcode #2E368C etc.).
+   ============================================================================ */
+
+:root {
+  /* ---- colour (all → shared tokens) ---- */
+  --m-accent: var(--color-util-colors-primary-600); /* brand navy #2e368c */
+  --m-accent-strong: var(--color-util-colors-primary-700); /* hover/pressed */
+  --m-accent-tint: var(--color-util-colors-primary-50); /* #eef0fb faint wash */
+  --m-cyan: var(--color-brand-highlight); /* #14c5f6 — delight surfaces only */
+
+  --m-ink: var(--text-primary); /* headings / strong text */
+  --m-ink-2: var(--text-secondary); /* body */
+  --m-muted: var(--text-tertiary); /* supporting */
+  --m-faint: var(--text-quaternary); /* eyebrows / meta */
+  --m-on-accent: var(--text-inverted); /* text on the navy band */
+
+  --m-surface: var(--background-default); /* white card */
+  --m-section: var(--background-section); /* gray band */
+
+  --m-hairline: var(--divider-regular);
+  --m-hairline-2: var(--divider-subtle);
+
+  /* risk — reuse shared severity/status semantics (red strictly for risk) */
+  --m-urgent: var(--text-warning);
+  --m-ok: var(--text-success);
+  --m-danger: var(--text-destructive);
+
+  /* ---- type ---- */
+  --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */
+  --m-font-sans:
+    'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --m-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* data / dates */
+  --m-ls-eyebrow: 0.14em;
+
+  /* ---- layout (editorial, marketing-specific) ---- */
+  --m-maxw: 1240px; /* one shared container width */
+  --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
+  --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
+  --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
+}
