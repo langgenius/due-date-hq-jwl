@@ -14646,6 +14646,10 @@ msgstr "Statutory deadline"
 msgid "Stay and import"
 msgstr "Stay and import"
 
+#: src/features/migration/Stepper.tsx
+msgid "Step {current} of {STEP_COUNT}"
+msgstr "Step {current} of {STEP_COUNT}"
+
 #: src/routes/migration.new.tsx
 #: src/routes/onboarding.tsx
 msgid "Step {step} of {total}"
@@ -16711,6 +16715,7 @@ msgid "Within {dueWithin} days"
 msgstr "Within {dueWithin} days"
 
 #: src/features/migration/Stepper.tsx
+#: src/features/migration/WizardShell.tsx
 msgid "Wizard steps"
 msgstr "Wizard steps"
 

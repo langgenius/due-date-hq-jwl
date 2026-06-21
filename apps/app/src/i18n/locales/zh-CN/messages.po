@@ -14709,6 +14709,10 @@ msgstr "法定截止日"
 msgid "Stay and import"
 msgstr "留下并导入"
 
+#: src/features/migration/Stepper.tsx
+msgid "Step {current} of {STEP_COUNT}"
+msgstr "第 {current} 步，共 {STEP_COUNT} 步"
+
 #: src/routes/migration.new.tsx
 #: src/routes/onboarding.tsx
 msgid "Step {step} of {total}"
@@ -16781,6 +16785,7 @@ msgid "Within {dueWithin} days"
 msgstr "{dueWithin} 天内"
 
 #: src/features/migration/Stepper.tsx
+#: src/features/migration/WizardShell.tsx
 msgid "Wizard steps"
 msgstr "向导步骤"
 
