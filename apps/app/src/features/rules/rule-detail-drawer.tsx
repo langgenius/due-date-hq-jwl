@@ -2064,7 +2064,7 @@ function AiDraftReviewPanel({
         </div>
       ) : null}
       {draft ? (
-        <div className="flex flex-col gap-2 text-sm">
+        <div className="flex flex-col gap-2 text-sm animate-in fade-in duration-150 motion-reduce:animate-none">
           <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
           <div className="flex items-baseline gap-2 text-xs">
             <span className="text-text-tertiary">

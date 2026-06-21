@@ -492,7 +492,7 @@ function DeadlineRowExpansion({
     <section
       role="region"
       aria-labelledby={`deadline-title-${deadline.id}`}
-      className="flex flex-col gap-3.5 border-t border-divider-subtle bg-background-subtle px-5 py-4"
+      className="flex flex-col gap-3.5 border-t border-divider-subtle bg-background-subtle px-5 py-4 animate-in fade-in duration-150 motion-reduce:animate-none"
     >
       {/* Section A — workflow journey. */}
       <div className="flex items-center gap-2 overflow-x-auto">

@@ -3640,7 +3640,7 @@ export function ObligationQueueDetailDrawer({
                                         </span>
                                       </header>
                                       {outstandingItems.length === 0 ? (
-                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none">
                                           <Trans>All items received.</Trans>
                                         </p>
                                       ) : (

@@ -4597,7 +4597,7 @@ export function ObligationQueueRoute() {
                                   // `bg-state-base-hover` so the two queues share
                                   // one hover tone, and the active-row accent
                                   // fill still wins where set below.
-                                  'h-14 group cursor-pointer border-l-2 border-l-transparent hover:!bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+                                  'h-14 group cursor-pointer border-l-2 border-l-transparent transition-colors hover:!bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                                   tableRow.original.id === explicitActiveRowId &&
                                     'bg-state-accent-hover-alt',
                                   // Within-group rows lose their bottom border so

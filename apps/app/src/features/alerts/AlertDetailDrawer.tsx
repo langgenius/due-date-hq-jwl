@@ -2097,7 +2097,7 @@ export function AlertDetailDrawer({
                     affirmation + Apply-now shortcut (same verification gate as
                     the footer). Real data: selected-client count + confidence. */}
                   {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
-                    <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
+                    <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4 animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none">
                       <div className="flex items-start gap-3">
                         <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
                           <ShieldCheckIcon className="size-4" aria-hidden />
