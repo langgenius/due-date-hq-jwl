@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -39,13 +39,14 @@ export function SetupProgressCard({
   description?: ReactNode
   className?: string
 }) {
+  const { t } = useLingui()
   const doneCount = steps.filter((s) => s.done).length
   if (steps.length === 0 || doneCount === steps.length) return null
   const pct = Math.round((doneCount / steps.length) * 100)
   const next = steps.find((s) => !s.done)
   return (
     <section
-      aria-label="Setup progress"
+      aria-label={t`Setup progress`}
       className={cn(
         'flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
         className,

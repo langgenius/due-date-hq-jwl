@@ -158,8 +158,10 @@ export function MergedBriefCard({
             {/* lede slot — tight under the title, mirroring the loaded view */}
             <Skeleton className="h-4 w-64" />
           </div>
-          {/* chips slot */}
-          <Skeleton className="h-8 w-72 rounded-full" />
+          {/* chips slot — matches the Segmented track's actual radius
+              (rounded-lg), not a pill, so the skeleton doesn't reflow the
+              corner shape when the real selector lands. */}
+          <Skeleton className="h-8 w-72 rounded-lg" />
         </div>
         <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <Table>

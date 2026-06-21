@@ -42,7 +42,7 @@ const TONE: Record<CountPillTone, { bg: string; text: string; dot: string }> = {
   warning: {
     bg: 'bg-state-warning-hover',
     text: 'text-text-warning',
-    dot: 'bg-text-warning',
+    dot: 'bg-state-warning-solid',
   },
 }
 

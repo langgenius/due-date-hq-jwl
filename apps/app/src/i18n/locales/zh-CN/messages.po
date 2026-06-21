@@ -14209,6 +14209,7 @@ msgstr "设置分区"
 msgid "Setup"
 msgstr "设置"
 
+#: src/features/dashboard/SetupProgressCard.tsx
 #: src/features/dashboard/sidebar-setup-card.tsx
 msgid "Setup progress"
 msgstr "设置进度"

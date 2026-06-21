@@ -69,7 +69,7 @@ const CHIP_TONE: Record<
   // built from `text-success` mixed toward black so the chroma stays tokenized).
   success: {
     gradient:
-      'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-text-success)_22%,#000),color-mix(in_srgb,var(--color-text-success)_8%,#000))]',
+      'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-text-success)_22%,var(--color-brand-ink-deep)),color-mix(in_srgb,var(--color-text-success)_8%,var(--color-brand-ink-deep)))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-text-success)_45%,transparent)]',
     glow: 'bg-[var(--color-text-success)]/30',
   },

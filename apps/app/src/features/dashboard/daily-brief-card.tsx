@@ -179,8 +179,8 @@ export function DailyBriefCard({
                 // Failed = amber, not red: a missing optional AI sentence is
                 // not a destructive error (the rest of /today is unaffected).
                 brief?.status === 'failed' || brief?.status === 'stale'
-                  ? 'bg-text-warning'
-                  : 'bg-text-success',
+                  ? 'bg-state-warning-solid'
+                  : 'bg-state-success-solid',
               )}
               aria-hidden
             />
@@ -620,7 +620,10 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span
-        className={cn('size-1.5 rounded-full', stale ? 'bg-text-warning' : 'bg-text-success')}
+        className={cn(
+          'size-1.5 rounded-full',
+          stale ? 'bg-state-warning-solid' : 'bg-state-success-solid',
+        )}
         aria-hidden
       />
       <span

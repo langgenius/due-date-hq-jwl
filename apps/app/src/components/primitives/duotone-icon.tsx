@@ -38,7 +38,7 @@ const SIZE_CLASS = {
 const BADGE_TONE_CLASS: Record<DuotoneTone, string> = {
   accent: 'bg-state-accent-solid text-text-primary-on-surface',
   success: 'bg-state-success-solid text-text-primary-on-surface',
-  warning: 'bg-text-warning text-text-primary-on-surface',
+  warning: 'bg-state-warning-solid text-text-primary-on-surface',
   brand: 'bg-[var(--color-brand-highlight)] text-white',
   violet: 'bg-[var(--color-status-review)] text-white',
   neutral: 'bg-text-secondary text-text-primary-on-surface',
