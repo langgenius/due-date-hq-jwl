@@ -144,6 +144,28 @@ a[href]:where(:not([data-slot='button']):not([data-slot='sidebar-menu-button']))
   }
 }
 
+/* Stat bump — a single quiet opacity pulse on a KPI value when the number it
+   reports changes (e.g. the audit-log strip recomputing as filters change).
+   Re-triggered by remounting the value node with a fresh `key`, so the class is
+   applied on mount and fires exactly once. Opacity-only: no transform → no
+   layout shift in a dense numeric band. Guard with `motion-reduce:animate-none`
+   at the call site (CSS keyframes aren't covered by motion/react's global
+   reduced-motion config). */
+@keyframes ddhq-stat-bump {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-stat-bump {
+  animation: ddhq-stat-bump 150ms ease-out 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pulse-strip-breathing::before {
     opacity: 0.2;

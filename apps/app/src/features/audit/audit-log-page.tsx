@@ -260,10 +260,13 @@ function AuditKpiStrip({
   totalLoaded,
   totalCaption,
   countsByType,
+  bumpKey,
 }: {
   totalLoaded: number
   totalCaption: ReactNode
   countsByType: Record<AuditTimelineType, number>
+  /** Active-filter signature — when it changes, the values pulse once. */
+  bumpKey: string
 }) {
   // Canonical <StatBand> — this strip was the last bespoke fork of the
   // shared summary band (mono/bold caps labels + bordered card while the
@@ -303,7 +306,7 @@ function AuditKpiStrip({
       sub: <Trans>auto-recorded and manual decisions</Trans>,
     },
   ]
-  return <StatBand stats={stats} />
+  return <StatBand stats={stats} bumpKey={bumpKey} />
 }
 
 function AuditSkeleton() {
@@ -823,6 +826,17 @@ export function AuditLogPage() {
           filtersActive ? <Trans>matching current filters</Trans> : rangeCaptions[query.range]
         }
         countsByType={countsByType}
+        // The active-filter signature — when any facet changes, the KPI values
+        // recompute and pulse once. Search `q` is included so a narrowed query
+        // also bumps the counts.
+        bumpKey={[
+          query.q,
+          query.category,
+          query.range,
+          actionFilter,
+          actorFilter,
+          entityTypeFilter,
+        ].join('|')}
       />
 
       <Card>

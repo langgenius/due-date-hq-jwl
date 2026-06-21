@@ -97,12 +97,20 @@ export function StatBand({
   ariaLabel,
   proportionBar,
   proportionBarLabel,
+  bumpKey,
 }: {
   stats: StatBandItem[]
   /** Renders a band-height skeleton while the source query is in flight. */
   loading?: boolean
   /** Accessible name for the band region. */
   ariaLabel?: string
+  /**
+   * When this value changes, each value node remounts (via `key`) and plays a
+   * single quiet opacity pulse (`.animate-stat-bump`), signalling the numbers
+   * just recomputed (e.g. the audit strip as filters change). Opacity-only →
+   * no layout shift; guarded for reduced-motion. Omit to keep values static.
+   */
+  bumpKey?: string
   /**
    * Optional thin proportion bar rendered BELOW the stat columns, inside the
    * band. A visual echo of the same real counts the columns already label — no
@@ -163,9 +171,13 @@ export function StatBand({
           {stat.label}
         </CapsFieldLabel>
         <span
+          // Remount on bumpKey change so the once-only pulse re-fires; static
+          // (no key) when the caller doesn't opt in.
+          {...(bumpKey != null ? { key: bumpKey } : {})}
           className={cn(
             'text-stat-value font-semibold tracking-tight tabular-nums',
             stat.valueClass ?? 'text-text-primary',
+            bumpKey != null && 'animate-stat-bump motion-reduce:animate-none',
           )}
         >
           {stat.value}
