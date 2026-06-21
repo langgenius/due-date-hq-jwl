@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
@@ -26,6 +27,7 @@ import {
 import { useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { fadeMotion } from '@/lib/motion'
 
 import {
   countSourcesByHealth,
@@ -305,43 +307,56 @@ export function SourcesTab() {
               <TableHead className="w-[72px] px-0" />
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {visibleRows.map((source) => (
-              <SourceRow
-                key={source.id}
-                source={source}
-                health={sourceHealthBySourceId.get(source.id)}
-                sourceTypeLabels={sourceTypeLabels}
-              />
-            ))}
-            {visibleRows.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7}>
-                  {/* EmptyState density='compact' drops the section-frame chrome so the message reads centered inside the table body. */}
-                  <EmptyState
-                    density="compact"
-                    title={
-                      rows.length === 0 ? (
-                        <Trans>No sources registered yet</Trans>
-                      ) : (
-                        <Trans>No sources match these filters</Trans>
-                      )
-                    }
-                    description={
-                      rows.length === 0 ? (
-                        <Trans>
-                          Source watchers feed the rule catalog — once configured, they appear here
-                          with watch status and cadence.
-                        </Trans>
-                      ) : (
-                        <Trans>Clear filters above to see all watched sources.</Trans>
-                      )
-                    }
-                  />
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
+          {/* Crossfade the body when the health filter (All / Watched / Paused)
+              changes. `TableBody` is a styled `<tbody>` wrapper, so per the
+              motion catalog we key a `motion.tbody` directly and carry the same
+              classes + data-slot. `mode="wait"` swaps one body for the next;
+              keyed on `healthFilter` only, so pagination (which keeps the same
+              filter) does not crossfade. */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.tbody
+              key={healthFilter}
+              data-slot="table-body"
+              className="bg-background-default [&_tr:last-child]:border-0"
+              {...fadeMotion}
+            >
+              {visibleRows.map((source) => (
+                <SourceRow
+                  key={source.id}
+                  source={source}
+                  health={sourceHealthBySourceId.get(source.id)}
+                  sourceTypeLabels={sourceTypeLabels}
+                />
+              ))}
+              {visibleRows.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={7}>
+                    {/* EmptyState density='compact' drops the section-frame chrome so the message reads centered inside the table body. */}
+                    <EmptyState
+                      density="compact"
+                      title={
+                        rows.length === 0 ? (
+                          <Trans>No sources registered yet</Trans>
+                        ) : (
+                          <Trans>No sources match these filters</Trans>
+                        )
+                      }
+                      description={
+                        rows.length === 0 ? (
+                          <Trans>
+                            Source watchers feed the rule catalog — once configured, they appear here
+                            with watch status and cadence.
+                          </Trans>
+                        ) : (
+                          <Trans>Clear filters above to see all watched sources.</Trans>
+                        )
+                      }
+                    />
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </motion.tbody>
+          </AnimatePresence>
         </Table>
         <TablePaginationFooter
           pageIndex={currentPageIndex}

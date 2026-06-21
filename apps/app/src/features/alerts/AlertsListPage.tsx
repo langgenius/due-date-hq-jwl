@@ -1015,16 +1015,27 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     a permanently-disabled ghost was resting-state clutter. It
                     sits at the END of the narrowing cluster so its appearance
                     never shifts the controls before it. */}
-                    {filtersActive ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetFilters}
-                        className="text-base"
-                      >
-                        <Trans>Clear filters</Trans>
-                      </Button>
-                    ) : null}
+                    <AnimatePresence initial={false}>
+                      {filtersActive ? (
+                        <motion.div
+                          key="clear-filters"
+                          className="inline-flex shrink-0 overflow-hidden"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={resetFilters}
+                            className="text-base"
+                          >
+                            <Trans>Clear filters</Trans>
+                          </Button>
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
 
                     {/* Sort by — three options matching the sortOrder
                     enum. The current value rides the FilterTrigger's
@@ -1295,14 +1306,29 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
           sits bottom-center and would collide with the detail's own docking
           decision footer. Bulk actions are a list-level operation; the selection
           is preserved and the bar reappears when the detail closes. */}
-      {selectionEnabled && selectedCount > 0 && openAlertId === null ? (
-        <BulkActionBar
-          selectedCount={selectedCount}
-          totalCount={sortedAlerts.length}
-          onDismiss={requestBulkDismiss}
-          onClear={clearSelection}
-        />
-      ) : null}
+      <AnimatePresence>
+        {selectionEnabled && selectedCount > 0 && openAlertId === null ? (
+          // The motion.div owns the fixed centering (left-1/2 + x:-50%) so the
+          // y/opacity enter+exit is actually visible — a y-transform on a plain
+          // wrapper can't move a `fixed` child. `BulkActionBar`'s shell is made
+          // `static` inside this container, so its visual recipe is unchanged.
+          <motion.div
+            key="alerts-bulk-bar"
+            className="fixed bottom-12 left-1/2 z-40"
+            initial={{ opacity: 0, x: '-50%', y: 8 }}
+            animate={{ opacity: 1, x: '-50%', y: 0 }}
+            exit={{ opacity: 0, x: '-50%', y: 8 }}
+            transition={{ duration: MOTION_DURATION.exit, ease: EASE_APPLE }}
+          >
+            <BulkActionBar
+              selectedCount={selectedCount}
+              totalCount={sortedAlerts.length}
+              onDismiss={requestBulkDismiss}
+              onClear={clearSelection}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {/* Bulk dismiss confirmation (Pencil X4t2E — destructive
           pattern). Previews the alerts being archived so the CPA can
@@ -1389,7 +1415,15 @@ function BulkActionBar({
 }) {
   const { t } = useLingui()
   return (
-    <FloatingActionBar tone="elevated" ariaLabel={t`Bulk actions`}>
+    <FloatingActionBar
+      tone="elevated"
+      ariaLabel={t`Bulk actions`}
+      // Positioning is owned by the AnimatePresence motion.div wrapper so the
+      // enter/exit can animate the `fixed` bar — neutralize the primitive's own
+      // fixed centering + slide-in keyframes (they'd double-up / fight the
+      // wrapper's y-transform). Visual recipe (fill/shadow/radius) is untouched.
+      className="!static !bottom-auto !left-auto !translate-x-0 !animate-none"
+    >
       {/* Selection read-out */}
       <div className="flex items-center gap-2.5">
         <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-lg bg-state-accent-solid">

@@ -66,7 +66,10 @@ import {
   MessageSquareTextIcon,
 } from 'lucide-react'
 import { Fragment, type ReactNode, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
+
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 export function ReadinessOverview({
   row,
@@ -2747,23 +2750,33 @@ export function ActiveStageDetailCard({
                       )}
                     </span>
                   </button>
-                  {open ? (
-                    <ul className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3">
-                      {entry.events.map((event) => (
-                        <li key={event.id} className="flex items-start gap-2 text-xs">
-                          <span className="flex-1 leading-snug text-text-secondary">
-                            {humanizeAuditAction(event.action)}
-                            {event.actorLabel ? (
-                              <span className="text-text-tertiary"> · {event.actorLabel}</span>
-                            ) : null}
-                          </span>
-                          <span className="shrink-0 tabular-nums text-text-tertiary">
-                            {formatDate(event.createdAt.slice(0, 10))}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
+                  <AnimatePresence initial={false}>
+                    {open ? (
+                      <motion.ul
+                        key="events"
+                        className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3"
+                        style={{ overflow: 'hidden' }}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: MOTION_DURATION.surface, ease: EASE_APPLE }}
+                      >
+                        {entry.events.map((event) => (
+                          <li key={event.id} className="flex items-start gap-2 text-xs">
+                            <span className="flex-1 leading-snug text-text-secondary">
+                              {humanizeAuditAction(event.action)}
+                              {event.actorLabel ? (
+                                <span className="text-text-tertiary"> · {event.actorLabel}</span>
+                              ) : null}
+                            </span>
+                            <span className="shrink-0 tabular-nums text-text-tertiary">
+                              {formatDate(event.createdAt.slice(0, 10))}
+                            </span>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    ) : null}
+                  </AnimatePresence>
                 </li>
               )
             })}

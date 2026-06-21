@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { AnimatePresence, motion } from 'motion/react'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -45,6 +46,13 @@ import {
 } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDatePretty } from '@/lib/utils'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+
+// `motion.create(TableRow)` keeps the styled `<tr>`'s full recipe (zebra,
+// hover, data-slot, accent rules) while gaining `exit`. Only the Review scope
+// uses it (post-Accept slide-out); other scopes render the plain `TableRow`,
+// so their layout is byte-for-byte unchanged.
+const MotionTableRow = motion.create(TableRow)
 
 /**
  * `JurisdictionRuleTable` — the right detail pane of the Rule Library.
@@ -476,22 +484,30 @@ export function JurisdictionRuleTable({
             </TableRow>
           ) : (
             <>
-              {rules.map((rule) => (
-                <JurisdictionRuleRow
-                  key={rule.id}
-                  rule={rule}
-                  jurisdictionLabel={jurisdictionLabel}
-                  tierLabels={tierLabels}
-                  selectable={isSelectable(rule.status)}
-                  selected={selectedRuleIds.has(rule.id)}
-                  active={activeRuleId === rule.id}
-                  focused={focusedRowId === `rule:${rule.id}`}
-                  showLastModified={showLastModified}
-                  showStatus={showStatus}
-                  onSelectChange={() => onToggleRuleSelection(rule.id)}
-                  onClick={onRuleClick}
-                />
-              ))}
+              {/* In the Review scope, a row leaves the table the moment its
+                  candidate is accepted — give it a short slide-right + fade
+                  exit so it reads as "filed away" rather than vanishing. Only
+                  this scope wraps the rows in AnimatePresence (and renders them
+                  as motion rows); every other scope keeps the plain row. */}
+              <AnimatePresence initial={false}>
+                {rules.map((rule) => (
+                  <JurisdictionRuleRow
+                    key={rule.id}
+                    rule={rule}
+                    jurisdictionLabel={jurisdictionLabel}
+                    tierLabels={tierLabels}
+                    selectable={isSelectable(rule.status)}
+                    selected={selectedRuleIds.has(rule.id)}
+                    active={activeRuleId === rule.id}
+                    focused={focusedRowId === `rule:${rule.id}`}
+                    showLastModified={showLastModified}
+                    showStatus={showStatus}
+                    animateExit={reviewScope}
+                    onSelectChange={() => onToggleRuleSelection(rule.id)}
+                    onClick={onRuleClick}
+                  />
+                ))}
+              </AnimatePresence>
               {showGaps
                 ? gapEntities.map((entity) => (
                     <GapRow
@@ -521,6 +537,7 @@ function JurisdictionRuleRow({
   focused,
   showLastModified,
   showStatus,
+  animateExit = false,
   onSelectChange,
   onClick,
 }: {
@@ -533,6 +550,9 @@ function JurisdictionRuleRow({
   focused: boolean
   showLastModified: boolean
   showStatus: boolean
+  /** Review scope only — render as a motion row so it can slide+fade out when
+      the candidate is accepted and drops from the list. */
+  animateExit?: boolean
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
@@ -558,8 +578,15 @@ function JurisdictionRuleRow({
   // (`accent-hover` + 2px left accent); the checkbox's own checked state
   // distinguishes "selected for bulk" from "open".
   const accentRow = selected || active
+  // Plain styled row everywhere; in the Review scope swap in the motion row so
+  // AnimatePresence can play the accept→exit slide. `exit` is only spread for
+  // the motion variant (a plain `<tr>` would warn on the unknown prop).
+  const RowComp = animateExit ? MotionTableRow : TableRow
+  const exitProps = animateExit
+    ? { exit: { opacity: 0, x: 12, transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE } } }
+    : {}
   return (
-    <TableRow
+    <RowComp
       className={cn(
         'group/row cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         accentRow && 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
@@ -570,6 +597,7 @@ function JurisdictionRuleRow({
       onClick={() => onClick(rule)}
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
+      {...exitProps}
     >
       {/* Leading affordance — a real checkbox whenever the row can be
           bulk-reviewed, so the row reads as selectable on sight (Gmail-style).
@@ -669,7 +697,7 @@ function JurisdictionRuleRow({
           <Badge variant={statusVariant}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
         </TableCell>
       ) : null}
-    </TableRow>
+    </RowComp>
   )
 }
 
