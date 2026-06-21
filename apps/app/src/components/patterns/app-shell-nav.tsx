@@ -320,14 +320,14 @@ function SidebarSystemStatus() {
             <span className="flex w-4 shrink-0 justify-center">
               <span className={cn('size-1.5 rounded-full', dotToneClass)} aria-hidden />
             </span>
-            <span className="min-w-0 flex-1 truncate text-sm text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
+            {/* Scope only — the "swept …" freshness lives in the tooltip now.
+                With the timestamp inline at text-sm the line overflowed ~190px
+                and truncated mid-word ("Monitoring 52 jurisdiction…"). The
+                quieter text-xs caption fits the scope cleanly and reads as
+                ambient footer info sitting under the utility rows, not a peer
+                nav row competing with Audit log / Settings. */}
+            <span className="min-w-0 flex-1 truncate text-xs text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
               {scopeLabel}
-              {relativeChecked ? (
-                <span className="text-text-tertiary">
-                  {' · '}
-                  <Trans>swept {relativeChecked}</Trans>
-                </span>
-              ) : null}
             </span>
           </Link>
         )}
@@ -665,7 +665,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             <NavMenuItem key={item.href} item={item} />
           ))}
         </NavGroupSection>
-        <NavGroupSection muted topSlot={<SidebarSystemStatus />}>
+        <NavGroupSection muted footerSlot={<SidebarSystemStatus />}>
           {items.footer.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}
@@ -690,7 +690,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
           <NavMenuItem key={item.href} item={item} />
         ))}
       </NavGroupSection>
-      <NavGroupSection muted topSlot={<SidebarSystemStatus />}>
+      <NavGroupSection muted footerSlot={<SidebarSystemStatus />}>
         {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
@@ -710,7 +710,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
 function NavGroupSection({
   label,
   muted = false,
-  topSlot,
+  footerSlot,
   className,
   children,
 }: {
@@ -718,10 +718,11 @@ function NavGroupSection({
   // hides them in icons-only mode via `data-collapsed`.
   label?: string
   muted?: boolean
-  // Full-strength content rendered ABOVE the (possibly dimmed) nav items —
-  // used by the muted footer group to host the system-status line above
-  // Audit log / Settings.
-  topSlot?: ReactNode
+  // Quiet content rendered at the FOOT of the group, below the nav items —
+  // used by the muted footer group to host the system-status caption just
+  // above the user chip (an ambient "what we're watching" line paired with
+  // identity, rather than a full-strength row above Audit log / Settings).
+  footerSlot?: ReactNode
   className?: string
   children: ReactNode
 }) {
@@ -730,30 +731,39 @@ function NavGroupSection({
   // to find them at the bottom of the rail, not directly under the
   // primary groups; without this they sit immediately under Clients with
   // no separation.
-  // The muted footer group carries a faint hairline + top padding so it
-  // anchors the footer zone (the user chip below it drops its own
-  // divider, so there's ONE line, not two). The dimming moves onto the
-  // content so the hairline itself stays full-strength.
-  // 2026-06-10 (Yuqi "delicacy"): the hairline is a center-weighted
-  // gradient (transparent → divider → transparent) inset 4px from the
-  // card edges, so it reads as a soft seam rather than a hard ruled line.
+  // 2026-06-21 (Yuqi "messy and squashed" pass): the footer zone now reads
+  // top-to-bottom as one tidy stack — a single hairline CAPS the zone, then
+  // the crisp utility rows (Audit log, Settings), then the ambient system-
+  // status caption at the foot, then the user chip below. Two changes from
+  // the prior layout: (1) the hairline moved from the MIDDLE of the group
+  // (between status and the nav) to the TOP, so there's one clean seam, not a
+  // seam wedged mid-stack; (2) the blanket `opacity-60` on the nav rows is
+  // gone — it muddied the already-tertiary icons into near-illegibility and
+  // inverted the hierarchy (passive status brighter than actionable rows).
+  // The rows are demoted by POSITION now, not by dimming.
+  // The hairline is a center-weighted gradient (transparent → divider →
+  // transparent) inset 4px from the card edges, so it reads as a soft seam
+  // rather than a hard ruled line. The user chip drops its own divider, so
+  // there's ONE line in the footer zone, not two.
   return (
     <SidebarGroup className={cn(muted && 'mt-auto pt-2.5', className)}>
       {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
-      {/* topSlot (e.g. the system-status line) sits ABOVE the divider, at full
-          strength; the gradient hairline below then separates it from the
-          dimmed nav links. With no topSlot, the hairline simply caps the
-          group's top as before. */}
-      {topSlot ? <div className="pb-1.5">{topSlot}</div> : null}
+      {/* One hairline caps the footer zone. On tall viewports the mt-auto gap
+          already opens the seam; the hairline guarantees one on short
+          viewports where the footer butts up against the last nav group. */}
       {muted ? (
         <div
           aria-hidden
-          className="mx-1 mb-1 h-px bg-gradient-to-r from-transparent via-divider-regular to-transparent"
+          className="mx-1 mb-2 h-px bg-gradient-to-r from-transparent via-divider-regular to-transparent"
         />
       ) : null}
-      <SidebarGroupContent className={cn(muted && 'opacity-60')}>
+      <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>
+      {/* The system-status caption sits at the FOOT of the group, just above
+          the user chip — passive "what we're watching" reassurance paired with
+          identity, not a full-strength row above the utilities. */}
+      {footerSlot ? <div className="mt-1.5">{footerSlot}</div> : null}
     </SidebarGroup>
   )
 }
