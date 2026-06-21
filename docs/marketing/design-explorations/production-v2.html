@@ -350,6 +350,58 @@
         color: #fff;
       }
 
+      /* left scroll-spy rail — tells the reader where they are (shown on wide screens only) */
+      .spyrail {
+        position: fixed;
+        left: clamp(20px, 3vw, 52px);
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 40;
+        display: none;
+        flex-direction: column;
+        gap: 1px;
+      }
+      @media (min-width: 1500px) {
+        .spyrail {
+          display: flex;
+        }
+      }
+      .spyrail__item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--faint);
+        padding: 7px 0;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+      }
+      .spyrail__item:hover {
+        color: var(--ink-2);
+      }
+      .spyrail__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        border: 1.5px solid var(--hairline);
+        background: transparent;
+        flex: none;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .spyrail__item.is-active {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .spyrail__item.is-active .spyrail__dot {
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: scale(1.15);
+      }
+
       /* centered floating-pill nav + sliding glider (Voiceflow-style) */
       .nav__pillbar {
         position: relative;
@@ -3272,6 +3324,27 @@
       </div>
     </header>
 
+    <nav class="spyrail" id="spyrail" aria-label="Section navigation">
+      <a class="spyrail__item" href="#how"
+        ><span class="spyrail__dot" aria-hidden="true"></span>How it works</a
+      >
+      <a class="spyrail__item" href="#notice"
+        ><span class="spyrail__dot" aria-hidden="true"></span>The document</a
+      >
+      <a class="spyrail__item" href="#sources"
+        ><span class="spyrail__dot" aria-hidden="true"></span>Sources</a
+      >
+      <a class="spyrail__item" href="#work"
+        ><span class="spyrail__dot" aria-hidden="true"></span>See it work</a
+      >
+      <a class="spyrail__item" href="#trust"
+        ><span class="spyrail__dot" aria-hidden="true"></span>Why trust it</a
+      >
+      <a class="spyrail__item" href="#faq"
+        ><span class="spyrail__dot" aria-hidden="true"></span>FAQ</a
+      >
+    </nav>
+
     <main id="main">
       <!-- ============================ HERO ============================ -->
       <section class="hero wrap" aria-labelledby="hero-h">
@@ -5810,6 +5883,32 @@
             },
             { passive: true },
           )
+        }
+
+        // left scroll-spy rail — highlight the section the reader is in
+        var rail = document.getElementById('spyrail')
+        if (rail && 'IntersectionObserver' in window) {
+          var railItems = Array.prototype.slice.call(rail.querySelectorAll('.spyrail__item'))
+          var railSecs = railItems.map(function (it) {
+            return document.getElementById(it.getAttribute('href').slice(1))
+          })
+          var railIO = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (!e.isIntersecting) return
+                var idx = railSecs.indexOf(e.target)
+                if (idx < 0) return
+                railItems.forEach(function (it) {
+                  it.classList.remove('is-active')
+                })
+                railItems[idx].classList.add('is-active')
+              })
+            },
+            { rootMargin: '-45% 0px -50% 0px', threshold: 0 },
+          )
+          railSecs.forEach(function (s) {
+            if (s) railIO.observe(s)
+          })
         }
 
         // hero alerts demo — jurisdiction filter + row expand + apply/undo
