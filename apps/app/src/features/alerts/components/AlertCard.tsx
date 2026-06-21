@@ -257,8 +257,15 @@ export function AlertCard({
                   </span>
                   {actionPill && actionLabel ? (
                     <span
-                      className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium"
-                      style={{ backgroundColor: actionPill.bg, color: actionPill.text }}
+                      className={cn(
+                        'inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium',
+                        // Tone-keyed semantic tokens (no raw inline colors):
+                        // needs-action carries the destructive tint, review +
+                        // closed stay on the neutral base wash.
+                        actionPill.id === 'needs-action'
+                          ? 'bg-state-destructive-hover text-text-destructive'
+                          : 'bg-state-base-hover text-text-secondary',
+                      )}
                     >
                       {actionLabel}
                     </span>

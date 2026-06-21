@@ -507,12 +507,13 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                 )}
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 13/500
-                      step title — a step lighter than the section body so the
-                      timeline reads as a quiet log, not a heading stack. */}
+                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 12/500
+                      step title — a step lighter than the section body (text-sm)
+                      so the timeline reads as a quiet log, not a heading stack.
+                      Tokenized from the off-scale text-[13px] to text-xs. */}
                   <span
                     className={cn(
-                      'text-[13px] font-medium',
+                      'text-xs font-medium',
                       step.state === 'current'
                         ? 'text-text-accent'
                         : step.state === 'future'
@@ -2146,11 +2147,11 @@ export function AlertDetailDrawer({
                   {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
                     <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4 animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none">
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-state-success-hover text-text-success">
                           <ShieldCheckIcon className="size-4" aria-hidden />
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <span className="text-base font-semibold text-text-success">
+                          <span className="text-base font-semibold text-text-primary">
                             <Trans>Ready to apply · deadline selection confirmed</Trans>
                           </span>
                           <p className="text-sm text-text-secondary">
@@ -2165,7 +2166,7 @@ export function AlertDetailDrawer({
                             </Trans>
                           </p>
                         </div>
-                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-success tabular-nums sm:inline">
+                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-secondary tabular-nums sm:inline">
                           {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                         </span>
                       </div>
@@ -2176,7 +2177,7 @@ export function AlertDetailDrawer({
                             size="sm"
                             onClick={handleApply}
                             disabled={isMutating}
-                            className="bg-text-success hover:bg-text-success/90"
+                            className="bg-state-success-solid hover:bg-state-success-solid/90"
                           >
                             <Trans>Apply now</Trans>
                             <ArrowRightIcon data-icon="inline-end" />

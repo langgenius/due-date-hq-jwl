@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -113,6 +114,9 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
         />
         <div className="flex justify-end">
           <Button type="button" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
+            {addNoteMutation.isPending ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : null}
             <Trans>Add note</Trans>
           </Button>
         </div>
