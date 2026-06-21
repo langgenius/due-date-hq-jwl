@@ -957,7 +957,7 @@ export function PathToFilingSummary({
                     // ALWAYS accent — red lives in the status banner only, so
                     // the page states overdue once instead of echoing it in
                     // every component.
-                    'grid size-5 shrink-0 place-items-center rounded-full border',
+                    'grid size-5 shrink-0 place-items-center rounded-full border transition-colors',
                     state === 'done' || state === 'active'
                       ? 'border-transparent bg-state-accent-solid text-text-inverted'
                       : state === 'skipped'

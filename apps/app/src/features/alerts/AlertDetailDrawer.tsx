@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -1742,9 +1743,14 @@ export function AlertDetailDrawer({
                     >
                       {item.label}
                       {sectionActive ? (
-                        <span
-                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                        // Shared-layout underline — slides between scroll-spy
+                        // sections instead of blinking (same pattern as the
+                        // client-detail tabs). Reduced-motion handled globally.
+                        <motion.span
+                          layoutId="alert-detail-section-underline"
                           aria-hidden
+                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                          transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                         />
                       ) : null}
                     </button>

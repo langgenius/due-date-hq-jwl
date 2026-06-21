@@ -1858,9 +1858,15 @@ export function ObligationQueueDetailDrawer({
                 {item.label}
                 {item.chip}
                 {sectionActive ? (
-                  <span
-                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                  // Shared-layout underline (same pattern as the client-detail
+                  // tabs): one motion.span keyed by layoutId slides between
+                  // sections instead of blinking. Spring matches the app's tab
+                  // underlines. Reduced-motion handled globally.
+                  <motion.span
+                    layoutId="deadline-detail-section-underline"
                     aria-hidden
+                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                    transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                   />
                 ) : null}
               </button>
