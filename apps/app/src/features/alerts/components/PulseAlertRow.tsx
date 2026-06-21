@@ -362,11 +362,16 @@ function PulseAlertRow({
       : t`Effective ${formatMonthDay(detail.effectiveFrom)}`
     : null
   const formLabel = detail?.forms?.[0] ?? null
-  // Hidden when the list's "Show suggested action" toggle is off.
-  // Nulling it here also drops it from `showKeyChange` so the KeyChange
-  // row collapses cleanly when nothing else fills it.
-  const actionText = showAction ? deriveActionText(alert.changeKind) : null
-  const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
+  // Hidden when the list's "Show suggested action" toggle is off. Also dropped
+  // in `compact` (map navigator) rows — the prescriptive next-step belongs in
+  // the detail, not the at-a-glance list (Yuqi /alerts #4: trim the map list).
+  // Nulling it here also drops it from `showKeyChange` so the KeyChange row
+  // collapses cleanly when nothing else fills it.
+  const actionText = showAction && !compact ? deriveActionText(alert.changeKind) : null
+  // Only the date-diff + action line actually render in the KeyChange block
+  // (effective/form facts live in the drawer), so gate on those — a truthy
+  // effectiveLabel/formLabel alone would otherwise reserve an empty block.
+  const showKeyChange = !!(showDateRow || actionText)
 
   // 2026-06-16 (Yuqi "dim anything besides the alert title when not selected"):
   // on rows that AREN'T the open one, everything but the headline recedes — the
@@ -519,8 +524,10 @@ function PulseAlertRow({
           {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
               code chip), stock chrome so the form badge reads identically
               on every surface (per the pulse-alert-chrome contract: no
-              className override on /alerts). */}
-          {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+              className override on /alerts). Dropped in compact (map
+              navigator) rows — the form code lives in the detail (Yuqi
+              /alerts #4). */}
+          {!compact && formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
           {/* CHANGE KIND — icon + sentence-case medium secondary, matching
               the detail hero exactly (2026-06-14). One treatment across
@@ -536,23 +543,36 @@ function PulseAlertRow({
               — the absence is the all-clear. Amber-family (never red — the row's
               one red stays on the urgent deadline). Replaces the always-on
               "N% confidence" meter that used to sit in the bottom meta. */}
-          {showLowConfidence ? (
+          {/* CONFIDENCE FLAG — dropped in compact (map navigator) rows; the
+              exact tier still reads in the detail's Source card (Yuqi /alerts
+              #4). */}
+          {!compact && showLowConfidence ? (
             <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Low confidence</Trans>
             </span>
           ) : null}
 
-          {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
-              #6). Pinned to the far right it left a wide dead gap between the
-              title and "where this came from", a long horizontal eye-sweep on
-              every row. It now reads beside the change-kind — "what kind of
-              change, from where" as one phrase — and shrinks/truncates so it
-              never crowds the right-side time-to-act. */}
-          <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
-
-          {/* Spacer NdGpw (fill_container) */}
+          {/* Spacer NdGpw (fill_container) — pushes the source + time cluster to
+              the right edge of the head row. */}
           <span className="flex-1" aria-hidden />
+
+          {/* SOURCE — 2026-06-21 (Yuqi /alerts #6 "separate the change-type and
+              the source; source at the right-most, before the time"): the source
+              link leaves the left identity cluster (where it sat beside the
+              change-kind) and parks on the RIGHT, immediately before the
+              timestamp — the head now reads "<kind of change>" on the left and
+              "<from where> · <when>" on the right. Shrinks + truncates so a long
+              source never shoves the time off. Dropped in compact (map
+              navigator) rows — the source lives in the detail there (#4). */}
+          {!compact ? (
+            <AlertSourceLink
+              source={alert.source}
+              sourceUrl={alert.sourceUrl}
+              withTooltip
+              className="max-w-[200px] shrink"
+            />
+          ) : null}
 
           {/* Wall-clock + unread dot — relocated here from the removed left
               wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
@@ -592,7 +612,7 @@ function PulseAlertRow({
               "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
               row's only red, this tag just says how long is left. Hidden for
               far-out / no-deadline alerts (proximityTimeTag → null). */}
-          {timeTag ? (
+          {!compact && timeTag ? (
             <span className="shrink-0 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
               {timeTag}
             </span>
@@ -621,8 +641,10 @@ function PulseAlertRow({
 
           {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
               the smart-priority reason inset below. Only renders when
-              the alert carries priority-queue reasons. */}
-          {showPriority ? (
+              the alert carries priority-queue reasons. Dropped in compact
+              (map navigator) rows — priority reasoning belongs to the full
+              list + detail, not the at-a-glance navigator (Yuqi /alerts #4). */}
+          {!compact && showPriority ? (
             <button
               type="button"
               onClick={(event) => {
@@ -734,7 +756,7 @@ function PulseAlertRow({
             chip per scoring reason ("+30 · A preparer asked about
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
-        {showPriority && whyOpen && priority ? (
+        {!compact && showPriority && whyOpen && priority ? (
           <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
@@ -1054,7 +1076,14 @@ function PulseAlertList({
                     )}
                   />
                 ) : null}
-                <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
+                {/* 2026-06-21 (Yuqi /alerts #7 "same colour + size as today's
+                    table header?"): yes on colour (bg-background-subtle band +
+                    text-text-tertiary) — but the label was text-xs (12px) /
+                    eyebrow-tracking while /today's ActionsTable header is the
+                    canonical `text-column-label` token (11px / 600 / +0.5px).
+                    Switched to the same token so the two surfaces' group bands
+                    read identically. */}
+                <span className="text-column-label text-text-tertiary uppercase tabular-nums">
                   {label}
                 </span>
               </div>

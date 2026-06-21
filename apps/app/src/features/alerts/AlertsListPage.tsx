@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 // Flat `useQuery` with a 50-item page (not a keyset-paginated infinite
 // query); row-level Dismiss via `useMutation` + sonner toast.
@@ -10,13 +10,16 @@ import {
   CircleAlertIcon,
   ArchiveIcon,
   CheckIcon,
+  ChevronDownIcon,
   CoffeeIcon,
+  EyeIcon,
   HistoryIcon,
   ListIcon,
   MapIcon,
   SatelliteDishIcon,
   SlidersHorizontalIcon,
   XIcon,
+  ZapIcon,
 } from 'lucide-react'
 
 import type { PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
@@ -86,7 +89,7 @@ import {
   type AlertImpactFilter,
 } from './lib/impact-filter'
 import { alertImpactCount, alertImpactLevel } from './lib/impact-level'
-import { isActiveAlert } from './components/pulse-alert-chrome'
+import { alertNeedsAction } from './components/pulse-alert-chrome'
 import {
   CHANGE_KIND_FILTER_OPTIONS,
   matchesChangeKindFilter,
@@ -192,14 +195,16 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   // the review queue rather than relying on the unspoken default. Anything
   // other than 'active' falls back to review.
   const [searchParams] = useSearchParams()
-  const [workQueue, setWorkQueue] = useState<'active' | 'review'>(() =>
-    searchParams.get('queue') === 'active' ? 'active' : 'review',
+  // 2026-06-21 (Yuqi): the Review/Active MODE toggle is gone — the list is a
+  // single unified triage view ("Needs action" queue + "For your awareness"
+  // digest), see [[project_alerts_triage_model]]. The only optional narrowing
+  // left is collapsing the awareness digest into a "focus" view. The legacy
+  // `?queue=` deep-link maps onto that: `active` → land focused (digest
+  // collapsed); anything else (incl. /today's `?queue=review`) → land with
+  // everything open, so no inbound link breaks.
+  const [awarenessCollapsed, setAwarenessCollapsed] = useState(
+    () => searchParams.get('queue') === 'active',
   )
-  // One-shot guard for the open-alert → queue-tab sync below: tracks the alert
-  // id we've already synced the queue for, so the sync fires exactly once per
-  // OPEN and never fights a manual toggle. A ref (not state) — it must not
-  // itself trigger renders.
-  const queueSyncedAlertId = useRef<string | null>(null)
 
   // Local selection set of alert ids. Drives the per-row checkboxes, the
   // BulkSelectStrip's tri-state "Select all", and the floating
@@ -305,30 +310,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
 
-  // 2026-06-12 (Yuqi "if it is active already, you should land in the right
-  // tab"): opening an alert (deep link from /today, URL share, prev/next
-  // paging) syncs the queue toggle to THAT alert's queue, so the rail/list
-  // never shows a selection that isn't in the visible tab.
-  //
-  // 2026-06-15: moved off the render-phase `setState` into a transition-keyed
-  // effect. The effect runs ONLY when the open alert id (or the loaded set, for
-  // a cold deep-link before data arrives) changes — never on an unrelated
-  // re-render (scroll, window-focus refetch, hover), which is the whole class of
-  // "the tab flipped and I didn't open anything" bugs. The `queueSyncedAlertId`
-  // ref fires it once per OPEN and is reset on close, so a manual toggle
-  // afterwards is never overridden (a manual switch changes neither dep).
-  useEffect(() => {
-    if (openAlertId === null) {
-      queueSyncedAlertId.current = null
-      return
-    }
-    if (queueSyncedAlertId.current === openAlertId) return
-    const openAlert = alerts.find((alert) => alert.id === openAlertId)
-    if (!openAlert) return // set not loaded yet; re-runs when `alerts` arrives
-    queueSyncedAlertId.current = openAlertId
-    const alertQueue = isActiveAlert(openAlert) ? 'active' : 'review'
-    setWorkQueue((prev) => (prev === alertQueue ? prev : alertQueue))
-  }, [openAlertId, alerts])
+  // (The open-alert → queue-tab sync effect was removed with the Review/Active
+  // toggle — there is no mode to sync; both zones are always visible.)
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
@@ -392,8 +375,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     const trimmedQuery = searchQuery.trim().toLowerCase()
     return alerts.filter(
       (alert) =>
-        // The active board splits by work queue (Review vs Active).
-        (workQueue === 'active' ? isActiveAlert(alert) : !isActiveAlert(alert)) &&
+        // No work-queue split here anymore — the unified list shows every alert
+        // that matches the facets/search; the Needs-action / For-your-awareness
+        // zones (rendered below) split the result by `isActiveAlert`.
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
@@ -413,18 +397,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     jurisdictionFilter,
     searchQuery,
     taxAreaFilter,
-    workQueue,
   ])
-  // Per-queue counts for the segmented toggle labels. Counted off the
-  // loaded set so the badge reflects what's available, independent of the
-  // other in-list filters.
-  const workQueueCounts = useMemo(
-    () => ({
-      active: alerts.filter((alert) => isActiveAlert(alert)).length,
-      review: alerts.filter((alert) => !isActiveAlert(alert)).length,
-    }),
-    [alerts],
-  )
   // The list renderer reads `sortedAlerts` instead of `filteredAlerts` so
   // the Sort by dropdown actually reorders the cards.
   const sortedAlerts = useMemo(() => {
@@ -447,6 +420,38 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     }
     return next
   }, [filteredAlerts, sortOrder])
+
+  // Two-zone triage split (Yuqi 2026-06-21, [[project_alerts_triage_model]]):
+  //   • actionAlerts ("Needs action") = the isActiveAlert set — applies a date
+  //     change OR touches clients. A PRIORITY QUEUE: most-impacted first, then
+  //     recent, INDEPENDENT of the Sort control (the queue always leads with the
+  //     biggest exposure; the urgency pills mark the urgent rows). Errs toward
+  //     inclusion so it never hides real work.
+  //   • awarenessAlerts ("For your awareness") = the FYI rest — a chronological
+  //     DIGEST that keeps the day bands + honours the Sort control.
+  // Both derive from `sortedAlerts`, so the active facets/search apply in each.
+  const actionAlerts = useMemo(
+    () =>
+      sortedAlerts
+        .filter((alert) => alertNeedsAction(alert))
+        .toSorted(
+          (a, b) =>
+            alertImpactCount(b) - alertImpactCount(a) ||
+            new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+        ),
+    [sortedAlerts],
+  )
+  const awarenessAlerts = useMemo(
+    () => sortedAlerts.filter((alert) => !alertNeedsAction(alert)),
+    [sortedAlerts],
+  )
+  // The visible top-to-bottom order = action queue, then awareness digest. Drives
+  // detail prev/next paging + the rail + the map navigator so every surface pages
+  // in the same order the eye reads.
+  const triageOrdered = useMemo(
+    () => [...actionAlerts, ...awarenessAlerts],
+    [actionAlerts, awarenessAlerts],
+  )
 
   // The three alerts hitting the most clients, ranked by the same impact
   // count the sort uses. Zero-impact alerts never qualify (an advisory
@@ -724,13 +729,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
           // the detail to 562px, at 768 to an unusable 306px).
           <div className="hidden h-full shrink-0 lg:block">
             <AlertListRail
-              alerts={sortedAlerts}
+              alerts={triageOrdered}
               activeId={openAlertId}
               onSelect={openDrawer}
               onCloseDetail={closeDrawer}
-              workQueue={workQueue}
-              onWorkQueueChange={setWorkQueue}
-              workQueueCounts={workQueueCounts}
             />
           </div>
         ) : null}
@@ -798,69 +800,16 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     is INSET so the surrounding `overflow-y-auto` list
                     column can't clip it (an outset ring-2 was getting
                     cropped at the column's top/left edge). */}
-                {/* The primary work-queue switch leads the toolbar on the
-                    active list — Active = actionable due-date alerts,
-                    Review = review-only. Counts ride in the labels.
-                    Suppressed in history (which slices by handled status
-                    instead). */}
-                <Segmented
-                  // `lg` = 14px across the toolbar controls — the
-                  // primitive's 11–12px default read undersized next to
-                  // the 14px checkbox label sharing the row (Yuqi #4).
-                  size="lg"
-                  className="shrink-0"
-                  ariaLabel={t`Alert work queue`}
-                  value={workQueue}
-                  onValueChange={setWorkQueue}
-                  options={[
-                    {
-                      value: 'review',
-                      // 2026-06-15 (Yuqi "number in toggle never in a badge"):
-                      // plain count, not a pill. The WHOLE Review tab (label +
-                      // count) reads in the WARNING tone when it carries work —
-                      // matching the rail's needs-review dot + the rule-library
-                      // Review tab + the StatBand pending value, so Review is
-                      // unambiguously the urgent scope. The override beats the
-                      // Segmented's selected-accent on the label; selection
-                      // still reads via the chip. Not bold (red+bold is a banned
-                      // double-highlight); Active stays quiet tertiary.
-                      label: (
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5',
-                            workQueueCounts.review > 0 && 'text-text-warning',
-                          )}
-                        >
-                          <Trans>Review</Trans>
-                          <span
-                            className={cn(
-                              'tabular-nums',
-                              workQueueCounts.review === 0 && 'text-text-tertiary',
-                            )}
-                          >
-                            {workQueueCounts.review}
-                          </span>
-                        </span>
-                      ),
-                    },
-                    {
-                      value: 'active',
-                      label: (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Trans>Active</Trans>
-                          <span className="tabular-nums text-text-tertiary">
-                            {workQueueCounts.active}
-                          </span>
-                        </span>
-                      ),
-                    },
-                  ]}
-                />
+                {/* 2026-06-21 (Yuqi): the Review/Active MODE toggle is gone. The
+                    list is now a single unified triage view — a "Needs action"
+                    queue leading a "For your awareness" digest (zone bands render
+                    below, in the list body) — so there is no mode to pick; you
+                    read everything by default. See [[project_alerts_triage_model]].
+                    The toolbar now leads with the suggested-action toggle. */}
 
-                {/* Suggested-action toggle rides NEXT TO the queue switch
-                    (Yuqi /alerts #3) — both decide what the rows ARE
-                    (which queue, with or without the suggestion line),
-                    while the narrowing/sorting tools cluster right. */}
+                {/* Suggested-action toggle — flips the per-row "do this next"
+                    line in the action zone. The narrowing/sorting tools cluster
+                    to the right. */}
                 {panelOpen ? null : (
                   <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm text-text-secondary select-none">
                     <Checkbox
@@ -1010,13 +959,21 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                             aria-label={t`Sort alerts`}
                             className="text-base"
                             valueLabel={
-                              sortOrder === 'oldest' ? (
-                                <Trans>Oldest</Trans>
-                              ) : sortOrder === 'highest_impact' ? (
-                                <Trans>Impact</Trans>
-                              ) : (
-                                <Trans>Newest</Trans>
-                              )
+                              // 2026-06-21 (Yuqi /alerts #3 "fixed width
+                              // button"): the value sits in a fixed-min-width,
+                              // left-aligned slot so the trigger doesn't resize
+                              // when the sort flips Newest↔Oldest↔Impact — the
+                              // differing glyph widths used to nudge the
+                              // view-mode toggle beside it on every change.
+                              <span className="inline-block min-w-[3.5rem] text-left">
+                                {sortOrder === 'oldest' ? (
+                                  <Trans>Oldest</Trans>
+                                ) : sortOrder === 'highest_impact' ? (
+                                  <Trans>Impact</Trans>
+                                ) : (
+                                  <Trans>Newest</Trans>
+                                )}
+                              </span>
                             }
                           >
                             <span>
@@ -1100,9 +1057,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   {/* BOTTOM/RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-full shrink-0 flex-col gap-2 overflow-y-auto xl:w-[460px]">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
+                      {/* 2026-06-21 (Yuqi /alerts #4): "Active alerts" collided
+                          with the Active work-queue tab — the count here is just
+                          the alerts currently shown (Review or Active), so the
+                          label read "ACTIVE ALERTS 5" while sitting on the Review
+                          queue. Neutralized to "Alerts". */}
                       <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
-                        <Trans>Active alerts</Trans>
-                        <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
+                        <Trans>Alerts</Trans>
+                        <span className="ml-2 tabular-nums">{triageOrdered.length}</span>
                       </CapsFieldLabel>
                     </div>
                     {isFilteredEmpty ? (
@@ -1117,7 +1079,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       // Bulk-selection is off here (the map rail is a
                       // navigator, not a bulk surface).
                       <PulseAlertList
-                        alerts={sortedAlerts}
+                        // Action-first order (Yuqi 2026-06-21): the map navigator
+                        // leads with what needs action, then the FYI digest.
+                        alerts={triageOrdered}
                         openAlertId={openAlertId}
                         onReview={openDrawerAndCollapseSidebar}
                         compact
@@ -1149,28 +1113,121 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   sweepActive={morningSweep?.active ?? false}
                 />
               ) : (
-                <PulseAlertList
-                  alerts={sortedAlerts}
-                  openAlertId={openAlertId}
-                  onReview={openDrawerAndCollapseSidebar}
-                  showAction={showSuggestedAction}
-                  // Day-group headers only make sense chronologically, so
-                  // drop them when the list is ordered by impact (a flat
-                  // ranked list); every other sort keeps the day bands.
-                  grouped={sortOrder !== 'highest_impact'}
-                  highImpactIds={highImpactIds}
-                  // Bulk-selection + smart-priority insets. Selection is
-                  // active-surface + list-view only; priority insets come
-                  // from the priority queue.
-                  selectable={selectionEnabled}
-                  selectedIds={selectedIds}
-                  onToggleSelected={toggleSelected}
-                  onSelectAll={toggleSelectAll}
-                  priorityById={priorityById}
-                  // The hover-only Dismiss button in each PulseAlertRow
-                  // routes through the dismiss mutation → toast.
-                  onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
-                />
+                // Unified two-zone triage list (Yuqi 2026-06-21,
+                // [[project_alerts_triage_model]]): the "Needs action" priority
+                // queue leads at full weight; the collapsible "For your awareness"
+                // digest follows, demoted. No mode toggle — you read everything by
+                // default. `gap-4` separates the two zones.
+                <div className="flex flex-col gap-4">
+                  {/* NEEDS ACTION — the priority queue. Always rendered (even at
+                      zero) so the "you're caught up" beat has a home. */}
+                  <section className="group/zone flex flex-col">
+                    <div className="flex items-center gap-2.5 px-5 py-2">
+                      {/* Zone-level select-all (the action zone is flat, so it has
+                          no per-day band to host one). Hover-revealed like the row
+                          checkboxes unless a selection is already underway. */}
+                      {selectionEnabled && actionAlerts.length > 0 ? (
+                        <Checkbox
+                          checked={actionAlerts.every((a) => selectedIds.has(a.id))}
+                          indeterminate={
+                            actionAlerts.some((a) => selectedIds.has(a.id)) &&
+                            !actionAlerts.every((a) => selectedIds.has(a.id))
+                          }
+                          onCheckedChange={(next) => {
+                            for (const a of actionAlerts) toggleSelected(a.id, next)
+                          }}
+                          aria-label={t`Select all alerts that need action`}
+                          className={cn(
+                            'size-[18px] rounded transition-opacity',
+                            selectedCount > 0
+                              ? 'opacity-100'
+                              : 'opacity-0 group-hover/zone:opacity-100 focus-visible:opacity-100',
+                          )}
+                        />
+                      ) : null}
+                      <span className="inline-flex items-center gap-1.5">
+                        <ZapIcon className="size-3.5 shrink-0 text-text-warning" aria-hidden />
+                        <span className="text-sm font-semibold text-text-primary">
+                          <Trans>Needs action</Trans>
+                        </span>
+                      </span>
+                      <span className="text-sm tabular-nums text-text-tertiary">
+                        {actionAlerts.length}
+                      </span>
+                    </div>
+                    {actionAlerts.length > 0 ? (
+                      <PulseAlertList
+                        alerts={actionAlerts}
+                        openAlertId={openAlertId}
+                        onReview={openDrawerAndCollapseSidebar}
+                        showAction={showSuggestedAction}
+                        // The action zone is a flat priority queue (most-impacted
+                        // first); day bands belong to the chronological digest.
+                        grouped={false}
+                        highImpactIds={highImpactIds}
+                        selectable={selectionEnabled}
+                        selectedIds={selectedIds}
+                        onToggleSelected={toggleSelected}
+                        onSelectAll={toggleSelectAll}
+                        priorityById={priorityById}
+                        onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
+                      />
+                    ) : (
+                      // The queue drained. The awareness digest still shows below,
+                      // so the page is never blank — just calm.
+                      <div className="flex items-center gap-2 rounded-xl bg-background-default px-5 py-4 text-sm text-text-secondary">
+                        <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
+                        <Trans>You're caught up — nothing needs action right now.</Trans>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* FOR YOUR AWARENESS — the chronological digest. Demoted +
+                      collapsible (the optional "focus" that replaces the old
+                      toggle); keeps the day bands. Hidden entirely when empty. */}
+                  {awarenessAlerts.length > 0 ? (
+                    <section className="flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
+                        aria-expanded={!awarenessCollapsed}
+                        className="flex items-center gap-2 px-5 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
+                        <ChevronDownIcon
+                          className={cn(
+                            'size-4 shrink-0 text-text-tertiary transition-transform',
+                            awarenessCollapsed && '-rotate-90',
+                          )}
+                          aria-hidden
+                        />
+                        <EyeIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                        <span className="text-sm font-medium text-text-secondary">
+                          <Trans>For your awareness</Trans>
+                        </span>
+                        <span className="text-sm tabular-nums text-text-tertiary">
+                          {awarenessAlerts.length}
+                        </span>
+                      </button>
+                      {!awarenessCollapsed ? (
+                        <PulseAlertList
+                          alerts={awarenessAlerts}
+                          openAlertId={openAlertId}
+                          onReview={openDrawerAndCollapseSidebar}
+                          // FYI rows carry no "do this next" line.
+                          showAction={false}
+                          grouped={sortOrder !== 'highest_impact'}
+                          highImpactIds={highImpactIds}
+                          selectable={selectionEnabled}
+                          selectedIds={selectedIds}
+                          onToggleSelected={toggleSelected}
+                          onSelectAll={toggleSelectAll}
+                          priorityById={priorityById}
+                          onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
+                        />
+                      ) : null}
+                    </section>
+                  ) : null}
+                </div>
               )}
             </>
           )}
@@ -1220,11 +1277,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 className="flex h-full w-full min-w-0"
               >
                 {(() => {
-                  // Thread the sorted-list ordering so the drawer's top
-                  // bar can page prev/next + show "N of M". The index is
-                  // into the same `sortedAlerts` the list renders, so
-                  // paging matches the visible order.
-                  const openIndex = sortedAlerts.findIndex((alert) => alert.id === openAlertId)
+                  // Thread the visible triage order (action queue, then awareness
+                  // digest) so the drawer's top bar pages prev/next + shows "N of
+                  // M" in the SAME order the eye reads the list.
+                  const openIndex = triageOrdered.findIndex((alert) => alert.id === openAlertId)
                   return (
                     <AlertDetailDrawer
                       mode="panel"
@@ -1232,15 +1288,15 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       onClose={closeDrawer}
                       {...(openIndex >= 0
                         ? {
-                            position: { index: openIndex, total: sortedAlerts.length },
+                            position: { index: openIndex, total: triageOrdered.length },
                             ...(openIndex > 0
                               ? {
-                                  onPrev: () => openDrawer(sortedAlerts[openIndex - 1]!.id),
+                                  onPrev: () => openDrawer(triageOrdered[openIndex - 1]!.id),
                                 }
                               : {}),
-                            ...(openIndex < sortedAlerts.length - 1
+                            ...(openIndex < triageOrdered.length - 1
                               ? {
-                                  onNext: () => openDrawer(sortedAlerts[openIndex + 1]!.id),
+                                  onNext: () => openDrawer(triageOrdered[openIndex + 1]!.id),
                                 }
                               : {}),
                           }
@@ -1568,9 +1624,36 @@ function AlertFiltersPopover({
           </FilterTrigger>
         }
       />
-      <PopoverContent align="start" className="w-[264px] p-3">
-        <div className="flex flex-col gap-3.5">
+      {/* 2026-06-21 (Yuqi /alerts #2 "polish + improve the expanded filter"):
+          the popover gained a titled header that gives the panel a clear
+          identity and a PERSISTENT home for "Clear all" (it used to be a stray
+          link at the bottom that only appeared once something was applied), and
+          the four facets are now separated by full-width hairlines (`divide-y`)
+          instead of bare whitespace — section header + rule + space, the
+          canonical "clear sections, not boxes" delineation. A touch wider
+          (280px) so "Individual income" / "Franchise & fees" stop wrapping. */}
+      <PopoverContent align="start" className="w-[280px] p-0">
+        <div className="flex items-center justify-between gap-3 border-b border-divider-subtle px-3.5 py-2.5">
+          <span className="text-sm font-semibold text-text-primary">
+            <Trans>Filters</Trans>
+          </span>
+          {activeCount > 0 ? (
+            <TextLink
+              variant="accent"
+              onClick={() => {
+                onTimeRangeChange('all_time')
+                onImpactChange('all')
+                onChangeKindChange('all')
+                onTaxAreaChange('all')
+              }}
+            >
+              <Trans>Clear all</Trans>
+            </TextLink>
+          ) : null}
+        </div>
+        <div className="flex flex-col divide-y divide-divider-subtle px-3.5">
           <FilterPillSection
+            className="py-3"
             label={t`Time`}
             value={timeRangeFilter}
             options={TIME_RANGE_FILTER_OPTIONS}
@@ -1582,6 +1665,7 @@ function AlertFiltersPopover({
               the underlying `impactFilter`; "Severity" named a different axis
               than its contents (critique #10). */}
           <FilterPillSection
+            className="py-3"
             label={t`Impact`}
             value={impactFilter}
             options={ALERT_IMPACT_FILTER_OPTIONS}
@@ -1589,6 +1673,7 @@ function AlertFiltersPopover({
             onSelect={onImpactChange}
           />
           <FilterPillSection
+            className="py-3"
             label={t`Change type`}
             value={changeKindFilter}
             options={CHANGE_KIND_FILTER_OPTIONS}
@@ -1596,26 +1681,13 @@ function AlertFiltersPopover({
             onSelect={onChangeKindChange}
           />
           <FilterPillSection
+            className="py-3"
             label={t`Tax area`}
             value={taxAreaFilter}
             options={TAX_AREA_FILTER_OPTIONS}
             getLabel={taxAreaFilterLabel}
             onSelect={onTaxAreaChange}
           />
-          {activeCount > 0 ? (
-            <TextLink
-              variant="accent"
-              className="self-start"
-              onClick={() => {
-                onTimeRangeChange('all_time')
-                onImpactChange('all')
-                onChangeKindChange('all')
-                onTaxAreaChange('all')
-              }}
-            >
-              <Trans>Clear these filters</Trans>
-            </TextLink>
-          ) : null}
         </div>
       </PopoverContent>
     </Popover>
@@ -1634,15 +1706,17 @@ function FilterPillSection<T extends string>({
   options,
   getLabel,
   onSelect,
+  className,
 }: {
   label: string
   value: T
   options: readonly T[]
   getLabel: (option: T) => React.ReactNode
   onSelect: (option: T) => void
+  className?: string
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn('flex flex-col gap-2', className)}>
       <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
         {label}
       </CapsFieldLabel>

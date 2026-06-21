@@ -253,10 +253,50 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   alert" hint, distinct from the footer's source link. Motion on glyphs and
   scale only, never shadows; `motion-reduce` zeroes both.
 - /today card click → `/alerts?alert=<id>` (DrawerProvider navigates when
-  off-route). The /alerts page auto-syncs the Review/Active toggle to the
-  opened alert's queue and the rail scrolls the selection into view
-  (`scrollIntoView block:'start'` on first paint) — verified end-to-end
-  2026-06-12.
+  off-route). The /alerts list shows both triage zones at once (no mode to
+  sync — see the triage section below), so opening an alert just scrolls the
+  rail selection into view (`scrollIntoView block:'start'` on first paint).
+
+---
+
+## /alerts list: two-zone triage (2026-06-21, replaces the Review/Active toggle)
+
+The `/alerts` list is a single unified triage view — no Review/Active mode
+toggle. The split that toggle encoded (`actionMode`) was a taxonomy of the
+*alert*, not the *CPA's* workflow, and it forced a mode choice before you saw
+anything. The list now organizes itself around the job:
+
+```
+⚡ Needs action  4                          ← zone band (Zap icon, warning tone)
+   <full-weight rows, ordered by client reach>
+   …
+👁 For your awareness  5            ▾        ← zone band (Eye, collapsible)
+   MAY 20, 2026                              ← digest keeps the day bands
+   <FYI rows, no suggested-action line>
+   …
+```
+
+- **Needs action** = a priority QUEUE. Membership = `alertNeedsAction()`
+  (`pulse-alert-chrome.ts`): the `isActiveAlert` set (applies a date change OR
+  touches clients) PLUS protective-claim windows, which close for good on
+  their deadline even with no client matched yet. The predicate **errs toward
+  action** — hiding real work is the one failure the model can't afford. Rows
+  are flat (no day bands), ordered by reach (`matchedCount + needsReviewCount`)
+  then recency.
+- **For your awareness** = a chronological DIGEST. The FYI remainder. Demoted,
+  **collapsible** (chevron + count — the optional "focus" that replaces the
+  toggle), keeps the day-group bands, and FYI rows drop the
+  suggested-action line.
+- **Empty action zone** → "You're caught up — nothing needs action" + the
+  digest still shows (never a blank page).
+- **Consistency**: the detail rail + the map navigator both order action-first
+  (`triageOrdered = [...actionAlerts, ...awarenessAlerts]`); the rail drops a
+  "For your awareness" divider where the digest begins.
+- **Deep-link back-compat**: `?queue=active` → land focused (digest collapsed);
+  anything else (incl. /today's `?queue=review`) → land with everything open.
+
+Supersedes `006bc09d` ("Review is the default queue"). Decision record:
+`docs/dev-log/_alerts-feedback-triage-2026-06-21.md`.
 
 ---
 
