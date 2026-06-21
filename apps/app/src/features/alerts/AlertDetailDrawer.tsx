@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -54,6 +54,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -837,6 +838,11 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
   )
 }
 
+// Apply-success celebration hold: how long the footer shows the green "Applied"
+// confirmation before the drawer closes. ~600ms reads as a deliberate beat of
+// recognition (the catalog's "win moment") without making the user wait.
+const APPLIED_CELEBRATION_MS = 600
+
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
 // evidence + email outbox in one transaction (see packages/db/src/repo/pulse.ts).
@@ -988,6 +994,20 @@ export function AlertDetailDrawer({
   const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
   const [applyVerified, setApplyVerified] = useState(false)
 
+  // Apply-success celebration — the one-click Apply is the product's signature
+  // win, but it used to close the drawer instantly with only a toast. On success
+  // we flip the footer to a green "Applied" confirmation, hold briefly so the
+  // firm-wide win registers, then close. `applied` is reset by the render-time
+  // reset blocks below (alert change / close); the timer is cleared on unmount.
+  const [applied, setApplied] = useState(false)
+  const appliedCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (appliedCloseTimer.current) clearTimeout(appliedCloseTimer.current)
+    },
+    [],
+  )
+
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
   const nextResetKey = detail
@@ -1016,6 +1036,7 @@ export function AlertDetailDrawer({
     setApplyVerified(false)
     setHeroScrolled(false)
     setDecisionDocked(true)
+    setApplied(false)
     setResetKey(nextResetKey)
   }
   if (!open && resetKey !== null) {
@@ -1026,6 +1047,7 @@ export function AlertDetailDrawer({
     setReviewNote('')
     setApplyVerificationOpen(false)
     setApplyVerified(false)
+    setApplied(false)
     setResetKey(null)
   }
 
@@ -1142,7 +1164,12 @@ export function AlertDetailDrawer({
             onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
           },
         })
-        onClose()
+        // Hold a brief green "Applied" confirmation in the footer before
+        // closing, so the firm-wide win registers (motion catalog). The timer
+        // is cleared on unmount; `applied` is reset by the render-time reset
+        // blocks when the alert changes or the drawer closes.
+        setApplied(true)
+        appliedCloseTimer.current = setTimeout(() => onClose(), APPLIED_CELEBRATION_MS)
       },
       onError: (err) => {
         const description = i18n._(alertErrorDescriptor(err)) || (rpcErrorMessage(err) ?? '')
@@ -2422,6 +2449,7 @@ export function AlertDetailDrawer({
                 <div className="flex min-w-0 flex-1">
                   {detail ? (
                     <DrawerActions
+                      applied={applied}
                       alertStatus={detail.alert.status}
                       sourceStatus={detail.alert.sourceStatus}
                       selectionCount={stats?.selectedCount ?? 0}
@@ -2587,6 +2615,7 @@ export function AlertDetailDrawer({
 }
 
 export function DrawerActions({
+  applied = false,
   alertStatus,
   sourceStatus,
   selectionCount,
@@ -2611,6 +2640,8 @@ export function DrawerActions({
   onCopyDraft,
   onDismiss,
 }: {
+  /** True during the brief post-apply success hold — shows a green confirmation. */
+  applied?: boolean
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
@@ -2645,6 +2676,22 @@ export function DrawerActions({
   onDismiss: () => void
 }) {
   const { t } = useLingui()
+  // Apply-success celebration — while the parent holds before closing, replace
+  // the whole action cluster with a brief green "Applied" confirmation that
+  // fades in. Reduced-motion is handled globally by <MotionConfig>.
+  if (applied) {
+    return (
+      <div className="flex w-full items-center justify-end">
+        <motion.div
+          {...fadeMotion}
+          className="flex items-center gap-2 text-sm font-medium text-text-success"
+        >
+          <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
+          <Trans>Applied</Trans>
+        </motion.div>
+      </div>
+    )
+  }
   // The server rejects reverts past REVERT_WINDOW_MS (24h from apply), so
   // the footer only offers Undo while the window is genuinely open. After
   // that, a quiet closed-window line replaces the button — never an enabled
