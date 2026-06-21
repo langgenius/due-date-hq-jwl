@@ -913,7 +913,19 @@ export function PathToFilingSummary({
                   : t`This stage hasn't been reached yet. We only project the Filed date (using the internal due date).`
                 : undefined
           return (
-            <div key={stage.key} className="flex flex-col items-center gap-0.5">
+            <div
+              key={stage.key}
+              className={cn(
+                'flex flex-col items-center gap-0.5 transition-opacity',
+                // Future stages recede (asymmetric-stage-attention canon:
+                // "future ghosted at ~0.5 opacity") so the active + entered
+                // stages carry the visual weight. Done this way — opacity on the
+                // whole upcoming column, not column-width compression — because
+                // narrowing the inactive columns would truncate the full stage
+                // labels ("Waiting on client") this strip deliberately shows.
+                state === 'upcoming' && 'opacity-55',
+              )}
+            >
               <div className="flex w-full items-center gap-1">
                 <span
                   aria-hidden
@@ -957,7 +969,7 @@ export function PathToFilingSummary({
                     // ALWAYS accent — red lives in the status banner only, so
                     // the page states overdue once instead of echoing it in
                     // every component.
-                    'grid size-5 shrink-0 place-items-center rounded-full border',
+                    'grid size-5 shrink-0 place-items-center rounded-full border transition-colors',
                     state === 'done' || state === 'active'
                       ? 'border-transparent bg-state-accent-solid text-text-inverted'
                       : state === 'skipped'

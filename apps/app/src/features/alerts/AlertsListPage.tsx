@@ -88,16 +88,18 @@ import {
 import { alertImpactCount, alertImpactLevel } from './lib/impact-level'
 import { isActiveAlert } from './components/pulse-alert-chrome'
 import {
-  CHANGE_KIND_FILTER_OPTIONS,
-  matchesChangeKindFilter,
+  CHANGE_KIND_FILTER_SELECTABLE,
+  matchesChangeKindSelection,
   matchesStatusFilter,
-  matchesTaxAreaFilter,
+  matchesTaxAreaSelection,
   sourceLabel,
-  TAX_AREA_FILTER_OPTIONS,
-  type AlertChangeKindFilter,
+  TAX_AREA_FILTER_SELECTABLE,
+  type AlertChangeKindFilterGroup,
+  type AlertChangeKindSelection,
   type AlertStatusFilter,
-  type AlertTaxAreaFilter,
+  type AlertTaxAreaSelection,
 } from './lib/alert-filters'
+import type { TaxArea } from '@duedatehq/contracts'
 
 // Status filters are scoped by surface: the active queue exposes only
 // active-workflow states, while history exposes CPA-handled states.
@@ -129,11 +131,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const openDrawerAndCollapseSidebar = openDrawer
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
-  const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
-  // Single-select service-line filter. Each alert carries a derived
-  // `taxAreas` array; 'all' shows everything (including alerts the server
-  // could not classify into a bucket).
-  const [taxAreaFilter, setTaxAreaFilter] = useState<AlertTaxAreaFilter>('all')
+  // Multi-select change-type filter (img-125): the facet is a checkbox
+  // popover, so its applied state is an ARRAY of change-kind groups. An empty
+  // array = "all" (no narrowing), matching the previous single-select default.
+  const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindSelection>([])
+  // Multi-select service-line filter. Each alert carries a derived
+  // `taxAreas` array; an empty selection shows everything (including alerts
+  // the server could not classify into a bucket).
+  const [taxAreaFilter, setTaxAreaFilter] = useState<AlertTaxAreaSelection>([])
   // Time-range filter ("Last 24 hours" / "Last 7 days" / "All time").
   // Default all_time so existing behavior doesn't change for unaware
   // callers. When set to last_24h / last_7d, alerts older than the window
@@ -304,6 +309,13 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+  // Failing monitored sources are the one source-health fact worth surfacing in
+  // the header — a CPA needs to know if a feed they rely on has gone dark. The
+  // healthy/paused ratio stays silent (absence = all-clear, per the list's own
+  // grammar). Real data: pulse source-health status (img-151, scoped to errors).
+  const sourceErrorCount = sourceHealth.filter(
+    (s) => s.healthStatus === 'degraded' || s.healthStatus === 'failing',
+  ).length
 
   // 2026-06-12 (Yuqi "if it is active already, you should land in the right
   // tab"): opening an alert (deep link from /today, URL share, prev/next
@@ -396,8 +408,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
         (workQueue === 'active' ? isActiveAlert(alert) : !isActiveAlert(alert)) &&
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
-        matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
-        matchesTaxAreaFilter(alert.taxAreas, taxAreaFilter) &&
+        matchesChangeKindSelection(alert.changeKind, changeKindFilter) &&
+        matchesTaxAreaSelection(alert.taxAreas, taxAreaFilter) &&
         (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
         (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
         (trimmedQuery === '' ||
@@ -521,8 +533,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     morningSweep?.deactivate()
     setImpactFilter('all')
     setStatusFilter('all')
-    setChangeKindFilter('all')
-    setTaxAreaFilter('all')
+    setChangeKindFilter([])
+    setTaxAreaFilter([])
     setJurisdictionFilter(null)
     setTimeRangeFilter('all_time')
     setSearchQuery('')
@@ -534,8 +546,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     (morningSweep?.active ?? false) ||
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
-    changeKindFilter !== 'all' ||
-    taxAreaFilter !== 'all' ||
+    changeKindFilter.length > 0 ||
+    taxAreaFilter.length > 0 ||
     jurisdictionFilter !== null ||
     timeRangeFilter !== 'all_time' ||
     searchQuery.trim() !== ''
@@ -628,6 +640,23 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     />
                     <Trans>Live</Trans>
                   </Badge>
+                  {/* Source-error chip — only when a monitored source is
+                      degraded/failing. Destructive tint + links to /rules/sources
+                      so the CPA can act. Silent when all sources are healthy. */}
+                  {sourceErrorCount > 0 ? (
+                    <Badge
+                      variant="destructive"
+                      size="lg"
+                      className="gap-1 tabular-nums"
+                      render={<Link to="/rules/sources" />}
+                    >
+                      <Plural
+                        value={sourceErrorCount}
+                        one="# source error"
+                        other="# source errors"
+                      />
+                    </Badge>
+                  ) : null}
                 </>
               ) : null}
             </span>
@@ -1545,19 +1574,21 @@ function AlertFiltersPopover({
   onTimeRangeChange: (value: TimeRangeFilter) => void
   impactFilter: AlertImpactFilter
   onImpactChange: (value: AlertImpactFilter) => void
-  changeKindFilter: AlertChangeKindFilter
-  onChangeKindChange: (value: AlertChangeKindFilter) => void
-  taxAreaFilter: AlertTaxAreaFilter
-  onTaxAreaChange: (value: AlertTaxAreaFilter) => void
+  changeKindFilter: AlertChangeKindSelection
+  onChangeKindChange: (value: AlertChangeKindSelection) => void
+  taxAreaFilter: AlertTaxAreaSelection
+  onTaxAreaChange: (value: AlertTaxAreaSelection) => void
 }) {
   const { t } = useLingui()
   // The active count includes the time filter so the trigger badge
-  // reflects an applied "Last 24h / 7d" too.
+  // reflects an applied "Last 24h / 7d" too. The multi-select facets count as
+  // one active facet each when ANY option is chosen (not one per checked box) —
+  // the per-facet count is surfaced inside the section instead.
   const activeCount =
     (timeRangeFilter !== 'all_time' ? 1 : 0) +
     (impactFilter !== 'all' ? 1 : 0) +
-    (changeKindFilter !== 'all' ? 1 : 0) +
-    (taxAreaFilter !== 'all' ? 1 : 0)
+    (changeKindFilter.length > 0 ? 1 : 0) +
+    (taxAreaFilter.length > 0 ? 1 : 0)
   return (
     <Popover>
       <PopoverTrigger
@@ -1600,19 +1631,21 @@ function AlertFiltersPopover({
             getLabel={impactFilterLabel}
             onSelect={onImpactChange}
           />
-          <FilterPillSection
+          <FilterCheckboxSection
             label={t`Change type`}
-            value={changeKindFilter}
-            options={CHANGE_KIND_FILTER_OPTIONS}
-            getLabel={changeKindFilterLabel}
-            onSelect={onChangeKindChange}
+            options={CHANGE_KIND_FILTER_SELECTABLE}
+            selected={changeKindFilter}
+            getLabel={changeKindGroupLabel}
+            selectAllLabel={t`All change types`}
+            onChange={onChangeKindChange}
           />
-          <FilterPillSection
+          <FilterCheckboxSection
             label={t`Tax area`}
-            value={taxAreaFilter}
-            options={TAX_AREA_FILTER_OPTIONS}
-            getLabel={taxAreaFilterLabel}
-            onSelect={onTaxAreaChange}
+            options={TAX_AREA_FILTER_SELECTABLE}
+            selected={taxAreaFilter}
+            getLabel={taxAreaGroupLabel}
+            selectAllLabel={t`All tax areas`}
+            onChange={onTaxAreaChange}
           />
           {activeCount > 0 ? (
             <TextLink
@@ -1621,8 +1654,8 @@ function AlertFiltersPopover({
               onClick={() => {
                 onTimeRangeChange('all_time')
                 onImpactChange('all')
-                onChangeKindChange('all')
-                onTaxAreaChange('all')
+                onChangeKindChange([])
+                onTaxAreaChange([])
               }}
             >
               <Trans>Clear these filters</Trans>
@@ -1669,6 +1702,94 @@ function FilterPillSection<T extends string>({
   )
 }
 
+/**
+ * A multi-select facet inside the Filters popover — an uppercase section label,
+ * a "Select all" tri-state checkbox row, then one Checkbox row per option
+ * (img-125). Selection is an ARRAY; an EMPTY array is the canonical "all"
+ * (nothing narrowed), so "Select all" reads checked when the array is empty and
+ * indeterminate when a strict subset is chosen. Toggling a single option out of
+ * the "all" state seeds a fresh selection of every OTHER option; checking the
+ * last missing option collapses back to the empty (= all) state. Generic over
+ * the facet's literal-string union so each section reuses its option list +
+ * humanized label helper.
+ */
+function FilterCheckboxSection<T extends string>({
+  label,
+  options,
+  selected,
+  getLabel,
+  selectAllLabel,
+  onChange,
+}: {
+  label: string
+  options: readonly T[]
+  selected: readonly T[]
+  getLabel: (option: T) => React.ReactNode
+  selectAllLabel: string
+  onChange: (next: readonly T[]) => void
+}) {
+  // Empty selection = "all" (no narrowing). So a row reads checked either when
+  // nothing is narrowed (every option is implicitly active) or when it is
+  // explicitly in the chosen subset.
+  const count = selected.length
+  const isAll = count === 0
+  const isChecked = (option: T) => isAll || selected.includes(option)
+  const toggleOption = (option: T) => {
+    // From the "all" state, unchecking one option means "everything except
+    // this" — seed the array with the other options.
+    const base = isAll ? options : selected
+    const next = base.includes(option)
+      ? base.filter((value) => value !== option)
+      : [...base, option]
+    // If the user re-selected every option, fold back to the empty (= all)
+    // state so the trigger badge clears and behaviour matches the default.
+    onChange(next.length === options.length ? [] : next)
+  }
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
+          {label}
+        </CapsFieldLabel>
+        {/* Per-facet count rides next to the section label (not the shared
+            trigger, which collapses every facet to a single number) so a CPA
+            can see "2 selected" while the popover is open. */}
+        {!isAll ? (
+          <span className="text-xs tabular-nums text-text-tertiary">
+            <Plural value={count} one="# selected" other="# selected" />
+          </span>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <label className="flex cursor-pointer items-center gap-2 rounded-sm py-1 text-base text-text-secondary">
+          <Checkbox
+            checked={isAll}
+            indeterminate={!isAll}
+            // Either side of the toggle lands on the canonical "all" state:
+            // checking it clears the subset; clicking it while indeterminate
+            // also clears back to all (the conventional select-all gesture).
+            onCheckedChange={() => onChange([])}
+            aria-label={selectAllLabel}
+          />
+          <span className="flex-1 truncate">{selectAllLabel}</span>
+        </label>
+        {options.map((option) => (
+          <label
+            key={option}
+            className="flex cursor-pointer items-center gap-2 rounded-sm py-1 text-base text-text-primary"
+          >
+            <Checkbox
+              checked={isChecked(option)}
+              onCheckedChange={() => toggleOption(option)}
+            />
+            <span className="flex-1 truncate">{getLabel(option)}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function timeRangeFilterLabel(filter: TimeRangeFilter): React.ReactNode {
   if (filter === 'last_24h') return <Trans>Last 24 hours</Trans>
   if (filter === 'last_7d') return <Trans>Last 7 days</Trans>
@@ -1683,27 +1804,26 @@ function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
   return <Trans>Closed</Trans>
 }
 
-// Filter dropdown labels. These name the four collapsed buckets defined by
+// Filter labels for the four collapsed change-type buckets defined by
 // `CHANGE_KIND_FILTER_GROUP_MEMBERS`, not the nine underlying kinds — the
-// per-card chip (`PulseChangeKindChip`) still names the precise kind.
-function changeKindFilterLabel(filter: AlertChangeKindFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All change types</Trans>
-  if (filter === 'deadlines') return <Trans>Deadlines</Trans>
-  if (filter === 'rules') return <Trans>Rules & forms</Trans>
-  if (filter === 'source') return <Trans>Source updates</Trans>
+// per-card chip (`PulseChangeKindChip`) still names the precise kind. The
+// checkbox rows now drive selection, so there is no "all" pseudo-option here.
+function changeKindGroupLabel(group: AlertChangeKindFilterGroup): React.ReactNode {
+  if (group === 'deadlines') return <Trans>Deadlines</Trans>
+  if (group === 'rules') return <Trans>Rules & forms</Trans>
+  if (group === 'source') return <Trans>Source updates</Trans>
   return <Trans>Other changes</Trans>
 }
 
-// Tax-area filter labels — the six service-line buckets (+ "all"). Names the
-// derived `taxAreas` values from @duedatehq/core/tax-area; the per-card chips
-// still carry the precise form / jurisdiction.
-function taxAreaFilterLabel(filter: AlertTaxAreaFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All tax areas</Trans>
-  if (filter === 'income_individual') return <Trans>Individual income</Trans>
-  if (filter === 'income_business') return <Trans>Business income</Trans>
-  if (filter === 'sales_use') return <Trans>Sales & use</Trans>
-  if (filter === 'payroll_withholding') return <Trans>Payroll</Trans>
-  if (filter === 'franchise') return <Trans>Franchise & fees</Trans>
+// Tax-area filter labels — the six service-line buckets. Names the derived
+// `taxAreas` values from @duedatehq/core/tax-area; the per-card chips still
+// carry the precise form / jurisdiction.
+function taxAreaGroupLabel(area: TaxArea): React.ReactNode {
+  if (area === 'income_individual') return <Trans>Individual income</Trans>
+  if (area === 'income_business') return <Trans>Business income</Trans>
+  if (area === 'sales_use') return <Trans>Sales & use</Trans>
+  if (area === 'payroll_withholding') return <Trans>Payroll</Trans>
+  if (area === 'franchise') return <Trans>Franchise & fees</Trans>
   return <Trans>Information</Trans>
 }
 

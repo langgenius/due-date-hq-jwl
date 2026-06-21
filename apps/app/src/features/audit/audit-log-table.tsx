@@ -239,7 +239,7 @@ function AuditTimelineRow({
       data-audit-action={event.action}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className="flex cursor-pointer gap-4 border-b border-divider-subtle px-5 py-3.5 outline-none transition-colors last:border-b-0 hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+      className="flex cursor-pointer gap-4 border-b border-divider-subtle px-5 py-3.5 outline-none transition last:border-b-0 hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset active:scale-[0.99] motion-reduce:active:scale-100"
     >
       {/* Left time rail */}
       <div className="grid w-16 shrink-0 gap-0.5 pt-0.5 sm:w-[88px]">

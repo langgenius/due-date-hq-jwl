@@ -188,6 +188,11 @@ function buildScoped(firmId: string, rows: Row[]) {
       if (!row) throw new Error('not found')
       map.set(id, { ...row, snoozedUntil, updatedAt: new Date() })
     },
+    async setPinned(id: string, isPinned: boolean) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, isPinned, updatedAt: new Date() })
+    },
     async unblockChildrenOf() {
       return []
     },
@@ -755,6 +760,7 @@ function makeRow(over: Partial<Row> = {}): Row {
     efileRejectedAt: null,
     assigneeId: null,
     snoozedUntil: null,
+    isPinned: false,
     migrationBatchId: null,
     estimatedTaxDueCents: null,
     estimatedExposureCents: null,

@@ -86,6 +86,9 @@ export const ObligationQueueListInputSchema = z.object({
   // Projected/confirmed lens. `false` returns only projected (annual-rollover /
   // auto-projection) deadlines awaiting CPA confirmation; `true` only confirmed.
   confirmed: z.boolean().optional(),
+  // Pinned lens. `true` returns only deadlines the CPA has starred — powers the
+  // dashboard "Pinned" section. Omitted = no pin filter.
+  pinned: z.boolean().optional(),
   asOfDate: z.iso.date().optional(),
   sort: ObligationQueueSortSchema.default('smart_priority').optional(),
   cursor: z.string().nullable().optional(),
@@ -307,9 +310,30 @@ export const ObligationQueueDetailSchema = z.object({
 })
 export type ObligationQueueDetail = z.infer<typeof ObligationQueueDetailSchema>
 
+/**
+ * Pin / unpin a single deadline. `isPinned` true stars it (surfaces in the
+ * dashboard Pinned section); false un-stars. Returns the new flag + the audit
+ * id so the UI can optimistically reconcile.
+ */
+export const ObligationQueueSetPinnedInputSchema = z.object({
+  obligationId: EntityIdSchema,
+  isPinned: z.boolean(),
+})
+export type ObligationQueueSetPinnedInput = z.infer<typeof ObligationQueueSetPinnedInputSchema>
+
+export const ObligationQueueSetPinnedOutputSchema = z.object({
+  obligationId: EntityIdSchema,
+  isPinned: z.boolean(),
+  auditId: EntityIdSchema,
+})
+export type ObligationQueueSetPinnedOutput = z.infer<typeof ObligationQueueSetPinnedOutputSchema>
+
 export const obligationQueueContract = oc.router({
   list: oc.input(ObligationQueueListInputSchema).output(ObligationQueueListOutputSchema),
   getDetail: oc.input(ObligationQueueDetailInputSchema).output(ObligationQueueDetailSchema),
+  setPinned: oc
+    .input(ObligationQueueSetPinnedInputSchema)
+    .output(ObligationQueueSetPinnedOutputSchema),
   facets: oc.input(z.undefined()).output(ObligationQueueFacetsOutputSchema),
   listSavedViews: oc.input(z.undefined()).output(z.array(ObligationQueueSavedViewSchema)),
   createSavedView: oc

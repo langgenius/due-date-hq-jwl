@@ -89,6 +89,7 @@ interface RawRow {
   efileRejectedAt: Date | null
   assigneeId: string | null
   snoozedUntil: Date | null
+  isPinned: boolean
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
   estimatedExposureCents: number | null
@@ -227,6 +228,7 @@ function toRow(
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
     assigneeId: row.assigneeId ?? null,
     snoozedUntil: row.snoozedUntil?.toISOString() ?? null,
+    isPinned: row.isPinned,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: opts.hideDollars ? null : row.estimatedTaxDueCents,
     estimatedExposureCents: opts.hideDollars ? null : row.estimatedExposureCents,
@@ -547,6 +549,7 @@ function toRepoListInput(
   if (input.needsEvidence !== undefined) repoInput.needsEvidence = input.needsEvidence
   if (input.awaitingSignature !== undefined) repoInput.awaitingSignature = input.awaitingSignature
   if (input.confirmed !== undefined) repoInput.confirmed = input.confirmed
+  if (input.pinned !== undefined) repoInput.pinned = input.pinned
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor
@@ -659,6 +662,34 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
       ),
     ),
   }
+})
+
+// Pin / unpin a deadline (/today Pinned section). Same write authority as the
+// status workflow — anyone who can move a deadline can star it. Reads `before`
+// to skip the write (and audit) when the flag is already where it should be,
+// then writes a single `obligation.pin.set` / `obligation.pin.cleared` audit row.
+const setPinned = os.obligations.setPinned.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const before = await scoped.obligations.findById(input.obligationId)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.obligationId} not found in current firm.`,
+    })
+  }
+
+  await scoped.obligations.setPinned(input.obligationId, input.isPinned)
+
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.obligationId,
+    action: input.isPinned ? 'obligation.pin.set' : 'obligation.pin.cleared',
+    before: { isPinned: before.isPinned },
+    after: { isPinned: input.isPinned },
+  })
+
+  return { obligationId: input.obligationId, isPinned: input.isPinned, auditId }
 })
 
 const facets = os.obligations.facets.handler(async ({ context }) => {
@@ -823,6 +854,7 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
 export const obligationQueueHandlers = {
   list,
   getDetail,
+  setPinned,
   facets,
   listSavedViews,
   createSavedView,

@@ -25,7 +25,32 @@ const STEP_LABELS: ReadonlyArray<{ index: StepIndex; key: string; label: ReactNo
   { index: 4, key: 'dry_run', label: <Trans>Confirm</Trans> },
 ]
 
-export function Stepper({ current }: { current: StepIndex }) {
+/**
+ * Total step count — kept in sync with STEP_LABELS so the vertical rail can
+ * render a "Step N of 4" caption without re-deriving the length at each call
+ * site.
+ */
+export const STEP_COUNT = STEP_LABELS.length
+
+export function Stepper({
+  current,
+  orientation = 'horizontal',
+}: {
+  current: StepIndex
+  /**
+   * `horizontal` (default) = the 4-step top progress row (pills + chevrons).
+   * `vertical` = the left-rail variant: a stacked list with the same
+   * numbered→check + active-pill states plus a "Step N of 4" caption. The
+   * vertical form reuses the identical STEP_LABELS data and tone logic so the
+   * two layouts can never drift.
+   */
+  orientation?: 'horizontal' | 'vertical'
+}) {
+  if (orientation === 'vertical') return <VerticalStepper current={current} />
+  return <HorizontalStepper current={current} />
+}
+
+function HorizontalStepper({ current }: { current: StepIndex }) {
   const { t } = useLingui()
   return (
     <ol
@@ -81,7 +106,16 @@ export function Stepper({ current }: { current: StepIndex }) {
                   circleTone,
                 )}
               >
-                {isDone ? <CheckIcon className="size-3" aria-hidden /> : step.index}
+                {isDone ? (
+                  // The check pops in (zoom 50%→100%) when a step completes — a
+                  // small "done" beat that pairs with the SuccessModal check.
+                  <CheckIcon
+                    className="size-3 animate-in zoom-in-50 duration-200 motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                ) : (
+                  step.index
+                )}
               </span>
               <span>{step.label}</span>
             </div>
@@ -92,5 +126,90 @@ export function Stepper({ current }: { current: StepIndex }) {
         )
       })}
     </ol>
+  )
+}
+
+/**
+ * Vertical left-rail variant. Same numbered→check + active-pill states as the
+ * horizontal Stepper, stacked top-to-bottom with a leading "Step N of 4"
+ * caption above the list. Display-only, like the horizontal form.
+ *
+ * The rail uses a connector line between markers (replacing the horizontal
+ * ChevronRight separators) so the vertical reading order is unambiguous, and
+ * the active row stays a filled accent pill while completed rows show the
+ * green-tint check — identical token choices to keep the two orientations from
+ * drifting.
+ */
+function VerticalStepper({ current }: { current: StepIndex }) {
+  const { t } = useLingui()
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Progress caption — urgency-free secondary text. Uses <Trans> (not a
+          Plural string prop) so the {current}/{count} variables interpolate. */}
+      <p className="text-xs font-medium tabular-nums text-text-tertiary">
+        <Trans>
+          Step {current} of {STEP_COUNT}
+        </Trans>
+      </p>
+      <ol role="list" aria-label={t`Wizard steps`} className="flex flex-col gap-1">
+        {STEP_LABELS.map((step, idx) => {
+          const isDone = step.index < current
+          const isActive = step.index === current
+
+          const pillTone = isActive
+            ? 'bg-state-accent-solid text-text-primary-on-surface'
+            : isDone
+              ? 'border border-state-success-border bg-state-success-hover text-text-success'
+              : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'
+
+          const circleTone = isActive
+            ? 'bg-white/20 text-text-primary-on-surface'
+            : isDone
+              ? 'bg-state-success-solid text-text-primary-on-surface'
+              : 'bg-background-section text-text-tertiary'
+
+          return (
+            <li
+              key={step.key}
+              className="flex flex-col"
+              aria-current={isActive ? 'step' : undefined}
+            >
+              <div
+                className={cn(
+                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-sm transition-colors',
+                  isActive ? 'font-medium' : null,
+                  pillTone,
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'grid size-4 shrink-0 place-items-center rounded-full text-xs font-medium tabular-nums',
+                    circleTone,
+                  )}
+                >
+                  {isDone ? (
+                    <CheckIcon
+                      className="size-3 animate-in zoom-in-50 duration-200 motion-reduce:animate-none"
+                      aria-hidden
+                    />
+                  ) : (
+                    step.index
+                  )}
+                </span>
+                <span className="truncate">{step.label}</span>
+              </div>
+              {idx < STEP_LABELS.length - 1 ? (
+                // Short connector between markers. The pill's leading circle
+                // sits at px-3 + half the size-4 circle = ~20px from the rail
+                // edge, so the connector is nudged to ml-[1.25rem] to line up
+                // under the circle centers.
+                <span aria-hidden className="ml-[1.25rem] h-2 w-px bg-divider-subtle" />
+              ) : null}
+            </li>
+          )
+        })}
+      </ol>
+    </div>
   )
 }

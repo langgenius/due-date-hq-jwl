@@ -685,7 +685,7 @@ function LoginEmailForm({
           <p
             id="login-otp-error"
             role="alert"
-            className="text-xs font-medium text-text-destructive"
+            className="text-xs font-medium text-text-destructive animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
           >
             {error}
           </p>
@@ -765,7 +765,7 @@ function LoginEmailForm({
           <p
             id="login-email-error"
             role="alert"
-            className="text-xs font-medium text-text-destructive"
+            className="text-xs font-medium text-text-destructive animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
           >
             {error}
           </p>

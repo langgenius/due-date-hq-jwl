@@ -97,7 +97,7 @@ export function ChecklistItemRow({
         // Every row is a legible white card on the gray content wash; the green
         // "Received" badge (not a washed-out gray fill) marks done items —
         // received rows previously used bg-subtle and read as disabled (Yuqi).
-        'group/checklist-item rounded-lg border p-3 transition-colors',
+        'group/checklist-item rounded-lg border p-3 transition-all',
         // 2026-06-16 (Yuqi "selected state looks ugly"): selection was a strong
         // accent border + 2px ring — with Select-all on, every row became a
         // heavy blue box. Now selection is a faint accent wash (bg ~#eff4ff)

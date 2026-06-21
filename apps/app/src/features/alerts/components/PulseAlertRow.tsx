@@ -735,7 +735,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-xs font-semibold tracking-[0.3px] text-text-secondary">

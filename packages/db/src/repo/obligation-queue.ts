@@ -67,6 +67,7 @@ export interface ObligationQueueListInput {
   needsEvidence?: boolean
   awaitingSignature?: boolean
   confirmed?: boolean
+  pinned?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null
@@ -157,6 +158,7 @@ export interface ObligationQueueListRow {
   assigneeName: string | null
   assigneeId: string | null
   snoozedUntil: Date | null
+  isPinned: boolean
   daysUntilDue: number
   evidenceCount: number
   accruedPenaltyCents: number | null
@@ -303,6 +305,7 @@ interface ObligationQueueRawJoinedRow {
   // hydrateRows and wins over the client-level `assigneeName` above.
   assigneeId: string | null
   snoozedUntil: Date | null
+  isPinned: boolean
   clientEntityType:
     | 'llc'
     | 's_corp'
@@ -711,6 +714,10 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         filters.push(eq(obligationInstance.confirmed, input.confirmed))
       }
 
+      if (input.pinned !== undefined) {
+        filters.push(eq(obligationInstance.isPinned, input.pinned))
+      }
+
       const obligationIds = uniqueNonEmpty(input.obligationIds)
       if (obligationIds.length > 0) {
         filters.push(inArray(obligationInstance.id, obligationIds))
@@ -853,6 +860,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           assigneeName: client.assigneeName,
           assigneeId: obligationInstance.assigneeId,
           snoozedUntil: obligationInstance.snoozedUntil,
+          isPinned: obligationInstance.isPinned,
           clientEntityType: client.entityType,
           clientEstimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
           clientEquityOwnerCount: client.equityOwnerCount,
@@ -990,6 +998,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               assigneeName: client.assigneeName,
               assigneeId: obligationInstance.assigneeId,
               snoozedUntil: obligationInstance.snoozedUntil,
+              isPinned: obligationInstance.isPinned,
               clientEntityType: client.entityType,
               clientEstimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
               clientEquityOwnerCount: client.equityOwnerCount,

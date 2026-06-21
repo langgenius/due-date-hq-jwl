@@ -630,6 +630,7 @@ describe('@duedatehq/contracts', () => {
         efileRejectedAt: null,
         assigneeId: null,
         snoozedUntil: null,
+        isPinned: false,
         migrationBatchId: null,
         estimatedTaxDueCents: null,
         estimatedExposureCents: null,
@@ -953,6 +954,7 @@ describe('@duedatehq/contracts', () => {
     expect(Object.keys(obligationQueueContract)).toEqual([
       'list',
       'getDetail',
+      'setPinned',
       'facets',
       'listSavedViews',
       'createSavedView',

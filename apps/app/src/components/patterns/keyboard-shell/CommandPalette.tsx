@@ -482,7 +482,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                       onSelect={() => selectNav(entry)}
                       {...(entry.disabled || locked ? { disabled: true } : {})}
                     >
-                      <span className="grid size-7 place-items-center rounded-lg bg-background-subtle text-text-secondary group-data-[selected=true]/command-item:text-text-primary">
+                      <span className="grid size-7 place-items-center rounded-lg bg-background-subtle text-text-secondary transition-colors group-data-[selected=true]/command-item:text-text-primary">
                         <Icon aria-hidden />
                       </span>
                       <span className="grid min-w-0 gap-0.5">
@@ -504,7 +504,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                       ) : (
                         <CornerDownLeftIcon
                           aria-hidden
-                          className="size-3.5 text-text-tertiary opacity-0 group-data-[selected=true]/command-item:opacity-100"
+                          className="size-3.5 text-text-tertiary opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
                         />
                       )}
                     </CommandItem>

@@ -30,7 +30,7 @@ export function MatchedPulseBlock({ matches }: { matches: readonly PulseRuleMatc
   const visible = matches.slice(0, MAX_VISIBLE)
   const hiddenCount = matches.length - visible.length
   return (
-    <section className="flex flex-col gap-2 rounded-lg border border-state-accent-active-alt bg-background-default px-3 py-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-state-accent-active-alt bg-background-default px-3 py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
       <div className="flex items-center gap-2">
         <TriangleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <h3 className="text-sm font-semibold text-text-primary">

@@ -65,6 +65,7 @@ export function ClientSummaryStrip({
     () => obligations.filter((o) => FILED_STATUSES.has(o.status)).length,
     [obligations],
   )
+  const totalObligations = obligations.length
 
   // Distinct filing jurisdictions: the primary state + each non-archived filing
   // profile's state. Sorted, deduped.
@@ -176,48 +177,66 @@ export function ClientSummaryStrip({
       // by hairline dividers. NO wrap — scrolls horizontally when the column is
       // squeezed (obligation panel open) so a cell never orphans onto a 2nd line
       // (Yuqi: NEXT DUE was wrapping under JURISDICTIONS at panel-open).
-      className="flex overflow-x-auto rounded-xl bg-background-subtle px-2 py-3"
+      className="flex flex-col gap-2.5 rounded-xl bg-background-subtle px-2 py-3"
     >
-      {cells.map((cell, i) => {
-        const body = (
-          <>
-            <CapsFieldLabel as="span" variant="group" className="whitespace-nowrap">
-              {cell.label}
-            </CapsFieldLabel>
-            <span className="flex min-h-[28px] items-center">{cell.value}</span>
-          </>
-        )
-        const cellClass = cn(
-          // No `min-w-0`: cells size to at least their content (label + value),
-          // so the long "JURISDICTIONS" label and the "May 12" date never
-          // shrink below their width and overflow into the neighbouring cell /
-          // wrap to a second line. flex-1 distributes the remaining width.
-          'flex flex-1 flex-col justify-center gap-2 px-4',
-          i > 0 && 'border-l border-divider-subtle',
-        )
-        if (cell.onClick) {
-          return (
-            <button
-              key={cell.key}
-              type="button"
-              onClick={cell.onClick}
-              aria-label={cell.ariaLabel}
-              className={cn(
-                cellClass,
-                '-my-2 cursor-pointer rounded-lg py-2 text-left transition-colors hover:bg-state-base-hover',
-                'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-              )}
-            >
-              {body}
-            </button>
+      <div className="flex overflow-x-auto">
+        {cells.map((cell, i) => {
+          const body = (
+            <>
+              <CapsFieldLabel as="span" variant="group" className="whitespace-nowrap">
+                {cell.label}
+              </CapsFieldLabel>
+              <span className="flex min-h-[28px] items-center">{cell.value}</span>
+            </>
           )
-        }
-        return (
-          <div key={cell.key} className={cellClass}>
-            {body}
+          const cellClass = cn(
+            // No `min-w-0`: cells size to at least their content (label + value),
+            // so the long "JURISDICTIONS" label and the "May 12" date never
+            // shrink below their width and overflow into the neighbouring cell /
+            // wrap to a second line. flex-1 distributes the remaining width.
+            'flex flex-1 flex-col justify-center gap-2 px-4',
+            i > 0 && 'border-l border-divider-subtle',
+          )
+          if (cell.onClick) {
+            return (
+              <button
+                key={cell.key}
+                type="button"
+                onClick={cell.onClick}
+                aria-label={cell.ariaLabel}
+                className={cn(
+                  cellClass,
+                  '-my-2 cursor-pointer rounded-lg py-2 text-left transition hover:bg-state-base-hover active:scale-[0.99] motion-reduce:active:scale-100',
+                  'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+                )}
+              >
+                {body}
+              </button>
+            )
+          }
+          return (
+            <div key={cell.key} className={cellClass}>
+              {body}
+            </div>
+          )
+        })}
+      </div>
+      {/* Filed-progress footer (img-080): a subtle filed-of-total bar under the
+          band — a depth accent that doesn't disturb the uniform cell numbers.
+          Real data: filed count ÷ total obligations for this client. */}
+      {totalObligations > 0 ? (
+        <div className="flex items-center gap-2 px-2">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-background-section">
+            <div
+              className="h-full rounded-full bg-state-success-solid transition-[width] duration-300 ease-apple motion-reduce:transition-none"
+              style={{ width: `${Math.round((filedCount / totalObligations) * 100)}%` }}
+            />
           </div>
-        )
-      })}
+          <span className="shrink-0 text-caption-xs font-medium text-text-tertiary tabular-nums">
+            {filedCount}/{totalObligations}
+          </span>
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -3187,6 +3187,8 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
     <div className="flex flex-1 items-center justify-center p-6">
       <EmptyState
         icon={LibraryIcon}
+        visual="duotone"
+        duotoneTone="brand"
         title={<Trans>Your rule catalog is empty.</Trans>}
         description={
           <Trans>

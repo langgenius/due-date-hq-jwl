@@ -752,6 +752,16 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // Pin / unpin a deadline (/today Pinned section). Single-column write
+    // like the snooze setter; the service layer reads before/after and owns
+    // the audit row.
+    async setPinned(id: string, isPinned: boolean): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ isPinned })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {

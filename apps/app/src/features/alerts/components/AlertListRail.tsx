@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CircleAlertIcon, UsersIcon } from 'lucide-react'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulsePriorityLevel } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -17,11 +17,13 @@ import {
 } from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
+import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { deadlineProximity, proximityToTier, thresholdsForKind } from '../lib/urgency'
 import { AlertSourceLink } from './AlertSourceLink'
 import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
 
@@ -36,6 +38,19 @@ import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
  * confidence bottom meta. The open alert's item carries the 2px left
  * accent.
  */
+
+/**
+ * Leading severity pill, mirroring `PulseAlertRow`'s `LEVEL_PILL` — the same
+ * `<SeverityChip>` family + label per tier (urgent → critical red, high →
+ * orange). The rail only ever derives the BASELINE (deadline-proximity) tier,
+ * never the smart-priority queue tier, and renders the chip ONLY for
+ * urgent/high — `normal` stays null so the lean rail stays calm.
+ */
+const LEVEL_PILL: Record<PulsePriorityLevel, { label: string; level: SeverityLevel }> = {
+  urgent: { label: 'URGENT', level: 'critical' },
+  high: { label: 'HIGH', level: 'high' },
+  normal: { label: 'NORMAL', level: 'neutral' },
+}
 
 export function AlertListRail({
   alerts,
@@ -262,6 +277,20 @@ function RailItem({
   const unread = alert.status === 'matched' || alert.status === 'partially_applied'
   const showLowConfidence = isLowAiConfidence(alert.confidence)
 
+  // Leading severity pill = the BASELINE (deadline-proximity) tier, derived the
+  // same ungated way `PulseAlertRow` derives its Layer-1 fallback: bucket the
+  // alert's own `actionDeadline` against the per-kind horizon, then map to the
+  // shared priority vocabulary. The rail never has the smart-priority queue
+  // tier, so this is always the baseline read. Render the chip ONLY for
+  // urgent/high — `normal` is null so the lean rail isn't stamped with a pill on
+  // every far-out / no-deadline item (silence stays the signal, same call as the
+  // main row's baseline tier).
+  const baselineTier = proximityToTier(
+    deadlineProximity(alert.actionDeadline, Date.now(), thresholdsForKind(alert.changeKind))
+      .proximity,
+  )
+  const levelPill = baselineTier === 'normal' ? null : LEVEL_PILL[baselineTier]
+
   // Bottom-meta parity with the main /alerts row (PulseAlertRow):
   // affected-clients count (matched + needs-review) and the AI
   // confidence meter. Both read straight off PulseAlertPublic — no
@@ -340,6 +369,14 @@ function RailItem({
           {/* No ACTIVE badge (2026-06-12, Yuqi): the rail's own
               Review/Active toggle states the queue, so a per-item pill
               repeating it was noise — same call as the main list rows. */}
+          {/* Leading severity pill (Pencil `Rrafe`) — the baseline
+              deadline-proximity tier, the SAME `<SeverityChip>` + `LEVEL_PILL`
+              treatment the main /alerts row carries (urgent → critical red, high
+              → orange). Only urgent/high render; `normal` is null so the lean
+              rail stays calm — the chip's presence is the time signal. */}
+          {levelPill ? (
+            <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
+          ) : null}
           {/* Shared JurisdictionChip primitive (outline reference tag,
               no StateBadge seal), matching the /alerts row. */}
           <JurisdictionChip code={alert.jurisdiction} />

@@ -47,7 +47,10 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
+        // The glyph draws in — a quick zoom-from-75% + fade (150ms) confirms the
+        // tick landed, instead of snapping. Applied to whichever icon renders
+        // (check / minus). motion-reduce guard per the raw-CSS-keyframe rule.
+        className="grid place-content-center text-current [&>svg]:size-3.5 [&>svg]:animate-in [&>svg]:fade-in [&>svg]:zoom-in-75 [&>svg]:duration-150 motion-reduce:[&>svg]:animate-none"
       >
         {/* 2026-05-27 (Yuqi feedback): MinusIcon shows in the
             indeterminate state (toggled via the Root's

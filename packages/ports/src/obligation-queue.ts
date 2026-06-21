@@ -33,6 +33,9 @@ export interface ObligationQueueListInput {
   // auto-projection) deadlines awaiting CPA confirmation; `true` only confirmed.
   // Applied as an equality predicate in the repo's list() where-clause.
   confirmed?: boolean
+  // Pinned lens (/today Pinned section). `true` returns only starred
+  // deadlines. Applied as an equality predicate in the repo's list().
+  pinned?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null

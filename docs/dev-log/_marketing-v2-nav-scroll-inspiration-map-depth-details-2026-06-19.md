@@ -16,6 +16,7 @@
 
 - **Alerts delta-badge** (ref 165997): the `old → new` date-diff is now a small tinted **pill** — green for "N days later" (more time), red for "N days left/sooner". Reads as a scannable badge, not plain colored text.
 - **Faint dotted-grid texture** (refs 140149 / 164983): a restrained navy dotted canvas behind the **product-surfaces** section, plus a finer texture on the card **thumbnails** so the placeholders read as "canvas previews" — depth without shadow.
+- **Product-surfaces → embedded mini-UI** (ref 165139): replaced the placeholder thumbs with real product mini-fragments on a **graph-paper grid** — a live alert card, a coverage heat-tile grid, a risk-ranked worklist (amber `2d late` bar), and an "⚡ Apply to 8 clients" + audit-line card. Header restructured to **title-left / intro-right**. Cards now _show_ the product instead of using placeholders.
 
 ## Notes
 

@@ -192,6 +192,7 @@ function rowFromInput(input: ObligationCreateInput, id: string): ObligationInsta
     efileRejectedAt: null,
     assigneeId: null,
     snoozedUntil: null,
+    isPinned: false,
     migrationBatchId: input.migrationBatchId ?? null,
     estimatedTaxDueCents: input.estimatedTaxDueCents ?? null,
     estimatedExposureCents: input.estimatedExposureCents ?? null,
@@ -359,6 +360,7 @@ function makeContext(input: {
     setEfileState: null!,
     setAssignee: null!,
     setSnoozedUntil: null!,
+    setPinned: null!,
     unblockChildrenOf: null!,
     deleteByBatch: null!,
   }

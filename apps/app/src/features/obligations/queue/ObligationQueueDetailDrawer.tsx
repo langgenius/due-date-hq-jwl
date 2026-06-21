@@ -83,6 +83,7 @@ import {
   formatRelativeTime,
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { PinButton } from '@/features/obligations/PinButton'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
@@ -229,6 +230,10 @@ function DeadlineTopActions({
   ]
   return (
     <div className="flex shrink-0 items-center gap-1.5">
+      {/* Pin / unpin — the entry point for the /today Pinned section. Quiet
+          icon-only control, leftmost so the labeled action buttons stay the
+          row's loud cluster. */}
+      <PinButton obligationId={row.id} isPinned={row.isPinned} />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -1858,9 +1863,15 @@ export function ObligationQueueDetailDrawer({
                 {item.label}
                 {item.chip}
                 {sectionActive ? (
-                  <span
-                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                  // Shared-layout underline (same pattern as the client-detail
+                  // tabs): one motion.span keyed by layoutId slides between
+                  // sections instead of blinking. Spring matches the app's tab
+                  // underlines. Reduced-motion handled globally.
+                  <motion.span
+                    layoutId="deadline-detail-section-underline"
                     aria-hidden
+                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                    transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                   />
                 ) : null}
               </button>
@@ -3640,7 +3651,7 @@ export function ObligationQueueDetailDrawer({
                                         </span>
                                       </header>
                                       {outstandingItems.length === 0 ? (
-                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none">
                                           <Trans>All items received.</Trans>
                                         </p>
                                       ) : (

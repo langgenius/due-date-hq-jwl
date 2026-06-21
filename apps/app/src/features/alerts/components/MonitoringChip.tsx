@@ -6,8 +6,6 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { PulsingDot } from '@/features/alerts/components/PulsingDot'
-
 /**
  * MonitoringChip — the "Monitoring: Federal · 50 States · DC" status chip.
  *
@@ -53,7 +51,16 @@ export function MonitoringChip({
 }) {
   const label = (
     <>
-      <PulsingDot tone="success" active />
+      {/* A real "live" heartbeat, stronger than the passive <PulsingDot> (which
+          is intentionally a FLAT status dot): a saturated core + an expanding,
+          fading ping ring. LIVE here is the real-time monitoring signal — the
+          product's core 24/7 promise — so it should read as alive, not calm.
+          `bg-current` inherits the chip's success green; the ring is hidden
+          under prefers-reduced-motion (the steady core dot carries it). */}
+      <span className="relative inline-flex size-2 shrink-0" aria-hidden>
+        <span className="absolute inset-0 inline-flex animate-ping rounded-full bg-current opacity-60 motion-reduce:hidden" />
+        <span className="relative inline-flex size-2 rounded-full bg-current" />
+      </span>
       <Trans>LIVE</Trans>
     </>
   )

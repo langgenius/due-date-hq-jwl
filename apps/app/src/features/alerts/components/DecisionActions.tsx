@@ -4,6 +4,8 @@ import { Loader2Icon, type LucideIcon } from 'lucide-react'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { ApplyingPill } from './ApplyingPill'
+
 export type DecisionAction = {
   label: ReactNode
   icon?: LucideIcon
@@ -31,6 +33,7 @@ export function DecisionActions({
   secondary,
   tertiary,
   loading = false,
+  applyingPill = false,
   className,
 }: {
   primary: DecisionAction
@@ -38,11 +41,25 @@ export function DecisionActions({
   tertiary?: DecisionAction
   /** Spins the primary action's icon + disables the whole cluster. */
   loading?: boolean
+  /**
+   * When the loading state IS the one-click apply (the product's core moment),
+   * swap the whole cluster for the <ApplyingPill> sweep — a richer "applying
+   * across your clients" indicator than a button spinner. Apply caller only;
+   * other decisions (post / dismiss) keep the spinner so the label stays honest.
+   */
+  applyingPill?: boolean
   className?: string
 }) {
   const PrimaryIcon = primary.icon
   const SecondaryIcon = secondary?.icon
   const TertiaryIcon = tertiary?.icon
+  if (loading && applyingPill) {
+    return (
+      <div className={cn('flex w-full flex-wrap items-center gap-2.5', className)}>
+        <ApplyingPill />
+      </div>
+    )
+  }
   return (
     <div className={cn('flex w-full flex-wrap items-center gap-2.5', className)}>
       <Button onClick={primary.onClick} disabled={loading || primary.disabled}>

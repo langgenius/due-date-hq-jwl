@@ -81,7 +81,10 @@ export function EntityAuditActivityPanel({
     <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <ul className="divide-y divide-divider-subtle">
         {events.map((event) => (
-          <li key={event.id} className="grid gap-1 px-4 py-3">
+          <li
+            key={event.id}
+            className="grid gap-1 px-4 py-3 transition-colors hover:bg-state-base-hover"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-medium text-text-primary">
                 {formatAuditActionLabel(event.action, actionLabels)}

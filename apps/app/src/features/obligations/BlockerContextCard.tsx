@@ -2,14 +2,34 @@ import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowUpRightIcon } from 'lucide-react'
 
+import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
-import { STATUS_VARIANT, useLifecycleV2StatusLabels } from '@/features/obligations/status-control'
+import { buildAuditChangeView } from '@/features/audit/audit-change-view'
+import {
+  useAuditActionLabels,
+  useAuditChangeLabels,
+} from '@/features/audit/audit-log-labels'
+import {
+  STATUS_VARIANT,
+  useLifecycleV2StatusLabels,
+  useReadinessLabels,
+  useStatusLabels,
+} from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { orpc } from '@/lib/rpc'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatRelativeTime } from '@/lib/utils'
+
+// Status-change audit actions surfaced on the blocker card. Both write the
+// `status` field into the audit snapshot, so `buildAuditChangeView` renders a
+// "Deadline status changed from X to Y" headline for either one.
+const STATUS_CHANGE_ACTIONS = new Set([
+  'obligation.status.updated',
+  'obligation.status.auto_unblocked',
+])
 
 /**
  * Inline blocker card rendered on the Blocked stage. Shows the
@@ -39,6 +59,7 @@ export function BlockerContextCard({
   })
   const labels = useLifecycleV2StatusLabels()
   const blocker = detailQuery.data?.row ?? null
+  const auditEvents = detailQuery.data?.auditEvents ?? []
   if (detailQuery.isLoading || !blocker) {
     return (
       <div
@@ -81,6 +102,59 @@ export function BlockerContextCard({
           <Trans>Due {formatDate(blocker.currentDueDate)}</Trans>
         </span>
       </div>
+      <BlockerRecentTransitions auditEvents={auditEvents} />
     </button>
+  )
+}
+
+/**
+ * The 1–2 most recent status transitions for the blocker, rendered as
+ * compact tertiary lines so the CPA can see how the blocker's status has
+ * been moving without leaving the card. Reuses the canonical audit-change
+ * renderer (`buildAuditChangeView`) for the headline rather than
+ * hand-parsing the before/after JSON, so the wording stays in lockstep
+ * with the Audit tab and audit log.
+ *
+ * Kept calm: no new colors, no nested interactive elements (the parent is
+ * a button), just a leading arrow glyph + relative time per row.
+ */
+function BlockerRecentTransitions({ auditEvents }: { auditEvents: AuditEventPublic[] }) {
+  const { t } = useLingui()
+  const actionLabels = useAuditActionLabels()
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
+  const readinessLabels = useReadinessLabels()
+  const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
+
+  // auditEvents arrive newest-first; keep the latest 1–2 status changes.
+  const recent = auditEvents
+    .filter((event) => STATUS_CHANGE_ACTIONS.has(event.action))
+    .slice(0, 2)
+  if (recent.length === 0) return null
+
+  return (
+    <div
+      className="flex flex-col gap-1 border-t border-divider-subtle pt-2 text-text-tertiary"
+      aria-label={t`Recent status changes`}
+    >
+      {recent.map((event) => {
+        const headline = buildAuditChangeView(event, changeLabels).headline
+        return (
+          <div key={event.id} className="flex items-baseline gap-1.5 text-caption-xs">
+            <span aria-hidden className="shrink-0 font-mono text-text-tertiary">
+              →
+            </span>
+            <span className="min-w-0 flex-1 truncate" title={headline}>
+              {headline}
+            </span>
+            <span className="shrink-0 tabular-nums text-text-tertiary">
+              {formatRelativeTime(event.createdAt)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
   )
 }

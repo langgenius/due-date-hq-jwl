@@ -119,7 +119,7 @@ export function ClientsEmptyState({
             <button
               type="button"
               onClick={onSampleData}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-state-accent-active-alt bg-state-accent-hover px-3.5 py-1.5 text-xs font-semibold text-text-accent outline-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-state-accent-active-alt bg-state-accent-hover px-3.5 py-1.5 text-xs font-semibold text-text-accent outline-none transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] motion-reduce:active:scale-100 [&_svg:last-child]:transition-transform hover:[&_svg:last-child]:translate-x-0.5"
             >
               <CirclePlayIcon className="size-3.5" aria-hidden />
               <Trans>Explore with sample data</Trans>

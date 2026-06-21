@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DuotoneIcon, type DuotoneTone } from '@/components/primitives/duotone-icon'
+
 /**
  * EmptyState — the shared "nothing here yet" surface.
  *
@@ -33,6 +35,7 @@ export function EmptyState({
   variant = 'default',
   iconTone = 'accent',
   visual = 'icon',
+  duotoneTone = 'accent',
   fill = false,
 }: {
   icon?: LucideIcon
@@ -61,7 +64,13 @@ export function EmptyState({
   // that fills with cards/rows ("your alerts will stack here"). Implies content
   // without faking data — the cards are explicitly blank skeletons, so it honours
   // the "no fiction on canvas" rule. `icon` prop is ignored when `ghost-cards`.
-  visual?: 'icon' | 'ghost-cards'
+  // `duotone` = a soft two-tone icon chip (rounded tinted square + accent glyph)
+  // instead of the tinted circle — the Yuqi delight-glyph aesthetic, for warm
+  // onboarding / first-run empties. Uses the `icon` prop; pick the tint with
+  // `duotoneTone`. Works in both prominent and default sizes.
+  visual?: 'icon' | 'ghost-cards' | 'duotone'
+  // Tint for `visual="duotone"`.
+  duotoneTone?: DuotoneTone
   // When true the prominent card stretches to fill its parent's
   // height and vertically centers its column — matches the canvas cards which
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
@@ -71,6 +80,7 @@ export function EmptyState({
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
   const showGhostCards = isProminent && visual === 'ghost-cards'
+  const showDuotone = visual === 'duotone' && Boolean(Icon)
   return (
     <div
       data-density={density}
@@ -96,7 +106,10 @@ export function EmptyState({
         // front card carrying three blank skeleton bars. Borders + section-tint
         // only — no shadows (restrained-shadows canon). Decorative, so aria-hidden;
         // the title/description carry the meaning to assistive tech.
-        <div className="relative flex h-[76px] w-[184px] items-center justify-center" aria-hidden>
+        <div
+          className="relative flex h-[76px] w-[184px] items-center justify-center animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
+          aria-hidden
+        >
           <div className="absolute h-14 w-40 -rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="absolute h-14 w-40 rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="relative flex h-16 w-44 flex-col gap-1.5 rounded-lg border border-divider-regular bg-background-default px-3 py-3">
@@ -105,6 +118,10 @@ export function EmptyState({
             <div className="h-2 w-1/2 rounded-full bg-background-section" />
           </div>
         </div>
+      ) : showDuotone && Icon ? (
+        // Two-tone delight chip (Yuqi duotone aesthetic) — a warmer alternative
+        // to the tinted icon-circle for onboarding / first-run empties.
+        <DuotoneIcon icon={Icon} tone={duotoneTone} size={isProminent ? 'lg' : 'md'} />
       ) : Icon ? (
         isProminent ? (
           <div

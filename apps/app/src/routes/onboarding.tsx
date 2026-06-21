@@ -72,7 +72,7 @@ function StepDots({ step, total }: { step: number; total: number }) {
             key={stepNumber}
             aria-hidden
             className={cn(
-              'size-1.5 rounded-full',
+              'size-1.5 rounded-full transition-colors',
               stepNumber === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
             )}
           />

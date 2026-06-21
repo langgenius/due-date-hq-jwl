@@ -262,7 +262,9 @@ function DisclosureCard({
     detail != null ? (
       <>
         {expanded ? (
-          <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">{detail}</div>
+          <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
+            {detail}
+          </div>
         ) : null}
         <TextLink
           variant="accent"
@@ -2064,7 +2066,7 @@ function AiDraftReviewPanel({
         </div>
       ) : null}
       {draft ? (
-        <div className="flex flex-col gap-2 text-sm">
+        <div className="flex flex-col gap-2 text-sm animate-in fade-in duration-150 motion-reduce:animate-none">
           <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
           <div className="flex items-baseline gap-2 text-xs">
             <span className="text-text-tertiary">
