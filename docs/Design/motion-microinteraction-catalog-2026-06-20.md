@@ -14,6 +14,14 @@
 > detail tabs…). The opportunities are the **gaps** — un-animated entrances, a few
 > snap-cuts, two missing reduced-motion guards, and a handful of delight beats.
 
+> **Update — 2026-06-22: deferred tail finished.** The medium-risk remainder
+> below (AnimatePresence exit/height, the StatusRing arc fill, the audit KPI bump,
+> the CollapsibleSearch width, and the in-drawer apply-success celebration) is now
+> **shipped** in four follow-up batches — see
+> [_motion-deferred-tail-2026-06-22](../dev-log/_motion-deferred-tail-2026-06-22.md).
+> What stays open in this catalog is only the **rejected** items and a couple of
+> debatable delight beats; nothing is pending.
+
 ## Shipped this pass (10)
 
 Curated for highest value × lowest risk × on-grammar, each verified (tsgo + build
