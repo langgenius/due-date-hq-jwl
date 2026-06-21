@@ -1,19 +1,23 @@
 ---
-/** TopNav — floating-pill nav (static for now; glider + scroll-action + nav-on-dark JS in the interactions pass). */
+/** TopNav — centered floating-pill nav. Mixes a homepage anchor with real page
+ *  destinations (multi-page site). Glider + scroll-action + nav-on-dark JS land
+ *  in the interactions pass. */
 interface Props {
   ctaHref: string
+  signInHref: string
 }
-const { ctaHref } = Astro.props
+const { ctaHref, signInHref } = Astro.props
 const links = [
-  { label: 'How it works', href: '#how' },
-  { label: 'See it work', href: '#close' },
-  { label: 'FAQ', href: '#close' },
+  { label: 'How it works', href: '#how' }, // homepage anchor
+  { label: 'Coverage', href: '/state-coverage' }, // page
+  { label: 'Pricing', href: '/pricing' }, // page (coming soon)
+  { label: 'Security', href: '/security' }, // page
 ]
 ---
 
 <header class="nav">
   <div class="nav__inner">
-    <a class="brand" href="/">
+    <a class="brand" href="/" aria-label="DueDateHQ home">
       <span class="brand__mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="22" height="22">
           <rect x="2" y="13" width="4" height="9" rx="1" fill="var(--m-accent)" />
@@ -26,13 +30,16 @@ const links = [
       <span class="brand__beta">Beta</span>
     </a>
 
-    <nav class="nav__pill" aria-label="Sections">
+    <nav class="nav__pill" aria-label="Primary">
       {links.map((l) => <a class="nav__link" href={l.href}>{l.label}</a>)}
     </nav>
 
-    <a class="nav__cta" href={ctaHref} data-event="marketing.nav.cta">
-      Start free <span aria-hidden="true">→</span>
-    </a>
+    <div class="nav__right">
+      <a class="nav__signin" href={signInHref}>Sign in</a>
+      <a class="nav__cta" href={ctaHref} data-event="marketing.nav.cta">
+        Start free <span aria-hidden="true">→</span>
+      </a>
+    </div>
   </div>
 </header>
 
@@ -82,7 +89,7 @@ const links = [
     display: flex;
     align-items: center;
     gap: 2px;
-    background: color-mix(in srgb, var(--m-section) 70%, transparent);
+    background: color-mix(in srgb, var(--m-surface) 72%, transparent);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 999px;
@@ -100,8 +107,22 @@ const links = [
   .nav__link:hover {
     color: var(--m-ink);
   }
-  .nav__cta {
+  .nav__right {
     justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .nav__signin {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+    transition: color 0.2s ease;
+  }
+  .nav__signin:hover {
+    color: var(--m-accent);
+  }
+  .nav__cta {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -116,8 +137,13 @@ const links = [
   .nav__cta:hover {
     background: var(--m-accent-strong);
   }
-  @media (max-width: 880px) {
+  @media (max-width: 920px) {
     .nav__pill {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .nav__signin {
       display: none;
     }
   }
