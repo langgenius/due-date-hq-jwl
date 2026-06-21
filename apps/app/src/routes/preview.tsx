@@ -21,6 +21,7 @@ import {
   ChevronDownIcon,
   CalendarClockIcon,
   HistoryIcon,
+  SparklesIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -205,6 +206,7 @@ import { StageActions } from '@/features/obligations/StageActions'
 import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
 import { TickProgress } from '@/components/primitives/tick-progress'
 import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
+import { DuotoneIcon } from '@/components/primitives/duotone-icon'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary/SurfaceSummaryStrip'
 import { ConceptHelp } from '@/features/concepts/concept-help'
@@ -2173,6 +2175,36 @@ export function PreviewRoute() {
                     { key: 'review', label: 'Review your first deadlines', done: false, href: '#' },
                   ]}
                 />
+              </div>
+            </Row>
+            <Row
+              label="DuotoneIcon"
+              mono="components/primitives/duotone-icon (Yuqi refs: two-tone delight glyphs)"
+            >
+              <div className="flex flex-col gap-4">
+                {/* Tones + sizes — delight surfaces only (onboarding/empty/success),
+                    never the dense workbench. */}
+                <div className="flex items-center gap-3">
+                  <DuotoneIcon icon={SparklesIcon} tone="accent" />
+                  <DuotoneIcon icon={CircleCheckIcon} tone="success" />
+                  <DuotoneIcon icon={DollarSignIcon} tone="warning" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="brand" />
+                  <DuotoneIcon icon={InboxIcon} tone="violet" />
+                  <DuotoneIcon icon={ArchiveIcon} tone="neutral" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="sm" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="md" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="lg" />
+                  {/* Corner badge — the AI / "special" accent (AI-Agent ref). */}
+                  <DuotoneIcon
+                    icon={InboxIcon}
+                    tone="brand"
+                    size="lg"
+                    badge={SparklesIcon}
+                    badgeTone="accent"
+                  />
+                </div>
               </div>
             </Row>
             <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
