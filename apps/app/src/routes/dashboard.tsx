@@ -474,7 +474,7 @@ export function DashboardRoute() {
               <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
               <Trans>Get started</Trans>
             </span>
-            <h2 className="text-section-title font-semibold tracking-tight text-text-primary">
+            <h2 className="text-display-large font-semibold tracking-tight text-text-primary">
               <Trans>Add your first work</Trans>
             </h2>
             <p className="max-w-xl text-sm leading-relaxed text-text-secondary">

@@ -902,6 +902,10 @@ msgstr "{alertCount, plural, one {# 条待处理} other {# 条待处理}}"
 msgid "{alertCount} open alerts"
 msgstr "{alertCount} 条未处理提醒"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{appliedCount, plural, one {Applied to # client} other {Applied to # clients}}"
+msgstr "{appliedCount, plural, one {已应用到 # 个客户} other {已应用到 # 个客户}}"
+
 #: src/components/primitives/readiness-indicator.tsx
 msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "本次申报已附 {attached}/{total} 份预期来源文件"

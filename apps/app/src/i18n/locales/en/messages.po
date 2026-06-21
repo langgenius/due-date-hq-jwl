@@ -897,6 +897,10 @@ msgstr "{alertCount, plural, one {# open} other {# open}}"
 msgid "{alertCount} open alerts"
 msgstr "{alertCount} open alerts"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{appliedCount, plural, one {Applied to # client} other {Applied to # clients}}"
+msgstr "{appliedCount, plural, one {Applied to # client} other {Applied to # clients}}"
+
 #: src/components/primitives/readiness-indicator.tsx
 msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "{attached} of {total} expected source documents attached for this filing"

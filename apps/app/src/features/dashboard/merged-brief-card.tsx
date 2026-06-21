@@ -340,7 +340,35 @@ export function MergedBriefCard({
         // (icon in an accent disc + headline + one sub-line) so the two
         // sections celebrate the same way. Coffee, not confetti: the calm
         // brand's idea of a party. Every word is real state — no fiction.
-        <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
+        <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
+          {/* A faint navy skyline at rest behind the all-clear — the firm's city
+              quiet, nothing on fire. Decorative (aria-hidden), masked to fade up
+              so it never competes with the coffee beat or the copy. */}
+          <svg
+            aria-hidden
+            viewBox="0 0 400 64"
+            preserveAspectRatio="xMidYMax meet"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full text-[var(--color-brand-ink)] opacity-[0.07] [mask-image:linear-gradient(to_top,black,transparent)]"
+          >
+            <g fill="currentColor">
+              <rect x="6" y="34" width="22" height="30" />
+              <rect x="32" y="22" width="16" height="42" />
+              <rect x="52" y="40" width="26" height="24" />
+              <rect x="82" y="28" width="18" height="36" />
+              <rect x="104" y="16" width="14" height="48" />
+              <rect x="122" y="36" width="24" height="28" />
+              <rect x="150" y="26" width="18" height="38" />
+              <rect x="172" y="42" width="28" height="22" />
+              <rect x="204" y="20" width="16" height="44" />
+              <rect x="224" y="34" width="22" height="30" />
+              <rect x="250" y="12" width="14" height="52" />
+              <rect x="268" y="38" width="26" height="26" />
+              <rect x="298" y="28" width="18" height="36" />
+              <rect x="320" y="44" width="24" height="20" />
+              <rect x="348" y="24" width="16" height="40" />
+              <rect x="368" y="36" width="24" height="28" />
+            </g>
+          </svg>
           <span
             // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
             // fade — a small "you're clear" beat. Calm, not confetti.

@@ -54,7 +54,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { fadeMotion } from '@/lib/motion'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -1000,6 +1000,7 @@ export function AlertDetailDrawer({
   // firm-wide win registers, then close. `applied` is reset by the render-time
   // reset blocks below (alert change / close); the timer is cleared on unmount.
   const [applied, setApplied] = useState(false)
+  const [appliedCount, setAppliedCount] = useState(0)
   const appliedCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(
     () => () => {
@@ -1168,6 +1169,7 @@ export function AlertDetailDrawer({
         // closing, so the firm-wide win registers (motion catalog). The timer
         // is cleared on unmount; `applied` is reset by the render-time reset
         // blocks when the alert changes or the drawer closes.
+        setAppliedCount(result.appliedCount)
         setApplied(true)
         appliedCloseTimer.current = setTimeout(() => onClose(), APPLIED_CELEBRATION_MS)
       },
@@ -2450,6 +2452,7 @@ export function AlertDetailDrawer({
                   {detail ? (
                     <DrawerActions
                       applied={applied}
+                      appliedCount={appliedCount}
                       alertStatus={detail.alert.status}
                       sourceStatus={detail.alert.sourceStatus}
                       selectionCount={stats?.selectedCount ?? 0}
@@ -2616,6 +2619,7 @@ export function AlertDetailDrawer({
 
 export function DrawerActions({
   applied = false,
+  appliedCount = 0,
   alertStatus,
   sourceStatus,
   selectionCount,
@@ -2642,6 +2646,8 @@ export function DrawerActions({
 }: {
   /** True during the brief post-apply success hold — shows a green confirmation. */
   applied?: boolean
+  /** Number of clients the apply just landed on — shown in the confirmation. */
+  appliedCount?: number
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
@@ -2686,8 +2692,18 @@ export function DrawerActions({
           {...fadeMotion}
           className="flex items-center gap-2 text-sm font-medium text-text-success"
         >
-          <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
-          <Trans>Applied</Trans>
+          {/* The check stamps down like an audit seal — scale + slight rotate
+              settling to rest — over the row's fade. The client count gives the
+              win its weight. Reduced-motion handled globally by MotionConfig. */}
+          <motion.span
+            className="inline-flex"
+            initial={{ scale: 1.6, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+          >
+            <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
+          </motion.span>
+          <Plural value={appliedCount} one="Applied to # client" other="Applied to # clients" />
         </motion.div>
       </div>
     )
