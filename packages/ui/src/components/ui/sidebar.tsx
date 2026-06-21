@@ -746,8 +746,12 @@ const sidebarMenuButtonVariants = cva(
     // width on activation; the accent color + bg tint already carry "this is
     // the current route," so a single 400→500 step is enough emphasis with a
     // far smaller width shift.
-    "data-[active=true]:bg-accent-tint data-[active=true]:font-medium data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
-    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-medium aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-06-21 (Yuqi: solid accent pill for the active route — supersedes the
+    // bg-tint §1.2/§4.9 treatment): the active row is now a SOLID accent pill
+    // with white label + icon (Acme-reference register). Chroma in the
+    // container, white text — not colored-text-on-tint.
+    "data-[active=true]:bg-state-accent-solid data-[active=true]:font-medium data-[active=true]:text-text-inverted [&[data-active=true]_svg:not([class*='text-'])]:text-text-inverted",
+    "aria-[current=page]:bg-state-accent-solid aria-[current=page]:font-medium aria-[current=page]:text-text-inverted [&[aria-current=page]_svg:not([class*='text-'])]:text-text-inverted",
     // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
     // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
     // `#eff4ff` tinted tile as expanded (just narrower) — the active
@@ -957,6 +961,9 @@ export function SidebarMenuBadge({
           // carried by the active-route red pill on urgent badges, not by a
           // brightness difference too subtle to decode.
           'text-text-tertiary',
+          // White on the active solid accent pill (2026-06-21 solid-active-pill
+          // change) so the reference count stays legible on the filled row.
+          'group-data-[active=true]/menu-button:text-text-inverted group-aria-[current=page]/menu-button:text-text-inverted',
           collapsedPos,
           className,
         )}
