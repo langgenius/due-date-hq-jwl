@@ -402,9 +402,9 @@ function ProductStory() {
       />
 
       {/* One-line promise, top-left of the panel. */}
-      <p className="absolute top-14 left-14 z-10 max-w-[330px] text-lg leading-snug font-medium text-balance text-text-secondary">
+      <p className="absolute top-14 left-14 z-10 max-w-[340px] text-lg leading-snug font-medium text-pretty text-text-secondary">
         <Trans>
-          Every 1040, 1120, payroll, and BOI filing across the firm — monitored, sourced, and on
+          Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on
           schedule.
         </Trans>
       </p>

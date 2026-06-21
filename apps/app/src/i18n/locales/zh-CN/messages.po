@@ -4520,7 +4520,6 @@ msgid "Continue with Google"
 msgstr "使用 Google 继续"
 
 #: src/routes/accept-invite.tsx
-#: src/routes/login.tsx
 msgid "Continue with Microsoft"
 msgstr "使用 Microsoft 继续"
 
@@ -6589,6 +6588,10 @@ msgstr "事件"
 msgid "Events"
 msgstr "事件"
 
+#: src/routes/login.tsx
+msgid "Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on schedule."
+msgstr "全所每一笔 1040、1120、薪资税与 BOI 申报 —— 持续监控、有据可溯、按时推进。"
+
 #: src/routes/rules.library.tsx
 msgid "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
 msgstr "每个适用辖区和实体都已有规则。出现缺口时，行内会显示添加规则操作。"
@@ -6600,10 +6603,6 @@ msgstr "此列表中每个客户都已具备规则库所需的信息。关闭即
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
 msgstr "你打开的所有客户都已修复。关闭面板以刷新列表；如果之后有更多客户进入，可重新打开“立即修复”。"
-
-#: src/routes/login.tsx
-msgid "Every CPA deadline.<0/>One source of truth."
-msgstr "每一个 CPA 截止日期。<0/>唯一可信来源。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Every decision captured to audit ledger"
@@ -7624,6 +7623,10 @@ msgstr "晚上好，{firstName}"
 msgid "Good morning, {firstName}"
 msgstr "早上好，{firstName}"
 
+#: src/routes/login.tsx
+msgid "Google"
+msgstr "Google"
+
 #: src/routes/two-factor.tsx
 msgid "Google Authenticator, 1Password, Authy, or similar."
 msgstr "Google Authenticator、1Password、Authy 或类似应用。"
@@ -7725,8 +7728,8 @@ msgid "HomeBase contacts CSV"
 msgstr "HomeBase 联系人 CSV"
 
 #: src/routes/login.tsx
-msgid "Hosted in US-East · your data never leaves your jurisdiction"
-msgstr "托管于美国东部 · 您的数据从不离开您所在的司法辖区"
+msgid "Hosted in US-East · ISO 27001 in progress"
+msgstr "托管于 US-East · ISO 27001 认证进行中"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your clients and your team."
@@ -8271,10 +8274,6 @@ msgstr "IRS"
 msgid "IRS / CA FTB"
 msgstr "IRS / CA FTB"
 
-#: src/routes/login.tsx
-msgid "ISO 27001 in progress"
-msgstr "ISO 27001 认证进行中"
-
 #: src/routes/onboarding.tsx
 msgid "ISO date"
 msgstr "ISO 日期"
@@ -8590,10 +8589,6 @@ msgstr "链接不可用"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Linked from"
 msgstr "关联自"
-
-#: src/routes/login.tsx
-msgid "Links expire in 10 minutes. We never store passwords."
-msgstr "链接 10 分钟后失效。我们绝不存储密码。"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "List"
@@ -9239,6 +9234,10 @@ msgstr "消息正文已更改"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Message is required."
 msgstr "消息为必填项。"
+
+#: src/routes/login.tsx
+msgid "Microsoft"
+msgstr "Microsoft"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Migration"
@@ -10137,6 +10136,10 @@ msgstr "没有选项"
 msgid "No paid subscription"
 msgstr "无付费订阅"
 
+#: src/routes/login.tsx
+msgid "No password — one-time links expire in 10 minutes."
+msgstr "无需密码 —— 一次性登录链接 10 分钟后失效。"
+
 #: src/features/auth/auth-chrome.tsx
 msgid "No password, no token to lose"
 msgstr "无需密码，也没有令牌会丢失"
@@ -10656,6 +10659,10 @@ msgstr "需留意 — 暂不紧急"
 msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
 
+#: src/routes/login.tsx
+msgid "One source of truth for every filing deadline across your firm."
+msgstr "全所每一个申报截止日期的唯一可信来源。"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
 msgstr "一个未完成的草稿导入"
@@ -11007,8 +11014,11 @@ msgstr "可选备注"
 msgid "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
 msgstr "可选：如果需要 TaxDome due dates 和 internal deadlines，请导出 Workflow > Jobs。"
 
-#: src/routes/accept-invite.tsx
 #: src/routes/login.tsx
+msgid "or continue with"
+msgstr "或继续使用"
+
+#: src/routes/accept-invite.tsx
 msgid "or continue with email"
 msgstr "或使用邮箱继续"
 
@@ -13763,10 +13773,6 @@ msgstr "已用席位"
 msgid "Secure checkout"
 msgstr "安全支付"
 
-#: src/routes/login.tsx
-msgid "Secured by one-time link"
-msgstr "一次性链接安全保障"
-
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/settings.profile.tsx
 msgid "Security"
@@ -14234,6 +14240,10 @@ msgstr "登录"
 msgid "Sign in to accept this invitation — no password to remember."
 msgstr "登录以接受此邀请 — 无需记住密码。"
 
+#: src/routes/login.tsx
+msgid "Sign in to DueDateHQ"
+msgstr "登录 DueDateHQ"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/two-factor.tsx
 msgid "Sign out"
@@ -14290,14 +14300,6 @@ msgstr "已签署"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signed in"
 msgstr "已登录"
-
-#: src/routes/login.tsx
-msgid "Signing in with Google…"
-msgstr "正在使用 Google 登录…"
-
-#: src/routes/login.tsx
-msgid "Signing in with Microsoft…"
-msgstr "正在使用 Microsoft 登录…"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/settings.profile.tsx
@@ -15356,10 +15358,6 @@ msgstr "所选计划仍可在账单页中使用。"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "The server rejected the change."
 msgstr "服务器拒绝了此更改。"
-
-#: src/routes/login.tsx
-msgid "The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and BOI filing across the firm, in one place."
-msgstr "取代每个报税季离不开的电子表格——全所的每一份 1040、1120、工资税和 BOI 申报，统一管理。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
@@ -16632,7 +16630,6 @@ msgstr "周末 → 下一个工作日"
 msgid "Weekly digest"
 msgstr "每周摘要"
 
-#: src/routes/login.tsx
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"

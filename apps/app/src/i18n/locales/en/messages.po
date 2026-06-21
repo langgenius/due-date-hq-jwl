@@ -4500,7 +4500,6 @@ msgid "Continue with Google"
 msgstr "Continue with Google"
 
 #: src/routes/accept-invite.tsx
-#: src/routes/login.tsx
 msgid "Continue with Microsoft"
 msgstr "Continue with Microsoft"
 
@@ -6565,6 +6564,10 @@ msgstr "events"
 msgid "Events"
 msgstr "Events"
 
+#: src/routes/login.tsx
+msgid "Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on schedule."
+msgstr "Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on schedule."
+
 #: src/routes/rules.library.tsx
 msgid "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
 msgstr "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
@@ -6576,10 +6579,6 @@ msgstr "Every client on this list has the facts the rule library needs. Close to
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
 msgstr "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
-
-#: src/routes/login.tsx
-msgid "Every CPA deadline.<0/>One source of truth."
-msgstr "Every CPA deadline.<0/>One source of truth."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Every decision captured to audit ledger"
@@ -7597,6 +7596,10 @@ msgstr "Good evening, {firstName}"
 msgid "Good morning, {firstName}"
 msgstr "Good morning, {firstName}"
 
+#: src/routes/login.tsx
+msgid "Google"
+msgstr "Google"
+
 #: src/routes/two-factor.tsx
 msgid "Google Authenticator, 1Password, Authy, or similar."
 msgstr "Google Authenticator, 1Password, Authy, or similar."
@@ -7697,8 +7700,8 @@ msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
 
 #: src/routes/login.tsx
-msgid "Hosted in US-East · your data never leaves your jurisdiction"
-msgstr "Hosted in US-East · your data never leaves your jurisdiction"
+msgid "Hosted in US-East · ISO 27001 in progress"
+msgstr "Hosted in US-East · ISO 27001 in progress"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your clients and your team."
@@ -8242,10 +8245,6 @@ msgstr "IRS"
 msgid "IRS / CA FTB"
 msgstr "IRS / CA FTB"
 
-#: src/routes/login.tsx
-msgid "ISO 27001 in progress"
-msgstr "ISO 27001 in progress"
-
 #: src/routes/onboarding.tsx
 msgid "ISO date"
 msgstr "ISO date"
@@ -8560,10 +8559,6 @@ msgstr "Link unavailable"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Linked from"
 msgstr "Linked from"
-
-#: src/routes/login.tsx
-msgid "Links expire in 10 minutes. We never store passwords."
-msgstr "Links expire in 10 minutes. We never store passwords."
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "List"
@@ -9202,6 +9197,10 @@ msgstr "Message body changed"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Message is required."
 msgstr "Message is required."
+
+#: src/routes/login.tsx
+msgid "Microsoft"
+msgstr "Microsoft"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Migration"
@@ -10099,6 +10098,10 @@ msgstr "No options"
 msgid "No paid subscription"
 msgstr "No paid subscription"
 
+#: src/routes/login.tsx
+msgid "No password — one-time links expire in 10 minutes."
+msgstr "No password — one-time links expire in 10 minutes."
+
 #: src/features/auth/auth-chrome.tsx
 msgid "No password, no token to lose"
 msgstr "No password, no token to lose"
@@ -10614,6 +10617,10 @@ msgstr "On your radar — not urgent yet"
 msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
 
+#: src/routes/login.tsx
+msgid "One source of truth for every filing deadline across your firm."
+msgstr "One source of truth for every filing deadline across your firm."
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
 msgstr "One unfinished draft import"
@@ -10963,8 +10970,11 @@ msgstr "Optional note"
 msgid "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
 msgstr "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
 
-#: src/routes/accept-invite.tsx
 #: src/routes/login.tsx
+msgid "or continue with"
+msgstr "or continue with"
+
+#: src/routes/accept-invite.tsx
 msgid "or continue with email"
 msgstr "or continue with email"
 
@@ -13702,10 +13712,6 @@ msgstr "Seats used"
 msgid "Secure checkout"
 msgstr "Secure checkout"
 
-#: src/routes/login.tsx
-msgid "Secured by one-time link"
-msgstr "Secured by one-time link"
-
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/settings.profile.tsx
 msgid "Security"
@@ -14172,6 +14178,10 @@ msgstr "Sign in"
 msgid "Sign in to accept this invitation — no password to remember."
 msgstr "Sign in to accept this invitation — no password to remember."
 
+#: src/routes/login.tsx
+msgid "Sign in to DueDateHQ"
+msgstr "Sign in to DueDateHQ"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/two-factor.tsx
 msgid "Sign out"
@@ -14228,14 +14238,6 @@ msgstr "Signed"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signed in"
 msgstr "Signed in"
-
-#: src/routes/login.tsx
-msgid "Signing in with Google…"
-msgstr "Signing in with Google…"
-
-#: src/routes/login.tsx
-msgid "Signing in with Microsoft…"
-msgstr "Signing in with Microsoft…"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/settings.profile.tsx
@@ -15292,10 +15294,6 @@ msgstr "The selected plan is still available from Billing."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "The server rejected the change."
 msgstr "The server rejected the change."
-
-#: src/routes/login.tsx
-msgid "The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and BOI filing across the firm, in one place."
-msgstr "The spreadsheet that runs every busy season, replaced — every 1040, 1120, payroll, and BOI filing across the firm, in one place."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
@@ -16564,7 +16562,6 @@ msgstr "Weekend → next business day"
 msgid "Weekly digest"
 msgstr "Weekly digest"
 
-#: src/routes/login.tsx
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"
