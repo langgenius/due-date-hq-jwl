@@ -24,7 +24,14 @@ Verified desktop (1280) + mobile (390): villain stacks to one column, all text r
 
 The row now has one solid element (the title) and a quiet field of metadata, rather than five competing weights.
 
+## Batch 3 — notice rework + nav over the dark band
+
+- **Notice (#9–14)** — dropped the scan-chip + Reads/Classifies/Matches bubbles + vertical SVG line. Replaced with a **minimal connector** (dot · dashed line · → arrow, matching the workflow-diagram reference the user shared), going vertical on mobile. The document and the extracted fields are now **equal width** (12-col: clip 5 / connector 2 / extract 5), which elevates the extract from its old smaller column. "Don't waste space" honored — no chrome, just the connector.
+- **Nav over the dark section** — the navy villain band broke the transparent nav (dark logo + navy CTA both invisible on navy). Added a **`nav--on-dark`** state (white logo incl. overriding the hardcoded SVG fills, translucent-white BETA pill + nav pill, white nav links, **white CTA with navy text**) toggled by a scroll handler that detects when the nav's midline sits over any `.villain` band. Transitions smoothly; reverts over light sections.
+
 ## Still queued (next batches)
+- **Left scroll-spy rail** (new ref — Canopy) — a sticky left sidebar listing the page sections with the active one highlighted, so the reader knows where they are. Likely scoped to the product-surfaces / "see it work" scroll region.
+- **Content de-dup audit** (`/critique`) — check sections aren't repeating the same claims (the "watches IRS + 50 states + FEMA" line recurs in hero / how-it-works / sources; the value prop is restated several times).
 
 - **Hero delicacy** (orig) — everything in the alerts panel except the alert title smaller / lighter.
 - **Notice rework** (#9–#14) — beam ("bad design" / "useful?"), doc vs extract equal width, extract fields given more weight.

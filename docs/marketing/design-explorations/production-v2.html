@@ -306,6 +306,50 @@
         line-height: 1;
       }
 
+      /* nav adapts when it floats over a dark section (the villain band) */
+      .brand,
+      .brand__mark rect,
+      .brand__beta,
+      .nav__right .btn--primary {
+        transition:
+          color 0.25s ease,
+          background 0.25s ease,
+          fill 0.25s ease;
+      }
+      .nav--on-dark .brand {
+        color: #fff;
+      }
+      .nav--on-dark .brand__mark rect {
+        fill: #fff;
+      }
+      .nav--on-dark .brand__beta {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .nav--on-dark .nav__pillbar {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .nav--on-dark.is-scrolled .nav__pillbar {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .nav--on-dark .nav__link {
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .nav--on-dark .nav__link:hover,
+      .nav--on-dark .nav__link.is-active {
+        color: #fff;
+      }
+      .nav--on-dark .nav__glider {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .nav--on-dark .nav__right .btn--primary {
+        background: #fff;
+        color: var(--accent);
+      }
+      .nav--on-dark .nav__toggle {
+        color: #fff;
+      }
+
       /* centered floating-pill nav + sliding glider (Voiceflow-style) */
       .nav__pillbar {
         position: relative;
@@ -1226,9 +1270,18 @@
       .extract {
         margin-top: clamp(40px, 5vw, 60px);
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 108px minmax(0, 0.88fr);
-        align-items: stretch;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: center;
         gap: 0;
+      }
+      .extract > .clip {
+        grid-column: span 5;
+      }
+      .extract > .beam {
+        grid-column: span 2;
+      }
+      .extract > .extract__out {
+        grid-column: span 5;
       }
 
       /* the source notice — a real letter/clipping on the desk */
@@ -1314,53 +1367,38 @@
       }
 
       /* extraction beam (centered connector) */
+      /* minimal connector: dot · dashed line · arrow (doc → extract) */
       .beam {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: relative;
+        padding: 0 8px;
       }
-      .beam__line {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
+      .beam__conn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        color: var(--accent);
       }
-      .beam__chip {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+      .beam__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
         background: var(--accent);
-        color: #fff;
+        flex: none;
+      }
+      .beam__dash {
+        flex: 1;
+        border-top: 1.5px dashed rgba(46, 54, 140, 0.32);
+      }
+      .beam__arrow {
+        flex: none;
         display: grid;
         place-items: center;
-        position: relative;
-        z-index: 2;
-        box-shadow: 0 8px 24px -12px rgba(46, 54, 140, 0.7);
       }
-      .beam__chip svg {
-        width: 21px;
-        height: 21px;
-      }
-      /* dark callout bubbles strung on the beam — the three things it does (ref 166001) */
-      .beam__steps {
-        position: relative;
-        z-index: 2;
-        margin-top: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 7px;
-      }
-      .beam__step {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        color: #fff;
-        background: var(--ink);
-        padding: 3px 11px;
-        border-radius: 999px;
-        white-space: nowrap;
+      .beam__arrow svg {
+        width: 16px;
+        height: 16px;
       }
 
       /* the extracted, structured change */
@@ -2971,24 +3009,31 @@
           grid-template-columns: 1fr;
           gap: 0;
         }
+        .extract > .clip,
+        .extract > .beam,
+        .extract > .extract__out {
+          grid-column: auto;
+        }
         .clip {
           transform: none;
           max-width: 480px;
           margin: 0 auto;
         }
         .beam {
-          flex-direction: row;
-          gap: 14px;
-          padding: 24px 0;
+          padding: 14px 0;
         }
-        .beam__line {
-          display: none;
+        .beam__conn {
+          flex-direction: column;
+          height: 46px;
+          width: auto;
         }
-        .beam__steps {
-          margin-top: 0;
-          flex-direction: row;
-          flex-wrap: wrap;
-          justify-content: center;
+        .beam__dash {
+          border-top: 0;
+          border-left: 1.5px dashed rgba(46, 54, 140, 0.32);
+          width: 0;
+        }
+        .beam__arrow svg {
+          transform: rotate(90deg);
         }
         .extract__out {
           max-width: 480px;
@@ -4357,36 +4402,24 @@
               </div>
             </article>
 
-            <!-- extraction beam -->
+            <!-- minimal connector: the document is read into the structured fields -->
             <div class="beam" aria-hidden="true">
-              <svg class="beam__line" viewBox="0 0 64 200" preserveAspectRatio="none">
-                <path
-                  d="M32 2 V198"
-                  stroke="#CBD0D8"
-                  stroke-width="1.5"
-                  stroke-dasharray="3 6"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span class="beam__chip">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8-18h3a2 2 0 0 1 2 2v3m0 8v3a2 2 0 0 1-2 2h-3"
-                  />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              </span>
-              <span class="beam__steps">
-                <span class="beam__step">Reads</span>
-                <span class="beam__step">Classifies</span>
-                <span class="beam__step">Matches</span>
+              <span class="beam__conn">
+                <span class="beam__dot"></span>
+                <span class="beam__dash"></span>
+                <span class="beam__arrow">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="M13 6l6 6-6 6" />
+                  </svg>
+                </span>
               </span>
             </div>
 
@@ -5662,11 +5695,19 @@
       ;(function () {
         'use strict'
 
-        // nav scroll hairline
+        // nav scroll hairline + dark-section adaptation
         var nav = document.getElementById('nav')
+        var darkSections = Array.prototype.slice.call(document.querySelectorAll('.villain'))
         var onScroll = function () {
           if (window.scrollY > 8) nav.classList.add('is-scrolled')
           else nav.classList.remove('is-scrolled')
+          // when the nav's midline sits over a dark band, switch to the light treatment
+          var navMid = (nav.offsetHeight || 70) * 0.5
+          var overDark = darkSections.some(function (s) {
+            var r = s.getBoundingClientRect()
+            return r.top <= navMid && r.bottom >= navMid
+          })
+          nav.classList.toggle('nav--on-dark', overDark)
         }
         window.addEventListener('scroll', onScroll, { passive: true })
         onScroll()
