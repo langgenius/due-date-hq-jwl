@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { motion } from 'motion/react'
 import { ArrowRightIcon } from 'lucide-react'
 
 import {
@@ -11,6 +12,7 @@ import {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 
 import { humanizeDueDateLogic } from './rules-console-model'
@@ -127,9 +129,16 @@ function ReviewReasonBadge({ reason }: { reason: RuleReviewTaskReason }) {
 function DiffFieldList({ fields }: { fields: readonly RuleFieldDiff[] }) {
   return (
     <ul className="flex flex-col divide-y divide-divider-subtle">
-      {fields.map((field) => (
-        <li
+      {fields.map((field, index) => (
+        <motion.li
           key={field.field}
+          initial={{ opacity: 0, x: -4 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{
+            duration: MOTION_DURATION.enter,
+            ease: EASE_APPLE,
+            delay: Math.min(index, 4) * 0.04,
+          }}
           className="grid grid-cols-[minmax(0,8rem)_1fr] items-baseline gap-x-3 gap-y-0.5 py-1.5"
         >
           <span className="truncate text-xs font-medium text-text-secondary">
@@ -149,7 +158,7 @@ function DiffFieldList({ fields }: { fields: readonly RuleFieldDiff[] }) {
               {formatFieldValue(field.field, field.after)}
             </span>
           </span>
-        </li>
+        </motion.li>
       ))}
     </ul>
   )

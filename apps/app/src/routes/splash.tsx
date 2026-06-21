@@ -1,5 +1,6 @@
 import { type ReactNode, useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { motion } from 'motion/react'
 import { ArrowRightIcon, CircleCheckIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -8,6 +9,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
@@ -159,18 +161,28 @@ export function SplashRoute() {
                 <Skeleton className="h-5 w-1/2" />
               </div>
             ) : recapLines.length > 0 ? (
-              <ul className="flex flex-col gap-2.5">
+              <motion.ul
+                className="flex flex-col gap-2.5"
+                initial="hidden"
+                animate="show"
+                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
+              >
                 {recapLines.map((line, index) => (
-                  <li
+                  <motion.li
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
+                    variants={{
+                      hidden: { opacity: 0, x: -8 },
+                      show: { opacity: 1, x: 0 },
+                    }}
+                    transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
                     className="flex items-center gap-2.5 text-sm font-medium text-text-primary"
                   >
                     <CircleCheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                     <span>{line}</span>
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
             ) : (
               <p className="text-sm font-medium text-text-tertiary">
                 <Trans>No activity since your last visit.</Trans>
