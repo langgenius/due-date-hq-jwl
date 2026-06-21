@@ -2968,8 +2968,12 @@ export function ObligationQueueRoute() {
         key: 'this-week',
         label: t`Due this week`,
         value: dueThisWeek,
+        // Neutral sub (not warning): the app's warning token reads as a near-red
+        // that competed with the Overdue destructive cell — two reds on one calm
+        // band. Overdue is the genuine risk and owns the band's only color;
+        // due-this-week is upcoming workload, so it reads neutral like In review
+        // / Filed (color-only-serves-risk + calm-on-dense canon).
         sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
-        subClass: dueThisWeek > 0 ? 'text-text-warning' : 'text-text-tertiary',
       },
       {
         key: 'in-review',
