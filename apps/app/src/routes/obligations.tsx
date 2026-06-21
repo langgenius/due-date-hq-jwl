@@ -28,6 +28,7 @@ import {
   ChevronRightIcon,
   CircleDollarSignIcon,
   CircleIcon,
+  CircleDotIcon,
   ClipboardListIcon,
   Columns3Icon,
   CopyIcon,
@@ -4116,7 +4117,7 @@ export function ObligationQueueRoute() {
                           : t`Status changes require owner, partner, manager, or preparer access.`
                       }
                     >
-                      <CircleIcon data-icon="inline-start" />
+                      <CircleDotIcon data-icon="inline-start" />
                       <Trans>Set status</Trans>
                       <ChevronDownIcon data-icon="inline-end" />
                     </Button>
@@ -6773,8 +6774,10 @@ function ObligationFacetSearchList({
               value={`${option.label} ${option.value}`}
               onSelect={() => onToggle(option.value)}
               // Selected rows carry a subtle wash (canon `hCgB8`) so the
-              // current picks read above the unselected options.
-              className={cn(checked && 'bg-background-subtle')}
+              // current picks read above the unselected options. `rounded-lg` so
+              // the hover + selected wash read as a soft inset pill (ref: filter
+              // options with a rounded-lg row hover), not a full-bleed band.
+              className={cn('rounded-lg', checked && 'bg-background-subtle')}
             >
               <span
                 className={cn(
@@ -6797,7 +6800,10 @@ function ObligationFacetSearchList({
                 {option.label}
               </span>
               {typeof option.count === 'number' ? (
-                <span className="text-caption-xs tabular-nums text-text-tertiary">
+                // Count sits in a subtle rounded pill pushed to the right edge
+                // (ref: filter options with a grey count capsule), so each row
+                // reads "label ········ N" like the reference facet submenus.
+                <span className="ml-auto shrink-0 rounded-full bg-background-section px-1.5 py-0.5 text-caption-xs tabular-nums text-text-tertiary">
                   {option.count}
                 </span>
               ) : null}
