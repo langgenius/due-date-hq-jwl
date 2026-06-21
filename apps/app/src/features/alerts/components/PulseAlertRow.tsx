@@ -204,6 +204,7 @@ function PulseAlertRow({
   highImpact = false,
   showAction = true,
   showRailDate = true,
+  muted = false,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -256,6 +257,13 @@ function PulseAlertRow({
    * Flat (ungrouped) lists keep date + time. Default true (flat).
    */
   showRailDate?: boolean
+  /**
+   * 2026-06-21 (Yuqi, triage demotion): the "For your awareness" digest renders
+   * its rows `muted` — title in secondary ink + tighter padding — so the FYI
+   * stream reads a step quieter than the full-weight "Needs action" queue,
+   * without a disabled look (the title stays AA-readable).
+   */
+  muted?: boolean
 }) {
   const { t } = useLingui()
   // Cache-only subscription — the date-diff / form fields fill in when the
@@ -412,7 +420,9 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-colors',
+        // Muted (awareness digest) rows step the vertical padding down a notch.
+        muted ? 'py-2.5' : 'py-3',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -490,7 +500,14 @@ function PulseAlertRow({
         {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
-        <div className={cn('flex min-w-0 items-center gap-2', recede)}>
+        <div className="flex min-w-0 items-center gap-2">
+          {/* Receding identity + supporting cluster — the chips, source, and the
+              "arrived at" time dim to a quiet tier at rest (lift on hover/active),
+              so the list scans as a column of titles. It GROWS (flex-1) to push
+              the time-to-act tag to the right edge. The deadline tag itself sits
+              OUTSIDE this wrapper (below) so it stays present at rest — the one
+              urgency cue that never recedes (Yuqi 2026-06-21). */}
+          <div className={cn('flex min-w-0 flex-1 items-center gap-2', recede)}>
           {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
               tab is not reasonable or logical"): the ACTIVE badge is GONE
               from queue rows — the Review/Active tab already states which
@@ -607,6 +624,7 @@ function PulseAlertRow({
               </Tooltip>
             </span>
           ) : null}
+          </div>
 
           {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
               "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
@@ -694,7 +712,12 @@ function PulseAlertRow({
           // row + heavier than the 12px meta) but no longer shouts, and it now
           // matches the deadline row weight for list-to-list cohesion. If this
           // reads flat, the lever is weight (→ semibold), not size.
-          className="line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium text-text-primary"
+          className={cn(
+            'line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium',
+            // Awareness-digest rows demote the title to secondary ink (still
+            // AA-readable) so the FYI stream reads quieter than the queue.
+            muted ? 'text-text-secondary' : 'text-text-primary',
+          )}
           title={alert.title}
         >
           {alert.title}
@@ -911,6 +934,7 @@ function PulseAlertList({
   grouped = true,
   highImpactIds,
   showAction = true,
+  muted = false,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
@@ -951,6 +975,8 @@ function PulseAlertList({
    * true.
    */
   showAction?: boolean
+  /** Render every row `muted` (the awareness-digest demotion). */
+  muted?: boolean
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -1007,6 +1033,7 @@ function PulseAlertList({
         priority={priorityById?.get(alert.id)}
         highImpact={highImpactIds?.has(alert.id) ?? false}
         showAction={showAction}
+        muted={muted}
         // Day-grouped lists: the band owns the date, rows show time only
         // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
         showRailDate={!grouped}

@@ -430,17 +430,32 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   //   • awarenessAlerts ("For your awareness") = the FYI rest — a chronological
   //     DIGEST that keeps the day bands + honours the Sort control.
   // Both derive from `sortedAlerts`, so the active facets/search apply in each.
-  const actionAlerts = useMemo(
-    () =>
-      sortedAlerts
-        .filter((alert) => alertNeedsAction(alert))
-        .toSorted(
-          (a, b) =>
-            alertImpactCount(b) - alertImpactCount(a) ||
-            new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-        ),
-    [sortedAlerts],
-  )
+  const actionAlerts = useMemo(() => {
+    const now = Date.now()
+    // 2026-06-21 (Yuqi "deadline urgency should outrank reach"): the action zone
+    // leads with imminent/overdue DEADLINES, then client reach, then recency. A
+    // closing window (e.g. a protective-claim deadline) outranks a higher-reach
+    // alert whose filing is months out. Deadlines beyond the 60-day horizon do
+    // NOT pull rank — they sort by reach with everyone else — so a far-future
+    // filing never jumps ahead of high-impact work.
+    const DEADLINE_HORIZON_MS = 60 * 24 * 60 * 60 * 1000
+    const deadlineRank = (alert: PulseAlertPublic) => {
+      if (!alert.actionDeadline) return Number.POSITIVE_INFINITY
+      const ms = new Date(alert.actionDeadline).getTime() - now
+      if (ms < 0) return -1 // overdue → most urgent
+      return ms <= DEADLINE_HORIZON_MS ? ms : Number.POSITIVE_INFINITY
+    }
+    return sortedAlerts
+      .filter((alert) => alertNeedsAction(alert))
+      .toSorted((a, b) => {
+        const da = deadlineRank(a)
+        const db = deadlineRank(b)
+        if (da !== db) return da - db
+        const reach = alertImpactCount(b) - alertImpactCount(a)
+        if (reach !== 0) return reach
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      })
+  }, [sortedAlerts])
   const awarenessAlerts = useMemo(
     () => sortedAlerts.filter((alert) => !alertNeedsAction(alert)),
     [sortedAlerts],
@@ -800,31 +815,15 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     is INSET so the surrounding `overflow-y-auto` list
                     column can't clip it (an outset ring-2 was getting
                     cropped at the column's top/left edge). */}
-                {/* 2026-06-21 (Yuqi): the Review/Active MODE toggle is gone. The
-                    list is now a single unified triage view — a "Needs action"
-                    queue leading a "For your awareness" digest (zone bands render
-                    below, in the list body) — so there is no mode to pick; you
-                    read everything by default. See [[project_alerts_triage_model]].
-                    The toolbar now leads with the suggested-action toggle. */}
-
-                {/* Suggested-action toggle — flips the per-row "do this next"
-                    line in the action zone. The narrowing/sorting tools cluster
-                    to the right. */}
-                {panelOpen ? null : (
-                  <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm text-text-secondary select-none">
-                    <Checkbox
-                      checked={showSuggestedAction}
-                      onCheckedChange={(next) => setShowSuggestedAction(next)}
-                    />
-                    <Trans>Suggested action</Trans>
-                  </label>
-                )}
-
-                {/* Spacer — reading controls left, finding controls right
-                    (Yuqi /alerts #3: "put search, filters, state close to
-                    the sort dropdown"). Collapses below lg so the wrap
-                    order stays sane on narrow viewports. */}
-                <span className="hidden flex-1 lg:block" aria-hidden />
+                {/* 2026-06-21 (Yuqi): both the Review/Active MODE toggle and the
+                    "Suggested action" checkbox left the toolbar — the toggle
+                    because the list is now a unified triage view (zone bands
+                    render below), and the suggested-action toggle moved into the
+                    Filters popover's "Display" section (it was orphaned alone on
+                    the left). With no reading-controls group left, the finding
+                    controls now flow from the LEFT, aligned with the zone bands +
+                    rows at `px-5`; the old right-clustering spacer is dropped.
+                    See [[project_alerts_triage_model]]. */}
 
                 {/* Canonical collapsing toolbar search — ghost magnifier that
                     expands on hover/click and retains focus + query. Same
@@ -913,6 +912,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       onChangeKindChange={setChangeKindFilter}
                       taxAreaFilter={taxAreaFilter}
                       onTaxAreaChange={setTaxAreaFilter}
+                      showSuggestedAction={showSuggestedAction}
+                      onShowSuggestedActionChange={setShowSuggestedAction}
                     />
 
                     {/* State-filter map lives behind a Popover trigger
@@ -1122,7 +1123,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   {/* NEEDS ACTION — the priority queue. Always rendered (even at
                       zero) so the "you're caught up" beat has a home. */}
                   <section className="group/zone flex flex-col">
-                    <div className="flex items-center gap-2.5 px-5 py-2">
+                    {/* Sticky (top-12, below the toolbar) so "Needs action" stays
+                        pinned while you scroll a long queue — the awareness day
+                        bands already stick at the same offset in their own zone,
+                        so the two never collide (different scroll regions). The
+                        page-wash bg occludes rows scrolling underneath. */}
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 bg-background-inset px-5 py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1219,8 +1225,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           alerts={awarenessAlerts}
                           openAlertId={openAlertId}
                           onReview={openDrawerAndCollapseSidebar}
-                          // FYI rows carry no "do this next" line.
+                          // FYI rows carry no "do this next" line and render a
+                          // step quieter than the action queue (Yuqi: demote).
                           showAction={false}
+                          muted
                           grouped={sortOrder !== 'highest_impact'}
                           highImpactIds={highImpactIds}
                           selectable={selectionEnabled}
@@ -1590,6 +1598,8 @@ function AlertFiltersPopover({
   onChangeKindChange,
   taxAreaFilter,
   onTaxAreaChange,
+  showSuggestedAction,
+  onShowSuggestedActionChange,
 }: {
   timeRangeFilter: TimeRangeFilter
   onTimeRangeChange: (value: TimeRangeFilter) => void
@@ -1599,6 +1609,11 @@ function AlertFiltersPopover({
   onChangeKindChange: (value: AlertChangeKindFilter) => void
   taxAreaFilter: AlertTaxAreaFilter
   onTaxAreaChange: (value: AlertTaxAreaFilter) => void
+  // Display preference (not a narrowing facet) — relocated here from the toolbar
+  // where it sat orphaned. Excluded from `activeCount` so it never reads as an
+  // applied filter.
+  showSuggestedAction: boolean
+  onShowSuggestedActionChange: (value: boolean) => void
 }) {
   const { t } = useLingui()
   // The active count includes the time filter so the trigger badge
@@ -1694,6 +1709,22 @@ function AlertFiltersPopover({
             getLabel={taxAreaFilterLabel}
             onSelect={onTaxAreaChange}
           />
+          {/* Display — a per-row presentation toggle, NOT a narrowing facet
+              (relocated 2026-06-21 from the toolbar where it sat orphaned on the
+              left). Sits under its own hairline like the facets, but excluded
+              from the trigger's active-count. */}
+          <div className="flex flex-col gap-2 py-3">
+            <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
+              <Trans>Display</Trans>
+            </CapsFieldLabel>
+            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-text-secondary select-none">
+              <Checkbox
+                checked={showSuggestedAction}
+                onCheckedChange={(next) => onShowSuggestedActionChange(next)}
+              />
+              <Trans>Suggested actions</Trans>
+            </label>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
