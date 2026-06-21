@@ -180,6 +180,7 @@ import {
   LIFECYCLE_V2_STATUSES,
   LIFECYCLE_V2_STATUS_SETS,
   ObligationQueueStatusControl,
+  StatusMark,
   STATUS_ICON_COLOR,
   useLifecycleV2StatusLabels,
   useStatusLabels,
@@ -4131,7 +4132,13 @@ export function ObligationQueueRoute() {
                           setExtendedMemoOpen(true)
                         }}
                       >
-                        {statusLabels[status]}
+                        <span className="flex items-center gap-2">
+                          <StatusMark
+                            status={status}
+                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                          />
+                          {statusLabels[status]}
+                        </span>
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
@@ -4139,7 +4146,13 @@ export function ObligationQueueRoute() {
                         disabled={bulkStatusMutation.isPending}
                         onClick={() => changeSelectedStatus(status)}
                       >
-                        {statusLabels[status]}
+                        <span className="flex items-center gap-2">
+                          <StatusMark
+                            status={status}
+                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                          />
+                          {statusLabels[status]}
+                        </span>
                       </DropdownMenuItem>
                     ),
                   )}
