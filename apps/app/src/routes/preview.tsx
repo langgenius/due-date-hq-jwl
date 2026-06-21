@@ -207,6 +207,11 @@ import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
 import { TickProgress } from '@/components/primitives/tick-progress'
 import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
 import { DuotoneIcon } from '@/components/primitives/duotone-icon'
+import { WorkspaceSwitcherDemo } from '@/features/shell/workspace-switcher'
+import { SidebarNavShowcase } from '@/features/shell/sidebar-nav-showcase'
+import { SidebarFooterZone } from '@/features/shell/sidebar-footer-zone'
+import { RichHelpTooltipDemo } from '@/components/primitives/rich-help-tooltip'
+import { FunIconButtonDemo } from '@/components/primitives/fun-icon-button'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary/SurfaceSummaryStrip'
 import { ConceptHelp } from '@/features/concepts/concept-help'
@@ -2206,6 +2211,45 @@ export function PreviewRoute() {
                   />
                 </div>
               </div>
+            </Row>
+            {/* ── App shell prototypes (Yuqi sidebar/tooltip/button refs) ──
+                Standalone, NOT wired into app-shell-nav.tsx (parallel session
+                owns the live shell) — ready to drop in once it frees up. */}
+            <Row
+              label="WorkspaceSwitcher"
+              mono="features/shell/workspace-switcher (ref: Acme/account switcher)"
+            >
+              <div className="w-64">
+                <WorkspaceSwitcherDemo />
+              </div>
+            </Row>
+            <Row
+              label="SidebarNavShowcase"
+              mono="features/shell/sidebar-nav-showcase (ref: Acme sectioned nav)"
+            >
+              <div className="w-64">
+                <SidebarNavShowcase />
+              </div>
+            </Row>
+            <Row
+              label="SidebarFooterZone"
+              mono="features/shell/sidebar-footer-zone (ref: upgrade card + toast + profile)"
+            >
+              <div className="w-64">
+                <SidebarFooterZone />
+              </div>
+            </Row>
+            <Row
+              label="RichHelpTooltip"
+              mono="components/primitives/rich-help-tooltip (ref: bold preview tooltip)"
+            >
+              <RichHelpTooltipDemo />
+            </Row>
+            <Row
+              label="FunIconButton"
+              mono="components/primitives/fun-icon-button (ref: Show in Maps)"
+            >
+              <FunIconButtonDemo />
             </Row>
             <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
               <div className="w-full max-w-[520px]">
