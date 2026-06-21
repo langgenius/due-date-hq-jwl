@@ -1,4 +1,4 @@
-import { CircleAlertIcon, RotateCwIcon, ScrollTextIcon } from 'lucide-react'
+import { CircleAlertIcon, RotateCwIcon, ScrollTextIcon, UserIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
@@ -275,7 +275,14 @@ export function DashboardRoute() {
     // short enough not to scroll.
     // pt-8 (Yuqi /alerts #9, applied app-wide): the page title centers on the
     // sidebar's firm avatar across every top-level page.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12">
+    // Desktop (xl+) = a bounded-height frame: the column fills <main>'s height
+    // and the Priorities region (the one unbounded, row-driven section) absorbs
+    // the remainder and scrolls INTERNALLY, so the dashboard itself never scrolls
+    // — a glanceable single screen (Yuqi: "this is the dashboard, should not be
+    // scrollable"). Header / Alerts / Daily Brief hold their natural height (no
+    // min-h-0 → flex won't shrink them below content). Below xl we drop the frame
+    // so narrow/short viewports scroll the page normally.
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12 xl:h-full xl:min-h-0">
       {/* /today routes through the same `<PageHeader>` primitive as
           /clients, /deadlines, /alerts, and /rules/library — date sits
           in the canonical pill chip slot so it matches the family's
@@ -375,9 +382,16 @@ export function DashboardRoute() {
                       value={scope}
                       onValueChange={setScope}
                       ariaLabel={t`View scope`}
+                      // This is the PAGE-level scope switch (it drives the brief,
+                      // the priorities, every count) — so it earns a more deliberate
+                      // treatment than the plain text Segmenteds elsewhere and than
+                      // the local "This week/month/Overdue" bucket toggle below:
+                      // person iconography (one ↔ many) marks it as the "whose work"
+                      // control at a glance. Icons via the primitive's `icon` prop —
+                      // no hand-rolling (§4.11).
                       options={[
-                        { value: 'me', label: t`My work` },
-                        { value: 'firm', label: t`Everyone` },
+                        { value: 'me', label: t`My work`, icon: UserIcon },
+                        { value: 'firm', label: t`Everyone`, icon: UsersIcon },
                       ]}
                     />
                   </span>
@@ -524,6 +538,9 @@ export function DashboardRoute() {
           selector and the priority-action rows nested as flat sections. One
           surface: replaces the old AI brief AND the Priority Actions table. */}
           <MergedBriefCard
+            // At xl the Priorities section absorbs the frame's leftover height and
+            // scrolls its table internally (see the container note above).
+            className="xl:min-h-0 xl:flex-1"
             counts={{
               // This week = today + the next-7-day bin; this month = the next-30-day
               // bin; overdue as-is. (Yuqi: CPA buckets, drop "ending today".)

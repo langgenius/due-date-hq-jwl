@@ -17,6 +17,7 @@ import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
@@ -69,6 +70,7 @@ export function MergedBriefCard({
   asOfDate,
   isLoading = false,
   onOpenObligation,
+  className,
 }: {
   counts: MergedBriefCounts
   rows: readonly DashboardTopRow[]
@@ -77,6 +79,9 @@ export function MergedBriefCard({
   // without it the zero counts masquerade as "Nothing here. You're clear."
   isLoading?: boolean
   onOpenObligation: (obligationId: string) => void
+  // Lets /today make this section the flex-1 min-h-0 region of its desktop
+  // bounded-height frame (the table then scrolls internally, not the page).
+  className?: string
 }) {
   const { t } = useLingui()
   const asOf = useMemo(() => (asOfDate ? new Date(asOfDate) : new Date()), [asOfDate])
@@ -140,7 +145,11 @@ export function MergedBriefCard({
     // band render (they don't depend on data), only the data slots shimmer —
     // so the page doesn't reflow when rows land. aria-busy for SRs.
     return (
-      <section aria-label={t`Priorities`} aria-busy className="flex w-full flex-col gap-3">
+      <section
+        aria-label={t`Priorities`}
+        aria-busy
+        className={cn('flex w-full flex-col gap-3', className)}
+      >
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 flex-col gap-1.5">
             <h2 className="text-region-title text-text-primary">
@@ -212,7 +221,7 @@ export function MergedBriefCard({
     // (Yuqi: avoid too much use of borders), and the section grammar matches
     // the rest of /today: title row → content surface. gap-3 = the one
     // in-section gap token (audit: kill the 10/11/12 drift).
-    <section aria-label={t`Priorities`} className="flex w-full flex-col gap-3">
+    <section aria-label={t`Priorities`} className={cn('flex w-full flex-col gap-3', className)}>
       {/* Header — title first (flush with the page rail so all section titles
           share one x — the audit's eye-line fix; the old leading icon-circle
           pushed this title 38px off the rail) + the count-chip bucket selector
@@ -384,7 +393,11 @@ export function MergedBriefCard({
           // fit (phone widths), the frame scrolls sideways instead of
           // silently amputating STATUS/owner/DUE. Corner clipping behaves
           // the same when content fits.
-          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none"
+          // At xl this wrapper is the flex-1 min-h-0 region of /today's bounded
+          // frame: it absorbs leftover height and scrolls the table body
+          // INTERNALLY (overflow-y), so the dashboard page itself never scrolls.
+          // Below xl it's natural-height and the page scrolls normally.
+          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
         >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>
