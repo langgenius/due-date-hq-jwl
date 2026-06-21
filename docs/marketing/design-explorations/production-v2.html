@@ -1699,8 +1699,7 @@
         font-weight: 600;
         letter-spacing: -0.01em;
         color: var(--ink);
-        background: var(--paper);
-        border: 1px solid var(--hairline);
+        background: var(--surface-2);
         border-radius: 999px;
         padding: 8px 15px;
       }
@@ -2315,11 +2314,14 @@
      CLOSE
      ============================================================ */
       .close {
-        border-top: 1px solid var(--hairline);
+        padding-block: clamp(44px, 6vw, 84px);
       }
       .close .wrap {
-        padding-block: clamp(64px, 9vw, 116px);
-        max-width: 780px;
+        max-width: 900px;
+        background: var(--surface);
+        border-radius: 12px;
+        padding-block: clamp(48px, 7vw, 80px);
+        padding-inline: clamp(28px, 5vw, 60px);
       }
       .close__pill {
         display: inline-flex;
@@ -2381,10 +2383,10 @@
       .close__receipt {
         --r: 9px;
         margin: 36px 0 0;
-        max-width: 380px;
+        max-width: none;
         text-align: left;
-        background: var(--surface);
-        padding: 15px 18px calc(15px + var(--r));
+        background: var(--surface-2);
+        padding: 16px 20px calc(16px + var(--r));
         border-radius: 12px 12px 0 0;
         -webkit-mask:
           radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))

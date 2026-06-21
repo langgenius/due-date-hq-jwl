@@ -29,9 +29,17 @@ The row now has one solid element (the title) and a quiet field of metadata, rat
 - **Notice (#9–14)** — dropped the scan-chip + Reads/Classifies/Matches bubbles + vertical SVG line. Replaced with a **minimal connector** (dot · dashed line · → arrow, matching the workflow-diagram reference the user shared), going vertical on mobile. The document and the extracted fields are now **equal width** (12-col: clip 5 / connector 2 / extract 5), which elevates the extract from its old smaller column. "Don't waste space" honored — no chrome, just the connector.
 - **Nav over the dark section** — the navy villain band broke the transparent nav (dark logo + navy CTA both invisible on navy). Added a **`nav--on-dark`** state (white logo incl. overriding the hardcoded SVG fills, translucent-white BETA pill + nav pill, white nav links, **white CTA with navy text**) toggled by a scroll handler that detects when the nav's midline sits over any `.villain` band. Transitions smoothly; reverts over light sections.
 
-## Still queued (next batches)
-- **Left scroll-spy rail** (new ref — Canopy) — a sticky left sidebar listing the page sections with the active one highlighted, so the reader knows where they are. Likely scoped to the product-surfaces / "see it work" scroll region.
-- **Content de-dup audit** (`/critique`) — check sections aren't repeating the same claims (the "watches IRS + 50 states + FEMA" line recurs in hero / how-it-works / sources; the value prop is restated several times).
+## Batch 4 — close frame, sources borders, compare width
+
+- **Close (#17/#18)** — was merging with the gray footer when I tried a flat gray band, so made it a **distinct gray framed card** (rounded `--surface` panel on the white section, separated from the footer by white space). The audit **receipt is now white + full-width** inside the frame, so it reads as the proof object it is.
+- **Sources borders (#15)** — de-bordered the 8 source chips (white fills on the gray sources band instead of 8 pill outlines); the section's border overuse drops sharply.
+- **Compare width (#16)** — already resolved: `.compare` uses the standard `.wrap`, now unified to the 1240 grid container.
+- **Flow #7/#8 deferred** — "bolder / hard to read" + "what is the loop graphic" need a real flow redesign (likely adopting the workflow-diagram card+label+connector style), not a quick tweak. Queued as its own pass.
+
+## Still queued
+- **Content de-dup** — background audit completed; applying its prioritized edits next (product-surfaces cards quoting their target sections verbatim; the sourcing formula stated 3× in the trust band + FAQ; coverage enumeration repeated in Watch node; data-isolation phrase 3×).
+- **Left scroll-spy rail** (Canopy ref) — sticky section-nav showing where the reader is.
+- **Flow redesign** (#7/#8).
 
 - **Hero delicacy** (orig) — everything in the alerts panel except the alert title smaller / lighter.
 - **Notice rework** (#9–#14) — beam ("bad design" / "useful?"), doc vs extract equal width, extract fields given more weight.
