@@ -1,13 +1,14 @@
 ---
 /**
- * /zh-CN/how-it-works — Simplified-Chinese mirror of the product tour. Same
- * component composition, locale="zh-CN".
+ * /zh-CN/how-it-works — Simplified-Chinese mirror of the flagship product
+ * walkthrough. Same page-specific composition as the EN page (bold serif hero +
+ * worked example, LoopDeep four stages, SurfaceDeep per-surface deep dive, shared
+ * finale), locale="zh-CN". Component copy lives inside each component's zh branch.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import TopNav from '../../components/home/TopNav.astro'
-import HowItWorks from '../../components/home/HowItWorks.astro'
-import SeeItWork from '../../components/home/SeeItWork.astro'
-import Surfaces from '../../components/home/Surfaces.astro'
+import LoopDeep from '../../components/home/LoopDeep.astro'
+import SurfaceDeep from '../../components/home/SurfaceDeep.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
@@ -23,21 +24,49 @@ const pathname = '/zh-CN/how-it-works'
   lang="zh-CN"
   pathname={pathname}
   title="DueDateHQ 如何运作 —— 从截止日变化到受影响的客户"
-  description="看清完整闭环：DueDateHQ 监控官方 IRS、各州与 FEMA 来源，将每条变化匹配到你的客户，按风险为你的一周排序，并在应用时为每个日期附上来源。"
+  description="完整的产品导览：DueDateHQ 监控官方 IRS、各州与 FEMA 来源，将每条变化匹配到你的客户，按风险为你的一周排序，并在应用时为每个日期附上来源。"
   ogImage={t.meta.ogImage}
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" locale="zh-CN" />
   <main>
-    <section class="m-section m-page-hero" id="hero">
+    <section class="m-section how-hero" id="hero">
       <p class="m-eyebrow">产品导览</p>
-      <h1 class="m-page-title">从一次截止日变化，到它牵动的每一个客户。</h1>
-      <p class="m-page-lead">
-        完整的闭环 —— DueDateHQ 监控什么、如何把每条变化匹配到你的客户、你的一周靠哪张工作清单运转，以及你真正会用到的每个界面。
+      <h1 class="how-hero__title">
+        从一次截止日变化，<br />到它牵动的<span class="ital">每一个客户。</span>
+      </h1>
+      <p class="how-hero__lead">
+        DueDateHQ 全天候只跑一个闭环：盯紧官方来源、读懂一条变化到底改了什么、按谁最有风险为你的一周排序，再把新日期落到客户身上——每一行都附上来源。下面，就是这套东西的全貌，一块界面接一块界面地讲清楚。
       </p>
+
+      <!-- 一个完整走通的例子——把抽象的闭环落到一条真实变化上 -->
+      <div class="how-hero__ex" aria-label="一个端到端的完整示例">
+        <span class="how-hero__ex-lead">一条变化，从头走到尾</span>
+        <ol class="how-hero__chips">
+          <li class="hchip">
+            <span class="hchip__k">监测</span>
+            <span class="hchip__v">IRS 发布灾害延期公告</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip">
+            <span class="hchip__k">匹配</span>
+            <span class="hchip__v">命中你的 8 家客户</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip">
+            <span class="hchip__k">排序</span>
+            <span class="hchip__v">其中 2 家已逾期</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip hchip--apply">
+            <span class="hchip__k">应用</span>
+            <span class="hchip__v">Apr 15 → Nov 3，有来源、已记录</span>
+          </li>
+        </ol>
+      </div>
     </section>
-    <HowItWorks locale="zh-CN" />
-    <SeeItWork locale="zh-CN" />
-    <Surfaces locale="zh-CN" />
+
+    <LoopDeep locale="zh-CN" />
+    <SurfaceDeep locale="zh-CN" />
     <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />
@@ -47,5 +76,103 @@ const pathname = '/zh-CN/how-it-works'
 <style is:global>
   body {
     background: var(--m-canvas);
+  }
+</style>
+
+<style>
+  /* 页面 hero —— 比共享 .m-page-hero 更有分量：衬线显示体 + 真实的字号上限，
+     再用一个走通的例子把抽象闭环落地。CJK 字形偏满、偏重，所以收一档字号、
+     放宽行高、取消紧凑字距。 */
+  .how-hero {
+    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
+  }
+  .how-hero__title {
+    margin-top: 4px;
+    max-width: 20ch;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 4.4vw, 60px);
+    line-height: 1.16;
+    letter-spacing: 0;
+    color: var(--m-ink);
+    text-wrap: balance;
+  }
+  .how-hero__title .ital {
+    font-style: italic;
+  }
+  .how-hero__lead {
+    margin-top: clamp(20px, 2vw, 28px);
+    max-width: 52ch;
+    font-size: clamp(16px, 1.3vw, 18px);
+    line-height: 1.7;
+    color: var(--m-ink-2);
+  }
+
+  .how-hero__ex {
+    margin-top: clamp(28px, 3vw, 40px);
+    padding: clamp(16px, 1.8vw, 22px) clamp(16px, 2vw, 24px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .how-hero__ex-lead {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .how-hero__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px 10px;
+    list-style: none;
+    padding: 0;
+  }
+  .hchip {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 13px;
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-radius: 8px;
+  }
+  .hchip--apply {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
+  }
+  .hchip__k {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .hchip__v {
+    font-size: 13px;
+    color: var(--m-ink);
+    white-space: nowrap;
+  }
+  .hchip__arrow {
+    display: flex;
+    align-items: center;
+    color: var(--m-faint);
+    font-size: 14px;
+  }
+  @media (max-width: 720px) {
+    .hchip__v {
+      white-space: normal;
+    }
+    .hchip__arrow {
+      display: none;
+    }
+    .how-hero__chips {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 </style>

@@ -1,14 +1,18 @@
 ---
 /**
- * /how-it-works — the dedicated product tour (core spine). Re-homes the product
- * depth that doesn't belong on the landing: the risk-ranked worklist demo, the
- * full loop, and the four surfaces. Nav points "How it works" here.
+ * /how-it-works — the flagship product walkthrough. NOT a re-stack of the
+ * landing's sections: a page-specific, in-depth tour. A bold display-serif hero
+ * grounded by one live worked example, then THE LOOP expanded to four stages
+ * (Watch · Match · Rank · Apply) in LoopDeep, then a per-surface deep dive
+ * (Alerts · Coverage · Worklist · Apply & audit) in SurfaceDeep — each surface
+ * its own section with a real product mini-UI and a CPA-facing rationale — and
+ * the shared bold finale. Nav stays current="how"; #how/#work anchors preserved
+ * for the landing's Surfaces "See it" links.
  */
 import BaseLayout from '../layouts/BaseLayout.astro'
 import TopNav from '../components/home/TopNav.astro'
-import HowItWorks from '../components/home/HowItWorks.astro'
-import SeeItWork from '../components/home/SeeItWork.astro'
-import Surfaces from '../components/home/Surfaces.astro'
+import LoopDeep from '../components/home/LoopDeep.astro'
+import SurfaceDeep from '../components/home/SurfaceDeep.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
@@ -24,22 +28,51 @@ const pathname = '/how-it-works'
   lang="en"
   pathname={pathname}
   title="How DueDateHQ works — from a deadline change to the clients it affects"
-  description="See the full loop: DueDateHQ watches official IRS, state, and FEMA sources, matches each change to your clients, ranks your week by risk, and applies the fix with a source on every date."
+  description="The full product walkthrough: DueDateHQ watches official IRS, state, and FEMA sources, matches each change to your clients, ranks your week by risk, and applies the fix with a source on every date."
   ogImage={t.meta.ogImage}
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" />
   <main>
-    <section class="m-section m-page-hero" id="hero">
-      <p class="m-eyebrow">Product tour</p>
-      <h1 class="m-page-title">From a deadline change to the clients it touches.</h1>
-      <p class="m-page-lead">
-        The whole loop — what DueDateHQ watches, how it matches each change to your clients, the
-        worklist your week runs on, and the surfaces you'll actually use.
+    <section class="m-section how-hero" id="hero">
+      <p class="m-eyebrow">Product walkthrough</p>
+      <h1 class="how-hero__title">
+        From a deadline change to the clients it <span class="ital">touches.</span>
+      </h1>
+      <p class="how-hero__lead">
+        DueDateHQ runs one loop, around the clock: it watches the official sources, reads what a
+        change actually moved, ranks your week by who's most at risk, and applies the new date with
+        a source on every line. Here is the whole thing, surface by surface.
       </p>
+
+      <!-- one live worked example — grounds the abstract loop in a real change -->
+      <div class="how-hero__ex" aria-label="One worked example, end to end">
+        <span class="how-hero__ex-lead">One change, start to finish</span>
+        <ol class="how-hero__chips">
+          <li class="hchip">
+            <span class="hchip__k">Watch</span>
+            <span class="hchip__v">IRS posts a disaster postponement</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip">
+            <span class="hchip__k">Match</span>
+            <span class="hchip__v">8 of your clients hit</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip">
+            <span class="hchip__k">Rank</span>
+            <span class="hchip__v">2 are already late</span>
+          </li>
+          <li class="hchip__arrow" aria-hidden="true">→</li>
+          <li class="hchip hchip--apply">
+            <span class="hchip__k">Apply</span>
+            <span class="hchip__v">Apr 15 → Nov 3, sourced &amp; logged</span>
+          </li>
+        </ol>
+      </div>
     </section>
-    <HowItWorks />
-    <SeeItWork />
-    <Surfaces />
+
+    <LoopDeep />
+    <SurfaceDeep />
     <Close ctaHref={ctaHref} />
   </main>
   <Footer />
@@ -49,5 +82,103 @@ const pathname = '/how-it-works'
 <style is:global>
   body {
     background: var(--m-canvas);
+  }
+</style>
+
+<style>
+  /* page hero — bolder than the shared .m-page-hero kit: display serif, a real
+     ceiling, and a worked-example strip that sets the concrete scene up front */
+  .how-hero {
+    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
+  }
+  .how-hero__title {
+    margin-top: 4px;
+    max-width: 16ch;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(40px, 5.6vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+    text-wrap: balance;
+  }
+  .how-hero__title .ital {
+    font-style: italic;
+    letter-spacing: 0.002em;
+  }
+  .how-hero__lead {
+    margin-top: clamp(20px, 2vw, 28px);
+    max-width: 64ch;
+    font-size: clamp(16px, 1.3vw, 19px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+
+  .how-hero__ex {
+    margin-top: clamp(28px, 3vw, 40px);
+    padding: clamp(16px, 1.8vw, 22px) clamp(16px, 2vw, 24px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .how-hero__ex-lead {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .how-hero__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px 10px;
+    list-style: none;
+    padding: 0;
+  }
+  .hchip {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 13px;
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-radius: 8px;
+  }
+  .hchip--apply {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
+  }
+  .hchip__k {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .hchip__v {
+    font-size: 13px;
+    color: var(--m-ink);
+    white-space: nowrap;
+  }
+  .hchip__arrow {
+    display: flex;
+    align-items: center;
+    color: var(--m-faint);
+    font-size: 14px;
+  }
+  @media (max-width: 720px) {
+    .hchip__v {
+      white-space: normal;
+    }
+    .hchip__arrow {
+      display: none;
+    }
+    .how-hero__chips {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 </style>

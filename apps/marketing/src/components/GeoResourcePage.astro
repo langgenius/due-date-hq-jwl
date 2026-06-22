@@ -2,7 +2,14 @@
 /** GeoResourcePage — shared template for the long-tail SEO/AEO/GEO pages:
  *  rule references, comparisons, and guides (hubs + leaves). Uses the shared
  *  long-tail page kit (.m-page-* / .m-card / .m-btn in marketing.css) so it
- *  matches the home's design language; content + SEO are unchanged. */
+ *  matches the home's design language; content + SEO are unchanged.
+ *
+ *  Design intent: these are proof / answer pages — restrained but deliberate.
+ *  A stronger, anchored page-hero; the key-dates list reads as a sourced fact
+ *  table (the page's core trust artifact); sections carry a numbered editorial
+ *  rhythm so a stack of them feels intentional; FAQ blocks read as Q→A pairs
+ *  for AEO; and a confident "next step" block links back into the funnel above
+ *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 
@@ -14,55 +21,139 @@ interface Props {
 }
 
 const { page, primaryHref, secondaryHref, locale } = Astro.props
-const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      lastReviewed: '最近复核',
+      sourced: '每个日期都附官方来源',
+      answersLabel: '常见问答',
+      qPrefix: '问',
+      aPrefix: '答',
+      nextEyebrow: '下一步',
+      nextTitle: '把这条规则接到你真实的客户名单上',
+      nextBody: '阅读是一回事。真正的价值，是当这条日期变动时，你立刻知道它影响到你的哪些客户。',
+      nextPrimary: '开始监控我的客户',
+      nextSecondary: '看它如何运作',
+    }
+  : {
+      lastReviewed: 'Last reviewed',
+      sourced: 'Sourced on every date',
+      answersLabel: 'Common questions',
+      qPrefix: 'Q',
+      aPrefix: 'A',
+      nextEyebrow: 'Next step',
+      nextTitle: 'Put this rule against your actual client list',
+      nextBody:
+        'Reading it is one thing. The point is knowing — the moment this date moves — exactly which of your clients it affects.',
+      nextPrimary: 'Start watching my clients',
+      nextSecondary: 'See how it works',
+    }
 ---
 
-<main>
-  <section class="m-section m-page-hero" id="hero">
+<main class="geo">
+  <section class="m-section m-page-hero geo-hero" id="hero">
     <p class="m-eyebrow">{page.hero.eyebrow}</p>
-    <h1 class="m-page-title">{page.hero.title}</h1>
+    <h1 class="m-page-title geo-hero__title">{page.hero.title}</h1>
     <p class="m-page-lead">{page.hero.description}</p>
-    <p class="m-page-note">{page.hero.note}</p>
-    <p class="m-page-reviewed">
-      {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
-    </p>
+    <p class="m-page-note geo-hero__note">{page.hero.note}</p>
+    <div class="geo-trust">
+      <span class="geo-trust__item">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3l7 3v5c0 4.2-2.9 7.4-7 8.8C7.9 18.4 5 15.2 5 11V6l7-3z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          ></path>
+          <path
+            d="M9.2 11.8l2 2 3.6-3.8"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+        {t.lastReviewed}
+        <time class="geo-trust__date" datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+      </span>
+      <span class="geo-trust__sep" aria-hidden="true"></span>
+      <span class="geo-trust__item geo-trust__item--muted">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M10 14a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7M14 10a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+        {t.sourced}
+      </span>
+    </div>
   </section>
 
   {
     page.keyDates && (
-      <section class="m-section m-page-block">
+      <section class="m-section m-page-block geo-block" id="key-dates">
         <p class="m-eyebrow">{page.keyDates.eyebrow}</p>
         <h2 class="m-page-h2">{page.keyDates.title}</h2>
-        <dl class="m-page-dl">
-          {page.keyDates.rows.map((row) => (
-            <div class="m-page-dl__row">
-              <dt>{row.label}</dt>
-              <dd>{row.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <p class="m-page-note">{page.keyDates.note}</p>
-        <p class="m-page-source">
-          <a class="m-link" href={page.keyDates.sourceHref} rel="nofollow noopener" target="_blank">
-            {page.keyDates.sourceLabel}
-          </a>
-        </p>
+        <div class="geo-facts">
+          <div class="geo-facts__head" aria-hidden="true">
+            <span>{page.keyDates.eyebrow}</span>
+            <span class="geo-facts__head-src">
+              <span class="geo-facts__src-dot" />
+              {t.sourced}
+            </span>
+          </div>
+          <dl class="geo-facts__dl">
+            {page.keyDates.rows.map((row) => (
+              <div class="geo-facts__row">
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div class="geo-facts__foot">
+            <p class="geo-facts__note">{page.keyDates.note}</p>
+            <a
+              class="geo-source"
+              href={page.keyDates.sourceHref}
+              rel="nofollow noopener"
+              target="_blank"
+            >
+              {page.keyDates.sourceLabel}
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M7 17L17 7M9 7h8v8"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
       </section>
     )
   }
 
   {
-    page.sections.map((section) => (
-      <section class="m-section m-page-block">
+    page.sections.map((section, i) => (
+      <section class="m-section m-page-block geo-block geo-sec">
         <div class="m-page-split">
-          <div class="m-page-split__lead">
+          <div class="m-page-split__lead geo-sec__lead">
+            <span class="geo-sec__num" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
             <p class="m-eyebrow">{section.eyebrow}</p>
             <h2 class="m-page-h2">{section.title}</h2>
             <p class="m-page-body">{section.body}</p>
           </div>
-          <div class="m-page-cards">
+          <div class="m-page-cards geo-cards">
             {section.items.map((item) => (
-              <article class="m-card">
+              <article class="m-card geo-card">
                 <h3 class="m-card__t">{item.title}</h3>
                 <p class="m-card__d">{item.body}</p>
               </article>
@@ -73,46 +164,361 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     ))
   }
 
-  <section class="m-section m-page-block">
+  <section class="m-section m-page-block geo-block geo-faq" id="faq">
     <p class="m-eyebrow">{page.faqHeader.eyebrow}</p>
     <h2 class="m-page-h2">{page.faqHeader.title}</h2>
-    <div class="m-page-grid-3">
+    <div class="m-page-grid-3 geo-faq__grid">
       {
         page.faq.map((item) => (
-          <section class="m-card">
-            <h3 class="m-card__t">{item.question}</h3>
-            <p class="m-card__d">{item.answer}</p>
+          <section class="m-card geo-qa">
+            <h3 class="m-card__t geo-qa__q">
+              <span class="geo-qa__mark" aria-hidden="true">
+                {t.qPrefix}
+              </span>
+              <span>{item.question}</span>
+            </h3>
+            <p class="m-card__d geo-qa__a">{item.answer}</p>
           </section>
         ))
       }
     </div>
   </section>
 
-  <section class="m-section m-page-block">
-    <div class="m-page-cta">
-      <div>
-        <h2 class="m-page-cta__title">{page.cta.title}</h2>
-        <p class="m-page-cta__body">{page.cta.body}</p>
-      </div>
-      <div class="m-page-cta__btns">
-        <a class="m-btn m-btn--primary" href={primaryHref}>{page.cta.primary}</a>
-        <a class="m-btn m-btn--secondary" href={secondaryHref}>{page.cta.secondary}</a>
+  <section class="m-section m-page-block geo-block">
+    <div class="geo-next">
+      <p class="geo-next__eyebrow">{t.nextEyebrow}</p>
+      <div class="geo-next__row">
+        <div class="geo-next__copy">
+          <h2 class="geo-next__title">{page.cta.title || t.nextTitle}</h2>
+          <p class="geo-next__body">{page.cta.body || t.nextBody}</p>
+        </div>
+        <div class="geo-next__btns">
+          <a class="m-btn m-btn--primary geo-next__primary" href={primaryHref}>
+            {page.cta.primary}
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
+          </a>
+          <a class="m-btn m-btn--secondary" href={secondaryHref}>{page.cta.secondary}</a>
+        </div>
       </div>
     </div>
   </section>
 </main>
 
 <style>
-  .m-page-source {
-    margin-top: 14px;
+  /* ====================================================================
+     Long-tail proof / answer page — restrained but deliberate.
+     Reuses the .m-page-* / .m-card / .m-btn kit; these scoped rules add
+     hierarchy, rhythm and trust treatment on top of it.
+     ==================================================================== */
+
+  /* ---- hero ---- */
+  .geo-hero__title {
+    max-width: 20ch;
   }
-  .m-link {
+  .geo-hero__note {
+    max-width: 64ch;
+  }
+  /* trust row — the reviewed date + "sourced on every date" are real signals
+     for an answer page; present them as a calm, confident bar, not afterthought */
+  .geo-trust {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+  .geo-trust__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+  }
+  .geo-trust__item--muted {
+    color: var(--m-muted);
+    font-weight: 400;
+  }
+  .geo-trust__item svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    color: var(--m-accent);
+  }
+  .geo-trust__item--muted svg {
+    color: var(--m-muted);
+  }
+  .geo-trust__date {
+    font-family: var(--m-font-mono);
+    color: var(--m-ink);
+  }
+  .geo-trust__sep {
+    width: 1px;
+    height: 14px;
+    background: var(--m-hairline);
+  }
+
+  /* ---- shared block rhythm ---- */
+  /* tighten the first block's top rule into the hero so the page reads as one
+     intentional column, not loose stacked panels */
+  .geo-block > .m-eyebrow {
+    margin-bottom: 12px;
+  }
+
+  /* ---- key-dates → sourced fact table ---- */
+  .geo-facts {
+    margin-top: 26px;
+    max-width: 880px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--m-surface);
+  }
+  .geo-facts__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 22px;
+    background: var(--m-section);
+    border-bottom: 1px solid var(--m-hairline);
+    font-family: var(--m-font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .geo-facts__head-src {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.04em;
+    color: var(--m-faint);
+  }
+  .geo-facts__src-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex: none;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 16%, transparent);
+  }
+  .geo-facts__dl {
+    margin: 0;
+  }
+  .geo-facts__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 16px 28px;
+    padding: 15px 22px;
+  }
+  .geo-facts__row + .geo-facts__row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .geo-facts__row dt {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink);
+    line-height: 1.45;
+  }
+  /* dates align to the right rail in mono — scannable as a real fact table */
+  .geo-facts__row dd {
+    margin: 0;
+    text-align: right;
+    font-family: var(--m-font-mono);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--m-ink-2);
+    white-space: nowrap;
+  }
+  .geo-facts__foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px 28px;
+    flex-wrap: wrap;
+    padding: 14px 22px;
+    background: var(--m-section);
+    border-top: 1px solid var(--m-hairline);
+  }
+  .geo-facts__note {
+    margin: 0;
+    max-width: 58ch;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  /* official source — the page's trust artifact, treated as a confident link */
+  .geo-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
     font-size: 13px;
+    font-weight: 500;
     color: var(--m-accent);
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--m-accent) 40%, transparent);
+    transition:
+      color 0.16s ease,
+      text-decoration-color 0.16s ease;
   }
-  .m-link:hover {
+  .geo-source svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+  }
+  .geo-source:hover {
     color: var(--m-accent-strong);
+    text-decoration-color: currentColor;
+  }
+
+  /* ---- sections — numbered editorial rhythm ---- */
+  .geo-sec__lead {
+    position: relative;
+  }
+  .geo-sec__num {
+    display: block;
+    margin-bottom: 14px;
+    font-family: var(--m-font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--m-accent);
+  }
+  .geo-sec__num::after {
+    content: '';
+    display: block;
+    margin-top: 12px;
+    width: 28px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--m-accent);
+    opacity: 0.5;
+  }
+  /* cards — quiet lift, clearer hover so a 3-up reads as scannable, not filler */
+  .geo-card {
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+  .geo-card:hover {
+    border-color: var(--m-faint);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+  }
+  .geo-card .m-card__t {
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- FAQ — Q→A pairs (AEO-friendly) ---- */
+  .geo-qa {
+    display: flex;
+    flex-direction: column;
+  }
+  .geo-qa__q {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+  }
+  .geo-qa__mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    border-radius: 999px;
+    background: var(--m-accent-tint);
+    border: 1px solid color-mix(in srgb, var(--m-accent) 14%, transparent);
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .geo-qa__a {
+    /* align the answer under the question text, past the Q marker */
+    margin-left: 33px;
+  }
+
+  /* ---- next step — a confident link back into the funnel above the CTA ---- */
+  .geo-next {
+    padding: clamp(26px, 3.4vw, 40px);
+    background: var(--m-accent-tint);
+    border: 1px solid color-mix(in srgb, var(--m-accent) 16%, transparent);
+    border-radius: 12px;
+  }
+  .geo-next__eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-accent);
+    opacity: 0.8;
+  }
+  .geo-next__row {
+    margin-top: 16px;
+    display: grid;
+    gap: 24px;
+    align-items: center;
+  }
+  .geo-next__title {
+    max-width: 24ch;
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+  }
+  .geo-next__body {
+    margin-top: 12px;
+    max-width: 56ch;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--m-ink-2);
+  }
+  .geo-next__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .geo-next__primary svg {
+    width: 16px;
+    height: 16px;
+    margin-left: 7px;
+    transition: transform 0.18s ease;
+  }
+  .geo-next__primary:hover svg {
+    transform: translateX(3px);
+  }
+
+  @media (min-width: 760px) {
+    .geo-next__row {
+      grid-template-columns: 1fr auto;
+      gap: 40px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .geo-facts__row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .geo-facts__row dd {
+      text-align: left;
+      white-space: normal;
+    }
   }
 </style>

@@ -1,6 +1,12 @@
 ---
 /** StateCoveragePage — the /state-coverage hub. Uses the shared long-tail page
- *  kit; the state-card grid is page-specific (scoped). */
+ *  kit; the coverage band + state-card grid are page-specific (scoped).
+ *
+ *  Design intent: this is the "all 50 states + DC, watched the same way" proof
+ *  page — the deeper, in-depth counterpart to the landing's Sources band. It must
+ *  read comprehensive and honest: a full jurisdiction roster (uniform, no
+ *  priority tiers), the states with published detail pages elevated as links,
+ *  and a clear path from public signal → reviewed client impact. */
 import type { StateCoverageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 
@@ -10,21 +16,136 @@ interface Props {
 }
 
 const { page, locale } = Astro.props
-const viewCoverageLabel = locale === 'zh-CN' ? '查看覆盖' : 'View coverage'
-const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
+const zh = locale === 'zh-CN'
+
+const l = zh
+  ? {
+      viewCoverage: '查看覆盖',
+      lastReviewed: '最近复核',
+      atAGlance: '覆盖速览',
+      glanceStats: [
+        { n: '51', label: '个辖区实时监控' },
+        { n: '50', label: '个州 + 哥伦比亚特区' },
+        { n: '24/7', label: '全天候扫描官方来源' },
+      ],
+      rosterEyebrow: '完整辖区清单',
+      rosterTitle: '全部 50 个州 + DC，一视同仁地实时监控。',
+      rosterBody:
+        '没有「重点州」和「次要州」之分。每一个州税务机关、IRS，以及覆盖全国的 FEMA 灾害救济，都以同样的方式 24/7 盯紧。下方加粗并可点击的，是已经发布独立覆盖详情页的辖区。',
+      rosterLegendLive: '全部实时监控',
+      rosterLegendPage: '已发布详情页',
+      published: '详情页',
+      ctaTitle: '看看某次州级变化会如何成为你事务所的截止日工作。',
+      ctaBody:
+        '每条候选变化都带着官方来源链接和摘录进入复核 —— 由你判断它是否影响你的客户，再决定是否应用。',
+      ctaPrimary: '免费开始',
+      ctaSecondary: '看它如何运作',
+      ctaSecondaryHref: '/zh-CN/how-it-works',
+      ctaNote: 'beta 期间免费 · 无需信用卡',
+    }
+  : {
+      viewCoverage: 'View coverage',
+      lastReviewed: 'Last reviewed',
+      atAGlance: 'Coverage at a glance',
+      glanceStats: [
+        { n: '51', label: 'jurisdictions watched live' },
+        { n: '50', label: 'states + the District of Columbia' },
+        { n: '24/7', label: 'scanning of official sources' },
+      ],
+      rosterEyebrow: 'Full jurisdiction roster',
+      rosterTitle: 'All 50 states + DC, watched live — the same way.',
+      rosterBody:
+        'No "priority" states and no afterthoughts. Every state tax authority, the IRS, and FEMA disaster relief nationwide are monitored 24/7 the same way. The jurisdictions shown bold and linkable below already have a dedicated coverage detail page.',
+      rosterLegendLive: 'All watched live',
+      rosterLegendPage: 'Has a detail page',
+      published: 'Detail page',
+      ctaTitle: 'See how a single state change becomes deadline work for your firm.',
+      ctaBody:
+        'Every candidate change arrives with its official source URL and excerpt and is routed through review — you decide whether it touches your clients, then apply it.',
+      ctaPrimary: 'Start free',
+      ctaSecondary: 'See how it works',
+      ctaSecondaryHref: '/how-it-works',
+      ctaNote: 'Free during the beta · no card required',
+    }
+
+// Slugs with a published detail page — derived from the live states list so the
+// roster's "linkable" set never drifts from what actually exists.
+const publishedHref = new Map(page.states.map((s) => [s.abbreviation, s.href]))
+
+// US jurisdiction roster (alphabetical by abbreviation) — every jurisdiction is
+// watched uniformly. `live` is true for all; the link is added when a detail
+// page exists. This proves comprehensive coverage without faking depth tiers.
+const ROSTER = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL',
+  'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME',
+  'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH',
+  'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI',
+  'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+].map((abbr) => ({ abbr, href: publishedHref.get(abbr) ?? null }))
+
+const ctaPrimaryHref = zh ? '/zh-CN' : '/'
 ---
 
 <main>
-  <section class="m-section m-page-hero" id="hero">
+  <section class="m-section m-page-hero stcov-hero" id="hero">
     <p class="m-eyebrow">{page.hero.eyebrow}</p>
-    <h1 class="m-page-title">{page.hero.title}</h1>
+    <h1 class="m-page-title stcov-hero__title">{page.hero.title}</h1>
     <p class="m-page-lead">{page.hero.description}</p>
+
+    <dl class="stcov-glance" aria-label={l.atAGlance}>
+      {
+        l.glanceStats.map((s) => (
+          <div class="stcov-glance__item">
+            <dt class="stcov-glance__n">{s.n}</dt>
+            <dd class="stcov-glance__l">{s.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
     <p class="m-page-note">{page.hero.note}</p>
     <p class="m-page-reviewed">
-      {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+      {l.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
     </p>
   </section>
 
+  <!-- Coverage band: the honest "all 50 + DC, uniformly live" proof -->
+  <section class="m-section m-page-block stcov-roster" aria-labelledby="stcov-roster-h">
+    <div class="stcov-roster__head">
+      <div>
+        <p class="m-eyebrow">{l.rosterEyebrow}</p>
+        <h2 class="m-page-h2" id="stcov-roster-h">{l.rosterTitle}</h2>
+        <p class="m-page-body stcov-roster__body">{l.rosterBody}</p>
+      </div>
+      <ul class="stcov-roster__legend">
+        <li><span class="stcov-roster__sw stcov-roster__sw--live" aria-hidden="true"></span>{l.rosterLegendLive}</li>
+        <li><span class="stcov-roster__sw stcov-roster__sw--page" aria-hidden="true"></span>{l.rosterLegendPage}</li>
+      </ul>
+    </div>
+
+    <ul class="stcov-roster__grid" aria-label={l.rosterTitle}>
+      {
+        ROSTER.map((j) =>
+          j.href ? (
+            <li>
+              <a class="stcov-tile stcov-tile--page" href={j.href}>
+                <span class="stcov-tile__abbr">{j.abbr}</span>
+                <span class="stcov-tile__tag">{l.published}</span>
+              </a>
+            </li>
+          ) : (
+            <li>
+              <span class="stcov-tile">
+                <span class="stcov-tile__abbr">{j.abbr}</span>
+              </span>
+            </li>
+          ),
+        )
+      }
+    </ul>
+  </section>
+
+  <!-- Published detail pages — the richer cards, now clearly secondary to the roster -->
   <section class="m-section m-page-block">
     <p class="m-eyebrow">{page.statesHeader.eyebrow}</p>
     <h2 class="m-page-h2">{page.statesHeader.title}</h2>
@@ -38,7 +159,7 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
             </div>
             <h3 class="stcov__name">{state.name}</h3>
             <p class="stcov__body">{state.body}</p>
-            <span class="stcov__view">{viewCoverageLabel} <span aria-hidden="true">→</span></span>
+            <span class="stcov__view">{l.viewCoverage} <span aria-hidden="true">→</span></span>
           </a>
         ))
       }
@@ -54,8 +175,9 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
       </div>
       <div class="m-page-cards">
         {
-          page.sourceModel.items.map((item) => (
-            <article class="m-card">
+          page.sourceModel.items.map((item, i) => (
+            <article class="m-card stcov-step">
+              <span class="stcov-step__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <h3 class="m-card__t">{item.title}</h3>
               <p class="m-card__d">{item.body}</p>
             </article>
@@ -79,9 +201,200 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
       }
     </div>
   </section>
+
+  <section class="m-section m-page-block">
+    <div class="m-page-cta">
+      <div>
+        <h2 class="m-page-cta__title">{l.ctaTitle}</h2>
+        <p class="m-page-cta__body">{l.ctaBody}</p>
+        <p class="stcov-cta__note">{l.ctaNote}</p>
+      </div>
+      <div class="m-page-cta__btns">
+        <a class="m-btn m-btn--primary" href={ctaPrimaryHref}>{l.ctaPrimary}</a>
+        <a class="m-btn m-btn--secondary" href={l.ctaSecondaryHref}>{l.ctaSecondary}</a>
+      </div>
+    </div>
+  </section>
 </main>
 
 <style>
+  /* ---- hero: bolder, display-serif headline + honest at-a-glance stats ---- */
+  .stcov-hero__title {
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 60px);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    max-width: 20ch;
+  }
+  .stcov-glance {
+    margin-top: clamp(28px, 3vw, 36px);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 28px);
+    max-width: 760px;
+    padding: clamp(18px, 2vw, 24px) 0 0;
+    border-top: 1px solid var(--m-hairline);
+  }
+  .stcov-glance__item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .stcov-glance__n {
+    font-family: var(--m-font-mono);
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .stcov-glance__l {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--m-muted);
+  }
+
+  /* ---- coverage roster band: all 50 + DC, uniformly live ---- */
+  .stcov-roster__head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: clamp(20px, 3vw, 40px);
+    align-items: end;
+  }
+  .stcov-roster__body {
+    max-width: 64ch;
+  }
+  .stcov-roster__legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    color: var(--m-muted);
+    white-space: nowrap;
+  }
+  .stcov-roster__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stcov-roster__sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    flex: none;
+  }
+  .stcov-roster__sw--live {
+    background: var(--m-accent);
+  }
+  .stcov-roster__sw--page {
+    background: var(--m-surface);
+    border: 1.5px solid var(--m-accent);
+  }
+
+  .stcov-roster__grid {
+    margin-top: clamp(24px, 3vw, 32px);
+    display: grid;
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+    gap: clamp(7px, 0.9vw, 10px);
+    list-style: none;
+    padding: 0;
+  }
+  .stcov-roster__grid li {
+    display: flex;
+  }
+  /* every tile = watched live (navy). uniform fill, no priority tiers. */
+  .stcov-tile {
+    position: relative;
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--m-accent);
+    color: #fff;
+    text-align: center;
+    transition:
+      background 0.18s ease,
+      transform 0.12s ease,
+      box-shadow 0.18s ease;
+  }
+  .stcov-tile__abbr {
+    font-family: var(--m-font-mono);
+    font-size: clamp(10px, 0.9vw, 12px);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  /* a published detail page reads as an "open" ring + a tiny corner mark */
+  .stcov-tile--page {
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-cyan) 70%, transparent);
+  }
+  .stcov-tile--page::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--m-cyan);
+  }
+  .stcov-tile--page:hover {
+    background: var(--m-accent-strong);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 0 0 1.5px var(--m-cyan),
+      0 4px 10px -6px rgba(16, 24, 40, 0.5);
+  }
+  .stcov-tile__tag {
+    position: absolute;
+    left: 50%;
+    bottom: -22px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    border-radius: 4px;
+    padding: 1px 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 1;
+  }
+  .stcov-tile--page:hover .stcov-tile__tag,
+  .stcov-tile--page:focus-visible .stcov-tile__tag {
+    opacity: 1;
+  }
+  @media (max-width: 900px) {
+    .stcov-roster__head {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+    .stcov-roster__legend {
+      flex-direction: row;
+      gap: 18px;
+    }
+    .stcov-roster__grid {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .stcov-glance {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .stcov-roster__grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+
+  /* ---- published detail-page cards (richer; secondary to the roster) ---- */
   .stcov__grid {
     margin-top: 28px;
     display: grid;
@@ -97,11 +410,13 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     border-radius: 12px;
     transition:
       border-color 0.18s ease,
-      background 0.18s ease;
+      background 0.18s ease,
+      box-shadow 0.18s ease;
   }
   .stcov__card:hover {
     border-color: var(--m-accent);
     background: var(--m-accent-tint);
+    box-shadow: 0 4px 12px -8px rgba(16, 24, 40, 0.4);
   }
   .stcov__top {
     display: flex;
@@ -110,20 +425,36 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     gap: 10px;
   }
   .stcov__abbr {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     font-family: var(--m-font-mono);
-    font-size: 22px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--m-ink);
+    color: #fff;
+    background: var(--m-accent);
   }
   .stcov__status {
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-family: var(--m-font-mono);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px 2px 7px;
+    border-radius: 999px;
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--m-accent);
-    background: var(--m-accent-tint);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .stcov__status::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--m-ok);
   }
   .stcov__name {
     margin-top: 16px;
@@ -139,9 +470,18 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
   }
   .stcov__view {
     margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--m-hairline-2);
     font-size: 12px;
     font-weight: 600;
     color: var(--m-accent);
+  }
+  .stcov__view span {
+    display: inline-block;
+    transition: transform 0.18s ease;
+  }
+  .stcov__card:hover .stcov__view span {
+    transform: translateX(3px);
   }
   @media (max-width: 1100px) {
     .stcov__grid {
@@ -158,7 +498,26 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
       grid-template-columns: 1fr;
     }
   }
-  .stcov__card:hover .stcov__status {
-    background: color-mix(in srgb, var(--m-accent) 16%, var(--m-surface));
+
+  /* ---- source-model cards: numbered route steps ---- */
+  .stcov-step {
+    position: relative;
+  }
+  .stcov-step__n {
+    display: block;
+    margin-bottom: 12px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--m-accent);
+  }
+
+  /* ---- cta note ---- */
+  .stcov-cta__note {
+    margin-top: 16px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
   }
 </style>

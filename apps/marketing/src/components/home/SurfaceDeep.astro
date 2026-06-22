@@ -1,0 +1,947 @@
+---
+/**
+ * SurfaceDeep — the per-surface deep dive, built FOR /how-it-works. The landing's
+ * <Surfaces/> shows all four surfaces inside ONE shared workbench window with a
+ * one-line caption each. Here each surface gets its OWN full section: a real,
+ * larger product mini-UI on one side, and on the other a heading, a paragraph of
+ * how it actually works, a "why it matters to a CPA" line, and 2–3 concrete
+ * capability bullets. Sections alternate sides and reuse the exact chip / row /
+ * tile vocabulary from the Hero feed, the worklist, and the audit receipt — so
+ * the page reads as a tour of the real product, not a second pitch.
+ *
+ * #work is kept on the Worklist section so the landing's "See it" → worklist link
+ * still lands correctly.
+ */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+// coverage mini-map heat (30 tiles): '' faint · n navy-watched · a urgent · r danger
+const tiles = ['', 'n', '', '', 'a', '', '', '', 'n', '', 'r', '', '', 'n', '', '', 'a', '', '', '', 'n', 'r', '', '', '', '', 'n', '', '', 'a']
+
+const t = zh
+  ? {
+      eyebrow: '四个界面',
+      hPre: '你真正会用到的',
+      hItal: '四个界面。',
+      lead: '同一个工作台里的四块——每一块都对应闭环里的一步，也对应你旺季里的一种动作。',
+      seeLabel: '为什么对 CPA 重要',
+      surfaces: [
+        {
+          id: 'alerts',
+          n: '01',
+          name: '提醒',
+          title: '一条带来源的动态，按紧急程度排序。',
+          desc: '每条变化落地后都会进入提醒动态，按辖区分流、按严重程度排序。最上面是带原文链接的截止日变动——你一眼就能看清改了什么、什么时候生效。',
+          why: '再也不用在十几个州的网站和新闻稿里来回翻找，担心错过某一条。',
+          bullets: [
+            '每条提醒都带官方来源链接和原文引述',
+            '按联邦 / 各州 / FEMA 一键筛选',
+            '紧急的排在最上面，信息类的往下沉',
+          ],
+        },
+        {
+          id: 'coverage',
+          n: '02',
+          name: '覆盖',
+          title: '一张地图，看清变化落在哪里。',
+          desc: '覆盖视图把全部 50 个州 + DC 摊在一张图上，每个辖区一视同仁地实时监控。哪里刚出现变化、哪里平静无事，一眼可见——没有「重点州」和「普通州」之分。',
+          why: '你能立刻判断这一波变化是集中在某个州，还是全国性的，从而决定先看哪里。',
+          bullets: [
+            '全部 51 个辖区，7×24 同等监控',
+            '有变化的辖区即时高亮',
+            'FEMA 灾害声明覆盖全国',
+          ],
+        },
+        {
+          id: 'worklist',
+          n: '03',
+          name: '工作清单',
+          title: '你的一周，按谁最有风险排序。',
+          desc: '工作清单把受影响的客户按风险排成一列——剩余天数、就绪情况、受阻项一起算进去。最该先处理的浮到最上面，所以你的第一通电话总是打对人。',
+          why: '旺季里最稀缺的是注意力。这张清单替你决定先打给谁，而不是让你自己在表格里翻。',
+          bullets: [
+            '客户按剩余风险从高到低排序',
+            '每个排位都可追溯到天数、证据与就绪情况',
+            '受阻、复核中、等客户——状态一目了然',
+          ],
+          rows: [
+            { client: 'Hill Country Partners', sub: '1120-S · TX · 特许经营税', due: '逾期 2 天', late: true, status: '受阻', tone: 'blocked', risk: 'high', w: 92 },
+            { client: 'Brightway Logistics LLC', sub: '1120 · TX · 灾害救济', due: '还有 3 天', late: false, status: '复核中', tone: 'review', risk: 'high', w: 78 },
+            { client: 'Cedar Park Dental', sub: '1120-S · TX · 特许经营税', due: '还有 9 天', late: false, status: '等客户', tone: 'waiting', risk: 'mid', w: 54 },
+          ],
+        },
+        {
+          id: 'apply',
+          n: '04',
+          name: '应用与审计',
+          title: '一键落地，背后留有完整记录。',
+          desc: '确认之后，新日期会一次性推送到每一个受影响的客户。每次应用都生成一条审计凭据——附带来源链接、操作人和时间戳，并且 24 小时内可干净撤销。在你点确认之前，什么都不会改动。',
+          why: '复核时你能拿出每个日期的依据；出错时也能一键退回——稳妥，可交代。',
+          bullets: [
+            '任何变更都需你确认，绝不自动应用',
+            '24 小时内可干净撤销',
+            '每次操作都记入可逐条查验的审计记录',
+          ],
+        },
+      ],
+    }
+  : {
+      eyebrow: 'The four surfaces',
+      hPre: 'The four screens you ',
+      hItal: 'actually use.',
+      lead: 'Four panels in one workbench — each maps to a move in the loop, and to a thing you actually do in busy season.',
+      seeLabel: 'Why it matters to a CPA',
+      surfaces: [
+        {
+          id: 'alerts',
+          n: '01',
+          name: 'Alerts',
+          title: 'A sourced feed, sorted by what is urgent.',
+          desc: 'Every change lands in the alert feed, filtered by jurisdiction and sorted by severity. At the top sit the deadline moves with a link back to the official text — so you can see at a glance what changed and when it takes effect.',
+          why: 'No more refreshing a dozen state sites and press releases, hoping you did not miss one.',
+          bullets: [
+            'A source link and exact quote on every alert',
+            'Filter to Federal / any state / FEMA in one tap',
+            'Urgent rises to the top; informational settles below',
+          ],
+        },
+        {
+          id: 'coverage',
+          n: '02',
+          name: 'Coverage',
+          title: 'One map of where the changes are landing.',
+          desc: 'Coverage lays all 50 states + DC on a single map, every jurisdiction watched live and the same way. You can see at a glance where a change just appeared and where it is quiet — no "priority" states, no afterthoughts.',
+          why: 'You can tell instantly whether this wave is one state or a national shift, and decide where to look first.',
+          bullets: [
+            'All 51 jurisdictions, watched 24/7 and equally',
+            'Jurisdictions with a fresh change highlight live',
+            'FEMA disaster declarations covered nationwide',
+          ],
+        },
+        {
+          id: 'worklist',
+          n: '03',
+          name: 'Worklist',
+          title: 'Your week, ranked by who is most at risk.',
+          desc: 'The worklist puts the affected clients in one ranked column — days remaining, readiness, and what is blocking them, all weighed in. The ones that matter most rise to the top, so your first call is always the right one.',
+          why: 'Attention is the scarce thing in busy season. This decides who to call first, instead of leaving you to dig through a spreadsheet.',
+          bullets: [
+            'Clients ordered high-to-low by remaining risk',
+            'Every position traces to days, evidence, and readiness',
+            'Blocked, in review, waiting on client — status at a glance',
+          ],
+          rows: [
+            { client: 'Hill Country Partners', sub: '1120-S · TX · franchise tax', due: '2d late', late: true, status: 'Blocked', tone: 'blocked', risk: 'high', w: 92 },
+            { client: 'Brightway Logistics LLC', sub: '1120 · TX · disaster relief', due: 'in 3d', late: false, status: 'In review', tone: 'review', risk: 'high', w: 78 },
+            { client: 'Cedar Park Dental', sub: '1120-S · TX · franchise tax', due: 'in 9d', late: false, status: 'Waiting on client', tone: 'waiting', risk: 'mid', w: 54 },
+          ],
+        },
+        {
+          id: 'apply',
+          n: '04',
+          name: 'Apply & audit',
+          title: 'Land it in one click, with the full trail behind it.',
+          desc: 'Once you confirm, the new date is pushed to every affected client at once. Each apply writes an audit receipt — the source link, who did it, and a timestamp — and undoes cleanly within 24 hours. Nothing moves until you press confirm.',
+          why: 'You can show the basis for every date at review, and roll back cleanly if something is off — defensible, and on the record.',
+          bullets: [
+            'Every change needs your confirmation — never auto-applied',
+            'Reversible cleanly within 24 hours',
+            'Each action recorded to an inspectable audit trail',
+          ],
+        },
+      ],
+    }
+const surfaces = t.surfaces
+---
+
+<section class="m-section surfd" aria-labelledby="surfd-h" data-reveal>
+  <div class="surfd__head">
+    <div>
+      <p class="m-eyebrow">{t.eyebrow}</p>
+      <h2 class="m-h2 surfd__h" id="surfd-h">{t.hPre}<span class="ital">{t.hItal}</span></h2>
+    </div>
+    <p class="surfd__lead">{t.lead}</p>
+  </div>
+
+  <div class="surfd__stack">
+    {
+      surfaces.map((s) => (
+        <article class="sd" id={s.id === 'worklist' ? 'work' : undefined} aria-labelledby={`sd-${s.id}`}>
+          <div class="sd__copy">
+            <p class="sd__n" aria-hidden="true">{s.n}</p>
+            <h3 class="sd__name" id={`sd-${s.id}`}>{s.name}</h3>
+            <p class="sd__title">{s.title}</p>
+            <p class="sd__desc">{s.desc}</p>
+            <p class="sd__why">
+              <span class="sd__why-label">{t.seeLabel}</span>
+              {s.why}
+            </p>
+            <ul class="sd__bullets">
+              {s.bullets.map((b) => (
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="sd__demo">
+            {/* ── Alerts surface ─────────────────────────────── */}
+            {s.id === 'alerts' && (
+              <div class="frame">
+                <div class="frame__bar">
+                  <span class="frame__name">{s.name}</span>
+                  <span class="frame__cap">live preview · not your data</span>
+                </div>
+                <div class="frame__filter" aria-hidden="true">
+                  <span class="fchip on">All</span>
+                  <span class="fchip">Federal</span>
+                  <span class="fchip">CA</span>
+                  <span class="fchip">TX</span>
+                </div>
+                <div class="alertrow">
+                  <div class="alertrow__top">
+                    <span class="sev sev--urgent">URGENT</span>
+                    <span class="juris">FED</span>
+                    <span class="src">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                      </svg>
+                      irs.gov
+                    </span>
+                  </div>
+                  <p class="alertrow__title">IRS postpones filing &amp; payment deadlines after disaster declaration</p>
+                  <p class="alertrow__change"><s>Apr 15</s> → <b>Nov 3, 2026</b> <span class="delta">+202d</span></p>
+                  <p class="alertrow__affect">Affects <b>8 clients</b> <span class="alertrow__st">6 ready · 2 review</span></p>
+                </div>
+                <div class="alertrow alertrow--quiet">
+                  <div class="alertrow__top">
+                    <span class="sev sev--info">INFO</span>
+                    <span class="juris">CA</span>
+                    <span class="src">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                      </svg>
+                      ftb.ca.gov
+                    </span>
+                  </div>
+                  <p class="alertrow__title">California FTB extends the Q3 estimated-tax deadline</p>
+                  <p class="alertrow__change"><s>Sep 15</s> → <b>Sep 29, 2026</b> <span class="delta">+14d</span></p>
+                </div>
+              </div>
+            )}
+
+            {/* ── Coverage surface ───────────────────────────── */}
+            {s.id === 'coverage' && (
+              <div class="frame">
+                <div class="frame__bar">
+                  <span class="frame__name">{s.name}</span>
+                  <span class="frame__live"><span class="frame__live-dot" aria-hidden="true" />Live</span>
+                </div>
+                <div class="covmap" aria-hidden="true">
+                  {tiles.map((tile) => <span class:list={['ctile', tile]} />)}
+                </div>
+                <div class="covlegend">
+                  <span class="cleg"><span class="csw csw--watch" />Watched</span>
+                  <span class="cleg"><span class="csw csw--new" />New change</span>
+                  <span class="covstat"><b>51</b> jurisdictions</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Worklist surface ───────────────────────────── */}
+            {s.id === 'worklist' && (
+              <div class="frame">
+                <div class="frame__bar">
+                  <span class="frame__name">{s.name} · this week</span>
+                  <span class="frame__keys"><kbd>⌘K</kbd> · <kbd>J</kbd>/<kbd>K</kbd></span>
+                </div>
+                <table class="wltable">
+                  <thead>
+                    <tr><th>Risk</th><th>Client</th><th class="wlhide">Due</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {s.rows.map((r, i) => (
+                      <tr>
+                        <td>
+                          <span class="wlrisk">
+                            <span class="wlrisk__no">{i + 1}</span>
+                            <span class:list={['wlrisk__bar', `wlrisk__bar--${r.risk}`]}><i style={`width:${r.w}%`} /></span>
+                          </span>
+                        </td>
+                        <td>
+                          <div class="wlclient">{r.client}</div>
+                          <div class="wlsub">{r.sub}</div>
+                        </td>
+                        <td class="wlhide"><span class:list={['wldue', r.late && 'wldue--late']}>{r.due}</span></td>
+                        <td><span class:list={['wlstat', `wlstat--${r.tone}`]}>{r.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Apply & audit surface ──────────────────────── */}
+            {s.id === 'apply' && (
+              <div class="frame">
+                <div class="frame__bar">
+                  <span class="frame__name">{s.name}</span>
+                  <span class="frame__cap">sample · not your data</span>
+                </div>
+                <div class="applybody">
+                  <div class="applyrow">
+                    <span class="applyrow__k">Change</span>
+                    <span class="applyrow__v"><s>Apr 15</s> → Nov 3, 2026</span>
+                  </div>
+                  <div class="applyrow">
+                    <span class="applyrow__k">Applies to</span>
+                    <span class="applyrow__v"><b>8 clients</b></span>
+                  </div>
+                  <button class="applybtn" type="button" tabindex="-1" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+                    </svg>
+                    Apply to 8 clients
+                  </button>
+                  <div class="receipt">
+                    <p class="receipt__eyebrow">Audit receipt · Apply #DDH-2240</p>
+                    <ul class="receipt__rows">
+                      <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                        </svg>
+                        Sourced to irs.gov · verified
+                      </li>
+                      <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M9 14 4 9l5-5" /><path d="M4 9h11a5 5 0 0 1 0 10h-1" />
+                        </svg>
+                        Reversible for 24 hours
+                      </li>
+                      <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                        </svg>
+                        Recorded to the audit trail
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .surfd__head {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(20px, 4vw, 64px);
+    align-items: end;
+  }
+  .surfd__head > :nth-child(1) {
+    grid-column: span 7;
+  }
+  .surfd__head > :nth-child(2) {
+    grid-column: span 5;
+  }
+  .surfd__h {
+    max-width: 14ch;
+  }
+  .surfd__lead {
+    max-width: 40ch;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+
+  .surfd__stack {
+    margin-top: clamp(40px, 5vw, 64px);
+    display: grid;
+    gap: clamp(40px, 5vw, 72px);
+  }
+
+  /* one surface section — copy + product demo, alternating sides */
+  .sd {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(28px, 4vw, 44px);
+    align-items: center;
+    padding-top: clamp(34px, 4vw, 56px);
+    border-top: 1px solid var(--m-hairline);
+  }
+  .sd:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .sd__copy {
+    grid-column: span 6;
+  }
+  .sd__demo {
+    grid-column: span 6;
+  }
+  /* alternate: even surfaces flip the demo to the left */
+  .sd:nth-child(even) .sd__copy {
+    grid-column: 7 / span 6;
+    grid-row: 1;
+  }
+  .sd:nth-child(even) .sd__demo {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+  }
+
+  .sd__n {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-faint);
+  }
+  .sd__name {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .sd__title {
+    margin-top: 10px;
+    font-family: var(--m-font-sans);
+    font-size: clamp(21px, 2.4vw, 29px);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+    max-width: 18ch;
+  }
+  .sd__desc {
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--m-ink-2);
+    max-width: 48ch;
+  }
+  /* "why it matters to a CPA" — a quiet, framed aside, the human payoff */
+  .sd__why {
+    margin-top: 18px;
+    padding-left: 16px;
+    border-left: 2px solid var(--m-accent);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--m-muted);
+    max-width: 48ch;
+  }
+  .sd__why-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .sd__bullets {
+    margin-top: 20px;
+    display: grid;
+    gap: 9px;
+    list-style: none;
+    padding: 0;
+  }
+  .sd__bullets li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--m-ink-2);
+  }
+  .sd__bullets svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    margin-top: 1px;
+    color: var(--m-accent);
+  }
+
+  /* ── shared product frame ────────────────────────────────────────── */
+  .frame {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 22px 56px -44px rgba(16, 24, 40, 0.4);
+  }
+  .frame__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--m-hairline);
+    background: var(--m-section);
+  }
+  .frame__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+  }
+  .frame__cap {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    color: var(--m-faint);
+    white-space: nowrap;
+  }
+  .frame__live {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+    border-radius: 999px;
+    padding: 3px 9px 3px 8px;
+  }
+  .frame__live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex: none;
+    background: var(--m-ok);
+  }
+  .frame__keys {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+  .frame__keys kbd {
+    font-family: inherit;
+    color: var(--m-muted);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+
+  /* ── Alerts demo ─────────────────────────────────────────────────── */
+  .frame__filter {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .fchip {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--m-muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+  }
+  .fchip.on {
+    color: #fff;
+    background: var(--m-accent);
+    border-color: var(--m-accent);
+  }
+  .alertrow {
+    padding: 14px 16px;
+  }
+  .alertrow + .alertrow {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .alertrow__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sev {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .sev--urgent {
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 9%, transparent);
+  }
+  .sev--info {
+    color: var(--m-ink-2);
+    background: var(--m-section);
+  }
+  .juris {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+    border-radius: 6px;
+    padding: 1px 7px;
+  }
+  .src {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .src svg {
+    width: 12px;
+    height: 12px;
+  }
+  .alertrow__title {
+    margin-top: 9px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .alertrow__change {
+    margin-top: 9px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-ink);
+  }
+  .alertrow__change s {
+    color: var(--m-muted);
+  }
+  .delta {
+    font-family: var(--m-font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .alertrow__affect {
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid var(--m-hairline-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--m-ink-2);
+  }
+  .alertrow__affect b {
+    color: var(--m-accent);
+    font-weight: 600;
+  }
+  .alertrow__st {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+
+  /* ── Coverage demo ───────────────────────────────────────────────── */
+  .covmap {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    padding: clamp(18px, 2vw, 26px);
+  }
+  .ctile {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--m-accent) 8%, var(--m-surface));
+  }
+  .ctile.n {
+    background: color-mix(in srgb, var(--m-accent) 32%, var(--m-surface));
+  }
+  .ctile.a {
+    background: color-mix(in srgb, var(--m-urgent) 30%, var(--m-surface));
+  }
+  .ctile.r {
+    background: color-mix(in srgb, var(--m-danger) 24%, var(--m-surface));
+  }
+  .covlegend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 18px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--m-hairline-2);
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .cleg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .csw {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    flex: none;
+  }
+  .csw--watch {
+    background: color-mix(in srgb, var(--m-accent) 32%, var(--m-surface));
+  }
+  .csw--new {
+    background: color-mix(in srgb, var(--m-urgent) 30%, var(--m-surface));
+  }
+  .covstat {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .covstat b {
+    font-family: var(--m-font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+
+  /* ── Worklist demo ───────────────────────────────────────────────── */
+  .wltable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .wltable th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .wltable td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+    vertical-align: middle;
+  }
+  .wltable tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .wlrisk {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .wlrisk__no {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
+    width: 10px;
+  }
+  .wlrisk__bar {
+    width: 48px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-hairline);
+    overflow: hidden;
+  }
+  .wlrisk__bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+  }
+  .wlrisk__bar--high i {
+    background: var(--m-urgent);
+  }
+  .wlrisk__bar--mid i {
+    background: var(--m-accent);
+  }
+  .wlclient {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .wlsub {
+    margin-top: 2px;
+    font-family: var(--m-font-mono);
+    font-size: 10.5px;
+    color: var(--m-muted);
+  }
+  .wldue {
+    font-family: var(--m-font-mono);
+    font-size: 11.5px;
+    color: var(--m-muted);
+  }
+  .wldue--late {
+    color: var(--m-urgent);
+  }
+  .wlstat {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .wlstat--blocked {
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 9%, transparent);
+  }
+  .wlstat--review {
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .wlstat--waiting {
+    color: var(--m-muted);
+    background: transparent;
+    border: 1px solid var(--m-hairline);
+  }
+
+  /* ── Apply & audit demo ──────────────────────────────────────────── */
+  .applybody {
+    padding: clamp(16px, 1.8vw, 20px);
+  }
+  .applyrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+  }
+  .applyrow + .applyrow {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .applyrow__k {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-muted);
+  }
+  .applyrow__v {
+    font-family: var(--m-font-mono);
+    font-size: 12.5px;
+    color: var(--m-ink);
+  }
+  .applyrow__v s {
+    color: var(--m-faint);
+  }
+  .applyrow__v b {
+    color: var(--m-accent);
+    font-weight: 600;
+  }
+  .applybtn {
+    margin-top: 14px;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 16px;
+    border-radius: 8px;
+    border: none;
+    font-family: var(--m-font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--m-accent);
+    cursor: default;
+  }
+  .applybtn svg {
+    width: 14px;
+    height: 14px;
+  }
+  /* the audit receipt, in the same torn-edge language as the home finale */
+  .receipt {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-top: 1px dashed color-mix(in srgb, var(--m-accent) 32%, transparent);
+    border-radius: 8px;
+  }
+  .receipt__eyebrow {
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .receipt__rows {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+  .receipt__rows li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    color: var(--m-ink-2);
+  }
+  .receipt__rows svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+    color: var(--m-accent);
+  }
+
+  /* ── responsive ──────────────────────────────────────────────────── */
+  @media (max-width: 1000px) {
+    .surfd__head {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .surfd__head > :nth-child(n) {
+      grid-column: auto;
+    }
+    .sd,
+    .sd:nth-child(even) .sd__copy,
+    .sd:nth-child(even) .sd__demo {
+      grid-template-columns: 1fr;
+      grid-column: auto;
+      grid-row: auto;
+    }
+    .sd__copy {
+      grid-column: 1 / -1;
+    }
+    .sd__demo {
+      grid-column: 1 / -1;
+    }
+    /* keep reading order copy → demo on every section when stacked */
+    .sd:nth-child(even) .sd__copy {
+      order: 0;
+    }
+    .sd:nth-child(even) .sd__demo {
+      order: 1;
+    }
+  }
+  @media (max-width: 560px) {
+    .wlhide {
+      display: none;
+    }
+    .frame__keys {
+      display: none;
+    }
+    .covmap {
+      grid-template-columns: repeat(8, 1fr);
+    }
+  }
+</style>
