@@ -1956,6 +1956,7 @@ export function ObligationQueueRoute() {
     // of the same group cluster naturally.
     const urgencyBandLabels: Record<UrgencyBand, string> = {
       overdue: t`Overdue`,
+      today: t`Today`,
       this_week: t`This week`,
       upcoming: t`Upcoming`,
     }
@@ -4737,8 +4738,12 @@ export function ObligationQueueRoute() {
                                     groupHeader.kind === 'urgency' &&
                                       groupHeader.groupKey === 'overdue' &&
                                       'bg-state-destructive-hover',
+                                    // "Today" owns the amber act-now lane now that
+                                    // it's split out of this_week; this_week +
+                                    // upcoming stay neutral so the heat concentrates
+                                    // on the two horizons that need action today.
                                     groupHeader.kind === 'urgency' &&
-                                      groupHeader.groupKey === 'this_week' &&
+                                      groupHeader.groupKey === 'today' &&
                                       'bg-state-warning-hover',
                                   )}
                                 >
@@ -4777,7 +4782,7 @@ export function ObligationQueueRoute() {
                                             groupHeader.groupKey === 'overdue'
                                             ? 'bg-text-destructive'
                                             : groupHeader.kind === 'urgency' &&
-                                                groupHeader.groupKey === 'this_week'
+                                                groupHeader.groupKey === 'today'
                                               ? 'bg-text-warning'
                                               : 'bg-text-tertiary',
                                         )}
@@ -5650,14 +5655,18 @@ export function daysUntilEffectiveInternalDueDate(
 // `urgency` is no longer a Group-by option; keep this helper scoped to due-date
 // urgency semantics. Thresholds match the toolbar chip semantics: Past due =
 // days < 0, Due this week = 0..7.
-export type UrgencyBand = 'overdue' | 'this_week' | 'upcoming'
-export const URGENCY_BAND_ORDER = ['overdue', 'this_week', 'upcoming'] as const
+export type UrgencyBand = 'overdue' | 'today' | 'this_week' | 'upcoming'
+export const URGENCY_BAND_ORDER = ['overdue', 'today', 'this_week', 'upcoming'] as const
 export function urgencyBandOf(
   row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
   today = todayIsoDate(),
 ): UrgencyBand {
   const days = daysUntilEffectiveInternalDueDate(row, today)
   if (days < 0) return 'overdue'
+  // Today is its own horizon — "due today" is a different decision than "due
+  // later this week", and a deadline product should say so. Splitting it out of
+  // this_week gives the time-forward ladder Overdue · Today · This week · Upcoming.
+  if (days === 0) return 'today'
   if (days <= 7) return 'this_week'
   return 'upcoming'
 }
