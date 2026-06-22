@@ -13,7 +13,7 @@ interface Props {
 const { ctaHref, workflowAnchor = '#how' } = Astro.props
 
 const points = [
-  { strong: 'We watch the IRS, all 50 states & FEMA', rest: '— around the clock' },
+  { strong: 'We watch the IRS, major state agencies & FEMA', rest: '— around the clock' },
   { strong: 'You see the exact clients', rest: 'each change touches' },
   { strong: 'Every date links back', rest: 'to its official source' },
   { strong: 'Free during the beta', rest: '— set up in about 10 minutes' },
@@ -32,7 +32,7 @@ const alerts = [
     status: '6 ready · 2 review',
   },
   {
-    sev: 'high',
+    sev: 'info',
     juris: 'CA',
     source: 'ftb.ca.gov',
     title: 'California FTB extends the Q3 estimated-tax deadline after wildfire declaration',
@@ -43,7 +43,7 @@ const alerts = [
     status: '9 ready · 3 review',
   },
   {
-    sev: 'high',
+    sev: 'info',
     juris: 'TX',
     source: 'comptroller.texas.gov',
     title: 'Texas adds a franchise-tax filing requirement for remote sellers',
@@ -62,8 +62,8 @@ const alerts = [
         Catch every tax-deadline change — and see exactly <span class="ital">who</span> it affects.
       </h1>
       <p class="hero__sub">
-        You'll never wonder <em>“did a deadline move?”</em> again. We watch every IRS and state
-        source and tell you the moment one changes — and exactly which clients it touches.
+        You'll never wonder <em>“did a deadline move?”</em> again. We watch the IRS, the major state
+        tax agencies, and FEMA — and the moment a date moves, you see exactly which clients it hits.
       </p>
 
       <ul class="hero__points">
@@ -124,7 +124,7 @@ const alerts = [
           alerts.map((a) => (
             <article class="row">
               <div class="row__top">
-                <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? 'URGENT' : 'HIGH'}</span>
+                <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? 'URGENT' : 'INFO'}</span>
                 <span class="juris">{a.juris}</span>
                 <span class="src">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -430,9 +430,9 @@ const alerts = [
     color: var(--m-danger);
     background: color-mix(in srgb, var(--m-danger) 9%, transparent);
   }
-  .sev--high {
-    color: var(--m-urgent);
-    background: color-mix(in srgb, var(--m-urgent) 11%, transparent);
+  .sev--info {
+    color: var(--m-ink-2);
+    background: var(--m-section);
   }
   .juris {
     font-family: var(--m-font-mono);
