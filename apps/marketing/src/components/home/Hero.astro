@@ -7,64 +7,152 @@
  * filter/expand/apply micro-interactions layer on in a follow-up.
  */
 interface Props {
+  locale?: 'en' | 'zh-CN'
   ctaHref: string
   workflowAnchor?: string
 }
-const { ctaHref, workflowAnchor = '#how' } = Astro.props
+const { locale = 'en', ctaHref, workflowAnchor = '#how' } = Astro.props
+const zh = locale === 'zh-CN'
 
-const points = [
-  { strong: 'We watch the IRS, major state agencies & FEMA', rest: '— around the clock' },
-  { strong: 'You see the exact clients', rest: 'each change touches' },
-  { strong: 'Every date links back', rest: 'to its official source' },
-  { strong: 'Free during the beta', rest: '— no card required' },
-]
-
-const alerts = [
-  {
-    sev: 'urgent',
-    juris: 'FED',
-    source: 'irs.gov',
-    title: 'IRS postpones filing & payment deadlines after disaster declaration',
-    from: 'Apr 15',
-    to: 'Nov 3, 2026',
-    delta: '202 days later',
-    affects: '8 clients',
-    status: '6 ready · 2 review',
-  },
-  {
-    sev: 'info',
-    juris: 'CA',
-    source: 'ftb.ca.gov',
-    title: 'California FTB extends the Q3 estimated-tax deadline after wildfire declaration',
-    from: 'Sep 15',
-    to: 'Sep 29, 2026',
-    delta: '14 days later',
-    affects: '12 clients',
-    status: '9 ready · 3 review',
-  },
-  {
-    sev: 'info',
-    juris: 'TX',
-    source: 'comptroller.texas.gov',
-    title: 'Texas adds a franchise-tax filing requirement for remote sellers',
-    effective: 'Effective Jan 1, 2026',
-    badge: 'new obligation',
-    affects: '5 clients',
-    status: '5 ready',
-  },
-]
+const t = zh
+  ? {
+      headBefore: '捕捉每一次报税截止日变化 —— 并清楚看到它',
+      headItal: '影响到哪些',
+      headAfter: '客户。',
+      subLead: '你再也不用纠结',
+      subEm: '“截止日是不是变了？”',
+      subRest:
+        '我们全天候盯着 IRS、主要州税务机关和 FEMA —— 日期一变动，你立刻看到它影响到哪些客户。',
+      subStrong: '粘贴你的客户名单，约 10 分钟后第一条带来源的截止日就会出现。',
+      points: [
+        { strong: '我们全天候盯着 IRS、主要州税务机关和 FEMA', rest: '' },
+        { strong: '你能看到', rest: '每次变化具体影响到哪些客户' },
+        { strong: '每个日期都可追溯', rest: '回它的官方来源' },
+        { strong: 'beta 期间免费', rest: '—— 无需信用卡' },
+      ],
+      ctaStart: '免费开始',
+      ctaHow: '看它如何运作',
+      panelAria: '本周示例提醒',
+      panelTitleAlerts: '提醒',
+      panelTitleWhen: '本周',
+      panelCount: '6 项变化 · 31 个客户',
+      panelCap: '实时预览 · 非你的真实数据',
+      filterAria: '按辖区筛选',
+      filters: ['全部', '联邦', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      sevUrgent: '紧急',
+      sevInfo: '信息',
+      affectsLabel: '影响',
+      alerts: [
+        {
+          sev: 'urgent',
+          juris: 'FED',
+          source: 'irs.gov',
+          title: 'IRS 在灾害声明后推迟申报与缴税截止日',
+          from: 'Apr 15',
+          to: 'Nov 3, 2026',
+          delta: '推迟 202 天',
+          affects: '8 个客户',
+          status: '6 项就绪 · 2 项待复核',
+        },
+        {
+          sev: 'info',
+          juris: 'CA',
+          source: 'ftb.ca.gov',
+          title: '加州 FTB 在山火声明后延长第三季度预估税截止日',
+          from: 'Sep 15',
+          to: 'Sep 29, 2026',
+          delta: '推迟 14 天',
+          affects: '12 个客户',
+          status: '9 项就绪 · 3 项待复核',
+        },
+        {
+          sev: 'info',
+          juris: 'TX',
+          source: 'comptroller.texas.gov',
+          title: '德州对远程卖家新增特许经营税申报要求',
+          effective: '2026 年 1 月 1 日起生效',
+          badge: '新义务',
+          affects: '5 个客户',
+          status: '5 项就绪',
+        },
+      ],
+    }
+  : {
+      headBefore: 'Catch every tax-deadline change — and see exactly',
+      headItal: 'who',
+      headAfter: 'it affects.',
+      subLead: "You'll never wonder",
+      subEm: '“did a deadline move?”',
+      subRest:
+        'again. We watch the IRS, the major state agencies, and FEMA — the moment a date moves, you see which clients it hits.',
+      subStrong:
+        'Paste your client list and your first sourced deadline shows up in about 10 minutes.',
+      points: [
+        { strong: 'We watch the IRS, major state agencies & FEMA', rest: '— around the clock' },
+        { strong: 'You see the exact clients', rest: 'each change touches' },
+        { strong: 'Every date links back', rest: 'to its official source' },
+        { strong: 'Free during the beta', rest: '— no card required' },
+      ],
+      ctaStart: 'Start free',
+      ctaHow: 'See how it works',
+      panelAria: 'Sample alerts for this week',
+      panelTitleAlerts: 'Alerts',
+      panelTitleWhen: 'this week',
+      panelCount: '6 changes · 31 clients',
+      panelCap: 'live preview · not your data',
+      filterAria: 'Filter by jurisdiction',
+      filters: ['All', 'Federal', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      sevUrgent: 'URGENT',
+      sevInfo: 'INFO',
+      affectsLabel: 'Affects',
+      alerts: [
+        {
+          sev: 'urgent',
+          juris: 'FED',
+          source: 'irs.gov',
+          title: 'IRS postpones filing & payment deadlines after disaster declaration',
+          from: 'Apr 15',
+          to: 'Nov 3, 2026',
+          delta: '202 days later',
+          affects: '8 clients',
+          status: '6 ready · 2 review',
+        },
+        {
+          sev: 'info',
+          juris: 'CA',
+          source: 'ftb.ca.gov',
+          title: 'California FTB extends the Q3 estimated-tax deadline after wildfire declaration',
+          from: 'Sep 15',
+          to: 'Sep 29, 2026',
+          delta: '14 days later',
+          affects: '12 clients',
+          status: '9 ready · 3 review',
+        },
+        {
+          sev: 'info',
+          juris: 'TX',
+          source: 'comptroller.texas.gov',
+          title: 'Texas adds a franchise-tax filing requirement for remote sellers',
+          effective: 'Effective Jan 1, 2026',
+          badge: 'new obligation',
+          affects: '5 clients',
+          status: '5 ready',
+        },
+      ],
+    }
+const points = t.points
+const alerts = t.alerts
 ---
 
 <section class="hero" aria-labelledby="hero-h">
   <div class="hero__inner">
     <div class="hero__copy">
       <h1 class="hero__head" id="hero-h">
-        Catch every tax-deadline change — and see exactly <span class="ital">who</span> it affects.
+        {t.headBefore} <span class="ital">{t.headItal}</span> {t.headAfter}
       </h1>
       <p class="hero__sub">
-        You'll never wonder <em>“did a deadline move?”</em> again. We watch the IRS, the major state
-        agencies, and FEMA — the moment a date moves, you see which clients it hits.
-        <strong>Paste your client list and your first sourced deadline shows up in about 10 minutes.</strong>
+        {t.subLead} <em>{t.subEm}</em> {t.subRest}
+        <strong>{t.subStrong}</strong>
       </p>
 
       <ul class="hero__points">
@@ -91,27 +179,27 @@ const alerts = [
 
       <div class="hero__cta">
         <a class="btn btn--primary" href={ctaHref} data-event="marketing.hero.cta">
-          Start free <span class="arrow" aria-hidden="true">→</span>
+          {t.ctaStart} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="btn btn--ghost" href={workflowAnchor}>See how it works</a>
+        <a class="btn btn--ghost" href={workflowAnchor}>{t.ctaHow}</a>
       </div>
     </div>
 
     <!-- signature surface: this week's alerts (live preview · not your data) -->
-    <div class="panel" aria-label="Sample alerts for this week">
+    <div class="panel" aria-label={t.panelAria}>
       <div class="panel__head">
         <span class="panel__title">
-          <span class="panel__live" aria-hidden="true"></span>Alerts<span class="panel__dot"
-            >·</span
-          >this week
+          <span class="panel__live" aria-hidden="true"></span>{t.panelTitleAlerts}<span
+            class="panel__dot">·</span
+          >{t.panelTitleWhen}
         </span>
-        <span class="panel__count">6 changes · 31 clients</span>
-        <span class="panel__cap">live preview · not your data</span>
+        <span class="panel__count">{t.panelCount}</span>
+        <span class="panel__cap">{t.panelCap}</span>
       </div>
 
-      <div class="panel__filter" role="group" aria-label="Filter by jurisdiction">
+      <div class="panel__filter" role="group" aria-label={t.filterAria}>
         {
-          ['All', 'Federal', 'CA', 'TX', 'NY', 'WA', 'FL'].map((j, i) => (
+          t.filters.map((j, i) => (
             <span class={`chip${i === 0 ? ' chip--on' : ''}`}>{j}</span>
           ))
         }
@@ -122,7 +210,7 @@ const alerts = [
           alerts.map((a) => (
             <article class="row">
               <div class="row__top">
-                <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? 'URGENT' : 'INFO'}</span>
+                <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? t.sevUrgent : t.sevInfo}</span>
                 <span class="juris">{a.juris}</span>
                 <span class="src">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -161,7 +249,7 @@ const alerts = [
                     stroke-linejoin="round"
                   />
                 </svg>
-                Affects <b>{a.affects}</b>
+                {t.affectsLabel} <b>{a.affects}</b>
                 <span class="row__status">{a.status}</span>
               </p>
             </article>

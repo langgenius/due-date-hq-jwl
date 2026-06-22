@@ -1,15 +1,35 @@
 ---
 /** Left scroll-spy rail — a "ticker" in the left margin showing which section the
  *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
-const items = [
-  { label: 'The loop', href: '#how' },
-  { label: 'The document', href: '#notice' },
-  { label: 'Sources', href: '#sources' },
-  { label: 'See it work', href: '#work' },
-  { label: 'Why trust it', href: '#trust' },
-  { label: 'Security', href: '#security' },
-  { label: 'Questions', href: '#faq' },
-]
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const t = zh
+  ? {
+      items: [
+        { label: '循环', href: '#how' },
+        { label: '那份公告', href: '#notice' },
+        { label: '来源', href: '#sources' },
+        { label: '看它运作', href: '#work' },
+        { label: '为什么可信', href: '#trust' },
+        { label: '安全', href: '#security' },
+        { label: '常见问题', href: '#faq' },
+      ],
+    }
+  : {
+      items: [
+        { label: 'The loop', href: '#how' },
+        { label: 'The document', href: '#notice' },
+        { label: 'Sources', href: '#sources' },
+        { label: 'See it work', href: '#work' },
+        { label: 'Why trust it', href: '#trust' },
+        { label: 'Security', href: '#security' },
+        { label: 'Questions', href: '#faq' },
+      ],
+    }
+const items = t.items
 ---
 
 <nav class="spyrail" id="spyrail" aria-label="Section navigation">

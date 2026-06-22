@@ -2,52 +2,92 @@
 /** Close — framed CTA card with a scalloped audit "receipt". Welcoming, restrained. */
 interface Props {
   ctaHref: string
+  locale?: 'en' | 'zh-CN'
 }
-const { ctaHref } = Astro.props
-
-const trust = ['Free during the beta', 'No card required', 'Data stays in your practice']
-const receiptRows = [
-  { glyph: 'link', text: 'Sourced to irs.gov · verified' },
-  { glyph: 'undo', text: 'Reversible for 24 hours' },
-  { glyph: 'shield', text: 'Recorded to the audit trail' },
-]
+const { ctaHref, locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const t = zh
+  ? {
+      pill: '在报税旺季到来前做好准备',
+      bodyLead:
+        '把你的客户名单粘贴进来，约 30 分钟内就能备好一年带来源的截止日。从此之后，我们替你盯着每一处变化——下次某个州调整截止日时，你早已知道它影响到谁。',
+      bodyStrong: '我们会一直盯着。',
+      ctaPrimary: '免费开始',
+      ctaGhost: '要人带着上手',
+      trust: ['测试期免费', '无需信用卡', '数据留在你的事务所'],
+      receiptEyebrow: '审计凭据',
+      receiptApply: 'Apply #DDH-2240',
+      receiptChangeTail: '· 8 位客户',
+      receiptRows: [
+        { glyph: 'link', text: '来源 irs.gov · 已核验' },
+        { glyph: 'undo', text: '24 小时内可撤销' },
+        { glyph: 'shield', text: '已记入审计记录' },
+      ],
+    }
+  : {
+      pill: 'Be ready before busy season',
+      bodyLead:
+        "Paste your clients, and a sourced year of deadlines is ready in about 30 minutes. From there, we watch every change for you — so the next time a state moves a deadline, you'll already know who it affects. ",
+      bodyStrong: "We'll be watching the whole time.",
+      ctaPrimary: 'Start free',
+      ctaGhost: 'Get a guided setup',
+      trust: ['Free during the beta', 'No card required', 'Data stays in your practice'],
+      receiptEyebrow: 'Audit receipt',
+      receiptApply: 'Apply #DDH-2240',
+      receiptChangeTail: '· 8 clients',
+      receiptRows: [
+        { glyph: 'link', text: 'Sourced to irs.gov · verified' },
+        { glyph: 'undo', text: 'Reversible for 24 hours' },
+        { glyph: 'shield', text: 'Recorded to the audit trail' },
+      ],
+    }
+const trust = t.trust
+const receiptRows = t.receiptRows
 ---
 
 <section class="close" id="close" aria-labelledby="close-h">
   <div class="close__card">
-    <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>Be ready before busy season</span>
+    <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>{t.pill}</span>
     <h2 class="m-h2 close__h" id="close-h">
-      Walk into next busy season already <span class="ital">ahead.</span>
+      {
+        zh ? (
+          <>
+            走进下一个报税旺季，已经<span class="ital">领先一步。</span>
+          </>
+        ) : (
+          <>
+            Walk into next busy season already <span class="ital">ahead.</span>
+          </>
+        )
+      }
     </h2>
     <p class="close__body">
-      Paste your clients, and a sourced year of deadlines is ready in about 30 minutes. From there,
-      we watch every change for you — so the next time a state moves a deadline, you'll already know
-      who it affects. <strong>We'll be watching the whole time.</strong>
+      {t.bodyLead}<strong>{t.bodyStrong}</strong>
     </p>
 
     <div class="close__cta">
       <a class="btn btn--primary" href={ctaHref} data-event="marketing.close.cta">
-        Start free <span class="arrow" aria-hidden="true">→</span>
+        {t.ctaPrimary} <span class="arrow" aria-hidden="true">→</span>
       </a>
-      <a class="btn btn--ghost" href={ctaHref}>Get a guided setup</a>
+      <a class="btn btn--ghost" href={ctaHref}>{t.ctaGhost}</a>
     </div>
 
     <div class="close__trust">
       {
-        trust.map((t) => (
+        trust.map((item) => (
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
             </svg>
-            {t}
+            {item}
           </span>
         ))
       }
     </div>
 
     <div class="receipt" aria-label="Sample audit receipt for one applied change">
-      <div class="receipt__eyebrow"><span>Audit receipt</span><span>Apply #DDH-2240</span></div>
-      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 · 8 clients</p>
+      <div class="receipt__eyebrow"><span>{t.receiptEyebrow}</span><span>{t.receiptApply}</span></div>
+      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
       <div class="receipt__rows">
         {
           receiptRows.map((r) => (

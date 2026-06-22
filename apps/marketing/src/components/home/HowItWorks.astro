@@ -1,27 +1,64 @@
 ---
 /** How it works — Watch → Match → Apply, workflow-diagram style (label tabs + dashed connectors). */
-const steps = [
-  {
-    name: 'Watch',
-    icon: 'eye',
-    desc: 'Official federal and state sources, monitored around the clock. A change only surfaces once its new dates are <b>grounded in the official text</b>.',
-  },
-  {
-    name: 'Match',
-    icon: 'target',
-    desc: 'Matched to your clients by <b>jurisdiction, form, and entity type</b> — the affected list is computed before you even open the alert.',
-  },
-  {
-    name: 'Apply',
-    icon: 'zap',
-    desc: 'One click pushes the change across <b>every affected client</b> — and nothing moves until you approve it.',
-  },
-]
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '它如何运作',
+      hBefore: '繁琐的长尾交给它，',
+      hItal: '决定由你来做。',
+      steps: [
+        {
+          name: '监测',
+          icon: 'eye',
+          desc: '全天候监测官方的联邦与州级来源。只有当新日期<b>有官方原文依据</b>时，一次变化才会浮现出来。',
+        },
+        {
+          name: '匹配',
+          icon: 'target',
+          desc: '按<b>辖区、表格和实体类型</b>匹配到你的客户 —— 在你打开提醒之前，受影响的客户名单就已经算好了。',
+        },
+        {
+          name: '应用',
+          icon: 'zap',
+          desc: '一键把变化推送到<b>每一个受影响的客户</b> —— 在你确认之前，什么都不会改动。',
+        },
+      ],
+      loop: '然后它继续循环 —— 盯着下一次变化',
+    }
+  : {
+      eyebrow: 'How it works',
+      hBefore: 'It runs the long tail. You make the',
+      hItal: 'calls.',
+      steps: [
+        {
+          name: 'Watch',
+          icon: 'eye',
+          desc: 'Official federal and state sources, monitored around the clock. A change only surfaces once its new dates are <b>grounded in the official text</b>.',
+        },
+        {
+          name: 'Match',
+          icon: 'target',
+          desc: 'Matched to your clients by <b>jurisdiction, form, and entity type</b> — the affected list is computed before you even open the alert.',
+        },
+        {
+          name: 'Apply',
+          icon: 'zap',
+          desc: 'One click pushes the change across <b>every affected client</b> — and nothing moves until you approve it.',
+        },
+      ],
+      loop: 'Then it loops — watching for the next change',
+    }
+const steps = t.steps
 ---
 
 <section class="m-section flow" id="how" aria-labelledby="how-h">
-  <p class="m-eyebrow">How it works</p>
-  <h2 class="m-h2" id="how-h">It runs the long tail. You make the <span class="ital">calls.</span></h2>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2" id="how-h">{t.hBefore} <span class="ital">{t.hItal}</span></h2>
 
   <div class="flow__diagram">
     {
@@ -71,7 +108,7 @@ const steps = [
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 12c-2-2.7-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.3 6-4Zm0 0c2 2.7 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.3-6 4Z" />
     </svg>
-    Then it loops — watching for the next change
+    {t.loop}
   </p>
 </section>
 

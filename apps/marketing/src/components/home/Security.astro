@@ -1,23 +1,50 @@
 ---
 /** Security & privacy — copy + a 2×2 cluster of trust items. */
-const items = [
-  { icon: 'lock', t: 'Encrypted', d: 'In transit and at rest, every byte.' },
-  { icon: 'shield', t: 'Yours alone', d: 'Your client list is never sold, shared, or pooled across firms.' },
-  { icon: 'eye', t: 'Watches, never files', d: 'It reads sources and proposes changes — it never files a return or moves a dollar.' },
-  { icon: 'key', t: 'No password to leak', d: 'Single sign-on, so there is no password for us to see, store, or for anyone to phish.' },
-]
+interface Props { locale?: 'en' | 'zh-CN' }
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '安全与隐私',
+      headingPre: '为你',
+      headingItal: '受托',
+      headingPost: '保管的数据而生。',
+      body: '客户的财务细节是你手中最敏感的东西。DueDateHQ 正是为守护它们而生——同时绝不干扰你的判断。',
+      fine: '无需配置客户门户。没有第三方数据中间商。',
+      items: [
+        { icon: 'lock', t: '加密', d: '传输中和存储时，每一个字节都加密。' },
+        { icon: 'shield', t: '只属于你', d: '你的客户名单绝不出售、共享，也绝不在各事务所之间汇集。' },
+        { icon: 'eye', t: '只看不报', d: '它读取来源、提出变更建议——绝不替你报税，也绝不动一分钱。' },
+        { icon: 'key', t: '没有密码会泄露', d: '采用单点登录(SSO)，我们无密码可看、可存，也没人能钓走。' },
+      ],
+    }
+  : {
+      eyebrow: 'Security & privacy',
+      headingPre: "Built for the data you're ",
+      headingItal: 'trusted',
+      headingPost: ' with.',
+      body: "Your clients' financial details are the most sensitive thing you hold. DueDateHQ is built to keep them that way — and to stay out of the way of your judgment.",
+      fine: 'No client portal to configure. No third-party data brokers.',
+      items: [
+        { icon: 'lock', t: 'Encrypted', d: 'In transit and at rest, every byte.' },
+        { icon: 'shield', t: 'Yours alone', d: 'Your client list is never sold, shared, or pooled across firms.' },
+        { icon: 'eye', t: 'Watches, never files', d: 'It reads sources and proposes changes — it never files a return or moves a dollar.' },
+        { icon: 'key', t: 'No password to leak', d: 'Single sign-on, so there is no password for us to see, store, or for anyone to phish.' },
+      ],
+    }
+const items = t.items
 ---
 
 <section class="m-section" id="security" aria-labelledby="sec-h">
   <div class="security">
     <div class="security__copy">
-      <p class="m-eyebrow">Security &amp; privacy</p>
-      <h2 class="m-h2" id="sec-h">Built for the data you're <span class="ital">trusted</span> with.</h2>
+      <p class="m-eyebrow">{t.eyebrow}</p>
+      <h2 class="m-h2" id="sec-h">{t.headingPre}<span class="ital">{t.headingItal}</span>{t.headingPost}</h2>
       <p class="security__body">
-        Your clients' financial details are the most sensitive thing you hold. DueDateHQ is built to
-        keep them that way — and to stay out of the way of your judgment.
+        {t.body}
       </p>
-      <p class="security__fine">No client portal to configure. No third-party data brokers.</p>
+      <p class="security__fine">{t.fine}</p>
     </div>
     <div class="security__cluster">
       {

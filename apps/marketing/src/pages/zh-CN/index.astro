@@ -1,41 +1,63 @@
 ---
+/**
+ * zh-CN homepage — the production-v2 redesign in Simplified Chinese. Mirrors
+ * index.astro, passing locale="zh-CN" to each home component (each component
+ * holds its own EN/zh copy). Chinese is a first draft, pending refinement.
+ */
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import TopNav from '../../components/TopNav.astro'
-import Hero from '../../components/Hero.astro'
-import SlaStrip from '../../components/SlaStrip.astro'
-import Problem from '../../components/Problem.astro'
-import Workflow from '../../components/Workflow.astro'
-import Proof from '../../components/Proof.astro'
-import Security from '../../components/Security.astro'
-import FinalCta from '../../components/FinalCta.astro'
-import Footer from '../../components/Footer.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import ScrollRail from '../../components/home/ScrollRail.astro'
+import Hero from '../../components/home/Hero.astro'
+import Villain from '../../components/home/Villain.astro'
+import HowItWorks from '../../components/home/HowItWorks.astro'
+import Notice from '../../components/home/Notice.astro'
+import Sources from '../../components/home/Sources.astro'
+import Compare from '../../components/home/Compare.astro'
+import SeeItWork from '../../components/home/SeeItWork.astro'
+import Surfaces from '../../components/home/Surfaces.astro'
+import Trust from '../../components/home/Trust.astro'
+import Security from '../../components/home/Security.astro'
+import Faq from '../../components/home/Faq.astro'
+import Close from '../../components/home/Close.astro'
+import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getCtaHref } from '../../lib/app-url'
+import { getCtaHref, getAppHref } from '../../lib/app-url'
 import { homeStructuredData } from '../../lib/structured-data'
 
-// Cross-subdomain locale handoff (§6.3): pass `lng=zh-CN` so apps/app can
-// merge the marketing locale into its own locale store on first hit.
 const ctaHref = getCtaHref('zh-CN')
+const signInHref = getAppHref('/login', 'zh-CN')
 const t = zhCN
 ---
 
 <BaseLayout
   lang="zh-CN"
   pathname="/zh-CN"
-  title={t.meta.title}
-  description={t.meta.description}
+  title="DueDateHQ — 捕捉每一次报税截止日变化，看清它影响到哪些客户"
+  description="DueDateHQ 全天候监控 IRS、主要州税务机关和 FEMA 灾害救济。截止日一变动，你立刻知道影响到哪些客户——每个日期都附官方来源。"
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'zh-CN')}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav ctaHref={ctaHref} signInHref={signInHref} locale="zh-CN" />
+  <ScrollRail locale="zh-CN" />
   <main>
-    <Hero t={t.hero} ctaHref={ctaHref} workflowAnchor="#workflow" />
-    <SlaStrip t={t.sla} />
-    <Problem t={t.problem} />
-    <Workflow t={t.workflow} />
-    <Proof t={t.proof} />
-    <Security t={t.security} />
-    <FinalCta t={t.finalCta} ctaHref={ctaHref} />
+    <Hero ctaHref={ctaHref} workflowAnchor="#how" locale="zh-CN" />
+    <Villain locale="zh-CN" />
+    <HowItWorks locale="zh-CN" />
+    <Notice locale="zh-CN" />
+    <Sources locale="zh-CN" />
+    <Compare locale="zh-CN" />
+    <SeeItWork locale="zh-CN" />
+    <Surfaces locale="zh-CN" />
+    <Trust locale="zh-CN" />
+    <Security locale="zh-CN" />
+    <Faq locale="zh-CN" />
+    <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
-  <Footer t={t.footer} enHref="/" zhHref="/zh-CN" currentLocale="zh-CN" />
+  <Footer locale="zh-CN" />
 </BaseLayout>
+
+<style is:global>
+  body {
+    background: var(--m-canvas);
+  }
+</style>

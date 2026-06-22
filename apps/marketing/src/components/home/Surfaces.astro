@@ -2,18 +2,97 @@
 /** Product surfaces — a Legora "highlights"-style grid: four cards, each with an
  *  embedded product mini-UI fragment on a graph-paper card. The minis reuse the
  *  exact chip vocabulary from the Hero feed and the See-it-work worklist. */
+interface Props { locale?: 'en' | 'zh-CN' }
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
 // coverage mini-map tile heat (24 tiles): '' faint · n navy · a urgent · r danger
 const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 'a', '', '', '', '', 'r', '', '', '']
+
+const t = zh
+  ? {
+      eyebrow: '产品',
+      headingPre: '一个',
+      headingItal: '工作台，',
+      headingPost: '搞定一切。',
+      intro: '从第一条提醒到应用变更——四个界面，一个让你安心工作的地方。',
+      seeIt: '查看',
+      cards: {
+        alerts: {
+          sev: '紧急',
+          title: 'IRS 推迟申报截止日',
+          affectPre: '影响 ',
+          affectN: '8 家客户',
+          t: '提醒',
+          d: '实时动态——每条变更落地即呈现，按紧急程度排序。',
+        },
+        coverage: {
+          t: '覆盖',
+          d: '一张地图涵盖所有辖区——看清变更落在何处。',
+        },
+        worklist: {
+          rows: [
+            { client: 'Hill Country Partners', status: '受阻', due: '逾期 2 天' },
+            { client: 'Brightway Logistics', status: '审核中', due: '还剩 3 天' },
+            { client: 'Cedar Park Dental', status: '等待中', due: '还剩 9 天' },
+          ],
+          t: '工作清单',
+          d: '客户按风险排序——一眼看出先打给谁。',
+        },
+        apply: {
+          btn: '应用到 8 家客户',
+          audit: '有来源 · 24 小时内可撤销 · 已记录',
+          t: '应用与审计',
+          d: '把变更推送给每一个受影响的人——背后留有完整记录。',
+        },
+      },
+    }
+  : {
+      eyebrow: 'The product',
+      headingPre: 'Everything in one ',
+      headingItal: 'workbench.',
+      headingPost: '',
+      intro: 'From the first alert to the applied change — four surfaces, one calm place to work.',
+      seeIt: 'See it',
+      cards: {
+        alerts: {
+          sev: 'Urgent',
+          title: 'IRS postpones filing deadlines',
+          affectPre: 'Affects ',
+          affectN: '8 clients',
+          t: 'Alerts',
+          d: 'The live feed — every change as it lands, sorted by severity.',
+        },
+        coverage: {
+          t: 'Coverage',
+          d: 'One map of every jurisdiction — see where changes are landing.',
+        },
+        worklist: {
+          rows: [
+            { client: 'Hill Country Partners', status: 'Blocked', due: '2d late' },
+            { client: 'Brightway Logistics', status: 'In review', due: 'in 3d' },
+            { client: 'Cedar Park Dental', status: 'Waiting', due: 'in 9d' },
+          ],
+          t: 'Worklist',
+          d: 'Your clients in risk order — who to call first, at a glance.',
+        },
+        apply: {
+          btn: 'Apply to 8 clients',
+          audit: 'sourced · reversible 24h · logged',
+          t: 'Apply & audit',
+          d: 'Push a change to everyone it touches — with the full trail behind it.',
+        },
+      },
+    }
 ---
 
 <section class="m-section surfaces" aria-labelledby="surfaces-h">
   <div class="surfaces__head">
     <div>
-      <p class="m-eyebrow">The product</p>
-      <h2 class="m-h2" id="surfaces-h">Everything in one <span class="ital">workbench.</span></h2>
+      <p class="m-eyebrow">{t.eyebrow}</p>
+      <h2 class="m-h2" id="surfaces-h">{t.headingPre}<span class="ital">{t.headingItal}</span>{t.headingPost}</h2>
     </div>
     <p class="surfaces__intro">
-      From the first alert to the applied change — four surfaces, one calm place to work.
+      {t.intro}
     </p>
   </div>
 
@@ -23,29 +102,29 @@ const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 
       <div class="surface__thumb">
         <div class="mini">
           <div class="mini__sevrow">
-            <span class="mini__sev">Urgent</span>
+            <span class="mini__sev">{t.cards.alerts.sev}</span>
             <span class="mini__juris">FED</span>
           </div>
-          <p class="mini__title">IRS postpones filing deadlines</p>
+          <p class="mini__title">{t.cards.alerts.title}</p>
           <div class="mini__change"><s>Apr 15</s> → <b>Nov 3</b> <span class="mini__delta">+202d</span></div>
-          <p class="mini__affect">Affects <b>8 clients</b></p>
+          <p class="mini__affect">{t.cards.alerts.affectPre}<b>{t.cards.alerts.affectN}</b></p>
         </div>
       </div>
-      <h3 class="surface__t">Alerts</h3>
-      <p class="surface__d">The live feed — every change as it lands, sorted by severity.</p>
-      <a class="surface__link" href="#how">See it <span aria-hidden="true">→</span></a>
+      <h3 class="surface__t">{t.cards.alerts.t}</h3>
+      <p class="surface__d">{t.cards.alerts.d}</p>
+      <a class="surface__link" href="#how">{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Coverage -->
     <article class="surface">
       <div class="surface__thumb">
         <div class="mini mini--map" aria-hidden="true">
-          {tiles.map((t) => <span class:list={['mini__tile', t]} />)}
+          {tiles.map((tile) => <span class:list={['mini__tile', tile]} />)}
         </div>
       </div>
-      <h3 class="surface__t">Coverage</h3>
-      <p class="surface__d">One map of every jurisdiction — see where changes are landing.</p>
-      <a class="surface__link" href="#sources">See it <span aria-hidden="true">→</span></a>
+      <h3 class="surface__t">{t.cards.coverage.t}</h3>
+      <p class="surface__d">{t.cards.coverage.d}</p>
+      <a class="surface__link" href="#sources">{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Worklist -->
@@ -54,27 +133,27 @@ const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 
         <div class="mini mini--list">
           <div class="mini__row">
             <span class="mini__bar hi"></span>
-            <span class="mini__client">Hill Country Partners</span>
-            <span class="mini__status blocked">Blocked</span>
-            <span class="mini__due late">2d late</span>
+            <span class="mini__client">{t.cards.worklist.rows[0].client}</span>
+            <span class="mini__status blocked">{t.cards.worklist.rows[0].status}</span>
+            <span class="mini__due late">{t.cards.worklist.rows[0].due}</span>
           </div>
           <div class="mini__row">
             <span class="mini__bar"></span>
-            <span class="mini__client">Brightway Logistics</span>
-            <span class="mini__status review">In review</span>
-            <span class="mini__due">in 3d</span>
+            <span class="mini__client">{t.cards.worklist.rows[1].client}</span>
+            <span class="mini__status review">{t.cards.worklist.rows[1].status}</span>
+            <span class="mini__due">{t.cards.worklist.rows[1].due}</span>
           </div>
           <div class="mini__row">
             <span class="mini__bar"></span>
-            <span class="mini__client">Cedar Park Dental</span>
-            <span class="mini__status waiting">Waiting</span>
-            <span class="mini__due">in 9d</span>
+            <span class="mini__client">{t.cards.worklist.rows[2].client}</span>
+            <span class="mini__status waiting">{t.cards.worklist.rows[2].status}</span>
+            <span class="mini__due">{t.cards.worklist.rows[2].due}</span>
           </div>
         </div>
       </div>
-      <h3 class="surface__t">Worklist</h3>
-      <p class="surface__d">Your clients in risk order — who to call first, at a glance.</p>
-      <a class="surface__link" href="#work">See it <span aria-hidden="true">→</span></a>
+      <h3 class="surface__t">{t.cards.worklist.t}</h3>
+      <p class="surface__d">{t.cards.worklist.d}</p>
+      <a class="surface__link" href="#work">{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Apply & audit -->
@@ -85,14 +164,14 @@ const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
             </svg>
-            Apply to 8 clients
+            {t.cards.apply.btn}
           </span>
-          <p class="mini__audit">sourced · reversible 24h · logged</p>
+          <p class="mini__audit">{t.cards.apply.audit}</p>
         </div>
       </div>
-      <h3 class="surface__t">Apply &amp; audit</h3>
-      <p class="surface__d">Push a change to everyone it touches — with the full trail behind it.</p>
-      <a class="surface__link" href="#trust">See it <span aria-hidden="true">→</span></a>
+      <h3 class="surface__t">{t.cards.apply.t}</h3>
+      <p class="surface__d">{t.cards.apply.d}</p>
+      <a class="surface__link" href="#trust">{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
   </div>
 </section>

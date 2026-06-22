@@ -1,22 +1,50 @@
 ---
 /** How it compares — a restrained 4-column matrix. The point isn't feature
  *  parity, it's the one row only DueDateHQ owns: watching the sources. */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
 const products = ['Excel + Outlook', 'File In Time', 'TaxDome', 'DueDateHQ']
-const rows = [
-  { feature: 'Tracks deadlines', marks: ['manual', 'yes', 'yes', 'yes'] },
-  { feature: 'Watches sources for changes', marks: ['no', 'no', 'no', 'yes'] },
-  { feature: "Flags who's affected", marks: ['no', 'no', 'no', 'yes'] },
-  { feature: 'Source on every date', marks: ['no', 'no', 'no', 'yes'] },
+const marksRows = [
+  ['manual', 'yes', 'yes', 'yes'],
+  ['no', 'no', 'no', 'yes'],
+  ['no', 'no', 'no', 'yes'],
+  ['no', 'no', 'no', 'yes'],
 ]
-const ariaSummary =
-  'Comparison. Excel and Outlook track the deadlines you enter, manually; File In Time and ' +
-  'TaxDome track them too. Only DueDateHQ watches the official sources for changes, flags which ' +
-  'clients are affected, and keeps a source on every date.'
+const t = zh
+  ? {
+      eyebrow: '横向对比',
+      headingPre: '别人替你记日期，我们替你盯它',
+      headingItal: '变。',
+      features: ['记录截止日', '盯着来源看变化', '标出影响到谁', '每个日期都有来源'],
+      manual: '手动',
+      ariaSummary:
+        '对比。Excel 和 Outlook 手动记录你录入的截止日；File In Time 和 TaxDome 也只是记录。只有 DueDateHQ 盯着官方来源看变化、标出受影响的客户，并为每个日期保留来源。',
+      footPre: 'Excel 和 File In Time 只记录你录入的日期。',
+      footBold: '只有 DueDateHQ 盯着来源——还告诉你影响到谁。',
+    }
+  : {
+      eyebrow: 'How it compares',
+      headingPre: 'They store your dates. We watch them ',
+      headingItal: 'change.',
+      features: ['Tracks deadlines', 'Watches sources for changes', "Flags who's affected", 'Source on every date'],
+      manual: 'manual',
+      ariaSummary:
+        'Comparison. Excel and Outlook track the deadlines you enter, manually; File In Time and ' +
+        'TaxDome track them too. Only DueDateHQ watches the official sources for changes, flags which ' +
+        'clients are affected, and keeps a source on every date.',
+      footPre: 'Excel and File In Time track the dates you enter.',
+      footBold: "Only DueDateHQ watches the sources — and tells you who's affected.",
+    }
+const rows = marksRows.map((marks, i) => ({ feature: t.features[i], marks }))
+const ariaSummary = t.ariaSummary
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h">
-  <p class="m-eyebrow">How it compares</p>
-  <h2 class="m-h2 compare__h" id="cmp-h">They store your dates. We watch them <span class="ital">change.</span></h2>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2 compare__h" id="cmp-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
 
   <div class="cmp-scroll">
     <div class="cmp" role="img" aria-label={ariaSummary}>
@@ -42,7 +70,7 @@ const ariaSummary =
                   </span>
                 )}
                 {m === 'no' && <span class="no" aria-hidden="true" />}
-                {m === 'manual' && <span class="cmp__manual">manual</span>}
+                {m === 'manual' && <span class="cmp__manual">{t.manual}</span>}
               </div>
             ))}
           </>
@@ -52,8 +80,8 @@ const ariaSummary =
   </div>
 
   <p class="compare__foot">
-    Excel and File In Time track the dates you enter.
-    <b>Only DueDateHQ watches the sources — and tells you who's affected.</b>
+    {t.footPre}
+    <b>{t.footBold}</b>
   </p>
 </section>
 

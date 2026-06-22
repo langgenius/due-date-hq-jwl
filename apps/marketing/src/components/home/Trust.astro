@@ -1,18 +1,52 @@
 ---
 /** Trust — the Glass-Box Guarantee: sourced / no auto-apply / reversible. */
-const stats = [
-  { n: '100%', t: 'Sourced', b: 'Nothing is shown without a citation back to the official text.' },
-  { n: '0', t: 'Auto-applied changes', b: "Nothing touches a client's deadline on its own. Apply is always your call." },
-  { n: '24h', t: 'Reversible', b: 'Any apply undoes cleanly within 24 hours — and every apply, undo, and revert is recorded and inspectable.' },
-]
+interface Props { locale?: 'en' | 'zh-CN' }
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '为什么值得信赖',
+      headingPre: '每个日期都能点回它的',
+      headingItal: '来源。',
+      headingPost: '',
+      leadPre: '我们称之为',
+      leadGlass: '透明可查',
+      leadPost: '——每条变更都附带链接、原文引述和经过核验的日期，否则就不会放出。',
+      stats: [
+        { n: '100%', t: '有来源', b: '没有指向官方原文的引述，就什么都不会显示。' },
+        { n: '0', t: '自动应用的变更', b: '任何变更都不会自行改动客户的截止日。是否应用，永远由你决定。' },
+        { n: '24h', t: '可撤销', b: '任何应用都能在 24 小时内干净撤销——而且每一次应用、撤销和回滚都有记录、可查验。' },
+      ],
+      boundaryB: '不是税务建议。',
+      boundaryRest:
+        'DueDateHQ 支持有据可查的复核——它不是税务建议，不是申报系统，也不能替代 CPA、EA 或律师。它告诉你该看哪里、为什么；最终由你来判断。',
+    }
+  : {
+      eyebrow: 'Why you can trust it',
+      headingPre: 'Every date clicks back to its ',
+      headingItal: 'source.',
+      headingPost: '',
+      leadPre: 'We call it ',
+      leadGlass: 'glass-box',
+      leadPost: " — a link, the exact quote, and a verified date on every change, or it's held back.",
+      stats: [
+        { n: '100%', t: 'Sourced', b: 'Nothing is shown without a citation back to the official text.' },
+        { n: '0', t: 'Auto-applied changes', b: "Nothing touches a client's deadline on its own. Apply is always your call." },
+        { n: '24h', t: 'Reversible', b: 'Any apply undoes cleanly within 24 hours — and every apply, undo, and revert is recorded and inspectable.' },
+      ],
+      boundaryB: 'Not tax advice.',
+      boundaryRest:
+        ' DueDateHQ supports evidence-backed review — it is not tax advice, not a filing system, and not a replacement for a CPA, EA, or attorney. It tells you where to look and why; you make the call.',
+    }
+const stats = t.stats
 ---
 
 <section class="m-section trust" id="trust" aria-labelledby="trust-h">
-  <p class="m-eyebrow">Why you can trust it</p>
-  <h2 class="m-h2" id="trust-h">Every date clicks back to its <span class="ital">source.</span></h2>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2" id="trust-h">{t.headingPre}<span class="ital">{t.headingItal}</span>{t.headingPost}</h2>
   <p class="m-lead trust__lead">
-    We call it <span class="glass">glass-box</span> — a link, the exact quote, and a verified date on
-    every change, or it's held back.
+    {t.leadPre}<span class="glass">{t.leadGlass}</span>{t.leadPost}
   </p>
 
   <div class="trust__grid">
@@ -34,9 +68,7 @@ const stats = [
       </svg>
     </span>
     <p class="boundary__t">
-      <b>Not tax advice.</b> DueDateHQ supports evidence-backed review — it is not tax advice, not a
-      filing system, and not a replacement for a CPA, EA, or attorney. It tells you where to look and
-      why; you make the call.
+      <b>{t.boundaryB}</b>{t.boundaryRest}
     </p>
   </div>
 </section>

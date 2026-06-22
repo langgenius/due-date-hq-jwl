@@ -1,18 +1,62 @@
 ---
 /** See it work — the risk-ranked worklist (the Monday console). Re-houses the
  *  original site's keyboard-first depth as a light hint. */
-const rows = [
-  { no: 1, risk: 'high', w: 92, client: 'Hill Country Partners', sub: '1120-S · TX · franchise tax', due: '2d late', late: true, status: 'Blocked', tone: 'blocked' },
-  { no: 2, risk: 'high', w: 80, client: 'Brightway Logistics LLC', sub: '1120 · TX · disaster relief', due: 'in 3d', late: false, status: 'In review', tone: 'review' },
-  { no: 3, risk: 'mid', w: 56, client: 'Cedar Park Dental', sub: '1120-S · TX · franchise tax', due: 'in 9d', late: false, status: 'Waiting on client', tone: 'waiting' },
-  { no: 4, risk: 'low', w: 32, client: 'Brazos Co', sub: '05-158 · TX · no-tax-due', due: 'in 16d', late: false, status: 'Not started', tone: 'notstarted' },
-]
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '看它如何运作',
+      headingPre: '你的一周，按谁最有',
+      headingItal: '风险排序。',
+      lead: '最重要的客户浮到最上面——在你打第一个电话之前。',
+      barTitle: '按风险排序的工作清单 · 本周',
+      keysOpen: '打开',
+      keysMove: '移动',
+      barMeta: '实时预览 · 非你的数据',
+      thRisk: '风险',
+      thClient: '客户',
+      thDue: '到期',
+      thStatus: '状态',
+      noteHtml: '每一个排位都可追溯到剩余天数、证据和就绪情况——不是黑箱。',
+      rows: [
+        { no: 1, risk: 'high', w: 92, client: 'Hill Country Partners', sub: '1120-S · TX · 特许经营税', due: '逾期 2 天', late: true, status: '受阻', tone: 'blocked' },
+        { no: 2, risk: 'high', w: 80, client: 'Brightway Logistics LLC', sub: '1120 · TX · 灾害救济', due: '还有 3 天', late: false, status: '复核中', tone: 'review' },
+        { no: 3, risk: 'mid', w: 56, client: 'Cedar Park Dental', sub: '1120-S · TX · 特许经营税', due: '还有 9 天', late: false, status: '等客户', tone: 'waiting' },
+        { no: 4, risk: 'low', w: 32, client: 'Brazos Co', sub: '05-158 · TX · 无应纳税', due: '还有 16 天', late: false, status: '未开始', tone: 'notstarted' },
+      ],
+    }
+  : {
+      eyebrow: 'See it work',
+      headingPre: 'Your week, ranked by who\'s most at ',
+      headingItal: 'risk.',
+      lead: 'The clients that matter rise to the top — before your first call.',
+      barTitle: 'Risk-ranked worklist · this week',
+      keysOpen: 'open',
+      keysMove: 'move',
+      barMeta: 'live preview · not your data',
+      thRisk: 'Risk',
+      thClient: 'Client',
+      thDue: 'Due',
+      thStatus: 'Status',
+      noteHtml: 'Every position traces to days remaining, evidence, and readiness — no black box.',
+      rows: [
+        { no: 1, risk: 'high', w: 92, client: 'Hill Country Partners', sub: '1120-S · TX · franchise tax', due: '2d late', late: true, status: 'Blocked', tone: 'blocked' },
+        { no: 2, risk: 'high', w: 80, client: 'Brightway Logistics LLC', sub: '1120 · TX · disaster relief', due: 'in 3d', late: false, status: 'In review', tone: 'review' },
+        { no: 3, risk: 'mid', w: 56, client: 'Cedar Park Dental', sub: '1120-S · TX · franchise tax', due: 'in 9d', late: false, status: 'Waiting on client', tone: 'waiting' },
+        { no: 4, risk: 'low', w: 32, client: 'Brazos Co', sub: '05-158 · TX · no-tax-due', due: 'in 16d', late: false, status: 'Not started', tone: 'notstarted' },
+      ],
+    }
+const rows = t.rows
 ---
 
 <section class="m-section" id="work" aria-labelledby="work-h">
-  <p class="m-eyebrow">See it work</p>
-  <h2 class="m-h2" id="work-h">Your week, ranked by who's most at <span class="ital">risk.</span></h2>
-  <p class="m-lead work__lead">The clients that matter rise to the top — before your first call.</p>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2" id="work-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
+  <p class="m-lead work__lead">{t.lead}</p>
 
   <div class="wl">
     <div class="wl__bar">
@@ -20,14 +64,14 @@ const rows = [
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 6h18M3 12h18M3 18h12" />
         </svg>
-        Risk-ranked worklist · this week
+        {t.barTitle}
       </span>
-      <span class="wl__keys"><kbd>⌘K</kbd> open · <kbd>J</kbd>/<kbd>K</kbd> move</span>
-      <span class="wl__meta">live preview · not your data</span>
+      <span class="wl__keys"><kbd>⌘K</kbd> {t.keysOpen} · <kbd>J</kbd>/<kbd>K</kbd> {t.keysMove}</span>
+      <span class="wl__meta">{t.barMeta}</span>
     </div>
-    <table class="wl__table" aria-label="Risk-ranked worklist sample">
+    <table class="wl__table" aria-label={t.barTitle}>
       <thead>
-        <tr><th scope="col">Risk</th><th scope="col">Client</th><th scope="col" class="wl__hide">Due</th><th scope="col">Status</th></tr>
+        <tr><th scope="col">{t.thRisk}</th><th scope="col">{t.thClient}</th><th scope="col" class="wl__hide">{t.thDue}</th><th scope="col">{t.thStatus}</th></tr>
       </thead>
       <tbody>
         {
@@ -62,7 +106,7 @@ const rows = [
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" />
     </svg>
-    Every position traces to days remaining, evidence, and readiness — no black box.
+    {t.noteHtml}
   </p>
 </section>
 

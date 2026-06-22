@@ -3,81 +3,176 @@
  *  shows the source doc → extracted fields (source quote · the change · who's
  *  affected), mirroring the product's alert structure. Date/requirement changes
  *  only — no dollar amounts or penalty figures (we don't have that data). */
-const examples = [
-  {
-    tab: 'Disaster postponement',
-    doc: {
-      org: 'Internal Revenue Service',
-      sub: 'IR-2026-31 · Disaster relief',
-      posted: 'Mar 2, 2026',
-      url: 'irs.gov',
-      body: 'Affected taxpayers now have until <mark>November 3, 2026</mark> to file the returns and make the payments that were originally due April 15.',
-    },
-    quote: '"…until November 3, 2026 to file the returns and make the payments…"',
-    verify: { url: 'irs.gov', date: 'Verified Mar 2' },
-    change: { from: 'Apr 15', to: 'Nov 3, 2026', delta: '+202 days' },
-    count: '8 clients',
-    affected: [
-      { in: 'RO', name: 'Red Oak Partners', meta: '1120-S · TX', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'BL', name: 'Brightway Logistics', meta: '1120 · TX', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'HC', name: 'Hill Country Partners', meta: '1065 · TX', status: 'REVIEW', tone: 'warn' },
-    ],
-    more: '+ 5 more in the disaster area',
-  },
-  {
-    tab: 'State extension',
-    doc: {
-      org: 'California FTB',
-      sub: 'Tax News · Estimated tax',
-      posted: 'Sep 4, 2026',
-      url: 'ftb.ca.gov',
-      body: 'For affected counties, the third-quarter estimated-tax date is <mark>extended to September 29, 2026</mark> following the wildfire declaration.',
-    },
-    quote: '"…extended to September 29, 2026 following the declaration…"',
-    verify: { url: 'ftb.ca.gov', date: 'Verified Sep 4' },
-    change: { from: 'Sep 15', to: 'Sep 29, 2026', delta: '+14 days' },
-    count: '12 clients',
-    affected: [
-      { in: 'CV', name: 'Coastal Ventures', meta: '540-ES · CA', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'PM', name: 'Pacific Mills', meta: '100-ES · CA', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'NB', name: 'Napa Brands', meta: '540-ES · CA', status: 'REVIEW', tone: 'warn' },
-    ],
-    more: '+ 9 more in the affected counties',
-  },
-  {
-    tab: 'New requirement',
-    doc: {
-      org: 'Texas Comptroller',
-      sub: 'Tax Policy News · Franchise tax',
-      posted: 'Jan 30, 2026',
-      url: 'comptroller.texas.gov',
-      body: 'Remote sellers meeting the economic-nexus standard must <mark>begin filing a franchise tax report on January 1, 2026</mark>.',
-    },
-    quote: '"…must begin filing a franchise tax report on January 1, 2026…"',
-    verify: { url: 'comptroller.texas.gov', date: 'Verified Jan 30' },
-    change: { effective: 'Effective Jan 1, 2026', badge: 'new obligation' },
-    count: '5 clients',
-    affected: [
-      { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'BC', name: 'Brazos Co', meta: '05-158 · TX', status: 'ELIGIBLE', tone: 'ok' },
-      { in: 'RT', name: 'Remote Tech Inc', meta: '05-158 · TX', status: 'REVIEW', tone: 'warn' },
-    ],
-    more: '+ 2 more newly in scope',
-  },
-]
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '读懂文件',
+      headingPre: '它读取官方公告——并提取出变化内容，以及',
+      headingItal: '影响到谁。',
+      leadHtml:
+        '没有出处，就不呈现——下方每一个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>，否则宁可保留不展示，也不去猜。',
+      tablistLabel: '示例变化类型',
+      sourceQuote: '来源原文',
+      theChange: '变化内容',
+      whosAffected: '影响到谁',
+      eligible: '符合',
+      review: '待复核',
+      posted: '发布于',
+      examples: [
+        {
+          tab: '灾害延期',
+          doc: {
+            org: 'Internal Revenue Service',
+            sub: 'IR-2026-31 · 灾害救济',
+            posted: 'Mar 2, 2026',
+            url: 'irs.gov',
+            body: '受影响的纳税人现在可在 <mark>November 3, 2026</mark> 之前提交原定于 April 15 到期的申报并完成缴款。',
+          },
+          quote: '"…在 November 3, 2026 之前提交申报并完成缴款…"',
+          verify: { url: 'irs.gov', date: '已核验 Mar 2' },
+          change: { from: 'Apr 15', to: 'Nov 3, 2026', delta: '+202 天' },
+          count: '8 个客户',
+          affected: [
+            { in: 'RO', name: 'Red Oak Partners', meta: '1120-S · TX', tone: 'ok' },
+            { in: 'BL', name: 'Brightway Logistics', meta: '1120 · TX', tone: 'ok' },
+            { in: 'HC', name: 'Hill Country Partners', meta: '1065 · TX', tone: 'warn' },
+          ],
+          more: '+ 灾区内另有 5 个',
+        },
+        {
+          tab: '州级延期',
+          doc: {
+            org: 'California FTB',
+            sub: 'Tax News · 预估税',
+            posted: 'Sep 4, 2026',
+            url: 'ftb.ca.gov',
+            body: '对于受影响的县，第三季度预估税截止日在山火声明发布后 <mark>延至 September 29, 2026</mark>。',
+          },
+          quote: '"…在声明发布后延至 September 29, 2026…"',
+          verify: { url: 'ftb.ca.gov', date: '已核验 Sep 4' },
+          change: { from: 'Sep 15', to: 'Sep 29, 2026', delta: '+14 天' },
+          count: '12 个客户',
+          affected: [
+            { in: 'CV', name: 'Coastal Ventures', meta: '540-ES · CA', tone: 'ok' },
+            { in: 'PM', name: 'Pacific Mills', meta: '100-ES · CA', tone: 'ok' },
+            { in: 'NB', name: 'Napa Brands', meta: '540-ES · CA', tone: 'warn' },
+          ],
+          more: '+ 受影响各县另有 9 个',
+        },
+        {
+          tab: '新增要求',
+          doc: {
+            org: 'Texas Comptroller',
+            sub: 'Tax Policy News · 特许经营税',
+            posted: 'Jan 30, 2026',
+            url: 'comptroller.texas.gov',
+            body: '达到经济关联标准的远程卖家须 <mark>自 January 1, 2026 起开始提交特许经营税报告</mark>。',
+          },
+          quote: '"…须自 January 1, 2026 起开始提交特许经营税报告…"',
+          verify: { url: 'comptroller.texas.gov', date: '已核验 Jan 30' },
+          change: { effective: '自 Jan 1, 2026 起生效', badge: '新增义务' },
+          count: '5 个客户',
+          affected: [
+            { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', tone: 'ok' },
+            { in: 'BC', name: 'Brazos Co', meta: '05-158 · TX', tone: 'ok' },
+            { in: 'RT', name: 'Remote Tech Inc', meta: '05-158 · TX', tone: 'warn' },
+          ],
+          more: '+ 新纳入范围的另有 2 个',
+        },
+      ],
+    }
+  : {
+      eyebrow: 'The document, read',
+      headingPre: 'It reads the official notice — and pulls out what changed and ',
+      headingItal: 'who it hits.',
+      leadHtml:
+        "No provenance, no render — every field below carries its <b>source quote</b> and a <b>verified date</b>, or it's held back rather than guessed.",
+      tablistLabel: 'Example change types',
+      sourceQuote: 'Source quote',
+      theChange: 'The change',
+      whosAffected: "Who's affected",
+      eligible: 'ELIGIBLE',
+      review: 'REVIEW',
+      posted: 'Posted',
+      examples: [
+        {
+          tab: 'Disaster postponement',
+          doc: {
+            org: 'Internal Revenue Service',
+            sub: 'IR-2026-31 · Disaster relief',
+            posted: 'Mar 2, 2026',
+            url: 'irs.gov',
+            body: 'Affected taxpayers now have until <mark>November 3, 2026</mark> to file the returns and make the payments that were originally due April 15.',
+          },
+          quote: '"…until November 3, 2026 to file the returns and make the payments…"',
+          verify: { url: 'irs.gov', date: 'Verified Mar 2' },
+          change: { from: 'Apr 15', to: 'Nov 3, 2026', delta: '+202 days' },
+          count: '8 clients',
+          affected: [
+            { in: 'RO', name: 'Red Oak Partners', meta: '1120-S · TX', tone: 'ok' },
+            { in: 'BL', name: 'Brightway Logistics', meta: '1120 · TX', tone: 'ok' },
+            { in: 'HC', name: 'Hill Country Partners', meta: '1065 · TX', tone: 'warn' },
+          ],
+          more: '+ 5 more in the disaster area',
+        },
+        {
+          tab: 'State extension',
+          doc: {
+            org: 'California FTB',
+            sub: 'Tax News · Estimated tax',
+            posted: 'Sep 4, 2026',
+            url: 'ftb.ca.gov',
+            body: 'For affected counties, the third-quarter estimated-tax date is <mark>extended to September 29, 2026</mark> following the wildfire declaration.',
+          },
+          quote: '"…extended to September 29, 2026 following the declaration…"',
+          verify: { url: 'ftb.ca.gov', date: 'Verified Sep 4' },
+          change: { from: 'Sep 15', to: 'Sep 29, 2026', delta: '+14 days' },
+          count: '12 clients',
+          affected: [
+            { in: 'CV', name: 'Coastal Ventures', meta: '540-ES · CA', tone: 'ok' },
+            { in: 'PM', name: 'Pacific Mills', meta: '100-ES · CA', tone: 'ok' },
+            { in: 'NB', name: 'Napa Brands', meta: '540-ES · CA', tone: 'warn' },
+          ],
+          more: '+ 9 more in the affected counties',
+        },
+        {
+          tab: 'New requirement',
+          doc: {
+            org: 'Texas Comptroller',
+            sub: 'Tax Policy News · Franchise tax',
+            posted: 'Jan 30, 2026',
+            url: 'comptroller.texas.gov',
+            body: 'Remote sellers meeting the economic-nexus standard must <mark>begin filing a franchise tax report on January 1, 2026</mark>.',
+          },
+          quote: '"…must begin filing a franchise tax report on January 1, 2026…"',
+          verify: { url: 'comptroller.texas.gov', date: 'Verified Jan 30' },
+          change: { effective: 'Effective Jan 1, 2026', badge: 'new obligation' },
+          count: '5 clients',
+          affected: [
+            { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', tone: 'ok' },
+            { in: 'BC', name: 'Brazos Co', meta: '05-158 · TX', tone: 'ok' },
+            { in: 'RT', name: 'Remote Tech Inc', meta: '05-158 · TX', tone: 'warn' },
+          ],
+          more: '+ 2 more newly in scope',
+        },
+      ],
+    }
+const examples = t.examples
 ---
 
 <section class="m-section" id="notice" aria-labelledby="notice-h">
-  <p class="m-eyebrow">The document, read</p>
+  <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="m-h2" id="notice-h">
-    It reads the official notice — and pulls out what changed and <span class="ital">who it hits.</span>
+    {t.headingPre}<span class="ital">{t.headingItal}</span>
   </h2>
-  <p class="m-lead notice__lead">
-    No provenance, no render — every field below carries its <b>source quote</b> and a
-    <b>verified date</b>, or it's held back rather than guessed.
-  </p>
+  <p class="m-lead notice__lead" set:html={t.leadHtml} />
 
-  <div class="ntabs" role="tablist" aria-label="Example change types">
+  <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
     {
       examples.map((e, i) => (
         <button
@@ -110,7 +205,7 @@ const examples = [
                 <div class="clip__sub">{e.doc.sub}</div>
               </div>
               <div class="clip__posted">
-                Posted <b>{e.doc.posted}</b>
+                {t.posted} <b>{e.doc.posted}</b>
                 <div class="clip__url">{e.doc.url}</div>
               </div>
             </header>
@@ -134,14 +229,14 @@ const examples = [
 
           <div class="extract__out">
             <div class="field">
-              <span class="field__label">Source quote</span>
+              <span class="field__label">{t.sourceQuote}</span>
               <p class="field__quote">{e.quote}</p>
               <p class="field__verify">
                 {e.verify.url} <span class="field__ok">✓ {e.verify.date}</span>
               </p>
             </div>
             <div class="field">
-              <span class="field__label">The change</span>
+              <span class="field__label">{t.theChange}</span>
               {e.change.delta ? (
                 <p class="field__change">
                   <s>{e.change.from}</s> <span class="arrow">→</span> <b>{e.change.to}</b>
@@ -155,7 +250,7 @@ const examples = [
             </div>
             <div class="field">
               <div class="field__head">
-                <span class="field__label">Who's affected</span>
+                <span class="field__label">{t.whosAffected}</span>
                 <span class="field__count">{e.count}</span>
               </div>
               <div class="field__rows">
@@ -164,7 +259,9 @@ const examples = [
                     <span class="arow__in">{c.in}</span>
                     <span class="arow__name">{c.name}</span>
                     <span class="arow__meta">{c.meta}</span>
-                    <span class={`arow__status arow__status--${c.tone}`}>{c.status}</span>
+                    <span class={`arow__status arow__status--${c.tone}`}>
+                      {c.tone === 'ok' ? t.eligible : t.review}
+                    </span>
                   </div>
                 ))}
                 <p class="field__more">{e.more}</p>

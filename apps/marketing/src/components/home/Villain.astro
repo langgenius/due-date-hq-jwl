@@ -1,19 +1,53 @@
 ---
 /** Villain — the navy accent band (the pain beat). White only (no chromatic
  *  text on dark); the accent lives in the translucent-white pain containers. */
-const pains = [
-  { lead: 'Fifty state sites.', sub: 'Refreshed by hand, hoping nothing slipped past you.' },
-  { lead: "An inbox you can't keep up with.", sub: 'The one notice that matters, buried in the noise.' },
-  { lead: 'A rule that moved in March.', sub: 'And you hear about it when your client gets the letter.' },
-]
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      q: '是不是很熟悉？',
+      hBefore: '真正让你睡不着的，不是错过截止日，而是',
+      hItal: '不知道',
+      hAfter: '自己有没有错过。',
+      pains: [
+        { lead: '五十个州的网站。', sub: '靠人工一个个刷新，只盼着别有什么从眼皮底下溜走。' },
+        { lead: '一个永远清不完的收件箱。', sub: '真正要紧的那封通知，淹没在一堆噪音里。' },
+        { lead: '三月里悄悄改了的一条规则。', sub: '等你知道时，你的客户已经收到了那封信。' },
+      ],
+      punchBefore: '难的从来不是做这些活儿。',
+      punchStrong: '难的是那份不知道。',
+    }
+  : {
+      q: 'Sound familiar?',
+      hBefore: "It's not missing a deadline that keeps you up. It's",
+      hItal: 'not knowing',
+      hAfter: 'if you did.',
+      pains: [
+        { lead: 'Fifty state sites.', sub: 'Refreshed by hand, hoping nothing slipped past you.' },
+        {
+          lead: "An inbox you can't keep up with.",
+          sub: 'The one notice that matters, buried in the noise.',
+        },
+        {
+          lead: 'A rule that moved in March.',
+          sub: 'And you hear about it when your client gets the letter.',
+        },
+      ],
+      punchBefore: 'The work was never the hard part.',
+      punchStrong: 'The not-knowing is.',
+    }
+const pains = t.pains
 ---
 
 <section class="villain" data-nav-dark aria-labelledby="villain-h">
   <div class="villain__inner">
-    <p class="villain__q">Sound familiar?</p>
+    <p class="villain__q">{t.q}</p>
     <h2 class="villain__h" id="villain-h">
-      It's not missing a deadline that keeps you up. It's <span class="ital">not knowing</span> if you
-      did.
+      {t.hBefore} <span class="ital">{t.hItal}</span> {t.hAfter}
     </h2>
 
     <div class="villain__pains">
@@ -28,7 +62,7 @@ const pains = [
     </div>
 
     <p class="villain__punch">
-      The work was never the hard part. <strong>The not-knowing is.</strong>
+      {t.punchBefore} <strong>{t.punchStrong}</strong>
     </p>
   </div>
 </section>
