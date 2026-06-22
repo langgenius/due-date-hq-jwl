@@ -74,10 +74,12 @@ const links = [
     top: 0;
     z-index: 50;
     background: transparent;
+    transition: background 0.25s ease;
   }
-  /* content pages: solid so the nav reads over page content, not a hero */
-  .nav--page {
-    background: color-mix(in srgb, var(--m-canvas) 92%, transparent);
+  /* content pages + scrolled home: solid so the nav reads over content */
+  .nav--page,
+  .nav--scrolled {
+    background: color-mix(in srgb, var(--m-canvas) 88%, transparent);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--m-hairline);
@@ -91,6 +93,57 @@ const links = [
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 20px;
+    transition: height 0.25s ease;
+  }
+  /* subtle shrink once scrolled */
+  .nav--scrolled .nav__inner {
+    height: 60px;
+  }
+
+  /* ===== nav over a dark band (the villain) — white text, accents in
+     containers only (no coloured text on dark) ===== */
+  .nav--on-dark {
+    background: transparent;
+    border-bottom-color: transparent;
+  }
+  .nav--on-dark .brand__name {
+    color: #fff;
+  }
+  .nav--on-dark .brand__mark svg rect {
+    fill: #fff;
+  }
+  .nav--on-dark .brand__beta {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .nav--on-dark .nav__pill {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: none;
+  }
+  .nav--on-dark .nav__link {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .nav--on-dark .nav__link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .nav--on-dark .nav__link.is-active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .nav--on-dark .nav__signin {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .nav--on-dark .nav__signin:hover {
+    color: #fff;
+  }
+  .nav--on-dark .nav__cta {
+    color: var(--m-accent);
+    background: #fff;
+  }
+  .nav--on-dark .nav__cta:hover {
+    background: rgba(255, 255, 255, 0.9);
   }
   .brand {
     justify-self: start;
@@ -192,4 +245,44 @@ const links = [
       display: none;
     }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .nav,
+    .nav__inner {
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  // Solidify + slightly shrink on scroll; flip to white when the nav sits over a
+  // dark band ([data-nav-dark], e.g. the villain). rAF-throttled scroll handler
+  // (IntersectionObserver isn't used so the same logic works headless + live).
+  const nav = document.querySelector<HTMLElement>('.nav')
+  if (nav) {
+    const darkSections = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-dark]'))
+    let ticking = false
+    const update = () => {
+      ticking = false
+      nav.classList.toggle('nav--scrolled', window.scrollY > 24)
+      const line = nav.getBoundingClientRect().height * 0.55
+      let onDark = false
+      for (const s of darkSections) {
+        const r = s.getBoundingClientRect()
+        if (r.top <= line && r.bottom >= line) {
+          onDark = true
+          break
+        }
+      }
+      nav.classList.toggle('nav--on-dark', onDark)
+    }
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(update)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    update()
+  }
+</script>

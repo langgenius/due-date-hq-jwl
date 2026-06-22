@@ -2,7 +2,7 @@
 /** Left scroll-spy rail — a "ticker" in the left margin showing which section the
  *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
 const items = [
-  { label: 'How it works', href: '#how' },
+  { label: 'The loop', href: '#how' },
   { label: 'The document', href: '#notice' },
   { label: 'Sources', href: '#sources' },
   { label: 'See it work', href: '#work' },
@@ -74,6 +74,23 @@ const items = [
     border-color: var(--m-accent);
     transform: scale(1.15);
   }
+  /* over a dark band — white instead of faint gray */
+  .spyrail.is-on-dark .spyrail__item {
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .spyrail.is-on-dark .spyrail__item:hover {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .spyrail.is-on-dark .spyrail__dot {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active {
+    color: #fff;
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
+    background: #fff;
+    border-color: #fff;
+  }
 </style>
 
 <script>
@@ -81,6 +98,7 @@ const items = [
   if (rail) {
     const items = Array.from(rail.querySelectorAll('.spyrail__item'))
     const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
+    const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
     let ticking = false
     const update = () => {
       ticking = false
@@ -91,6 +109,17 @@ const items = [
         if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
       }
       items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
+      // white-out when the rail sits over a dark band (the villain)
+      const railMid = window.innerHeight * 0.5
+      let onDark = false
+      for (const s of darkSections) {
+        const r = s.getBoundingClientRect()
+        if (r.top <= railMid && r.bottom >= railMid) {
+          onDark = true
+          break
+        }
+      }
+      rail.classList.toggle('is-on-dark', onDark)
     }
     const onScroll = () => {
       if (!ticking) {
