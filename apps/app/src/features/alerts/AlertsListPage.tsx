@@ -887,8 +887,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
             selectionEnabled && selectedCount > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
             // 2026-06-15 (Yuqi "alert page max width vs deadlines — drop it"):
             // the list fills the shell's wide width (max-w-page-expanded) for
-            // parity with /deadlines; no inner reading-measure cap. The
-            // rail+detail layout is untouched (panelOpen hides this column).
+            // parity with /deadlines; no inner reading-measure cap. (Re-confirmed
+            // 2026-06-22: the "messy" read is the row internals, not the width.)
+            // The rail+detail layout is untouched (panelOpen hides this column).
             panelOpen && 'hidden',
           )}
         >
