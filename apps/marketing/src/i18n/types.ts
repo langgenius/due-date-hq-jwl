@@ -292,10 +292,12 @@ export interface PricingPlanCopy {
   yearlyCadence?: string
   yearlySavings?: string
   description: string
+  /** Headline client allowance, e.g. "Up to 100 clients" / "Unlimited clients". */
+  clients: string
+  /** Practice-workspace allowance, e.g. "1 production practice". */
+  firms: string
+  /** Seat allowance, e.g. "3 seats included". */
   seats: string
-  aiLabel: string
-  aiDescription: string
-  aiFeatures: string[]
   cta: string
   hrefKind: 'checkout' | 'app' | 'contact'
   checkoutPlan?: PricingCheckoutPlan
