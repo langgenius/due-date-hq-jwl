@@ -1,21 +1,33 @@
 ---
-/** TopNav — centered floating-pill nav. Mixes a homepage anchor with real page
- *  destinations (multi-page site). Glider + scroll-action + nav-on-dark JS land
- *  in the interactions pass. */
+/** TopNav — centered floating-pill nav, shared site-wide.
+ *  - On the homepage (default): transparent, "How it works" is an in-page anchor.
+ *  - On content pages (`pageMode`): solid bg + hairline, anchors return to home,
+ *    and `current` marks the active destination.
+ *  Glider + nav-on-dark JS land in the interactions pass. English this pass;
+ *  i18n of the whole new surface (chrome + home + templates) lands together. */
+import { getCtaHref, getAppHref } from '../../lib/app-url'
+
 interface Props {
-  ctaHref: string
-  signInHref: string
+  ctaHref?: string
+  signInHref?: string
+  pageMode?: boolean
+  current?: 'how' | 'coverage' | 'pricing' | 'security'
 }
-const { ctaHref, signInHref } = Astro.props
+const {
+  ctaHref = getCtaHref(),
+  signInHref = getAppHref('/login'),
+  pageMode = false,
+  current,
+} = Astro.props
 const links = [
-  { label: 'How it works', href: '#how' }, // homepage anchor
-  { label: 'Coverage', href: '/state-coverage' }, // page
-  { label: 'Pricing', href: '/pricing' }, // page (coming soon)
-  { label: 'Security', href: '/security' }, // page
+  { key: 'how', label: 'How it works', href: pageMode ? '/#how' : '#how' },
+  { key: 'coverage', label: 'Coverage', href: '/state-coverage' },
+  { key: 'pricing', label: 'Pricing', href: '/pricing' },
+  { key: 'security', label: 'Security', href: '/security' },
 ]
 ---
 
-<header class="nav">
+<header class:list={['nav', pageMode && 'nav--page']}>
   <div class="nav__inner">
     <a class="brand" href="/" aria-label="DueDateHQ home">
       <span class="brand__mark" aria-hidden="true">
@@ -31,7 +43,17 @@ const links = [
     </a>
 
     <nav class="nav__pill" aria-label="Primary">
-      {links.map((l) => <a class="nav__link" href={l.href}>{l.label}</a>)}
+      {
+        links.map((l) => (
+          <a
+            class:list={['nav__link', current === l.key && 'is-active']}
+            href={l.href}
+            aria-current={current === l.key ? 'page' : undefined}
+          >
+            {l.label}
+          </a>
+        ))
+      }
     </nav>
 
     <div class="nav__right">
@@ -49,6 +71,13 @@ const links = [
     top: 0;
     z-index: 50;
     background: transparent;
+  }
+  /* content pages: solid so the nav reads over page content, not a hero */
+  .nav--page {
+    background: color-mix(in srgb, var(--m-canvas) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--m-hairline);
   }
   .nav__inner {
     max-width: var(--m-maxw);
@@ -106,6 +135,10 @@ const links = [
   }
   .nav__link:hover {
     color: var(--m-ink);
+  }
+  .nav__link.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
   }
   .nav__right {
     justify-self: end;

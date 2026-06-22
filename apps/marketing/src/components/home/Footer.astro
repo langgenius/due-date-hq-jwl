@@ -1,9 +1,35 @@
 ---
-/** Footer — wordmark + link columns. English inline for now; i18n + locale switcher in the localization pass. */
+/** Footer — wordmark + link columns. The Resources column is the internal-link
+ *  on-ramp into the long-tail SEO/AEO/GEO pages. English inline for now; i18n +
+ *  locale switcher land in the localization pass. */
 const columns = [
-  { title: 'Product', links: ['How it works', 'Sources', 'See it work', 'Security'] },
-  { title: 'Resources', links: ['Rule library', 'State coverage', 'Status'] },
-  { title: 'Company', links: ['Security', 'Privacy', 'Terms', 'Contact'] },
+  {
+    title: 'Product',
+    links: [
+      { label: 'How it works', href: '/#how' },
+      { label: 'Coverage', href: '/state-coverage' },
+      { label: 'Pricing', href: '/pricing' },
+      { label: 'Security', href: '/security' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Rule library', href: '/rules' },
+      { label: 'State coverage', href: '/state-coverage' },
+      { label: 'Compare: File In Time', href: '/compare/file-in-time-alternative' },
+      { label: 'Weekly triage guide', href: '/guides/weekly-cpa-deadline-triage' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About', href: '/about' },
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Status', href: '/status' },
+    ],
+  },
 ]
 ---
 
@@ -20,7 +46,7 @@ const columns = [
           <nav class="footer__col" aria-label={c.title}>
             <p class="footer__coltitle">{c.title}</p>
             {c.links.map((l) => (
-              <a href="#" class="footer__link">{l}</a>
+              <a href={l.href} class="footer__link">{l.label}</a>
             ))}
           </nav>
         ))
