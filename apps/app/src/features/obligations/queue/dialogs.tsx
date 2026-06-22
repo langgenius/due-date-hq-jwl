@@ -498,10 +498,11 @@ export function BulkExtensionDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <FieldLabel>
+              <FieldLabel htmlFor="bulk-extension-target">
                 <Trans>Internal target date</Trans>
               </FieldLabel>
               <IsoDatePicker
+                id="bulk-extension-target"
                 value={internalTargetDate}
                 invalid={dateInvalid}
                 {...(cap ? { maxIsoDate: cap } : {})}

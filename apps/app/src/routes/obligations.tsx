@@ -12,7 +12,13 @@ import {
   type Updater,
   type VisibilityState,
 } from '@tanstack/react-table'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
@@ -68,7 +74,9 @@ import {
   type ObligationQueueDetailTab,
   type ObligationQueueDensity,
   type ObligationQueueFacetOption,
+  type ObligationQueueDetail,
   type ObligationQueueListInput,
+  type ObligationQueueListOutput,
   type ObligationQueueRow,
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
@@ -1483,10 +1491,66 @@ export function ObligationQueueRoute() {
 
   const updateStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
-      onSuccess: () => {
-        // Cache invalidation only — the per-call onSuccess (wired in
-        // `updateStatus` below) owns the toast so it can attach the
-        // contextual Undo action with the previous status closed over.
+      // Optimistic flip — the dropdown picks a status and the row's pill should
+      // reflect it instantly, not after the server round-trip + 7 invalidations
+      // refetch. The pill renders `row.status` straight from the list cache, so
+      // we patch the matching row across every cached page (and the detail
+      // cache, which feeds the detail pane). The onSuccess invalidations below
+      // still run and reconcile to server truth; this just removes the gap.
+      // Follows the codebase's optimistic style (e.g. `optimisticSort`). Snapshot
+      // → rollback on error → invalidate on settle (the canonical RQ recipe).
+      onMutate: async (input) => {
+        await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
+        await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
+        const previousLists = queryClient.getQueriesData<
+          InfiniteData<ObligationQueueListOutput>
+        >({ queryKey: orpc.obligations.list.key() })
+        const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
+          queryKey: orpc.obligations.getDetail.key(),
+        })
+        queryClient.setQueriesData<InfiniteData<ObligationQueueListOutput>>(
+          { queryKey: orpc.obligations.list.key() },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  pages: data.pages.map((page) => ({
+                    ...page,
+                    rows: page.rows.map((r) =>
+                      r.id === input.id ? { ...r, status: input.status } : r,
+                    ),
+                  })),
+                }
+              : data,
+        )
+        queryClient.setQueriesData<ObligationQueueDetail>(
+          { queryKey: orpc.obligations.getDetail.key() },
+          (data) =>
+            data && data.row.id === input.id
+              ? { ...data, row: { ...data.row, status: input.status } }
+              : data,
+        )
+        return { previousLists, previousDetails }
+      },
+      onError: (err, _input, context) => {
+        // Roll the cache back to the pre-mutation snapshots before surfacing the
+        // error, so the pill returns to its real status.
+        for (const [key, value] of context?.previousLists ?? []) {
+          queryClient.setQueryData(key, value)
+        }
+        for (const [key, value] of context?.previousDetails ?? []) {
+          queryClient.setQueryData(key, value)
+        }
+        toast.error(t`Couldn't update status`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+      onSettled: () => {
+        // Reconcile every dependent surface against server truth (counts,
+        // ordering, audit). The per-call onSuccess (wired in `updateStatus`
+        // below) owns the toast so it can attach the contextual Undo action
+        // with the previous status closed over.
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
@@ -1494,12 +1558,6 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't update status`, {
-          description:
-            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
-        })
       },
     }),
   )
@@ -7217,7 +7275,7 @@ function ObligationActiveFilterChips({
             type="button"
             onClick={chip.onRemove}
             aria-label={t`Remove ${chip.label} filter`}
-            className="size-4 shrink-0 rounded-full"
+            className="shrink-0 rounded-full"
           >
             <XIcon className="size-3" aria-hidden />
           </Button>
