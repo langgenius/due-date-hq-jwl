@@ -1,23 +1,25 @@
 ---
+/**
+ * 404 — navigation recovery. On the new --m-* chrome (home/TopNav pageMode +
+ * home/Footer), so the dead-end matches the rest of the site. Surfaces the
+ * published core paths as escape hatches.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro'
-import TopNav from '../components/TopNav.astro'
-import Footer from '../components/Footer.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
-const ctaHref = getCtaHref()
 const t = en
-const nav = {
-  ...t.nav,
-  links: t.nav.links.map((link) =>
-    Object.assign({}, link, {
-      href: link.href.startsWith('#') ? `/${link.href}` : link.href,
-    }),
-  ),
-}
-const routes = t.notFound.routes.map((route) =>
-  Object.assign({}, route, { href: route.href === 'app' ? ctaHref : route.href }),
-)
+const ctaHref = getCtaHref()
+// published escape hatches — add the new product-tour page next to the home/pricing/app set
+const baseRoutes = [
+  { label: 'Homepage', href: '/' },
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Open the workbench', href: 'app' },
+]
+const routes = baseRoutes.map((route) => (route.href === 'app' ? { ...route, href: ctaHref } : route))
 ---
 
 <BaseLayout
@@ -28,71 +30,145 @@ const routes = t.notFound.routes.map((route) =>
   ogImage={t.notFound.meta.ogImage}
   noindex
 >
-  <TopNav t={nav} ctaHref={ctaHref} />
-  <main class="bg-bg-canvas">
-    <section
-      class="mx-auto grid min-h-[calc(100vh-72px)] max-w-[1440px] grid-cols-12 items-center gap-12 px-6 py-20 sm:px-10 lg:px-20 lg:py-28"
-    >
-      <div class="col-span-12 lg:col-span-7">
-        <p class="font-mono text-[12px] tracking-[0.18em] text-text-muted">
-          {t.notFound.eyebrow}
-        </p>
-        <h1
-          class="mt-5 max-w-[760px] text-[44px] leading-[0.98] font-semibold tracking-normal text-text-primary sm:text-[54px]"
-        >
-          {t.notFound.title}
-        </h1>
-        <p class="mt-6 max-w-[680px] text-[17px] leading-8 text-text-secondary">
-          {t.notFound.body}
-        </p>
-        <div class="mt-10 flex flex-col gap-3 sm:flex-row">
-          <a
-            href="/"
-            class="inline-flex h-10 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            {t.notFound.primaryCta}
-          </a>
-          <a
-            href="/pricing"
-            class="inline-flex h-10 items-center justify-center rounded-md border border-border-default bg-bg-elevated px-4 text-[13px] font-medium text-text-primary outline-none transition-colors hover:bg-bg-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            {t.notFound.secondaryCta}
-          </a>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <main>
+    <section class="m-section nf">
+      <div class="nf__lead">
+        <p class="m-eyebrow">{t.notFound.eyebrow}</p>
+        <h1 class="m-page-title">{t.notFound.title}</h1>
+        <p class="m-page-lead">{t.notFound.body}</p>
+        <div class="nf__btns">
+          <a class="m-btn m-btn--primary" href="/">{t.notFound.primaryCta}</a>
+          <a class="m-btn m-btn--secondary" href="/pricing">{t.notFound.secondaryCta}</a>
         </div>
       </div>
 
-      <aside class="col-span-12 lg:col-span-5">
-        <div class="border border-border-default bg-bg-panel p-6">
-          <div class="flex items-center justify-between border-b border-border-subtle pb-5">
-            <span class="font-mono text-[11px] tracking-[0.16em] text-text-muted">
-              {t.notFound.statusLabel}
-            </span>
-            <span class="font-mono text-[12px] text-text-accent">404</span>
-          </div>
-          <div class="py-8">
-            <p class="text-[20px] font-semibold text-text-primary">{t.notFound.statusValue}</p>
-            <p class="mt-2 font-mono text-[12px] tracking-[0.12em] text-text-muted">
-              {t.notFound.routesLabel}
-            </p>
-          </div>
-          <ul class="grid gap-2">
-            {
-              routes.map((route) => (
-                <li>
-                  <a
-                    href={route.href}
-                    class="flex h-11 items-center justify-between border border-border-subtle bg-bg-canvas px-3 text-[13px] text-text-secondary outline-none transition-colors hover:border-border-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  >
-                    <span>{route.label}</span>
-                    <span aria-hidden="true">→</span>
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
+      <aside class="nf__card">
+        <div class="nf__cardhead">
+          <span class="nf__status">{t.notFound.statusLabel}</span>
+          <span class="nf__code">404</span>
         </div>
+        <p class="nf__statusval">{t.notFound.statusValue}</p>
+        <p class="nf__routeslabel">{t.notFound.routesLabel}</p>
+        <ul class="nf__routes">
+          {
+            routes.map((route) => (
+              <li>
+                <a class="nf__route" href={route.href}>
+                  <span>{route.label}</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
       </aside>
     </section>
   </main>
-  <Footer t={t.footer} enHref="/" zhHref="/zh-CN" currentLocale="en" />
+  <Footer />
 </BaseLayout>
+
+<style is:global>
+  body {
+    background: var(--m-canvas);
+  }
+</style>
+
+<style>
+  .nf {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(32px, 5vw, 56px);
+    align-items: center;
+    min-height: min(72vh, 640px);
+  }
+  .nf__lead {
+    grid-column: span 7;
+  }
+  .nf__btns {
+    margin-top: clamp(28px, 3vw, 40px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .nf__card {
+    grid-column: span 5;
+    padding: clamp(20px, 2vw, 26px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .nf__cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .nf__status {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    letter-spacing: var(--m-ls-eyebrow);
+    color: var(--m-faint);
+  }
+  .nf__code {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-accent);
+  }
+  .nf__statusval {
+    margin-top: 18px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .nf__routeslabel {
+    margin-top: 6px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    letter-spacing: var(--m-ls-eyebrow);
+    color: var(--m-faint);
+  }
+  .nf__routes {
+    margin-top: 16px;
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+  .nf__route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 8px;
+    background: var(--m-canvas);
+    font-size: 13px;
+    color: var(--m-ink-2);
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+  .nf__route:hover {
+    border-color: var(--m-muted);
+    color: var(--m-ink);
+    background: var(--m-section);
+  }
+  .nf__route span[aria-hidden] {
+    color: var(--m-faint);
+  }
+  @media (max-width: 900px) {
+    .nf {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    .nf__lead,
+    .nf__card {
+      grid-column: auto;
+    }
+  }
+</style>
