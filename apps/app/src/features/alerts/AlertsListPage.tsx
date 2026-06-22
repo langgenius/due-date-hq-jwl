@@ -1287,15 +1287,30 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           )}
                         />
                       ) : null}
-                      <span className="inline-flex items-center gap-1.5">
-                        <ZapIcon className="size-3.5 shrink-0 text-text-warning" aria-hidden />
-                        <span className="text-sm font-semibold text-text-primary">
-                          <Trans>Needs action</Trans>
+                      {/* Sibling zone header (Yuqi 2026-06-22): both zones share
+                          ONE skeleton — icon badge · label · count · purpose line —
+                          so they read as two tiers of one monitored feed, not two
+                          unrelated tables. Action runs warm; "For your awareness"
+                          runs the same skeleton neutral. The purpose subtitle is the
+                          first-land orientation the bare label never gave: it says
+                          what's here and what the zone asks of you. (Supersedes the
+                          standalone warm pill — that asymmetry widened the gap.) */}
+                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-warning-hover text-text-warning">
+                        <ZapIcon className="size-3.5" aria-hidden />
+                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-text-primary">
+                            <Trans>Needs action</Trans>
+                          </span>
+                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-state-warning-hover px-1.5 text-xs font-medium tabular-nums text-text-warning">
+                            {actionAlerts.length}
+                          </span>
+                        </div>
+                        <span className="text-xs text-text-secondary">
+                          <Trans>Review and apply to affected clients</Trans>
                         </span>
-                      </span>
-                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
-                        {actionAlerts.length}
-                      </span>
+                      </div>
                     </div>
                     {actionAlerts.length > 0 ? (
                       <PulseAlertList
@@ -1349,13 +1364,29 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                             )}
                             aria-hidden
                           />
-                          <EyeIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                          <span className="text-sm font-medium text-text-secondary">
-                            <Trans>For your awareness</Trans>
+                          {/* Same badge skeleton as "Needs action", neutral-toned —
+                              temperature is the only difference, so the two headers
+                              read as siblings (one feed, two response tiers). The
+                              fill is bg-background-subtle (the day-band gray) so the
+                              square reads as clearly as the warm action badge on the
+                              white list — both are filled squares, not one fill +
+                              one near-invisible outline. */}
+                          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-background-subtle text-text-tertiary">
+                            <EyeIcon className="size-3.5" aria-hidden />
                           </span>
-                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
-                            {awarenessAlerts.length}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-medium text-text-secondary">
+                                <Trans>For your awareness</Trans>
+                              </span>
+                              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
+                                {awarenessAlerts.length}
+                              </span>
+                            </div>
+                            <span className="text-xs text-text-tertiary">
+                              <Trans>No action needed — monitored updates</Trans>
+                            </span>
+                          </div>
                         </button>
                         {/* Dismiss-all sweeps the whole FYI digest through the
                             same confirm dialog as a manual selection. List-view

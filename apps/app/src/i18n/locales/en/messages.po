@@ -1281,10 +1281,6 @@ msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last 
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
 
-#: src/features/rules/states-rail.tsx
-msgid "{reviewableCount} to review"
-msgstr "{reviewableCount} to review"
-
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
@@ -2465,6 +2461,7 @@ msgstr "Alerts archive"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/rules/sources-tab.tsx
+#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2561,6 +2558,10 @@ msgstr "All impact"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "All items received."
+
+#: src/features/rules/states-rail.tsx
+msgid "All jurisdictions"
+msgstr "All jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "all matched"
@@ -9604,6 +9605,7 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -9792,6 +9794,10 @@ msgstr "Next: import your clients to start tracking deadlines"
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No action needed — monitored updates"
+msgstr "No action needed — monitored updates"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
@@ -12959,6 +12965,10 @@ msgstr "Review {count}"
 msgid "Review →"
 msgstr "Review →"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Review and apply to affected clients"
+msgstr "Review and apply to affected clients"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Review and edit the email, then send it to {recipientEmail}."
@@ -14180,10 +14190,10 @@ msgid "Shareholder count"
 msgstr "Shareholder count"
 
 #: src/features/dashboard/changes-since-last-section.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Show"
 msgstr "Show"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"

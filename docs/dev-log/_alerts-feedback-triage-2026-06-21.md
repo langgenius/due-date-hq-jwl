@@ -80,3 +80,33 @@ rewritten for the zones.
   time-urgent. Deliberate; revisit if deadline urgency should outrank reach.
 - Day-grouping stays in the awareness digest only; the action queue is flat.
 - Visual polish pass (zone band weight, density, motion) is ongoing.
+
+## Sibling zone headers — "one feed, two tiers" (2026-06-22)
+
+A `/design-critique` pass named the core flaw: the two zones read as two
+_unrelated tables_, and a first-time user can't tell what "Needs action" vs
+"For your awareness" even mean. An intermediate step (framing the "Needs
+action" title in a standalone warm pill while leaving awareness as plain
+text) actually _widened_ the gap — the shape asymmetry made them look like
+two different components, not two tiers of one feed.
+
+The fix: **both zone headers share ONE skeleton** — `[icon badge] · label ·
+count · purpose subtitle` — differentiated only by temperature.
+
+- **Needs action** — warm badge (`bg-state-warning-hover` square + Zap in
+  `text-text-warning`), warm count chip, subtitle "Review and apply to
+  affected clients".
+- **For your awareness** — same badge skeleton neutral (`bg-background-
+  subtle` square — the day-band gray, so it reads as clearly as the warm
+  badge on the white list, not a near-invisible outline — + Eye in
+  `text-text-tertiary`), neutral count chip, subtitle "No action needed —
+  monitored updates". Keeps its collapse chevron + Dismiss-all.
+
+Why it works: the **shared shape** gives kinship (siblings, one feed); the
+**temperature** gives the act-vs-read distinction; the **purpose subtitle**
+is the first-land orientation the bare label never gave — it says what's in
+the zone and what it asks of you. The summary line (4 + 4 = 8) was offered
+but deferred; the subtitles carry the orientation for now.
+
+Decisions (Yuqi): take the sibling-header rework (supersedes the standalone
+pill); leave the awareness day-bands as-is.

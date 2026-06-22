@@ -1286,10 +1286,6 @@ msgstr "{recentlyRemindedCount, plural, one {跳过最近几天已提醒过的 #
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} 个保留"
 
-#: src/features/rules/states-rail.tsx
-msgid "{reviewableCount} to review"
-msgstr "{reviewableCount} 项待审核"
-
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, other {# 个辖区需要快速审核}}"
@@ -2476,6 +2472,7 @@ msgstr "提醒归档"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/rules/sources-tab.tsx
+#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2572,6 +2569,10 @@ msgstr "全部影响"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "已收到全部项目。"
+
+#: src/features/rules/states-rail.tsx
+msgid "All jurisdictions"
+msgstr "全部辖区"
 
 #: src/features/migration/Step3Normalize.tsx
 #, fuzzy
@@ -9642,6 +9643,7 @@ msgstr "需要协助"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "需复核"
@@ -9830,6 +9832,10 @@ msgstr "下一步：导入客户即可开始跟踪截止日期"
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "否"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No action needed — monitored updates"
+msgstr "无需处理 — 持续监控的更新"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
@@ -13017,6 +13023,10 @@ msgstr "审核 {count} 项"
 msgid "Review →"
 msgstr "查看 →"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Review and apply to affected clients"
+msgstr "审核并应用到受影响的客户"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Review and edit the email, then send it to {recipientEmail}."
@@ -14242,10 +14252,10 @@ msgid "Shareholder count"
 msgstr "股东数量"
 
 #: src/features/dashboard/changes-since-last-section.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Show"
 msgstr "显示"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "全部显示"

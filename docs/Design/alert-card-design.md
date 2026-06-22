@@ -267,14 +267,29 @@ _alert_, not the _CPA's_ workflow, and it forced a mode choice before you saw
 anything. The list now organizes itself around the job:
 
 ```
-⚡ Needs action  4                          ← zone band (Zap icon, warning tone)
-   <full-weight rows, ordered by client reach>
-   …
-👁 For your awareness  5            ▾        ← zone band (Eye, collapsible)
-   MAY 20, 2026                              ← digest keeps the day bands
-   <FYI rows, no suggested-action line>
-   …
+[⚡] Needs action  4                         ← sibling zone header (warm badge)
+    Review and apply to affected clients     ← purpose subtitle (first-land orient)
+    <full-weight rows, ordered by client reach>
+    …
+▾ [👁] For your awareness  5                  ← same skeleton, neutral (collapsible)
+    No action needed — monitored updates      ← purpose subtitle
+    MAY 20, 2026                               ← digest keeps the day bands
+    <FYI rows, no suggested-action line>
+    …
 ```
+
+**Zone-header skeleton (2026-06-22, supersedes the standalone warm pill).**
+Both zones share ONE header: `[icon badge] · label · count · purpose
+subtitle`, differentiated only by **temperature**. Needs action = warm
+(`bg-state-warning-hover` badge + Zap `text-text-warning`, warm count chip);
+For your awareness = the same skeleton neutral (`bg-background-subtle` badge —
+the day-band gray, so the square reads as clearly as the warm one on the
+white list — + Eye `text-text-tertiary`), keeping its collapse chevron +
+Dismiss-all. Shared shape → kinship (two tiers of one feed, not two tables);
+temperature → act-vs-read; the **purpose subtitle** is the first-land
+orientation the bare label never gave. (An intermediate warm-pill-only step
+was rejected in `/design-critique`: framing one zone and not the other
+_widened_ the perceived gap.)
 
 - **Needs action** = a priority QUEUE. Membership = `alertNeedsAction()`
   (`pulse-alert-chrome.ts`): the `isActiveAlert` set (applies a date change OR
