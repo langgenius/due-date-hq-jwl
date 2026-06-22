@@ -201,10 +201,16 @@ already shipped the turn before: the px-5 content gutter, the white day bands).
   unmistakably — red section (action) > gray section (awareness) > white label
   (day). Note: bends the "amber=action, red=urgent" canon at Yuqi's explicit ask;
   soft-red so it reads urgent, not alarming.
-- **#3 Toolbar balance** — the view (List/Map) toggle gets `ml-auto` and anchors
-  the RIGHT edge; the filter cluster (search · Filters · State · Sort) holds the
-  left. The row spans its width with intent instead of bunching loosely at the
-  start.
+- **#3 Toolbar balance** (revised after a second pass — Yuqi: "the filter does
+  not align or stick to anything, too loose; stick it right, something on the
+  left"). First try pushed only the view toggle right, which left the filters
+  floating left-of-center against a lone toggle — worse. Final: the WHOLE finding
+  cluster (Filters · State · Sort · view) is an `ml-auto` group on the RIGHT, and
+  the search becomes a permanent FIELD (`SearchInput`, `flex-1 max-w-[420px]`)
+  anchoring the LEFT. Two real anchors span the toolbar instead of a lone icon +
+  void. Reverses both the 2026-06-21 "controls flow from the left" call and the
+  hover-collapse search canon HERE (that canon de-clutters a CROWDED toolbar;
+  this one was too empty).
 - **#5 Deadline chip** — the "Nd left" tag sat as bare mono text beside the
   source link's bare text (same gray, blended). It's now a discrete status chip
   (filled `bg-background-subtle` pill), so "how long left" is visibly its own

@@ -55,7 +55,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
-import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { SearchInput } from '@/components/primitives/search-input'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { StatusBanner } from '@/components/patterns/status-banner'
@@ -951,18 +951,20 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     rows at `px-5`; the old right-clustering spacer is dropped.
                     See [[project_alerts_triage_model]]. */}
 
-                {/* Canonical collapsing toolbar search — ghost magnifier that
-                    expands on hover/click and retains focus + query. Same
-                    control as /clients · /rules/library. (No `/` hotkey here:
-                    /alerts never registered one and there's no alerts shortcut
-                    category to file it under.) */}
-                <CollapsibleSearch
+                {/* Permanent search FIELD anchoring the toolbar's LEFT (Yuqi
+                    2026-06-22 "stick the filter right, something on the left"): a
+                    real input gives the left substance to balance the right-anchored
+                    finding-controls cluster — a collapsed magnifier alone left a
+                    lone icon against a wide void. `flex-1` lets it fill toward the
+                    cluster (capped so it stays a search bar, not a banner). This
+                    overrides the hover-collapse search canon HERE: that pattern
+                    keeps a CROWDED toolbar tidy, but this toolbar was too empty. */}
+                <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
                   placeholder={t`Filter alerts`}
                   ariaLabel={t`Filter alerts`}
-                  size="icon"
-                  expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
+                  className="min-w-0 flex-1 sm:max-w-[420px]"
                 />
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the
@@ -999,16 +1001,17 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     icon-only at the far end so it reads as a view
                     switcher, not a second queue toggle. */}
                 {panelOpen ? null : (
-                  <>
-                    {/* Avoid a greedy `flex-1` spacer between the
-                    Search/View cluster and the dropdowns: in a `flex-wrap`
-                    row a growing spacer eats the rest of line 1, forcing
-                    the whole dropdown cluster onto a second line (and Sort
-                    onto a third by itself on narrow viewports). Without
-                    it, the controls flow left-to-right and Sort stays
-                    adjacent to its sibling filters, wrapping as one
-                    group. */}
-
+                  // 2026-06-22 (Yuqi "the filter is too loose — does not align or
+                  // stick to anything; stick it to the right, something on the
+                  // left"): the finding controls cluster on the RIGHT as one group
+                  // (`ml-auto`), with the search anchoring the LEFT — so the toolbar
+                  // spans its width between two anchors instead of the filters
+                  // floating left-of-center with a lone view toggle far right.
+                  // Reverses the 2026-06-21 "controls flow from the left" call.
+                  // `ml-auto` on the wrapper (not a greedy `flex-1` spacer) keeps
+                  // flex-wrap clean: on narrow viewports the whole group drops to a
+                  // second line under the search instead of fragmenting.
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
                     {/* Severity / Change types / Tax area + Time are
                         consolidated into ONE "Filters" popover (each as a
                         labeled pill section); the trigger count includes
@@ -1146,15 +1149,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* View switcher — icon-only Segmented pushed to the RIGHT
-                        edge (`ml-auto`). 2026-06-22 (Yuqi "too loose… stick to the
-                        right, something on the left"): the filter cluster
-                        (search · Filters · State · Sort) now reads on the left and
-                        the view toggle anchors the right, so the toolbar spans its
-                        width with intent instead of bunching loosely at the start. */}
+                    {/* View switcher — icon-only Segmented, last in the right-side
+                        finding-controls group (the group's `ml-auto` does the
+                        right-anchoring now, so no per-control push here). */}
                     <Segmented
                       size="lg"
-                      className="ml-auto shrink-0"
+                      className="shrink-0"
                       ariaLabel={t`View mode`}
                       value={viewMode}
                       onValueChange={setViewMode}
@@ -1163,7 +1163,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         { value: 'map', label: null, icon: MapIcon, ariaLabel: t`Map view` },
                       ]}
                     />
-                  </>
+                  </div>
                 )}
               </div>
 
