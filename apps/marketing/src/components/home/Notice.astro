@@ -289,14 +289,14 @@ const examples = t.examples
     margin-top: clamp(28px, 3.5vw, 40px);
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
     padding: 4px;
-    background: var(--m-section);
+    background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 999px;
   }
   .ntab {
-    padding: 8px 16px;
+    padding: 7px 15px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: 500;
@@ -310,8 +310,9 @@ const examples = t.examples
     color: var(--m-ink);
   }
   .ntab.is-on {
-    color: #fff;
-    background: var(--m-accent);
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    font-weight: 600;
   }
 
   /* panels */

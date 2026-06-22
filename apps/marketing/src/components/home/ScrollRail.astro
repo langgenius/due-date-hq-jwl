@@ -48,11 +48,23 @@ const items = t.items
     position: fixed;
     left: clamp(20px, 3vw, 52px);
     top: 50%;
-    transform: translateY(-50%);
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
+    /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-8px, -50%);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      visibility 0.3s ease;
+  }
+  .spyrail.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%);
   }
   @media (min-width: 1500px) {
     .spyrail {
@@ -62,8 +74,8 @@ const items = t.items
   .spyrail__item {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 7px 0;
+    gap: 12px;
+    padding: 8px 0;
     font-size: 12px;
     font-weight: 500;
     color: var(--m-faint);
@@ -73,9 +85,12 @@ const items = t.items
   .spyrail__item:hover {
     color: var(--m-ink-2);
   }
+  .spyrail__item:hover .spyrail__dot {
+    border-color: var(--m-muted);
+  }
   .spyrail__dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
     border: 1.5px solid var(--m-hairline);
     background: transparent;
@@ -83,6 +98,7 @@ const items = t.items
     transition:
       background 0.2s ease,
       border-color 0.2s ease,
+      box-shadow 0.2s ease,
       transform 0.2s ease;
   }
   .spyrail__item.is-active {
@@ -93,6 +109,7 @@ const items = t.items
     background: var(--m-accent);
     border-color: var(--m-accent);
     transform: scale(1.15);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 16%, transparent);
   }
   /* over a dark band — white instead of faint gray */
   .spyrail.is-on-dark .spyrail__item {
@@ -129,6 +146,8 @@ const items = t.items
         if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
       }
       items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
+      // reveal only once scrolled past the hero
+      rail.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.55)
       // white-out when the rail sits over a dark band (the villain)
       const railMid = window.innerHeight * 0.5
       let onDark = false

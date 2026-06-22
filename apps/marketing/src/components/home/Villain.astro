@@ -1,6 +1,8 @@
 ---
 /** Villain — the navy accent band (the pain beat). White only (no chromatic
- *  text on dark); the accent lives in the translucent-white pain containers. */
+ *  text on dark). Two-column editorial layout: the claim on the left, the pains
+ *  as a vertical icon-list on the right — deliberately NOT the 3-up card grid
+ *  that the following How-it-works uses. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -45,25 +47,48 @@ const pains = t.pains
 
 <section class="villain" data-nav-dark aria-labelledby="villain-h">
   <div class="villain__inner">
-    <p class="villain__q">{t.q}</p>
-    <h2 class="villain__h" id="villain-h">
-      {t.hBefore} <span class="ital">{t.hItal}</span> {t.hAfter}
-    </h2>
-
-    <div class="villain__pains">
-      {
-        pains.map((p) => (
-          <article class="vpain">
-            <p class="vpain__lead">{p.lead}</p>
-            <p class="vpain__sub">{p.sub}</p>
-          </article>
-        ))
-      }
+    <div class="villain__lead">
+      <p class="villain__q">{t.q}</p>
+      <h2 class="villain__h" id="villain-h">
+        {t.hBefore} <span class="ital">{t.hItal}</span> {t.hAfter}
+      </h2>
+      <p class="villain__punch">
+        {t.punchBefore} <strong>{t.punchStrong}</strong>
+      </p>
     </div>
 
-    <p class="villain__punch">
-      {t.punchBefore} <strong>{t.punchStrong}</strong>
-    </p>
+    <ul class="villain__pains">
+      {
+        pains.map((p, i) => (
+          <li class="vpain">
+            <span class="vpain__icon" aria-hidden="true">
+              {i === 0 && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18" />
+                </svg>
+              )}
+              {i === 1 && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 13h4l1.6 2.5h4.8L20 13" />
+                  <path d="M4.5 13 6 5.2A2 2 0 0 1 8 3.6h8a2 2 0 0 1 2 1.6L19.5 13v4.4a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z" />
+                </svg>
+              )}
+              {i === 2 && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7.2v5l3.2 2" />
+                </svg>
+              )}
+            </span>
+            <div class="vpain__txt">
+              <p class="vpain__lead">{p.lead}</p>
+              <p class="vpain__sub">{p.sub}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </section>
 
@@ -76,6 +101,20 @@ const pains = t.pains
     margin-inline: auto;
     padding-inline: var(--m-gutter);
     padding-block: clamp(56px, 9vw, 104px);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(36px, 5vw, 56px);
+    align-items: center;
+  }
+  .villain__lead {
+    grid-column: span 5;
+  }
+  .villain__pains {
+    grid-column: span 6 / -1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
   .villain__q {
     font-size: 13px;
@@ -83,59 +122,80 @@ const pains = t.pains
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.55);
-    margin-bottom: clamp(18px, 2.4vw, 26px);
+    margin-bottom: clamp(16px, 2.2vw, 24px);
   }
   .villain__h {
-    max-width: 24ch;
+    max-width: 18ch;
     font-family: var(--m-font-sans);
     font-weight: 500;
-    font-size: clamp(29px, 3.6vw, 46px);
-    line-height: 1.08;
+    font-size: clamp(29px, 3.4vw, 44px);
+    line-height: 1.1;
     letter-spacing: -0.02em;
     color: #fff;
   }
   .villain__h .ital {
     font-style: italic;
   }
-  .villain__pains {
-    margin-top: clamp(36px, 5vw, 56px);
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(14px, 1.6vw, 18px);
-  }
-  .vpain {
-    padding: clamp(20px, 2.4vw, 28px);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-  }
-  .vpain__lead {
-    font-size: clamp(15px, 1.2vw, 17px);
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.01em;
-  }
-  .vpain__sub {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.62);
-  }
   .villain__punch {
-    margin-top: clamp(32px, 4vw, 48px);
-    max-width: 40ch;
-    font-size: clamp(18px, 1.6vw, 22px);
-    line-height: 1.45;
-    letter-spacing: -0.01em;
-    color: rgba(255, 255, 255, 0.72);
+    margin-top: clamp(22px, 3vw, 32px);
+    max-width: 36ch;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.66);
   }
   .villain__punch strong {
     color: #fff;
     font-weight: 600;
   }
-  @media (max-width: 860px) {
-    .villain__pains {
+  /* pains — a vertical list, NOT a card grid */
+  .vpain {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding-block: clamp(18px, 2.2vw, 24px);
+  }
+  .vpain + .vpain {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .vpain:first-child {
+    padding-top: 0;
+  }
+  .vpain__icon {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .vpain__icon svg {
+    width: 19px;
+    height: 19px;
+  }
+  .vpain__lead {
+    font-size: clamp(15px, 1.2vw, 17px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+  .vpain__sub {
+    margin-top: 5px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  @media (max-width: 900px) {
+    .villain__inner {
       grid-template-columns: 1fr;
+      gap: clamp(28px, 5vw, 40px);
+      align-items: start;
+    }
+    .villain__lead,
+    .villain__pains {
+      grid-column: auto;
     }
   }
 </style>
