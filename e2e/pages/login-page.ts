@@ -9,10 +9,9 @@ export class LoginPage {
   readonly reassurance: Locator
 
   constructor(readonly page: Page) {
-    // 2026-06-10 (login redesign): the entry heading is a plain
-    // "Welcome back" — the split marketing panel carries the product
-    // pitch ("Every CPA deadline. One source of truth.") instead.
-    this.heading = page.getByRole('heading', { name: /Welcome back|欢迎回来/ })
+    // 2026-06-21 (login split preview): the entry now leads with the
+    // product-scoped sign-in heading.
+    this.heading = page.getByRole('heading', { name: /Sign in to DueDateHQ|登录 DueDateHQ/ })
 
     this.emailInput = page.getByLabel(/Work email|工作邮箱/)
 
@@ -30,10 +29,9 @@ export class LoginPage {
       name: /Continue with Microsoft|使用 Microsoft 继续/,
     })
 
-    // 2026-06-10 (login redesign): the "All systems operational"
-    // footer + the Language menu button are gone. The reassurance
-    // card under the form is the stable always-rendered footer copy.
-    this.reassurance = page.getByText(/Secured by one-time link|一次性链接安全保障/)
+    // 2026-06-21 (login split preview): the stable reassurance copy sits
+    // below the provider buttons.
+    this.reassurance = page.getByText(/No password|无需密码/)
   }
 
   async goto(path = '/login') {

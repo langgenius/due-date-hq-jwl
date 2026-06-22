@@ -1,42 +1,63 @@
 ---
-/** How it compares — a restrained 4-column matrix. The point isn't feature
- *  parity, it's the one row only DueDateHQ owns: watching the sources. */
+/** How it compares — an honest matrix. We own the monitoring rows; we openly
+ *  concede practice-management breadth (we're narrow by design). The point is
+ *  the positioning: we're the layer the all-in-ones are missing, not a rival. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
 const products = ['Excel + Outlook', 'File In Time', 'TaxDome', 'DueDateHQ']
+// per row, per product: yes · no · manual · narrow (deliberately not us)
 const marksRows = [
   ['manual', 'yes', 'yes', 'yes'],
   ['no', 'no', 'no', 'yes'],
   ['no', 'no', 'no', 'yes'],
   ['no', 'no', 'no', 'yes'],
+  ['no', 'no', 'manual', 'yes'],
+  ['no', 'no', 'no', 'yes'],
+  ['no', 'no', 'yes', 'narrow'],
 ]
 const t = zh
   ? {
       eyebrow: '横向对比',
-      headingPre: '别人替你记日期，我们替你盯它',
-      headingItal: '变。',
-      features: ['记录截止日', '盯着来源看变化', '标出影响到谁', '每个日期都有来源'],
+      headingPre: '不是又一个全能套件。而是它们都缺的那一',
+      headingItal: '层。',
+      leadHtml:
+        'TaxDome、Canopy、Karbon 已经在帮你管事务所。我们是它们都没有的那一层——<b>盯着 IRS 和每个州看变化，精确告诉你影响到谁。</b>它装在你已有的工具之上，而不是替代它。',
+      features: [
+        '记录截止日',
+        '盯着官方来源看变化',
+        'AI 读懂变化内容',
+        '精确标出影响到谁',
+        '一键应用到所有受影响客户',
+        '每个日期都有来源',
+        '完整的事务所管理',
+      ],
       manual: '手动',
+      narrow: '刻意不做',
       ariaSummary:
-        '对比。Excel 和 Outlook 手动记录你录入的截止日；File In Time 和 TaxDome 也只是记录。只有 DueDateHQ 盯着官方来源看变化、标出受影响的客户，并为每个日期保留来源。',
-      footPre: 'Excel 和 File In Time 只记录你录入的日期。',
-      footBold: '只有 DueDateHQ 盯着来源——还告诉你影响到谁。',
+        '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。只有 DueDateHQ 盯着官方来源看变化、用 AI 读懂变化、精确标出受影响客户、一键应用并为每个日期保留来源；完整的事务所管理我们刻意不做。',
     }
   : {
       eyebrow: 'How it compares',
-      headingPre: 'They store your dates. We watch them ',
-      headingItal: 'change.',
-      features: ['Tracks deadlines', 'Watches sources for changes', "Flags who's affected", 'Source on every date'],
+      headingPre: "Not another all-in-one. The layer they're all ",
+      headingItal: 'missing.',
+      leadHtml:
+        'TaxDome, Canopy and Karbon already run your practice. We’re the narrow layer none of them have — <b>we watch the IRS and every state for changes, and tell you exactly who’s affected.</b> It sits on top of what you already use; it doesn’t replace it.',
+      features: [
+        'Tracks deadlines',
+        'Watches official sources for changes',
+        'AI reads what changed',
+        "Flags exactly who's affected",
+        'One-click apply across clients',
+        'Source on every date',
+        'Full practice management',
+      ],
       manual: 'manual',
+      narrow: 'By design',
       ariaSummary:
-        'Comparison. Excel and Outlook track the deadlines you enter, manually; File In Time and ' +
-        'TaxDome track them too. Only DueDateHQ watches the official sources for changes, flags which ' +
-        'clients are affected, and keeps a source on every date.',
-      footPre: 'Excel and File In Time track the dates you enter.',
-      footBold: "Only DueDateHQ watches the sources — and tells you who's affected.",
+        'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date; full practice management is something DueDateHQ deliberately does not do.',
     }
 const rows = marksRows.map((marks, i) => ({ feature: t.features[i], marks }))
 const ariaSummary = t.ariaSummary
@@ -45,6 +66,7 @@ const ariaSummary = t.ariaSummary
 <section class="m-section compare" aria-labelledby="cmp-h">
   <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="m-h2 compare__h" id="cmp-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
+  <p class="m-lead compare__lead" set:html={t.leadHtml} />
 
   <div class="cmp-scroll">
     <div class="cmp" role="img" aria-label={ariaSummary}>
@@ -71,6 +93,7 @@ const ariaSummary = t.ariaSummary
                 )}
                 {m === 'no' && <span class="no" aria-hidden="true" />}
                 {m === 'manual' && <span class="cmp__manual">{t.manual}</span>}
+                {m === 'narrow' && <span class="cmp__narrow">{t.narrow}</span>}
               </div>
             ))}
           </>
@@ -78,16 +101,19 @@ const ariaSummary = t.ariaSummary
       }
     </div>
   </div>
-
-  <p class="compare__foot">
-    {t.footPre}
-    <b>{t.footBold}</b>
-  </p>
 </section>
 
 <style>
   .compare__h {
-    max-width: 20ch;
+    max-width: 22ch;
+  }
+  .compare__lead {
+    margin-top: 16px;
+    max-width: 64ch;
+  }
+  .compare__lead :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
   }
   .cmp-scroll {
     margin-top: clamp(28px, 3.5vw, 44px);
@@ -95,8 +121,7 @@ const ariaSummary = t.ariaSummary
     -webkit-overflow-scrolling: touch;
   }
   .cmp {
-    min-width: 600px;
-    max-width: 940px;
+    min-width: 640px;
     display: grid;
     grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr));
     border-top: 1px solid var(--m-ink);
@@ -105,13 +130,13 @@ const ariaSummary = t.ariaSummary
     display: flex;
     align-items: center;
     min-height: 52px;
-    padding: 15px 16px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--m-hairline-2);
     font-size: 14px;
   }
   .cmp__c--head {
     min-height: 0;
-    padding-block: 13px;
+    padding-block: 14px;
     justify-content: center;
     border-bottom: 1px solid var(--m-hairline);
     font-size: 12px;
@@ -155,15 +180,9 @@ const ariaSummary = t.ariaSummary
     font-size: 12px;
     color: var(--m-muted);
   }
-  .compare__foot {
-    margin-top: 20px;
-    max-width: 62ch;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--m-muted);
-  }
-  .compare__foot b {
-    color: var(--m-ink);
-    font-weight: 600;
+  .cmp__narrow {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--m-faint);
   }
 </style>

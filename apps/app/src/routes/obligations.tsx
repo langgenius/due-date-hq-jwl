@@ -12,13 +12,7 @@ import {
   type Updater,
   type VisibilityState,
 } from '@tanstack/react-table'
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
@@ -324,10 +318,43 @@ const THIS_WEEK_MAX_DAYS = 7
 //   Total ≈ 90px. Set to 96 for breathing room.
 const INSIDE_CHROME_PX = 96
 
+type ObligationListStatusCachePage = Pick<ObligationQueueListOutput, 'rows'>
+
+function hasStatusPatchableRows(value: unknown): value is ObligationListStatusCachePage {
+  return value !== null && typeof value === 'object' && 'rows' in value && Array.isArray(value.rows)
+}
+
+function hasStatusPatchablePages(value: unknown): value is { pages: unknown[] } {
+  return (
+    value !== null && typeof value === 'object' && 'pages' in value && Array.isArray(value.pages)
+  )
+}
+
 function computeResponsivePageSize(containerHeight: number): number {
   const usable = Math.max(0, containerHeight - INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
   return Math.max(CLIENT_PAGE_SIZE_MIN, Math.min(CLIENT_PAGE_SIZE_MAX, fit || CLIENT_PAGE_SIZE_MIN))
+}
+
+function patchStatusInListCache(
+  data: unknown,
+  obligationId: string,
+  status: ObligationStatus,
+): unknown {
+  const patchRows = (output: ObligationListStatusCachePage): ObligationListStatusCachePage => ({
+    ...output,
+    rows: output.rows.map((row) => (row.id === obligationId ? { ...row, status } : row)),
+  })
+  if (hasStatusPatchablePages(data)) {
+    return {
+      ...data,
+      pages: data.pages.map((page) => (hasStatusPatchableRows(page) ? patchRows(page) : page)),
+    }
+  }
+  if (hasStatusPatchableRows(data)) {
+    return patchRows(data)
+  }
+  return data
 }
 
 // Uses a callback-ref shape (not a `React.RefObject`): the hook returns a
@@ -1502,26 +1529,15 @@ export function ObligationQueueRoute() {
       onMutate: async (input) => {
         await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
         await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
-        const previousLists = queryClient.getQueriesData<InfiniteData<ObligationQueueListOutput>>({
+        const previousLists = queryClient.getQueriesData({
           queryKey: orpc.obligations.list.key(),
         })
         const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
           queryKey: orpc.obligations.getDetail.key(),
         })
-        queryClient.setQueriesData<InfiniteData<ObligationQueueListOutput>>(
+        queryClient.setQueriesData<unknown>(
           { queryKey: orpc.obligations.list.key() },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  pages: data.pages.map((page) => ({
-                    ...page,
-                    rows: page.rows.map((r) =>
-                      r.id === input.id ? { ...r, status: input.status } : r,
-                    ),
-                  })),
-                }
-              : data,
+          (data: unknown) => patchStatusInListCache(data, input.id, input.status),
         )
         queryClient.setQueriesData<ObligationQueueDetail>(
           { queryKey: orpc.obligations.getDetail.key() },
@@ -3022,8 +3038,10 @@ export function ObligationQueueRoute() {
         label: t`Total tracked`,
         value: scopeTotal,
         // Anchor stat — orients, never an always-on accent (StatBand color
-        // budget: a "Total" stays neutral).
+        // budget: a "Total" stays neutral). Click resets every filter.
         sub: t`all deadlines`,
+        onClick: () => void setObligationQueueQuery(null),
+        ariaLabel: t`Show all deadlines`,
       },
       {
         key: 'overdue',
@@ -3033,6 +3051,9 @@ export function ObligationQueueRoute() {
         // warning-toned zero never flags a problem that doesn't exist.
         sub: overdue > 0 ? t`needs action` : t`all on time`,
         subClass: overdue > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+        onClick: () =>
+          void setObligationQueueQuery({ due: 'overdue', dueWithin: null, status: null }),
+        ariaLabel: t`Filter to overdue deadlines`,
       },
       {
         key: 'this-week',
@@ -3044,71 +3065,37 @@ export function ObligationQueueRoute() {
         // due-this-week is upcoming workload, so it reads neutral like In review
         // / Filed (color-only-serves-risk + calm-on-dense canon).
         sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
+        onClick: () => void setObligationQueueQuery({ dueWithin: 7, due: null, status: null }),
+        ariaLabel: t`Filter to deadlines due this week`,
       },
       {
         key: 'in-review',
         label: t`In review`,
         value: inReview,
         sub: t`being prepared`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.review],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to in-review deadlines`,
       },
       {
         key: 'filed',
         label: t`Filed`,
         value: filed,
         sub: t`this period`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.done],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to filed deadlines`,
       },
     ]
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
-  // Proportion bar for the StatBand — a thin visual echo of the portfolio mix
-  // BELOW the cells (no legend; the cells already label the counts). Restrained
-  // 3-tone register only (green filed / red overdue / neutral in-flight), per
-  // the StatBand color budget — NOT one segment per status. Every value traces
-  // to the SAME real aggregates the cells use: `filed` = LIFECYCLE_V2 done set,
-  // `overdue` from the glance narrative, in-flight = everything not yet settled
-  // and not late (scopeTotal − filed − overdue: not-started + waiting + blocked
-  // + in-review + due-this-week, all rolled into one neutral lane). No
-  // period-over-period / trend data exists, so the bar shows only the present
-  // mix — never a delta. Returns no bar when the portfolio is empty (the band
-  // already renders the empty case).
-  const statBandProportion = useMemo(() => {
-    if (scopeTotal <= 0) return undefined
-    const sumStatuses = (statuses: readonly ObligationStatus[]) =>
-      statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
-    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
-    const { overdue } = deadlinesNarrative
-    // Clamp so a transient skew between facets (filed) and glance (overdue)
-    // can never produce a negative width.
-    const inFlight = Math.max(0, scopeTotal - filed - overdue)
-    return {
-      segments: [
-        {
-          key: 'filed',
-          value: filed,
-          // Settled / green — the "done" lane (done + paid).
-          toneClass: 'bg-state-success-solid',
-          label: t`filed`,
-        },
-        {
-          key: 'overdue',
-          value: overdue,
-          // The band's only red — genuine risk, matching the Overdue cell.
-          toneClass: 'bg-state-destructive-solid',
-          label: t`overdue`,
-        },
-        {
-          key: 'in-flight',
-          value: inFlight,
-          // Neutral gray — everything in progress (not-started, waiting,
-          // blocked, in-review, due-this-week). One quiet lane, not five colors.
-          toneClass: 'bg-state-base-handle',
-          label: t`in progress`,
-        },
-      ],
-      // Plain-string summary for the bar's aria-label. Trans-free: built with
-      // `t` so the translatable string lives here, not in the shared band.
-      ariaLabel: t`Portfolio mix: ${filed} filed, ${overdue} overdue, ${inFlight} in progress`,
-    }
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t, setObligationQueueQuery])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
@@ -3667,23 +3654,6 @@ export function ObligationQueueRoute() {
         }
       />
 
-      {/* Portfolio summary band — the shared StatBand "card summary" that also
-          drives /clients, /rules/sources, /rules/library, and /alerts/history.
-          It sits ALONGSIDE the narrative banner, not in place of it: the band
-          is multi-dimensional triage cells (tracked · overdue · due this week ·
-          in review · filed), the banner below is the one editorial sentence.
-          Hidden while a detail panel is open so the split view keeps its
-          vertical budget for the table, matching the banner. */}
-      {!panelOpenIntent ? (
-        <StatBand
-          stats={statBandCells}
-          loading={glanceQuery.isLoading || facetsQuery.isLoading}
-          ariaLabel={t`Deadlines portfolio summary`}
-          proportionBar={statBandProportion?.segments}
-          proportionBarLabel={statBandProportion?.ariaLabel}
-        />
-      ) : null}
-
       {/* A single narrative banner — an editorial read of where the week
           stands (eyebrow date + one headline + a metric line). Derived from
           the loaded glance page + client facet. Hidden while a detail panel is
@@ -3735,24 +3705,23 @@ export function ObligationQueueRoute() {
               <Trans>Nothing overdue — the week is on track.</Trans>
             )}
           </h2>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
-            <span className="tabular-nums">
-              {/* scopeTotal is every tracked deadline (incl. filed/completed),
-                  NOT the "open" count the nav/Today/Workload show. Label it
-                  "tracked", never "active" — "active" collided with "open"
-                  and made 28-vs-15 read as a contradiction (re-critique). */}
-              <Plural value={scopeTotal} one="# filing tracked" other="# filings tracked" />
-            </span>
-            <span aria-hidden>·</span>
-            <span className="tabular-nums">
-              <Plural
-                value={deadlinesNarrative.entities}
-                one="across # entity"
-                other="across # entities"
-              />
-            </span>
-          </p>
+          {/* Metric line removed — the StatBand below already carries the
+              tracked/overdue/due counts, so the banner stays a tight editorial
+              lead (date + one sentence) instead of echoing the same numbers. */}
         </section>
+      ) : null}
+
+      {/* Portfolio summary band — the shared StatBand "card summary" (also drives
+          /clients, /rules/sources, /rules/library, /alerts/history). The editorial
+          banner above is the one-sentence read of the week; this band is the
+          numeric triage. Hidden while a detail panel is open so the split view
+          keeps its vertical budget for the table. */}
+      {!panelOpenIntent ? (
+        <StatBand
+          stats={statBandCells}
+          loading={glanceQuery.isLoading || facetsQuery.isLoading}
+          ariaLabel={t`Deadlines portfolio summary`}
+        />
       ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:

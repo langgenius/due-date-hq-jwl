@@ -1,5 +1,7 @@
 ---
-/** Close — framed CTA card with a scalloped audit "receipt". Welcoming, restrained. */
+/** Close — the finale CTA. A bold navy card (different from the white sections,
+ *  cohesive via the brand accent) with a full-width light audit "receipt" strip.
+ *  White only on the navy; the accent lives in the inverted white CTA. */
 interface Props {
   ctaHref: string
   locale?: 'en' | 'zh-CN'
@@ -47,51 +49,55 @@ const receiptRows = t.receiptRows
 
 <section class="close" id="close" aria-labelledby="close-h">
   <div class="close__card">
-    <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>{t.pill}</span>
-    <h2 class="m-h2 close__h" id="close-h">
-      {
-        zh ? (
-          <>
-            走进下一个报税旺季，已经<span class="ital">领先一步。</span>
-          </>
-        ) : (
-          <>
-            Walk into next busy season already <span class="ital">ahead.</span>
-          </>
-        )
-      }
-    </h2>
-    <p class="close__body">
-      {t.bodyLead}<strong>{t.bodyStrong}</strong>
-    </p>
+    <div class="close__body-wrap">
+      <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>{t.pill}</span>
+      <h2 class="m-h2 close__h" id="close-h">
+        {
+          zh ? (
+            <>
+              走进下一个报税旺季，已经<span class="ital">领先一步。</span>
+            </>
+          ) : (
+            <>
+              Walk into next busy season already <span class="ital">ahead.</span>
+            </>
+          )
+        }
+      </h2>
+      <p class="close__body">
+        {t.bodyLead}<strong>{t.bodyStrong}</strong>
+      </p>
 
-    <div class="close__cta">
-      <a class="btn btn--primary" href={ctaHref} data-event="marketing.close.cta">
-        {t.ctaPrimary} <span class="arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="btn btn--ghost" href={ctaHref}>{t.ctaGhost}</a>
-    </div>
+      <div class="close__cta">
+        <a class="btn btn--primary" href={ctaHref} data-event="marketing.close.cta">
+          {t.ctaPrimary} <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost" href={ctaHref}>{t.ctaGhost}</a>
+      </div>
 
-    <div class="close__trust">
-      {
-        trust.map((item) => (
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-            {item}
-          </span>
-        ))
-      }
+      <div class="close__trust">
+        {
+          trust.map((item) => (
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              {item}
+            </span>
+          ))
+        }
+      </div>
     </div>
 
     <div class="receipt" aria-label="Sample audit receipt for one applied change">
-      <div class="receipt__eyebrow"><span>{t.receiptEyebrow}</span><span>{t.receiptApply}</span></div>
-      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
-      <div class="receipt__rows">
+      <div class="receipt__head">
+        <span class="receipt__eyebrow">{t.receiptEyebrow} · {t.receiptApply}</span>
+        <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
+      </div>
+      <div class="receipt__facts">
         {
           receiptRows.map((r) => (
-            <div class="receipt__row">
+            <span class="receipt__fact">
               {r.glyph === 'link' && (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
@@ -109,7 +115,7 @@ const receiptRows = t.receiptRows
                 </svg>
               )}
               {r.text}
-            </div>
+            </span>
           ))
         }
       </div>
@@ -119,16 +125,19 @@ const receiptRows = t.receiptRows
 
 <style>
   .close {
-    padding-block: clamp(44px, 6vw, 84px);
-  }
-  .close__card {
-    max-width: 900px;
+    max-width: var(--m-maxw);
     margin-inline: auto;
-    padding-inline: clamp(28px, 5vw, 60px);
-    padding-block: clamp(48px, 7vw, 80px);
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
-    border-radius: 12px;
+    padding-inline: var(--m-gutter);
+    padding-block: clamp(48px, 7vw, 96px);
+  }
+  /* bold navy finale — different from the white sections, cohesive via the brand */
+  .close__card {
+    background: var(--m-accent);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .close__body-wrap {
+    padding: clamp(40px, 6vw, 72px) clamp(28px, 5vw, 64px) clamp(32px, 4vw, 44px);
   }
   .close__pill {
     display: inline-flex;
@@ -138,8 +147,8 @@ const receiptRows = t.receiptRows
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-weight: 600;
-    color: var(--m-muted);
-    border: 1px solid var(--m-hairline);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 999px;
     padding: 6px 14px;
     margin-bottom: 28px;
@@ -148,27 +157,31 @@ const receiptRows = t.receiptRows
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: var(--m-accent);
+    background: var(--m-cyan);
   }
   .close__h {
-    font-size: clamp(36px, 5.4vw, 64px);
+    font-size: clamp(34px, 5vw, 60px);
+    color: #fff;
+  }
+  .close__h .ital {
+    font-style: italic;
   }
   .close__body {
-    margin-top: 24px;
-    max-width: 52ch;
-    font-size: clamp(17px, 1.4vw, 19px);
+    margin-top: 22px;
+    max-width: 56ch;
+    font-size: clamp(16px, 1.3vw, 18px);
     line-height: 1.55;
-    color: var(--m-ink-2);
+    color: rgba(255, 255, 255, 0.78);
   }
   .close__body strong {
-    color: var(--m-ink);
+    color: #fff;
     font-weight: 600;
   }
   .close__cta {
-    margin-top: 34px;
+    margin-top: 32px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 26px;
+    gap: 10px 24px;
     align-items: center;
   }
   .btn {
@@ -184,13 +197,14 @@ const receiptRows = t.receiptRows
       box-shadow 0.18s ease,
       transform 0.12s ease;
   }
+  /* inverted on the navy */
   .btn--primary {
-    background: var(--m-accent);
-    color: #fff;
+    background: #fff;
+    color: var(--m-accent);
     padding: 12px 20px;
   }
   .btn--primary:hover {
-    background: var(--m-accent-strong);
+    background: rgba(255, 255, 255, 0.9);
   }
   .btn--primary:active {
     transform: translateY(1px);
@@ -202,12 +216,11 @@ const receiptRows = t.receiptRows
     transform: translateX(3px);
   }
   .btn--ghost {
-    color: var(--m-ink);
+    color: #fff;
     padding: 12px 4px;
   }
   .btn--ghost:hover {
-    color: var(--m-accent);
-    box-shadow: inset 0 -1.5px 0 var(--m-accent);
+    box-shadow: inset 0 -1.5px 0 rgba(255, 255, 255, 0.7);
   }
   .close__trust {
     margin-top: 22px;
@@ -220,33 +233,32 @@ const receiptRows = t.receiptRows
     align-items: center;
     gap: 7px;
     font-size: 13px;
-    color: var(--m-ink-2);
+    color: rgba(255, 255, 255, 0.78);
   }
   .close__trust svg {
     width: 15px;
     height: 15px;
-    color: var(--m-accent);
+    color: var(--m-cyan);
     flex: none;
   }
+  /* full-width light receipt strip at the bottom of the navy card */
   .receipt {
-    --r: 9px;
-    margin-top: 36px;
-    max-width: 380px;
-    background: var(--m-section);
-    padding: 16px 20px calc(16px + var(--r));
-    border-radius: 12px 12px 0 0;
-    -webkit-mask:
-      radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
-        var(--r) repeat-x,
-      linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
-    mask:
-      radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
-        var(--r) repeat-x,
-      linear-gradient(#000 0 0) top / 100% calc(100% - var(--r)) no-repeat;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 28px;
+    padding: 18px clamp(28px, 5vw, 64px);
+    background: var(--m-surface);
+    border-top: 1px dashed color-mix(in srgb, var(--m-accent) 30%, transparent);
+  }
+  .receipt__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
   }
   .receipt__eyebrow {
-    display: flex;
-    justify-content: space-between;
     font-family: var(--m-font-mono);
     font-size: 10px;
     letter-spacing: 0.07em;
@@ -254,7 +266,6 @@ const receiptRows = t.receiptRows
     color: var(--m-faint);
   }
   .receipt__change {
-    margin-top: 9px;
     font-family: var(--m-font-mono);
     font-size: 12px;
     color: var(--m-ink);
@@ -262,21 +273,19 @@ const receiptRows = t.receiptRows
   .receipt__change s {
     color: var(--m-faint);
   }
-  .receipt__rows {
-    margin-top: 11px;
-    padding-top: 11px;
-    border-top: 1px dashed var(--m-hairline);
-    display: grid;
-    gap: 7px;
-  }
-  .receipt__row {
+  .receipt__facts {
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+  .receipt__fact {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     font-size: 12px;
     color: var(--m-ink-2);
   }
-  .receipt__row svg {
+  .receipt__fact svg {
     width: 13px;
     height: 13px;
     color: var(--m-accent);
