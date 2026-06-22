@@ -1,102 +1,81 @@
 ---
-/** Sources — coverage proof: piano-key coverage bar + source chips + US tilegram heat-map
- *  + live monitoring feed. Tiles are data-driven; heat tiers map to the brand tokens
- *  (navy tints t1/t2, warning t3, danger t4). Click-to-jump interaction lands later. */
-const chips = ['IRS', 'CA FTB', 'NY DTF', 'TX Comptroller', 'FL DOR', 'WA DOR', 'FEMA']
-const legend = [
-  { t: 0, label: '0' },
-  { t: 1, label: '1' },
-  { t: 2, label: '2–3' },
-  { t: 3, label: '4–6' },
-  { t: 4, label: '7+' },
-]
-// the full US tilegram (state, grid-row, grid-column, heat tier 0–4, change count)
+/** Sources — coverage proof. One clear message: we watch the official sources
+ *  live, and cover all 50 + DC. A true 2-tone US map (live-monitored vs covered
+ *  — no fictional per-state change counts) + the around-the-clock feed. */
+const agencies = ['IRS', 'CA FTB', 'NY DTF', 'TX Comptroller', 'FL DOR', 'WA DOR', 'MA DOR']
+// states with the deepest live monitoring (the rest of the 50 + DC are covered)
+const monitored = new Set(['CA', 'NY', 'TX', 'FL', 'WA', 'MA'])
+// US tilegram (state, grid-row, grid-column)
 const tiles = [
-  { s: 'AK', r: 1, c: 1, t: 0, n: 0 }, { s: 'ME', r: 1, c: 11, t: 0, n: 0 },
-  { s: 'VT', r: 2, c: 10, t: 0, n: 0 }, { s: 'NH', r: 2, c: 11, t: 0, n: 0 },
-  { s: 'WA', r: 3, c: 2, t: 3, n: 4 }, { s: 'ID', r: 3, c: 3, t: 0, n: 0 },
-  { s: 'MT', r: 3, c: 4, t: 0, n: 0 }, { s: 'ND', r: 3, c: 5, t: 0, n: 0 },
-  { s: 'MN', r: 3, c: 6, t: 0, n: 0 }, { s: 'WI', r: 3, c: 7, t: 0, n: 0 },
-  { s: 'MI', r: 3, c: 8, t: 0, n: 0 }, { s: 'NY', r: 3, c: 10, t: 4, n: 7 },
-  { s: 'MA', r: 3, c: 11, t: 2, n: 2 }, { s: 'OR', r: 4, c: 2, t: 1, n: 1 },
-  { s: 'NV', r: 4, c: 3, t: 0, n: 0 }, { s: 'WY', r: 4, c: 4, t: 0, n: 0 },
-  { s: 'SD', r: 4, c: 5, t: 0, n: 0 }, { s: 'IA', r: 4, c: 6, t: 0, n: 0 },
-  { s: 'IL', r: 4, c: 7, t: 2, n: 3 }, { s: 'IN', r: 4, c: 8, t: 0, n: 0 },
-  { s: 'OH', r: 4, c: 9, t: 1, n: 1 }, { s: 'PA', r: 4, c: 10, t: 1, n: 1 },
-  { s: 'NJ', r: 4, c: 11, t: 0, n: 0 }, { s: 'CT', r: 4, c: 12, t: 0, n: 0 },
-  { s: 'RI', r: 4, c: 13, t: 0, n: 0 }, { s: 'CA', r: 5, c: 2, t: 4, n: 14 },
-  { s: 'UT', r: 5, c: 3, t: 0, n: 0 }, { s: 'CO', r: 5, c: 4, t: 2, n: 2 },
-  { s: 'NE', r: 5, c: 5, t: 0, n: 0 }, { s: 'MO', r: 5, c: 6, t: 0, n: 0 },
-  { s: 'KY', r: 5, c: 7, t: 0, n: 0 }, { s: 'WV', r: 5, c: 8, t: 0, n: 0 },
-  { s: 'VA', r: 5, c: 9, t: 0, n: 0 }, { s: 'MD', r: 5, c: 10, t: 0, n: 0 },
-  { s: 'DE', r: 5, c: 11, t: 0, n: 0 }, { s: 'AZ', r: 6, c: 3, t: 1, n: 1 },
-  { s: 'NM', r: 6, c: 4, t: 0, n: 0 }, { s: 'KS', r: 6, c: 5, t: 0, n: 0 },
-  { s: 'AR', r: 6, c: 6, t: 0, n: 0 }, { s: 'TN', r: 6, c: 7, t: 0, n: 0 },
-  { s: 'NC', r: 6, c: 8, t: 1, n: 1 }, { s: 'SC', r: 6, c: 9, t: 0, n: 0 },
-  { s: 'DC', r: 6, c: 10, t: 0, n: 0 }, { s: 'HI', r: 7, c: 1, t: 0, n: 0 },
-  { s: 'OK', r: 7, c: 5, t: 0, n: 0 }, { s: 'LA', r: 7, c: 6, t: 0, n: 0 },
-  { s: 'MS', r: 7, c: 7, t: 0, n: 0 }, { s: 'AL', r: 7, c: 8, t: 0, n: 0 },
-  { s: 'GA', r: 7, c: 9, t: 2, n: 2 }, { s: 'TX', r: 8, c: 5, t: 4, n: 9 },
-  { s: 'FL', r: 8, c: 9, t: 3, n: 5 },
+  { s: 'AK', r: 1, c: 1 }, { s: 'ME', r: 1, c: 11 },
+  { s: 'VT', r: 2, c: 10 }, { s: 'NH', r: 2, c: 11 },
+  { s: 'WA', r: 3, c: 2 }, { s: 'ID', r: 3, c: 3 }, { s: 'MT', r: 3, c: 4 },
+  { s: 'ND', r: 3, c: 5 }, { s: 'MN', r: 3, c: 6 }, { s: 'WI', r: 3, c: 7 },
+  { s: 'MI', r: 3, c: 8 }, { s: 'NY', r: 3, c: 10 }, { s: 'MA', r: 3, c: 11 },
+  { s: 'OR', r: 4, c: 2 }, { s: 'NV', r: 4, c: 3 }, { s: 'WY', r: 4, c: 4 },
+  { s: 'SD', r: 4, c: 5 }, { s: 'IA', r: 4, c: 6 }, { s: 'IL', r: 4, c: 7 },
+  { s: 'IN', r: 4, c: 8 }, { s: 'OH', r: 4, c: 9 }, { s: 'PA', r: 4, c: 10 },
+  { s: 'NJ', r: 4, c: 11 }, { s: 'CT', r: 4, c: 12 }, { s: 'RI', r: 4, c: 13 },
+  { s: 'CA', r: 5, c: 2 }, { s: 'UT', r: 5, c: 3 }, { s: 'CO', r: 5, c: 4 },
+  { s: 'NE', r: 5, c: 5 }, { s: 'MO', r: 5, c: 6 }, { s: 'KY', r: 5, c: 7 },
+  { s: 'WV', r: 5, c: 8 }, { s: 'VA', r: 5, c: 9 }, { s: 'MD', r: 5, c: 10 },
+  { s: 'DE', r: 5, c: 11 }, { s: 'AZ', r: 6, c: 3 }, { s: 'NM', r: 6, c: 4 },
+  { s: 'KS', r: 6, c: 5 }, { s: 'AR', r: 6, c: 6 }, { s: 'TN', r: 6, c: 7 },
+  { s: 'NC', r: 6, c: 8 }, { s: 'SC', r: 6, c: 9 }, { s: 'DC', r: 6, c: 10 },
+  { s: 'HI', r: 7, c: 1 }, { s: 'OK', r: 7, c: 5 }, { s: 'LA', r: 7, c: 6 },
+  { s: 'MS', r: 7, c: 7 }, { s: 'AL', r: 7, c: 8 }, { s: 'GA', r: 7, c: 9 },
+  { s: 'TX', r: 8, c: 5 }, { s: 'FL', r: 8, c: 9 },
 ]
-const segs = Array.from({ length: 16 })
 ---
 
-<section class="m-section sources" id="sources" aria-label="Official sources we watch">
-  <div class="sources__top">
-    <span class="sources__label"><span class="live" aria-hidden="true"></span>Sources we watch · around the clock</span>
-    <span class="sources__note">FED + 50 states + DC — CA, NY, TX, FL, WA deepest.</span>
-  </div>
+<section class="m-section sources" id="sources" aria-labelledby="sources-h">
+  <p class="m-eyebrow">Coverage</p>
+  <h2 class="m-h2" id="sources-h">
+    Eyes on the official sources, <span class="ital">around the clock.</span>
+  </h2>
+  <p class="m-lead sources__lead">
+    We monitor the IRS, the major state tax agencies, and FEMA disaster relief in real time — and
+    every one of the <b>50 states + DC</b> is covered in your rule library.
+  </p>
 
-  <div class="cov">
-    <span class="cov__bar" aria-hidden="true">{segs.map(() => <span class="cov__seg" />)}</span>
-    <span class="cov__meta"><b>52</b> / 52 jurisdictions covered</span>
-  </div>
-
-  <ul class="sources__chips">
-    {chips.map((c) => <li class="chip">{c}</li>)}
-    <li class="chip chip--more">+ disaster declarations nationwide</li>
+  <ul class="sources__chips" aria-label="Sources monitored live">
+    {agencies.map((a) => <li class="chip">{a}</li>)}
+    <li class="chip chip--more">+ FEMA disaster declarations, nationwide</li>
   </ul>
 
   <div class="sources__grid">
-    <!-- US coverage map -->
+    <!-- US coverage map (true 2-tone: live-monitored vs covered) -->
     <div class="usmap-wrap">
-      <div class="usmap__bar">
-        <span class="usmap__fed">Federal <span class="n">3</span></span>
-        <ul class="usmap__legend" aria-label="Changes per state">
-          {legend.map((l) => (
-            <li>
-              <span class={`sw t${l.t}`}></span>{l.label}
-            </li>
-          ))}
-        </ul>
+      <div class="usmap" role="img" aria-label="US map: six states deepest live-monitored, all 50 plus DC covered">
+        {
+          tiles.map((t) => (
+            <div
+              class:list={['ust', monitored.has(t.s) ? 'ust--mon' : 'ust--cov']}
+              style={`grid-row:${t.r};grid-column:${t.c}`}
+            >
+              <span class="ust__c">{t.s}</span>
+            </div>
+          ))
+        }
       </div>
-      <div class="usmap" role="img" aria-label="Heat-map of deadline changes by state this season">
-        {tiles.map((t) => (
-          <div class={`ust t${t.t}`} style={`grid-row:${t.r};grid-column:${t.c}`}>
-            <span class="ust__c">{t.s}</span>
-            {t.n > 0 && <span class="ust__n">{t.n}</span>}
-          </div>
-        ))}
+      <div class="usmap__legend">
+        <span class="leg"><span class="sw sw--mon" />Live-monitored</span>
+        <span class="leg"><span class="sw sw--cov" />Covered · rule library</span>
+        <span class="usmap__cap">FED + 50 states + DC</span>
       </div>
-      <p class="usmap__foot">
-        Live monitoring runs deepest on the <b>IRS, CA, NY, TX, FL, WA, MA</b> and <b>FEMA</b> — and
-        every one of the <b>50 states + DC</b> is covered in your rule library.
-        <span class="muted">Sample activity · not your data.</span>
-      </p>
     </div>
 
-    <!-- live monitoring feed -->
+    <!-- around-the-clock monitoring feed -->
     <div class="feed" aria-label="Source-monitoring feed — sample preview">
       <div class="feed__bar">
-        <span class="feed__title"><span class="live" aria-hidden="true"></span>Monitoring feed</span>
+        <span class="feed__title"><span class="live" aria-hidden="true" />Monitoring feed</span>
         <span class="feed__cap">live preview · not your data</span>
       </div>
-      <div class="feed-row"><span class="dot scan"></span><span><b>IRS</b> · scanned, no change</span><span class="when">2m ago</span></div>
-      <div class="feed-row"><span class="dot new"></span><span><b>TX Comptroller</b> · new notice</span><span class="when alert">14m ago</span></div>
-      <div class="feed-row"><span class="dot ok"></span><span><b>CA FTB</b> · verified, no change</span><span class="when">31m ago</span></div>
-      <div class="feed-row"><span class="dot scan"></span><span><b>NY DTF</b> · scanned, no change</span><span class="when">52m ago</span></div>
-      <div class="feed-row"><span class="dot new"></span><span><b>FEMA</b> · disaster declaration</span><span class="when alert">1h ago</span></div>
+      <div class="feed-row"><span class="dot scan" /><span><b>IRS</b> · scanned, no change</span><span class="when">2m ago</span></div>
+      <div class="feed-row"><span class="dot new" /><span><b>TX Comptroller</b> · new notice</span><span class="when alert">14m ago</span></div>
+      <div class="feed-row"><span class="dot ok" /><span><b>CA FTB</b> · verified, no change</span><span class="when">31m ago</span></div>
+      <div class="feed-row"><span class="dot scan" /><span><b>NY DTF</b> · scanned, no change</span><span class="when">52m ago</span></div>
+      <div class="feed-row"><span class="dot new" /><span><b>FEMA</b> · disaster declaration</span><span class="when alert">1h ago</span></div>
     </div>
   </div>
 </section>
@@ -106,86 +85,36 @@ const segs = Array.from({ length: 16 })
     background: var(--m-section);
     border-block: 1px solid var(--m-hairline);
   }
-  .sources__top {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
+  .sources__lead {
+    margin-top: 16px;
+    max-width: 64ch;
   }
-  .sources__label {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-faint);
-  }
-  .live {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--m-ok);
-    flex: none;
-  }
-  .sources__note {
-    font-size: 13px;
-    color: var(--m-muted);
-  }
-
-  /* coverage piano-key bar */
-  .cov {
-    margin-top: 22px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .cov__bar {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    gap: 3px;
-  }
-  .cov__seg {
-    flex: 1;
-    height: 12px;
-    border-radius: 3px;
-    background: var(--m-accent);
-  }
-  .cov__meta {
-    flex: none;
-    font-family: var(--m-font-mono);
-    font-size: 12px;
-    color: var(--m-muted);
-    white-space: nowrap;
-  }
-  .cov__meta b {
+  .sources__lead :global(b) {
     color: var(--m-ink);
     font-weight: 600;
   }
 
   .sources__chips {
-    margin-top: 22px;
+    margin-top: clamp(24px, 3vw, 32px);
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     list-style: none;
     padding: 0;
   }
   .chip {
     font-size: 13px;
     font-weight: 600;
-    color: var(--m-ink);
+    color: var(--m-ink-2);
     background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
     border-radius: 999px;
-    padding: 8px 15px;
+    padding: 6px 14px;
   }
   .chip--more {
     font-weight: 500;
     color: var(--m-muted);
-    border: 1px dashed var(--m-hairline);
+    border-style: dashed;
     background: transparent;
   }
 
@@ -198,144 +127,79 @@ const segs = Array.from({ length: 16 })
     align-items: start;
   }
   .usmap-wrap {
-    grid-column: span 6;
+    grid-column: span 7;
   }
   .feed {
-    grid-column: span 6;
+    grid-column: span 5;
   }
 
-  /* ---- US tilegram ---- */
-  .usmap__bar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-  .usmap__fed {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--m-accent);
-    background: var(--m-accent-tint);
-    border-radius: 8px;
-    padding: 5px 11px;
-  }
-  .usmap__fed .n {
-    font-family: var(--m-font-mono);
-  }
-  .usmap__legend {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: auto;
-    list-style: none;
-    padding: 0;
-    font-size: 11px;
-    color: var(--m-muted);
-  }
-  .usmap__legend li {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .sw {
-    width: 11px;
-    height: 11px;
-    border-radius: 3px;
-    border: 1px solid;
-  }
+  /* ---- US tilegram (clean 2-tone) ---- */
   .usmap {
     display: grid;
     grid-template-columns: repeat(13, minmax(0, 1fr));
-    grid-template-rows: repeat(8, minmax(32px, 1fr));
+    grid-template-rows: repeat(8, minmax(30px, 1fr));
     gap: 5px;
-    min-width: 458px;
+    min-width: 440px;
   }
   .ust {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    border: 1px solid;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .ust__c {
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
     font-size: 11px;
     font-weight: 600;
+    line-height: 1;
   }
-  .ust__n {
-    font-size: 10px;
-    font-weight: 500;
-    margin-top: 1.5px;
+  .ust--mon {
+    color: #fff;
+    background: var(--m-accent);
   }
-
-  /* heat tiers — none → navy tints → warning → danger (mapped to tokens) */
-  .t0 {
-    background: var(--m-surface);
-    border-color: var(--m-hairline);
+  .ust--cov {
     color: var(--m-faint);
-  }
-  .sw.t0 {
     background: var(--m-surface);
-    border-color: var(--m-hairline);
+    border: 1px solid var(--m-hairline);
   }
-  .t1 {
-    background: var(--m-accent-tint);
-    border-color: color-mix(in srgb, var(--m-accent) 24%, transparent);
-    color: var(--m-accent);
-  }
-  .sw.t1 {
-    background: var(--m-accent-tint);
-    border-color: color-mix(in srgb, var(--m-accent) 24%, transparent);
-  }
-  .t2 {
-    background: color-mix(in srgb, var(--m-accent) 18%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-accent) 38%, transparent);
-    color: var(--m-accent);
-  }
-  .sw.t2 {
-    background: color-mix(in srgb, var(--m-accent) 18%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-accent) 38%, transparent);
-  }
-  .t3 {
-    background: color-mix(in srgb, var(--m-urgent) 18%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-urgent) 40%, transparent);
-    color: var(--m-urgent);
-  }
-  .sw.t3 {
-    background: color-mix(in srgb, var(--m-urgent) 18%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-urgent) 40%, transparent);
-  }
-  .t4 {
-    background: color-mix(in srgb, var(--m-danger) 14%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-danger) 36%, transparent);
-    color: var(--m-danger);
-  }
-  .sw.t4 {
-    background: color-mix(in srgb, var(--m-danger) 14%, var(--m-surface));
-    border-color: color-mix(in srgb, var(--m-danger) 36%, transparent);
-  }
-
-  .usmap__foot {
+  .usmap__legend {
     margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
     font-size: 12px;
-    line-height: 1.55;
     color: var(--m-muted);
-    max-width: 62ch;
   }
-  .usmap__foot b {
-    color: var(--m-ink);
-    font-weight: 600;
+  .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
   }
-  .usmap__foot .muted {
+  .sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    flex: none;
+  }
+  .sw--mon {
+    background: var(--m-accent);
+  }
+  .sw--cov {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+  }
+  .usmap__cap {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
     color: var(--m-faint);
   }
 
   /* ---- feed ---- */
+  .live {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    flex: none;
+  }
   .feed {
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
@@ -412,13 +276,6 @@ const segs = Array.from({ length: 16 })
     }
     .usmap-wrap {
       overflow-x: auto;
-    }
-  }
-  @media (max-width: 560px) {
-    .cov {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
     }
   }
 </style>
