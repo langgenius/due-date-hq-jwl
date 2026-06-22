@@ -2042,12 +2042,35 @@ function timeRangeFilterLabel(filter: TimeRangeFilter): React.ReactNode {
   return <Trans>Any time</Trans>
 }
 
+// 2026-06-22 (Yuqi "assign colours to impact"): each Impact bucket leads with a
+// tone-coded dot so the section scans by urgency at a glance — red = needs
+// action, amber = needs review, gray = no client match, green = closed/resolved.
+// "All impact" carries no dot (it's the reset, not a tone). A restrained
+// status-dot (colour without a loud fill); selection still reads via the pill
+// accent, and the dot keeps its tone whether the pill is on or off.
+function impactFilterDot(filter: AlertImpactFilter, label: React.ReactNode): React.ReactNode {
+  const tone =
+    filter === 'needs_action'
+      ? 'bg-state-destructive-solid'
+      : filter === 'needs_review'
+        ? 'bg-state-warning-solid'
+        : filter === 'no_matches'
+          ? 'bg-text-tertiary'
+          : 'bg-state-success-solid'
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={cn('size-1.5 shrink-0 rounded-full', tone)} aria-hidden />
+      {label}
+    </span>
+  )
+}
+
 function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
   if (filter === 'all') return <Trans>All impact</Trans>
-  if (filter === 'needs_action') return <Trans>Needs action</Trans>
-  if (filter === 'needs_review') return <Trans>Needs review</Trans>
-  if (filter === 'no_matches') return <Trans>No matches</Trans>
-  return <Trans>Closed</Trans>
+  if (filter === 'needs_action') return impactFilterDot(filter, <Trans>Needs action</Trans>)
+  if (filter === 'needs_review') return impactFilterDot(filter, <Trans>Needs review</Trans>)
+  if (filter === 'no_matches') return impactFilterDot(filter, <Trans>No matches</Trans>)
+  return impactFilterDot(filter, <Trans>Closed</Trans>)
 }
 
 // Filter labels for the four collapsed change-type buckets defined by
