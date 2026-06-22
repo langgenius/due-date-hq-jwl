@@ -1,36 +1,59 @@
 ---
-/** Footer — wordmark + link columns. The Resources column is the internal-link
- *  on-ramp into the long-tail SEO/AEO/GEO pages. English inline for now; i18n +
- *  locale switcher land in the localization pass. */
+/** Footer — wordmark + link columns (EN + zh-CN). The Resources column is the
+ *  internal-link on-ramp into the long-tail SEO/AEO/GEO pages. Labels are an
+ *  inline EN/zh map (chrome copy); hrefs are locale-prefixed. */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
 const columns = [
   {
-    title: 'Product',
+    title: zh ? '产品' : 'Product',
     links: [
-      { label: 'How it works', href: '/#how' },
-      { label: 'Coverage', href: '/state-coverage' },
-      { label: 'Pricing', href: '/pricing' },
-      { label: 'Security', href: '/security' },
+      { label: zh ? '工作原理' : 'How it works', href: `${base}/#how` },
+      { label: zh ? '覆盖范围' : 'Coverage', href: `${base}/state-coverage` },
+      { label: zh ? '定价' : 'Pricing', href: `${base}/pricing` },
+      { label: zh ? '安全' : 'Security', href: `${base}/security` },
     ],
   },
   {
-    title: 'Resources',
+    title: zh ? '资源' : 'Resources',
     links: [
-      { label: 'Rule library', href: '/rules' },
-      { label: 'State coverage', href: '/state-coverage' },
-      { label: 'Compare: File In Time', href: '/compare/file-in-time-alternative' },
-      { label: 'Weekly triage guide', href: '/guides/weekly-cpa-deadline-triage' },
+      { label: zh ? '规则库' : 'Rule library', href: `${base}/rules` },
+      { label: zh ? '州覆盖' : 'State coverage', href: `${base}/state-coverage` },
+      { label: zh ? '对比:File In Time' : 'Compare: File In Time', href: `${base}/compare/file-in-time-alternative` },
+      { label: zh ? '每周分诊指南' : 'Weekly triage guide', href: `${base}/guides/weekly-cpa-deadline-triage` },
     ],
   },
   {
-    title: 'Company',
+    title: zh ? '公司' : 'Company',
     links: [
-      { label: 'About', href: '/about' },
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
-      { label: 'Status', href: '/status' },
+      { label: zh ? '关于' : 'About', href: `${base}/about` },
+      { label: zh ? '隐私' : 'Privacy', href: `${base}/privacy` },
+      { label: zh ? '条款' : 'Terms', href: `${base}/terms` },
+      { label: zh ? '状态' : 'Status', href: `${base}/status` },
     ],
   },
 ]
+const copy = zh
+  ? {
+      tagline: '为美国 CPA 事务所监控截止日变化 —— 每个日期都附官方来源。',
+      audience: '面向美国 CPA 事务所 · 联邦 + 50 州 + DC',
+      legal: 'DueDateHQ 支持基于证据的复核;它不是税务建议,也不是报税系统。© 2026 DueDateHQ Inc.',
+      note: '你的数据留在你的事务所',
+    }
+  : {
+      tagline: 'Deadline-change monitoring for US CPA practices — with a source on every date.',
+      audience: 'For US CPA practices · FED + 50 states + DC',
+      legal: 'DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. © 2026 DueDateHQ Inc.',
+      note: 'Your data stays in your practice',
+    }
+// language switcher — cross-locale href for the current page
+const localeFree = Astro.url.pathname.replace(/^\/zh-CN(?=\/|$)/, '') || '/'
+const enHref = localeFree
+const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
 ---
 
 <footer class="footer">
@@ -38,8 +61,8 @@ const columns = [
     <div class="footer__top">
       <div class="footer__brand">
         <span class="footer__name">DueDateHQ</span>
-        <p class="footer__tag">Deadline-change monitoring for US CPA practices — with a source on every date.</p>
-        <p class="footer__aud">For US CPA practices · FED + 50 states + DC</p>
+        <p class="footer__tag">{copy.tagline}</p>
+        <p class="footer__aud">{copy.audience}</p>
       </div>
       {
         columns.map((c) => (
@@ -53,11 +76,15 @@ const columns = [
       }
     </div>
     <div class="footer__bottom">
-      <p class="footer__legal">
-        DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. © 2026
-        DueDateHQ Inc.
-      </p>
-      <span class="footer__note">Your data stays in your practice</span>
+      <p class="footer__legal">{copy.legal}</p>
+      <div class="footer__meta">
+        <span class="footer__lang">
+          <a href={enHref} class:list={['footer__langlink', !zh && 'is-active']} hreflang="en">English</a>
+          <span class="footer__langsep" aria-hidden="true">·</span>
+          <a href={zhHref} class:list={['footer__langlink', zh && 'is-active']} hreflang="zh-CN">中文</a>
+        </span>
+        <span class="footer__note">{copy.note}</span>
+      </div>
     </div>
   </div>
 </footer>
@@ -133,6 +160,32 @@ const columns = [
     font-family: var(--m-font-mono);
     font-size: 12px;
     color: var(--m-muted);
+  }
+  .footer__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+  .footer__lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .footer__langlink {
+    color: var(--m-muted);
+    transition: color 0.15s ease;
+  }
+  .footer__langlink:hover {
+    color: var(--m-ink);
+  }
+  .footer__langlink.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .footer__langsep {
+    color: var(--m-hairline);
   }
   @media (max-width: 720px) {
     .footer__top {

@@ -1,10 +1,10 @@
 ---
-/** TopNav — centered floating-pill nav, shared site-wide.
+/** TopNav — centered floating-pill nav, shared site-wide (EN + zh-CN).
  *  - On the homepage (default): transparent, "How it works" is an in-page anchor.
  *  - On content pages (`pageMode`): solid bg + hairline, anchors return to home,
  *    and `current` marks the active destination.
- *  Glider + nav-on-dark JS land in the interactions pass. English this pass;
- *  i18n of the whole new surface (chrome + home + templates) lands together. */
+ *  Labels are an inline EN/zh map (chrome copy, not page content); hrefs are
+ *  locale-prefixed. Glider + nav-on-dark JS land in the interactions pass. */
 import { getCtaHref, getAppHref } from '../../lib/app-url'
 
 interface Props {
@@ -12,24 +12,27 @@ interface Props {
   signInHref?: string
   pageMode?: boolean
   current?: 'how' | 'coverage' | 'pricing' | 'security'
+  locale?: 'en' | 'zh-CN'
 }
-const {
-  ctaHref = getCtaHref(),
-  signInHref = getAppHref('/login'),
-  pageMode = false,
-  current,
-} = Astro.props
+const { pageMode = false, current, locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
+const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
+const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
+const L = zh
+  ? { how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页' }
+  : { how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home' }
 const links = [
-  { key: 'how', label: 'How it works', href: pageMode ? '/#how' : '#how' },
-  { key: 'coverage', label: 'Coverage', href: '/state-coverage' },
-  { key: 'pricing', label: 'Pricing', href: '/pricing' },
-  { key: 'security', label: 'Security', href: '/security' },
+  { key: 'how', label: L.how, href: pageMode ? `${base}/#how` : '#how' },
+  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage` },
+  { key: 'pricing', label: L.pricing, href: `${base}/pricing` },
+  { key: 'security', label: L.security, href: `${base}/security` },
 ]
 ---
 
 <header class:list={['nav', pageMode && 'nav--page']}>
   <div class="nav__inner">
-    <a class="brand" href="/" aria-label="DueDateHQ home">
+    <a class="brand" href={`${base}/`} aria-label={L.home}>
       <span class="brand__mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="22" height="22">
           <rect x="2" y="13" width="4" height="9" rx="1" fill="var(--m-accent)" />
@@ -57,9 +60,9 @@ const links = [
     </nav>
 
     <div class="nav__right">
-      <a class="nav__signin" href={signInHref}>Sign in</a>
+      <a class="nav__signin" href={signInHref}>{L.signIn}</a>
       <a class="nav__cta" href={ctaHref} data-event="marketing.nav.cta">
-        Start free <span aria-hidden="true">→</span>
+        {L.cta} <span aria-hidden="true">→</span>
       </a>
     </div>
   </div>

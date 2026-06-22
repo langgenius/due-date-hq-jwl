@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import TopNav from '../../components/TopNav.astro'
+import TopNav from '../../components/home/TopNav.astro'
 import GeoResourcePage from '../../components/GeoResourcePage.astro'
-import Footer from '../../components/Footer.astro'
+import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 import { resourceStructuredData } from '../../lib/structured-data'
@@ -21,12 +21,12 @@ const ctaHref = getCtaHref('zh-CN')
   ogImage={page.meta.ogImage}
   structuredData={resourceStructuredData(t, page, 'zh-CN', pathname)}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" />
   <GeoResourcePage
     page={page}
     primaryHref="/zh-CN/state-coverage"
     secondaryHref="/zh-CN/pricing"
     locale="zh-CN"
   />
-  <Footer t={t.footer} enHref="/rules" zhHref="/zh-CN/rules" currentLocale="zh-CN" />
+  <Footer locale="zh-CN" />
 </BaseLayout>
