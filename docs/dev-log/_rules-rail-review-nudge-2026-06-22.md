@@ -2,12 +2,13 @@
 
 The rail header's needs-review control was a `FilterTrigger` **dropdown**
 ("Show │ Needs review ⌄") — a 2-click menu with a chevron for what is really a
-binary on/off filter. Per Yuqi: the rail should *encourage* the CPA to review
+binary on/off filter. Per Yuqi: the rail should _encourage_ the CPA to review
 pending rules, not offer a neutral filter.
 
 `states-rail.tsx`: replaced the dropdown with an inviting **accent `Button`**
 (canonical primitive) that only appears when jurisdictions have rules awaiting
 review:
+
 - queue dirty → `{N} to review` (accent, 1-click) — focuses the list on the
   jurisdictions needing review (`reviewOnly`).
 - focused → `Show all` (ghost) to clear.
@@ -25,6 +26,7 @@ counted **jurisdictions** ("52"). Sitting above rows whose dots are rule counts,
 "52 to review" misread as 52 rules.
 
 Fix in `states-rail.tsx`:
+
 - Pill count is now `reviewRuleCount` = `sum(it.reviewCount)` — the rule total,
   which equals the sum of the per-row dots the user sees **and** the banner's
   456 (= 479 total − 23 active). `hasReviewWork` (any jurisdiction with work)

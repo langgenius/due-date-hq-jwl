@@ -648,7 +648,7 @@ describe('RulesLibraryRoute', () => {
       await Promise.all([rulesRequest.promise, coverageRequest.promise, sourcesRequest.promise])
     })
 
-    await waitForSelector('[title="1 need review"]')
+    await waitForSelector('[title="1 rule to review"]')
     expect(document.querySelector('[aria-busy="true"]')).toBeNull()
   })
 

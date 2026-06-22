@@ -2750,16 +2750,7 @@ emit(
 // author_id → user are both in the preserved identity preamble above.
 emit(
   'rule_note',
-  [
-    'id',
-    'firm_id',
-    'rule_id',
-    'author_id',
-    'body',
-    'parent_note_id',
-    'created_at',
-    'updated_at',
-  ],
+  ['id', 'firm_id', 'rule_id', 'author_id', 'body', 'parent_note_id', 'created_at', 'updated_at'],
   [
     // Priya (partner) opens the review with the substantive question.
     row(

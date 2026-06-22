@@ -362,10 +362,20 @@ msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {#d late} other {#d late}}"
 
+#. placeholder {0}: result.appliedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {Applied reviewed set to # client} other {Applied reviewed set to # clients}}"
+msgstr "{0, plural, one {Applied reviewed set to # client} other {Applied reviewed set to # clients}}"
+
 #. placeholder {0}: alert.matchedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 msgstr "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
+
+#. placeholder {0}: result.appliedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {Applied to # client} other {Applied to # clients}}"
+msgstr "{0, plural, one {Applied to # client} other {Applied to # clients}}"
 
 #. placeholder {0}: genesis.clientCount
 #: src/features/migration/Wizard.tsx
@@ -396,6 +406,11 @@ msgstr "{0, plural, one {Merged # similar source update} other {Merged # similar
 #: src/routes/splash.tsx
 msgid "{0, plural, one {Reminder went out to # client} other {Reminders went out to # clients}}"
 msgstr "{0, plural, one {Reminder went out to # client} other {Reminders went out to # clients}}"
+
+#. placeholder {0}: result.revertedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {Reverted # client} other {Reverted # clients}}"
+msgstr "{0, plural, one {Reverted # client} other {Reverted # clients}}"
 
 #. placeholder {0}: restEvidence.length
 #: src/features/rules/rule-detail-drawer.tsx
@@ -1284,6 +1299,10 @@ msgstr "{reviewCount, plural, one {# jurisdiction needs a quick review} other {#
 msgid "{reviewCount, plural, one {# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later.} other {# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later.}}"
 msgstr "{reviewCount, plural, one {# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later.} other {# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later.}}"
 
+#: src/features/rules/states-rail.tsx
+msgid "{reviewCount, plural, one {# rule to review} other {# rules to review}}"
+msgstr "{reviewCount, plural, one {# rule to review} other {# rules to review}}"
+
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
 msgstr "{reviewCount, plural, one {Review # state} other {Review # states}}"
@@ -1291,10 +1310,6 @@ msgstr "{reviewCount, plural, one {Review # state} other {Review # states}}"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{reviewCount} Requires review"
 msgstr "{reviewCount} Requires review"
-
-#: src/features/rules/states-rail.tsx
-msgid "{reviewCount} rules to review"
-msgstr "{reviewCount} rules to review"
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount} to review"
@@ -2802,16 +2817,6 @@ msgstr "Applied · logged to audit ledger"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Applied a rule change."
 msgstr "Applied a rule change."
-
-#. placeholder {0}: result.appliedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Applied reviewed set to {0} clients"
-msgstr "Applied reviewed set to {0} clients"
-
-#. placeholder {0}: result.appliedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Applied to {0} clients"
-msgstr "Applied to {0} clients"
 
 #. placeholder {0}: temporary.obligationCount
 #: src/features/rules/states-rail.tsx
@@ -12917,11 +12922,6 @@ msgstr "Revert window closed — undo no longer available"
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Reverted"
 msgstr "Reverted"
-
-#. placeholder {0}: result.revertedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Reverted {0} clients"
-msgstr "Reverted {0} clients"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Reverted a rule change."

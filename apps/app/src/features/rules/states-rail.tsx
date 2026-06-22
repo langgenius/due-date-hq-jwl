@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
+import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -126,11 +127,7 @@ export function JurisdictionRail({
             onClick={() => setReviewOnly((value) => !value)}
             aria-pressed={reviewOnly}
           >
-            {reviewOnly ? (
-              <Trans>Show all</Trans>
-            ) : (
-              <Trans>{reviewRuleCount} to review</Trans>
-            )}
+            {reviewOnly ? <Trans>Show all</Trans> : <Trans>{reviewRuleCount} to review</Trans>}
           </Button>
         ) : null}
       </ListRailHead>
@@ -317,7 +314,13 @@ function RailRow({
   selected: boolean
   onSelect: () => void
 }) {
-  const { t } = useLingui()
+  const { i18n } = useLingui()
+  const reviewLabel = i18n._(
+    plural(reviewCount, {
+      one: '# rule to review',
+      other: '# rules to review',
+    }),
+  )
   // Selected rows — Overview AND jurisdictions — read in accent-blue,
   // the canonical nav-item selected state shared with SettingsSubNav and
   // the main sidebar. Unselected rows stay quiet (text-secondary label,
@@ -361,8 +364,8 @@ function RailRow({
         {reviewCount > 0 ? (
           <span
             className="size-1 shrink-0 rounded-full bg-state-warning-solid"
-            title={t`${reviewCount} rules to review`}
-            aria-label={t`${reviewCount} rules to review`}
+            title={reviewLabel}
+            aria-label={reviewLabel}
           />
         ) : null}
         <span

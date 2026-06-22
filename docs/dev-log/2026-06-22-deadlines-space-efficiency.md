@@ -18,12 +18,14 @@ fold:
    share one density rhythm.
 
 ## Alerts consistency
+
 `/alerts` was already the efficient target — same shared `PageHeader`, no banner
 card, and it was already on `gap-6`. Bringing /deadlines down to `gap-6` converges
 the two onto one chrome rhythm. Content stays distinctive (deadlines = time-forward
 table; alerts = change/decision cards) — no shared row grammar imposed.
 
 ## Verification
+
 tsgo 0 · build green · app tests 550/2. No new i18n strings (the eyebrow trim only
 made "deadlines tracked" unused — left for a future extract to prune). Verified
 live: editorial is one line, four data rows above the fold.

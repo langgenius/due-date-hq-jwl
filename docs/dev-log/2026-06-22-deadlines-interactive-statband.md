@@ -18,10 +18,12 @@ active filters (client/assignee/…) persist. Verified live: clicking Overdue se
 `?due=overdue` and filters the queue. Each cell carries an aria-label.
 
 ## Verification
+
 tsgo 0 · i18n compile --strict 0 (5 new aria strings, zh-CN translated) · build
 green · app tests 550/2.
 
 ## Still open (feedback #4 — table "more deadline")
+
 Three directions confirmed (countdown emphasis · time-horizon banding · urgency
 heat) with the constraint that /deadlines stay distinct from /alerts (time-forward
 vs change/decision-forward). Next pass.

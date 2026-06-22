@@ -41,7 +41,9 @@ test.describe('seeded Pulse alerts', () => {
       })
       .check()
     await verificationDialog.getByRole('button', { name: 'Apply deadline shift' }).click()
-    await expect(authenticatedPage.getByText(/Applied to 1 clients?/)).toBeVisible()
+    await expect(
+      authenticatedPage.locator('[data-title]').filter({ hasText: /^Applied to 1 client$/ }),
+    ).toBeVisible()
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
@@ -93,7 +95,9 @@ test.describe('seeded Pulse alerts', () => {
       }),
     ).toBeVisible()
     await appliedDrawer.getByRole('button', { name: 'Undo (24h)' }).click()
-    await expect(authenticatedPage.getByText(/Reverted 1 clients?/)).toBeVisible()
+    await expect(
+      authenticatedPage.locator('[data-title]').filter({ hasText: /^Reverted 1 client$/ }),
+    ).toBeVisible()
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72d late', {

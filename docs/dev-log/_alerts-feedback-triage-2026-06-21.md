@@ -110,7 +110,7 @@ count · purpose subtitle` — differentiated only by temperature.
   `text-text-warning`), warm count chip, subtitle "Review and apply to
   affected clients".
 - **For your awareness** — same badge skeleton neutral (`bg-background-
-  subtle` square — the day-band gray, so it reads as clearly as the warm
+subtle` square — the day-band gray, so it reads as clearly as the warm
   badge on the white list, not a near-invisible outline — + Eye in
   `text-text-tertiary`), neutral count chip, subtitle "No action needed —
   monitored updates". Keeps its collapse chevron + Dismiss-all.
@@ -135,7 +135,7 @@ stayed inside the row:
 - **Merged action footer** — the suggested action and "Affects N clients" were
   two separate stacked lines; they're the "do this · who it hits" pair, so they
   now share ONE line (`⚡ Verify filing requirement applies · 👥 Affects 3
-  clients`). Action+impact rows dropped 117px → 94px. Either half still stands
+clients`). Action+impact rows dropped 117px → 94px. Either half still stands
   alone (awareness rows carry impact with no action; some action rows touch no
   clients). This split the old `KeyChange` block: the date-diff card stays put,
   the action moved down to join impact; `showKeyChange` retired (date-diff gates
@@ -159,9 +159,9 @@ loose floating cards, not a table. Pulled it into one continuous banded table:
 
 - **Banded section headers** — both zone headers ("Needs action" / "For your
   awareness") now wear the SAME chrome as the day bands (`bg-background-subtle`
-  + `border-b border-divider-subtle`), so the page has one consistent
-  header-band system (zone header → day band → rows). The awareness badge flips
-  to a white (`bg-background-default`) tile so it stays crisp on the gray band.
+  - `border-b border-divider-subtle`), so the page has one consistent
+    header-band system (zone header → day band → rows). The awareness badge flips
+    to a white (`bg-background-default`) tile so it stays crisp on the gray band.
 - **Square rows** — the list frame dropped `rounded-xl`; the rounded card
   encapsulation was what put a rounded corner on the first/last row (and the
   active-row highlight). Now a flush square table. `overflow-clip` stays (sticky
