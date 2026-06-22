@@ -4,7 +4,7 @@
 
 ## Fixes
 
-- **"all 50 states" overclaim → fixed.** The USP doc is explicit: live monitoring = IRS + major state tax agencies (CA/NY/TX/FL/WA/MA) + FEMA nationwide; "50 states + DC" is the *separate rule-coverage* axis (review-gated), and you must not say "watches all 50 states." The Hero conflated them in two places:
+- **"all 50 states" overclaim → fixed.** The USP doc is explicit: live monitoring = IRS + major state tax agencies (CA/NY/TX/FL/WA/MA) + FEMA nationwide; "50 states + DC" is the _separate rule-coverage_ axis (review-gated), and you must not say "watches all 50 states." The Hero conflated them in two places:
   - Point 1: "We watch the IRS, all 50 states & FEMA" → "…the IRS, major state agencies & FEMA".
   - Subhead: "We watch every IRS and state source" → "We watch the IRS, the major state tax agencies, and FEMA — and the moment a date moves, you see exactly which clients it hits." (Also tightened to one clean benefit sentence + sharper verb "hits".)
   - (Sources already framed the two axes correctly; left it, only changed its "52/52 watched" → "covered" since the bar is the coverage axis.)

@@ -1,4 +1,4 @@
-# Marketing Phase C — restyle the long-tail templates to --m-* (4 of 5)
+# Marketing Phase C — restyle the long-tail templates to --m-\* (4 of 5)
 
 **Date:** 2026-06-22 · `apps/marketing/src/styles/marketing.css` (shared kit), `src/components/{GeoResourcePage,TrustPage,StateCoveragePage,StateDetailPage}.astro`. Brings the SEO/AEO/GEO pages onto the home's design language so the whole EN site reads as one product. Pricing template is the 5th — handled with the beta-free frame separately.
 

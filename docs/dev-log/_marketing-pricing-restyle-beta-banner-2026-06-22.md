@@ -10,7 +10,7 @@ Owner: pricing is **real but free during beta**. The team had just pushed "align
 
 - **Beta banner** at the top: an accent-tinted note — "Every plan is **free while we're in beta** — nothing to pay today. Here's how pricing will work once we launch." Worded to fit the new Free tier (doesn't imply every plan costs money).
 - **Restyled to the shared kit + `--m-*`:** hero uses `.m-page-hero/.m-eyebrow/.m-page-title/.m-page-lead`; faq uses `.m-page-grid-3 + .m-card`. Plan cards, billing toggle, and price block are scoped `.pr__*` on `--m-*` tokens (white cards, hairline borders, mono prices, accent recommended card).
-- **Billing toggle script preserved, restyled:** the script set both `aria-pressed` *and* toggled Tailwind utility classes. Moved the active styling to `[aria-pressed="true"]` CSS and removed the class-toggling, keeping the price/cadence/savings/cta data-driven updates. All `data-pricing-*` hooks and checkout hrefs are untouched.
+- **Billing toggle script preserved, restyled:** the script set both `aria-pressed` _and_ toggled Tailwind utility classes. Moved the active styling to `[aria-pressed="true"]` CSS and removed the class-toggling, keeping the price/cadence/savings/cta data-driven updates. All `data-pricing-*` hooks and checkout hrefs are untouched.
 
 ## Verification
 

@@ -6,7 +6,7 @@
 
 Mapped the whole `apps/marketing` site, not just the home. It's already a mature programmatic-SEO + GEO site (state / rule / comparison / guide pages, `llms.txt` + `llms-full.txt` AI-answer-engine feed, full `zh-CN/` mirror). The problem is **cohesion, not missing pages**. Framed it as a **two-tier model**: a small high-craft **core spine** (Home · Pricing · Security · About) + a broad **long-tail** for SEO/AEO/GEO, bound together by one shared nav/footer, one design language, one positioning sentence.
 
-Ranked findings: (P0) **pricing contradiction** — home says "free during beta" but `/pricing` + `llms.txt` sell four tiers to humans *and* answer engines; (P0) **two design systems** — `/` was the only route on the new `--m-*` design, the other 9 templates still old; (P1) **dead long-tail on-ramp** — new home footer links were all `href="#"`; (P1) **positioning drift** across home / `llms.txt` / meta. Owner decided pricing = **free during beta, coming soon** (tiers come out).
+Ranked findings: (P0) **pricing contradiction** — home says "free during beta" but `/pricing` + `llms.txt` sell four tiers to humans _and_ answer engines; (P0) **two design systems** — `/` was the only route on the new `--m-*` design, the other 9 templates still old; (P1) **dead long-tail on-ramp** — new home footer links were all `href="#"`; (P1) **positioning drift** across home / `llms.txt` / meta. Owner decided pricing = **free during beta, coming soon** (tiers come out).
 
 ## Phase B — unify the chrome (this commit)
 

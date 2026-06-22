@@ -139,8 +139,7 @@ export function NotificationPreferencesPage() {
       // failed write can roll back precisely.
       onMutate: async (patch) => {
         await queryClient.cancelQueries({ queryKey: preferencesQueryKey })
-        const previous =
-          queryClient.getQueryData<NotificationPreferencePublic>(preferencesQueryKey)
+        const previous = queryClient.getQueryData<NotificationPreferencePublic>(preferencesQueryKey)
         if (previous) {
           // Drop any `undefined` patch values so the merge never widens a
           // required field to `undefined` (a `Partial` spread would). The
