@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
@@ -1159,21 +1158,13 @@ export function AlertDetailDrawer({
           jurisdiction: result.alert.jurisdiction,
           affected_client_count: result.appliedCount,
         })
-        toast.success(
-          i18n._(
-            plural(result.appliedCount, {
-              one: 'Applied to # client',
-              other: 'Applied to # clients',
-            }),
-          ),
-          {
-            description: t`Recorded in the audit log. Undo within 24 hours.`,
-            action: {
-              label: t`Undo`,
-              onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
-            },
+        toast.success(t`Applied to ${result.appliedCount} clients`, {
+          description: t`Recorded in the audit log. Undo within 24 hours.`,
+          action: {
+            label: t`Undo`,
+            onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
           },
-        )
+        })
         // Hold a brief green "Applied" confirmation in the footer before
         // closing, so the firm-wide win registers (motion catalog). The timer
         // is cleared on unmount; `applied` is reset by the render-time reset

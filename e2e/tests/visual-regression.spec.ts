@@ -106,31 +106,23 @@ test.describe('today + deadlines surfaces', () => {
     // page. Content is fully deterministic; only the URL slug varies.
     await gotoFrozen(authenticatedPage, '/deadlines')
     await authenticatedPage
-      .getByRole('button', { name: /^Open deadline for Arbor & Vale LLC$/ })
+      .getByRole('link', { name: /^Open .+ for Arbor & Vale LLC detail page$/ })
       .click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines\/[0-9a-f]{12}(?:$|\?)/)
 
-    const deadlineDrawer = authenticatedPage.getByRole('complementary', {
-      name: /Arbor & Vale LLC/,
-    })
-    const sectionNav = deadlineDrawer.getByRole('navigation', { name: 'Deadline sections' })
-    await expect(sectionNav.getByRole('button', { name: 'Status' })).toBeVisible()
+    const statusTab = authenticatedPage.getByRole('tab', { name: 'Status' })
+    await expect(statusTab).toBeVisible()
     await settle(authenticatedPage)
     await expect(authenticatedPage).toHaveScreenshot(
       'deadline-detail-status.png',
       shotOptions(authenticatedPage),
     )
 
-    await sectionNav.getByRole('button', { name: /^Materials\b/ }).click()
-    await expect
-      .poll(
-        async () =>
-          deadlineDrawer
-            .getByRole('checkbox', { name: /^Select document .* for batch action$/ })
-            .count(),
-        { timeout: 15_000 },
-      )
-      .toBeGreaterThan(0)
+    await authenticatedPage.getByRole('tab', { name: /^Materials\b/ }).click()
+    await expect(authenticatedPage.getByRole('tab', { name: /^Materials\b/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     await settle(authenticatedPage)
     await expect(authenticatedPage).toHaveScreenshot(
       'deadline-detail-materials.png',
@@ -156,9 +148,7 @@ test.describe('alerts surfaces', () => {
 
   test('VISUAL: /alerts list', async ({ authenticatedPage }) => {
     await gotoFrozen(authenticatedPage, '/alerts')
-    // 2026-06-22: the Review/Active toggle is gone — wait on the triage list's
-    // "Needs action" zone band to confirm the list hydrated before the shot.
-    await expect(authenticatedPage.getByText('Needs action').first()).toBeVisible()
+    await expect(authenticatedPage.getByRole('group', { name: 'Alert work queue' })).toBeVisible()
 
     await expect(authenticatedPage).toHaveScreenshot(
       'alerts-list.png',

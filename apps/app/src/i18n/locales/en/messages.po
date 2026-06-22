@@ -367,11 +367,6 @@ msgstr "{0, plural, one {#d late} other {#d late}}"
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 msgstr "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 
-#. placeholder {0}: result.appliedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "{0, plural, one {Applied to # client} other {Applied to # clients}}"
-msgstr "{0, plural, one {Applied to # client} other {Applied to # clients}}"
-
 #. placeholder {0}: genesis.clientCount
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {client imported} other {clients imported}}"
@@ -1297,6 +1292,10 @@ msgstr "{reviewCount, plural, one {Review # state} other {Review # states}}"
 msgid "{reviewCount} Requires review"
 msgstr "{reviewCount} Requires review"
 
+#: src/features/rules/states-rail.tsx
+msgid "{reviewCount} rules to review"
+msgstr "{reviewCount} rules to review"
+
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount} to review"
 msgstr "{reviewCount} to review"
@@ -1304,6 +1303,10 @@ msgstr "{reviewCount} to review"
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "{reviewHeadlineClient} is waiting on your review"
 msgstr "{reviewHeadlineClient} is waiting on your review"
+
+#: src/features/rules/states-rail.tsx
+msgid "{reviewRuleCount} to review"
+msgstr "{reviewRuleCount} to review"
 
 #. placeholder {0}: firm.name
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -1329,10 +1332,6 @@ msgstr "{ruleReviewCount, plural, one {# rule is queued for due-date review befo
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} rules pending review"
-
-#: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
-msgstr "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -1878,7 +1877,9 @@ msgstr "Activates this rule for {clientCount, plural, one {# client} other {# cl
 msgid "active"
 msgstr "active"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/ActiveQueueChip.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -1888,6 +1889,10 @@ msgstr "active"
 #: src/routes/rules.library.tsx
 msgid "Active"
 msgstr "Active"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Active alerts"
+msgstr "Active alerts"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Active alerts for this client"
@@ -2404,6 +2409,11 @@ msgstr "Alert source revoked"
 msgid "Alert status"
 msgstr "Alert status"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Alert work queue"
+msgstr "Alert work queue"
+
 #. placeholder {0}: alert.title
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -2461,7 +2471,6 @@ msgstr "Alerts archive"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/rules/sources-tab.tsx
-#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2558,10 +2567,6 @@ msgstr "All impact"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "All items received."
-
-#: src/features/rules/states-rail.tsx
-msgid "All jurisdictions"
-msgstr "All jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "all matched"
@@ -2802,6 +2807,11 @@ msgstr "Applied a rule change."
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Applied reviewed set to {0} clients"
 msgstr "Applied reviewed set to {0} clients"
+
+#. placeholder {0}: result.appliedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Applied to {0} clients"
+msgstr "Applied to {0} clients"
 
 #. placeholder {0}: temporary.obligationCount
 #: src/features/rules/states-rail.tsx
@@ -3879,7 +3889,6 @@ msgstr "Cleaning up client's books"
 msgid "Clear"
 msgstr "Clear"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/onboarding/state-rule-activation-selector.tsx
 #: src/routes/obligations.tsx
 msgid "Clear all"
@@ -3937,6 +3946,7 @@ msgstr "Clear the blocker to proceed"
 msgid "Clear the filters to see your full inbox."
 msgstr "Clear the filters to see your full inbox."
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "Clear these filters"
 msgstr "Clear these filters"
@@ -5926,10 +5936,6 @@ msgstr "Dismiss alert: {alertTitle}"
 msgid "Dismiss alerts"
 msgstr "Dismiss alerts"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Dismiss all"
-msgstr "Dismiss all"
-
 #: src/routes/obligations.tsx
 msgid "Dismiss at-a-glance summary"
 msgstr "Dismiss at-a-glance summary"
@@ -5966,10 +5972,6 @@ msgstr "Dismissed alerts move off the active board into history. Restore them fr
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismissing hides the alert, but the filing window still closes — it can't be recovered after the deadline passes."
 msgstr "Dismissing hides the alert, but the filing window still closes — it can't be recovered after the deadline passes."
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Display"
-msgstr "Display"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Disposition"
@@ -6324,6 +6326,11 @@ msgstr "Effective · newest first"
 msgid "Effective · oldest first"
 msgstr "Effective · oldest first"
 
+#. placeholder {0}: formatMonthDay(detail.effectiveFrom)
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Effective {0}"
+msgstr "Effective {0}"
+
 #: src/routes/rules.library.tsx
 msgid "effective {effective}"
 msgstr "effective {effective}"
@@ -6331,6 +6338,10 @@ msgstr "effective {effective}"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Effective from tax year"
 msgstr "Effective from tax year"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Effective immediately"
+msgstr "Effective immediately"
 
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -7440,11 +7451,6 @@ msgstr "For the client list, open Clients and use the download icon at the top-r
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
 msgstr "For US CPA practices"
-
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "For your awareness"
-msgstr "For your awareness"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Foreign accounts"
@@ -9605,7 +9611,6 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
-#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -9794,10 +9799,6 @@ msgstr "Next: import your clients to start tracking deadlines"
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "No action needed — monitored updates"
-msgstr "No action needed — monitored updates"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
@@ -12939,6 +12940,8 @@ msgid "review"
 msgstr "review"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -12948,7 +12951,6 @@ msgstr "review"
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/matched-pulse-block.tsx
 #: src/features/workload/workload-page.tsx
-#: src/routes/rules.library.tsx
 msgid "Review"
 msgstr "Review"
 
@@ -12964,10 +12966,6 @@ msgstr "Review {count}"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "Review →"
 msgstr "Review →"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Review and apply to affected clients"
-msgstr "Review and apply to affected clients"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13839,10 +13837,6 @@ msgstr "Select all {count} rules in {label}"
 msgid "Select all alerts on {label}"
 msgstr "Select all alerts on {label}"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Select all alerts that need action"
-msgstr "Select all alerts that need action"
-
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Select all deadlines in this year"
 msgstr "Select all deadlines in this year"
@@ -14190,10 +14184,10 @@ msgid "Shareholder count"
 msgstr "Shareholder count"
 
 #: src/features/dashboard/changes-since-last-section.tsx
-#: src/features/rules/states-rail.tsx
 msgid "Show"
 msgstr "Show"
 
+#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"
@@ -14869,8 +14863,8 @@ msgid "Suggested {count} checklist items."
 msgstr "Suggested {count} checklist items."
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Suggested actions"
-msgstr "Suggested actions"
+msgid "Suggested action"
+msgstr "Suggested action"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms and vouchers"
@@ -15761,6 +15755,7 @@ msgstr "today"
 #: src/features/audit/audit-log-table.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
 #: src/routes/dashboard.tsx
+#: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Today"
 msgstr "Today"
@@ -17052,10 +17047,6 @@ msgstr "You're about to create:"
 #: src/routes/dashboard.tsx
 msgid "You're almost set up"
 msgstr "You're almost set up"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "You're caught up — nothing needs action right now."
-msgstr "You're caught up — nothing needs action right now."
 
 #: src/components/patterns/app-shell.tsx
 msgid "You're exploring a live, read-only demo."

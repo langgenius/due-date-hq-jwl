@@ -1,5 +1,18 @@
 # /alerts feedback pass + triage redesign (2026-06-21)
 
+> **REVERTED 2026-06-22.** After a long iteration loop on the two-zone triage
+> (this whole doc), Yuqi judged the accumulated result "every ugly and floaty"
+> and asked to revert to the PRE-triage design (Review/Active toggle, day-grouped
+> list, clean inline rows — the design at commit `d395e20f`, the parent of the
+> triage feature `190b047d` #67). The alerts surface (`AlertsListPage`,
+> `PulseAlertRow`, `AlertListRail`, `pulse-alert-chrome`, `routes/alerts`,
+> `AlertDetailDrawer`, the unit test + the three e2e specs) was restored to
+> `d395e20f` via `git checkout d395e20f -- …`; i18n re-extracted, the re-added
+> old strings re-translated from `d395e20f`'s zh-CN catalog. Everything below is
+> the history of the now-reverted redesign — kept for the record. Lesson: a rapid
+> tweak-by-tweak loop accreted chrome (colored bands, always-on checkboxes, loud
+> footers, floating clusters) past the point the original clean list was better.
+
 Yuqi's live page-feedback on `/alerts` (two batches, 7 items) plus the
 headline rethink: replacing the Review/Active mode-toggle with a unified
 two-zone triage list. Verified live on a worktree dev server; 117 alerts

@@ -1,8 +1,9 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, EyeIcon, UsersIcon } from 'lucide-react'
+import { CircleAlertIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic, PulsePriorityLevel } from '@duedatehq/contracts'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -24,7 +25,6 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { deadlineProximity, proximityToTier, thresholdsForKind } from '../lib/urgency'
 import { AlertSourceLink } from './AlertSourceLink'
 import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
-import { alertNeedsAction } from './pulse-alert-chrome'
 
 /**
  * The 380px alert-list secondary sidebar shown on the full-page detail
@@ -56,13 +56,20 @@ export function AlertListRail({
   activeId,
   onSelect,
   onCloseDetail,
+  workQueue,
+  onWorkQueueChange,
+  workQueueCounts,
 }: {
-  // Pre-ordered action-first (the page hands the rail `triageOrdered`), so the
-  // rail simply drops a "For your awareness" divider where the FYI digest begins.
   alerts: readonly PulseAlertPublic[]
   activeId: string | null
   onSelect: (alertId: string) => void
   onCloseDetail?: () => void
+  // The work-queue toggle is echoed in the rail head so you can switch
+  // queues while stepping through a detail. Wired to the page's
+  // workQueue state; omit to hide it.
+  workQueue?: 'active' | 'review'
+  onWorkQueueChange?: (queue: 'active' | 'review') => void
+  workQueueCounts?: { active: number; review: number }
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -122,11 +129,58 @@ export function AlertListRail({
         ) : null}
       </ListRailHead>
 
-      {/* The Review/Active toggle is gone (Yuqi 2026-06-21) — the rail mirrors
-          the unified triage list: alerts arrive action-first and a divider marks
-          where the "For your awareness" digest begins (see the body below). */}
+      {/* Work-queue toggle — echoes the main list's Active/Review switch so the
+          queue can be changed while a detail is open. */}
+      {workQueue && onWorkQueueChange ? (
+        <ListRailSection>
+          <Segmented
+            className="w-full [&>button]:flex-1"
+            ariaLabel={t`Alert work queue`}
+            value={workQueue}
+            onValueChange={onWorkQueueChange}
+            options={[
+              {
+                value: 'review',
+                // 2026-06-15 (Yuqi "number in toggle never in a badge"): the
+                // count is a plain number, not a pill. Review still pulls the
+                // eye when it carries work — its count reads in the accent tone
+                // ("N waiting for you") vs Active's quiet tertiary count. Color
+                // is the signal, not weight (color+bold is a banned
+                // double-highlight — matches AlertsListPage's Review tab).
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Trans>Review</Trans>
+                    <span
+                      className={cn(
+                        'tabular-nums',
+                        (workQueueCounts?.review ?? 0) > 0
+                          ? 'text-text-accent'
+                          : 'text-text-tertiary',
+                      )}
+                    >
+                      {workQueueCounts?.review ?? 0}
+                    </span>
+                  </span>
+                ),
+              },
+              {
+                value: 'active',
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    <Trans>Active</Trans>
+                    <span className="tabular-nums text-text-tertiary">
+                      {workQueueCounts?.active ?? 0}
+                    </span>
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </ListRailSection>
+      ) : null}
 
-      {/* FilterRow — full-width search. */}
+      {/* FilterRow — full-width search (no All/Unresolved segmented,
+          see note above). */}
       <ListRailSection>
         <SearchInput
           variant="compact"
@@ -144,30 +198,15 @@ export function AlertListRail({
             <Trans>No alerts match.</Trans>
           </p>
         ) : (
-          (() => {
-            // Drop one "For your awareness" divider where the action queue ends
-            // and the FYI digest begins — but only when action items actually
-            // precede it (an all-FYI rail needs no divider).
-            const firstAwarenessId = visible.find((alert) => !alertNeedsAction(alert))?.id
-            const showDivider =
-              firstAwarenessId !== undefined && firstAwarenessId !== visible[0]?.id
-            return visible.map((alert) => (
-              <Fragment key={alert.id}>
-                {showDivider && alert.id === firstAwarenessId ? (
-                  <div className="flex items-center gap-1.5 border-b border-divider-subtle bg-background-subtle px-[18px] py-2 text-caption-xs font-semibold tracking-eyebrow-tight text-text-tertiary uppercase">
-                    <EyeIcon className="size-3 shrink-0" aria-hidden />
-                    <Trans>For your awareness</Trans>
-                  </div>
-                ) : null}
-                <RailItem
-                  alert={alert}
-                  active={alert.id === activeId}
-                  firmTimezone={firmTimezone}
-                  onSelect={() => onSelect(alert.id)}
-                />
-              </Fragment>
-            ))
-          })()
+          visible.map((alert) => (
+            <RailItem
+              key={alert.id}
+              alert={alert}
+              active={alert.id === activeId}
+              firmTimezone={firmTimezone}
+              onSelect={() => onSelect(alert.id)}
+            />
+          ))
         )}
       </ListRailBody>
     </ListRail>
