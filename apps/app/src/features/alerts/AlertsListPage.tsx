@@ -1253,17 +1253,21 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 // [[project_alerts_triage_model]]): the "Needs action" priority
                 // queue leads at full weight; the collapsible "For your awareness"
                 // digest follows, demoted. No mode toggle — you read everything by
-                // default. `gap-4` separates the two zones.
-                <div className="flex flex-col gap-4">
+                // default. 2026-06-22 (Yuqi "serious problem with sections — so
+                // loose"): zones butt together (gap-0) so the banded section headers
+                // + flush rows read as ONE continuous table, not two floating cards.
+                <div className="flex flex-col">
                   {/* NEEDS ACTION — the priority queue. Always rendered (even at
                       zero) so the "you're caught up" beat has a home. */}
                   <section className="group/zone flex flex-col">
                     {/* Sticky (top-12, below the toolbar) so "Needs action" stays
-                        pinned while you scroll a long queue — the awareness day
-                        bands already stick at the same offset in their own zone,
-                        so the two never collide (different scroll regions). The
-                        page-wash bg occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 bg-background-inset py-2">
+                        pinned while you scroll a long queue. 2026-06-22 (Yuqi "put
+                        the zone titles into header design with a background"): the
+                        zone header is now a banded section header — the same
+                        `bg-background-subtle` + `border-b` chrome as the day bands —
+                        so it reads as a structural table header, not floating text,
+                        and the opaque band occludes rows scrolling underneath. */}
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-divider-subtle bg-background-subtle py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1332,7 +1336,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     ) : (
                       // The queue drained. The awareness digest still shows below,
                       // so the page is never blank — just calm.
-                      <div className="flex items-center gap-2 rounded-xl bg-background-default py-4 text-sm text-text-secondary">
+                      <div className="flex items-center gap-2 bg-background-default py-4 text-sm text-text-secondary">
                         <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                         <Trans>You're caught up — nothing needs action right now.</Trans>
                       </div>
@@ -1349,12 +1353,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           hover-revealed "Dismiss all" sweep (right) so the FYI
                           digest can be cleared in one move (the anti-junk-drawer
                           affordance). Sibling buttons — no nested interactives. */}
-                      <div className="group/awareband flex items-center gap-2 py-1.5">
+                      <div className="group/awareband flex items-center gap-2 border-b border-divider-subtle bg-background-subtle py-2">
                         <button
                           type="button"
                           onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
                           aria-expanded={!awarenessCollapsed}
-                          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="flex flex-1 cursor-pointer items-center gap-2 py-1 pr-2 text-left outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <ChevronDownIcon
                             className={cn(
@@ -1365,12 +1369,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           />
                           {/* Same badge skeleton as "Needs action", neutral-toned —
                               temperature is the only difference, so the two headers
-                              read as siblings (one feed, two response tiers). The
-                              fill is bg-background-subtle (the day-band gray) so the
-                              square reads as clearly as the warm action badge on the
-                              white list — both are filled squares, not one fill +
-                              one near-invisible outline. */}
-                          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-background-subtle text-text-tertiary">
+                              read as siblings (one feed, two response tiers). On the
+                              gray header band the fill flips to white
+                              (`bg-background-default`) so the square stays a crisp
+                              filled tile against the band (the warm action badge
+                              reads the same way on its band). */}
+                          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-background-default text-text-tertiary">
                             <EyeIcon className="size-3.5" aria-hidden />
                           </span>
                           <div className="flex flex-col gap-0.5">

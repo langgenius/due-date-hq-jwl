@@ -167,7 +167,11 @@ export function AlertsRoute() {
         // own. `gap-8` (32px) matches /today's outer rhythm so top-level
         // pages share a uniform vertical cadence.
         contentClassName={cn(
-          'gap-8 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+          // 2026-06-22 (Yuqi "why is there a bottom padding — remove it, full
+          // height"): override the shell's default `pb-5` so the alert table runs
+          // to the bottom edge of the viewport (the list column owns its own
+          // scroll; the trailing gap just stranded the last rows).
+          'gap-8 pb-0 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
           // 2026-06-15 (Yuqi "alert page has a max width but deadlines doesn't —
           // maybe drop it"): the list now uses the shell's `wide`
           // (max-w-page-expanded) like /deadlines, for cross-page parity.
