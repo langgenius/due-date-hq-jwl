@@ -1,6 +1,11 @@
 ---
-/** TrustPage — about / security / privacy / terms / status. Uses the shared
- *  long-tail page kit (.m-page-* / .m-card / .m-btn) so it matches the home. */
+/** TrustPage — about / security / privacy / terms / status.
+ *  The in-depth, deeper-pushed counterpart to the landing's trust section.
+ *  Reuses the shared long-tail kit (.m-page-* / .m-card / .m-btn) but lifts it:
+ *  a display-serif hero that bookends the navy finale (the only two places the
+ *  serif appears here), a calm meta rail, an optional signature statement, a
+ *  numbered section rhythm with contained rules, and a bold navy CTA that closes
+ *  the page — chroma in containers, never in text. */
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import type { TrustPageCopy } from '../lib/trust-pages'
 
@@ -10,34 +15,77 @@ interface Props {
 }
 
 const { page, locale } = Astro.props
-const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
+const zh = locale === 'zh-CN'
+const lastReviewedLabel = zh ? '最近复核' : 'Last reviewed'
+const sectionsLabel = zh ? '本页内容' : 'On this page'
+
+/** Two pages earn an evidence-first tone (display-serif hero, statement rail);
+ *  the rest stay calm and legal. Security + about lead with conviction. */
+const isSignature = page.slug === 'security' || page.slug === 'about'
+const sectionCount = page.sections.length
+const pad = (n: number) => String(n).padStart(2, '0')
 ---
 
-<main>
-  <section class="m-section m-page-hero" id="hero">
-    <p class="m-eyebrow">{page.hero.eyebrow}</p>
-    <h1 class="m-page-title">{page.hero.title}</h1>
-    <p class="m-page-lead">{page.hero.description}</p>
-    <p class="m-page-note">{page.hero.note}</p>
-    <p class="m-page-reviewed">
-      {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+<main class="trustpg" data-slug={page.slug}>
+  <section class="m-section trustpg__hero" id="hero">
+    <p class="m-eyebrow trustpg__eyebrow">
+      <span class="trustpg__eyebrow-dot" aria-hidden="true"></span>{page.hero.eyebrow}
     </p>
+    <h1 class={`trustpg__title${isSignature ? ' trustpg__title--display' : ''}`}>{page.hero.title}</h1>
+    <p class="trustpg__lead">{page.hero.description}</p>
+
+    <div class="trustpg__meta">
+      <p class="trustpg__note">{page.hero.note}</p>
+      <p class="trustpg__reviewed">
+        <span class="trustpg__reviewed-k">{lastReviewedLabel}</span>
+        <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+      </p>
+    </div>
   </section>
 
   {
-    page.sections.map((section) => (
-      <section class="m-section m-page-block">
+    page.statement && (
+      <section class="m-section trustpg__statement-sec">
+        <figure class="statement">
+          <figcaption class="statement__label">{page.statement.label}</figcaption>
+          <blockquote class="statement__text">{page.statement.text}</blockquote>
+        </figure>
+      </section>
+    )
+  }
+
+  <section class="m-section trustpg__toc" aria-label={sectionsLabel}>
+    <p class="trustpg__toc-label">{sectionsLabel}</p>
+    <ol class="trustpg__toc-list">
+      {
+        page.sections.map((section, i) => (
+          <li class="trustpg__toc-item">
+            <span class="trustpg__toc-num">{pad(i + 1)}</span>
+            <span class="trustpg__toc-txt">{section.title}</span>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  {
+    page.sections.map((section, i) => (
+      <section class="m-section m-page-block trustpg__block">
         <div class="m-page-split">
-          <div class="m-page-split__lead">
-            <p class="m-eyebrow">{section.eyebrow}</p>
-            <h2 class="m-page-h2">{section.title}</h2>
-            <p class="m-page-body">{section.body}</p>
+          <div class="m-page-split__lead trustpg__lead-col">
+            <div class="trustpg__index" aria-hidden="true">
+              <span class="trustpg__index-n">{pad(i + 1)}</span>
+              <span class="trustpg__index-of">/ {pad(sectionCount)}</span>
+            </div>
+            <p class="m-eyebrow trustpg__sec-eyebrow">{section.eyebrow}</p>
+            <h2 class="m-page-h2 trustpg__h2">{section.title}</h2>
+            <p class="m-page-body trustpg__body">{section.body}</p>
           </div>
-          <div class="m-page-cards">
+          <div class="m-page-cards trustpg__cards">
             {section.items.map((item) => (
-              <article class="m-card">
-                <h3 class="m-card__t">{item.title}</h3>
-                <p class="m-card__d">{item.body}</p>
+              <article class="m-card trustpg__card">
+                <h3 class="m-card__t trustpg__card-t">{item.title}</h3>
+                <p class="m-card__d trustpg__card-d">{item.body}</p>
               </article>
             ))}
           </div>
@@ -46,15 +94,334 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     ))
   }
 
-  <section class="m-section m-page-block">
-    <div class="m-page-cta">
-      <div>
-        <h2 class="m-page-cta__title">{page.contact.title}</h2>
-        <p class="m-page-cta__body">{page.contact.body}</p>
-      </div>
-      <div class="m-page-cta__btns">
-        <a class="m-btn m-btn--primary" href={page.contact.href}>{page.contact.label}</a>
+  <section class="trustpg__close">
+    <div class="trustpg__close-card">
+      <div class="trustpg__close-inner">
+        <p class="trustpg__close-eyebrow">{page.contact.label}</p>
+        <h2 class="trustpg__close-title">{page.contact.title}</h2>
+        <p class="trustpg__close-body">{page.contact.body}</p>
+        <a class="trustpg__close-btn" href={page.contact.href}>
+          {page.contact.label}
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
     </div>
   </section>
 </main>
+
+<style>
+  /* ============================================================================
+     Hero — calm by default; bold + display-serif on the signature pages.
+     ============================================================================ */
+  .trustpg__hero {
+    padding-block: clamp(56px, 7vw, 96px) clamp(28px, 3.5vw, 44px);
+  }
+  .trustpg__eyebrow {
+    margin-bottom: 22px;
+  }
+  .trustpg__eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-accent);
+  }
+  .trustpg__title {
+    max-width: 20ch;
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(31px, 4.2vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--m-ink);
+    text-wrap: balance;
+  }
+  /* Signature pages (security / about) get the display serif — bookending the
+     navy close, the only OTHER place the serif appears on these pages. */
+  .trustpg__title--display {
+    max-width: 17ch;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(38px, 5.4vw, 66px);
+    line-height: 1.04;
+    letter-spacing: -0.018em;
+  }
+  .trustpg__lead {
+    margin-top: 24px;
+    max-width: 62ch;
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  /* meta rail — note + last-reviewed sit on one quiet, ruled line */
+  .trustpg__meta {
+    margin-top: clamp(28px, 3.4vw, 40px);
+    padding-top: 18px;
+    border-top: 1px solid var(--m-hairline);
+    display: grid;
+    gap: 14px 40px;
+    align-items: start;
+  }
+  .trustpg__note {
+    max-width: 72ch;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .trustpg__reviewed {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-faint);
+  }
+  .trustpg__reviewed-k {
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .trustpg__reviewed time {
+    color: var(--m-ink-2);
+  }
+  @media (min-width: 720px) {
+    .trustpg__meta {
+      grid-template-columns: 1fr auto;
+    }
+  }
+
+  /* ============================================================================
+     Statement — a single page-defining line, set large, like a pull-quote.
+     Only present on the signature pages.
+     ============================================================================ */
+  .trustpg__statement-sec {
+    padding-block: clamp(8px, 1.6vw, 20px) clamp(28px, 3.6vw, 48px);
+  }
+  .statement {
+    max-width: 940px;
+    padding: clamp(26px, 3.2vw, 40px) clamp(26px, 3.4vw, 44px);
+    background: var(--m-accent-tint);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .statement__label {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .statement__text {
+    margin-top: 16px;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(20px, 2.2vw, 28px);
+    line-height: 1.34;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+    text-wrap: pretty;
+  }
+
+  /* ============================================================================
+     On-this-page — a compact, numbered contents rail. Gives the long legal
+     pages structure + scent without a heavy nav.
+     ============================================================================ */
+  .trustpg__toc {
+    padding-block: clamp(20px, 2.6vw, 32px) 0;
+  }
+  .trustpg__toc-label {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--m-hairline);
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--m-faint);
+  }
+  .trustpg__toc-list {
+    margin-top: 6px;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 clamp(24px, 3vw, 48px);
+  }
+  .trustpg__toc-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .trustpg__toc-num {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .trustpg__toc-txt {
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--m-ink);
+  }
+  @media (max-width: 640px) {
+    .trustpg__toc-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ============================================================================
+     Section blocks — a numbered editorial index in the lead column gives every
+     block a confident anchor instead of a plain eyebrow-stack.
+     ============================================================================ */
+  .trustpg__block:first-of-type {
+    border-top-width: 1px;
+    border-top-color: var(--m-hairline);
+  }
+  .trustpg__index {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .trustpg__index-n {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    font-size: clamp(26px, 3vw, 38px);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .trustpg__index-of {
+    font-family: var(--m-font-mono);
+    font-size: 13px;
+    color: var(--m-faint);
+  }
+  .trustpg__sec-eyebrow {
+    margin-bottom: 12px;
+  }
+  .trustpg__h2 {
+    text-wrap: balance;
+  }
+  /* cards lift on hover — a quiet, restrained micro-shadow only (blur ≤ 4) */
+  .trustpg__card {
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
+  .trustpg__card:hover {
+    border-color: var(--m-hairline);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--m-ink) 7%, transparent);
+    transform: translateY(-1px);
+  }
+  .trustpg__card-t {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+  }
+  /* a small accent tick before each card title — chroma in a container glyph */
+  .trustpg__card-t::before {
+    content: '';
+    flex: none;
+    width: 6px;
+    height: 6px;
+    margin-top: 1px;
+    border-radius: 999px;
+    background: var(--m-accent);
+  }
+
+  /* ============================================================================
+     Close — bold navy CTA that ENDS the page, bookending the hero. Cyan top-edge
+     + a faint corner light (chroma in the container, white text only), matching
+     the home's Close. Serif title returns the page's display voice.
+     ============================================================================ */
+  .trustpg__close {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    padding-block: clamp(40px, 6vw, 80px);
+  }
+  .trustpg__close-card {
+    position: relative;
+    background: var(--m-accent);
+    border-radius: 16px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .trustpg__close-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in srgb, var(--m-cyan) 16%, transparent) 0%,
+      transparent 55%
+    );
+    pointer-events: none;
+  }
+  .trustpg__close-card::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--m-cyan) 22%, var(--m-cyan) 78%, transparent);
+    pointer-events: none;
+  }
+  .trustpg__close-inner {
+    position: relative;
+    padding: clamp(40px, 5.5vw, 68px) clamp(28px, 5vw, 60px);
+    max-width: 60ch;
+  }
+  .trustpg__close-eyebrow {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .trustpg__close-title {
+    margin-top: 16px;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.4vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.018em;
+    color: #fff;
+    text-wrap: balance;
+  }
+  .trustpg__close-body {
+    margin-top: 18px;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .trustpg__close-btn {
+    margin-top: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding-inline: 20px;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--m-accent);
+    font-size: 14px;
+    font-weight: 500;
+    transition:
+      background 0.18s ease,
+      transform 0.12s ease;
+  }
+  .trustpg__close-btn span {
+    transition: transform 0.18s ease;
+  }
+  .trustpg__close-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .trustpg__close-btn:hover span {
+    transform: translateX(3px);
+  }
+  .trustpg__close-btn:active {
+    transform: translateY(1px);
+  }
+</style>

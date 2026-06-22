@@ -16,13 +16,12 @@ const zh = locale === 'zh-CN'
 
 const t = zh
   ? {
-      headBefore: '捕捉每一次报税截止日变化 —— 并清楚看到它',
-      headItal: '影响到哪些',
-      headAfter: '客户。',
-      subLead: '你再也不用纠结',
-      subEm: '“截止日是不是变了？”',
-      subRest:
-        '我们全天候盯着 IRS、主要州税务机关和 FEMA —— 日期一变动，你立刻看到它影响到哪些客户。',
+      headBefore: '截止日刚刚变了。你知道它影响到',
+      headItal: '谁',
+      headAfter: '吗？',
+      subLead: 'DueDateHQ 全天候监控 IRS、各州税务机关和 FEMA ——',
+      subEm: '日期一变动，',
+      subRest: '你立刻看到它影响到哪些客户，每条变更都附官方来源。',
       subStrong: '粘贴你的客户名单，约 10 分钟后第一条带来源的截止日就会出现。',
       points: [
         { strong: '我们全天候盯着 IRS、主要州税务机关和 FEMA', rest: '' },
@@ -38,7 +37,7 @@ const t = zh
       panelCount: '6 项变化 · 31 个客户',
       panelCap: '实时预览 · 非你的真实数据',
       filterAria: '按辖区筛选',
-      filters: ['全部', '联邦', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      filters: ['全部', '联邦', 'CA', 'TX', 'NY'],
       sevUrgent: '紧急',
       sevInfo: '信息',
       affectsLabel: '影响',
@@ -78,13 +77,12 @@ const t = zh
       ],
     }
   : {
-      headBefore: 'Catch every tax-deadline change — and see exactly',
+      headBefore: 'A deadline just moved. Do you know',
       headItal: 'who',
-      headAfter: 'it affects.',
-      subLead: "You'll never wonder",
-      subEm: '“did a deadline move?”',
-      subRest:
-        'again. We watch the IRS, the major state agencies, and FEMA — the moment a date moves, you see which clients it hits.',
+      headAfter: 'it hits?',
+      subLead: 'DueDateHQ watches the IRS, every state, and FEMA around the clock —',
+      subEm: 'the moment a date moves,',
+      subRest: 'you see exactly which clients it affects, with the source on every change.',
       subStrong:
         'Paste your client list and your first sourced deadline shows up in about 10 minutes.',
       points: [
@@ -101,7 +99,7 @@ const t = zh
       panelCount: '6 changes · 31 clients',
       panelCap: 'live preview · not your data',
       filterAria: 'Filter by jurisdiction',
-      filters: ['All', 'Federal', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      filters: ['All', 'Federal', 'CA', 'TX', 'NY'],
       sevUrgent: 'URGENT',
       sevInfo: 'INFO',
       affectsLabel: 'Affects',
@@ -144,7 +142,7 @@ const points = t.points
 const alerts = t.alerts
 ---
 
-<section class="hero" aria-labelledby="hero-h">
+<section class="hero" aria-labelledby="hero-h" data-zh={zh ? '' : undefined}>
   <div class="hero__inner">
     <div class="hero__copy">
       <h1 class="hero__head" id="hero-h">
@@ -197,7 +195,7 @@ const alerts = t.alerts
         <span class="panel__cap">{t.panelCap}</span>
       </div>
 
-      <div class="panel__filter" role="group" aria-label={t.filterAria}>
+      <div class="panel__filter" aria-hidden="true">
         {
           t.filters.map((j, i) => (
             <span class={`chip${i === 0 ? ' chip--on' : ''}`}>{j}</span>
@@ -208,7 +206,7 @@ const alerts = t.alerts
       <div class="panel__rows">
         {
           alerts.map((a) => (
-            <article class="row">
+            <article class={`row${a.sev === 'urgent' ? ' row--anchor' : ' row--secondary'}`}>
               <div class="row__top">
                 <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? t.sevUrgent : t.sevInfo}</span>
                 <span class="juris">{a.juris}</span>
@@ -229,7 +227,7 @@ const alerts = t.alerts
               {a.delta ? (
                 <p class="row__change">
                   <s>{a.from}</s> <span class="arrow">→</span> <b>{a.to}</b>
-                  <span class={`row__delta row__delta--${a.sev === 'urgent' ? 'later' : 'later'}`}>
+                  <span class="row__delta row__delta--later">
                     {a.delta}
                   </span>
                 </p>
@@ -250,7 +248,7 @@ const alerts = t.alerts
                   />
                 </svg>
                 {t.affectsLabel} <b>{a.affects}</b>
-                <span class="row__status">{a.status}</span>
+                {a.sev === 'urgent' ? <span class="row__status">{a.status}</span> : null}
               </p>
             </article>
           ))
@@ -265,13 +263,13 @@ const alerts = t.alerts
     max-width: var(--m-maxw);
     margin-inline: auto;
     padding-inline: var(--m-gutter);
-    padding-top: clamp(52px, 6.5vw, 104px);
+    padding-top: clamp(56px, 6.5vw, 108px);
     padding-bottom: clamp(80px, 10vw, 132px);
   }
   .hero__inner {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(36px, 4.5vw, 72px);
+    column-gap: clamp(36px, 4.5vw, 76px);
     gap: clamp(40px, 5vw, 64px);
     align-items: center;
   }
@@ -287,19 +285,31 @@ const alerts = t.alerts
   .hero__head {
     font-family: var(--m-font-display);
     font-weight: 400;
-    font-size: clamp(40px, 4.6vw, 60px);
-    line-height: 1.06;
-    letter-spacing: -0.01em;
+    /* Bigger, more confident ceiling: real impact at 1440–1920, graceful 40px floor on mobile. */
+    font-size: clamp(40px, 5.4vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
     color: var(--m-ink);
-    max-width: 20ch;
+    max-width: 15ch;
+    text-wrap: balance;
   }
   .hero__head .ital {
     font-style: italic;
+    /* Italic display cut reads tighter — pull a hair of optical spacing back. */
+    letter-spacing: 0.002em;
+  }
+  /* CJK glyphs are full-width and heavier — the Latin ceiling overwhelms the column.
+     Cap the size, widen the measure for a clean 2–3 lines, and drop the tight tracking. */
+  .hero[data-zh] .hero__head {
+    font-size: clamp(34px, 4vw, 56px);
+    line-height: 1.18;
+    letter-spacing: 0;
+    max-width: 18ch;
   }
   .hero__sub {
-    margin-top: 24px;
-    max-width: 44ch;
-    font-size: clamp(15px, 1.1vw, 16px);
+    margin-top: clamp(22px, 1.7vw, 28px);
+    max-width: 53ch;
+    font-size: clamp(15px, 1.05vw, 16.5px);
     line-height: 1.6;
     color: var(--m-ink-2);
   }
@@ -307,19 +317,25 @@ const alerts = t.alerts
     font-style: italic;
     color: var(--m-ink);
   }
+  /* zh: CJK has no italic — the synthesized oblique reads broken, so keep the
+     emphasis as colour/weight only (mirrors the .ital faux-italic guard). */
+  html[lang='zh-CN'] .hero__sub em {
+    font-style: normal;
+    font-weight: 500;
+  }
   .hero__sub strong {
     color: var(--m-ink);
     font-weight: 500;
   }
   .hero__reassure {
-    margin-top: 20px;
-    max-width: 48ch;
+    margin-top: 14px;
+    max-width: 46ch;
     font-size: 13.5px;
     line-height: 1.55;
     color: var(--m-ink-2);
   }
   .hero__points {
-    margin-top: 30px;
+    margin-top: clamp(26px, 2.4vw, 34px);
     display: grid;
     gap: 9px;
     list-style: none;
@@ -345,17 +361,17 @@ const alerts = t.alerts
   }
 
   .hero__cta {
-    margin-top: 38px;
+    margin-top: clamp(30px, 3vw, 40px);
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 24px;
+    gap: 10px 22px;
     align-items: center;
   }
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 500;
     border-radius: 8px;
     transition:
@@ -367,7 +383,8 @@ const alerts = t.alerts
   .btn--primary {
     background: var(--m-accent);
     color: #fff;
-    padding: 12px 20px;
+    padding: 13px 22px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
   }
   .btn--primary:hover {
     background: var(--m-accent-strong);
@@ -383,7 +400,7 @@ const alerts = t.alerts
   }
   .btn--ghost {
     color: var(--m-ink);
-    padding: 12px 4px;
+    padding: 13px 4px;
   }
   .btn--ghost:hover {
     color: var(--m-accent);
@@ -555,6 +572,11 @@ const alerts = t.alerts
     color: var(--m-ink);
     line-height: 1.35;
     letter-spacing: -0.01em;
+  }
+  /* Secondary rows recede so the anchor (urgent) row reads first. */
+  .row--secondary .row__title {
+    font-weight: 400;
+    color: var(--m-ink-2);
   }
   .row__change {
     margin-top: 9px;

@@ -1,8 +1,9 @@
 ---
 /** Sources — coverage proof. One clear, honest message: the whole country is
- *  watched around the clock (IRS + FEMA disaster relief nationwide + the major
- *  state tax agencies, and every one of the 50 + DC in the rule library). A
- *  full-bleed band: a live-scanning US map + a source-monitoring feed. */
+ *  watched around the clock — IRS + FEMA disaster relief nationwide + every
+ *  state tax agency, all 50 states + DC, uniformly live. A full-bleed band:
+ *  a live-scanning US map (every tile equally watched) + a source-monitoring
+ *  feed styled like the product's Alerts surface (honest beta sample). */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -17,22 +18,27 @@ const t = zh
       headingPre: '紧盯官方来源，',
       headingItal: '全天候。',
       leadHtml:
-        '我们全天候监控 IRS 和 FEMA 全国灾害救济，并直接盯紧主要州税务机关——<b>50 个州 + DC</b>，没有一个落下。',
+        '我们全天候监控 IRS、FEMA 全国灾害救济，以及每一个州的税务机关——<b>全部 50 个州 + DC</b>，没有「重点」与「普通」之分，一视同仁地实时盯紧。',
       chipsLabel: '实时监控的来源',
       chipMore: '+ FEMA 灾害声明，覆盖全国',
-      mapLabel: '美国地图：每一个州都在监控之中，全部 50 个州加 DC',
-      legWatched: '全天候监控中',
-      mapCap: 'FED + 50 个州 + DC',
+      mapLabel: '美国地图：每一个州都在 24/7 实时监控之中，全部 50 个州加 DC，一视同仁',
+      legWatched: '全部 24/7 实时监控',
+      mapStat: '51',
+      mapStatLabel: '个辖区实时监控',
+      mapCap: 'FED + 50 州 + DC · 24/7',
       feedLabel: '来源监控动态——示例预览',
       feedTitle: '监控动态',
-      feedCap: '实时预览 · 非你的数据',
+      feedLive: '实时',
+      feedCap: '示例预览 · 非你的数据',
+      feedFootLeft: '每分钟扫描一次',
+      feedFootRight: '示例数据',
       statusLabels: { scan: '已扫描', new: '新公告', ok: '已核验' },
       rows: [
-        { code: 'IRS', org: 'IRS', body: '已扫描，无变化', when: '2 分钟前', dot: 'scan', alert: false },
-        { code: 'TX', org: 'TX Comptroller', body: '新公告', when: '14 分钟前', dot: 'new', alert: true },
-        { code: 'CA', org: 'CA FTB', body: '已核验，无变化', when: '31 分钟前', dot: 'ok', alert: false },
-        { code: 'NY', org: 'NY DTF', body: '已扫描，无变化', when: '52 分钟前', dot: 'scan', alert: false },
-        { code: 'FE', org: 'FEMA', body: '灾害声明', when: '1 小时前', dot: 'new', alert: true },
+        { code: 'IRS', org: 'IRS', agency: '联邦', body: '已扫描，无变化', when: '2 分钟前', dot: 'scan', alert: false },
+        { code: 'TX', org: 'TX Comptroller', agency: '州', body: '检测到新公告', when: '14 分钟前', dot: 'new', alert: true },
+        { code: 'CA', org: 'CA FTB', agency: '州', body: '已核验，无变化', when: '31 分钟前', dot: 'ok', alert: false },
+        { code: 'NY', org: 'NY DTF', agency: '州', body: '已扫描，无变化', when: '52 分钟前', dot: 'scan', alert: false },
+        { code: 'FE', org: 'FEMA', agency: '联邦', body: '新灾害声明', when: '1 小时前', dot: 'new', alert: true },
       ],
     }
   : {
@@ -40,22 +46,27 @@ const t = zh
       headingPre: 'Eyes on the official sources, ',
       headingItal: 'around the clock.',
       leadHtml:
-        'We watch the IRS and FEMA disaster relief nationwide, and the major state tax agencies directly — <b>all 50 states + DC</b>, with nothing left unwatched.',
+        'We watch the IRS, FEMA disaster relief nationwide, and every state tax agency — <b>all 50 states + DC</b>, no "priority" states and no afterthoughts. Every jurisdiction is watched live, the same way.',
       chipsLabel: 'Sources monitored live',
       chipMore: '+ FEMA disaster declarations, nationwide',
-      mapLabel: 'US map: every state watched, all 50 plus DC',
-      legWatched: 'Watched around the clock',
-      mapCap: 'FED + 50 states + DC',
+      mapLabel: 'US map: every state watched live around the clock, all 50 plus DC, uniformly',
+      legWatched: 'All watched live, 24/7',
+      mapStat: '51',
+      mapStatLabel: 'jurisdictions watched live',
+      mapCap: 'FED + 50 states + DC · 24/7',
       feedLabel: 'Source-monitoring feed — sample preview',
       feedTitle: 'Monitoring feed',
-      feedCap: 'live preview · not your data',
+      feedLive: 'Live',
+      feedCap: 'sample preview · not your data',
+      feedFootLeft: 'Scanning every minute',
+      feedFootRight: 'Sample data',
       statusLabels: { scan: 'Scanned', new: 'New', ok: 'Verified' },
       rows: [
-        { code: 'IRS', org: 'IRS', body: 'scanned, no change', when: '2m ago', dot: 'scan', alert: false },
-        { code: 'TX', org: 'TX Comptroller', body: 'new notice', when: '14m ago', dot: 'new', alert: true },
-        { code: 'CA', org: 'CA FTB', body: 'verified, no change', when: '31m ago', dot: 'ok', alert: false },
-        { code: 'NY', org: 'NY DTF', body: 'scanned, no change', when: '52m ago', dot: 'scan', alert: false },
-        { code: 'FE', org: 'FEMA', body: 'disaster declaration', when: '1h ago', dot: 'new', alert: true },
+        { code: 'IRS', org: 'IRS', agency: 'Federal', body: 'scanned, no change', when: '2m ago', dot: 'scan', alert: false },
+        { code: 'TX', org: 'TX Comptroller', agency: 'State', body: 'new notice detected', when: '14m ago', dot: 'new', alert: true },
+        { code: 'CA', org: 'CA FTB', agency: 'State', body: 'verified, no change', when: '31m ago', dot: 'ok', alert: false },
+        { code: 'NY', org: 'NY DTF', agency: 'State', body: 'scanned, no change', when: '52m ago', dot: 'scan', alert: false },
+        { code: 'FE', org: 'FEMA', agency: 'Federal', body: 'new disaster declaration', when: '1h ago', dot: 'new', alert: true },
       ],
     }
 // US tilegram (state, grid-row, grid-column) — every tile is watched
@@ -81,7 +92,7 @@ const tiles = [
 ]
 ---
 
-<section class="sources" id="sources" aria-labelledby="sources-h">
+<section class="sources" id="sources" aria-labelledby="sources-h" data-reveal>
   <div class="sources__inner">
     <p class="m-eyebrow">{t.eyebrow}</p>
     <h2 class="m-h2" id="sources-h">
@@ -95,62 +106,87 @@ const tiles = [
     </ul>
 
     <div class="sources__grid">
-      <!-- live-scanning US map — every state watched -->
+      <!-- live-scanning US map — every state watched, uniformly -->
       <div class="usmap-wrap">
         <div class="usmap" role="img" aria-label={t.mapLabel}>
           {
-            tiles.map((tile, i) => (
-              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c};--i:${i}`}>
+            tiles.map((tile) => (
+              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c}`}>
                 <span class="ust__c">{tile.s}</span>
               </div>
             ))
           }
         </div>
         <div class="usmap__legend">
-          <span class="leg"><span class="sw" />{t.legWatched}</span>
+          <span class="leg"><span class="sw" aria-hidden="true" />{t.legWatched}</span>
+          <span class="usmap__stat">
+            <span class="usmap__stat-n">{t.mapStat}</span>
+            <span class="usmap__stat-l">{t.mapStatLabel}</span>
+          </span>
           <span class="usmap__cap">{t.mapCap}</span>
         </div>
       </div>
 
-      <!-- source-monitoring feed -->
+      <!-- source-monitoring feed — styled like the product's Alerts surface -->
       <div class="feed" aria-label={t.feedLabel}>
         <div class="feed__bar">
-          <span class="feed__title"><span class="live" aria-hidden="true" />{t.feedTitle}</span>
-          <span class="feed__cap">{t.feedCap}</span>
+          <span class="feed__title">{t.feedTitle}</span>
+          <span class="feed__live">
+            <span class="feed__live-dot" aria-hidden="true" />
+            {t.feedLive}
+          </span>
         </div>
-        {
-          t.rows.map((r) => (
-            <div class="feed-row">
-              <span class="feed-row__badge">{r.code}</span>
-              <div class="feed-row__main">
-                <span class="feed-row__org">{r.org}</span>
-                <span class="feed-row__body">{r.body}</span>
-              </div>
-              <span class={`feed-row__status feed-row__status--${r.dot}`}>{t.statusLabels[r.dot]}</span>
-              <span class={`feed-row__when${r.alert ? ' alert' : ''}`}>{r.when}</span>
-            </div>
-          ))
-        }
+        <ul class="feed__rows">
+          {
+            t.rows.map((r) => (
+              <li class={`feed-row${r.alert ? ' is-alert' : ''}`}>
+                <span class="feed-row__badge">{r.code}</span>
+                <div class="feed-row__main">
+                  <span class="feed-row__head">
+                    <span class="feed-row__org">{r.org}</span>
+                    <span class={`feed-row__agency feed-row__agency--${r.agency === 'Federal' || r.agency === '联邦' ? 'fed' : 'state'}`}>
+                      {r.agency}
+                    </span>
+                  </span>
+                  <span class="feed-row__body">{r.body}</span>
+                </div>
+                <span class="feed-row__meta">
+                  <span class={`feed-row__status feed-row__status--${r.dot}`}>
+                    <span class="feed-row__status-dot" aria-hidden="true" />
+                    {t.statusLabels[r.dot]}
+                  </span>
+                  <span class="feed-row__when">{r.when}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="feed__foot">
+          <span class="feed__foot-left">
+            <span class="feed__scan" aria-hidden="true" />
+            {t.feedFootLeft}
+          </span>
+          <span class="feed__foot-right">{t.feedCap}</span>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  /* full-bleed band */
+  /* normal contained band — matches the other sections; no top/bottom border */
   .sources {
     background: var(--m-section);
-    border-top: 1px solid var(--m-hairline);
-    padding-block: clamp(56px, 8vw, 104px);
+    padding-block: clamp(56px, 8vw, 112px);
   }
   .sources__inner {
-    max-width: 1340px;
+    max-width: var(--m-maxw);
     margin-inline: auto;
     padding-inline: var(--m-gutter);
   }
   .sources__lead {
-    margin-top: 16px;
-    max-width: 64ch;
+    margin-top: 18px;
+    max-width: 72ch;
   }
   .sources__lead :global(b) {
     color: var(--m-ink);
@@ -182,63 +218,55 @@ const tiles = [
   }
 
   .sources__grid {
-    margin-top: clamp(28px, 4vw, 44px);
+    margin-top: clamp(32px, 4vw, 52px);
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--m-col-gap);
-    gap: clamp(28px, 4vw, 44px);
-    align-items: start;
+    gap: clamp(28px, 4vw, 56px);
+    align-items: center;
   }
   .usmap-wrap {
     grid-column: span 7;
   }
   .feed {
     grid-column: span 5;
+    align-self: stretch;
   }
 
-  /* ---- US tilegram — uniform "watched", with a live scan wave ---- */
+  /* ---- US tilegram — a calm coverage grid: light neutral tiles, every one
+     carrying the same quiet "live" cue. No priority tier, no blue block. ---- */
   .usmap {
     display: grid;
     grid-template-columns: repeat(13, minmax(0, 1fr));
-    grid-template-rows: repeat(8, minmax(32px, 1fr));
-    gap: 5px;
-    min-width: 480px;
+    grid-template-rows: repeat(8, minmax(34px, 1fr));
+    gap: 6px;
+    min-width: 520px;
   }
   .ust {
+    position: relative;
     display: grid;
     place-items: center;
     border-radius: 7px;
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
-    color: #fff;
-    background: var(--m-accent);
-    animation: ust-scan 6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.11s);
+    color: var(--m-ink-2);
+    /* neutral surface on every state — identical, no priority tier */
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
   }
-  @keyframes ust-scan {
-    0%,
-    88%,
-    100% {
-      background: var(--m-accent);
-      box-shadow: none;
-    }
-    94% {
-      background: var(--m-accent-strong);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--m-cyan) 55%, transparent);
-    }
+  .ust__c {
+    position: relative;
+    z-index: 1;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .ust {
-      animation: none;
-    }
-  }
+  /* the map is a clean, calm coverage grid — every tile equally watched. The one
+     "live" cue lives in the legend (a single cyan dot), not 51 dots on the map. */
   .usmap__legend {
-    margin-top: 16px;
+    margin-top: 20px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
+    gap: 14px 22px;
     font-size: 12px;
     color: var(--m-muted);
   }
@@ -247,12 +275,43 @@ const tiles = [
     align-items: center;
     gap: 7px;
   }
+  /* legend swatch mirrors a map tile: neutral chip + the quiet cyan live-dot */
   .sw {
+    position: relative;
     width: 12px;
     height: 12px;
     border-radius: 4px;
     flex: none;
-    background: var(--m-accent);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .sw::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--m-cyan);
+  }
+  /* "51 jurisdictions watched live" — reinforces uniform, full-country coverage */
+  .usmap__stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding-left: 22px;
+    border-left: 1px solid var(--m-hairline);
+  }
+  .usmap__stat-n {
+    font-family: var(--m-font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--m-ink);
+  }
+  .usmap__stat-l {
+    color: var(--m-muted);
   }
   .usmap__cap {
     margin-left: auto;
@@ -261,15 +320,10 @@ const tiles = [
     color: var(--m-faint);
   }
 
-  /* ---- feed ---- */
-  .live {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--m-ok);
-    flex: none;
-  }
+  /* ---- feed — a real product surface (cues from the Alerts monitoring view) ---- */
   .feed {
+    display: flex;
+    flex-direction: column;
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
@@ -280,93 +334,219 @@ const tiles = [
     align-items: center;
     justify-content: space-between;
     padding: 13px 16px;
+    background: var(--m-section);
     border-bottom: 1px solid var(--m-hairline-2);
   }
   .feed__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  /* live pill — chromatic accent lives in the container, not the text */
+  /* a11y: 10px uppercase label uses the darker -ink token for AA on the tint;
+     the pulsing dot below keeps the brighter --m-ok hue. */
+  .feed__live {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--m-ink-2);
-  }
-  .feed__cap {
-    font-family: var(--m-font-mono);
+    gap: 6px;
     font-size: 10px;
-    color: var(--m-faint);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-ok-ink);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+    border-radius: 999px;
+    padding: 3px 9px 3px 8px;
+  }
+  .feed__live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex: none;
+    background: var(--m-ok);
+    animation: feed-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes feed-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--m-ok) 55%, transparent);
+    }
+    55% {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 0%, transparent);
+    }
+  }
+
+  .feed__rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
   .feed-row {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 13px 16px;
+    position: relative;
   }
   .feed-row + .feed-row {
     border-top: 1px solid var(--m-hairline-2);
   }
+  /* alert rows get a faint wash — calm, no red-text-on-row */
+  .feed-row.is-alert {
+    background: color-mix(in srgb, var(--m-urgent) 5%, transparent);
+  }
+  /* neutral provenance chip — navy stays only as the mono code's text accent,
+     not a blue fill on every row */
   .feed-row__badge {
     flex: none;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: grid;
     place-items: center;
     font-family: var(--m-font-mono);
     font-size: 10px;
     font-weight: 600;
-    color: var(--m-accent);
-    background: var(--m-accent-tint);
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
   }
   .feed-row__main {
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
+    min-width: 0;
+  }
+  .feed-row__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     min-width: 0;
   }
   .feed-row__org {
     font-size: 13px;
     font-weight: 600;
     color: var(--m-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* agency badge — Federal vs State, sourced provenance */
+  .feed-row__agency {
+    flex: none;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  /* Federal vs State told by the darker navy text only — no blue fill */
+  .feed-row__agency--fed {
+    color: var(--m-accent);
   }
   .feed-row__body {
     font-size: 12px;
     color: var(--m-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .feed-row__meta {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
   }
   .feed-row__status {
-    margin-left: auto;
-    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    padding: 2px 7px;
+    padding: 2px 8px 2px 6px;
     border-radius: 999px;
+  }
+  .feed-row__status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    flex: none;
+    /* dot keeps the brighter status hue; the LABEL uses the darker -ink token */
+    background: var(--dot, currentColor);
   }
   .feed-row__status--scan {
     color: var(--m-muted);
     background: var(--m-section);
   }
+  /* a11y: ~10px label text needs the darker -ink token for AA on its own tint;
+     the dot stays on the brighter token via --dot (red is still risk only). */
   .feed-row__status--new {
-    color: var(--m-urgent);
-    background: color-mix(in srgb, var(--m-urgent) 12%, transparent);
+    color: var(--m-urgent-ink);
+    background: color-mix(in srgb, var(--m-urgent) 13%, transparent);
+    --dot: var(--m-urgent);
   }
   .feed-row__status--ok {
-    color: var(--m-ok);
-    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+    color: var(--m-ok-ink);
+    background: color-mix(in srgb, var(--m-ok) 13%, transparent);
+    --dot: var(--m-ok);
   }
   .feed-row__when {
-    flex: none;
     font-family: var(--m-font-mono);
     font-size: 11px;
     color: var(--m-faint);
   }
-  .feed-row__when.alert {
-    color: var(--m-urgent);
+
+  /* footer strip — cadence + honest "sample data" label */
+  .feed__foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--m-section);
+    border-top: 1px solid var(--m-hairline-2);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .feed__foot-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .feed__scan {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: none;
+    background: var(--m-accent);
+    box-shadow: 0 0 0 3px var(--m-accent-tint);
+  }
+  .feed__foot-right {
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feed__live-dot {
+      animation: none;
+    }
   }
 
   @media (max-width: 1000px) {
     .sources__grid {
       grid-template-columns: 1fr;
+      align-items: stretch;
     }
     .usmap-wrap,
     .feed {

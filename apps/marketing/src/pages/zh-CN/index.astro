@@ -13,13 +13,12 @@ import HowItWorks from '../../components/home/HowItWorks.astro'
 import Notice from '../../components/home/Notice.astro'
 import Sources from '../../components/home/Sources.astro'
 import Compare from '../../components/home/Compare.astro'
-import SeeItWork from '../../components/home/SeeItWork.astro'
 import Surfaces from '../../components/home/Surfaces.astro'
-import Trust from '../../components/home/Trust.astro'
 import Security from '../../components/home/Security.astro'
 import Faq from '../../components/home/Faq.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
+import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref, getAppHref } from '../../lib/app-url'
 import { homeStructuredData } from '../../lib/structured-data'
@@ -32,7 +31,7 @@ const t = zhCN
 <BaseLayout
   lang="zh-CN"
   pathname="/zh-CN"
-  title="DueDateHQ — 捕捉每一次报税截止日变化，看清它影响到哪些客户"
+  title="DueDateHQ — 截止日刚刚变了。你知道它影响到哪些客户吗？"
   description="DueDateHQ 全天候监控 IRS、主要州税务机关和 FEMA 灾害救济。截止日一变动，你立刻知道影响到哪些客户——每个日期都附官方来源。"
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'zh-CN')}
@@ -47,13 +46,12 @@ const t = zhCN
     <Notice locale="zh-CN" />
     <Sources locale="zh-CN" />
     <Compare locale="zh-CN" />
-    <SeeItWork locale="zh-CN" />
-    <Trust locale="zh-CN" />
     <Security locale="zh-CN" />
     <Faq locale="zh-CN" />
     <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />
+  <ScrollMotion />
 </BaseLayout>
 
 <style is:global>

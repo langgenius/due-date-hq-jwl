@@ -1,7 +1,10 @@
 ---
-/** Close — the finale CTA. A bold navy card (different from the white sections,
- *  cohesive via the brand accent) with a full-width light audit "receipt" strip.
- *  White only on the navy; the accent lives in the inverted white CTA. */
+/** Close — the finale CTA. A bold navy card (different from the white sections),
+ *  made distinct as the page's end by bookending the Hero: the headline returns
+ *  to the display serif that opens the page (the only OTHER place it appears),
+ *  with a quiet cyan top-edge and a faint corner light — chroma in containers,
+ *  never in text. Below the card, a full-bleed light audit "receipt" strip spans
+ *  the whole section width (#13). White only on the navy; accent in the white CTA. */
 interface Props {
   ctaHref: string
   locale?: 'en' | 'zh-CN'
@@ -12,8 +15,8 @@ const t = zh
   ? {
       pill: '在报税旺季到来前做好准备',
       bodyLead:
-        '把你的客户名单粘贴进来，约 30 分钟内就能备好一年带来源的截止日。从此之后，我们替你盯着每一处变化——下次某个州调整截止日时，你早已知道它影响到谁。',
-      bodyStrong: '我们会一直盯着。',
+        '把客户名单粘贴进来，约 30 分钟就能备好一年带来源的截止日。从此我们替你盯着每一处官方来源——日期一变动，你立刻看清它影响到谁。',
+      bodyStrong: '再也不用等客户来告诉你。',
       ctaPrimary: '免费开始',
       ctaGhost: '要人带着上手',
       trust: ['测试期免费', '无需信用卡', '数据留在你的事务所'],
@@ -29,8 +32,8 @@ const t = zh
   : {
       pill: 'Be ready before busy season',
       bodyLead:
-        "Paste your clients, and a sourced year of deadlines is ready in about 30 minutes. From there, we watch every change for you — so the next time a state moves a deadline, you'll already know who it affects. ",
-      bodyStrong: "We'll be watching the whole time.",
+        'Paste your clients once — a sourced year of deadlines is ready in about 30 minutes. From there we watch every official source for you, so the moment a date moves you see exactly who it hits. ',
+      bodyStrong: 'No more finding out from your client.',
       ctaPrimary: 'Start free',
       ctaGhost: 'Get a guided setup',
       trust: ['Free during the beta', 'No card required', 'Data stays in your practice'],
@@ -47,7 +50,7 @@ const trust = t.trust
 const receiptRows = t.receiptRows
 ---
 
-<section class="close" id="close" aria-labelledby="close-h">
+<section class="close" id="close" aria-labelledby="close-h" data-reveal>
   <div class="close__card">
     <div class="close__body-wrap">
       <span class="close__pill"><span class="close__dot" aria-hidden="true"></span>{t.pill}</span>
@@ -55,11 +58,11 @@ const receiptRows = t.receiptRows
         {
           zh ? (
             <>
-              走进下一个报税旺季，已经<span class="ital">领先一步。</span>
+              下次截止日变动，你<span class="ital">早就知道了。</span>
             </>
           ) : (
             <>
-              Walk into next busy season already <span class="ital">ahead.</span>
+              Next time a deadline moves, you'll already <span class="ital">know.</span>
             </>
           )
         }
@@ -88,37 +91,37 @@ const receiptRows = t.receiptRows
         }
       </div>
     </div>
+  </div>
 
-    <div class="receipt" aria-label="Sample audit receipt for one applied change">
-      <div class="receipt__head">
-        <span class="receipt__eyebrow">{t.receiptEyebrow} · {t.receiptApply}</span>
-        <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
-      </div>
-      <div class="receipt__facts">
-        {
-          receiptRows.map((r) => (
-            <span class="receipt__fact">
-              {r.glyph === 'link' && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
-                </svg>
-              )}
-              {r.glyph === 'undo' && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M9 14 4 9l5-5" />
-                  <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
-                </svg>
-              )}
-              {r.glyph === 'shield' && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-                </svg>
-              )}
-              {r.text}
-            </span>
-          ))
-        }
-      </div>
+  <div class="receipt" aria-label="Sample audit receipt for one applied change">
+    <div class="receipt__head">
+      <span class="receipt__eyebrow">{t.receiptEyebrow} · {t.receiptApply}</span>
+      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
+    </div>
+    <div class="receipt__facts">
+      {
+        receiptRows.map((r) => (
+          <span class="receipt__fact">
+            {r.glyph === 'link' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+              </svg>
+            )}
+            {r.glyph === 'undo' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 14 4 9l5-5" />
+                <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
+              </svg>
+            )}
+            {r.glyph === 'shield' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+              </svg>
+            )}
+            {r.text}
+          </span>
+        ))
+      }
     </div>
   </div>
 </section>
@@ -129,15 +132,56 @@ const receiptRows = t.receiptRows
     margin-inline: auto;
     padding-inline: var(--m-gutter);
     padding-block: clamp(48px, 7vw, 96px);
+    /* card + full-width receipt strip stack as the finale */
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.4vw, 20px);
   }
-  /* bold navy finale — different from the white sections, cohesive via the brand */
+  /* Bold navy finale — distinct as the page's END: a cyan top-edge + a faint
+     corner light give the flat navy a crafted, "this is it" lift (chroma in
+     containers, not text), and the headline returns to the page's display serif
+     to bookend the Hero. Cohesive via the same brand navy + cyan. */
   .close__card {
+    position: relative;
     background: var(--m-accent);
     border-radius: 16px;
     overflow: hidden;
+    isolation: isolate;
+  }
+  /* faint light blooming from the top-right — depth without a heavy shadow */
+  .close__card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      130% 100% at 100% 0%,
+      color-mix(in srgb, var(--m-cyan) 24%, transparent) 0%,
+      transparent 58%
+    );
+    pointer-events: none;
+  }
+  /* crisp cyan edge along the very top — the finale's signature, leaned harder
+     into so the close reads unmistakably brighter than the somber Villain band:
+     a taller, fuller-bleed cyan bar over a soft glow that bleeds down into the navy */
+  .close__card::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--m-cyan) 14%,
+      var(--m-cyan) 86%,
+      transparent
+    );
+    box-shadow: 0 0 18px 1px color-mix(in srgb, var(--m-cyan) 45%, transparent);
+    pointer-events: none;
   }
   .close__body-wrap {
-    padding: clamp(40px, 6vw, 72px) clamp(28px, 5vw, 64px) clamp(32px, 4vw, 44px);
+    position: relative;
+    padding: clamp(44px, 6vw, 76px) clamp(28px, 5vw, 64px) clamp(40px, 5vw, 60px);
   }
   .close__pill {
     display: inline-flex;
@@ -159,12 +203,22 @@ const receiptRows = t.receiptRows
     border-radius: 999px;
     background: var(--m-cyan);
   }
+  /* Bookend the Hero: the finale headline returns to the display serif — the
+     only OTHER place it appears on the page — so the close reads as a deliberate
+     "end of the story", distinct from the sans .m-h2 of every middle section. */
   .close__h {
-    font-size: clamp(34px, 5vw, 60px);
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(40px, 5.8vw, 74px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
     color: #fff;
+    max-width: 18ch;
+    text-wrap: balance;
   }
   .close__h .ital {
     font-style: italic;
+    letter-spacing: 0.002em;
   }
   .close__body {
     margin-top: 22px;
@@ -241,16 +295,21 @@ const receiptRows = t.receiptRows
     color: var(--m-cyan);
     flex: none;
   }
-  /* full-width light receipt strip at the bottom of the navy card */
+  /* Full-width light audit receipt — spans the WHOLE section (#13), grounding
+     the navy card above it with the honest evidence of one applied change. Its
+     own framed strip now that it sits outside the card: a light surface, dashed
+     "tear" hairline reading as a torn-off receipt, anchored on the brand accent. */
   .receipt {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 16px 28px;
-    padding: 18px clamp(28px, 5vw, 64px);
+    padding: 16px clamp(20px, 3vw, 32px);
     background: var(--m-surface);
-    border-top: 1px dashed color-mix(in srgb, var(--m-accent) 30%, transparent);
+    border: 1px solid var(--m-hairline);
+    border-top: 1px dashed color-mix(in srgb, var(--m-accent) 32%, transparent);
+    border-radius: 12px;
   }
   .receipt__head {
     display: flex;

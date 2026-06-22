@@ -1,0 +1,60 @@
+---
+/**
+ * ScrollMotion — GSAP scroll-reveal. Pure progressive enhancement: every
+ * [data-reveal] section already works without JS and under prefers-reduced-motion
+ * (see marketing.css). Include on pages that use the [data-reveal] hook (home,
+ * /how-it-works).
+ */
+---
+
+<script>
+  import gsap from 'gsap'
+  import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+  const reveals = () => Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
+  const showAll = () =>
+    reveals().forEach((el) => {
+      el.style.opacity = '1'
+      el.style.transform = 'none'
+    })
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (reduce) {
+    showAll()
+  } else {
+    try {
+      gsap.registerPlugin(ScrollTrigger)
+
+      // Reveal on scroll — fade + rise as each section enters the viewport.
+      reveals().forEach((el) => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true },
+        })
+      })
+
+      // Post-load sweep: a deep-linked or short-viewport section whose top is
+      // already at/above the start line on load would otherwise stay at
+      // opacity:0 until the user scrolls up then back down. Force-reveal any
+      // [data-reveal] already in/above the viewport so nothing loads invisible.
+      const sweep = () => {
+        const line = window.innerHeight * 0.82 // mirrors start:'top 82%'
+        reveals().forEach((el) => {
+          if (el.getBoundingClientRect().top <= line) {
+            gsap.set(el, { opacity: 1, y: 0 })
+          }
+        })
+      }
+      // run once after ScrollTrigger has measured (next frame)
+      requestAnimationFrame(sweep)
+    } catch (err) {
+      // never let a motion failure leave content hidden
+      console.error('[ScrollMotion]', err)
+      showAll()
+    }
+  }
+</script>

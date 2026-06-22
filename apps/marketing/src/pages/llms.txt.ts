@@ -11,6 +11,12 @@ const corePages = [
       'the deadline-risk workbench — see which client filings and rule changes are at risk before the deadline, with every number traceable to its official source.',
   },
   {
+    label: 'How it works',
+    pathname: '/how-it-works',
+    description:
+      'the product tour — how DueDateHQ watches official sources, matches each change to a firm’s clients, ranks the week by risk, and applies the fix with a source on every date.',
+  },
+  {
     label: 'Pricing',
     pathname: '/pricing',
     description: 'plans for CPA practices: Free $0, Solo $39, Pro $79, and Team $149 per month.',
@@ -143,9 +149,9 @@ export function GET(): Response {
     '',
     `Last updated: ${CONTENT_REVIEWED_ON}`,
     '',
-    'DueDateHQ is a glass-box deadline-intelligence workbench for US CPA practices: it turns every client, state, entity, and tax-type into a weekly deadline-risk triage list, and monitors official IRS and state sources across all 50 states plus DC for rule changes — every deadline, rule, and alert traceable to its official source. It is not tax advice, not a filing system, and not a full practice-management suite.',
+    'DueDateHQ is deadline-change monitoring for US CPA practices: it watches official IRS, state tax-agency, and FEMA sources across all 50 states plus DC around the clock, catches when a filing deadline or rule moves, and shows exactly which of a firm’s clients each change affects — every deadline, rule, and alert traceable to its official source. It is not tax advice, not a filing system, and not a full practice-management suite.',
     '',
-    'DueDateHQ is a deadline-and-rule-change radar that layers on top of a firm’s existing Drake, UltraTax, or TaxDome — it replaces the spreadsheet-and-inbox patchwork used to catch what those tools miss, not the tools themselves.',
+    'DueDateHQ is a deadline-and-rule-change monitoring layer on top of a firm’s existing Drake, UltraTax, or TaxDome — it replaces the spreadsheet-and-inbox patchwork used to catch what those tools miss, not the tools themselves.',
     '',
     `A fuller single-file factual reference (definition, coverage, pricing, federal and state filing deadlines) is at ${getMarketingUrl('/llms-full.txt')}.`,
     '',

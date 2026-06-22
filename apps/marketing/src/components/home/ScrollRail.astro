@@ -1,6 +1,7 @@
 ---
-/** Left scroll-spy rail — a "ticker" in the left margin showing which section the
- *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
+/** Left scroll-spy rail — a quiet "section index" in the left margin: a plain
+ *  list of section labels, with one calm active treatment (bright label + a small
+ *  filled dot). Shown on wide screens only. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -9,23 +10,23 @@ const zh = locale === 'zh-CN'
 const t = zh
   ? {
       items: [
+        { label: '问题', href: '#villain-h' },
+        { label: '产品', href: '#surfaces' },
         { label: '循环', href: '#how' },
         { label: '那份公告', href: '#notice' },
         { label: '来源', href: '#sources' },
-        { label: '看它运作', href: '#work' },
-        { label: '为什么可信', href: '#trust' },
-        { label: '安全', href: '#security' },
+        { label: '为什么可信', href: '#security' },
         { label: '常见问题', href: '#faq' },
       ],
     }
   : {
       items: [
+        { label: 'The problem', href: '#villain-h' },
+        { label: 'Surfaces', href: '#surfaces' },
         { label: 'The loop', href: '#how' },
         { label: 'The document', href: '#notice' },
         { label: 'Sources', href: '#sources' },
-        { label: 'See it work', href: '#work' },
-        { label: 'Why trust it', href: '#trust' },
-        { label: 'Security', href: '#security' },
+        { label: 'Why trust it', href: '#security' },
         { label: 'Questions', href: '#faq' },
       ],
     }
@@ -37,7 +38,7 @@ const items = t.items
     items.map((it) => (
       <a class="spyrail__item" href={it.href}>
         <span class="spyrail__dot" aria-hidden="true" />
-        {it.label}
+        <span class="spyrail__label">{it.label}</span>
       </a>
     ))
   }
@@ -51,7 +52,7 @@ const items = t.items
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 2px;
+    gap: 12px;
     /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
     opacity: 0;
     visibility: hidden;
@@ -71,62 +72,64 @@ const items = t.items
       display: flex;
     }
   }
+
   .spyrail__item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 0;
+  }
+  /* a small marker dot; visible only on the active item, so inactive rows read
+     as a quiet flush list */
+  .spyrail__dot {
+    width: 5px;
+    height: 5px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--m-accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .spyrail__label {
     font-size: 12px;
     font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--m-faint);
     white-space: nowrap;
     transition: color 0.2s ease;
   }
-  .spyrail__item:hover {
-    color: var(--m-ink-2);
+  .spyrail__item:hover .spyrail__label {
+    color: var(--m-muted);
   }
-  .spyrail__item:hover .spyrail__dot {
-    border-color: var(--m-muted);
-  }
-  .spyrail__dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    border: 1.5px solid var(--m-hairline);
-    background: transparent;
-    flex: none;
-    transition:
-      background 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
-  }
-  .spyrail__item.is-active {
+
+  /* active — one calm treatment: ink label + the small filled dot appears */
+  .spyrail__item.is-active .spyrail__label {
     color: var(--m-ink);
-    font-weight: 600;
   }
   .spyrail__item.is-active .spyrail__dot {
-    background: var(--m-accent);
-    border-color: var(--m-accent);
-    transform: scale(1.15);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 16%, transparent);
+    opacity: 1;
   }
-  /* over a dark band — white instead of faint gray */
-  .spyrail.is-on-dark .spyrail__item {
-    color: rgba(255, 255, 255, 0.55);
+
+  /* ===== over a dark band (the villain) — white-out ===== */
+  .spyrail.is-on-dark .spyrail__dot {
+    background: #fff;
   }
-  .spyrail.is-on-dark .spyrail__item:hover {
+  .spyrail.is-on-dark .spyrail__label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .spyrail.is-on-dark .spyrail__item:hover .spyrail__label {
     color: rgba(255, 255, 255, 0.85);
   }
-  .spyrail.is-on-dark .spyrail__dot {
-    border-color: rgba(255, 255, 255, 0.35);
-  }
-  .spyrail.is-on-dark .spyrail__item.is-active {
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__label {
     color: #fff;
   }
-  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
-    background: #fff;
-    border-color: #fff;
+
+  @media (prefers-reduced-motion: reduce) {
+    .spyrail,
+    .spyrail__item,
+    .spyrail__dot,
+    .spyrail__label {
+      transition: none;
+    }
   }
 </style>
 

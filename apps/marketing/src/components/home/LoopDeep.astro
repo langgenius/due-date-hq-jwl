@@ -1,0 +1,333 @@
+---
+/**
+ * LoopDeep — the in-depth treatment of the active loop, built FOR /how-it-works
+ * (not re-used from the landing's compact HowItWorks). The landing shows a
+ * 3-node Watch → Match → Apply diagram in one sentence each; here the loop is
+ * the spine of the page, expanded to FOUR stages — Watch · Match · Rank · Apply
+ * — each a numbered editorial row with a real paragraph of how it works, a
+ * concrete "what you'd see" detail line, and a small in-product proof chip.
+ * Keyed off #how so the Surfaces "See it" links still land here.
+ */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '完整闭环',
+      hPre: '四步，一个不停转的',
+      hItal: '闭环。',
+      lead: '从盯紧官方来源，到把新日期落到客户身上——每一步都有据可查，然后它继续盯下一次变化。',
+      loopNote: '应用之后，闭环并不结束——它回到第一步，继续替你盯着下一次变化。',
+      steps: [
+        {
+          k: '01',
+          name: '监测',
+          icon: 'eye',
+          tag: '官方来源 · 7×24',
+          desc: '我们全天候抓取 IRS、各州税务机关和 FEMA 灾害救济的官方页面。一条变化只有在<b>新日期有官方原文支撑</b>时才会浮现——我们存下链接和引述的原句，而不是某条新闻的转述。',
+          detail: '你看到的：',
+          detailVal: 'irs.gov · 已核验 · 14 分钟前扫描',
+        },
+        {
+          k: '02',
+          name: '匹配',
+          icon: 'target',
+          tag: '辖区 · 表格 · 实体',
+          desc: '每条变化都会按<b>辖区、表格和实体类型</b>对照你的客户名单。在你点开提醒之前，受影响客户的名单就已经算好——不是「可能相关」，而是精确命中。',
+          detail: '匹配结果：',
+          detailVal: '8 家客户 · 1120-S · TX',
+        },
+        {
+          k: '03',
+          name: '排序',
+          icon: 'sort',
+          tag: '风险优先',
+          desc: '受影响的客户会按<b>剩余天数、就绪情况和受阻项</b>排出先后。最紧迫的浮到最上面，所以你打的第一个电话总是打给最该先打的那一个——不用自己在表格里翻找。',
+          detail: '排在最前：',
+          detailVal: 'Hill Country Partners · 逾期 2 天 · 受阻',
+        },
+        {
+          k: '04',
+          name: '应用',
+          icon: 'zap',
+          tag: '需你确认 · 24h 可撤销',
+          desc: '一键就能把新日期推送到<b>每一个受影响的客户</b>。在你确认之前什么都不会改动，每次应用都记入审计记录，并在 24 小时内可干净撤销。',
+          detail: '应用后：',
+          detailVal: 'Apply #DDH-2240 · 已记录 · 可撤销',
+        },
+      ],
+    }
+  : {
+      eyebrow: 'The full loop',
+      hPre: 'Four moves, one loop that ',
+      hItal: 'never stops.',
+      lead: 'From watching the official sources to landing the new date on the right clients — every move is evidence-backed, and then it goes right back to watching for the next change.',
+      loopNote: "After Apply, the loop doesn't end — it returns to Watch and keeps an eye on the next change for you.",
+      steps: [
+        {
+          k: '01',
+          name: 'Watch',
+          icon: 'eye',
+          tag: 'Official sources · 24/7',
+          desc: 'We pull the official IRS, state-agency, and FEMA disaster-relief pages around the clock. A change only surfaces once its <b>new dates are grounded in the official text</b> — we keep the link and the exact quoted line, not a paraphrase from a news story.',
+          detail: 'What you see:',
+          detailVal: 'irs.gov · verified · scanned 14m ago',
+        },
+        {
+          k: '02',
+          name: 'Match',
+          icon: 'target',
+          tag: 'Jurisdiction · form · entity',
+          desc: 'Every change is checked against your client list by <b>jurisdiction, form, and entity type</b>. The affected list is computed before you open the alert — not "might be relevant," but the precise clients it hits.',
+          detail: 'Matched:',
+          detailVal: '8 clients · 1120-S · TX',
+        },
+        {
+          k: '03',
+          name: 'Rank',
+          icon: 'sort',
+          tag: 'Risk first',
+          desc: 'The affected clients are ordered by <b>days remaining, readiness, and what is blocking them</b>. The most urgent rise to the top, so your first call is always the right one — no scanning a spreadsheet to figure out where to start.',
+          detail: 'Top of the list:',
+          detailVal: 'Hill Country Partners · 2d late · blocked',
+        },
+        {
+          k: '04',
+          name: 'Apply',
+          icon: 'zap',
+          tag: 'You confirm · reversible 24h',
+          desc: 'One click pushes the new date to <b>every affected client</b>. Nothing moves until you confirm, every apply is written to the audit trail, and it undoes cleanly within 24 hours.',
+          detail: 'After apply:',
+          detailVal: 'Apply #DDH-2240 · logged · reversible',
+        },
+      ],
+    }
+const steps = t.steps
+---
+
+<section class="m-section loopd" id="how" aria-labelledby="loopd-h" data-reveal>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2 loopd__h" id="loopd-h">{t.hPre}<span class="ital">{t.hItal}</span></h2>
+  <p class="m-lead loopd__lead">{t.lead}</p>
+
+  <ol class="loopd__list">
+    {
+      steps.map((s) => (
+        <li class="lstep">
+          <div class="lstep__rail" aria-hidden="true">
+            <span class="lstep__k">{s.k}</span>
+            <span class="lstep__icon">
+              {s.icon === 'eye' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                </svg>
+              )}
+              {s.icon === 'target' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="8.5" />
+                  <circle cx="12" cy="12" r="3.4" />
+                  <path d="M12 1.5v3.4M12 19.1v3.4M1.5 12h3.4M19.1 12h3.4" />
+                </svg>
+              )}
+              {s.icon === 'sort' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 7h14M7 12h10M10 17h4" />
+                </svg>
+              )}
+              {s.icon === 'zap' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z" />
+                </svg>
+              )}
+            </span>
+          </div>
+          <div class="lstep__body">
+            <div class="lstep__top">
+              <h3 class="lstep__name">{s.name}</h3>
+              <span class="lstep__tag">{s.tag}</span>
+            </div>
+            <p class="lstep__desc" set:html={s.desc} />
+            <p class="lstep__detail">
+              <span class="lstep__detail-k">{s.detail}</span>
+              <span class="lstep__detail-v">{s.detailVal}</span>
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class="loopd__loop">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 12c-2-2.7-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.3 6-4Zm0 0c2 2.7 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.3-6 4Z" />
+    </svg>
+    {t.loopNote}
+  </p>
+</section>
+
+<style>
+  .loopd__h {
+    max-width: 22ch;
+  }
+  .loopd__lead {
+    margin-top: 16px;
+    max-width: 62ch;
+  }
+  .loopd__list {
+    margin-top: clamp(36px, 4.5vw, 56px);
+    list-style: none;
+    padding: 0;
+    /* a continuous left rail ties the four moves into one running loop */
+    border-top: 1px solid var(--m-hairline);
+  }
+  .lstep {
+    display: grid;
+    grid-template-columns: clamp(56px, 6vw, 88px) 1fr;
+    gap: clamp(16px, 2.4vw, 36px);
+    padding-block: clamp(26px, 3vw, 40px);
+    border-bottom: 1px solid var(--m-hairline);
+    position: relative;
+  }
+  .lstep__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+  }
+  /* the connector thread running through the rail — the loop made visible */
+  .lstep__rail::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    bottom: -40px;
+    left: 50%;
+    width: 1.5px;
+    background: color-mix(in srgb, var(--m-accent) 18%, transparent);
+    transform: translateX(-50%);
+    z-index: 0;
+  }
+  .lstep__k {
+    position: relative;
+    z-index: 1;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-faint);
+  }
+  .lstep__icon {
+    position: relative;
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: var(--m-accent);
+    box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--m-accent) 60%, transparent);
+  }
+  .lstep__icon svg {
+    width: 19px;
+    height: 19px;
+  }
+  .lstep__body {
+    max-width: 64ch;
+    padding-top: 2px;
+  }
+  .lstep__top {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .lstep__name {
+    font-family: var(--m-font-sans);
+    font-size: clamp(20px, 2.2vw, 27px);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+    line-height: 1.1;
+  }
+  .lstep__tag {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--m-muted);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .lstep__desc {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--m-ink-2);
+    max-width: 60ch;
+  }
+  .lstep__desc :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  /* concrete "what you'd actually see" — product data in the mono voice */
+  .lstep__detail {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 8px 14px;
+    background: var(--m-accent-tint);
+    border-radius: 8px;
+  }
+  .lstep__detail-k {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+  }
+  .lstep__detail-v {
+    font-family: var(--m-font-mono);
+    font-size: 12.5px;
+    color: var(--m-ink);
+  }
+  .loopd__loop {
+    margin-top: clamp(24px, 2.6vw, 32px);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 9px 18px 9px 14px;
+  }
+  .loopd__loop svg {
+    width: 16px;
+    height: 16px;
+    color: var(--m-accent);
+    flex: none;
+  }
+  @media (max-width: 600px) {
+    .lstep {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .lstep__rail {
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+    }
+    .lstep__rail::before {
+      display: none;
+    }
+  }
+</style>

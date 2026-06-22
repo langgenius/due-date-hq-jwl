@@ -17,6 +17,7 @@ const t = zh
       leadHtml:
         '没有出处，就不呈现——下方每一个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>，否则宁可保留不展示，也不去猜。',
       tablistLabel: '示例变化类型',
+      switchCue: '换一个示例看看',
       sourceQuote: '来源原文',
       theChange: '变化内容',
       whosAffected: '影响到谁',
@@ -93,6 +94,7 @@ const t = zh
       leadHtml:
         "No provenance, no render — every field below carries its <b>source quote</b> and a <b>verified date</b>, or it's held back rather than guessed.",
       tablistLabel: 'Example change types',
+      switchCue: 'See another example',
       sourceQuote: 'Source quote',
       theChange: 'The change',
       whosAffected: "Who's affected",
@@ -165,33 +167,52 @@ const t = zh
 const examples = t.examples
 ---
 
-<section class="m-section" id="notice" aria-labelledby="notice-h">
+<section class="m-section" id="notice" aria-labelledby="notice-h" data-reveal>
   <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="m-h2" id="notice-h">
     {t.headingPre}<span class="ital">{t.headingItal}</span>
   </h2>
   <p class="m-lead notice__lead" set:html={t.leadHtml} />
 
-  <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
-    {
-      examples.map((e, i) => (
-        <button
-          class:list={['ntab', i === 0 && 'is-on']}
-          role="tab"
-          aria-selected={i === 0 ? 'true' : 'false'}
-          data-ntab={i}
-          type="button"
-        >
-          {e.tab}
-        </button>
-      ))
-    }
+  <div class="nswitch">
+    <span class="nswitch__cue" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h13l-3-3M21 16H8l3 3" />
+      </svg>
+      {t.switchCue}
+    </span>
+    <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
+      {
+        examples.map((e, i) => (
+          <button
+            class:list={['ntab', i === 0 && 'is-on']}
+            id={`ntab-${i}`}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`npanel-${i}`}
+            tabindex={i === 0 ? 0 : -1}
+            data-ntab={i}
+            type="button"
+          >
+            <span class="ntab__dot" aria-hidden="true" />
+            <span class="ntab__txt">{e.tab}</span>
+          </button>
+        ))
+      }
+    </div>
   </div>
 
   <div class="npanels">
     {
       examples.map((e, i) => (
-        <div class:list={['extract', i === 0 && 'is-on']} data-npanel={i} role="tabpanel">
+        <div
+          class:list={['extract', i === 0 && 'is-on']}
+          id={`npanel-${i}`}
+          data-npanel={i}
+          role="tabpanel"
+          aria-labelledby={`ntab-${i}`}
+          tabindex="0"
+        >
           <article class="clip" aria-hidden="true">
             <header class="clip__head">
               <span class="clip__seal">
@@ -289,36 +310,97 @@ const examples = t.examples
     font-weight: 600;
   }
 
-  /* toggle */
-  .ntabs {
+  /* ---- example switcher ----
+     A labelled segmented control: a small "see another example" cue makes the
+     interaction unmistakable, then a recessed track where the selected type
+     rises onto a clean white pill (navy label + a lit leading dot), so it
+     reads as an obvious switch, not decoration. */
+  .nswitch {
     margin-top: clamp(28px, 3.5vw, 40px);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+  .nswitch__cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .nswitch__cue svg {
+    width: 14px;
+    height: 14px;
+    color: var(--m-accent);
+  }
+
+  .ntabs {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 2px;
-    padding: 3px;
-    background: var(--m-surface);
+    padding: 4px;
+    background: var(--m-section);
     border: 1px solid var(--m-hairline-2);
     border-radius: 999px;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--m-ink) 5%, transparent);
   }
   .ntab {
-    padding: 6px 14px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 8px 13px;
     border-radius: 999px;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--m-muted);
     cursor: pointer;
     transition:
-      color 0.18s ease,
-      background 0.18s ease;
+      color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease);
   }
-  .ntab:hover {
-    color: var(--m-ink);
+  /* leading status dot — hollow when idle, fills navy when this type is showing */
+  .ntab__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: none;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-muted) 55%, transparent);
+    transition:
+      background var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease);
+  }
+  .ntab:hover:not(.is-on) {
+    color: var(--m-ink-2);
+    background: color-mix(in srgb, var(--m-surface) 70%, transparent);
+  }
+  .ntab:hover:not(.is-on) .ntab__dot {
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-accent) 55%, transparent);
   }
   .ntab.is-on {
     color: var(--m-accent);
-    background: var(--m-accent-tint);
+    background: var(--m-surface);
     font-weight: 600;
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--m-ink) 8%, transparent),
+      0 0 0 1px var(--m-hairline-2);
+  }
+  .ntab.is-on .ntab__dot {
+    background: var(--m-accent);
+    box-shadow: 0 0 0 3px var(--m-accent-tint);
+  }
+  .ntab:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
   }
 
   /* panels */
@@ -332,6 +414,24 @@ const examples = t.examples
   }
   .extract.is-on {
     display: grid;
+  }
+  /* The swap is display:none → grid, which can't tween — so the incoming panel
+     plays a short fade+rise as it mounts, giving the toggle a soft hand-off
+     instead of a hard snap. Reduced-motion gets it instantly (below). */
+  @media (prefers-reduced-motion: no-preference) {
+    .extract.is-on {
+      animation: notice-swap-in var(--m-dur) var(--m-ease) both;
+    }
+  }
+  @keyframes notice-swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   .clip {
     grid-column: span 5;
@@ -622,19 +722,32 @@ const examples = t.examples
 </style>
 
 <script>
-  // toggle between change-type examples
+  // Change-type examples as a WAI tablist: click + roving tabindex + arrow-key nav.
   document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
     const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
     const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const idx = tab.dataset.ntab
-        tabs.forEach((t) => {
-          const on = t.dataset.ntab === idx
-          t.classList.toggle('is-on', on)
-          t.setAttribute('aria-selected', String(on))
-        })
-        panels.forEach((p) => p.classList.toggle('is-on', p.dataset.npanel === idx))
+    const activate = (idx: number, focus: boolean) => {
+      tabs.forEach((t, i) => {
+        const on = i === idx
+        t.classList.toggle('is-on', on)
+        t.setAttribute('aria-selected', String(on))
+        t.tabIndex = on ? 0 : -1
+        if (on && focus) t.focus()
+      })
+      panels.forEach((p, i) => p.classList.toggle('is-on', i === idx))
+    }
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => activate(i, false))
+      tab.addEventListener('keydown', (e) => {
+        let next = -1
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length
+        else if (e.key === 'Home') next = 0
+        else if (e.key === 'End') next = tabs.length - 1
+        if (next >= 0) {
+          e.preventDefault()
+          activate(next, true)
+        }
       })
     })
   })

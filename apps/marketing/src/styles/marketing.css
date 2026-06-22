@@ -23,7 +23,11 @@
   --m-ink: var(--text-primary); /* headings / strong text */
   --m-ink-2: var(--text-secondary); /* body */
   --m-muted: var(--text-tertiary); /* supporting */
-  --m-faint: var(--text-quaternary); /* eyebrows / meta */
+  /* a11y: --text-quaternary (rgb 16 24 40 / 0.3) sits at ~1.9:1 on white — fails
+     for the real text it carries (eyebrows, "sample data" disclaimers, reviewed
+     meta). Repointed to a navy-tinted neutral at ~4.5:1, still the quietest tier
+     but legible. Stays distinct from --m-muted (gray-500). */
+  --m-faint: rgb(16 24 40 / 0.55); /* eyebrows / meta — quiet but legible (>=3.5:1) */
   --m-on-accent: var(--text-inverted); /* text on the navy band */
 
   --m-canvas: var(--color-util-colors-gray-100); /* cold light gray page base (#f2f4f7) */
@@ -37,6 +41,13 @@
   --m-urgent: var(--text-warning);
   --m-ok: var(--text-success);
   --m-danger: var(--text-destructive);
+  /* a11y: --m-ok (green-600 #079455) / --m-urgent (warning-600 #c83d2f) sit at
+     ~3.2–3.9:1 as ~10px pill TEXT over their own light tint — fail AA for text.
+     These darker -ink variants (green-700 / warning-700) clear ~4.8:1 on the
+     same tint; use them for the pill LABEL, keep the lighter token for the
+     tint fill + dot. (warning-700 stays in the red family — red is risk only.) */
+  --m-ok-ink: var(--color-util-colors-green-700); /* #067647 — legible on green tint */
+  --m-urgent-ink: var(--color-util-colors-warning-700); /* #a83227 — legible on warning tint */
 
   /* ---- type ---- */
   --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */
@@ -50,6 +61,25 @@
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
   --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
   --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
+
+  /* ---- readable measure ---- */
+  /* one ceiling for flowing body/lead copy so prose never runs past a
+     comfortable reading line on wide viewports (~66–70ch). Heading classes
+     keep their own tighter ch caps (titles want to wrap sooner). */
+  --m-measure: 68ch;
+
+  /* ---- motion / timing ---- */
+  /* shared easing + durations so hovers, focus rings and small state changes
+     feel like one system. Components opt in; nothing is forced onto them. */
+  --m-ease: cubic-bezier(0.22, 1, 0.36, 1); /* gentle, slightly-overshoot-free */
+  --m-dur-fast: 0.16s; /* hovers, focus, small affordances */
+  --m-dur: 0.24s; /* default state change */
+
+  /* ---- focus ---- */
+  /* keyboard focus ring for marketing surfaces — on-brand navy, kept light. */
+  --m-focus-ring: var(--m-accent);
+  --m-focus-width: 2px;
+  --m-focus-offset: 2px;
 }
 
 /* ============================================================================
@@ -87,6 +117,7 @@
     font-style: italic;
   }
   .m-lead {
+    max-width: var(--m-measure);
     font-size: clamp(17px, 1.4vw, 20px);
     line-height: 1.55;
     color: var(--m-ink-2);
@@ -105,7 +136,9 @@
     max-width: 18ch;
     font-family: var(--m-font-sans);
     font-weight: 600;
-    font-size: clamp(30px, 4vw, 48px);
+    /* Lifted to a clear H1 ceiling so the long-tail sans H1 reads a deliberate
+       step above .m-h2 (clamp 29–44) — no near-collision at the top end. */
+    font-size: clamp(34px, 4.4vw, 54px);
     line-height: 1.08;
     letter-spacing: -0.02em;
     color: var(--m-ink);
@@ -264,8 +297,8 @@
     font-size: 13px;
     font-weight: 500;
     transition:
-      background 0.18s ease,
-      border-color 0.18s ease;
+      background var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
   .m-btn--primary {
     color: #fff;
@@ -303,5 +336,95 @@
     .m-page-grid-3 {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* ==========================================================================
+     Focus visibility — one keyboard-focus treatment for marketing surfaces.
+     :focus-visible only (so mouse/touch users never see the ring); on-brand
+     navy, light. Components that already ship their own ring are untouched —
+     this is the baseline for the many raw <a>/<button> in editorial markup.
+     ========================================================================== */
+  .m-section :where(a, button, [tabindex]):focus-visible,
+  .m-btn:focus-visible {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: var(--m-focus-offset);
+  }
+  /* The Close finale sits on the navy band and uses its own local .close .btn
+     (not .m-section / .m-btn), so the rule above misses its CTAs — they got NO
+     keyboard ring. Give them a visible on-navy ring: cyan, 2px / 2px offset. */
+  .close :where(a, button):focus-visible {
+    outline: var(--m-focus-width) solid var(--m-cyan);
+    outline-offset: var(--m-focus-offset);
+  }
+
+  /* ==========================================================================
+     Scroll motion — progressive enhancement. The hidden pre-reveal state
+     applies ONLY when JS is on (`.m-js` set on <html> before paint). Without
+     JS, or with reduced-motion, every [data-reveal] stays fully visible.
+     GSAP (ScrollMotion.astro) animates them to opacity:1 / translateY(0).
+     ========================================================================== */
+  .m-js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    will-change: opacity, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .m-js [data-reveal] {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+}
+
+/* ==========================================================================
+   CJK (zh-CN) display-serif guard — UNLAYERED + !important on purpose.
+   Instrument Serif (--m-font-display) has NO Chinese glyphs, so zh heroes must
+   swap to a CJK serif stack and drop the synthesized faux-italic on .ital
+   accent words. This MUST sit outside @layer components: Astro's scoped
+   component <style> rules are UNLAYERED and therefore beat any @layer rule
+   regardless of specificity — so a layered guard is a silent no-op. Unlayered +
+   !important reliably wins over both the scoped base rules and the per-component
+   data-zh overrides.
+   ========================================================================== */
+html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
+  font-family:
+    'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC',
+    var(--m-font-sans) !important;
+  line-height: 1.18 !important;
+  letter-spacing: 0 !important;
+}
+html[lang='zh-CN'] .ital {
+  font-style: normal !important;
+  /* CJK has no italic — carry the accent emphasis in colour instead */
+  color: var(--m-accent);
+}
+/* on the dark bands (villain / close) keep the emphasis white — no coloured text on dark */
+html[lang='zh-CN'] .villain__h .ital,
+html[lang='zh-CN'] .close__h .ital {
+  color: inherit;
+}
+
+/* skip-to-content link — off-screen until keyboard focus */
+.m-skip {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  background: var(--m-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.15s ease;
+}
+.m-skip:focus {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-skip {
+    transition: none;
   }
 }
