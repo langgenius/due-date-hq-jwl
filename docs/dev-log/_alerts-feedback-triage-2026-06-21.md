@@ -110,3 +110,29 @@ but deferred; the subtitles carry the orientation for now.
 
 Decisions (Yuqi): take the sibling-header rework (supersedes the standalone
 pill); leave the awareness day-bands as-is.
+
+## Calm the rows — merged action footer + tighter rhythm (2026-06-22)
+
+Yuqi, after the headers landed: "still look messy." Diagnosed the row, not the
+zone. A reading-measure cap was floated (the rows ran 1376px wide, source
+floating ~400px right of the title) and **rejected** — Yuqi: keep the full
+width (parity with /deadlines), the mess is the row internals. So the pass
+stayed inside the row:
+
+- **Merged action footer** — the suggested action and "Affects N clients" were
+  two separate stacked lines; they're the "do this · who it hits" pair, so they
+  now share ONE line (`⚡ Verify filing requirement applies · 👥 Affects 3
+  clients`). Action+impact rows dropped 117px → 94px. Either half still stands
+  alone (awareness rows carry impact with no action; some action rows touch no
+  clients). This split the old `KeyChange` block: the date-diff card stays put,
+  the action moved down to join impact; `showKeyChange` retired (date-diff gates
+  on `showDateRow` directly now).
+- **Tighter vertical rhythm** — main-column block gap 8px → 6px so the head /
+  title / footer read as one unit, not loosely-spaced bands.
+- **Quieter meta lane** — the change-kind text (the lane's only prose, the
+  second-loudest read after the title) demoted secondary → tertiary, so the
+  severity chip + title lead and the reference chips settle into one quiet
+  supporting group.
+
+Decisions (Yuqi): keep full width (no reading-measure cap); the calm comes from
+row internals (merged footer, tighter rhythm, quieter meta).

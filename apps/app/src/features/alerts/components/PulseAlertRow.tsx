@@ -371,10 +371,6 @@ function PulseAlertRow({
   // Nulling it here also drops it from `showKeyChange` so the KeyChange row
   // collapses cleanly when nothing else fills it.
   const actionText = showAction && !compact ? deriveActionText(alert.changeKind) : null
-  // Only the date-diff + action line actually render in the KeyChange block
-  // (effective/form facts live in the drawer), so gate on those — a truthy
-  // effectiveLabel/formLabel alone would otherwise reserve an empty block.
-  const showKeyChange = !!(showDateRow || actionText)
 
   // 2026-06-16 (Yuqi "dim anything besides the alert title when not selected"):
   // on rows that AREN'T the open one, everything but the headline recedes — the
@@ -501,10 +497,11 @@ function PulseAlertRow({
         null
       ) : null}
 
-      {/* Main column — gap-2 (8px) gives slight breathing room between
-          the head row, subject, KeyChange, and bottom row so the four
-          blocks read as distinct. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      {/* Main column — gap-1.5 (6px) between the head row, subject,
+          KeyChange, and bottom row. 2026-06-22 (Yuqi "still look messy →
+          calm the rows"): tightened from 8px so the four blocks read as one
+          coherent unit per row instead of four loosely-spaced bands. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
@@ -554,10 +551,12 @@ function PulseAlertRow({
               /alerts #4). */}
             {!compact && formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
-            {/* CHANGE KIND — icon + sentence-case medium secondary, matching
-              the detail hero exactly (2026-06-14). One treatment across
-              list + rail + detail. */}
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+            {/* CHANGE KIND — icon + sentence-case. 2026-06-22 (Yuqi "de-noise
+              the meta lane"): demoted secondary → tertiary. It's the lane's only
+              prose element and was competing with the title for the second-loudest
+              read; tertiary lets the severity chip + title lead and the lane settle
+              into one quiet supporting group. */}
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-tertiary">
               <ChangeKindIcon changeKind={alert.changeKind} />
               {changeKindLabel(alert.changeKind)}
             </span>
@@ -731,53 +730,27 @@ function PulseAlertRow({
           {alert.title}
         </h3>
 
-        {/* KeyChange inset hKGFX — transparent (Pencil fill disabled),
-            gap 8 vertical. */}
-        {showKeyChange ? (
-          // No `mt-1` push — the parent main col uses `gap-2`, so each
-          // block already has 8px breathing.
-          <div className={cn('flex flex-col gap-2', recede)}>
-            {showDateRow ? (
-              // Canonical before→after via <ValueDiff> (one home for the pattern).
-              // Tone shared with the detail's DeadlineChangeCard via the one
-              // `due-date-diff` helper (critique #8/#9): sooner = red, later =
-              // green (relief), no change = neutral — so one alert never reads
-              // amber here and green in its detail, and a 0-day shift isn't a
-              // coloured "0 days later".
-              <ValueDiff
-                from={oldDateLabel}
-                to={newDateLabel}
-                {...(daysDiff !== null
-                  ? {
-                      delta:
-                        daysDiff === 0
-                          ? t`No change`
-                          : `${Math.abs(daysDiff)} ${daysDiff < 0 ? t`days sooner` : t`days later`}`,
-                      deltaClassName: DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(daysDiff)],
-                    }
-                  : {})}
-              />
-            ) : null}
-
-            {/* This region is reserved for action-status semantics —
-                the action pill below. Effective/form facts live in the
-                drawer (PulseStructuredFields), not here. */}
-
-            {actionText ? (
-              <div className="flex">
-                {/* Suggested action (Pencil aUZTy) — the do-this affordance.
-                    2026-06-15 critique #5: dropped the filled accent pill. When
-                    EVERY row wore a filled blue pill the accent stopped meaning
-                    "act here" — a wall of blue. It now reads as quiet accent text
-                    + wand: still scannable as the next step, weightless enough
-                    that a genuinely accented control (the detail CTA) keeps its
-                    meaning. */}
-                <span className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-text-accent">
-                  <SparklesIcon className="size-3 shrink-0" aria-hidden />
-                  {actionText}
-                </span>
-              </div>
-            ) : null}
+        {/* Date-diff card — before→after when a deadline shifted. Tone shared
+            with the detail's DeadlineChangeCard via the one `due-date-diff` helper
+            (critique #8/#9): sooner = red, later = green (relief), no change =
+            neutral. The suggested action + impact moved OUT to the merged footer
+            below (2026-06-22 "calm the rows"), so this block now carries only the
+            date change when present — no empty wrapper otherwise. */}
+        {showDateRow ? (
+          <div className={cn('flex', recede)}>
+            <ValueDiff
+              from={oldDateLabel}
+              to={newDateLabel}
+              {...(daysDiff !== null
+                ? {
+                    delta:
+                      daysDiff === 0
+                        ? t`No change`
+                        : `${Math.abs(daysDiff)} ${daysDiff < 0 ? t`days sooner` : t`days later`}`,
+                    deltaClassName: DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(daysDiff)],
+                  }
+                : {})}
+            />
           </div>
         ) : null}
 
@@ -815,24 +788,35 @@ function PulseAlertRow({
           </div>
         ) : null}
 
-        {/* Impact shelf — rendered ONLY when the row touches clients (2026-06-15
-            critique #7). Impacted rows answer triage question #1 in the loud form
-            (icon + primary ink, visibly heavier in the scan); no-impact rows stay
-            SILENT — "No client impact" repeated muted on every row was absence
-            taking a line, so the list isn't padded with it (the line's presence
-            is the signal, matching the Active tab; the detail still states impact
-            explicitly). The hover Dismiss/Review cluster floats separately (below)
-            so a no-impact row carries no empty shelf at rest. */}
-        {impacted > 0 ? (
-          // 2026-06-21 (design-critique): dropped the hard `border-t` + extra
-          // top padding — for a single "Affects N clients" line it read as a
-          // heavy separate footer block (rows measured 133px). The parent
-          // `gap-2` already spaces it; it now sits as a quiet footer line.
+        {/* Merged action footer (2026-06-22 "calm the rows") — the suggested
+            action and the impact count were two separate stacked lines (rows
+            measured 117px); they're the "do this · who it hits" pair, so they now
+            share ONE line, dropping a whole row of height on every action+impact
+            alert. Either can stand alone (awareness rows carry impact with no
+            action; some action rows touch no clients). Suggested action reads as
+            quiet accent text + wand (2026-06-15 #5: no filled pill — a wall of blue
+            stops meaning "act here"); impact stays primary ink + Users icon, the
+            loud answer to triage question #1. No-impact + no-action rows render
+            nothing (the line's presence is the signal). */}
+        {actionText || impacted > 0 ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
-              <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-            </span>
+            {actionText ? (
+              <span className="inline-flex items-center gap-1.5 font-medium text-text-accent">
+                <SparklesIcon className="size-3 shrink-0" aria-hidden />
+                {actionText}
+              </span>
+            ) : null}
+            {actionText && impacted > 0 ? (
+              <span className="text-text-tertiary" aria-hidden>
+                ·
+              </span>
+            ) : null}
+            {impacted > 0 ? (
+              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
+                <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                <Plural value={impacted} one="Affects # client" other="Affects # clients" />
+              </span>
+            ) : null}
           </div>
         ) : null}
       </div>
