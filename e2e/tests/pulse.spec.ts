@@ -41,7 +41,11 @@ test.describe('seeded Pulse alerts', () => {
       })
       .check()
     await verificationDialog.getByRole('button', { name: 'Apply deadline shift' }).click()
-    await expect(authenticatedPage.getByText(/Applied to 1 clients?/)).toBeVisible()
+    await expect(
+      authenticatedPage
+        .getByRole('region', { name: /Notifications/ })
+        .getByText('Applied to 1 client', { exact: true }),
+    ).toBeVisible()
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')

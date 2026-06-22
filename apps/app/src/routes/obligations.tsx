@@ -12,13 +12,7 @@ import {
   type Updater,
   type VisibilityState,
 } from '@tanstack/react-table'
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
@@ -324,10 +318,43 @@ const THIS_WEEK_MAX_DAYS = 7
 //   Total ≈ 90px. Set to 96 for breathing room.
 const INSIDE_CHROME_PX = 96
 
+type ObligationListStatusCachePage = Pick<ObligationQueueListOutput, 'rows'>
+
+function hasStatusPatchableRows(value: unknown): value is ObligationListStatusCachePage {
+  return value !== null && typeof value === 'object' && 'rows' in value && Array.isArray(value.rows)
+}
+
+function hasStatusPatchablePages(value: unknown): value is { pages: unknown[] } {
+  return (
+    value !== null && typeof value === 'object' && 'pages' in value && Array.isArray(value.pages)
+  )
+}
+
 function computeResponsivePageSize(containerHeight: number): number {
   const usable = Math.max(0, containerHeight - INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
   return Math.max(CLIENT_PAGE_SIZE_MIN, Math.min(CLIENT_PAGE_SIZE_MAX, fit || CLIENT_PAGE_SIZE_MIN))
+}
+
+function patchStatusInListCache(
+  data: unknown,
+  obligationId: string,
+  status: ObligationStatus,
+): unknown {
+  const patchRows = (output: ObligationListStatusCachePage): ObligationListStatusCachePage => ({
+    ...output,
+    rows: output.rows.map((row) => (row.id === obligationId ? { ...row, status } : row)),
+  })
+  if (hasStatusPatchablePages(data)) {
+    return {
+      ...data,
+      pages: data.pages.map((page) => (hasStatusPatchableRows(page) ? patchRows(page) : page)),
+    }
+  }
+  if (hasStatusPatchableRows(data)) {
+    return patchRows(data)
+  }
+  return data
 }
 
 // Uses a callback-ref shape (not a `React.RefObject`): the hook returns a
@@ -1502,26 +1529,15 @@ export function ObligationQueueRoute() {
       onMutate: async (input) => {
         await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
         await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
-        const previousLists = queryClient.getQueriesData<InfiniteData<ObligationQueueListOutput>>({
+        const previousLists = queryClient.getQueriesData({
           queryKey: orpc.obligations.list.key(),
         })
         const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
           queryKey: orpc.obligations.getDetail.key(),
         })
-        queryClient.setQueriesData<InfiniteData<ObligationQueueListOutput>>(
+        queryClient.setQueriesData<unknown>(
           { queryKey: orpc.obligations.list.key() },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  pages: data.pages.map((page) => ({
-                    ...page,
-                    rows: page.rows.map((r) =>
-                      r.id === input.id ? { ...r, status: input.status } : r,
-                    ),
-                  })),
-                }
-              : data,
+          (data: unknown) => patchStatusInListCache(data, input.id, input.status),
         )
         queryClient.setQueriesData<ObligationQueueDetail>(
           { queryKey: orpc.obligations.getDetail.key() },
