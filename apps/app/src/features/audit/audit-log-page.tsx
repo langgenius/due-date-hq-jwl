@@ -59,6 +59,7 @@ import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/p
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -586,6 +587,27 @@ export function AuditLogPage() {
   const categoryLabels = useAuditCategoryLabels()
   const rangeLabels = useAuditRangeLabels()
   const rangeCaptions = useAuditRangeCaptions()
+  // Category + Time range are the audit's two primary axes, so they stay as
+  // visible toolbar pills (the SingleSelectFilter canon) rather than native
+  // form selects — same vocabulary as /deadlines Status. The resting "all"
+  // option carries a short trigger value so the pill reads "Category │ All".
+  const categoryFilterOptions = useMemo(
+    () =>
+      AUDIT_CATEGORY_OPTIONS.map((option) => ({
+        value: option,
+        label: categoryLabels[option],
+        triggerLabel: option === 'all' ? t`All` : undefined,
+      })),
+    [categoryLabels, t],
+  )
+  const rangeFilterOptions = useMemo(
+    () =>
+      AUDIT_RANGE_OPTIONS.map((option) => ({
+        value: option,
+        label: rangeLabels[option],
+      })),
+    [rangeLabels],
+  )
   const actionLabels = useAuditActionLabels()
   const entityTypeLabels = useAuditEntityTypeLabels()
   const [query, setQuery] = useQueryStates(auditLogSearchParamsParsers)
@@ -889,60 +911,50 @@ export function AuditLogPage() {
               scope: 'route',
             }}
           />
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(2,minmax(0,1fr))_auto_auto] xl:items-center">
-            <Select
+          {/* Toolbar speaks the shared pill vocabulary: Category and Time range
+              are the audit's primary axes, so they're visible SingleSelectFilter
+              pills (like /deadlines Status), and the three refine facets collapse
+              behind one Filters pill — never native form selects competing with
+              the pills around them. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <SingleSelectFilter
+              label={t`Category`}
+              ariaLabel={t`Action category`}
               value={query.category}
+              active={query.category !== 'all'}
+              options={categoryFilterOptions}
               onValueChange={(value) => {
-                if (typeof value !== 'string' || !isAuditCategoryOption(value)) return
+                if (!isAuditCategoryOption(value)) return
                 setPageIndex(0)
                 void setQuery({ category: value === 'all' ? null : value, event: null })
               }}
-            >
-              <SelectTrigger className="w-full" aria-label={t`Action category`}>
-                <SelectValue>{categoryLabels[query.category]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent align="start">
-                {AUDIT_CATEGORY_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option} indicatorPosition="start">
-                    {categoryLabels[option]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
 
-            <Select
+            <SingleSelectFilter
+              label={t`Range`}
+              ariaLabel={t`Time range`}
               value={query.range}
+              active={query.range !== DEFAULT_AUDIT_RANGE}
+              options={rangeFilterOptions}
               onValueChange={(value) => {
-                if (typeof value !== 'string' || !isAuditRange(value)) return
+                if (!isAuditRange(value)) return
                 setPageIndex(0)
                 void setQuery({ range: value === DEFAULT_AUDIT_RANGE ? null : value, event: null })
               }}
-            >
-              <SelectTrigger className="w-full" aria-label={t`Time range`}>
-                <SelectValue>{rangeLabels[query.range]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent align="start">
-                {AUDIT_RANGE_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option} indicatorPosition="start">
-                    {rangeLabels[option]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
 
             {/* Hick's-law: the three refine facets (Action / Actor / Entity
                 type) collapse behind ONE "Filters" trigger — same pattern as
-                /alerts — so the toolbar shows Category · Time range · Filters ·
-                Clear instead of five peer selects competing at once. */}
+                /alerts — so the toolbar shows Category · Range · Filters ·
+                Clear instead of five peer controls competing at once. */}
             <Popover>
               <PopoverTrigger
                 render={
                   <FilterTrigger
                     active={refineActiveCount > 0}
                     leadingIcon={SlidersHorizontalIcon}
-                    valueLabel={refineActiveCount > 0 ? String(refineActiveCount) : undefined}
+                    count={refineActiveCount}
                     aria-label={t`More filters`}
-                    className="text-base"
                   >
                     <span>
                       <Trans>Filters</Trans>
@@ -1012,11 +1024,10 @@ export function AuditLogPage() {
               </PopoverContent>
             </Popover>
 
-            <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
-              <FilterIcon data-icon="inline-start" />
-              {/* "Clear filters" (not "Reset") so the verb is identical to
-                /deadlines, /alerts, /clients, and /rules/library. Cross-surface
-                muscle memory: one label means one thing across the workbench. */}
+            {/* Canonical clear affordance: ghost button, no icon — identical to
+                /alerts, /clients, /rules/library. "Clear filters" (not "Reset")
+                so one verb means one thing across the workbench. */}
+            <Button variant="ghost" size="sm" onClick={resetFilters} disabled={!filtersActive}>
               <Trans>Clear filters</Trans>
             </Button>
           </div>

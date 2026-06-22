@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowDownUpIcon, CheckIcon, ChevronDownIcon, ListFilterIcon } from 'lucide-react'
+import { ArrowDownUpIcon, CheckIcon, ListFilterIcon } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
@@ -19,6 +19,7 @@ import {
   ListRailTitle,
 } from '@/components/patterns/list-rail'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -161,7 +162,6 @@ export function DeadlineNavigatorRail({
     { key: 'client', label: t`Client` },
     { key: 'status', label: t`Status` },
   ]
-  const sortLabel = (sortOptions.find((option) => option.key === sortKey) ?? sortOptions[0]!).label
 
   // v2 STAGES present in the loaded set, with rolled-up counts, in canonical
   // order — the menu only offers stages that actually exist in the rail. Each
@@ -258,31 +258,22 @@ export function DeadlineNavigatorRail({
             </span>
           ) : null}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <FilterTrigger
-                aria-label={t`Change sort order`}
-                leadingIcon={ArrowDownUpIcon}
-                valueLabel={sortLabel}
-                active
-                className="h-7 shrink-0 pl-2.5 pr-2 text-caption-xs"
-              >
-                <Trans>Sort by</Trans>
-              </FilterTrigger>
-            }
-          />
-          <DropdownMenuContent align="end" className="min-w-[180px]">
-            {sortOptions.map((option) => (
-              <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
-                <span className="flex-1">{option.label}</span>
-                {sortKey === option.key ? (
-                  <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Compact SingleSelectFilter (size="sm") — the rail's narrow form of
+            the same Sort pill used on /deadlines + /alerts toolbars, via the
+            first-class h-7 variant rather than a per-caller className override. */}
+        <SingleSelectFilter
+          label={<Trans>Sort by</Trans>}
+          ariaLabel={t`Change sort order`}
+          leadingIcon={ArrowDownUpIcon}
+          size="sm"
+          align="end"
+          active
+          className="shrink-0"
+          menuClassName="min-w-[180px]"
+          value={sortKey}
+          options={sortOptions.map((option) => ({ value: option.key, label: option.label }))}
+          onValueChange={(next) => setSortKey(next)}
+        />
       </ListRailHead>
 
       {/* FilterRow — client-side search + optional status filter over the
@@ -297,27 +288,27 @@ export function DeadlineNavigatorRail({
         />
         {/* Optional status filter. Trigger surfaces the active status label so
             it's clear the rail is filtered; "All statuses" clears it. */}
+        {/* Compact FilterTrigger (size="sm") — replaces the old hand-rolled
+            button so the rail status filter speaks the pill vocabulary too. It
+            collapses to icon-only at rest (no children) and names the active
+            status when filtered; a FilterTrigger (not SingleSelectFilter)
+            because the trigger has no static label slot — it's icon → value. */}
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <button
-                type="button"
+              <FilterTrigger
+                size="sm"
+                className="shrink-0"
                 aria-label={t`Filter by status`}
-                className={cn(
-                  'inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-caption-xs font-medium outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                  effectiveStatusFilter === 'all'
-                    ? 'text-text-tertiary hover:text-text-secondary'
-                    : 'text-text-accent',
-                )}
+                leadingIcon={ListFilterIcon}
+                active={effectiveStatusFilter !== 'all'}
               >
-                <ListFilterIcon className="size-3.5 shrink-0" aria-hidden />
                 {effectiveStatusFilter !== 'all' ? (
                   <span className="max-w-[110px] truncate">
                     {statusLabels[effectiveStatusFilter]}
                   </span>
                 ) : null}
-                <ChevronDownIcon className="size-3 shrink-0" aria-hidden />
-              </button>
+              </FilterTrigger>
             }
           />
           <DropdownMenuContent align="end" className="min-w-[200px]">

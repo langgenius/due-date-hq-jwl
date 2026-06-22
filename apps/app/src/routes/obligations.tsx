@@ -167,6 +167,7 @@ import {
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -3939,58 +3940,31 @@ export function ObligationQueueRoute() {
                       pill that names the active ordering — mirroring the detail
                       rail's "Sorted by …" control. "Client" clusters rows under
                       client headers. */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <FilterTrigger
-                          leadingIcon={LayersIcon}
-                          active={group !== DEFAULT_GROUP}
-                          valueLabel={
-                            group === 'client'
-                              ? t`Client`
-                              : group === 'filing'
-                                ? t`Filing`
-                                : group === 'urgency'
-                                  ? t`Urgency`
-                                  : t`Due date`
-                          }
-                          aria-label={t`Sort deadlines`}
-                        >
-                          <span>
-                            <Trans>Sort by</Trans>
-                          </span>
-                        </FilterTrigger>
+                  <SingleSelectFilter
+                    label={<Trans>Sort by</Trans>}
+                    ariaLabel={t`Sort deadlines`}
+                    leadingIcon={LayersIcon}
+                    value={group}
+                    active={group !== DEFAULT_GROUP}
+                    align="end"
+                    menuClassName="min-w-[180px]"
+                    options={[
+                      { value: 'due', label: t`Due date` },
+                      { value: 'urgency', label: t`Urgency` },
+                      { value: 'client', label: t`Client` },
+                      { value: 'filing', label: t`Filing` },
+                    ]}
+                    onValueChange={(next) => {
+                      if (
+                        next === 'due' ||
+                        next === 'urgency' ||
+                        next === 'client' ||
+                        next === 'filing'
+                      ) {
+                        void setObligationQueueQuery({ group: next })
                       }
-                    />
-                    <DropdownMenuContent align="end" className="min-w-[180px]">
-                      <DropdownMenuRadioGroup
-                        value={group}
-                        onValueChange={(next) => {
-                          if (
-                            next === 'due' ||
-                            next === 'urgency' ||
-                            next === 'client' ||
-                            next === 'filing'
-                          ) {
-                            void setObligationQueueQuery({ group: next })
-                          }
-                        }}
-                      >
-                        <DropdownMenuRadioItem value="due">
-                          <Trans>Due date</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="urgency">
-                          <Trans>Urgency</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="client">
-                          <Trans>Client</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="filing">
-                          <Trans>Filing</Trans>
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    }}
+                  />
                   {/* Consolidated VIEW + ACTIONS menu. VIEW = Columns / Group
                       by / Density submenus (each trigger shows its current
                       value); ACTIONS = Export visible rows · Save current view
@@ -6652,37 +6626,21 @@ function ObligationFiltersPopover({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* Consolidated Filters trigger — the shared vocabulary: slider icon +
+          "Filters" + the canonical accent-solid count badge (via the
+          FilterTrigger `count` prop) + chevron. Identical to /alerts, /rules,
+          /audit. The active read is the FilterTrigger's own bg tint; no
+          per-caller border / weight / size overrides. */}
       <PopoverTrigger
         render={
           <FilterTrigger
             active={committedActiveCount > 0}
             leadingIcon={SlidersHorizontalIcon}
-            {...(committedActiveCount > 0 ? { leadingIconColor: 'text-text-accent' } : {})}
-            // When filters are applied the trigger reads as ENGAGED at a
-            // glance: accent border + accent-tinted leading icon (the bg tint
-            // is the FilterTrigger's own `active` state). The count rides in a
-            // filled accent pill rather than the quiet muted-mono `valueLabel`,
-            // so "filters are on" is unmistakable from across the toolbar.
-            className={cn(
-              'font-semibold',
-              committedActiveCount > 0 &&
-                'border-state-accent-border text-text-accent data-[state=open]:border-state-accent-border',
-            )}
-            valueLabel={
-              committedActiveCount > 0 ? (
-                <Badge
-                  variant="accent-solid"
-                  className="min-w-4 px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums"
-                >
-                  {committedActiveCount}
-                </Badge>
-              ) : undefined
-            }
-            hideChevron
+            count={committedActiveCount}
             aria-label={t`Filters`}
           >
             <span>
-              <Trans>Filter</Trans>
+              <Trans>Filters</Trans>
             </span>
           </FilterTrigger>
         }
