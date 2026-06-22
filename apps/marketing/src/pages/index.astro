@@ -9,6 +9,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro'
 import TopNav from '../components/home/TopNav.astro'
+import ScrollRail from '../components/home/ScrollRail.astro'
 import Hero from '../components/home/Hero.astro'
 import Villain from '../components/home/Villain.astro'
 import HowItWorks from '../components/home/HowItWorks.astro'
@@ -38,6 +39,7 @@ const t = en
   structuredData={homeStructuredData(t, 'en')}
 >
   <TopNav ctaHref={ctaHref} signInHref={signInHref} />
+  <ScrollRail />
   <main>
     <Hero ctaHref={ctaHref} workflowAnchor="#how" />
     <Villain />

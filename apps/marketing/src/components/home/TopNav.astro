@@ -111,16 +111,23 @@ const links = [
     justify-self: end;
     display: inline-flex;
     align-items: center;
-    gap: 18px;
+    gap: 6px;
   }
   .nav__signin {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 999px;
     font-size: 14px;
     font-weight: 500;
     color: var(--m-ink-2);
-    transition: color 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease;
   }
   .nav__signin:hover {
     color: var(--m-accent);
+    background: var(--m-accent-tint);
   }
   .nav__cta {
     display: inline-flex;

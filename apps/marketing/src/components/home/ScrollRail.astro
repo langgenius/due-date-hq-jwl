@@ -1,0 +1,105 @@
+---
+/** Left scroll-spy rail — a "ticker" in the left margin showing which section the
+ *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
+const items = [
+  { label: 'How it works', href: '#how' },
+  { label: 'The document', href: '#notice' },
+  { label: 'Sources', href: '#sources' },
+  { label: 'See it work', href: '#work' },
+  { label: 'Why trust it', href: '#trust' },
+  { label: 'Security', href: '#security' },
+  { label: 'Questions', href: '#faq' },
+]
+---
+
+<nav class="spyrail" id="spyrail" aria-label="Section navigation">
+  {
+    items.map((it) => (
+      <a class="spyrail__item" href={it.href}>
+        <span class="spyrail__dot" aria-hidden="true" />
+        {it.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .spyrail {
+    position: fixed;
+    left: clamp(20px, 3vw, 52px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+  }
+  @media (min-width: 1500px) {
+    .spyrail {
+      display: flex;
+    }
+  }
+  .spyrail__item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 7px 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-faint);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+  .spyrail__item:hover {
+    color: var(--m-ink-2);
+  }
+  .spyrail__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    border: 1.5px solid var(--m-hairline);
+    background: transparent;
+    flex: none;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  .spyrail__item.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .spyrail__item.is-active .spyrail__dot {
+    background: var(--m-accent);
+    border-color: var(--m-accent);
+    transform: scale(1.15);
+  }
+</style>
+
+<script>
+  const rail = document.getElementById('spyrail')
+  if (rail) {
+    const items = Array.from(rail.querySelectorAll('.spyrail__item'))
+    const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
+    let ticking = false
+    const update = () => {
+      ticking = false
+      // the section whose top has most recently passed a line ~40% down the viewport
+      const line = window.innerHeight * 0.4
+      let idx = -1
+      for (let i = 0; i < secs.length; i++) {
+        if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
+      }
+      items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
+    }
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(update)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    update()
+  }
+</script>
