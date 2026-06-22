@@ -2769,6 +2769,10 @@ msgstr "任意"
 msgid "Any time"
 msgstr "任意时间"
 
+#: src/routes/obligations.tsx
+msgid "Anyone with the link can subscribe."
+msgstr "任何人都可以通过此链接订阅。"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "API access by contract"
@@ -3536,6 +3540,10 @@ msgstr "日历订阅已撤销"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Calendar period"
 msgstr "日历周期"
+
+#: src/routes/obligations.tsx
+msgid "Calendar subscription"
+msgstr "日历订阅"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
@@ -4594,6 +4602,10 @@ msgstr "Copied"
 msgid "Copy"
 msgstr "复制"
 
+#: src/routes/obligations.tsx
+msgid "Copy calendar URL"
+msgstr "复制日历链接"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Copy client email draft"
 msgstr "复制客户邮件草稿"
@@ -4620,7 +4632,6 @@ msgid "Copy URI"
 msgstr "复制 URI"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "复制 URL"
 
@@ -7580,8 +7591,8 @@ msgid "Generate a plain-English recap of this client's recent recorded changes a
 msgstr "生成该客户近期记录变更及当前记录状态的通俗概述。"
 
 #: src/routes/obligations.tsx
-msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
-msgstr "生成一个私有订阅链接，让分配给你的截止日出现在你的个人日历中。"
+msgid "Generate a private link so deadlines assigned to you appear in your personal calendar."
+msgstr "生成一个私密链接，将分配给你的截止日同步到你的个人日历。"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
@@ -9488,7 +9499,6 @@ msgid "Multiple values"
 msgstr "多个值"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/routes/obligations.tsx
 msgid "My deadlines"
 msgstr "我的截止日"
 
@@ -12063,6 +12073,10 @@ msgstr "隐私"
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy mode"
 msgstr "隐私模式"
+
+#: src/routes/obligations.tsx
+msgid "Private subscription link"
+msgstr "私密订阅链接"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
@@ -14870,10 +14884,6 @@ msgstr "已提交"
 msgid "Submitting…"
 msgstr "正在提交…"
 
-#: src/routes/obligations.tsx
-msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
-msgstr "通过 Google Calendar、Apple Calendar 或 Outlook 订阅。DueDateHQ 始终是截止日的权威来源。"
-
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't change DueDateHQ."
 msgstr "可从 Google Calendar、Apple Calendar 或 Outlook 订阅。在日历中的编辑不会影响 DueDateHQ。"
@@ -16590,6 +16600,10 @@ msgstr "查看受监控来源"
 msgid "View open filings for this client"
 msgstr "查看此客户的进行中申报"
 
+#: src/routes/obligations.tsx
+msgid "View options — {visibleHideableCount} of {totalHideableCount} columns shown"
+msgstr "查看选项 — 已显示 {totalHideableCount} 列中的 {visibleHideableCount} 列"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View overdue deadlines"
 msgstr "查看逾期的截止日期"
@@ -16605,10 +16619,6 @@ msgstr "视图范围"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "View source"
 msgstr "查看来源"
-
-#: src/routes/obligations.tsx
-msgid "View, columns, and actions"
-msgstr "视图、列与操作"
 
 #: src/routes/obligations.tsx
 msgid "Visible columns"
@@ -17145,6 +17155,10 @@ msgstr "you@yourpractice.com"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "你的账户尚未关联任何事务所。"
+
+#: src/routes/obligations.tsx
+msgid "Your assigned deadlines, in Google, Apple, or Outlook."
+msgstr "你的截止日，可在 Google、Apple 或 Outlook 中查看。"
 
 #: src/features/auth/auth-chrome.tsx
 msgid "Your client data never leaves your jurisdiction"

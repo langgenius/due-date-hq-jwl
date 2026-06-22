@@ -2312,7 +2312,11 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { headerClassName: 'w-[196px]', cellClassName: 'w-[196px]' },
+        // 232px (was 196) — long client names ("Meridian Multistate Holdings")
+        // were truncating at the old width. The extra 36px comes out of the
+        // Status fill column's trailing slack, so the wide-screen right-margin
+        // gap shrinks at the same time the name gets room.
+        meta: { headerClassName: 'w-[232px]', cellClassName: 'w-[232px]' },
       },
       {
         // Smart Priority — second data column (right after Client). Client is
@@ -2824,6 +2828,13 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
+        // Explicit width so Status is no longer the lone FILL column. With
+        // every column fixed, table-fixed spreads wide-screen slack
+        // proportionally across the row instead of dumping ~40% of the table
+        // into a half-empty Status cell (the trailing dead-space the wide-screen
+        // review flagged). 240px holds the status pill + one inline signal badge
+        // (e.g. "In review" + "Rejected") before the secondary line wraps.
+        meta: { headerClassName: 'w-[240px]', cellClassName: 'w-[240px]' },
       },
     ],
     [
@@ -3565,10 +3576,16 @@ export function ObligationQueueRoute() {
         }
         actions={
           <>
+            {/* Header actions render at the canonical h-9 (default size), NOT
+                sm/h-8 — same rule as /alerts: header buttons match the h-9
+                filter-trigger chrome below (Status / Sort by / Filter / View)
+                so the page reads as one button family. sm/h-8 sat 4px shorter
+                than the filter pills and made the header feel like a different
+                control set. */}
             {/* Export uses ArrowUpRightIcon (arrow up + out — data LEAVING the
                 app), not a download arrow — the convention used by Linear /
                 Notion / Figma for export actions. */}
-            <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
+            <Button variant="outline" onClick={() => openExportDialog('filtered')}>
               <ArrowUpRightIcon data-icon="inline-start" />
               <Trans>Export</Trans>
             </Button>
@@ -3593,7 +3610,7 @@ export function ObligationQueueRoute() {
                 open={addDeadlineOpen}
                 onOpenChange={setAddDeadlineOpen}
                 trigger={
-                  <Button type="button" variant="primary" size="sm" className="rounded-r-none">
+                  <Button type="button" variant="primary" className="rounded-r-none">
                     <PlusIcon data-icon="inline-start" />
                     <Trans>Add deadline</Trans>
                   </Button>
@@ -3605,7 +3622,6 @@ export function ObligationQueueRoute() {
                     <Button
                       type="button"
                       variant="primary"
-                      size="sm"
                       aria-label={t`More add-deadline options`}
                       className="-ml-px rounded-l-none px-2"
                     >
@@ -4020,13 +4036,21 @@ export function ObligationQueueRoute() {
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
+                        // Default h-9 (not sm) so it lines up with the Sort by
+                        // / Filter pills it sits beside. The `shown / total`
+                        // count rides on the trigger itself — the column
+                        // configuration is legible from the toolbar without
+                        // opening the menu (the same count repeats on the
+                        // Columns submenu trigger inside).
                         <Button
                           variant="ghost"
-                          size="sm"
-                          aria-label={t`View, columns, and actions`}
+                          aria-label={t`View options — ${visibleHideableCount} of ${totalHideableCount} columns shown`}
                         >
                           <Columns3Icon data-icon="inline-start" />
                           <Trans>View</Trans>
+                          <span className="tabular-nums text-text-tertiary">
+                            {visibleHideableCount}/{totalHideableCount}
+                          </span>
                         </Button>
                       }
                     />
@@ -4689,6 +4713,29 @@ export function ObligationQueueRoute() {
                               collapsedQueueGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
+                        // Leading urgency stripe — the row's 2px left rail picks
+                        // up the SAME tone the Internal-due pill uses, via
+                        // `dueDaysTone`, so the stripe and the date cell never
+                        // disagree: deep red when badly overdue (`destructive`),
+                        // coral when recently late or imminent (`warning`), and
+                        // no stripe once the row is 3+ days out (`outline`).
+                        // Suppressed (filed / completed / paid / N-A) rows show
+                        // no stripe: their lateness is a quality stat, not live
+                        // urgency. Urgency takes the rail over the gray
+                        // client-cluster tint — an overdue filing matters more
+                        // to surface than which cluster it sits in, and the
+                        // cluster still reads via row-welding + the continuation
+                        // indent.
+                        const rowDueVariant = dueDaysTone(
+                          daysUntilEffectiveInternalDueDate(tableRow.original),
+                        ).variant
+                        const urgencyRail = isDueDaysSuppressedForStatus(tableRow.original.status)
+                          ? null
+                          : rowDueVariant === 'destructive'
+                            ? 'border-l-state-destructive-solid'
+                            : rowDueVariant === 'warning'
+                              ? 'border-l-state-warning-solid'
+                              : null
                         // The group header TableRow below inherits canonical
                         // TableRow chrome; `bg-background-subtle` is kept
                         // because the group header is a quieter inset surface
@@ -4698,7 +4745,9 @@ export function ObligationQueueRoute() {
                             {groupHeader ? (
                               // Group header surface + px-5 py-2 padding match
                               // the canonical subgroup divider on /today +
-                              // /alerts.
+                              // /alerts. (The lane wash rides on the cell below,
+                              // not here — the row's own `has-aria-expanded`
+                              // hover rule outranks a row-level bg.)
                               <TableRow className="bg-background-subtle">
                                 {/* The chevron lives in a w-10 slot matching the
                                     leading select column, and the tone dot +
@@ -4710,7 +4759,24 @@ export function ObligationQueueRoute() {
                                     let the slot do the alignment. */}
                                 <TableCell
                                   colSpan={visibleColumnCount}
-                                  className="py-1.5 pr-5 pl-0"
+                                  // Urgency bands get a soft lane wash (red-50 /
+                                  // warning-50) so the OVERDUE and THIS WEEK
+                                  // zones read as colored lanes that cap the
+                                  // matching row stripes below — calm tints,
+                                  // never a filled red bar (keeps the queue's
+                                  // no-red-overload rule). Client / filing
+                                  // groupings stay neutral. Painted on the cell
+                                  // (not the row) so it isn't outranked by the
+                                  // row's has-aria-expanded hover state.
+                                  className={cn(
+                                    'py-1.5 pr-5 pl-0',
+                                    groupHeader.kind === 'urgency' &&
+                                      groupHeader.groupKey === 'overdue' &&
+                                      'bg-state-destructive-hover',
+                                    groupHeader.kind === 'urgency' &&
+                                      groupHeader.groupKey === 'this_week' &&
+                                      'bg-state-warning-hover',
+                                  )}
                                 >
                                   <button
                                     type="button"
@@ -4861,6 +4927,10 @@ export function ObligationQueueRoute() {
                                   (continuationRowIds.has(tableRow.original.id) ||
                                     withinGroupRowIds.has(tableRow.original.id)) &&
                                     'border-l-divider-regular',
+                                  // Urgency wins the rail last so it overrides
+                                  // the gray cluster tint on overdue / due-soon
+                                  // rows.
+                                  urgencyRail,
                                 )}
                                 onClick={(event) => {
                                   if (
@@ -7422,87 +7492,125 @@ function CalendarSyncPopover() {
 
   return (
     <>
-      {open ? (
-        <div
-          aria-hidden
-          className="fixed inset-0 z-40 bg-background-overlay-backdrop"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
+      {/* No manual backdrop. A Base UI Popover already closes on outside-press
+          + Escape; the old `fixed inset-0 bg-background-overlay-backdrop` div
+          painted a 95%-opaque WHITE scrim over the whole page, making a small
+          anchored utility read like a broken modal (Yuqi: "white mask behind
+          the popup"). Popovers in this app never dim the page — only Dialogs
+          do. */}
       <Popover open={open} onOpenChange={setOpen}>
+        {/* Default h-9 (not sm) — matches the other /deadlines header actions
+            + the filter-trigger chrome. */}
         <PopoverTrigger
           render={
-            <Button variant="outline" size="sm">
+            <Button variant="outline">
               <CalendarDaysIcon data-icon="inline-start" />
               <Trans>Calendar sync</Trans>
             </Button>
           }
         />
-        <PopoverContent align="end" className="w-80 gap-3">
-          <PopoverHeader>
-            <PopoverTitle>
-              <Trans>My deadlines</Trans>
-            </PopoverTitle>
-            <p className="text-xs text-text-tertiary">
-              <Trans>
-                Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the
-                source of truth.
-              </Trans>
-            </p>
+        {/* gap-0/p-0 so the header band + body own their own padding and the
+            hairline can span the full width (clear-sections-not-boxes). */}
+        <PopoverContent align="end" className="w-80 gap-0 p-0">
+          {/* Header band — a soft accent tile gives the utility an identity
+              instead of a bare text title; the scope line says exactly what the
+              feed contains. */}
+          <PopoverHeader className="flex-row items-start gap-3 px-4 pt-4 pb-3">
+            <span
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent"
+              aria-hidden
+            >
+              <CalendarDaysIcon className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <PopoverTitle className="leading-tight">
+                <Trans>Calendar subscription</Trans>
+              </PopoverTitle>
+              <span className="text-xs leading-snug text-text-tertiary">
+                <Trans>Your assigned deadlines, in Google, Apple, or Outlook.</Trans>
+              </span>
+            </span>
           </PopoverHeader>
-          {subscriptionsQuery.isLoading ? (
-            <div className="grid gap-2">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          ) : feedUrl ? (
-            <div className="grid gap-2">
-              <Input
-                readOnly
-                value={feedUrl}
-                className="font-mono text-xs"
-                aria-label={t`Calendar URL`}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => void copyFeedUrl()} className="flex-1">
-                  <CopyIcon data-icon="inline-start" />
-                  <Trans>Copy URL</Trans>
-                </Button>
+          <div className="h-px w-full bg-divider-subtle" aria-hidden />
+          <div className="p-4">
+            {subscriptionsQuery.isLoading ? (
+              <div className="grid gap-2">
+                <Skeleton className="h-3 w-32 rounded-full" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            ) : feedUrl ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-caption-xs font-medium tracking-wide text-text-tertiary uppercase">
+                    <Trans>Private subscription link</Trans>
+                  </span>
+                  {/* The field IS the copy affordance — a trailing copy glyph,
+                      the pattern users expect for "grab this link" (Vercel /
+                      GitHub). Regenerate is demoted to a quiet footer action so
+                      the destructive path doesn't compete with the everyday
+                      copy. */}
+                  <div className="relative">
+                    <Input
+                      readOnly
+                      value={feedUrl}
+                      className="pr-9 font-mono text-xs"
+                      aria-label={t`Calendar URL`}
+                      onFocus={(event) => event.currentTarget.select()}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => void copyFeedUrl()}
+                      aria-label={t`Copy calendar URL`}
+                      className="absolute top-1/2 right-1 -translate-y-1/2"
+                    >
+                      <CopyIcon className="size-3.5" aria-hidden />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-caption-xs text-text-tertiary">
+                    <Trans>Anyone with the link can subscribe.</Trans>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="text-text-secondary"
+                    onClick={() => setRegenerateConfirmOpen(true)}
+                    disabled={regenerateMutation.isPending || !subscription}
+                  >
+                    <RefreshCwIcon
+                      data-icon="inline-start"
+                      className={cn(regenerateMutation.isPending && 'animate-spin')}
+                    />
+                    <Trans>Regenerate</Trans>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  <Trans>
+                    Generate a private link so deadlines assigned to you appear in your personal
+                    calendar.
+                  </Trans>
+                </p>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenerateConfirmOpen(true)}
-                  disabled={regenerateMutation.isPending || !subscription}
+                  onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
+                  disabled={upsertMutation.isPending}
+                  aria-busy={upsertMutation.isPending}
+                  className="w-full"
                 >
-                  <RefreshCwIcon
-                    data-icon="inline-start"
-                    className={cn(regenerateMutation.isPending && 'animate-spin')}
-                  />
-                  <Trans>Regenerate</Trans>
+                  {upsertMutation.isPending ? (
+                    <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                  ) : null}
+                  <Trans>Enable subscription</Trans>
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              <p className="text-xs text-text-secondary">
-                <Trans>
-                  Generate a private subscription URL so deadlines assigned to you appear in your
-                  personal calendar.
-                </Trans>
-              </p>
-              <Button
-                size="sm"
-                onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
-                disabled={upsertMutation.isPending}
-                aria-busy={upsertMutation.isPending}
-              >
-                {upsertMutation.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
-                ) : null}
-                <Trans>Enable subscription</Trans>
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </PopoverContent>
       </Popover>
       <AlertDialog
