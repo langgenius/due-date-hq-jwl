@@ -375,27 +375,25 @@
     }
   }
 
-  /* ==========================================================================
-     CJK (zh-CN) display-serif guard.
-     The hero/finale headlines render in Instrument Serif (--m-font-display),
-     which has NO Chinese glyphs — so on zh-CN they fall back unpredictably and
-     get a synthesized oblique on .ital accent words. One shared guard, keyed on
-     html[lang='zh-CN'] so it reliably out-specifies the Astro-scoped
-     ([data-astro-cid]) single-class component rules:
-       • swap to a CJK-capable serif → sans stack
-       • relax the Latin display metrics (line-height for full-width glyphs, no
-         negative tracking)
-       • drop faux-italic — Chinese has no italic; emphasis is given another way
-         in the markup, this just stops the oblique skew.
-     ========================================================================== */
-  html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
-    font-family:
-      'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC',
-      var(--m-font-sans);
-    line-height: 1.18;
-    letter-spacing: 0;
-  }
-  html[lang='zh-CN'] .ital {
-    font-style: normal;
-  }
+}
+
+/* ==========================================================================
+   CJK (zh-CN) display-serif guard — UNLAYERED + !important on purpose.
+   Instrument Serif (--m-font-display) has NO Chinese glyphs, so zh heroes must
+   swap to a CJK serif stack and drop the synthesized faux-italic on .ital
+   accent words. This MUST sit outside @layer components: Astro's scoped
+   component <style> rules are UNLAYERED and therefore beat any @layer rule
+   regardless of specificity — so a layered guard is a silent no-op. Unlayered +
+   !important reliably wins over both the scoped base rules and the per-component
+   data-zh overrides.
+   ========================================================================== */
+html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
+  font-family:
+    'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC',
+    var(--m-font-sans) !important;
+  line-height: 1.18 !important;
+  letter-spacing: 0 !important;
+}
+html[lang='zh-CN'] .ital {
+  font-style: normal !important;
 }
