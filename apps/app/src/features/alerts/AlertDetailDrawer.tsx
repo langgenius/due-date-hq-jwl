@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -53,11 +54,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -67,6 +68,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { Kbd } from '@/components/patterns/kbd'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertSourceLink } from './components/AlertSourceLink'
+import { ApplyingPill } from './components/ApplyingPill'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
@@ -506,12 +508,13 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                 )}
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 13/500
-                      step title — a step lighter than the section body so the
-                      timeline reads as a quiet log, not a heading stack. */}
+                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 12/500
+                      step title — a step lighter than the section body (text-sm)
+                      so the timeline reads as a quiet log, not a heading stack.
+                      Tokenized from the off-scale text-[13px] to text-xs. */}
                   <span
                     className={cn(
-                      'text-[13px] font-medium',
+                      'text-xs font-medium',
                       step.state === 'current'
                         ? 'text-text-accent'
                         : step.state === 'future'
@@ -550,12 +553,88 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
 }
 
 /**
- * The colored top-of-panel status banner — amber "Pending your review",
- * red "Couldn't apply", green "Applied · undo". Exactly one renders,
- * picked from the real alert state. Right-side meta (confidence, due-in,
- * confirmed-by-N-sources) is wired to real fields; "rank #X of Y" + exact
- * undo countdown + audit-ref strings are omitted rather than fabricated.
+ * img-067 — single-line apply-gate diagnostic. Sits directly above the Apply
+ * button in the decision footer and answers "why can't I apply yet" in ONE
+ * line, instead of the old verbose low-confidence Alert (a title + two-bullet
+ * checklist) and the silent not-ready gate (which rendered nothing at all).
+ *
+ * Demote-don't-delete: the decision info is preserved (what's missing / what to
+ * verify), just compressed to a single reason + a "Review source" jump. The
+ * Apply button itself owns the disabled state and its own micro-copy; this bar
+ * only explains the gate. One purpose: diagnosis, not action.
+ *
+ * The reason is derived from real backend fields only — `applyReadiness.missing`
+ * (PulseApplyReadinessMissing enum) and `alert.confidence` (low-confidence
+ * gate). Nothing fabricated.
+ *
+ * The reason is computed inline with the macro-bound `t` (not a passed-in
+ * helper): the lingui `t` macro only extracts template strings when `t` comes
+ * straight from `useLingui()` in the component body — a `t` parameter is
+ * invisible to the extractor (the i18n footgun in MEMORY).
  */
+function ApplyGateDiagnostic({
+  detail,
+  onReviewSource,
+}: {
+  detail: PulseDetail
+  onReviewSource: () => void
+}) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  // Only relevant while the alert is still awaiting a decision (the primary
+  // footer button is live). Applied / dismissed / reverted / reviewed alerts
+  // are past the gate. `no_current_match` alerts keep the bar too — there the
+  // primary action is "Mark reviewed" and the low-confidence verify cue still
+  // applies (the verbose banner that used to carry it was removed).
+  if (alert.status !== 'matched') {
+    return null
+  }
+
+  let reason: string | null = null
+  const readiness = detail.applyReadiness
+  if (readiness.status === 'needs_details') {
+    // Name the first missing piece — the footer button's count/label already
+    // carries the secondary "select deadlines" nudge, so the bar leads with the
+    // structural blocker the CPA has to resolve before the apply is honest.
+    const missing = readiness.missing
+    if (missing.includes('affected_clients')) {
+      reason = t`Confirm at least one affected client before applying.`
+    } else if (missing.includes('original_due_date') || missing.includes('new_due_date')) {
+      reason = t`Confirm the original and new due dates before applying.`
+    } else if (missing.includes('forms')) {
+      reason = t`Set the affected forms before applying.`
+    } else if (missing.includes('entity_types')) {
+      reason = t`Set the affected entity types before applying.`
+    } else {
+      // needs_details with no enumerated field — generic but honest.
+      reason = t`Some required details are missing — confirm them before applying.`
+    }
+  } else if (isLowAiConfidence(alert.confidence)) {
+    // No blocking detail gap, but the model was unsure: a quiet verify-first
+    // nudge replaces the old multi-line low-confidence banner. The wording
+    // matches the action that follows (mark-reviewed vs. apply-to-clients).
+    reason =
+      alert.firmImpact === 'no_current_match'
+        ? t`Low AI confidence — verify the parsed fields against the source before marking reviewed.`
+        : t`Low AI confidence — verify the parsed fields against the source before applying.`
+  }
+
+  if (reason === null) {
+    return null
+  }
+  return (
+    <div className="flex w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-background-subtle px-3 py-2">
+      <span className="flex min-w-0 items-center gap-2 text-sm text-text-secondary">
+        <TriangleAlertIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+        <span className="min-w-0 truncate">{reason}</span>
+      </span>
+      <TextLink variant="accent" size="sm" onClick={onReviewSource} className="shrink-0">
+        <Trans>Review source</Trans>
+      </TextLink>
+    </div>
+  )
+}
+
 function DecisionBanners({
   detail,
   applyError,
@@ -582,7 +661,7 @@ function DecisionBanners({
           </Trans>
         }
         action={
-          <TextLink variant="destructive" size="sm" onClick={onRetry} className="font-semibold">
+          <TextLink variant="destructive" size="sm" onClick={onRetry}>
             <Trans>Retry now</Trans>
           </TextLink>
         }
@@ -627,7 +706,7 @@ function DecisionBanners({
         }
         action={
           undoOpen && REVERTABLE_STATUSES.has(alert.status) ? (
-            <TextLink variant="success" size="sm" onClick={onUndo} className="font-semibold">
+            <TextLink variant="success" size="sm" onClick={onUndo}>
               <Trans>Undo</Trans>
             </TextLink>
           ) : undefined
@@ -758,6 +837,11 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
     </ol>
   )
 }
+
+// Apply-success celebration hold: how long the footer shows the green "Applied"
+// confirmation before the drawer closes. ~600ms reads as a deliberate beat of
+// recognition (the catalog's "win moment") without making the user wait.
+const APPLIED_CELEBRATION_MS = 600
 
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
@@ -910,6 +994,21 @@ export function AlertDetailDrawer({
   const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
   const [applyVerified, setApplyVerified] = useState(false)
 
+  // Apply-success celebration — the one-click Apply is the product's signature
+  // win, but it used to close the drawer instantly with only a toast. On success
+  // we flip the footer to a green "Applied" confirmation, hold briefly so the
+  // firm-wide win registers, then close. `applied` is reset by the render-time
+  // reset blocks below (alert change / close); the timer is cleared on unmount.
+  const [applied, setApplied] = useState(false)
+  const [appliedCount, setAppliedCount] = useState(0)
+  const appliedCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (appliedCloseTimer.current) clearTimeout(appliedCloseTimer.current)
+    },
+    [],
+  )
+
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
   const nextResetKey = detail
@@ -938,6 +1037,7 @@ export function AlertDetailDrawer({
     setApplyVerified(false)
     setHeroScrolled(false)
     setDecisionDocked(true)
+    setApplied(false)
     setResetKey(nextResetKey)
   }
   if (!open && resetKey !== null) {
@@ -948,6 +1048,7 @@ export function AlertDetailDrawer({
     setReviewNote('')
     setApplyVerificationOpen(false)
     setApplyVerified(false)
+    setApplied(false)
     setResetKey(null)
   }
 
@@ -1064,7 +1165,13 @@ export function AlertDetailDrawer({
             onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
           },
         })
-        onClose()
+        // Hold a brief green "Applied" confirmation in the footer before
+        // closing, so the firm-wide win registers (motion catalog). The timer
+        // is cleared on unmount; `applied` is reset by the render-time reset
+        // blocks when the alert changes or the drawer closes.
+        setAppliedCount(result.appliedCount)
+        setApplied(true)
+        appliedCloseTimer.current = setTimeout(() => onClose(), APPLIED_CELEBRATION_MS)
       },
       onError: (err) => {
         const description = i18n._(alertErrorDescriptor(err)) || (rpcErrorMessage(err) ?? '')
@@ -1439,16 +1546,22 @@ export function AlertDetailDrawer({
               scrolled out of view (Yuqi: "when you scroll up, still show the
               alert title, smaller"). At the top the big hero title is visible,
               so repeating it here would be redundant. */}
-          {detail && heroScrolled ? (
-            <>
-              <span className="shrink-0 text-text-muted" aria-hidden>
-                /
-              </span>
-              <span className="max-w-[420px] truncate text-text-secondary">
-                {detail.alert.title}
-              </span>
-            </>
-          ) : null}
+          <AnimatePresence mode="wait">
+            {detail && heroScrolled ? (
+              <motion.span
+                key="title"
+                {...fadeMotion}
+                className="flex min-w-0 items-center gap-1.5"
+              >
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  /
+                </span>
+                <span className="max-w-[420px] truncate text-text-secondary">
+                  {detail.alert.title}
+                </span>
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
         </nav>
         <div className="flex shrink-0 items-center gap-3">
           {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
@@ -1742,9 +1855,14 @@ export function AlertDetailDrawer({
                     >
                       {item.label}
                       {sectionActive ? (
-                        <span
-                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                        // Shared-layout underline — slides between scroll-spy
+                        // sections instead of blinking (same pattern as the
+                        // client-detail tabs). Reduced-motion handled globally.
+                        <motion.span
+                          layoutId="alert-detail-section-underline"
                           aria-hidden
+                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                          transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                         />
                       ) : null}
                     </button>
@@ -1888,47 +2006,12 @@ export function AlertDetailDrawer({
                 </Alert>
               ) : null}
 
-              {/* LOW-CONFIDENCE banner (Pencil gsl8K) — when the model is unsure
-                  (<50%), the "double-check this" cue is hoisted to the TOP of the
-                  body (it used to sit buried inside the Source section) so it is
-                  the first thing the CPA reads, with a concrete verify checklist
-                  instead of one prose sentence. Warning tone; the source excerpt
-                  + structured scope it points at live in the Change / Source
-                  sections below. */}
-              {isLowAiConfidence(detail.alert.confidence) ? (
-                <Alert variant="warning">
-                  <TriangleAlertIcon />
-                  <AlertTitle>
-                    <ConceptLabel concept="aiConfidence">
-                      <Trans>
-                        Low AI confidence ({Math.round(detail.alert.confidence * 100)}%) — verify
-                        before you act
-                      </Trans>
-                    </ConceptLabel>
-                  </AlertTitle>
-                  <AlertDescription>
-                    {detail.alert.firmImpact === 'no_current_match' ? (
-                      <Trans>
-                        The model extracted these fields with low confidence. Before marking this
-                        reviewed, confirm:
-                      </Trans>
-                    ) : (
-                      <Trans>
-                        The model extracted these fields with low confidence. Before pushing changes
-                        to clients, confirm:
-                      </Trans>
-                    )}
-                    <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4">
-                      <li>
-                        <Trans>the parsed fields match the source excerpt below</Trans>
-                      </li>
-                      <li>
-                        <Trans>the structured scope is right for your clients</Trans>
-                      </li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+              {/* img-067: the verbose low-confidence Alert (title + two-bullet
+                  verify checklist) that used to sit at the top of the body has
+                  been demoted into the single-line ApplyGateDiagnostic bar above
+                  the decision button (see the footer). The "verify before you
+                  act" cue now lands exactly where the act happens, in one line,
+                  rather than as a multi-line banner the CPA scrolls past. */}
 
               {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
@@ -2097,13 +2180,13 @@ export function AlertDetailDrawer({
                     affirmation + Apply-now shortcut (same verification gate as
                     the footer). Real data: selected-client count + confidence. */}
                   {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
-                    <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
+                    <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4 animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none">
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-state-success-hover text-text-success">
                           <ShieldCheckIcon className="size-4" aria-hidden />
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <span className="text-base font-semibold text-text-success">
+                          <span className="text-base font-semibold text-text-primary">
                             <Trans>Ready to apply · deadline selection confirmed</Trans>
                           </span>
                           <p className="text-sm text-text-secondary">
@@ -2118,18 +2201,24 @@ export function AlertDetailDrawer({
                             </Trans>
                           </p>
                         </div>
-                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-success tabular-nums sm:inline">
+                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-secondary tabular-nums sm:inline">
                           {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                         </span>
                       </div>
                       {canApply ? (
+                        // 2026-06-22 audit: this is a SHORTCUT to the footer's
+                        // primary "Apply to N clients", so it reads as a quieter
+                        // secondary — one filled primary per view. The green
+                        // ground is the only success cue; no green-on-green
+                        // solid override (it killed contrast + stacked a second
+                        // differently-coloured filled primary).
                         <div className="flex justify-end">
                           <Button
                             type="button"
+                            variant="secondary"
                             size="sm"
                             onClick={handleApply}
                             disabled={isMutating}
-                            className="bg-text-success hover:bg-text-success/90"
                           >
                             <Trans>Apply now</Trans>
                             <ArrowRightIcon data-icon="inline-end" />
@@ -2338,11 +2427,11 @@ export function AlertDetailDrawer({
           {detail ? (
             <div
               className={cn(
-                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-row items-center gap-6 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
                 decisionDocked ? 'border-transparent' : 'border-divider-subtle',
               )}
               // Float elevation as an inline style — an arbitrary
-              // `shadow-[…rgba(),…]` class gets dropped by tailwind-merge in cn()
+              // `shadow-[…rgba(…),…]` class gets dropped by tailwind-merge in cn()
               // (commas/parens), so the lift never rendered. Only while floating.
               style={
                 decisionDocked
@@ -2350,51 +2439,68 @@ export function AlertDetailDrawer({
                   : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
               }
             >
-              {detail ? (
-                // Critique #7 (standing signals aren't events): the reassurance
-                // line reads tertiary with only the shield icon in green — a
-                // permanently green sentence claimed success-event semantics.
-                <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
-                  <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
-                  <Trans>Every decision captured to audit ledger</Trans>
-                </span>
-              ) : null}
-              <div className="flex min-w-0 flex-1">
+              {/* img-067 — single-line apply-gate diagnostic, directly above the
+                  decision button. Explains the gate in one line ("why can't I
+                  apply yet") + jumps to the Source section to verify. */}
+              <ApplyGateDiagnostic
+                detail={detail}
+                onReviewSource={() =>
+                  document
+                    .getElementById('alert-section-source')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              />
+              <div className="flex flex-row items-center gap-6">
                 {detail ? (
-                  <DrawerActions
-                    alertStatus={detail.alert.status}
-                    sourceStatus={detail.alert.sourceStatus}
-                    selectionCount={stats?.selectedCount ?? 0}
-                    actionMode={detail.alert.actionMode}
-                    firmImpact={detail.alert.firmImpact}
-                    requiresDeadlineDetails={missingDeadlineDetails}
-                    appliedAt={detail.alert.appliedAt}
-                    canApply={canApply}
-                    // ROH-D15 — Undo button now gates on `pulse.revert` instead
-                    // of the `pulse.apply` proxy.
-                    canRevert={permissions.canRevert}
-                    canRequestReview={canRequestAlertReview({
-                      role: permissions.role,
-                      alertStatus: detail.alert.status,
-                      sourceStatus: detail.alert.sourceStatus,
-                    })}
-                    canApplyReviewed={permissions.canManagePriorityReview}
-                    canDismiss={canDismiss}
-                    reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-                    reverifyIncomplete={reverifyIncomplete}
-                    isMutating={isMutating}
-                    onApply={handleApply}
-                    onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-                    onApplyReviewed={() =>
-                      applyReviewedMutation.mutate({ alertId: detail.alert.id })
-                    }
-                    onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-                    onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-                    onRequestReview={() => setReviewDialogOpen(true)}
-                    onCopyDraft={handleCopyDraft}
-                    onDismiss={handleDismiss}
-                  />
+                  // Critique #7 (standing signals aren't events): the reassurance
+                  // line reads tertiary with only the shield icon in green — a
+                  // permanently green sentence claimed success-event semantics.
+                  <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
+                    <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
+                    <Trans>Every decision captured to audit ledger</Trans>
+                  </span>
                 ) : null}
+                <div className="flex min-w-0 flex-1">
+                  {detail ? (
+                    <DrawerActions
+                      applied={applied}
+                      appliedCount={appliedCount}
+                      alertStatus={detail.alert.status}
+                      sourceStatus={detail.alert.sourceStatus}
+                      selectionCount={stats?.selectedCount ?? 0}
+                      actionMode={detail.alert.actionMode}
+                      firmImpact={detail.alert.firmImpact}
+                      requiresDeadlineDetails={missingDeadlineDetails}
+                      appliedAt={detail.alert.appliedAt}
+                      canApply={canApply}
+                      // ROH-D15 — Undo button now gates on `pulse.revert` instead
+                      // of the `pulse.apply` proxy.
+                      canRevert={permissions.canRevert}
+                      canRequestReview={canRequestAlertReview({
+                        role: permissions.role,
+                        alertStatus: detail.alert.status,
+                        sourceStatus: detail.alert.sourceStatus,
+                      })}
+                      canApplyReviewed={permissions.canManagePriorityReview}
+                      canDismiss={canDismiss}
+                      reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+                      reverifyIncomplete={reverifyIncomplete}
+                      isMutating={isMutating}
+                      onApply={handleApply}
+                      onMarkReviewed={() =>
+                        markReviewedMutation.mutate({ alertId: detail.alert.id })
+                      }
+                      onApplyReviewed={() =>
+                        applyReviewedMutation.mutate({ alertId: detail.alert.id })
+                      }
+                      onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+                      onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+                      onRequestReview={() => setReviewDialogOpen(true)}
+                      onCopyDraft={handleCopyDraft}
+                      onDismiss={handleDismiss}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}
@@ -2524,6 +2630,8 @@ export function AlertDetailDrawer({
 }
 
 export function DrawerActions({
+  applied = false,
+  appliedCount = 0,
   alertStatus,
   sourceStatus,
   selectionCount,
@@ -2548,6 +2656,10 @@ export function DrawerActions({
   onCopyDraft,
   onDismiss,
 }: {
+  /** True during the brief post-apply success hold — shows a green confirmation. */
+  applied?: boolean
+  /** Number of clients the apply just landed on — shown in the confirmation. */
+  appliedCount?: number
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
@@ -2582,6 +2694,32 @@ export function DrawerActions({
   onDismiss: () => void
 }) {
   const { t } = useLingui()
+  // Apply-success celebration — while the parent holds before closing, replace
+  // the whole action cluster with a brief green "Applied" confirmation that
+  // fades in. Reduced-motion is handled globally by <MotionConfig>.
+  if (applied) {
+    return (
+      <div className="flex w-full items-center justify-end">
+        <motion.div
+          {...fadeMotion}
+          className="flex items-center gap-2 text-sm font-medium text-text-success"
+        >
+          {/* The check stamps down like an audit seal — scale + slight rotate
+              settling to rest — over the row's fade. The client count gives the
+              win its weight. Reduced-motion handled globally by MotionConfig. */}
+          <motion.span
+            className="inline-flex"
+            initial={{ scale: 1.6, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+          >
+            <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
+          </motion.span>
+          <Plural value={appliedCount} one="Applied to # client" other="Applied to # clients" />
+        </motion.div>
+      </div>
+    )
+  }
   // The server rejects reverts past REVERT_WINDOW_MS (24h from apply), so
   // the footer only offers Undo while the window is genuinely open. After
   // that, a quiet closed-window line replaces the button — never an enabled
@@ -2665,6 +2803,10 @@ export function DrawerActions({
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {/* Apply is the product's core one-click moment but the button only went
+            aria-busy with no visible progress — the sweep pill makes "applying
+            across your clients" legible (img-043). Additive; the buttons stay. */}
+        {isMutating ? <ApplyingPill className="mr-1" /> : null}
         {canRequestReview ? (
           <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
             <MessageSquareIcon data-icon="inline-start" />

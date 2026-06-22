@@ -1,0 +1,241 @@
+---
+/** See it work — the risk-ranked worklist (the Monday console). Re-houses the
+ *  original site's keyboard-first depth as a light hint. */
+const rows = [
+  { no: 1, risk: 'high', w: 92, client: 'Hill Country Partners', sub: '1120-S · TX · franchise tax', due: '2d late', late: true, status: 'Blocked', tone: 'blocked' },
+  { no: 2, risk: 'high', w: 80, client: 'Brightway Logistics LLC', sub: '1120 · TX · disaster relief', due: 'in 3d', late: false, status: 'In review', tone: 'review' },
+  { no: 3, risk: 'mid', w: 56, client: 'Cedar Park Dental', sub: '1120-S · TX · franchise tax', due: 'in 9d', late: false, status: 'Waiting on client', tone: 'waiting' },
+  { no: 4, risk: 'low', w: 32, client: 'Brazos Co', sub: '05-158 · TX · no-tax-due', due: 'in 16d', late: false, status: 'Not started', tone: 'notstarted' },
+]
+---
+
+<section class="m-section" id="work" aria-labelledby="work-h">
+  <p class="m-eyebrow">See it work</p>
+  <h2 class="m-h2" id="work-h">Your week, ranked by who's most at <span class="ital">risk.</span></h2>
+  <p class="m-lead work__lead">The clients that matter rise to the top — before your first call.</p>
+
+  <div class="wl">
+    <div class="wl__bar">
+      <span class="wl__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h12" />
+        </svg>
+        Risk-ranked worklist · this week
+      </span>
+      <span class="wl__keys"><kbd>⌘K</kbd> open · <kbd>J</kbd>/<kbd>K</kbd> move</span>
+      <span class="wl__meta">live preview · not your data</span>
+    </div>
+    <table class="wl__table" aria-label="Risk-ranked worklist sample">
+      <thead>
+        <tr><th scope="col">Risk</th><th scope="col">Client</th><th scope="col" class="wl__hide">Due</th><th scope="col">Status</th></tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((r) => (
+            <tr>
+              <td>
+                <span class="risk">
+                  <span class="risk__no">{r.no}</span>
+                  <span class={`risk__bar risk__bar--${r.risk}`} aria-hidden="true">
+                    <i style={`width:${r.w}%`} />
+                  </span>
+                </span>
+              </td>
+              <td>
+                <div class="wl__client">{r.client}</div>
+                <div class="wl__sub">{r.sub}</div>
+              </td>
+              <td class="wl__hide">
+                <span class={`wl__due${r.late ? ' wl__due--late' : ''}`}>{r.due}</span>
+              </td>
+              <td>
+                <span class={`wl__stat wl__stat--${r.tone}`}>{r.status}</span>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="work__note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" />
+    </svg>
+    Every position traces to days remaining, evidence, and readiness — no black box.
+  </p>
+</section>
+
+<style>
+  .work__lead {
+    margin-top: 14px;
+  }
+  .wl {
+    margin-top: clamp(40px, 5vw, 56px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .wl__bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .wl__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+  }
+  .wl__title svg {
+    width: 16px;
+    height: 16px;
+    color: var(--m-accent);
+  }
+  .wl__keys {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+  .wl__keys kbd {
+    font-family: inherit;
+    color: var(--m-muted);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+  .wl__meta {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+  .wl__table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .wl__table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .wl__table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--m-hairline-2);
+    vertical-align: middle;
+  }
+  .wl__table tr:last-child td {
+    border-bottom: none;
+  }
+  .wl__table tbody tr:hover td {
+    background: var(--m-section);
+  }
+  .risk {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .risk__no {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
+    width: 12px;
+  }
+  .risk__bar {
+    width: 56px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-hairline);
+    overflow: hidden;
+  }
+  .risk__bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+  }
+  .risk__bar--high i {
+    background: var(--m-urgent);
+  }
+  .risk__bar--mid i {
+    background: var(--m-accent);
+  }
+  .risk__bar--low i {
+    background: color-mix(in srgb, var(--m-accent) 45%, transparent);
+  }
+  .wl__client {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .wl__sub {
+    margin-top: 2px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .wl__due {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .wl__due--late {
+    color: var(--m-urgent);
+  }
+  .wl__stat {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .wl__stat--blocked {
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 9%, transparent);
+  }
+  .wl__stat--review {
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .wl__stat--waiting {
+    color: var(--m-muted);
+    background: transparent;
+    border: 1px solid var(--m-hairline);
+  }
+  .wl__stat--notstarted {
+    color: var(--m-faint);
+    background: var(--m-section);
+  }
+  .work__note {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--m-muted);
+  }
+  .work__note svg {
+    width: 15px;
+    height: 15px;
+    color: var(--m-faint);
+    flex: none;
+  }
+  @media (max-width: 620px) {
+    .wl__hide {
+      display: none;
+    }
+    .wl__keys {
+      display: none;
+    }
+  }
+</style>

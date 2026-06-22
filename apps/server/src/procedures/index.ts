@@ -79,6 +79,7 @@ export const router = os.router({
   obligations: {
     list: obligationQueueHandlers.list,
     getDetail: obligationQueueHandlers.getDetail,
+    setPinned: obligationQueueHandlers.setPinned,
     facets: obligationQueueHandlers.facets,
     listSavedViews: obligationQueueHandlers.listSavedViews,
     createSavedView: obligationQueueHandlers.createSavedView,

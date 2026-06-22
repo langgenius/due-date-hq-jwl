@@ -52,11 +52,23 @@ export const CHANGE_KIND_FILTER_OPTIONS = [
 ] as const satisfies readonly ('all' | AlertChangeKindFilterGroup)[]
 export type AlertChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]
 
+// Multi-select variant of the change-kind facet. The filter is now a checkbox
+// popover (one row per group + a "Select all" toggle), so the applied state is
+// an ARRAY of the four groups rather than a single value. An empty selection is
+// the canonical "all" — every alert passes — which keeps the default behaviour
+// identical to the previous single-select 'all'.
+export const CHANGE_KIND_FILTER_SELECTABLE = [
+  'deadlines',
+  'rules',
+  'source',
+  'other',
+] as const satisfies readonly AlertChangeKindFilterGroup[]
+export type AlertChangeKindSelection = readonly AlertChangeKindFilterGroup[]
+
 // Tax-area (service-line) filter. Each alert carries a derived `taxAreas` array
 // (server-side, see @duedatehq/core/tax-area) collapsing rule domains + named
-// forms into six practice-line buckets. The dropdown is single-select like the
-// others: pick one area and we keep alerts that include it. Alerts the server
-// could not classify (empty `taxAreas`) only appear under "all".
+// forms into six practice-line buckets. Alerts the server could not classify
+// (empty `taxAreas`) only appear when nothing is selected ("all").
 export const TAX_AREA_FILTER_OPTIONS = [
   'all',
   'income_individual',
@@ -67,6 +79,19 @@ export const TAX_AREA_FILTER_OPTIONS = [
   'info_compliance',
 ] as const satisfies readonly ('all' | TaxArea)[]
 export type AlertTaxAreaFilter = (typeof TAX_AREA_FILTER_OPTIONS)[number]
+
+// Multi-select variant of the tax-area facet — same checkbox-popover treatment
+// as change-kind. An empty selection = "all tax areas" (including alerts the
+// server could not classify into a bucket).
+export const TAX_AREA_FILTER_SELECTABLE = [
+  'income_individual',
+  'income_business',
+  'sales_use',
+  'payroll_withholding',
+  'franchise',
+  'info_compliance',
+] as const satisfies readonly TaxArea[]
+export type AlertTaxAreaSelection = readonly TaxArea[]
 
 export function sourceLabel(sources: readonly PulseSourceHealth[]): string {
   return summarizeAlertSources(sources, { emptyLabel: 'configured alert sources' })
@@ -110,4 +135,26 @@ export function matchesTaxAreaFilter(
 ): boolean {
   if (filter === 'all') return true
   return taxAreas.includes(filter)
+}
+
+// Multi-select matchers. An empty selection means "all" (no narrowing); a
+// non-empty selection keeps the alert when it matches ANY of the chosen groups
+// / areas (OR within a facet), mirroring the faceted-filter convention used by
+// the rules-library table.
+export function matchesChangeKindSelection(
+  changeKind: PulseChangeKind,
+  selection: AlertChangeKindSelection,
+): boolean {
+  if (selection.length === 0) return true
+  return selection.some((group) =>
+    CHANGE_KIND_FILTER_GROUP_MEMBERS[group].some((kind) => kind === changeKind),
+  )
+}
+
+export function matchesTaxAreaSelection(
+  taxAreas: readonly TaxArea[],
+  selection: AlertTaxAreaSelection,
+): boolean {
+  if (selection.length === 0) return true
+  return selection.some((area) => taxAreas.includes(area))
 }

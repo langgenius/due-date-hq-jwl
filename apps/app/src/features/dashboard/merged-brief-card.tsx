@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleAlertIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Table,
@@ -17,6 +18,7 @@ import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
@@ -68,7 +70,10 @@ export function MergedBriefCard({
   rows,
   asOfDate,
   isLoading = false,
+  isError = false,
+  onRetry,
   onOpenObligation,
+  className,
 }: {
   counts: MergedBriefCounts
   rows: readonly DashboardTopRow[]
@@ -76,7 +81,17 @@ export function MergedBriefCard({
   // While the dashboard query loads, render the column-aligned skeleton —
   // without it the zero counts masquerade as "Nothing here. You're clear."
   isLoading?: boolean
+  // On a failed dashboard load `rows` collapses to [] → the all-clear/coffee
+  // celebration would fire on a page that actually couldn't load. `isError`
+  // routes to a quiet inline "Couldn't load your priorities — Retry" instead,
+  // so the empty branch never masquerades as "all clear" (mirrors the Alerts
+  // section's error handling in needs-attention-section.tsx).
+  isError?: boolean
+  onRetry?: () => void
   onOpenObligation: (obligationId: string) => void
+  // Lets /today make this section the flex-1 min-h-0 region of its desktop
+  // bounded-height frame (the table then scrolls internally, not the page).
+  className?: string
 }) {
   const { t } = useLingui()
   const asOf = useMemo(() => (asOfDate ? new Date(asOfDate) : new Date()), [asOfDate])
@@ -140,17 +155,23 @@ export function MergedBriefCard({
     // band render (they don't depend on data), only the data slots shimmer —
     // so the page doesn't reflow when rows land. aria-busy for SRs.
     return (
-      <section aria-label={t`Priorities`} aria-busy className="flex w-full flex-col gap-3">
+      <section
+        aria-label={t`Priorities`}
+        aria-busy
+        className={cn('flex w-full flex-col gap-3', className)}
+      >
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <h2 className="text-region-title text-text-primary">
+            <h2 className="text-base font-semibold text-text-secondary">
               <Trans>Priorities</Trans>
             </h2>
             {/* lede slot — tight under the title, mirroring the loaded view */}
             <Skeleton className="h-4 w-64" />
           </div>
-          {/* chips slot */}
-          <Skeleton className="h-8 w-72 rounded-full" />
+          {/* chips slot — matches the Segmented track's actual radius
+              (rounded-lg), not a pill, so the skeleton doesn't reflow the
+              corner shape when the real selector lands. */}
+          <Skeleton className="h-8 w-72 rounded-lg" />
         </div>
         <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <Table>
@@ -206,13 +227,52 @@ export function MergedBriefCard({
     )
   }
 
+  // ── Load failed → explicit error, never a false all-clear.
+  //    queryClient runs throwOnError:false, so a failed dashboard load would
+  //    otherwise fall through to `rows = []` → totalActive === 0 → the coffee
+  //    celebration below, silently claiming the CPA is all clear. Surface the
+  //    failure with a Retry instead. Matches the dashboard route's + Alerts
+  //    section's canonical destructive Alert + `<Button variant="link">`
+  //    Retry (see needs-attention-section.tsx). ──
+  if (isError) {
+    return (
+      <section aria-label={t`Priorities`} className={cn('flex w-full flex-col gap-3', className)}>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h2 className="text-base font-semibold text-text-secondary">
+            <Trans>Priorities</Trans>
+          </h2>
+        </div>
+        <Alert variant="destructive">
+          <CircleAlertIcon />
+          <AlertTitle>
+            <Trans>Couldn't load your priorities</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <Trans>Try again in a moment. If it keeps failing, contact support.</Trans>{' '}
+            {onRetry ? (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
+                onClick={() => onRetry()}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            ) : null}
+          </AlertDescription>
+        </Alert>
+      </section>
+    )
+  }
+
   return (
     // OPEN section — header + lede float on the page like the Alerts section;
     // the table below is the page's single framed surface. Fewer borders
     // (Yuqi: avoid too much use of borders), and the section grammar matches
     // the rest of /today: title row → content surface. gap-3 = the one
     // in-section gap token (audit: kill the 10/11/12 drift).
-    <section aria-label={t`Priorities`} className="flex w-full flex-col gap-3">
+    <section aria-label={t`Priorities`} className={cn('flex w-full flex-col gap-3', className)}>
       {/* Header — title first (flush with the page rail so all section titles
           share one x — the audit's eye-line fix; the old leading icon-circle
           pushed this title 38px off the rail) + the count-chip bucket selector
@@ -230,7 +290,7 @@ export function MergedBriefCard({
           <div className="flex items-center gap-2">
             {/* "Priorities", not "Today's brief" — the card leads with overdue
                 work, so a "today" headline would lie about its own content. */}
-            <h2 className="text-region-title text-text-primary">
+            <h2 className="text-base font-semibold text-text-secondary">
               <Trans>Priorities</Trans>
             </h2>
             {/* The sparkles marks the list as Smart-Priority curated and opens
@@ -329,9 +389,45 @@ export function MergedBriefCard({
         // (icon in an accent disc + headline + one sub-line) so the two
         // sections celebrate the same way. Coffee, not confetti: the calm
         // brand's idea of a party. Every word is real state — no fiction.
-        <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
+        <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
+          {/* A faint skyline at rest behind the all-clear — the firm's city
+              quiet, nothing on fire. Decorative (aria-hidden), masked to fade up
+              so it never competes with the coffee beat or the copy.
+              Colour is `text-text-primary` (NOT the fixed `--color-brand-ink`
+              primitive, which has no dark mirror → invisible on a dark canvas):
+              the semantic token resolves to dark navy-ink in light mode and
+              near-white in dark, so the skyline reads in both. Dark bumps the
+              opacity (0.07 → 0.10) because near-white at 7% on a dark surface is
+              too faint — keeps it present but still recessive under the mask. */}
+          <svg
+            aria-hidden
+            viewBox="0 0 400 64"
+            preserveAspectRatio="xMidYMax meet"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full text-text-primary opacity-[0.07] [mask-image:linear-gradient(to_top,black,transparent)] dark:opacity-10"
+          >
+            <g fill="currentColor">
+              <rect x="6" y="34" width="22" height="30" />
+              <rect x="32" y="22" width="16" height="42" />
+              <rect x="52" y="40" width="26" height="24" />
+              <rect x="82" y="28" width="18" height="36" />
+              <rect x="104" y="16" width="14" height="48" />
+              <rect x="122" y="36" width="24" height="28" />
+              <rect x="150" y="26" width="18" height="38" />
+              <rect x="172" y="42" width="28" height="22" />
+              <rect x="204" y="20" width="16" height="44" />
+              <rect x="224" y="34" width="22" height="30" />
+              <rect x="250" y="12" width="14" height="52" />
+              <rect x="268" y="38" width="26" height="26" />
+              <rect x="298" y="28" width="18" height="36" />
+              <rect x="320" y="44" width="24" height="20" />
+              <rect x="348" y="24" width="16" height="40" />
+              <rect x="368" y="36" width="24" height="28" />
+            </g>
+          </svg>
           <span
-            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover"
+            // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
+            // fade — a small "you're clear" beat. Calm, not confetti.
+            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
             <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />
@@ -384,7 +480,11 @@ export function MergedBriefCard({
           // fit (phone widths), the frame scrolls sideways instead of
           // silently amputating STATUS/owner/DUE. Corner clipping behaves
           // the same when content fits.
-          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none"
+          // At xl this wrapper is the flex-1 min-h-0 region of /today's bounded
+          // frame: it absorbs leftover height and scrolls the table body
+          // INTERNALLY (overflow-y), so the dashboard page itself never scrolls.
+          // Below xl it's natural-height and the page scrolls normally.
+          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
         >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>

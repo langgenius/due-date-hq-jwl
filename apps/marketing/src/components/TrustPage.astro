@@ -1,4 +1,6 @@
 ---
+/** TrustPage — about / security / privacy / terms / status. Uses the shared
+ *  long-tail page kit (.m-page-* / .m-card / .m-btn) so it matches the home. */
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import type { TrustPageCopy } from '../lib/trust-pages'
 
@@ -12,52 +14,30 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
 ---
 
 <main>
-  <section id="hero" class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-16 md:px-12 lg:px-20 lg:py-20">
-      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-        {page.hero.eyebrow}
-      </span>
-      <h1
-        class="mt-5 max-w-[920px] text-display-large font-semibold leading-[1.1] tracking-tight text-text-primary"
-      >
-        {page.hero.title}
-      </h1>
-      <p class="mt-5 max-w-[820px] text-[17px] leading-[1.65] text-text-secondary">
-        {page.hero.description}
-      </p>
-      <p class="mt-6 max-w-[780px] font-mono text-[12px] leading-5 text-text-muted">
-        {page.hero.note}
-      </p>
-      <p class="mt-4 font-mono text-[12px] text-text-muted">
-        {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
-      </p>
-    </div>
+  <section class="m-section m-page-hero" id="hero">
+    <p class="m-eyebrow">{page.hero.eyebrow}</p>
+    <h1 class="m-page-title">{page.hero.title}</h1>
+    <p class="m-page-lead">{page.hero.description}</p>
+    <p class="m-page-note">{page.hero.note}</p>
+    <p class="m-page-reviewed">
+      {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+    </p>
   </section>
 
   {
     page.sections.map((section) => (
-      <section class="border-b border-border-default bg-bg-canvas">
-        <div class="mx-auto grid max-w-[1440px] gap-10 px-6 py-14 md:px-12 lg:grid-cols-12 lg:px-20 lg:py-16">
-          <div class="lg:col-span-5">
-            <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-              {section.eyebrow}
-            </span>
-            <h2 class="mt-4 max-w-[640px] text-[28px] font-semibold leading-[1.2] tracking-tight text-text-primary">
-              {section.title}
-            </h2>
-            <p class="mt-5 max-w-[660px] text-[15px] leading-[1.7] text-text-secondary">
-              {section.body}
-            </p>
+      <section class="m-section m-page-block">
+        <div class="m-page-split">
+          <div class="m-page-split__lead">
+            <p class="m-eyebrow">{section.eyebrow}</p>
+            <h2 class="m-page-h2">{section.title}</h2>
+            <p class="m-page-body">{section.body}</p>
           </div>
-          <div class="grid gap-4 lg:col-span-7 lg:grid-cols-3">
+          <div class="m-page-cards">
             {section.items.map((item) => (
-              <article class="rounded-xl border border-border-default bg-bg-panel p-6">
-                <h3 class="text-[15px] font-semibold leading-[1.4] text-text-primary">
-                  {item.title}
-                </h3>
-                <p class="mt-3 text-[13px] leading-[1.65] text-text-secondary">
-                  {item.body}
-                </p>
+              <article class="m-card">
+                <h3 class="m-card__t">{item.title}</h3>
+                <p class="m-card__d">{item.body}</p>
               </article>
             ))}
           </div>
@@ -66,23 +46,14 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     ))
   }
 
-  <section class="bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-      <div class="rounded-xl border border-border-default bg-bg-panel p-8 lg:flex lg:items-center lg:justify-between lg:gap-10">
-        <div>
-          <h2 class="max-w-[720px] text-[26px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-            {page.contact.title}
-          </h2>
-          <p class="mt-4 max-w-[760px] text-[14px] leading-[1.7] text-text-secondary">
-            {page.contact.body}
-          </p>
-        </div>
-        <a
-          href={page.contact.href}
-          class="mt-8 inline-flex h-11 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt lg:mt-0 lg:shrink-0"
-        >
-          {page.contact.label}
-        </a>
+  <section class="m-section m-page-block">
+    <div class="m-page-cta">
+      <div>
+        <h2 class="m-page-cta__title">{page.contact.title}</h2>
+        <p class="m-page-cta__body">{page.contact.body}</p>
+      </div>
+      <div class="m-page-cta__btns">
+        <a class="m-btn m-btn--primary" href={page.contact.href}>{page.contact.label}</a>
       </div>
     </div>
   </section>

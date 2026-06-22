@@ -120,20 +120,51 @@ function digestStatusBadge(status: NotificationDigestRunStatus) {
 export function NotificationPreferencesPage() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const preferencesQuery = useQuery(
-    orpc.notifications.getPreferences.queryOptions({ input: undefined }),
-  )
+  const preferencesQueryOptions = orpc.notifications.getPreferences.queryOptions({
+    input: undefined,
+  })
+  const preferencesQuery = useQuery(preferencesQueryOptions)
   const digestRunsQuery = useQuery(
     orpc.notifications.listMorningDigestRuns.queryOptions({ input: undefined }),
   )
+  // Reuse the query's own key (not a fresh `.queryKey(...)` call) so the
+  // optimistic cache write below targets exactly the entry `useQuery` reads.
+  const preferencesQueryKey = preferencesQueryOptions.queryKey
   const updatePreferences = useMutation(
     orpc.notifications.updatePreferences.mutationOptions({
+      // Optimistic write: the Switch/matrix bind to the cached preference, so
+      // without this the thumb wouldn't move until the round-trip lands. Patch
+      // the cache immediately (cancel in-flight refetches first so they can't
+      // clobber our optimistic value), and snapshot the previous data so a
+      // failed write can roll back precisely.
+      onMutate: async (patch) => {
+        await queryClient.cancelQueries({ queryKey: preferencesQueryKey })
+        const previous =
+          queryClient.getQueryData<NotificationPreferencePublic>(preferencesQueryKey)
+        if (previous) {
+          // Drop any `undefined` patch values so the merge never widens a
+          // required field to `undefined` (a `Partial` spread would). The
+          // functional updater keeps the cache typed as the full object; the
+          // merged result is asserted back since we've removed the holes.
+          const definedPatch = Object.fromEntries(
+            Object.entries(patch).filter(([, value]) => value !== undefined),
+          )
+          queryClient.setQueryData<NotificationPreferencePublic>(preferencesQueryKey, (current) =>
+            current ? ({ ...current, ...definedPatch } as NotificationPreferencePublic) : current,
+          )
+        }
+        return { previous }
+      },
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
       },
-      onError: (error) => {
-        // The optimistic toggle has no explicit Save; surface server rejection
-        // and resync to truth so a failed write doesn't silently diverge.
+      onError: (error, _patch, context) => {
+        // Roll the optimistic value back to the pre-mutation snapshot, then
+        // surface the rejection and resync to server truth so a failed write
+        // doesn't silently diverge.
+        if (context?.previous) {
+          queryClient.setQueryData(preferencesQueryKey, context.previous)
+        }
         toast.error(t`Couldn't save your preference`, {
           description: rpcErrorMessage(error) ?? t`Try again in a moment.`,
         })

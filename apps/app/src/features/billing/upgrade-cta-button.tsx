@@ -43,7 +43,12 @@ export function UpgradeCtaButton({
         // luxury "this is the upgrade" flourish, longer than the 150ms micro
         // tempo on purpose. Killed under reduced-motion via `before:hidden`.
         'before:absolute before:inset-y-0 before:-left-1/2 before:w-1/2 before:skew-x-[-18deg] before:bg-white/35 before:content-[""] before:transition-transform before:duration-500 motion-reduce:before:hidden',
-        'hover:bg-text-warning-secondary hover:text-text-primary hover:shadow-upgrade-cta-hover hover:before:translate-x-[320%] dark:hover:text-text-primary-on-surface',
+        // Hover keeps the solid coral fill (a `bg` state token, not a text
+        // token) and darkens it a touch via `brightness` — theme-safe, since
+        // `state-warning-solid` and the old `text-warning-secondary` resolved to
+        // the SAME coral in light mode (zero hover delta) and only a faint lift
+        // in dark.
+        'hover:bg-state-warning-solid hover:brightness-95 hover:text-text-primary hover:shadow-upgrade-cta-hover hover:before:translate-x-[320%] dark:hover:text-text-primary-on-surface',
         'focus-visible:ring-state-warning-active',
         '[&_svg]:relative [&_svg]:z-10 [&_svg]:text-text-primary dark:[&_svg]:text-text-primary-on-surface',
         className,

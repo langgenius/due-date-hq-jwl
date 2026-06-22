@@ -127,7 +127,7 @@ function parseDateInput(value: string): Date | null {
 
 export function formatDateTimeWithTimezone(value: string, timeZone: string): string {
   const date = new Date(value)
-  const parts = new Intl.DateTimeFormat('en-US', {
+  const parts = new Intl.DateTimeFormat(intlLocale(), {
     timeZone,
     numberingSystem: 'latn',
     year: 'numeric',
@@ -154,7 +154,7 @@ export function formatDateTimeWithTimezone(value: string, timeZone: string): str
 export function formatDateTimePretty(value: string, timeZone: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(intlLocale(), {
     timeZone,
     numberingSystem: 'latn',
     month: 'short',
@@ -171,19 +171,23 @@ export function formatDateTimePretty(value: string, timeZone: string): string {
 // answer for audit-log rows (where precision is the value) but the
 // wrong answer for inbox + members LAST_ACTIVE surfaces (where a
 // CPA scans for recency, not exact second). This helper returns a
-// scannable "2 days ago" / "3h ago" / "just now" string. Callers
+// scannable, locale-aware "2 days ago" / "3 hours ago" / "now" string
+// (zh-CN: "2天前" / "3小时前" / "现在") via `Intl.RelativeTimeFormat`, so
+// the phrasing follows the active locale with no catalog strings. Callers
 // pair it with the absolute string on hover via the `title` attr so
 // no precision is lost — see `<RelativeTime>` below for the
 // canonical pattern.
 //
-// Buckets, in order of dominance:
-//   < 45s            → "just now"
-//   < 60min          → "Nm ago" / "in Nm"
-//   < 24h            → "Nh ago" / "in Nh"
-//   < 7d             → "Nd ago" / "in Nd"
-//   < 30d            → "Nw ago" / "in Nw"
-//   < 365d           → "Nmo ago" / "in Nmo"
-//   otherwise        → "Ny ago" / "in Ny"
+// Buckets, in order of dominance (phrasing comes from the Intl runtime
+// per locale; shown here in en for reference):
+//   < 45s            → "now"
+//   < 60min          → "N minutes ago" / "in N minutes"
+//   < 24h            → "N hours ago" / "in N hours"
+//   < 7d             → "N days ago" / "in N days"
+//   ≥ 7d & past      → absolute date ("Jun 4" / "Jun 4, 2025")
+//   < 30d & future   → "in N weeks"
+//   < 365d & future  → "in N months"
+//   otherwise future → "in N years"
 const MS_PER_MINUTE = 60_000
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
 const MS_PER_DAY = 24 * MS_PER_HOUR
@@ -198,18 +202,25 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   const past = diffMs >= 0
   const abs = Math.abs(diffMs)
 
-  if (abs < 45_000) return 'just now'
+  // Locale-aware relative formatting (`numeric: 'auto'` yields "now",
+  // "yesterday", "in 3 days" in en; the same buckets in zh-CN: "现在",
+  // "3天前", "3天后"). No new catalog strings — the Intl runtime owns the
+  // phrasing per locale. Signed value: negative = past, positive = future
+  // (the inverse of `diffMs`, which is now − then).
+  const rtf = new Intl.RelativeTimeFormat(intlLocale(), { numeric: 'auto' })
+  const rel = (n: number, unit: Intl.RelativeTimeFormatUnit): string =>
+    rtf.format(past ? -n : n, unit)
 
-  const ago = (n: number, unit: string): string => (past ? `${n}${unit} ago` : `in ${n}${unit}`)
+  if (abs < 45_000) return rtf.format(0, 'second')
 
-  if (abs < MS_PER_HOUR) return ago(Math.round(abs / MS_PER_MINUTE), 'm')
-  if (abs < MS_PER_DAY) return ago(Math.round(abs / MS_PER_HOUR), 'h')
-  if (abs < MS_PER_WEEK) return ago(Math.round(abs / MS_PER_DAY), 'd')
+  if (abs < MS_PER_HOUR) return rel(Math.round(abs / MS_PER_MINUTE), 'minute')
+  if (abs < MS_PER_DAY) return rel(Math.round(abs / MS_PER_HOUR), 'hour')
+  if (abs < MS_PER_WEEK) return rel(Math.round(abs / MS_PER_DAY), 'day')
 
-  // Past the 1-week mark, "2w ago" / "1mo ago" tell the CPA basically
+  // Past the 1-week mark, "2 weeks ago" / "1 month ago" tell the CPA basically
   // nothing — the original date is more informative AND less ambiguous
   // (does "1mo" mean 30 days or "early last month"?).
-  // Switch to absolute formatting once we're outside the
+  // Switch to absolute, locale-aware formatting once we're outside the
   // human-meaningful relative window. Format:
   //   • Same year → "Jun 4"          (e.g. "Jun 4")
   //   • Different year → "Jun 4, 2025"
@@ -217,15 +228,15 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   // "in 3 months" is a plan, not a memory.
   if (past) {
     const sameYear = date.getFullYear() === now.getFullYear()
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(intlLocale(), {
       month: 'short',
       day: 'numeric',
       ...(sameYear ? {} : { year: 'numeric' }),
     }).format(date)
   }
-  if (abs < MS_PER_MONTH) return ago(Math.round(abs / MS_PER_WEEK), 'w')
-  if (abs < MS_PER_YEAR) return ago(Math.round(abs / MS_PER_MONTH), 'mo')
-  return ago(Math.round(abs / MS_PER_YEAR), 'y')
+  if (abs < MS_PER_MONTH) return rel(Math.round(abs / MS_PER_WEEK), 'week')
+  if (abs < MS_PER_YEAR) return rel(Math.round(abs / MS_PER_MONTH), 'month')
+  return rel(Math.round(abs / MS_PER_YEAR), 'year')
 }
 
 /**

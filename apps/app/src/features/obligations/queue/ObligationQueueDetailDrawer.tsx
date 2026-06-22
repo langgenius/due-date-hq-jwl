@@ -54,7 +54,7 @@ import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { contentEnterMotion } from '@/lib/motion'
+import { contentEnterMotion, EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -83,6 +83,7 @@ import {
   formatRelativeTime,
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { PinButton } from '@/features/obligations/PinButton'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
@@ -229,6 +230,10 @@ function DeadlineTopActions({
   ]
   return (
     <div className="flex shrink-0 items-center gap-1.5">
+      {/* Pin / unpin — the entry point for the /today Pinned section. Quiet
+          icon-only control, leftmost so the labeled action buttons stay the
+          row's loud cluster. */}
+      <PinButton obligationId={row.id} isPinned={row.isPinned} />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -1858,9 +1863,15 @@ export function ObligationQueueDetailDrawer({
                 {item.label}
                 {item.chip}
                 {sectionActive ? (
-                  <span
-                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                  // Shared-layout underline (same pattern as the client-detail
+                  // tabs): one motion.span keyed by layoutId slides between
+                  // sections instead of blinking. Spring matches the app's tab
+                  // underlines. Reduced-motion handled globally.
+                  <motion.span
+                    layoutId="deadline-detail-section-underline"
                     aria-hidden
+                    className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                    transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                   />
                 ) : null}
               </button>
@@ -1995,11 +2006,23 @@ export function ObligationQueueDetailDrawer({
                     <span className="inline-flex items-baseline gap-1">
                       <Trans>Past deadline</Trans>
                       <span aria-hidden>·</span>
-                      <DueCountdownText
-                        days={
-                          -Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
-                        }
-                      />
+                      {/* The overdue hero number "comes alive" on load — a brief
+                          scale + fade settle so the urgency reads as present, not
+                          static. (Digit-counting was rejected: the value lives in
+                          an i18n <Plural> and a counting overdue figure would
+                          trivialize a serious signal.) Reduced-motion is global. */}
+                      <motion.span
+                        className="inline-flex"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                      >
+                        <DueCountdownText
+                          days={
+                            -Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
+                          }
+                        />
+                      </motion.span>
                     </span>
                   }
                   note={timingNote}
@@ -2088,7 +2111,7 @@ export function ObligationQueueDetailDrawer({
       <OuterWrapper {...outerWrapperProps}>
         <header
           className={cn(
-            'relative flex flex-col px-12 transition-all duration-300 ease-apple',
+            'relative flex flex-col px-12 transition-all duration-200 ease-apple',
             // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
             // page-mode hero leads the surface (the thin status banner + crumb
             // bar above it carry no top gap of their own), so a full pt-10
@@ -2186,7 +2209,7 @@ export function ObligationQueueDetailDrawer({
                   // the same cramped-two-line finding as the alert hero.
                   <h2
                     className={cn(
-                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-300 ease-apple',
+                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
                       heroCollapsed
                         ? 'line-clamp-1 text-item-title'
                         : 'line-clamp-3 text-surface-title',
@@ -3640,7 +3663,7 @@ export function ObligationQueueDetailDrawer({
                                         </span>
                                       </header>
                                       {outstandingItems.length === 0 ? (
-                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                        <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none">
                                           <Trans>All items received.</Trans>
                                         </p>
                                       ) : (

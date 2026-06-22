@@ -1,0 +1,200 @@
+---
+/** Footer — wordmark + link columns (EN + zh-CN). The Resources column is the
+ *  internal-link on-ramp into the long-tail SEO/AEO/GEO pages. Labels are an
+ *  inline EN/zh map (chrome copy); hrefs are locale-prefixed. */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
+const columns = [
+  {
+    title: zh ? '产品' : 'Product',
+    links: [
+      { label: zh ? '工作原理' : 'How it works', href: `${base}/#how` },
+      { label: zh ? '覆盖范围' : 'Coverage', href: `${base}/state-coverage` },
+      { label: zh ? '定价' : 'Pricing', href: `${base}/pricing` },
+      { label: zh ? '安全' : 'Security', href: `${base}/security` },
+    ],
+  },
+  {
+    title: zh ? '资源' : 'Resources',
+    links: [
+      { label: zh ? '规则库' : 'Rule library', href: `${base}/rules` },
+      { label: zh ? '州覆盖' : 'State coverage', href: `${base}/state-coverage` },
+      { label: zh ? '对比:File In Time' : 'Compare: File In Time', href: `${base}/compare/file-in-time-alternative` },
+      { label: zh ? '每周分诊指南' : 'Weekly triage guide', href: `${base}/guides/weekly-cpa-deadline-triage` },
+    ],
+  },
+  {
+    title: zh ? '公司' : 'Company',
+    links: [
+      { label: zh ? '关于' : 'About', href: `${base}/about` },
+      { label: zh ? '隐私' : 'Privacy', href: `${base}/privacy` },
+      { label: zh ? '条款' : 'Terms', href: `${base}/terms` },
+      { label: zh ? '状态' : 'Status', href: `${base}/status` },
+    ],
+  },
+]
+const copy = zh
+  ? {
+      tagline: '为美国 CPA 事务所监控截止日变化 —— 每个日期都附官方来源。',
+      audience: '面向美国 CPA 事务所 · 联邦 + 50 州 + DC',
+      legal: 'DueDateHQ 支持基于证据的复核;它不是税务建议,也不是报税系统。© 2026 DueDateHQ Inc.',
+      note: '你的数据留在你的事务所',
+    }
+  : {
+      tagline: 'Deadline-change monitoring for US CPA practices — with a source on every date.',
+      audience: 'For US CPA practices · FED + 50 states + DC',
+      legal: 'DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. © 2026 DueDateHQ Inc.',
+      note: 'Your data stays in your practice',
+    }
+// language switcher — cross-locale href for the current page
+const localeFree = Astro.url.pathname.replace(/^\/zh-CN(?=\/|$)/, '') || '/'
+const enHref = localeFree
+const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="footer__name">DueDateHQ</span>
+        <p class="footer__tag">{copy.tagline}</p>
+        <p class="footer__aud">{copy.audience}</p>
+      </div>
+      {
+        columns.map((c) => (
+          <nav class="footer__col" aria-label={c.title}>
+            <p class="footer__coltitle">{c.title}</p>
+            {c.links.map((l) => (
+              <a href={l.href} class="footer__link">{l.label}</a>
+            ))}
+          </nav>
+        ))
+      }
+    </div>
+    <div class="footer__bottom">
+      <p class="footer__legal">{copy.legal}</p>
+      <div class="footer__meta">
+        <span class="footer__lang">
+          <a href={enHref} class:list={['footer__langlink', !zh && 'is-active']} hreflang="en">English</a>
+          <span class="footer__langsep" aria-hidden="true">·</span>
+          <a href={zhHref} class:list={['footer__langlink', zh && 'is-active']} hreflang="zh-CN">中文</a>
+        </span>
+        <span class="footer__note">{copy.note}</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--m-canvas);
+    border-top: 1px solid var(--m-hairline);
+  }
+  .footer__inner {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    padding-block: clamp(48px, 6vw, 72px);
+  }
+  .footer__top {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(3, 1fr);
+    gap: clamp(28px, 4vw, 56px);
+  }
+  .footer__name {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .footer__tag {
+    margin-top: 14px;
+    max-width: 34ch;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--m-ink-2);
+  }
+  .footer__aud {
+    margin-top: 14px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-faint);
+  }
+  .footer__coltitle {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin-bottom: 16px;
+  }
+  .footer__link {
+    display: block;
+    font-size: 14px;
+    color: var(--m-muted);
+    padding: 6px 0;
+    transition: color 0.15s ease;
+  }
+  .footer__link:hover {
+    color: var(--m-ink);
+  }
+  .footer__bottom {
+    margin-top: clamp(36px, 5vw, 56px);
+    padding-top: 22px;
+    border-top: 1px solid var(--m-hairline-2);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .footer__legal {
+    font-size: 12px;
+    color: var(--m-muted);
+    max-width: 70ch;
+  }
+  .footer__note {
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
+  }
+  .footer__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+  .footer__lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .footer__langlink {
+    color: var(--m-muted);
+    transition: color 0.15s ease;
+  }
+  .footer__langlink:hover {
+    color: var(--m-ink);
+  }
+  .footer__langlink.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .footer__langsep {
+    color: var(--m-hairline);
+  }
+  @media (max-width: 720px) {
+    .footer__top {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 440px) {
+    .footer__top {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

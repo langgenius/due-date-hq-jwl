@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import TopNav from '../../components/TopNav.astro'
+import TopNav from '../../components/home/TopNav.astro'
 import StateDetailPage from '../../components/StateDetailPage.astro'
-import Footer from '../../components/Footer.astro'
+import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import type { StatePageCopy } from '../../i18n/types'
 import { getCtaHref } from '../../lib/app-url'
@@ -35,12 +35,12 @@ const ctaHref = getCtaHref()
   ogImage={page.meta.ogImage}
   structuredData={statePageStructuredData(t, page, 'en', pathname)}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
   <StateDetailPage
     page={page}
     coverageHref="/state-coverage"
     locale="en"
     officialSources={stateOfficialSources[page.slug] ?? []}
   />
-  <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
+  <Footer />
 </BaseLayout>

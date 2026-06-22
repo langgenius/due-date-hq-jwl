@@ -7,6 +7,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CircleAlertIcon,
+  Loader2Icon,
   SparklesIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -195,6 +196,7 @@ function PulseAlertRow({
   active,
   onReview,
   onDismiss,
+  dismissing = false,
   compact = false,
   selectable = false,
   selected = false,
@@ -212,6 +214,12 @@ function PulseAlertRow({
   /** Real dismiss/archive handler — opens the reason dialog
    *  which fires `orpc.pulse.dismiss` on confirm. */
   onDismiss?: () => void
+  /**
+   * True while THIS row's dismiss mutation is in flight. Disables the
+   * Dismiss button + swaps its icon for a spinner so a CPA on a slow
+   * link can't double-fire the same dismiss (2026-06-22 audit).
+   */
+  dismissing?: boolean
   /**
    * Bulk-selection affordance. When `selectable`, the 18px leading
    * checkbox (Pencil `gT3zO chk`)
@@ -429,7 +437,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-colors',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-[color,box-shadow]',
         // Muted (awareness digest) rows step the vertical padding down a notch.
         muted ? 'py-2.5' : 'py-3',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -573,7 +581,7 @@ function PulseAlertRow({
               exact tier still reads in the detail's Source card (Yuqi /alerts
               #4). */}
           {!compact && showLowConfidence ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Low confidence</Trans>
             </span>
@@ -789,7 +797,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {!compact && showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-xs font-semibold tracking-[0.3px] text-text-secondary">
@@ -859,13 +867,22 @@ function PulseAlertRow({
             variant="outline"
             size="xs"
             className="rounded-lg [corner-shape:round]"
+            // Disabled while this row's dismiss is in flight so a slow
+            // link can't double-fire the same dismiss; the spinner makes
+            // the pending state legible at the row (2026-06-22 audit).
+            disabled={dismissing}
             onClick={(event) => {
               event.stopPropagation()
+              if (dismissing) return
               onDismiss()
             }}
             aria-label={t`Dismiss alert`}
           >
-            <ArchiveIcon data-icon="inline-start" />
+            {dismissing ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <ArchiveIcon data-icon="inline-start" />
+            )}
             <Trans>Dismiss</Trans>
           </Button>
         ) : null}
@@ -935,6 +952,7 @@ function PulseAlertList({
   openAlertId,
   onReview,
   onDismiss,
+  dismissingId = null,
   selectable = false,
   selectedIds,
   onToggleSelected,
@@ -949,6 +967,9 @@ function PulseAlertList({
   openAlertId: string | null
   onReview: (alertId: string) => void
   onDismiss?: (alertId: string) => void
+  /** Id of the alert whose dismiss mutation is currently in flight, or
+   *  null. The matching row disables + spins its Dismiss button. */
+  dismissingId?: string | null
   /**
    * Force compact rows regardless of whether a detail panel is open.
    * The map view's right rail is ~420px, so it renders the same compact
@@ -1032,6 +1053,7 @@ function PulseAlertList({
         active={alert.id === openAlertId}
         onReview={() => onReview(alert.id)}
         {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
+        dismissing={alert.id === dismissingId}
         compact={panelOpen}
         selectable={selectable}
         selected={selectedIds?.has(alert.id) ?? false}

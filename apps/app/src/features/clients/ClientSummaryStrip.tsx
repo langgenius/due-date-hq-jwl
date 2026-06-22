@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
@@ -9,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
+import { fadeMotion } from '@/lib/motion'
 
 import { useClientNextDue } from './use-client-next-due'
 
@@ -65,6 +67,7 @@ export function ClientSummaryStrip({
     () => obligations.filter((o) => FILED_STATUSES.has(o.status)).length,
     [obligations],
   )
+  const totalObligations = obligations.length
 
   // Distinct filing jurisdictions: the primary state + each non-archived filing
   // profile's state. Sorted, deduped.
@@ -87,15 +90,24 @@ export function ClientSummaryStrip({
   // as four mismatched numbers). The band's single chromatic accent is the
   // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
   // here", not a loud signal.
+  // Cross-fade the numeral on refetch instead of a hard snap. `tabular-nums`
+  // keeps the width stable so the swap is pure opacity, no jitter. Keyed on the
+  // value so only a changed count animates.
   const num = (value: number) => (
-    <span
-      className={cn(
-        'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
-        value > 0 ? 'text-text-primary' : 'text-text-tertiary',
-      )}
-    >
-      {value}
-    </span>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={value}
+        {...fadeMotion}
+        className={cn(
+          // 500 (font-medium), NOT 600: KPI numerals are key DATA, and 600 is
+          // reserved for titles (type-weight canon). Size unchanged (16px).
+          'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
+          value > 0 ? 'text-text-primary' : 'text-text-tertiary',
+        )}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
   )
 
   const cells: SummaryCell[] = [
@@ -111,12 +123,13 @@ export function ClientSummaryStrip({
                 className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-1"
               >
                 <StateBadge code={code} size="xs" preview={false} />
-                <span className="text-sm font-semibold text-text-primary">{code}</span>
+                {/* Jurisdiction code is key data → 500 (font-medium), not 600. */}
+                <span className="text-sm font-medium text-text-primary">{code}</span>
               </span>
             ))}
           </span>
         ) : (
-          <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
+          <span className="text-lg leading-none font-medium text-text-tertiary">—</span>
         ),
     },
     {
@@ -157,14 +170,15 @@ export function ClientSummaryStrip({
             // inconsistent? are these sizes used elsewhere?" — the prior 18px
             // date was a one-off, off the StatBand scale). Red carries the
             // overdue urgency — the band's single accent.
-            'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+            // 500 (font-medium): the date is key data, 600 is titles-only.
+            'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
           {formatDatePretty(nextDue.currentDueDate)}
         </span>
       ) : (
-        <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
+        <span className="text-lg leading-none font-medium text-text-tertiary">—</span>
       ),
     },
   ]
@@ -176,48 +190,66 @@ export function ClientSummaryStrip({
       // by hairline dividers. NO wrap — scrolls horizontally when the column is
       // squeezed (obligation panel open) so a cell never orphans onto a 2nd line
       // (Yuqi: NEXT DUE was wrapping under JURISDICTIONS at panel-open).
-      className="flex overflow-x-auto rounded-xl bg-background-subtle px-2 py-3"
+      className="flex flex-col gap-2.5 rounded-xl bg-background-subtle px-2 py-3"
     >
-      {cells.map((cell, i) => {
-        const body = (
-          <>
-            <CapsFieldLabel as="span" variant="group" className="whitespace-nowrap">
-              {cell.label}
-            </CapsFieldLabel>
-            <span className="flex min-h-[28px] items-center">{cell.value}</span>
-          </>
-        )
-        const cellClass = cn(
-          // No `min-w-0`: cells size to at least their content (label + value),
-          // so the long "JURISDICTIONS" label and the "May 12" date never
-          // shrink below their width and overflow into the neighbouring cell /
-          // wrap to a second line. flex-1 distributes the remaining width.
-          'flex flex-1 flex-col justify-center gap-2 px-4',
-          i > 0 && 'border-l border-divider-subtle',
-        )
-        if (cell.onClick) {
-          return (
-            <button
-              key={cell.key}
-              type="button"
-              onClick={cell.onClick}
-              aria-label={cell.ariaLabel}
-              className={cn(
-                cellClass,
-                '-my-2 cursor-pointer rounded-lg py-2 text-left transition-colors hover:bg-state-base-hover',
-                'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-              )}
-            >
-              {body}
-            </button>
+      <div className="flex overflow-x-auto">
+        {cells.map((cell, i) => {
+          const body = (
+            <>
+              <CapsFieldLabel as="span" variant="group" className="whitespace-nowrap">
+                {cell.label}
+              </CapsFieldLabel>
+              <span className="flex min-h-[28px] items-center">{cell.value}</span>
+            </>
           )
-        }
-        return (
-          <div key={cell.key} className={cellClass}>
-            {body}
+          const cellClass = cn(
+            // No `min-w-0`: cells size to at least their content (label + value),
+            // so the long "JURISDICTIONS" label and the "May 12" date never
+            // shrink below their width and overflow into the neighbouring cell /
+            // wrap to a second line. flex-1 distributes the remaining width.
+            'flex flex-1 flex-col justify-center gap-2 px-4',
+            i > 0 && 'border-l border-divider-subtle',
+          )
+          if (cell.onClick) {
+            return (
+              <button
+                key={cell.key}
+                type="button"
+                onClick={cell.onClick}
+                aria-label={cell.ariaLabel}
+                className={cn(
+                  cellClass,
+                  '-my-2 cursor-pointer rounded-lg py-2 text-left transition hover:bg-state-base-hover active:scale-[0.99] motion-reduce:active:scale-100',
+                  'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+                )}
+              >
+                {body}
+              </button>
+            )
+          }
+          return (
+            <div key={cell.key} className={cellClass}>
+              {body}
+            </div>
+          )
+        })}
+      </div>
+      {/* Filed-progress footer (img-080): a subtle filed-of-total bar under the
+          band — a depth accent that doesn't disturb the uniform cell numbers.
+          Real data: filed count ÷ total obligations for this client. */}
+      {totalObligations > 0 ? (
+        <div className="flex items-center gap-2 px-2">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-background-section">
+            <div
+              className="h-full rounded-full bg-state-success-solid transition-[width] duration-300 ease-apple motion-reduce:transition-none"
+              style={{ width: `${Math.round((filedCount / totalObligations) * 100)}%` }}
+            />
           </div>
-        )
-      })}
+          <span className="shrink-0 text-caption-xs font-medium text-text-tertiary tabular-nums">
+            {filedCount}/{totalObligations}
+          </span>
+        </div>
+      ) : null}
     </section>
   )
 }

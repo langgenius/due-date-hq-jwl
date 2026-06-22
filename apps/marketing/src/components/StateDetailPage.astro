@@ -1,4 +1,6 @@
 ---
+/** StateDetailPage — per-state coverage leaf (/states/[state]). Uses the shared
+ *  long-tail page kit; 2-col source/faq grids are scoped. */
 import type { StatePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON, type OfficialSourceLink } from '../lib/content-metadata'
 
@@ -41,87 +43,51 @@ const labels =
 ---
 
 <main>
-  <section id="hero" class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-16 md:px-12 lg:px-20 lg:py-20">
-      <a
-        href={coverageHref}
-        class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent"
-      >
-        {page.hero.eyebrow}
-      </a>
-      <h1
-        class="mt-5 max-w-[920px] text-display-large font-semibold leading-[1.1] tracking-tight text-text-primary"
-      >
-        {page.hero.title}
-      </h1>
-      <p class="mt-5 max-w-[820px] text-[17px] leading-[1.65] text-text-secondary">
-        {page.hero.description}
-      </p>
-      <p class="mt-6 max-w-[780px] font-mono text-[12px] leading-5 text-text-muted">
-        {page.hero.note}
-      </p>
-      <p class="mt-4 font-mono text-[12px] text-text-muted">
-        {labels.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
-      </p>
-    </div>
+  <section class="m-section m-page-hero" id="hero">
+    <a href={coverageHref} class="m-eyebrow std__back">{page.hero.eyebrow}</a>
+    <h1 class="m-page-title">{page.hero.title}</h1>
+    <p class="m-page-lead">{page.hero.description}</p>
+    <p class="m-page-note">{page.hero.note}</p>
+    <p class="m-page-reviewed">
+      {labels.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+    </p>
   </section>
 
   {
     page.keyDeadlines && (
-      <section class="border-b border-border-default bg-bg-canvas">
-        <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-          <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-            {page.keyDeadlines.eyebrow}
-          </span>
-          <h2 class="mt-4 max-w-[720px] text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-            {page.keyDeadlines.title}
-          </h2>
-          <dl class="mt-8 max-w-[840px] divide-y divide-border-default rounded-xl border border-border-default bg-bg-panel">
-            {page.keyDeadlines.rows.map((row) => (
-              <div class="grid gap-2 px-6 py-4 sm:grid-cols-[210px_1fr] sm:gap-6">
-                <dt class="font-mono text-[13px] font-medium text-text-primary">{row.label}</dt>
-                <dd class="text-[14px] leading-[1.6] text-text-secondary">{row.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <p class="mt-5 max-w-[840px] font-mono text-[12px] leading-5 text-text-muted">
-            {page.keyDeadlines.note}
-          </p>
-          <p class="mt-3 text-[13px]">
-            <a
-              href={page.keyDeadlines.sourceHref}
-              class="text-text-accent underline underline-offset-2"
-              rel="noreferrer"
-              target="_blank"
-            >
-              {page.keyDeadlines.sourceLabel}
-            </a>
-          </p>
-        </div>
+      <section class="m-section m-page-block">
+        <p class="m-eyebrow">{page.keyDeadlines.eyebrow}</p>
+        <h2 class="m-page-h2">{page.keyDeadlines.title}</h2>
+        <dl class="m-page-dl">
+          {page.keyDeadlines.rows.map((row) => (
+            <div class="m-page-dl__row">
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="m-page-note">{page.keyDeadlines.note}</p>
+        <p class="std__sourcewrap">
+          <a class="m-link" href={page.keyDeadlines.sourceHref} rel="noreferrer" target="_blank">
+            {page.keyDeadlines.sourceLabel}
+          </a>
+        </p>
       </section>
     )
   }
 
-  <section class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto grid max-w-[1440px] gap-10 px-6 py-14 md:px-12 lg:grid-cols-12 lg:px-20 lg:py-16">
-      <div class="lg:col-span-5">
-        <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-          {labels.sourceEyebrow}
-        </span>
-        <h2 class="mt-4 text-[28px] font-semibold leading-[1.2] tracking-tight text-text-primary">
-          {labels.sourceTitle}
-        </h2>
+  <section class="m-section m-page-block">
+    <div class="m-page-split">
+      <div class="m-page-split__lead">
+        <p class="m-eyebrow">{labels.sourceEyebrow}</p>
+        <h2 class="m-page-h2">{labels.sourceTitle}</h2>
       </div>
-      <div class="grid gap-4 lg:col-span-7 lg:grid-cols-3">
+      <div class="m-page-cards">
         {
           page.sourceTypes.map((item) => (
-            <article class="rounded-xl border border-border-default bg-bg-panel p-6">
-              <h3 class="text-[15px] font-semibold leading-[1.4] text-text-primary">
-                {item.title}
-              </h3>
-              <p class="mt-3 text-[13px] leading-[1.65] text-text-secondary">
-                {item.body}
-              </p>
+            <article class="m-card">
+              <h3 class="m-card__t">{item.title}</h3>
+              <p class="m-card__d">{item.body}</p>
             </article>
           ))
         }
@@ -129,53 +95,34 @@ const labels =
     </div>
   </section>
 
-  <section class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-        {labels.officialSourcesEyebrow}
-      </span>
-      <h2 class="mt-4 text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-        {labels.officialSourcesTitle}
-      </h2>
-      <ul class="mt-8 grid gap-4 lg:grid-cols-2">
-        {
-          officialSources.map((source) => (
-            <li class="rounded-xl border border-border-default bg-bg-panel p-6">
-              <a
-                href={source.href}
-                class="rounded-sm text-[14px] font-medium leading-[1.5] text-text-accent outline-none hover:text-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                rel="noreferrer"
-                target="_blank"
-              >
-                {source.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
+  <section class="m-section m-page-block">
+    <p class="m-eyebrow">{labels.officialSourcesEyebrow}</p>
+    <h2 class="m-page-h2">{labels.officialSourcesTitle}</h2>
+    <ul class="std__grid2">
+      {
+        officialSources.map((source) => (
+          <li class="m-card">
+            <a class="m-link m-link--strong" href={source.href} rel="noreferrer" target="_blank">
+              {source.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
   </section>
 
-  <section class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto grid max-w-[1440px] gap-10 px-6 py-14 md:px-12 lg:grid-cols-12 lg:px-20 lg:py-16">
-      <div class="lg:col-span-5">
-        <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-          {labels.signalsEyebrow}
-        </span>
-        <h2 class="mt-4 text-[28px] font-semibold leading-[1.2] tracking-tight text-text-primary">
-          {labels.signalsTitle}
-        </h2>
+  <section class="m-section m-page-block">
+    <div class="m-page-split">
+      <div class="m-page-split__lead">
+        <p class="m-eyebrow">{labels.signalsEyebrow}</p>
+        <h2 class="m-page-h2">{labels.signalsTitle}</h2>
       </div>
-      <div class="grid gap-4 lg:col-span-7 lg:grid-cols-3">
+      <div class="m-page-cards">
         {
           page.coveredSignals.map((item) => (
-            <article class="rounded-xl border border-border-default bg-bg-panel p-6">
-              <h3 class="text-[15px] font-semibold leading-[1.4] text-text-primary">
-                {item.title}
-              </h3>
-              <p class="mt-3 text-[13px] leading-[1.65] text-text-secondary">
-                {item.body}
-              </p>
+            <article class="m-card">
+              <h3 class="m-card__t">{item.title}</h3>
+              <p class="m-card__d">{item.body}</p>
             </article>
           ))
         }
@@ -183,48 +130,72 @@ const labels =
     </div>
   </section>
 
-  <section class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-        {labels.limitsEyebrow}
-      </span>
-      <h2 class="mt-4 text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-        {labels.limitsTitle}
-      </h2>
-      <ul class="mt-8 grid gap-4 lg:grid-cols-3">
-        {
-          page.limitations.map((item) => (
-            <li class="rounded-xl border border-border-default bg-bg-panel p-6 text-[13px] leading-[1.65] text-text-secondary">
-              {item}
-            </li>
-          ))
-        }
-      </ul>
-    </div>
+  <section class="m-section m-page-block">
+    <p class="m-eyebrow">{labels.limitsEyebrow}</p>
+    <h2 class="m-page-h2">{labels.limitsTitle}</h2>
+    <ul class="m-page-grid-3">
+      {
+        page.limitations.map((item) => (
+          <li class="m-card">
+            <p class="m-card__d std__limit">{item}</p>
+          </li>
+        ))
+      }
+    </ul>
   </section>
 
-  <section class="bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-        {labels.faqEyebrow}
-      </span>
-      <h2 class="mt-4 text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-        {labels.faqTitle}
-      </h2>
-      <div class="mt-8 grid gap-4 lg:grid-cols-2">
-        {
-          page.faq.map((item) => (
-            <section class="rounded-xl border border-border-default bg-bg-panel p-6">
-              <h3 class="text-[15px] font-semibold leading-[1.4] text-text-primary">
-                {item.question}
-              </h3>
-              <p class="mt-3 text-[13px] leading-[1.65] text-text-secondary">
-                {item.answer}
-              </p>
-            </section>
-          ))
-        }
-      </div>
+  <section class="m-section m-page-block">
+    <p class="m-eyebrow">{labels.faqEyebrow}</p>
+    <h2 class="m-page-h2">{labels.faqTitle}</h2>
+    <div class="std__grid2">
+      {
+        page.faq.map((item) => (
+          <section class="m-card">
+            <h3 class="m-card__t">{item.question}</h3>
+            <p class="m-card__d">{item.answer}</p>
+          </section>
+        ))
+      }
     </div>
   </section>
 </main>
+
+<style>
+  .std__back {
+    transition: color 0.18s ease;
+  }
+  .std__back:hover {
+    color: var(--m-accent);
+  }
+  .std__sourcewrap {
+    margin-top: 14px;
+  }
+  .m-link {
+    font-size: 13px;
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .m-link:hover {
+    color: var(--m-accent-strong);
+  }
+  .m-link--strong {
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .std__limit {
+    margin-top: 0;
+  }
+  .std__grid2 {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+  @media (max-width: 720px) {
+    .std__grid2 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

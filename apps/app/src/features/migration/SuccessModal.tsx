@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { motion } from 'motion/react'
 import {
   ArrowRightIcon,
   CalendarDaysIcon,
@@ -20,6 +21,7 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 export interface SuccessModalData {
   batchId: string
@@ -101,9 +103,17 @@ export function SuccessModal({
         <div className="flex w-full flex-col overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg shadow-overlay">
           {/* Hero — green confirmation */}
           <div className="flex flex-col items-center gap-3 border-b border-divider-subtle bg-state-success-hover px-8 py-7 text-center">
-            <span className="grid size-14 place-items-center rounded-xl border border-state-success-hover-alt bg-background-default">
+            {/* The check pops in (scale 0.6→1, 180ms) the instant the win lands —
+                the one celebratory beat of the modal. Reduced-motion handled by
+                the global MotionConfig. */}
+            <motion.span
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.18, ease: EASE_APPLE }}
+              className="grid size-14 place-items-center rounded-xl border border-state-success-hover-alt bg-background-default"
+            >
               <CheckIcon className="size-7 text-text-success" strokeWidth={1.75} aria-hidden />
-            </span>
+            </motion.span>
             <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
               <Plural
                 value={data.clientCount}
@@ -127,6 +137,7 @@ export function SuccessModal({
           {/* Stats row */}
           <div className="grid grid-cols-2 divide-x divide-y divide-divider-subtle border-b border-divider-subtle sm:grid-cols-4 sm:divide-y-0">
             <Stat
+              index={0}
               value={data.clientCount}
               label={<Trans>clients</Trans>}
               sub={
@@ -138,6 +149,7 @@ export function SuccessModal({
               }
             />
             <Stat
+              index={1}
               value={data.obligationCount}
               label={<Trans>deadlines</Trans>}
               sub={
@@ -149,11 +161,13 @@ export function SuccessModal({
               }
             />
             <Stat
+              index={2}
               value={data.upcomingCount}
               label={<Trans>upcoming · 30 days</Trans>}
               sub={<Trans>see them on Today</Trans>}
             />
             <Stat
+              index={3}
               value={0}
               label={<Trans>emails sent</Trans>}
               sub={<Trans>you control when</Trans>}
@@ -196,25 +210,53 @@ export function SuccessModal({
             <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
               <Trans>What to do next</Trans>
             </CapsFieldLabel>
-            <NextStep
-              tone="warning"
-              icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
-              title={t`Review your jurisdictions`}
-              sub={t`Confirm state calendars before their deadlines generate`}
-              onClick={() => onNavigate('/rules/library')}
-            />
-            <NextStep
-              icon={<MailIcon className="size-3.5" aria-hidden />}
-              title={t`Customise reminder templates`}
-              sub={t`Email copy + reply-to before turning rules on`}
-              onClick={() => onNavigate('/reminders')}
-            />
-            <NextStep
-              icon={<CalendarDaysIcon className="size-3.5" aria-hidden />}
-              title={t`Browse your first deadlines`}
-              sub={t`See what's due next on Today`}
-              onClick={() => onNavigate('/deadlines')}
-            />
+            {/* The three next-steps rise+fade in sequence (40ms apart). delayChildren
+                0.08 lets the hero check + stat row (already animated) land first.
+                Reduced-motion handled by the global MotionConfig. */}
+            <motion.div
+              className="flex flex-col gap-2"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.04, delayChildren: 0.08 } },
+              }}
+            >
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  tone="warning"
+                  icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
+                  title={t`Review your jurisdictions`}
+                  sub={t`Confirm state calendars before their deadlines generate`}
+                  onClick={() => onNavigate('/rules/library')}
+                />
+              </motion.div>
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  icon={<MailIcon className="size-3.5" aria-hidden />}
+                  title={t`Customise reminder templates`}
+                  sub={t`Email copy + reply-to before turning rules on`}
+                  onClick={() => onNavigate('/reminders')}
+                />
+              </motion.div>
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  icon={<CalendarDaysIcon className="size-3.5" aria-hidden />}
+                  title={t`Browse your first deadlines`}
+                  sub={t`See what's due next on Today`}
+                  onClick={() => onNavigate('/deadlines')}
+                />
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Footer */}
@@ -243,15 +285,33 @@ export function SuccessModal({
   )
 }
 
-function Stat({ value, label, sub }: { value: number; label: ReactNode; sub: ReactNode }) {
+function Stat({
+  value,
+  label,
+  sub,
+  index = 0,
+}: {
+  value: number
+  label: ReactNode
+  sub: ReactNode
+  // The numbers are the deliverable — they rise+fade in sequence (40ms apart)
+  // just after the hero check, so the eye lands on each imported count. Stays a
+  // grid cell (divide borders intact). Reduced-motion handled globally.
+  index?: number
+}) {
   return (
-    <div className="flex flex-col gap-1 px-5 py-4">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, ease: EASE_APPLE, delay: 0.08 + index * 0.04 }}
+      className="flex flex-col gap-1 px-5 py-4"
+    >
       <span className="text-2xl font-semibold tracking-tight text-text-primary tabular-nums">
         {value}
       </span>
       <span className="text-sm font-semibold text-text-primary">{label}</span>
       <span className="text-caption font-medium text-text-secondary">{sub}</span>
-    </div>
+    </motion.div>
   )
 }
 

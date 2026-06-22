@@ -1,3 +1,6 @@
+import { motion } from 'motion/react'
+
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 /**
@@ -43,7 +46,15 @@ export function StatusRing({
   return (
     <svg viewBox="0 0 16 16" fill="none" className={cn('size-4 shrink-0', className)} aria-hidden>
       {level === 'completed' ? (
-        <>
+        <motion.g
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+          // SVG groups need an explicit transform-origin matching the disc
+          // center (cx/cy = 8) so the scale-in radiates from the middle, not
+          // the viewBox corner.
+          style={{ transformOrigin: '8px 8px' }}
+        >
           <circle cx="8" cy="8" r="7" fill="currentColor" />
           <path
             d="M5 8.2 L7 10.2 L11 6"
@@ -53,7 +64,7 @@ export function StatusRing({
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </>
+        </motion.g>
       ) : level === 'not_started' ? (
         <circle
           cx="8"
@@ -85,14 +96,18 @@ export function StatusRing({
       ) : (
         <>
           <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" opacity="0.25" />
-          <circle
+          <motion.circle
             cx="8"
             cy="8"
             r="6"
             stroke="currentColor"
             strokeWidth="1.6"
             strokeLinecap="round"
-            strokeDasharray={`${level === 'filed' ? 32 : 18.85} ${RING_CIRCUMFERENCE}`}
+            initial={{ strokeDasharray: `0 ${RING_CIRCUMFERENCE}` }}
+            animate={{
+              strokeDasharray: `${level === 'filed' ? 32 : 18.85} ${RING_CIRCUMFERENCE}`,
+            }}
+            transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
             transform="rotate(-90 8 8)"
           />
         </>

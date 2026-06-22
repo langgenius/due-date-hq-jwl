@@ -21,6 +21,7 @@ import {
   ChevronDownIcon,
   CalendarClockIcon,
   HistoryIcon,
+  SparklesIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -183,6 +184,7 @@ import { ActiveQueueChip } from '@/features/alerts/components/ActiveQueueChip'
 import { AlertStatusBadge } from '@/features/alerts/components/AlertStatusBadge'
 import { AlertStatusChip } from '@/features/alerts/components/AlertStatusChip'
 import { DecisionActions } from '@/features/alerts/components/DecisionActions'
+import { ApplyingPill } from '@/features/alerts/components/ApplyingPill'
 import { RelatedRuleRow } from '@/features/alerts/components/RelatedRuleRow'
 import { RuleAcceptErrorDialog } from '@/features/rules/rule-detail-drawer'
 import { AlertSourceStatusBadge } from '@/features/alerts/components/AlertSourceStatusBadge'
@@ -202,6 +204,14 @@ import { BlockedByChip } from '@/features/obligations/blocked-by-chip'
 import { RejectionChip } from '@/features/obligations/rejection-chip'
 import { StageActions } from '@/features/obligations/StageActions'
 import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
+import { TickProgress } from '@/components/primitives/tick-progress'
+import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
+import { DuotoneIcon } from '@/components/primitives/duotone-icon'
+import { WorkspaceSwitcherDemo } from '@/features/shell/workspace-switcher'
+import { SidebarNavShowcase } from '@/features/shell/sidebar-nav-showcase'
+import { SidebarFooterZone } from '@/features/shell/sidebar-footer-zone'
+import { RichHelpTooltipDemo } from '@/components/primitives/rich-help-tooltip'
+import { FunIconButtonDemo } from '@/components/primitives/fun-icon-button'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary/SurfaceSummaryStrip'
 import { ConceptHelp } from '@/features/concepts/concept-help'
@@ -1686,11 +1696,29 @@ export function PreviewRoute() {
                 Med
               </SeverityChip>
             </Row>
-            <Row label="ValueDiff — inline" mono="primitives/value-diff (canonical before→after, img-153)">
+            <Row
+              label="ValueDiff — inline"
+              mono="primitives/value-diff (canonical before→after, img-153)"
+            >
               <div className="flex flex-col gap-2">
-                <ValueDiff from="Mar 15" to="Apr 15" delta="31 days later" deltaClassName="text-text-success" />
-                <ValueDiff from="Apr 15" to="Mar 15" delta="31 days sooner" deltaClassName="text-text-destructive" />
-                <ValueDiff from="1040" to="1040-X" delta="superseded" deltaClassName="text-text-muted" />
+                <ValueDiff
+                  from="Mar 15"
+                  to="Apr 15"
+                  delta="31 days later"
+                  deltaClassName="text-text-success"
+                />
+                <ValueDiff
+                  from="Apr 15"
+                  to="Mar 15"
+                  delta="31 days sooner"
+                  deltaClassName="text-text-destructive"
+                />
+                <ValueDiff
+                  from="1040"
+                  to="1040-X"
+                  delta="superseded"
+                  deltaClassName="text-text-muted"
+                />
               </div>
             </Row>
             <Row label="ValueDiff — compact (hover for delta)" mono='value-diff mode="compact"'>
@@ -2145,6 +2173,104 @@ export function PreviewRoute() {
                   tertiary={{ label: 'Dismiss alert', icon: XIcon }}
                 />
               </div>
+            </Row>
+            <Row label="ApplyingPill" mono="features/alerts/components/ApplyingPill (img-043)">
+              <ApplyingPill />
+            </Row>
+            <Row
+              label="TickProgress"
+              mono="components/primitives/tick-progress (Yuqi ref: tick-mark bar)"
+            >
+              <div className="flex w-full max-w-[420px] flex-col gap-3">
+                <TickProgress value={23} />
+                <TickProgress value={50} />
+                <TickProgress value={85} />
+              </div>
+            </Row>
+            <Row
+              label="SetupProgressCard"
+              mono="features/dashboard/SetupProgressCard (Yuqi refs: Almost-There card + checklist)"
+            >
+              <div className="w-full max-w-md">
+                <SetupProgressCard
+                  title="You're almost set up"
+                  description="Activate rules for your clients' jurisdictions and DueDateHQ generates every deadline automatically."
+                  steps={[
+                    { key: 'clients', label: 'Add your clients', done: true, href: '#' },
+                    { key: 'rules', label: 'Activate filing rules', done: false, href: '#' },
+                    { key: 'review', label: 'Review your first deadlines', done: false, href: '#' },
+                  ]}
+                />
+              </div>
+            </Row>
+            <Row
+              label="DuotoneIcon"
+              mono="components/primitives/duotone-icon (Yuqi refs: two-tone delight glyphs)"
+            >
+              <div className="flex flex-col gap-4">
+                {/* Tones + sizes — delight surfaces only (onboarding/empty/success),
+                    never the dense workbench. */}
+                <div className="flex items-center gap-3">
+                  <DuotoneIcon icon={SparklesIcon} tone="accent" />
+                  <DuotoneIcon icon={CircleCheckIcon} tone="success" />
+                  <DuotoneIcon icon={DollarSignIcon} tone="warning" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="brand" />
+                  <DuotoneIcon icon={InboxIcon} tone="violet" />
+                  <DuotoneIcon icon={ArchiveIcon} tone="neutral" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="sm" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="md" />
+                  <DuotoneIcon icon={CalendarClockIcon} tone="accent" size="lg" />
+                  {/* Corner badge — the AI / "special" accent (AI-Agent ref). */}
+                  <DuotoneIcon
+                    icon={InboxIcon}
+                    tone="brand"
+                    size="lg"
+                    badge={SparklesIcon}
+                    badgeTone="accent"
+                  />
+                </div>
+              </div>
+            </Row>
+            {/* ── App shell prototypes (Yuqi sidebar/tooltip/button refs) ──
+                Standalone, NOT wired into app-shell-nav.tsx (parallel session
+                owns the live shell) — ready to drop in once it frees up. */}
+            <Row
+              label="WorkspaceSwitcher"
+              mono="features/shell/workspace-switcher (ref: Acme/account switcher)"
+            >
+              <div className="w-64">
+                <WorkspaceSwitcherDemo />
+              </div>
+            </Row>
+            <Row
+              label="SidebarNavShowcase"
+              mono="features/shell/sidebar-nav-showcase (ref: Acme sectioned nav)"
+            >
+              <div className="w-64">
+                <SidebarNavShowcase />
+              </div>
+            </Row>
+            <Row
+              label="SidebarFooterZone"
+              mono="features/shell/sidebar-footer-zone (ref: upgrade card + toast + profile)"
+            >
+              <div className="w-64">
+                <SidebarFooterZone />
+              </div>
+            </Row>
+            <Row
+              label="RichHelpTooltip"
+              mono="components/primitives/rich-help-tooltip (ref: bold preview tooltip)"
+            >
+              <RichHelpTooltipDemo />
+            </Row>
+            <Row
+              label="FunIconButton"
+              mono="components/primitives/fun-icon-button (ref: Show in Maps)"
+            >
+              <FunIconButtonDemo />
             </Row>
             <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
               <div className="w-full max-w-[520px]">

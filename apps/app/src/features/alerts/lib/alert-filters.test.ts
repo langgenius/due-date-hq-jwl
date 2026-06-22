@@ -3,7 +3,9 @@ import type { TaxArea } from '@duedatehq/contracts'
 import {
   isTaxAreaFilter,
   matchesChangeKindFilter,
+  matchesChangeKindSelection,
   matchesTaxAreaFilter,
+  matchesTaxAreaSelection,
   TAX_AREA_FILTER_OPTIONS,
 } from './alert-filters'
 
@@ -34,6 +36,42 @@ describe('matchesTaxAreaFilter', () => {
 
   it('hides uncategorized (empty) alerts under a specific bucket', () => {
     expect(matchesTaxAreaFilter([], 'franchise')).toBe(false)
+  })
+})
+
+describe('matchesChangeKindSelection (multi-select)', () => {
+  it('treats an empty selection as "all"', () => {
+    expect(matchesChangeKindSelection('deadline_shift', [])).toBe(true)
+    expect(matchesChangeKindSelection('other', [])).toBe(true)
+  })
+
+  it('keeps an alert when its kind falls under any selected group', () => {
+    expect(matchesChangeKindSelection('deadline_shift', ['deadlines'])).toBe(true)
+    expect(matchesChangeKindSelection('form_instruction', ['deadlines'])).toBe(false)
+    // OR across groups — a source kind passes when either source or rules is on.
+    expect(matchesChangeKindSelection('source_status', ['rules', 'source'])).toBe(true)
+    expect(matchesChangeKindSelection('deadline_shift', ['rules', 'source'])).toBe(false)
+  })
+})
+
+describe('matchesTaxAreaSelection (multi-select)', () => {
+  it('treats an empty selection as "all", including uncategorized alerts', () => {
+    expect(matchesTaxAreaSelection([], [])).toBe(true)
+    expect(matchesTaxAreaSelection(['income_individual'], [])).toBe(true)
+  })
+
+  it('keeps an alert when its taxAreas intersect any selected bucket', () => {
+    expect(matchesTaxAreaSelection(['income_individual'], ['income_individual'])).toBe(true)
+    expect(matchesTaxAreaSelection(['income_business'], ['income_individual', 'sales_use'])).toBe(
+      false,
+    )
+    expect(
+      matchesTaxAreaSelection(['income_business'], ['income_individual', 'income_business']),
+    ).toBe(true)
+  })
+
+  it('hides uncategorized (empty) alerts once any bucket is selected', () => {
+    expect(matchesTaxAreaSelection([], ['franchise'])).toBe(false)
   })
 })
 

@@ -124,7 +124,7 @@ function MilestoneNode({
 }) {
   const { t } = useLingui()
   return (
-    <div className="grid grid-cols-[20px_1fr] gap-x-3">
+    <div className={cn('grid grid-cols-[20px_1fr] gap-x-3', !isTouched && 'opacity-45')}>
       <div className="flex flex-col items-center" aria-hidden="true">
         <div
           className={cn(
@@ -137,8 +137,10 @@ function MilestoneNode({
         {!isLast ? (
           <div
             className={cn(
-              'mt-1 w-px flex-1',
-              isTouched ? 'bg-text-tertiary' : 'bg-divider-regular',
+              // Dashed vertical connector (img-178) — a 1px border-line reads as
+              // a lighter chronological chain than a solid bar.
+              'mt-1 w-0 flex-1 border-l border-dashed',
+              isTouched ? 'border-text-tertiary/50' : 'border-divider-regular',
             )}
           />
         ) : null}

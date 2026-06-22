@@ -23,7 +23,7 @@ export function EntryBrandLockup({ pill, className }: EntryBrandLockupProps) {
         aria-hidden
         width={56}
         height={56}
-        className="size-14 rounded-xl shadow-[0_8px_24px_rgba(16,24,40,0.1)]"
+        className="size-14 rounded-xl shadow-md"
       />
       {pill}
     </div>

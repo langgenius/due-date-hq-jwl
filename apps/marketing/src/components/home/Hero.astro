@@ -1,0 +1,548 @@
+---
+/**
+ * Homepage hero (production-v2 design, ported to Astro on the --m-* token tier).
+ * Copy is welcoming-but-restrained ("a calm expert who's got your back").
+ * English inline for now; i18n wrapping happens in the localization pass.
+ * The Alerts panel is the signature surface — static markup here; the
+ * filter/expand/apply micro-interactions layer on in a follow-up.
+ */
+interface Props {
+  ctaHref: string
+  workflowAnchor?: string
+}
+const { ctaHref, workflowAnchor = '#how' } = Astro.props
+
+const points = [
+  { strong: 'We watch the IRS, major state agencies & FEMA', rest: '— around the clock' },
+  { strong: 'You see the exact clients', rest: 'each change touches' },
+  { strong: 'Every date links back', rest: 'to its official source' },
+  { strong: 'Free during the beta', rest: '— set up in about 10 minutes' },
+]
+
+const alerts = [
+  {
+    sev: 'urgent',
+    juris: 'FED',
+    source: 'irs.gov',
+    title: 'IRS postpones filing & payment deadlines after disaster declaration',
+    from: 'Apr 15',
+    to: 'Nov 3, 2026',
+    delta: '202 days later',
+    affects: '8 clients',
+    status: '6 ready · 2 review',
+  },
+  {
+    sev: 'info',
+    juris: 'CA',
+    source: 'ftb.ca.gov',
+    title: 'California FTB extends the Q3 estimated-tax deadline after wildfire declaration',
+    from: 'Sep 15',
+    to: 'Sep 29, 2026',
+    delta: '14 days later',
+    affects: '12 clients',
+    status: '9 ready · 3 review',
+  },
+  {
+    sev: 'info',
+    juris: 'TX',
+    source: 'comptroller.texas.gov',
+    title: 'Texas adds a franchise-tax filing requirement for remote sellers',
+    effective: 'Effective Jan 1, 2026',
+    badge: 'new obligation',
+    affects: '5 clients',
+    status: '5 ready',
+  },
+]
+---
+
+<section class="hero" aria-labelledby="hero-h">
+  <div class="hero__inner">
+    <div class="hero__copy">
+      <h1 class="hero__head" id="hero-h">
+        Catch every tax-deadline change — and see exactly <span class="ital">who</span> it affects.
+      </h1>
+      <p class="hero__sub">
+        You'll never wonder <em>“did a deadline move?”</em> again. We watch the IRS, the major state
+        tax agencies, and FEMA — and the moment a date moves, you see exactly which clients it hits.
+      </p>
+
+      <ul class="hero__points">
+        {
+          points.map((p) => (
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+                <path
+                  d="M8.5 12.2l2.4 2.3 4.6-4.8"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>
+                <b>{p.strong}</b> {p.rest}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="hero__cta">
+        <a class="btn btn--primary" href={ctaHref} data-event="marketing.hero.cta">
+          Start free <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost" href={workflowAnchor}>See how it works</a>
+      </div>
+      <p class="hero__reassure">
+        Paste your clients — your first sourced deadline shows up in about 10 minutes.
+      </p>
+    </div>
+
+    <!-- signature surface: this week's alerts (live preview · not your data) -->
+    <div class="panel" aria-label="Sample alerts for this week">
+      <div class="panel__head">
+        <span class="panel__title">
+          <span class="panel__live" aria-hidden="true"></span>Alerts<span class="panel__dot"
+            >·</span
+          >this week
+        </span>
+        <span class="panel__count">6 changes · 31 clients</span>
+        <span class="panel__cap">live preview · not your data</span>
+      </div>
+
+      <div class="panel__filter" role="group" aria-label="Filter by jurisdiction">
+        {
+          ['All', 'Federal', 'CA', 'TX', 'NY', 'WA', 'FL'].map((j, i) => (
+            <span class={`chip${i === 0 ? ' chip--on' : ''}`}>{j}</span>
+          ))
+        }
+      </div>
+
+      <div class="panel__rows">
+        {
+          alerts.map((a) => (
+            <article class="row">
+              <div class="row__top">
+                <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? 'URGENT' : 'INFO'}</span>
+                <span class="juris">{a.juris}</span>
+                <span class="src">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M10 14a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7M14 10a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  {a.source}
+                </span>
+              </div>
+              <p class="row__title">{a.title}</p>
+              {a.delta ? (
+                <p class="row__change">
+                  <s>{a.from}</s> <span class="arrow">→</span> <b>{a.to}</b>
+                  <span class={`row__delta row__delta--${a.sev === 'urgent' ? 'later' : 'later'}`}>
+                    {a.delta}
+                  </span>
+                </p>
+              ) : (
+                <p class="row__change">
+                  <b>{a.effective}</b>
+                  <span class="row__badge">{a.badge}</span>
+                </p>
+              )}
+              <p class="row__affect">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M17 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7M21 20v-1a4 4 0 00-3-3.9"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Affects <b>{a.affects}</b>
+                <span class="row__status">{a.status}</span>
+              </p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    padding-top: clamp(52px, 6.5vw, 104px);
+    padding-bottom: clamp(80px, 10vw, 132px);
+  }
+  .hero__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(36px, 4.5vw, 72px);
+    gap: clamp(40px, 5vw, 64px);
+    align-items: center;
+  }
+  .hero__copy {
+    grid-column: span 6;
+    align-self: center;
+  }
+  .panel {
+    grid-column: span 6;
+  }
+
+  /* ---- copy ---- */
+  .hero__head {
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(40px, 4.6vw, 60px);
+    line-height: 1.06;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+    max-width: 20ch;
+  }
+  .hero__head .ital {
+    font-style: italic;
+  }
+  .hero__sub {
+    margin-top: 24px;
+    max-width: 44ch;
+    font-size: clamp(15px, 1.1vw, 16px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .hero__sub em {
+    font-style: italic;
+    color: var(--m-ink);
+  }
+  .hero__points {
+    margin-top: 32px;
+    display: grid;
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+  }
+  .hero__points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    font-size: 14px;
+    color: var(--m-muted);
+  }
+  .hero__points svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin-top: 1px;
+    color: var(--m-accent);
+  }
+  .hero__points b {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+
+  .hero__cta {
+    margin-top: 38px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.12s ease;
+  }
+  .btn--primary {
+    background: var(--m-accent);
+    color: #fff;
+    padding: 12px 20px;
+  }
+  .btn--primary:hover {
+    background: var(--m-accent-strong);
+  }
+  .btn--primary:active {
+    transform: translateY(1px);
+  }
+  .btn--primary .arrow {
+    transition: transform 0.18s ease;
+  }
+  .btn--primary:hover .arrow {
+    transform: translateX(3px);
+  }
+  .btn--ghost {
+    color: var(--m-ink);
+    padding: 12px 4px;
+  }
+  .btn--ghost:hover {
+    color: var(--m-accent);
+    box-shadow: inset 0 -1.5px 0 var(--m-accent);
+  }
+  .hero__reassure {
+    margin-top: 22px;
+    font-size: 13px;
+    color: var(--m-faint);
+  }
+
+  /* ---- alerts panel ---- */
+  .panel {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -44px rgba(16, 24, 40, 0.4);
+  }
+  .panel__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .panel__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+  }
+  .panel__dot {
+    color: var(--m-faint);
+  }
+  .panel__live {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    flex: none;
+    position: relative;
+  }
+  .panel__live::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 1px solid var(--m-ok);
+    opacity: 0;
+    animation: ripple 2.6s ease-out infinite;
+  }
+  @keyframes ripple {
+    0% {
+      opacity: 0.5;
+      transform: scale(0.6);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.6);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .panel__live::after {
+      animation: none;
+    }
+  }
+  .panel__count {
+    font-size: 11px;
+    color: var(--m-muted);
+    font-family: var(--m-font-mono);
+  }
+  .panel__cap {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--m-faint);
+    font-family: var(--m-font-mono);
+    white-space: nowrap;
+  }
+
+  .panel__filter {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--m-hairline-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .panel__filter::-webkit-scrollbar {
+    display: none;
+  }
+  .chip {
+    flex: none;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--m-muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      border-color 0.15s,
+      background 0.15s;
+  }
+  .chip:hover {
+    color: var(--m-ink);
+    border-color: var(--m-faint);
+  }
+  .chip--on {
+    color: #fff;
+    background: var(--m-accent);
+    border-color: var(--m-accent);
+  }
+
+  .row {
+    padding: 14px 16px;
+  }
+  .row + .row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .row__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sev {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .sev--urgent {
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 9%, transparent);
+  }
+  .sev--info {
+    color: var(--m-ink-2);
+    background: var(--m-section);
+  }
+  .juris {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+    border-radius: 6px;
+    padding: 1px 7px;
+  }
+  .src {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .src svg {
+    width: 12px;
+    height: 12px;
+  }
+  .row__title {
+    margin-top: 9px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .row__change {
+    margin-top: 9px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-ink);
+  }
+  .row__change s {
+    color: var(--m-muted);
+  }
+  .row__change .arrow {
+    color: var(--m-muted);
+  }
+  .row__delta {
+    font-family: var(--m-font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+  .row__delta--later {
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .row__badge {
+    font-family: var(--m-font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--m-muted);
+    background: var(--m-section);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  .row__affect {
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid var(--m-hairline-2);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--m-ink-2);
+  }
+  .row__affect svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--m-muted);
+  }
+  .row__affect b {
+    color: var(--m-accent);
+    font-weight: 600;
+  }
+  .row__status {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--m-faint);
+    font-family: var(--m-font-mono);
+  }
+
+  @media (max-width: 1000px) {
+    .hero__inner {
+      grid-template-columns: 1fr;
+    }
+    .hero__copy,
+    .panel {
+      grid-column: auto;
+    }
+  }
+  @media (max-width: 540px) {
+    .panel__head {
+      flex-wrap: wrap;
+    }
+    .panel__cap {
+      display: none;
+    }
+  }
+</style>

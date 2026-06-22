@@ -40,6 +40,14 @@ interface WizardFrameProps {
   busy: boolean
   transition?: WizardTransitionState | null | undefined
   layout?: 'dialog' | 'route' | undefined
+  /**
+   * Step-progress placement. `'top'` (default) keeps the horizontal Stepper
+   * row between the header and body. `'rail'` moves the steps into a vertical
+   * left rail with the body content beside it on the right — an opt-in
+   * alternative for wider surfaces. Defaults to `'top'` so existing callers
+   * (and the Wizard tests) are unaffected.
+   */
+  stepperLayout?: 'top' | 'rail' | undefined
   canContinue: boolean
   continueLabel?: ReactNode | undefined
   onBack?: (() => void) | undefined
@@ -75,6 +83,7 @@ function WizardFrame({
   busy,
   transition,
   layout = 'dialog',
+  stepperLayout = 'top',
   canContinue,
   continueLabel,
   onBack,
@@ -191,11 +200,26 @@ function WizardFrame({
         </div>
       </header>
 
-      <Stepper current={step} />
+      {/* When the steps live in the top row, render the horizontal Stepper
+          here. The 'rail' layout instead renders a vertical Stepper inside the
+          body region (below), so the body and rail share the same horizontal
+          band and the rail's first step pill aligns with the body's top edge. */}
+      {stepperLayout === 'top' ? <Stepper current={step} /> : null}
 
       {transition ? (
         <div className="relative min-h-[300px] flex-1" aria-busy={busy || undefined}>
           <ProcessingOverlay transition={transition} />
+        </div>
+      ) : stepperLayout === 'rail' ? (
+        // Left-rail layout: a fixed-width vertical step rail on the leading
+        // edge with the step content beside it. The rail is hidden below `sm`
+        // (the dialog is too narrow for a side-by-side split) so the content
+        // still gets full width on small screens.
+        <div className="relative flex min-h-0 flex-1 gap-6 px-4" aria-busy={busy || undefined}>
+          <nav aria-label={t`Wizard steps`} className="hidden shrink-0 pt-2 sm:block sm:w-44">
+            <Stepper current={step} orientation="vertical" />
+          </nav>
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
         </div>
       ) : (
         // Body sits at `px-4` (matching header, Stepper, and footer) so

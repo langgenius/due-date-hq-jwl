@@ -93,6 +93,9 @@ export interface ObligationInstanceRow {
   // default queue until the instant passes.
   assigneeId: string | null
   snoozedUntil: Date | null
+  // Pinned-items marker (/today Pinned section). Personal-workspace flag,
+  // not part of the obligation's regulatory state.
+  isPinned: boolean
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
   estimatedExposureCents: number | null
@@ -307,6 +310,11 @@ export interface ObligationsRepo {
    */
   setAssignee(id: string, assigneeId: string | null): Promise<void>
   setSnoozedUntil(id: string, snoozedUntil: Date | null): Promise<void>
+  /**
+   * Pin / unpin a deadline (/today Pinned section). Single-column write;
+   * service-layer caller adds firm scope + audit write.
+   */
+  setPinned(id: string, isPinned: boolean): Promise<void>
   /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row

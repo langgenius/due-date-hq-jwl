@@ -171,7 +171,7 @@ export function DailyBriefCard({
           />
           <Trans>Daily Brief</Trans>
           {isPending ? (
-            <RotateCwIcon className="size-3 animate-spin" aria-hidden />
+            <RotateCwIcon className="size-3 animate-spin motion-reduce:animate-none" aria-hidden />
           ) : (
             <span
               className={cn(
@@ -179,8 +179,8 @@ export function DailyBriefCard({
                 // Failed = amber, not red: a missing optional AI sentence is
                 // not a destructive error (the rest of /today is unaffected).
                 brief?.status === 'failed' || brief?.status === 'stale'
-                  ? 'bg-text-warning'
-                  : 'bg-text-success',
+                  ? 'bg-state-warning-solid'
+                  : 'bg-state-success-solid',
               )}
               aria-hidden
             />
@@ -209,60 +209,77 @@ export function DailyBriefCard({
                 framing here. */}
             <Trans>All quiet — nothing new needs your attention right now.</Trans>
           </p>
-        ) : null}
+        ) : (
+          // No AI headline yet (generating / couldn't update / firm scope) but
+          // real work is pending — the tab still states the facts from the
+          // deterministic counts instead of a blank line above the fold.
+          <DeterministicBriefTeaser counts={todayCounts} onOpen={() => setCollapsed(false)} />
+        )}
       </section>
     )
   }
 
   return (
-    <section
-      aria-label={t`Daily brief`}
-      // The accent-tinted banner of /today (Yuqi: "background blue tint") —
-      // the page's ONE chromatic surface, marking the AI digest apart from
-      // the neutral monitor (alerts) and work (priorities) sections. No
-      // border: the tint alone defines the edge (avoid too much borders).
-      // Same editorial bones as the /deadlines at-a-glance banner (title →
-      // content sentence → metric lines); see
-      // docs/Design/brief-banner-language.md.
-      // The unfold: expanding from the tab plays the house animate-in recipe
-      // (fade + 4px slide from the tab's position) — the paper opens.
-      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
-    >
-      {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
-          never deletes; the tab keeps the brief one click away). */}
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        type="button"
-        onClick={() => setCollapsed(true)}
-        aria-label={t`Collapse brief`}
-        // size-7 (28px) hit area over the icon-xs default — the audit
-        // flagged the ~24px dismiss target as the floor.
-        className="absolute top-2 right-2 size-7 text-text-tertiary"
+    <div className="relative">
+      {/* Aurora "generating" glow (Yuqi ref: the "Brief is generating" pill) — a
+          soft brand-cyan → violet → warm halo that drifts behind the banner ONLY
+          while the AI writes the brief, so the wait reads as alive thinking, not
+          a dead spinner. A blurred gradient layer sits behind the card and leaks
+          a few px past the edge as a halo; reduced-motion freezes the drift. */}
+      {isPending ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 rounded-2xl bg-[linear-gradient(115deg,var(--color-brand-highlight),#a78bfa,#f0a35e,var(--color-brand-highlight))] bg-[length:300%_300%] opacity-55 blur-lg animate-[ddhq-aurora-drift_4.5s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-40"
+        />
+      ) : null}
+      <section
+        aria-label={t`Daily brief`}
+        // The accent-tinted banner of /today (Yuqi: "background blue tint") —
+        // the page's ONE chromatic surface, marking the AI digest apart from
+        // the neutral monitor (alerts) and work (priorities) sections. No
+        // border: the tint alone defines the edge (avoid too much borders).
+        // Same editorial bones as the /deadlines at-a-glance banner (title →
+        // content sentence → metric lines); see
+        // docs/Design/brief-banner-language.md.
+        // The unfold: expanding from the tab plays the house animate-in recipe
+        // (fade + 4px slide from the tab's position) — the paper opens.
+        className="group relative z-10 flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
       >
-        <XIcon className="size-3.5" aria-hidden />
-      </Button>
+        {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
+          never deletes; the tab keeps the brief one click away). */}
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          type="button"
+          onClick={() => setCollapsed(true)}
+          aria-label={t`Collapse brief`}
+          // size-7 (28px) hit area over the icon-xs default — the audit
+          // flagged the ~24px dismiss target as the floor.
+          className="absolute top-2 right-2 size-7 text-text-tertiary"
+        >
+          <XIcon className="size-3.5" aria-hidden />
+        </Button>
 
-      {/* Masthead — the newspaper glyph rides ahead of the title so the
+        {/* Masthead — the newspaper glyph rides ahead of the title so the
           expanded card is recognizably the SAME morning edition as the
           collapsed tab (which leads with the same glyph). Accent-tinted: it's
           the card's one chromatic mark. The glyph tilts a few degrees when the
           whole card is hovered (the section owns `group`), echoing the tab's
           "pick the paper up off the mat" motion without adding any chrome. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-2">
-          <NewspaperIcon
-            className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
-            aria-hidden
-          />
-          <h2 className="text-region-title text-text-primary">
-            <Trans>Daily Brief</Trans>
-          </h2>
-        </span>
-        {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
-      </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2">
+            <NewspaperIcon
+              className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+              aria-hidden
+            />
+            <h2 className="text-base font-semibold text-text-secondary">
+              <Trans>Daily Brief</Trans>
+            </h2>
+          </span>
+          {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
+        </div>
 
-      {/* Lead — the card's one payload: the AI focus sentence (or its pending
+        {/* Lead — the card's one payload: the AI focus sentence (or its pending
           skeleton) at personal scope, the deterministic concentration line at
           firm scope. NEVER an apology (Yuqi: "is this the best you can do?") —
           a failed brief demotes to the caption footnote at the bottom, and the
@@ -272,30 +289,77 @@ export function DailyBriefCard({
           Priorities buckets ~100px below, and the recap was backward-looking
           reassurance that answered no triage question. What's left is one
           forward-looking sentence, the catch-up line, and the action row. */}
-      {(aiEnabled && Boolean(brief?.text)) || (aiEnabled && isPending) ? (
-        <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
-      ) : (
-        <FirmTodayLine concentration={concentration} counts={todayCounts} />
-      )}
+        {(aiEnabled && Boolean(brief?.text)) || (aiEnabled && isPending) ? (
+          <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
+        ) : (
+          <FirmTodayLine concentration={concentration} counts={todayCounts} />
+        )}
 
-      {/* Self-hiding (renders null at zero count) — a brand-new firm with no
+        {/* Self-hiding (renders null at zero count) — a brand-new firm with no
           generated work still sees the changes already in effect for its
           clients. */}
-      <CatchupLine />
+        <CatchupLine />
 
-      {/* Waiting-on-client quick-jump (Pencil t9nO3) — the one count with no
+        {/* Waiting-on-client quick-jump (Pencil t9nO3) — the one count with no
           twin elsewhere on /today. Self-hiding at zero. Alerts + Overdue pills
           were removed 2026-06-18 (they duplicated the Needs-attention section
           and Priorities overdue bucket directly around this card). */}
-      <BriefActionPills counts={todayCounts} />
+        <BriefActionPills counts={todayCounts} />
 
-      {/* Failure footnote — a quiet caption, never the headline. */}
-      {aiEnabled && brief?.status === 'failed' && !brief.text ? (
-        <p className="text-caption text-text-tertiary">
-          <Trans>Brief unavailable — we'll retry shortly.</Trans>
-        </p>
-      ) : null}
-    </section>
+        {/* Failure footnote — a quiet caption, never the headline. */}
+        {aiEnabled && brief?.status === 'failed' && !brief.text ? (
+          <p className="text-caption text-text-tertiary">
+            <Trans>Brief unavailable — we'll retry shortly.</Trans>
+          </p>
+        ) : null}
+      </section>
+    </div>
+  )
+}
+
+/**
+ * Deterministic above-the-fold teaser — the collapsed tab's one-line preview
+ * when there is no AI headline (generating / couldn't update / firm scope)
+ * but real work is pending. Pure `todayCounts` (no model), joined "·", so the
+ * tab never shows a blank line beside it. Clicking opens the brief like the
+ * AI teaser does. Self-empties to nothing when every count is zero.
+ */
+function DeterministicBriefTeaser({
+  counts,
+  onOpen,
+}: {
+  counts: DailyBriefTodayCounts
+  onOpen: () => void
+}) {
+  const parts: React.ReactNode[] = []
+  if (counts.overdueCount > 0)
+    parts.push(<Plural value={counts.overdueCount} one="# overdue" other="# overdue" />)
+  if (counts.waitingOnClientCount > 0)
+    parts.push(
+      <Plural
+        value={counts.waitingOnClientCount}
+        one="# waiting on client"
+        other="# waiting on client"
+      />,
+    )
+  if (counts.dueThisWeekCount > 0)
+    parts.push(
+      <Plural value={counts.dueThisWeekCount} one="# due this week" other="# due this week" />,
+    )
+  if (parts.length === 0) return null
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      {parts.map((part, i) => (
+        <Fragment key={i}>
+          {i > 0 ? ' · ' : null}
+          {part}
+        </Fragment>
+      ))}
+    </button>
   )
 }
 
@@ -513,7 +577,10 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   if (pending) {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
-        <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
+        <RotateCwIcon
+          className="size-3 animate-spin text-text-secondary motion-reduce:animate-none"
+          aria-hidden
+        />
         <span className="font-mono text-chip-label text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
@@ -553,7 +620,10 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span
-        className={cn('size-1.5 rounded-full', stale ? 'bg-text-warning' : 'bg-text-success')}
+        className={cn(
+          'size-1.5 rounded-full',
+          stale ? 'bg-state-warning-solid' : 'bg-state-success-solid',
+        )}
         aria-hidden
       />
       <span

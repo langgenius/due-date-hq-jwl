@@ -97,9 +97,20 @@ export function CollapsibleSearch({
 
   const collapseLabel = collapsedLabel ?? ariaLabel
 
+  // Collapsed width = the magnifier button's footprint (size-8 / size-9), so
+  // the wrapper has a concrete width on BOTH ends and `transition-[width]` can
+  // animate the icon↔input swap instead of jumping. The conditional mount of
+  // the input is preserved (so the focus-on-reveal effect still fires); only
+  // the wrapper width eases. ease-apple matches the sidebar's width grow.
+  const collapsedWidthClassName = size === 'icon' ? 'w-9' : 'w-8'
+
   return (
     <div
-      className={cn(isOpen ? expandedWidthClassName : 'inline-flex', className)}
+      className={cn(
+        'inline-flex transition-[width] duration-200 ease-apple motion-reduce:transition-none',
+        isOpen ? expandedWidthClassName : `${collapsedWidthClassName} shrink-0`,
+        className,
+      )}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => {
         // Only retract a hover-revealed field; never yank one the user is
@@ -121,6 +132,10 @@ export function CollapsibleSearch({
           onChange={onChange}
           placeholder={placeholder}
           ariaLabel={ariaLabel}
+          // Fill the (now always-inline-flex) wrapper so the field stretches to
+          // the expanded width as the wrapper grows, instead of shrinking to
+          // content. min-w-0 lets it shrink below its intrinsic width mid-grow.
+          className="w-full min-w-0"
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false)

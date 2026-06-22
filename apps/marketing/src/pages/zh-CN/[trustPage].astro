@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import TopNav from '../../components/TopNav.astro'
+import TopNav from '../../components/home/TopNav.astro'
 import TrustPage from '../../components/TrustPage.astro'
-import Footer from '../../components/Footer.astro'
+import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 import { trustPageStructuredData } from '../../lib/structured-data'
@@ -34,7 +34,7 @@ const ctaHref = getCtaHref('zh-CN')
   ogImage={page.meta.ogImage}
   structuredData={trustPageStructuredData(t, page, 'zh-CN', pathname)}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" current={page.slug === 'security' ? 'security' : undefined} />
   <TrustPage page={page} locale="zh-CN" />
-  <Footer t={t.footer} enHref={enPathname} zhHref={pathname} currentLocale="zh-CN" />
+  <Footer locale="zh-CN" />
 </BaseLayout>

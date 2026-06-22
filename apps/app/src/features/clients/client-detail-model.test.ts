@@ -73,6 +73,7 @@ function obligation(overrides: Partial<ObligationInstancePublic> = {}): Obligati
     efileRejectedAt: null,
     assigneeId: null,
     snoozedUntil: null,
+    isPinned: false,
     migrationBatchId: null,
     estimatedTaxDueCents: null,
     estimatedExposureCents: null,

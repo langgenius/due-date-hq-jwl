@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import '@duedatehq/ui/styles/preset.css';
+/* marketing-only editorial token layer (maps onto the shared primitives above) */
+@import './marketing.css';
 
 /* Tailwind 4 source globs — keep in sync with the marketing src layout. */
 @source '../../../../packages/ui/src';

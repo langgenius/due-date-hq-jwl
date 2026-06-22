@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import TopNav from '../../components/TopNav.astro'
+import TopNav from '../../components/home/TopNav.astro'
 import GeoResourcePage from '../../components/GeoResourcePage.astro'
-import Footer from '../../components/Footer.astro'
+import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import type { GuidePageCopy } from '../../i18n/types'
 import { getCtaHref } from '../../lib/app-url'
@@ -36,12 +36,12 @@ const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'en')
   ogType="article"
   structuredData={resourceStructuredData(t, page, 'en', pathname)}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav pageMode ctaHref={ctaHref} />
   <GeoResourcePage
     page={page}
     primaryHref={primaryHref}
     secondaryHref={secondaryHref}
     locale="en"
   />
-  <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
+  <Footer />
 </BaseLayout>

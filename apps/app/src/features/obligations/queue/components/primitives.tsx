@@ -78,9 +78,17 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
   // look like the Status pill next to it, and a dot would be a redundant signal
   // on the same axis.
   const tintedTextClass = DUE_COUNTDOWN_TEXT_CLASS[dueCountdownTone(days)]
+  // Overdue rows get SIZE, not weight (type-weight-restraint canon: urgency is
+  // the one signal allowed to scale up — 14px vs the 12px baseline — while the
+  // red tone already carries the alarm; never red+bold). Future/today stay
+  // text-sm so only genuine lateness grows on the page.
   return (
     <span
-      className={cn('inline-flex items-center text-sm tabular-nums leading-tight', tintedTextClass)}
+      className={cn(
+        'inline-flex items-center tabular-nums leading-tight',
+        days < 0 ? 'text-base' : 'text-sm',
+        tintedTextClass,
+      )}
     >
       <DueCountdownText days={days} />
     </span>
@@ -285,7 +293,7 @@ export function EvidenceArtifactStatusGrid({ cells }: { cells: ArtifactStatusCel
                 cell.tone === 'success'
                   ? 'bg-state-success-solid'
                   : cell.tone === 'warning'
-                    ? 'bg-state-destructive-solid'
+                    ? 'bg-state-warning-solid'
                     : 'bg-text-tertiary',
               )}
               aria-hidden
@@ -358,15 +366,31 @@ export function MaterialsProgressLegend({
   lastUpdated?: ReactNode
 }) {
   const total = counts.received + counts.outstanding + counts.waived
-  const pct = total > 0 ? Math.round((counts.received / total) * 100) : 0
   return (
     <div className="grid gap-2">
-      <div className="h-2 w-full overflow-hidden rounded-sm bg-background-subtle">
-        <div
-          className="h-full rounded-sm bg-state-success-solid transition-[width] duration-300 ease-apple"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+      {/* Tick-mark progress (img-074): one segment per checklist item makes
+          "N of M done" concrete vs an abstract smooth fill — received (green) /
+          outstanding (soft red) / waived (grey). Falls back to the empty track
+          when there are no items. */}
+      {total > 0 ? (
+        <div className="flex h-2 w-full gap-px overflow-hidden rounded-sm" aria-hidden>
+          {Array.from({ length: total }).map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                'h-full flex-1 rounded-[1px] transition-colors',
+                i < counts.received
+                  ? 'bg-state-success-solid'
+                  : i < counts.received + counts.outstanding
+                    ? 'bg-state-destructive-hover'
+                    : 'bg-background-subtle',
+              )}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="h-2 w-full rounded-sm bg-background-subtle" />
+      )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-caption-xs text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-state-success-solid" aria-hidden />

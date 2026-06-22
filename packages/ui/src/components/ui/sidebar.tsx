@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -746,8 +746,12 @@ const sidebarMenuButtonVariants = cva(
     // width on activation; the accent color + bg tint already carry "this is
     // the current route," so a single 400→500 step is enough emphasis with a
     // far smaller width shift.
-    "data-[active=true]:bg-accent-tint data-[active=true]:font-medium data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
-    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-medium aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-06-21 (Yuqi: solid accent pill for the active route — supersedes the
+    // bg-tint §1.2/§4.9 treatment): the active row is now a SOLID accent pill
+    // with white label + icon (Acme-reference register). Chroma in the
+    // container, white text — not colored-text-on-tint.
+    "data-[active=true]:bg-state-accent-solid data-[active=true]:font-medium data-[active=true]:text-text-inverted [&[data-active=true]_svg:not([class*='text-'])]:text-text-inverted",
+    "aria-[current=page]:bg-state-accent-solid aria-[current=page]:font-medium aria-[current=page]:text-text-inverted [&[aria-current=page]_svg:not([class*='text-'])]:text-text-inverted",
     // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
     // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
     // `#eff4ff` tinted tile as expanded (just narrower) — the active
@@ -957,6 +961,9 @@ export function SidebarMenuBadge({
           // carried by the active-route red pill on urgent badges, not by a
           // brightness difference too subtle to decode.
           'text-text-tertiary',
+          // White on the active solid accent pill (2026-06-21 solid-active-pill
+          // change) so the reference count stays legible on the filled row.
+          'group-data-[active=true]/menu-button:text-text-inverted group-aria-[current=page]/menu-button:text-text-inverted',
           collapsedPos,
           className,
         )}
@@ -1057,7 +1064,6 @@ export function SidebarTrigger({
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, hovered, toggleCollapsed } = useSidebar()
-  const Icon = collapsed ? ChevronRightIcon : ChevronLeftIcon
   const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
   // 2026-06-09 (Yuqi "the arrow does not move when it expanded"): the
   // handle must track the CARD's *visible* right edge, which follows
@@ -1095,7 +1101,21 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Icon className="size-3.5" aria-hidden />
+      {/* 2026-06-22 (motion sweep): one fixed ChevronRightIcon that ROTATES
+          in lockstep with the rail (same 360ms ease-apple as the width
+          transition) instead of an instant Right↔Left glyph swap. Collapsed =
+          rotate-0 (points right = "pull open"); expanded = rotate-180 (points
+          left = "push closed"). CSS-only; reduced-motion handled by
+          motion-reduce:transition-none on the same element. */}
+      <span
+        aria-hidden
+        className={cn(
+          'inline-flex transition-transform duration-[360ms] ease-apple motion-reduce:transition-none',
+          collapsed ? 'rotate-0' : 'rotate-180',
+        )}
+      >
+        <ChevronRightIcon className="size-3.5" aria-hidden />
+      </span>
     </button>
   )
 }

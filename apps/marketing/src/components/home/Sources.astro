@@ -1,0 +1,424 @@
+---
+/** Sources — coverage proof: piano-key coverage bar + source chips + US tilegram heat-map
+ *  + live monitoring feed. Tiles are data-driven; heat tiers map to the brand tokens
+ *  (navy tints t1/t2, warning t3, danger t4). Click-to-jump interaction lands later. */
+const chips = ['IRS', 'CA FTB', 'NY DTF', 'TX Comptroller', 'FL DOR', 'WA DOR', 'FEMA']
+const legend = [
+  { t: 0, label: '0' },
+  { t: 1, label: '1' },
+  { t: 2, label: '2–3' },
+  { t: 3, label: '4–6' },
+  { t: 4, label: '7+' },
+]
+// the full US tilegram (state, grid-row, grid-column, heat tier 0–4, change count)
+const tiles = [
+  { s: 'AK', r: 1, c: 1, t: 0, n: 0 }, { s: 'ME', r: 1, c: 11, t: 0, n: 0 },
+  { s: 'VT', r: 2, c: 10, t: 0, n: 0 }, { s: 'NH', r: 2, c: 11, t: 0, n: 0 },
+  { s: 'WA', r: 3, c: 2, t: 3, n: 4 }, { s: 'ID', r: 3, c: 3, t: 0, n: 0 },
+  { s: 'MT', r: 3, c: 4, t: 0, n: 0 }, { s: 'ND', r: 3, c: 5, t: 0, n: 0 },
+  { s: 'MN', r: 3, c: 6, t: 0, n: 0 }, { s: 'WI', r: 3, c: 7, t: 0, n: 0 },
+  { s: 'MI', r: 3, c: 8, t: 0, n: 0 }, { s: 'NY', r: 3, c: 10, t: 4, n: 7 },
+  { s: 'MA', r: 3, c: 11, t: 2, n: 2 }, { s: 'OR', r: 4, c: 2, t: 1, n: 1 },
+  { s: 'NV', r: 4, c: 3, t: 0, n: 0 }, { s: 'WY', r: 4, c: 4, t: 0, n: 0 },
+  { s: 'SD', r: 4, c: 5, t: 0, n: 0 }, { s: 'IA', r: 4, c: 6, t: 0, n: 0 },
+  { s: 'IL', r: 4, c: 7, t: 2, n: 3 }, { s: 'IN', r: 4, c: 8, t: 0, n: 0 },
+  { s: 'OH', r: 4, c: 9, t: 1, n: 1 }, { s: 'PA', r: 4, c: 10, t: 1, n: 1 },
+  { s: 'NJ', r: 4, c: 11, t: 0, n: 0 }, { s: 'CT', r: 4, c: 12, t: 0, n: 0 },
+  { s: 'RI', r: 4, c: 13, t: 0, n: 0 }, { s: 'CA', r: 5, c: 2, t: 4, n: 14 },
+  { s: 'UT', r: 5, c: 3, t: 0, n: 0 }, { s: 'CO', r: 5, c: 4, t: 2, n: 2 },
+  { s: 'NE', r: 5, c: 5, t: 0, n: 0 }, { s: 'MO', r: 5, c: 6, t: 0, n: 0 },
+  { s: 'KY', r: 5, c: 7, t: 0, n: 0 }, { s: 'WV', r: 5, c: 8, t: 0, n: 0 },
+  { s: 'VA', r: 5, c: 9, t: 0, n: 0 }, { s: 'MD', r: 5, c: 10, t: 0, n: 0 },
+  { s: 'DE', r: 5, c: 11, t: 0, n: 0 }, { s: 'AZ', r: 6, c: 3, t: 1, n: 1 },
+  { s: 'NM', r: 6, c: 4, t: 0, n: 0 }, { s: 'KS', r: 6, c: 5, t: 0, n: 0 },
+  { s: 'AR', r: 6, c: 6, t: 0, n: 0 }, { s: 'TN', r: 6, c: 7, t: 0, n: 0 },
+  { s: 'NC', r: 6, c: 8, t: 1, n: 1 }, { s: 'SC', r: 6, c: 9, t: 0, n: 0 },
+  { s: 'DC', r: 6, c: 10, t: 0, n: 0 }, { s: 'HI', r: 7, c: 1, t: 0, n: 0 },
+  { s: 'OK', r: 7, c: 5, t: 0, n: 0 }, { s: 'LA', r: 7, c: 6, t: 0, n: 0 },
+  { s: 'MS', r: 7, c: 7, t: 0, n: 0 }, { s: 'AL', r: 7, c: 8, t: 0, n: 0 },
+  { s: 'GA', r: 7, c: 9, t: 2, n: 2 }, { s: 'TX', r: 8, c: 5, t: 4, n: 9 },
+  { s: 'FL', r: 8, c: 9, t: 3, n: 5 },
+]
+const segs = Array.from({ length: 16 })
+---
+
+<section class="m-section sources" id="sources" aria-label="Official sources we watch">
+  <div class="sources__top">
+    <span class="sources__label"><span class="live" aria-hidden="true"></span>Sources we watch · around the clock</span>
+    <span class="sources__note">FED + 50 states + DC — CA, NY, TX, FL, WA deepest.</span>
+  </div>
+
+  <div class="cov">
+    <span class="cov__bar" aria-hidden="true">{segs.map(() => <span class="cov__seg" />)}</span>
+    <span class="cov__meta"><b>52</b> / 52 jurisdictions covered</span>
+  </div>
+
+  <ul class="sources__chips">
+    {chips.map((c) => <li class="chip">{c}</li>)}
+    <li class="chip chip--more">+ disaster declarations nationwide</li>
+  </ul>
+
+  <div class="sources__grid">
+    <!-- US coverage map -->
+    <div class="usmap-wrap">
+      <div class="usmap__bar">
+        <span class="usmap__fed">Federal <span class="n">3</span></span>
+        <ul class="usmap__legend" aria-label="Changes per state">
+          {legend.map((l) => (
+            <li>
+              <span class={`sw t${l.t}`}></span>{l.label}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="usmap" role="img" aria-label="Heat-map of deadline changes by state this season">
+        {tiles.map((t) => (
+          <div class={`ust t${t.t}`} style={`grid-row:${t.r};grid-column:${t.c}`}>
+            <span class="ust__c">{t.s}</span>
+            {t.n > 0 && <span class="ust__n">{t.n}</span>}
+          </div>
+        ))}
+      </div>
+      <p class="usmap__foot">
+        Live monitoring runs deepest on the <b>IRS, CA, NY, TX, FL, WA, MA</b> and <b>FEMA</b> — and
+        every one of the <b>50 states + DC</b> is covered in your rule library.
+        <span class="muted">Sample activity · not your data.</span>
+      </p>
+    </div>
+
+    <!-- live monitoring feed -->
+    <div class="feed" aria-label="Source-monitoring feed — sample preview">
+      <div class="feed__bar">
+        <span class="feed__title"><span class="live" aria-hidden="true"></span>Monitoring feed</span>
+        <span class="feed__cap">live preview · not your data</span>
+      </div>
+      <div class="feed-row"><span class="dot scan"></span><span><b>IRS</b> · scanned, no change</span><span class="when">2m ago</span></div>
+      <div class="feed-row"><span class="dot new"></span><span><b>TX Comptroller</b> · new notice</span><span class="when alert">14m ago</span></div>
+      <div class="feed-row"><span class="dot ok"></span><span><b>CA FTB</b> · verified, no change</span><span class="when">31m ago</span></div>
+      <div class="feed-row"><span class="dot scan"></span><span><b>NY DTF</b> · scanned, no change</span><span class="when">52m ago</span></div>
+      <div class="feed-row"><span class="dot new"></span><span><b>FEMA</b> · disaster declaration</span><span class="when alert">1h ago</span></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sources {
+    background: var(--m-section);
+    border-block: 1px solid var(--m-hairline);
+  }
+  .sources__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .sources__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .live {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    flex: none;
+  }
+  .sources__note {
+    font-size: 13px;
+    color: var(--m-muted);
+  }
+
+  /* coverage piano-key bar */
+  .cov {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .cov__bar {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 3px;
+  }
+  .cov__seg {
+    flex: 1;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--m-accent);
+  }
+  .cov__meta {
+    flex: none;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-muted);
+    white-space: nowrap;
+  }
+  .cov__meta b {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+
+  .sources__chips {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+  }
+  .chip {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-ink);
+    background: var(--m-surface);
+    border-radius: 999px;
+    padding: 8px 15px;
+  }
+  .chip--more {
+    font-weight: 500;
+    color: var(--m-muted);
+    border: 1px dashed var(--m-hairline);
+    background: transparent;
+  }
+
+  .sources__grid {
+    margin-top: clamp(28px, 4vw, 44px);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(28px, 4vw, 44px);
+    align-items: start;
+  }
+  .usmap-wrap {
+    grid-column: span 6;
+  }
+  .feed {
+    grid-column: span 6;
+  }
+
+  /* ---- US tilegram ---- */
+  .usmap__bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .usmap__fed {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    border-radius: 8px;
+    padding: 5px 11px;
+  }
+  .usmap__fed .n {
+    font-family: var(--m-font-mono);
+  }
+  .usmap__legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    list-style: none;
+    padding: 0;
+    font-size: 11px;
+    color: var(--m-muted);
+  }
+  .usmap__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sw {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .usmap {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+    grid-template-rows: repeat(8, minmax(32px, 1fr));
+    gap: 5px;
+    min-width: 458px;
+  }
+  .ust {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .ust__c {
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .ust__n {
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 1.5px;
+  }
+
+  /* heat tiers — none → navy tints → warning → danger (mapped to tokens) */
+  .t0 {
+    background: var(--m-surface);
+    border-color: var(--m-hairline);
+    color: var(--m-faint);
+  }
+  .sw.t0 {
+    background: var(--m-surface);
+    border-color: var(--m-hairline);
+  }
+  .t1 {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 24%, transparent);
+    color: var(--m-accent);
+  }
+  .sw.t1 {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 24%, transparent);
+  }
+  .t2 {
+    background: color-mix(in srgb, var(--m-accent) 18%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-accent) 38%, transparent);
+    color: var(--m-accent);
+  }
+  .sw.t2 {
+    background: color-mix(in srgb, var(--m-accent) 18%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-accent) 38%, transparent);
+  }
+  .t3 {
+    background: color-mix(in srgb, var(--m-urgent) 18%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-urgent) 40%, transparent);
+    color: var(--m-urgent);
+  }
+  .sw.t3 {
+    background: color-mix(in srgb, var(--m-urgent) 18%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-urgent) 40%, transparent);
+  }
+  .t4 {
+    background: color-mix(in srgb, var(--m-danger) 14%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-danger) 36%, transparent);
+    color: var(--m-danger);
+  }
+  .sw.t4 {
+    background: color-mix(in srgb, var(--m-danger) 14%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-danger) 36%, transparent);
+  }
+
+  .usmap__foot {
+    margin-top: 16px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--m-muted);
+    max-width: 62ch;
+  }
+  .usmap__foot b {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .usmap__foot .muted {
+    color: var(--m-faint);
+  }
+
+  /* ---- feed ---- */
+  .feed {
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .feed__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .feed__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+  }
+  .feed__cap {
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    color: var(--m-faint);
+  }
+  .feed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--m-ink-2);
+  }
+  .feed-row + .feed-row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .feed-row b {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .feed-row .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: none;
+  }
+  .dot.scan {
+    background: var(--m-faint);
+  }
+  .dot.ok {
+    background: var(--m-ok);
+  }
+  .dot.new {
+    background: var(--m-urgent);
+  }
+  .feed-row .when {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-faint);
+  }
+  .feed-row .when.alert {
+    color: var(--m-urgent);
+  }
+
+  @media (max-width: 1000px) {
+    .sources__grid {
+      grid-template-columns: 1fr;
+    }
+    .usmap-wrap,
+    .feed {
+      grid-column: auto;
+    }
+    .usmap-wrap {
+      overflow-x: auto;
+    }
+  }
+  @media (max-width: 560px) {
+    .cov {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+  }
+</style>

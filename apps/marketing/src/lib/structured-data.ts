@@ -182,7 +182,7 @@ function productNode(pricing: PricingCopy, pathname: string): JsonLdDocument {
         price,
         priceCurrency: OFFER_PRICE_CURRENCY,
         availability: OFFER_AVAILABILITY,
-        description: `${plan.description} ${plan.aiLabel}: ${plan.aiDescription}`,
+        description: `${plan.description} ${plan.clients}.`,
       },
     ]
   })

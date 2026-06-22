@@ -1,0 +1,211 @@
+---
+/** How it works — Watch → Match → Apply, workflow-diagram style (label tabs + dashed connectors). */
+const steps = [
+  {
+    name: 'Watch',
+    icon: 'eye',
+    desc: 'Official federal and state sources, monitored around the clock. A change only surfaces once its new dates are <b>grounded in the official text</b>.',
+  },
+  {
+    name: 'Match',
+    icon: 'search',
+    desc: 'Matched to your clients by <b>jurisdiction, form, and entity type</b> — the affected list is computed before you even open the alert.',
+  },
+  {
+    name: 'Apply',
+    icon: 'check',
+    desc: 'One click pushes the change across <b>every affected client</b> — and nothing moves until you approve it.',
+  },
+]
+---
+
+<section class="m-section flow" id="how" aria-labelledby="how-h">
+  <p class="m-eyebrow">How it works</p>
+  <h2 class="m-h2" id="how-h">It runs the long tail. You make the <span class="ital">calls.</span></h2>
+
+  <div class="flow__diagram">
+    {
+      steps.map((s, i) => (
+        <>
+          <div class="node">
+            <span class="node__tab">
+              <span class="node__icon" aria-hidden="true">
+                {s.icon === 'eye' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  </svg>
+                )}
+                {s.icon === 'search' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.3-4.3" />
+                  </svg>
+                )}
+                {s.icon === 'check' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                )}
+              </span>
+              {s.name}
+            </span>
+            <p class="node__desc" set:html={s.desc} />
+          </div>
+          {i < steps.length - 1 && (
+            <div class="conn" aria-hidden="true">
+              <span class="conn__node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+            </div>
+          )}
+        </>
+      ))
+    }
+  </div>
+
+  <p class="flow__loop" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7v6h6" />
+      <path d="M3 13a9 9 0 1 0 3-7.7L3 8" />
+    </svg>
+    Then it loops — watching for the next change
+  </p>
+</section>
+
+<style>
+  .flow__diagram {
+    margin-top: clamp(40px, 5vw, 60px);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    position: relative;
+  }
+  .node {
+    position: relative;
+    z-index: 1;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 34px 22px 22px;
+    box-shadow:
+      0 1px 2px rgba(18, 20, 28, 0.03),
+      0 20px 52px -44px rgba(18, 20, 28, 0.3);
+  }
+  .node__tab {
+    position: absolute;
+    top: 0;
+    left: 18px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 5px 15px 5px 5px;
+    box-shadow: 0 3px 10px -5px rgba(18, 20, 28, 0.18);
+  }
+  .node__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: var(--m-accent);
+  }
+  .node__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  .node__desc {
+    font-size: 13px;
+    color: var(--m-muted);
+    line-height: 1.55;
+  }
+  .node__desc :global(b) {
+    color: var(--m-ink-2);
+    font-weight: 600;
+  }
+  .conn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    min-width: clamp(46px, 5vw, 68px);
+    color: var(--m-accent);
+    position: relative;
+    z-index: 1;
+  }
+  .conn::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    top: 50%;
+    border-top: 2px dashed color-mix(in srgb, var(--m-accent) 30%, transparent);
+    z-index: 0;
+  }
+  .conn__node {
+    position: relative;
+    z-index: 1;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--m-surface);
+    border: 1.5px solid color-mix(in srgb, var(--m-accent) 34%, transparent);
+    display: grid;
+    place-items: center;
+  }
+  .conn__node svg {
+    width: 12px;
+    height: 12px;
+  }
+  .flow__loop {
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 7px 15px 7px 11px;
+  }
+  .flow__loop svg {
+    width: 15px;
+    height: 15px;
+    color: var(--m-accent);
+    flex: none;
+  }
+  @media (max-width: 1000px) {
+    .flow__diagram {
+      grid-template-columns: 1fr;
+    }
+    .conn {
+      padding: 10px 0;
+      min-width: 0;
+    }
+    .conn::before {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      right: auto;
+      border-top: 0;
+      border-left: 2px dashed color-mix(in srgb, var(--m-accent) 30%, transparent);
+    }
+    .conn__node svg {
+      transform: rotate(90deg);
+    }
+  }
+</style>

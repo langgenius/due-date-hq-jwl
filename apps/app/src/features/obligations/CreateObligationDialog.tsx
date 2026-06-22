@@ -728,6 +728,7 @@ export function CreateObligationDialog({
   onCreated,
   open: controlledOpen,
   onOpenChange,
+  hideTrigger,
 }: {
   trigger?: ReactElement
   defaultClientId?: string
@@ -737,6 +738,10 @@ export function CreateObligationDialog({
   // Uncontrolled by default.
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  // Suppress the built-in trigger button entirely when an external caller
+  // drives the dialog programmatically (e.g. the first-run choice cards open
+  // it from their own primary Button). Mirrors CreateClientDialog's prop.
+  hideTrigger?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -1068,28 +1073,30 @@ export function CreateObligationDialog({
           setOpen(nextOpen)
         }}
       >
-        <DialogTrigger
-          render={
-            trigger ?? (
-              // The "Add deadline" trigger uses the outline variant.
-              // It sits next to dropdown filter triggers (Time range /
-              // Severity / Sort by) which all use a lighter
-              // `border-divider-regular` outline pattern. A filled-solid
-              // primary variant would out-shout the filters and draw the
-              // eye to the wrong corner of the toolbar (it's a discovery
-              // button, not the page's destination CTA). Outline gives it
-              // the same visual weight as the dropdowns so the toolbar
-              // reads as a uniform action strip.
-              <Button type="button" variant="outline" size="sm">
-                <PlusIcon data-icon="inline-start" />
-                {/* Keep the visible copy in the CPA-facing "deadline"
+        {hideTrigger ? null : (
+          <DialogTrigger
+            render={
+              trigger ?? (
+                // The "Add deadline" trigger uses the outline variant.
+                // It sits next to dropdown filter triggers (Time range /
+                // Severity / Sort by) which all use a lighter
+                // `border-divider-regular` outline pattern. A filled-solid
+                // primary variant would out-shout the filters and draw the
+                // eye to the wrong corner of the toolbar (it's a discovery
+                // button, not the page's destination CTA). Outline gives it
+                // the same visual weight as the dropdowns so the toolbar
+                // reads as a uniform action strip.
+                <Button type="button" variant="outline" size="sm">
+                  <PlusIcon data-icon="inline-start" />
+                  {/* Keep the visible copy in the CPA-facing "deadline"
                     vocabulary; the component name still follows the
                     underlying domain model. */}
-                <Trans>Add deadline</Trans>
-              </Button>
-            )
-          }
-        />
+                  <Trans>Add deadline</Trans>
+                </Button>
+              )
+            }
+          />
+        )}
         <DialogContent className="w-[42rem] max-w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>

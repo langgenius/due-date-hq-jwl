@@ -3,18 +3,26 @@ import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DuotoneIcon, type DuotoneTone } from '@/components/primitives/duotone-icon'
+
 /**
  * EmptyState — the shared "nothing here yet" surface.
  *
- * Three orthogonal variants live in one component because their chrome is
- * identical (dashed-border card, centered column, optional icon, heading,
- * description, single CTA):
+ * One component, two axes of sizing plus an optional visual treatment. The
+ * caller picks the SEMANTICS (empty vs. filtered vs. error) by choosing the
+ * `title` / `description` / `cta` copy; the props below only control chrome:
  *
- *  - `empty`     → the data source is genuinely empty. CTA usually unblocks
- *                  the user with a workspace action (Import / Connect / etc).
- *  - `filtered`  → data exists but the active filter excludes it. CTA is
- *                  always "Clear filters" (or equivalent reset).
- *  - `error`     → query failed. CTA is "Retry".
+ *  - `variant`: `'default'` (quiet inline dashed-border card, used app-wide) |
+ *    `'prominent'` (full-surface card with a tinted icon-circle, larger title,
+ *    wider copy, room for one or more CTAs — for when the empty state OWNS the
+ *    surface, e.g. an empty /deadlines or /alerts list).
+ *  - `density`: `'default'` | `'compact'` (drops the card chrome for
+ *    table-cell / drawer embeds).
+ *  - `visual` (prominent only): `'icon'` (tinted icon-circle, default) |
+ *    `'ghost-cards'` (a restrained fanned deck of blank placeholder cards) |
+ *    `'duotone'` (a soft two-tone icon chip for warm first-run empties).
+ *  - `iconTone` / `duotoneTone`: tint selection for the icon-circle / duotone
+ *    chip. `cta` + optional `footer` sit below the copy.
  *
  * Routes were previously rolling their own — dashboard had `EmptyDashboard`,
  * obligations had a private `EmptyState`, opportunities embedded one inline,
@@ -33,6 +41,7 @@ export function EmptyState({
   variant = 'default',
   iconTone = 'accent',
   visual = 'icon',
+  duotoneTone = 'accent',
   fill = false,
 }: {
   icon?: LucideIcon
@@ -61,7 +70,13 @@ export function EmptyState({
   // that fills with cards/rows ("your alerts will stack here"). Implies content
   // without faking data — the cards are explicitly blank skeletons, so it honours
   // the "no fiction on canvas" rule. `icon` prop is ignored when `ghost-cards`.
-  visual?: 'icon' | 'ghost-cards'
+  // `duotone` = a soft two-tone icon chip (rounded tinted square + accent glyph)
+  // instead of the tinted circle — the Yuqi delight-glyph aesthetic, for warm
+  // onboarding / first-run empties. Uses the `icon` prop; pick the tint with
+  // `duotoneTone`. Works in both prominent and default sizes.
+  visual?: 'icon' | 'ghost-cards' | 'duotone'
+  // Tint for `visual="duotone"`.
+  duotoneTone?: DuotoneTone
   // When true the prominent card stretches to fill its parent's
   // height and vertically centers its column — matches the canvas cards which
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
@@ -71,6 +86,7 @@ export function EmptyState({
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
   const showGhostCards = isProminent && visual === 'ghost-cards'
+  const showDuotone = visual === 'duotone' && Boolean(Icon)
   return (
     <div
       data-density={density}
@@ -96,7 +112,10 @@ export function EmptyState({
         // front card carrying three blank skeleton bars. Borders + section-tint
         // only — no shadows (restrained-shadows canon). Decorative, so aria-hidden;
         // the title/description carry the meaning to assistive tech.
-        <div className="relative flex h-[76px] w-[184px] items-center justify-center" aria-hidden>
+        <div
+          className="relative flex h-[76px] w-[184px] items-center justify-center animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
+          aria-hidden
+        >
           <div className="absolute h-14 w-40 -rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="absolute h-14 w-40 rotate-6 rounded-lg border border-divider-subtle bg-background-section/60" />
           <div className="relative flex h-16 w-44 flex-col gap-1.5 rounded-lg border border-divider-regular bg-background-default px-3 py-3">
@@ -105,6 +124,10 @@ export function EmptyState({
             <div className="h-2 w-1/2 rounded-full bg-background-section" />
           </div>
         </div>
+      ) : showDuotone && Icon ? (
+        // Two-tone delight chip (Yuqi duotone aesthetic) — a warmer alternative
+        // to the tinted icon-circle for onboarding / first-run empties.
+        <DuotoneIcon icon={Icon} tone={duotoneTone} size={isProminent ? 'lg' : 'md'} />
       ) : Icon ? (
         isProminent ? (
           <div
@@ -141,7 +164,7 @@ export function EmptyState({
           className={cn(
             'text-text-secondary',
             isProminent
-              ? 'max-w-[560px] text-sm leading-relaxed'
+              ? 'max-w-[60ch] text-sm leading-relaxed'
               : 'max-w-[42ch] text-description leading-5',
           )}
         >

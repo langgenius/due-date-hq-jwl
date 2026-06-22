@@ -1,6 +1,5 @@
-import { CircleAlertIcon, RotateCwIcon, ScrollTextIcon } from 'lucide-react'
+import { CircleAlertIcon, RotateCwIcon, UserIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
-import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -21,17 +20,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
-import { EmptyState } from '@/components/patterns/empty-state'
-import { ClientsEmptyState } from '@/features/clients/ClientsEmptyState'
+import { SetupProgressCard } from '@/features/dashboard/SetupProgressCard'
+import { CreateChoiceCards } from '@/features/dashboard/create-choice-cards'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
-import { useMigrationWizard } from '@/features/migration/WizardProvider'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import { PinnedSection } from '@/features/dashboard/pinned-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -204,8 +202,6 @@ export function DashboardRoute() {
   const clientsResolved = !clientsProbeQuery.isLoading
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const showFirstRun = clientsResolved && !hasClients
-  const { openWizard } = useMigrationWizard()
-  const permission = useFirmPermission()
   // Second first-run state (onboarding gap #2): clients are in, but no rules
   // were activated, so no deadlines generate and the queue reads a misleading
   // "all clear." `rules.coverage` is the precise signal (shares the sidebar's
@@ -275,7 +271,14 @@ export function DashboardRoute() {
     // short enough not to scroll.
     // pt-8 (Yuqi /alerts #9, applied app-wide): the page title centers on the
     // sidebar's firm avatar across every top-level page.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12">
+    // Desktop (xl+) = a bounded-height frame: the column fills <main>'s height
+    // and the Priorities region (the one unbounded, row-driven section) absorbs
+    // the remainder and scrolls INTERNALLY, so the dashboard itself never scrolls
+    // — a glanceable single screen (Yuqi: "this is the dashboard, should not be
+    // scrollable"). Header / Alerts / Daily Brief hold their natural height (no
+    // min-h-0 → flex won't shrink them below content). Below xl we drop the frame
+    // so narrow/short viewports scroll the page normally.
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12 xl:h-full xl:min-h-0">
       {/* /today routes through the same `<PageHeader>` primitive as
           /clients, /deadlines, /alerts, and /rules/library — date sits
           in the canonical pill chip slot so it matches the family's
@@ -342,7 +345,10 @@ export function DashboardRoute() {
                       className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <RotateCwIcon
-                        className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')}
+                        className={cn(
+                          'size-3.5',
+                          dashboardQuery.isFetching && 'animate-spin motion-reduce:animate-none',
+                        )}
                         aria-hidden
                       />
                     </button>
@@ -375,9 +381,16 @@ export function DashboardRoute() {
                       value={scope}
                       onValueChange={setScope}
                       ariaLabel={t`View scope`}
+                      // This is the PAGE-level scope switch (it drives the brief,
+                      // the priorities, every count) — so it earns a more deliberate
+                      // treatment than the plain text Segmenteds elsewhere and than
+                      // the local "This week/month/Overdue" bucket toggle below:
+                      // person iconography (one ↔ many) marks it as the "whose work"
+                      // control at a glance. Icons via the primitive's `icon` prop —
+                      // no hand-rolling (§4.11).
                       options={[
-                        { value: 'me', label: t`My work` },
-                        { value: 'firm', label: t`Everyone` },
+                        { value: 'me', label: t`My work`, icon: UserIcon },
+                        { value: 'firm', label: t`Everyone`, icon: UsersIcon },
                       ]}
                     />
                   </span>
@@ -448,41 +461,78 @@ export function DashboardRoute() {
       {/* <ChangesSinceLastSection /> */}
 
       {showFirstRun ? (
-        // Onboarding gap #1 (2026-06-18): a fresh practice with zero clients
-        // lands here with nothing to act on — the three sections below are all
-        // silent. Lead with the same designed get-started hero /clients shows
-        // (one "import your clients" message) so the first action is always
-        // visible. Primary CTA only — add-manually / sample-data live on /clients.
-        <ClientsEmptyState onImport={openWizard} canImport={permission.can('migration.run')} />
+        // Onboarding gap #1 (2026-06-18, revisited 2026-06-21): a fresh practice
+        // with zero clients lands here with nothing to act on. Rather than a
+        // single-CTA hero, lead with the three real "ways to add" as choice
+        // cards (Yuqi create-choice-card refs) — Import clients / Add a client /
+        // Add a deadline — so the get-started moment is a richer chooser, every
+        // card wired to its real action. Gated to the same showFirstRun signal.
+        <div className="flex flex-1 flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-1.5">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1 text-column-label font-semibold tracking-wide text-text-secondary">
+              <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
+              <Trans>Get started</Trans>
+            </span>
+            <h2 className="text-display-large font-semibold tracking-tight text-text-primary">
+              <Trans>Add your first work</Trans>
+            </h2>
+            <p className="max-w-xl text-sm leading-relaxed text-text-secondary">
+              <Trans>
+                Pick how you want to begin. Import your whole book, add a single client, or drop in
+                one deadline — DueDateHQ tracks every due date from there.
+              </Trans>
+            </p>
+          </div>
+          <CreateChoiceCards />
+        </div>
       ) : needsRules ? (
         // Onboarding gap #2 (2026-06-18): clients are in but no rules are active,
         // so no deadlines generate and the sections below would read a misleading
-        // "all clear." Replace them with an actionable nudge — set up rules, and
-        // deadlines flow automatically. Self-resolves once the first rule
-        // generates a deadline (activeRuleTotal > 0).
-        <EmptyState
-          variant="prominent"
-          icon={ScrollTextIcon}
-          title={<Trans>No deadlines yet</Trans>}
-          description={
-            <Trans>
-              Your clients are in. Activate rules for their jurisdictions and DueDateHQ generates
-              every deadline automatically — no manual entry.
-            </Trans>
-          }
-          cta={
-            <Button render={<Link to="/rules/library" />}>
-              <ScrollTextIcon data-icon="inline-start" />
-              <Trans>Set up rules</Trans>
-            </Button>
-          }
-        />
+        // "all clear." Replace them with the setup-progress card (Yuqi aesthetic
+        // refs) — it reinforces the done step (clients ✓), shows how close they
+        // are, and CTAs straight to rules. Self-resolves once the first rule
+        // generates a deadline (activeRuleTotal > 0), at which point the card's
+        // own all-done guard hides it and the real dashboard takes over.
+        <div className="flex flex-1 items-start justify-center pt-8">
+          <SetupProgressCard
+            className="w-full max-w-md"
+            title={<Trans>You're almost set up</Trans>}
+            description={
+              <Trans>
+                Activate rules for your clients' jurisdictions and DueDateHQ generates every
+                deadline automatically — no manual entry.
+              </Trans>
+            }
+            steps={[
+              {
+                key: 'clients',
+                label: <Trans>Add your clients</Trans>,
+                done: hasClients,
+                href: '/clients',
+              },
+              {
+                key: 'rules',
+                label: <Trans>Activate filing rules</Trans>,
+                done: activeRuleTotal > 0,
+                href: '/rules/library',
+              },
+            ]}
+          />
+        </div>
       ) : (
         <>
           {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
           <NeedsAttentionSection />
+
+          {/* Pinned deadlines — the CPA's hand-starred shortlist. Sits just under
+          Alerts (their personal focus, above the time-bucketed queue) and renders
+          ONLY when something is pinned, so it never claims space it hasn't earned. */}
+          <PinnedSection
+            asOfDate={data?.asOfDate ?? null}
+            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+          />
 
           {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
           (the page-tab pattern, Yuqi feedback #4) lives INSIDE the card now:
@@ -524,6 +574,9 @@ export function DashboardRoute() {
           selector and the priority-action rows nested as flat sections. One
           surface: replaces the old AI brief AND the Priority Actions table. */}
           <MergedBriefCard
+            // At xl the Priorities section absorbs the frame's leftover height and
+            // scrolls its table internally (see the container note above).
+            className="xl:min-h-0 xl:flex-1"
             counts={{
               // This week = today + the next-7-day bin; this month = the next-30-day
               // bin; overdue as-is. (Yuqi: CPA buckets, drop "ending today".)
@@ -538,6 +591,13 @@ export function DashboardRoute() {
             // While the dashboard query loads, the card renders a column-aligned
             // skeleton instead of masquerading as "Nothing here. You're clear."
             isLoading={dashboardQuery.isLoading}
+            // On a failed load `rows` collapses to [] → without this the card
+            // would render the all-clear/coffee state on a page that couldn't
+            // load. `isError` routes to a quiet inline error + Retry instead
+            // (the page-top destructive Alert above also fires; this keeps the
+            // section itself honest rather than falsely celebrating).
+            isError={dashboardQuery.isError}
+            onRetry={() => void dashboardQuery.refetch()}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
           />
         </>

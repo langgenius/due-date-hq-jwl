@@ -128,6 +128,44 @@ a[href]:where(:not([data-slot='button']):not([data-slot='sidebar-menu-button']))
   }
 }
 
+/* Aurora drift — a soft multi-hue glow that slides across an AI "generating"
+   surface (the daily brief while it writes its sentence). Brand cyan leads with
+   a violet + warm sweep so the "thinking" moment feels alive, not a dead
+   spinner. Consumed via `animate-[ddhq-aurora-drift_…]` on a blurred gradient
+   layer set behind the card; reduced-motion freezes it to a static glow. */
+@keyframes ddhq-aurora-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Stat bump — a single quiet opacity pulse on a KPI value when the number it
+   reports changes (e.g. the audit-log strip recomputing as filters change).
+   Re-triggered by remounting the value node with a fresh `key`, so the class is
+   applied on mount and fires exactly once. Opacity-only: no transform → no
+   layout shift in a dense numeric band. Guard with `motion-reduce:animate-none`
+   at the call site (CSS keyframes aren't covered by motion/react's global
+   reduced-motion config). */
+@keyframes ddhq-stat-bump {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-stat-bump {
+  animation: ddhq-stat-bump 150ms ease-out 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pulse-strip-breathing::before {
     opacity: 0.2;

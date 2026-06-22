@@ -9,6 +9,7 @@ export type ShortcutCategory =
   | 'practice'
   | 'clients'
   | 'obligations'
+  | 'alerts'
   | 'rules'
   | 'wizard'
   | 'reserved'

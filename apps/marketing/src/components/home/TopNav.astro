@@ -1,0 +1,193 @@
+---
+/** TopNav — centered floating-pill nav, shared site-wide (EN + zh-CN).
+ *  - On the homepage (default): transparent, "How it works" is an in-page anchor.
+ *  - On content pages (`pageMode`): solid bg + hairline, anchors return to home,
+ *    and `current` marks the active destination.
+ *  Labels are an inline EN/zh map (chrome copy, not page content); hrefs are
+ *  locale-prefixed. Glider + nav-on-dark JS land in the interactions pass. */
+import { getCtaHref, getAppHref } from '../../lib/app-url'
+
+interface Props {
+  ctaHref?: string
+  signInHref?: string
+  pageMode?: boolean
+  current?: 'how' | 'coverage' | 'pricing' | 'security'
+  locale?: 'en' | 'zh-CN'
+}
+const { pageMode = false, current, locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
+const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
+const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
+const L = zh
+  ? { how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页' }
+  : { how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home' }
+const links = [
+  { key: 'how', label: L.how, href: pageMode ? `${base}/#how` : '#how' },
+  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage` },
+  { key: 'pricing', label: L.pricing, href: `${base}/pricing` },
+  { key: 'security', label: L.security, href: `${base}/security` },
+]
+---
+
+<header class:list={['nav', pageMode && 'nav--page']}>
+  <div class="nav__inner">
+    <a class="brand" href={`${base}/`} aria-label={L.home}>
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="2" y="13" width="4" height="9" rx="1" fill="var(--m-accent)" />
+          <rect x="8" y="8" width="4" height="14" rx="1" fill="var(--m-accent)" />
+          <rect x="14" y="3" width="4" height="19" rx="1" fill="var(--m-ink)" />
+          <rect x="20" y="9" width="2.4" height="13" rx="1" fill="var(--m-accent)" />
+        </svg>
+      </span>
+      <span class="brand__name">DueDateHQ</span>
+      <span class="brand__beta">Beta</span>
+    </a>
+
+    <nav class="nav__pill" aria-label="Primary">
+      {
+        links.map((l) => (
+          <a
+            class:list={['nav__link', current === l.key && 'is-active']}
+            href={l.href}
+            aria-current={current === l.key ? 'page' : undefined}
+          >
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="nav__right">
+      <a class="nav__signin" href={signInHref}>{L.signIn}</a>
+      <a class="nav__cta" href={ctaHref} data-event="marketing.nav.cta">
+        {L.cta} <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: transparent;
+  }
+  /* content pages: solid so the nav reads over page content, not a hero */
+  .nav--page {
+    background: color-mix(in srgb, var(--m-canvas) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .nav__inner {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    height: 70px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 20px;
+  }
+  .brand {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .brand__mark {
+    display: inline-flex;
+  }
+  .brand__beta {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    padding: 3px 7px;
+    border-radius: 999px;
+    line-height: 1;
+  }
+  .nav__pill {
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: color-mix(in srgb, var(--m-surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: 5px;
+  }
+  .nav__link {
+    padding: 8px 15px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-muted);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+  .nav__link:hover {
+    color: var(--m-ink);
+  }
+  .nav__link.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .nav__right {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav__signin {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+    transition:
+      color 0.2s ease,
+      background 0.2s ease;
+  }
+  .nav__signin:hover {
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .nav__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--m-accent);
+    border-radius: 999px;
+    padding: 10px 20px;
+    transition: background 0.18s ease;
+  }
+  .nav__cta:hover {
+    background: var(--m-accent-strong);
+  }
+  @media (max-width: 920px) {
+    .nav__pill {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .nav__signin {
+      display: none;
+    }
+  }
+</style>
