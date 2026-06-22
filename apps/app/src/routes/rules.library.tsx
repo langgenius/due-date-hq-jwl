@@ -831,54 +831,51 @@ function OverviewReviewBreakdown({
           <Trans>Most urgent first</Trans>
         </span>
       </div>
-      {/* Ranked jurisdictions (longest-waiting first). Per the Pencil
-          reference nCNln the row carries the triage signal as text —
-          high-severity · days waiting — not a magnitude bar, with an
-          explicit Review button into that jurisdiction's queue. */}
-      <div className="min-w-0 overflow-hidden rounded-xl border border-divider-subtle">
-        {jurisdictions.map((g, index) => {
+      {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID — each
+          card is its own click target into that jurisdiction's review queue.
+          The triage signal stays text (high-severity · days waiting), the
+          pending count is the card's headline, and a Review affordance sits at
+          the foot. */}
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {jurisdictions.map((g) => {
           const days =
             g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
           return (
-            <div
+            <button
               key={g.jurisdiction}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3',
-                index > 0 && 'border-t border-divider-subtle',
-              )}
+              type="button"
+              onClick={() => onSelectJurisdiction(g.jurisdiction)}
+              className="group flex cursor-pointer flex-col gap-2.5 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
-              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-base font-medium text-text-primary">{g.label}</span>
-                {/* Subline carries only the row's *differentiators*: high
-                      severity (when present) + how long it's waited. The
-                      absolute "oldest {date}" lived here too, but it restates
-                      the same timestamp as "Nd waiting" and is identical on
-                      every row in single-cohort data — the StatBand owns the
-                      absolute date. "No high-severity" is dropped: absence
-                      reads as none without a label on 4-of-6 rows. */}
-                <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                  {g.highCount > 0 ? (
-                    <span className="text-text-warning">
-                      <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                    </span>
-                  ) : null}
-                  {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
-                  {days != null ? <span>{t`${days}d waiting`}</span> : null}
+              <div className="flex items-center gap-2.5">
+                <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+                <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
+                  {g.label}
                 </span>
               </div>
-              <span className="shrink-0 text-sm font-medium tabular-nums text-text-warning">
-                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+              {/* Differentiators only: high severity (when present) + wait age. */}
+              <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
+                {g.highCount > 0 ? (
+                  <span className="text-text-warning">
+                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                  </span>
+                ) : null}
+                {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
+                {days != null ? <span>{t`${days}d waiting`}</span> : null}
               </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              >
-                <Trans>Review</Trans>
-                <ChevronRightIcon data-icon="inline-end" />
-              </Button>
-            </div>
+              <div className="mt-1 flex items-center justify-between gap-2 border-t border-divider-subtle pt-2.5">
+                <span className="text-sm font-semibold tabular-nums text-text-warning">
+                  <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+                </span>
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-text-accent">
+                  <Trans>Review</Trans>
+                  <ChevronRightIcon
+                    aria-hidden
+                    className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
+                  />
+                </span>
+              </div>
+            </button>
           )
         })}
       </div>

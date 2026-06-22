@@ -797,7 +797,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               />
               <Button
                 variant="outline"
-                size="sm"
                 nativeButton={false}
                 render={<Link to="/rules/sources" />}
                 aria-label={t`Manage alert sources`}
@@ -807,7 +806,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               </Button>
               <Button
                 variant="outline"
-                size="sm"
                 nativeButton={false}
                 render={<Link to="/alerts/history" />}
                 aria-label={t`View history`}
