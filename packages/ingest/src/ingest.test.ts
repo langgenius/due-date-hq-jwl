@@ -16,7 +16,7 @@ import {
   announcementItemsFromSnapshotWithPdfLinks,
 } from './announcements'
 import { parseRssItems, parsedItemsFromRss } from './rss'
-import { extractLinks, pickSelector } from './selectors'
+import { extractLinks, extractLinksWithTableTitles, pickSelector } from './selectors'
 import type { IngestCtx } from './types'
 
 const cloudflareFetch = async () => new Response('cloudflare')
@@ -251,6 +251,58 @@ describe('@duedatehq/ingest', () => {
     expect(extractLinks('<a href="/press/item">Press item</a>', 'https://tax.ny.gov')).toEqual([
       { href: 'https://tax.ny.gov/press/item', text: 'Press item' },
     ])
+  })
+
+  it('recovers the row title for table-listing links whose anchor text is a format label', () => {
+    // The IL bulletins index lays each bulletin out as
+    // <td>Title</td><td>[<a>HTML</a>]</td><td>[<a>PDF</a>]</td>. Plain extractLinks
+    // returns text "HTML"/"English"; the title cell carries the meaning. One item
+    // per row, preferring the HTML detail link over the sibling PDF.
+    const html =
+      '<table><tr>' +
+      '<td>FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program</td>' +
+      '<td>[<a href="/research/publications/bulletins/fy-2026-28.html">HTML</a>]</td>' +
+      '<td>[<a href="/research/publications/bulletins/fy-2026-28.pdf">English</a>]</td>' +
+      '</tr></table>'
+    const links = extractLinksWithTableTitles(html, 'https://tax.illinois.gov/research/')
+    const htmlLink = links.find((l) => l.href.endsWith('fy-2026-28.html'))
+    const pdfLink = links.find((l) => l.href.endsWith('fy-2026-28.pdf'))
+    expect(htmlLink?.text).toBe('FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program')
+    // The PDF sibling keeps its bare label so the bulletin yields a single item.
+    expect(pdfLink?.text).toBe('English')
+  })
+
+  it('parses an IL-style bulletins table into the amnesty item the recall eval expects', () => {
+    // Regression for the 2026-06-22 alert-recall miss il.2026.remote-retailer-amnesty
+    // (MISSED_NOT_PARSED): the source fetched fine but every bulletin row was dropped
+    // — anchor text "HTML" matched no vocabulary, and even the recovered title needed
+    // the widened tax-change words (amnesty / occupation tax / rate change).
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'il.temporary_announcements',
+        title: 'Illinois DOR News',
+        url: 'https://tax.illinois.gov/research/publications/bulletins.html',
+        jurisdiction: 'IL',
+      },
+      {
+        fetchedAt: new Date('2026-06-21T00:00:00.000Z'),
+        body:
+          '<nav><a href="/programs/electronicservices.html">Make a Payment</a></nav>' +
+          '<table>' +
+          '<tr><td>FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program</td>' +
+          '<td>[<a href="/research/publications/bulletins/fy-2026-28.html">HTML</a>]</td></tr>' +
+          "<tr><td>FY 2026-12, Destination-Based Retailers' Occupation Tax Changes</td>" +
+          '<td>[<a href="/research/publications/bulletins/fy-2026-12.html">HTML</a>]</td></tr>' +
+          '</table>',
+      },
+    )
+    const amnesty = items.find((item) => item.officialSourceUrl.endsWith('fy-2026-28.html'))
+    expect(amnesty?.title).toContain('Remote Retailer Tax Amnesty Program')
+    expect(amnesty?.enrichFromUrl).toBe(
+      'https://tax.illinois.gov/research/publications/bulletins/fy-2026-28.html',
+    )
+    // The occupation-tax-rate row is caught by the same widened vocabulary.
+    expect(items.some((item) => item.officialSourceUrl.endsWith('fy-2026-12.html'))).toBe(true)
   })
 
   it('parses RSS and Atom announcement feed items into Pulse candidates', () => {

@@ -6,7 +6,7 @@ import {
   textExcerpt,
 } from './http'
 import { parsedItemsFromRss } from './rss'
-import { extractLinks, stripHtml } from './selectors'
+import { extractLinksWithTableTitles, stripHtml } from './selectors'
 import type { IngestCtx, ParsedItem, RawSnapshot } from './types'
 
 export interface AnnouncementSourceConfig {
@@ -39,10 +39,16 @@ export interface PdfAnnouncementLinkParseOptions extends Pick<
 // sources (Taxpayer Advocate blog, Actions on Decisions, Internal Revenue
 // Bulletins): protective-claim / refund-window link text was being dropped by the
 // state-DOR-tuned vocabulary above, so those sources parsed to zero items.
+// `amnesty` … `effective <month>` added 2026-06-22: once the row-aware extractor
+// recovers IL bulletin titles (table layout, see extractLinksWithTableTitles), the
+// disaster/deadline-tuned vocabulary still dropped core tax-change bulletins —
+// rate changes, occupation/motor-fuel/cigarette/grocery taxes, amnesty windows,
+// "Effective July 1, 2026" datelines (which never contain the literal "effective
+// date"). This is what missed il.2026.remote-retailer-amnesty in the recall eval.
 const TAX_ANNOUNCEMENT_RE =
-  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
+  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure|amnesty|occupation tax|rate change|tax rate|motor fuel|cigarette|tobacco|grocery tax|excise|telecommunications tax|effective (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
 const HIGH_SIGNAL_TAX_CHANGE_RE =
-  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
+  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure|amnesty|occupation tax|rate change|tax rate|motor fuel|cigarette|excise/i
 const ANNOUNCEMENT_NOISE_RE =
   /award|auction|career|hiring|job opening|staff|appointment|webinar|seminar|office hour|office closure|holiday schedule|unclaimed property|scam|fraud|phishing|identity theft|password|login|portal maintenance|system maintenance|newsletter/i
 
@@ -160,7 +166,7 @@ export function announcementItemsFromHtml(
   limit = 20,
   options: Pick<AnnouncementParseOptions, 'linkFilter' | 'relevancePredicate'> = {},
 ): ParsedItem[] {
-  return extractLinks(body, source.url)
+  return extractLinksWithTableTitles(body, source.url)
     .filter((link) => linkPassesOptions(source, link, options))
     .slice(0, limit)
     .map((link) => {
@@ -275,7 +281,7 @@ function linksFromSnapshot(
       text: `${item.title} ${item.rawText}`.trim(),
     }))
   }
-  return extractLinks(snapshot.body, source.url)
+  return extractLinksWithTableTitles(snapshot.body, source.url)
 }
 
 function googleDriveFileId(url: URL): string | null {
