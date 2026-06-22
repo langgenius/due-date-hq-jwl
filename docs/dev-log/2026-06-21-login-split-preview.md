@@ -14,7 +14,7 @@ Two-panel, full-bleed:
   reassurance + magic-link recovery + residency line. (Reference order: fields →
   primary → SSO.)
 - **Preview (right):** a soft gradient panel (`background-subtle →
-  background-default → accent-hover`) with an ambient accent glow, a one-line
+background-default → accent-hover`) with an ambient accent glow, a one-line
   promise top-left, and a **DueDateHQ "Deadlines" product window that bleeds off
   the right + bottom edge** — full app chrome: a left sidebar (firm switcher +
   `PRO`, search, nav with counts, active Deadlines, a dark "Busy-season ready"

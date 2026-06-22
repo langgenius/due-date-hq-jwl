@@ -4,7 +4,7 @@
 
 ## Audit / critique
 
-There *was* a shared container (`.wrap`, `--maxw: 1140`, `--gutter` margins) and two sections already landed on a 12-col rhythm (trust band `repeat(3)` = 4+4+4; surfaces grid `repeat(4)` = 3+3+3+3). But there was **no actual column grid**:
+There _was_ a shared container (`.wrap`, `--maxw: 1140`, `--gutter` margins) and two sections already landed on a 12-col rhythm (trust band `repeat(3)` = 4+4+4; surfaces grid `repeat(4)` = 3+3+3+3). But there was **no actual column grid**:
 
 - **The hero broke the container** — `.hero` carried a bespoke `max-width: 1240px` (it's `class="hero wrap"`, so its own max-width overrode `.wrap`'s 1140). Its edges lined up with nothing below it.
 - **Two-column sections used arbitrary fractions**, not grid spans: hero `0.96/1.04`, villain `0.82/1.18`, sources `1/0.92`, surfaces-head `1.5/1`, security `0.9/1.1`. No two sections shared a vertical column line.
@@ -32,7 +32,7 @@ First attempt at the ≤1000px stack reset used `.grid > *` (specificity 0,1,0) 
 
 ## Deliberately left off the 12-col conversion (with reasons)
 
-- **Notice / `.extract`** — it's a connected *diagram* (`gap: 0`, a fixed 108px beam whose dashed line bridges the document and the extracted fields). Forcing column-gaps there would visually sever the beam. Left intentional.
+- **Notice / `.extract`** — it's a connected _diagram_ (`gap: 0`, a fixed 108px beam whose dashed line bridges the document and the extracted fields). Forcing column-gaps there would visually sever the beam. Left intentional.
 - **Footer `.footer__top`** — terminal section; keeps its `1.5fr repeat(3,1fr)` ratio (reads fine, low alignment stakes).
 - **Trust band / surfaces grid** — already 12-col-aligned (4+4+4 and 3+3+3+3).
 

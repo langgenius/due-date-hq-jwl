@@ -23,7 +23,7 @@ copy**.
   the file lacked).
 - **`members/members-page.tsx`**: the four named destructive mutations. The
   confirm dialogs (remove / downgrade / suspend) were already `disabled` while
-  pending. The two *direct-apply* paths — `reactivate` (menu item, no confirm)
+  pending. The two _direct-apply_ paths — `reactivate` (menu item, no confirm)
   and a non-downgrade `updateRole` (the `RoleControl` select) — only relied on
   the table's `busy` prop, which lags a render. Added explicit
   `if (mutation.isPending) return` guards at both call sites so a fast second

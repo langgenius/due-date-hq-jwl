@@ -7,21 +7,21 @@ The `/today` dashboard had **three section titles at identical weight** —
 text-text-primary` (18px / 600 / ink). With no dominant title the eye had no
 entry point: a von-Restorff miss flagged in the full-product audit. The audit
 agent correctly **refused a half-fix**, since resolving it touches three
-separate feature files and needs a call on *which* section leads.
+separate feature files and needs a call on _which_ section leads.
 
 ## The call: Alerts dominates
 
 The existing dashboard-actions design brief already documents the intended
 order — **Alerts > Priorities > Brief** — because client-affecting regulatory
-changes can *move* the deadlines below them, so they earn the day's lead. This
+changes can _move_ the deadlines below them, so they earn the day's lead. This
 pass makes the title weights match that documented intent rather than inventing
 a new hierarchy.
 
-| Section | Before | After |
-| --- | --- | --- |
-| **Alerts** | `text-region-title text-text-primary` | unchanged — the one dominant section title (18px / 600 / ink) |
+| Section         | Before                                | After                                                              |
+| --------------- | ------------------------------------- | ------------------------------------------------------------------ |
+| **Alerts**      | `text-region-title text-text-primary` | unchanged — the one dominant section title (18px / 600 / ink)      |
 | **Daily Brief** | `text-region-title text-text-primary` | `text-base font-semibold text-text-secondary` (14px / 600 / slate) |
-| **Priorities** | `text-region-title text-text-primary` | `text-base font-semibold text-text-secondary` (14px / 600 / slate) |
+| **Priorities**  | `text-region-title text-text-primary` | `text-base font-semibold text-text-secondary` (14px / 600 / slate) |
 
 Result is a clean three-tier scan: the `Today` masthead anchors the page, the
 **Alerts** title leads the body, and Brief + Priorities sit one tier down as

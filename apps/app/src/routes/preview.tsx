@@ -1696,11 +1696,29 @@ export function PreviewRoute() {
                 Med
               </SeverityChip>
             </Row>
-            <Row label="ValueDiff — inline" mono="primitives/value-diff (canonical before→after, img-153)">
+            <Row
+              label="ValueDiff — inline"
+              mono="primitives/value-diff (canonical before→after, img-153)"
+            >
               <div className="flex flex-col gap-2">
-                <ValueDiff from="Mar 15" to="Apr 15" delta="31 days later" deltaClassName="text-text-success" />
-                <ValueDiff from="Apr 15" to="Mar 15" delta="31 days sooner" deltaClassName="text-text-destructive" />
-                <ValueDiff from="1040" to="1040-X" delta="superseded" deltaClassName="text-text-muted" />
+                <ValueDiff
+                  from="Mar 15"
+                  to="Apr 15"
+                  delta="31 days later"
+                  deltaClassName="text-text-success"
+                />
+                <ValueDiff
+                  from="Apr 15"
+                  to="Mar 15"
+                  delta="31 days sooner"
+                  deltaClassName="text-text-destructive"
+                />
+                <ValueDiff
+                  from="1040"
+                  to="1040-X"
+                  delta="superseded"
+                  deltaClassName="text-text-muted"
+                />
               </div>
             </Row>
             <Row label="ValueDiff — compact (hover for delta)" mono='value-diff mode="compact"'>
@@ -2159,7 +2177,10 @@ export function PreviewRoute() {
             <Row label="ApplyingPill" mono="features/alerts/components/ApplyingPill (img-043)">
               <ApplyingPill />
             </Row>
-            <Row label="TickProgress" mono="components/primitives/tick-progress (Yuqi ref: tick-mark bar)">
+            <Row
+              label="TickProgress"
+              mono="components/primitives/tick-progress (Yuqi ref: tick-mark bar)"
+            >
               <div className="flex w-full max-w-[420px] flex-col gap-3">
                 <TickProgress value={23} />
                 <TickProgress value={50} />

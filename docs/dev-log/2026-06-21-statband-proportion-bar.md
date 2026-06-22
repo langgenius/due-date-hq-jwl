@@ -30,7 +30,7 @@ already label (Toloka-style seamless segments, no legend).
   - `overdue` (red, `bg-state-destructive-solid`) = `deadlinesNarrative.overdue`
     — the SAME value as the Overdue cell; the band's only red, the genuine risk.
   - in-flight (neutral gray, `bg-state-base-handle`) = `scopeTotal − filed −
-    overdue` (clamped ≥ 0) — not-started + waiting + blocked + in-review +
+overdue` (clamped ≥ 0) — not-started + waiting + blocked + in-review +
     due-this-week, rolled into one quiet lane. NOT five chromatic segments
     (StatBand color budget).
   - Guard: `scopeTotal <= 0` → no `proportionBar` prop (the band already handles

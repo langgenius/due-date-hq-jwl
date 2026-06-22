@@ -38,10 +38,7 @@ export type FunIconButtonTone = 'ink' | 'brand' | 'accent' | 'success'
 /** Per-tone chip chrome. The chip is always DARK; tone only shifts its ring +
  *  gradient hue + the soft glow behind the glyph. All chroma stays in the
  *  container, never on text. */
-const CHIP_TONE: Record<
-  FunIconButtonTone,
-  { gradient: string; ring: string; glow: string }
-> = {
+const CHIP_TONE: Record<FunIconButtonTone, { gradient: string; ring: string; glow: string }> = {
   // Neutral near-black well — the default "Show in Maps" look.
   ink: {
     gradient:
@@ -52,16 +49,14 @@ const CHIP_TONE: Record<
   // Brand cyan-lit well — navy chrome from the brand ink tokens (lit
   // `brand-ink` top → deep `brand-ink-deep` floor), cyan ring + glow.
   brand: {
-    gradient:
-      'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
+    gradient: 'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-brand-highlight)_55%,transparent)]',
     glow: 'bg-[var(--color-brand-highlight)]/35',
   },
   // Accent-blue lit well — same navy chrome as `brand` (lit `brand-ink` → deep
   // `brand-ink-deep`); the accent identity lives in the blue ring + glow.
   accent: {
-    gradient:
-      'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
+    gradient: 'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-text-accent)_50%,transparent)]',
     glow: 'bg-[var(--color-text-accent)]/35',
   },
@@ -178,9 +173,7 @@ export function FunIconButtonDemo() {
   return (
     <div className="flex flex-col gap-8 p-6">
       <section className="flex flex-col gap-3">
-        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
-          Tones (md)
-        </p>
+        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">Tones (md)</p>
         <div className="flex flex-wrap items-center gap-3">
           <FunIconButton icon={MapPinnedIcon} tone="ink">
             Show in Maps
@@ -212,9 +205,7 @@ export function FunIconButtonDemo() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
-          Disabled
-        </p>
+        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">Disabled</p>
         <FunIconButton icon={SparklesIcon} tone="brand" disabled>
           Draft with AI
         </FunIconButton>

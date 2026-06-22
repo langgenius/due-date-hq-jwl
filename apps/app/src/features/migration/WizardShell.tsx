@@ -216,10 +216,7 @@ function WizardFrame({
         // (the dialog is too narrow for a side-by-side split) so the content
         // still gets full width on small screens.
         <div className="relative flex min-h-0 flex-1 gap-6 px-4" aria-busy={busy || undefined}>
-          <nav
-            aria-label={t`Wizard steps`}
-            className="hidden shrink-0 pt-2 sm:block sm:w-44"
-          >
+          <nav aria-label={t`Wizard steps`} className="hidden shrink-0 pt-2 sm:block sm:w-44">
             <Stepper current={step} orientation="vertical" />
           </nav>
           <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>

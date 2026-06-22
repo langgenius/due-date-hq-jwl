@@ -5,7 +5,7 @@ _2026-06-22_
 A second full-app motion pass after the [2026-06-20 catalog](../Design/motion-microinteraction-catalog-2026-06-20.md)
 and its [deferred tail](_motion-deferred-tail-2026-06-22.md) drained the original
 survey. Two goals at once (Yuqi): a **fresh re-sweep** (gaps the first survey
-missed + components added *after* it) and a **delight/personality** layer on the
+missed + components added _after_ it) and a **delight/personality** layer on the
 sanctioned surfaces. Method: 4 read-only survey agents (one per cluster) → dedupe
 against everything already shipped → 4 worktree build agents. **28 items shipped,
 1 skipped, 4 pre-dropped as gild/risk.** All honor `@/lib/motion` (`EASE_APPLE`,
@@ -13,6 +13,7 @@ against everything already shipped → 4 worktree build agents. **28 items shipp
 reduced-motion, and the calm-on-dense canon.
 
 ## Dashboard cluster (7)
+
 - **Spinner a11y guard** — the collapsed brief-tab `RotateCwIcon` was the third
   unguarded `animate-spin`; now `motion-reduce:animate-none`.
 - **Setup step-completion pop** — the setup cards snap-cut the exact moment they
@@ -28,12 +29,13 @@ reduced-motion, and the calm-on-dense canon.
   appears to fill.
 
 ## Deadlines + alerts cluster (7)
+
 - **Deadlines bulk-bar exit** — slides out on deselect (verbatim copy of the
   shipped alerts bulk-bar pattern; deadlines/alerts parity).
 - **PulseAlertRow** — `transition-[color,box-shadow]` so the inset accent bar eases
   with the bg. (Agent caught the cn()/tailwind-merge footgun: `transition-colors`
-  + `transition-shadow` collide in one merge group and would drop the color ease —
-  used the multi-property form instead.)
+  - `transition-shadow` collide in one merge group and would drop the color ease —
+    used the multi-property form instead.)
 - **Workflow stepper connector** — `transition-colors` so the accent fills in sync
   with the already-animated node circles.
 - **Alerts header count bump** + **deadlines zero-results fade** + **AffectedClients
@@ -41,6 +43,7 @@ reduced-motion, and the calm-on-dense canon.
   getting the same reveal for parity).
 
 ## Clients + rules + audit cluster (7, +1 skipped)
+
 - **Spinner a11y sweep** — 7 `Loader2Icon` sites across audit/rules/dialogs guarded
   with `motion-reduce:animate-none` (grammar-compliance gap).
 - **Audit pagination + empty crossfade** — one `AnimatePresence mode="wait"` over
@@ -53,6 +56,7 @@ reduced-motion, and the calm-on-dense canon.
   not worth a scroll regression for a load-time fade.
 
 ## Onboarding + shell + primitives cluster (7)
+
 - **Wizard step-panel transition** — the 4 import steps slide directionally
   (forward/back) via `AnimatePresence mode="wait"` instead of hard-cutting.
 - **Stepper connector fill** — the rail segment grows `scaleY 0→1` in success color
@@ -66,11 +70,13 @@ reduced-motion, and the calm-on-dense canon.
   unaffected.
 
 ## Pre-dropped (gild / risk — recorded, not built)
+
 Segmented count-bump (risk-med shared primitive, low value); system-status dot
 pulse (Yuqi removed ping halos before); DuotoneIcon entrance (the cards already
 slide in — would double-animate).
 
 ## Verification
+
 `tsgo` app + ui 0 · `i18n extract` 0 (no new strings — motion is structural,
 zh-CN Missing 0) · production build green · **app tests 550 passed / 2 skipped**
 (baseline). Live: `/today`, `/alerts`, `/audit`, `/clients` render with a clean

@@ -33,6 +33,7 @@ as the chroma carriers.
 The top-right action-status pill set `style={{ backgroundColor:
 actionPill.bg, color: actionPill.text }}` from raw CSS-var strings. Swapped to
 a tone-keyed `cn()` map driven by `actionPill.id`:
+
 - `needs-action` → `bg-state-destructive-hover text-text-destructive`
 - `needs-review` / `closed` → `bg-state-base-hover text-text-secondary`
 
@@ -52,7 +53,7 @@ The composer button was `disabled={!canSubmit}` (already includes
 
 `AlertDetailDrawer` workflow-timeline step title was `text-[13px]`. The
 documented design intent (Yuqi "可以字号更小吗 / more delicate") is a step
-*smaller* than the section body (`text-sm`/14), so it tokenizes to `text-xs`
+_smaller_ than the section body (`text-sm`/14), so it tokenizes to `text-xs`
 (12), not `text-sm`. Comment updated to reflect 12/500.
 
 ## Skipped

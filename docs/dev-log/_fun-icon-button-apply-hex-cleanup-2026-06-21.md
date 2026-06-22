@@ -29,7 +29,7 @@ semantics — cmd/right-click, open-in-new-tab — instead of a JS-only onClick.
 
 3. **Hex cleanup.** The per-tone chip gradients hardcoded raw hex stops. Now:
    - `brand` + `accent` wells → `linear-gradient(var(--color-brand-ink),
-     var(--color-brand-ink-deep))` (lit navy → deep navy; the two tones stay
+var(--color-brand-ink-deep))` (lit navy → deep navy; the two tones stay
      distinct via their cyan vs accent-blue ring + glow, all container chroma).
    - `success` well → `color-mix` of `--color-text-success` toward black for
      both stops (no brand token home for green, but the chroma is now tokenized

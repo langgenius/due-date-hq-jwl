@@ -5,7 +5,7 @@ _2026-06-22_
 The five greenlit "bolder" proposals from the post-audit shortlist (6–7, the
 data-dependent heatmaps, are held until the underlying data is verified). Two of
 the five turned out to be **largely already shipped** by prior onboarding/empty-
-state/motion work, so those became *increments* rather than net-new builds —
+state/motion work, so those became _increments_ rather than net-new builds —
 called out below honestly rather than re-pitched.
 
 ## 1 · First-run headline — bigger welcome
@@ -30,7 +30,7 @@ The proposal wanted the overdue hero number to "tick up" on load. **Rejected the
 literal version**: the value is rendered by the shared `DueCountdownText`
 primitive with the digit baked inside an i18n `<Plural>` ("#d late") — counting it
 would fork the "one primitive, one truth" vocabulary AND break translation, and a
-*counting overdue figure* trivializes a serious signal (against "urgency gets
+_counting overdue figure_ trivializes a serious signal (against "urgency gets
 size, not gimmicks"). Delivered the spirit instead: the overdue hero countdown
 gets a brief scale + fade settle on mount (a `motion.span`, `MOTION_DURATION.enter`
 / `EASE_APPLE`), so it reads as present without the gimmick or the i18n break.

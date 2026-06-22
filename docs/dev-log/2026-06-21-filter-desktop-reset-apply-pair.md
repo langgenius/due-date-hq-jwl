@@ -12,6 +12,7 @@ caption-sized link that appeared/disappeared, and Cancel was a third button
 duplicating affordances that already close-without-applying.
 
 Surgical change (footer only — tab architecture untouched):
+
 - **Reset → outline button**, persistent, `flex-1`, `disabled` when nothing is
   staged (instead of vanishing, so the pair never reflows).
 - **Apply → primary filled**, `flex-1`, keeps the trailing `ArrowRightIcon`.
@@ -26,6 +27,7 @@ Surgical change (footer only — tab architecture untouched):
 No new strings — Reset / Apply / the staged-count `<Plural>` all already existed.
 
 ## Already satisfied (left as-is, per spec)
+
 - **(b) facet OPTIONS** — the `ObligationFacetSearchList` rows already read in the
   reference's chip/row register: checkbox-fill on select, a `bg-background-subtle`
   selected wash, medium-weight selected label, and a trailing grey count pill.
@@ -36,5 +38,6 @@ No new strings — Reset / Apply / the staged-count `<Plural>` all already exist
   text on select). No change.
 
 ## Verify
+
 tsgo `--noEmit` rc 0; `vp run @duedatehq/app#build` green (warnings are
 pre-existing chunk-size / dynamic-import notes, unrelated).

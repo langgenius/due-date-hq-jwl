@@ -344,8 +344,8 @@ export function SourcesTab() {
                       description={
                         rows.length === 0 ? (
                           <Trans>
-                            Source watchers feed the rule catalog — once configured, they appear here
-                            with watch status and cadence.
+                            Source watchers feed the rule catalog — once configured, they appear
+                            here with watch status and cadence.
                           </Trans>
                         ) : (
                           <Trans>Clear filters above to see all watched sources.</Trans>

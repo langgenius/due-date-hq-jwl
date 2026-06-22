@@ -17,7 +17,7 @@ rings). Each reference was matched to a real DueDateHQ moment before building.
   Completed icon-pills) → this is already our system: `StatusRing` (empty dashed
   ring → filling arc → solid check disc) + `ObligationStatusReadBadge` (soft-tint
   pill, icon + matching-tone label), adopted app-wide this design era. The
-  reference *is* our pattern; no rebuild needed.
+  reference _is_ our pattern; no rebuild needed.
 
 ## Built this pass (verified)
 
@@ -25,7 +25,7 @@ rings). Each reference was matched to a real DueDateHQ moment before building.
   Daily Brief banner now wears a soft brand cyan → violet → warm halo that drifts
   behind it **only while the AI writes** (`isPending`). A blurred gradient layer
   set behind the opaque card leaks a few px past the edge; `@keyframes
-  ddhq-aurora-drift` (globals.css) sweeps the gradient; reduced-motion freezes it.
+ddhq-aurora-drift` (globals.css) sweeps the gradient; reduced-motion freezes it.
   The wait now reads as alive thinking, not a dead spinner. (tsgo + build verified;
   state-gated so it shows when a brief is regenerating.)
 - **`TickProgress`** primitive (ref: the "Almost There" tick-mark bar) — a fixed

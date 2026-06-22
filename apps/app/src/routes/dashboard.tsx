@@ -1,6 +1,5 @@
 import { CircleAlertIcon, RotateCwIcon, UserIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
-import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'

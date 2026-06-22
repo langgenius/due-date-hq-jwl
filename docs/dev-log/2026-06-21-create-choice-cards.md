@@ -49,6 +49,7 @@ locals from the route (the cards own those concerns now).
 the built-in "Add deadline" trigger button.
 
 ## Notes
+
 - `ClientsEmptyState` is retained — it's still the `/clients` empty-state hero;
   only the `/today` first-run consumer changed.
 - 7 new strings, zh-CN added, `i18n:compile --strict` clean. tsgo 0, build green.

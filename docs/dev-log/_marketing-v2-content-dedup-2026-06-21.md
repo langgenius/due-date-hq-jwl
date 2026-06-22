@@ -4,7 +4,7 @@
 
 ## Edits
 
-- **Product-surfaces cards** (the worst offenders — each quoted the section it links to almost verbatim). Reworded all four to *navigation* copy that teases the surface's own angle:
+- **Product-surfaces cards** (the worst offenders — each quoted the section it links to almost verbatim). Reworded all four to _navigation_ copy that teases the surface's own angle:
   - Alerts → "The live feed — every change as it lands, sorted by severity."
   - Coverage → "One map of every jurisdiction — see where changes are landing." (was a verbatim dupe of the sources section)
   - Worklist → "Your clients in risk order — who to call first, at a glance." (was word-for-word the `#work` heading)

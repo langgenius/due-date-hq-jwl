@@ -13,18 +13,21 @@ then the brand `TickProgress` bar (20 ticks), a 2-row checklist, and one quiet
 `variant="link"` CTA to the first incomplete step.
 
 Two steps, both REAL signals:
+
 - **Add your clients** — done when the firm has ≥1 client.
 - **Activate filing rules** — done when active rule count > 0.
 
 **Real backend wiring** — reuses the EXACT same oRPC queries the dashboard
 route (`routes/dashboard.tsx`) uses for its own first-run gating, so this
 shares the warmed react-query cache (no extra fetch when /today is open):
+
 - `orpc.clients.listByFirm` with `input: { limit: 1 }` — the cheap client-count
   probe (`.length > 0` ⇒ hasClients).
 - `orpc.rules.coverage` with `input: undefined` — summing `activeRuleCount`
   across coverage rows (`> 0` ⇒ hasRules). No hardcoded/mock counts anywhere.
 
 **Self-hide behavior** (renders nothing when):
+
 - both steps done (a set-up firm sees no chrome),
 - either probe is still pending (no flash of a wrong tick count),
 - the icon rail is collapsed (`group-data-[collapsed=true]/sidebar:hidden` —

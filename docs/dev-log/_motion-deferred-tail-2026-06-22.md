@@ -98,6 +98,6 @@ ghost-deck/stagger recipes), and degrades gracefully if a layout/anim doesn't ma
 ## Catalog status
 
 With this pass the catalog's deferred tail is **empty** — what remains recorded
-there is only the explicitly *rejected* items (the `sheet.tsx` start-style bug, the
+there is only the explicitly _rejected_ items (the `sheet.tsx` start-style bug, the
 sources external-link hover-hide) and a couple of debatable delight beats, none
 pending.

@@ -583,7 +583,13 @@ function JurisdictionRuleRow({
   // the motion variant (a plain `<tr>` would warn on the unknown prop).
   const RowComp = animateExit ? MotionTableRow : TableRow
   const exitProps = animateExit
-    ? { exit: { opacity: 0, x: 12, transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE } } }
+    ? {
+        exit: {
+          opacity: 0,
+          x: 12,
+          transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
+        },
+      }
     : {}
   return (
     <RowComp

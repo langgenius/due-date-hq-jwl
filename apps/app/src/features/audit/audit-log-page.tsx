@@ -537,7 +537,10 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
               // Hold the action until the lookup resolves so we don't offer
               // "Request export" when a ready package is about to appear.
               <Button disabled aria-busy>
-                <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
+                <Loader2Icon
+                  data-icon="inline-start"
+                  className="animate-spin motion-reduce:animate-none"
+                />
                 <Trans>Loading…</Trans>
               </Button>
             ) : latest?.status === 'ready' ? (
@@ -547,7 +550,10 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={createDownloadUrl.isPending}
               >
                 {createDownloadUrl.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
+                  <Loader2Icon
+                    data-icon="inline-start"
+                    className="animate-spin motion-reduce:animate-none"
+                  />
                 ) : (
                   <DownloadIcon data-icon="inline-start" />
                 )}
@@ -560,7 +566,10 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 aria-busy={requestPackage.isPending}
               >
                 {requestPackage.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
+                  <Loader2Icon
+                    data-icon="inline-start"
+                    className="animate-spin motion-reduce:animate-none"
+                  />
                 ) : null}
                 <Trans>Request export</Trans>
               </Button>

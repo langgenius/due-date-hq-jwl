@@ -40,7 +40,7 @@ brand tokens, no fiction.
   the corner shape doesn't reflow when the selector lands.
 - **SetupProgressCard aria-label.** Hardcoded English `"Setup progress"` →
   `t\`Setup progress\``. The message already existed (from
-  `sidebar-setup-card.tsx`) with a zh-CN translation, so extract only added a
+`sidebar-setup-card.tsx`) with a zh-CN translation, so extract only added a
   second source reference — no untranslated string.
 
 ## Skipped (faithful to constraints)

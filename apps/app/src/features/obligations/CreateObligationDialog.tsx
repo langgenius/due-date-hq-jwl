@@ -1074,28 +1074,28 @@ export function CreateObligationDialog({
         }}
       >
         {hideTrigger ? null : (
-        <DialogTrigger
-          render={
-            trigger ?? (
-              // The "Add deadline" trigger uses the outline variant.
-              // It sits next to dropdown filter triggers (Time range /
-              // Severity / Sort by) which all use a lighter
-              // `border-divider-regular` outline pattern. A filled-solid
-              // primary variant would out-shout the filters and draw the
-              // eye to the wrong corner of the toolbar (it's a discovery
-              // button, not the page's destination CTA). Outline gives it
-              // the same visual weight as the dropdowns so the toolbar
-              // reads as a uniform action strip.
-              <Button type="button" variant="outline" size="sm">
-                <PlusIcon data-icon="inline-start" />
-                {/* Keep the visible copy in the CPA-facing "deadline"
+          <DialogTrigger
+            render={
+              trigger ?? (
+                // The "Add deadline" trigger uses the outline variant.
+                // It sits next to dropdown filter triggers (Time range /
+                // Severity / Sort by) which all use a lighter
+                // `border-divider-regular` outline pattern. A filled-solid
+                // primary variant would out-shout the filters and draw the
+                // eye to the wrong corner of the toolbar (it's a discovery
+                // button, not the page's destination CTA). Outline gives it
+                // the same visual weight as the dropdowns so the toolbar
+                // reads as a uniform action strip.
+                <Button type="button" variant="outline" size="sm">
+                  <PlusIcon data-icon="inline-start" />
+                  {/* Keep the visible copy in the CPA-facing "deadline"
                     vocabulary; the component name still follows the
                     underlying domain model. */}
-                <Trans>Add deadline</Trans>
-              </Button>
-            )
-          }
-        />
+                  <Trans>Add deadline</Trans>
+                </Button>
+              )
+            }
+          />
         )}
         <DialogContent className="w-[42rem] max-w-[calc(100vw-2rem)]">
           <DialogHeader>

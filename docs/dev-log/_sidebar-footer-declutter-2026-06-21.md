@@ -14,15 +14,15 @@ user chip) read as cramped and disordered. Three faults, one cause each:
    clip). The "swept …" freshness moved into the existing hover tooltip — it
    was always there, so nothing is lost, just demoted.
 
-2. **Inverted hierarchy.** The *passive* status line was the brightest element
-   in the zone, sitting above the *actionable* Audit/Settings rows, which were
+2. **Inverted hierarchy.** The _passive_ status line was the brightest element
+   in the zone, sitting above the _actionable_ Audit/Settings rows, which were
    washed out by a blanket `opacity-60` on the group content (muddied the
    already-tertiary icons into near-illegibility). Dropped the opacity wash —
    the utility rows are crisp now — and moved the status caption to the FOOT of
    the group, just above the user chip. It's demoted by **position** (paired
    with identity as a quiet "what we're watching" line), not by dimming.
 
-3. **Seam wedged mid-stack.** The gradient hairline sat *between* the status
+3. **Seam wedged mid-stack.** The gradient hairline sat _between_ the status
    line and the nav rows. Moved it to the TOP of the muted group so a single
    seam caps the whole footer zone. The footer now reads top-to-bottom as one
    tidy stack: seam → Audit log → Settings → status caption → user chip.

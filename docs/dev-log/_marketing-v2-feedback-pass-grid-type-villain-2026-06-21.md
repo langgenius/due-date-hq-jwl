@@ -17,6 +17,7 @@ Verified desktop (1280) + mobile (390): villain stacks to one column, all text r
 ## Batch 2 — hero alerts panel made delicate
 
 "Everything except the alert title smaller / more delicate." Kept `.ar__title` at **14px** (the anchor) and quieted everything around it so it stands clearly apart:
+
 - panel header `.ap__title` 13 → **12px**, `--ink` → `--ink-2`
 - filter chips `.ap__chip` 12 → **11px**, padding tightened
 - `.ar__affect` ("Affects N clients") 13 → **12px**, weight 500 → **400**, `--ink` → `--ink-2`
@@ -37,6 +38,7 @@ The row now has one solid element (the title) and a quiet field of metadata, rat
 - **Flow #7/#8 deferred** — "bolder / hard to read" + "what is the loop graphic" need a real flow redesign (likely adopting the workflow-diagram card+label+connector style), not a quick tweak. Queued as its own pass.
 
 ## Still queued
+
 - **Content de-dup** — background audit completed; applying its prioritized edits next (product-surfaces cards quoting their target sections verbatim; the sourcing formula stated 3× in the trust band + FAQ; coverage enumeration repeated in Watch node; data-isolation phrase 3×).
 - **Left scroll-spy rail** (Canopy ref) — sticky section-nav showing where the reader is.
 - **Flow redesign** (#7/#8).

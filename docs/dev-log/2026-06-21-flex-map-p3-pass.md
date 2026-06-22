@@ -7,14 +7,14 @@ _2026-06-21 · "yes please" — finish the P3 pass + tackle the deferred-but-rea
 A 4-agent workflow re-verified the 10 un-checked P3 items **plus** the two
 deferred-but-real ones (img-070, img-086) against the live code. Verdict spread:
 
-| Verdict | Count |
-|---|---|
-| clean-buildable | **1** (img-123) |
+| Verdict            | Count                                  |
+| ------------------ | -------------------------------------- |
+| clean-buildable    | **1** (img-123)                        |
 | conflicts-decision | 4 (img-015, img-047, img-091, img-175) |
-| lateral-churn | 3 (img-036, img-093, img-070) |
-| fiction | 2 (img-053, img-149) |
-| already-covered | 1 (img-019) |
-| canon-risk | 1 (img-086) |
+| lateral-churn      | 3 (img-036, img-093, img-070)          |
+| fiction            | 2 (img-053, img-149)                   |
+| already-covered    | 1 (img-019)                            |
+| canon-risk         | 1 (img-086)                            |
 
 Same story as the P2 pass: against a mature codebase, deep verification collapses
 "buildable" ideas. **1 of 12** survived clean.
@@ -29,9 +29,9 @@ Same story as the P2 pass: against a mature codebase, deep verification collapse
   rows)", so this closes a consistency gap with the canonical primitive. Verified
   live: all 6 items now render a status glyph.
 - **img-086 (safe slice) — future stages ghosted on the milestone strip.** The
-  agent confirmed the *real* deficiency (the `PathToFilingSummary` strip is
+  agent confirmed the _real_ deficiency (the `PathToFilingSummary` strip is
   `grid-cols-6` equal-width, which the asymmetric-stage-attention canon refuses)
-  but flagged the *proposed* fix as canon-risk: the full horizontal→vertical
+  but flagged the _proposed_ fix as canon-risk: the full horizontal→vertical
   reorient is an unauthorized axis flip (no Pencil frame) bundled with a
   speculative trigger-phrase copy layer. The canon's "future ghosted at ~0.5
   opacity" clause, however, is directly applicable and safe: upcoming columns now
@@ -43,7 +43,7 @@ Same story as the P2 pass: against a mature codebase, deep verification collapse
 
 ## Held (not built — with reasons)
 
-- **img-070** (setup tick-bar) — *lateral-churn*: onboarding B/C/D (commit
+- **img-070** (setup tick-bar) — _lateral-churn_: onboarding B/C/D (commit
   `4c9cc9bc`) is deliberately mutually-exclusive full-page states; a persistent
   coexisting tick-bar is additive churn that needs a new sourceCount fetch purely
   for decoration + fights one-purpose-per-panel.

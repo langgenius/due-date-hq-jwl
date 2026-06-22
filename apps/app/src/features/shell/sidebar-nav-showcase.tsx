@@ -121,7 +121,9 @@ function SidebarNavRow({
           aria-hidden
           className={cn(
             'size-4 shrink-0 transition-colors motion-reduce:transition-none',
-            active ? 'text-text-inverted' : 'text-text-tertiary group-hover/row:text-text-secondary',
+            active
+              ? 'text-text-inverted'
+              : 'text-text-tertiary group-hover/row:text-text-secondary',
           )}
         />
         <span className="min-w-0 flex-1 truncate">{row.label}</span>
@@ -165,12 +167,7 @@ function SidebarNavSection({
       </div>
       <ul className="flex flex-col gap-0.5">
         {section.rows.map((row) => (
-          <SidebarNavRow
-            key={row.id}
-            row={row}
-            active={row.id === activeId}
-            onSelect={onSelect}
-          />
+          <SidebarNavRow key={row.id} row={row} active={row.id === activeId} onSelect={onSelect} />
         ))}
       </ul>
     </div>

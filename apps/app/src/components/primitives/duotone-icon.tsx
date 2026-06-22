@@ -25,7 +25,8 @@ const TONE_CLASS: Record<DuotoneTone, string> = {
   // brand cyan pair + review violet use arbitrary var() so they don't depend on a
   // generated utility for these specific tokens.
   brand: 'bg-[var(--color-brand-highlight-soft)] text-[var(--color-brand-highlight-ink)]',
-  violet: 'bg-[color-mix(in_srgb,var(--color-status-review)_14%,transparent)] text-[var(--color-status-review)]',
+  violet:
+    'bg-[color-mix(in_srgb,var(--color-status-review)_14%,transparent)] text-[var(--color-status-review)]',
   neutral: 'bg-background-section text-text-secondary',
 }
 

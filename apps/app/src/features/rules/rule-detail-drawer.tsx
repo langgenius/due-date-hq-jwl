@@ -986,7 +986,10 @@ function RulePracticeReviewCard({
             disabled={!canSubmit}
           >
             {addMutation.isPending ? (
-              <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
+              <Loader2Icon
+                data-icon="inline-start"
+                className="animate-spin motion-reduce:animate-none"
+              />
             ) : null}
             <Trans>Add note</Trans>
           </Button>
@@ -1656,7 +1659,10 @@ export function RuleAcceptErrorDialog({
           ) : (
             <Button size="sm" onClick={onRetry} disabled={retrying}>
               {retrying ? (
-                <Loader2Icon data-icon="inline-start" className="animate-spin motion-reduce:animate-none" />
+                <Loader2Icon
+                  data-icon="inline-start"
+                  className="animate-spin motion-reduce:animate-none"
+                />
               ) : (
                 <RotateCcwIcon data-icon="inline-start" />
               )}

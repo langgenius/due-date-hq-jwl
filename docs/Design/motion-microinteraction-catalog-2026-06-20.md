@@ -18,7 +18,7 @@
 > below (AnimatePresence exit/height, the StatusRing arc fill, the audit KPI bump,
 > the CollapsibleSearch width, and the in-drawer apply-success celebration) is now
 > **shipped** in four follow-up batches — see
-> [_motion-deferred-tail-2026-06-22](../dev-log/_motion-deferred-tail-2026-06-22.md).
+> [\_motion-deferred-tail-2026-06-22](../dev-log/_motion-deferred-tail-2026-06-22.md).
 > What stays open in this catalog is only the **rejected** items and a couple of
 > debatable delight beats; nothing is pending.
 >
@@ -116,8 +116,8 @@ the shipped batch verifiable, not because they're wrong.
   now: The entire all-clear block fades in via `animate-in fade-in duration-150 motion-reduce:animate-none` on the wrapping div. The `CoffeeIcon` inside its accent disc enters simultaneously with the text —  
   → Wrap the icon disc `<span>` in a `<motion.span>` with `initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.18, ease: EASE_APPLE, delay: 0.08 }}`. This lets the text fade first (via the parent's existing `animate-in`) and the coffee cup "pops" 80ms later
 - **RotateCwIcon header refresh spinner — missing motion-reduce guard** — _feedback · value:high · risk:low_  
-  `apps/app/src/routes/dashboard.tsx:351`  
-  now: `<RotateCwIcon className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')} />` — `animate-spin` is a raw CSS keyframe animation. The global preset.css kills CSS animations for `prefers-red  
+   `apps/app/src/routes/dashboard.tsx:351`  
+   now: `<RotateCwIcon className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')} />` — `animate-spin` is a raw CSS keyframe animation. The global preset.css kills CSS animations for `prefers-red  
 → Change to `cn('size-3.5', dashboardQuery.isFetching && 'animate-spin motion-reduce:animate-none')`. This is the same guard pattern the grammar calls out explicitly for raw CSS keyframes.
 - **BriefFreshness RotateCwIcon pending spinner — missing motion-reduce guard** — _feedback · value:high · risk:low_  
   `apps/app/src/features/dashboard/daily-brief-card.tsx:517`  
@@ -151,8 +151,8 @@ the shipped batch verifiable, not because they're wrong.
   now: The chip strip appears and disappears instantly when filters are applied or removed. Each chip `<span>` at line 7012 has no entrance/exit motion. The chip row itself also appears/disappears as a block  
   → Wrap each individual chip `<span>` in an `<AnimatePresence>` keyed list so chips fade+scale in individually on add and out on remove. Per-chip motion: `initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}` with `transition={{ duration: MOTION_DURA
 - **TableRow selected state — bg transition on select** — _state-change · value:high · risk:low_  
-  `apps/app/src/routes/obligations.tsx:4574`  
-  now: The TableRow at line 4574 has `data-state={tableRow.getIsSelected() ? 'selected' : undefined}` but no transition on the bg change. The hover class is `hover:!bg-background-subtle` with `transition-col  
+   `apps/app/src/routes/obligations.tsx:4574`  
+   now: The TableRow at line 4574 has `data-state={tableRow.getIsSelected() ? 'selected' : undefined}` but no transition on the bg change. The hover class is `hover:!bg-background-subtle` with `transition-col  
 → Add `transition-colors`to the explicit className string on the TableRow:`'h-14 group cursor-pointer border-l-2 border-l-transparent transition-colors hover:!bg-background-subtle ...'`. This makes the selection accent appear/fade with the Tailwind default micro-interaction timing (150ms ease-out) r
 - **Empty state — ObligationQueueEmptyState (zero-results or no-data)** — _entrance · value:medium · risk:low_  
   `apps/app/src/features/obligations/queue/components/toolbar.tsx:290`  
@@ -376,8 +376,8 @@ the shipped batch verifiable, not because they're wrong.
   now: When the user clicks a row, the drawer opens and the entire content block renders statically. When the selected event changes (user clicks a different row while the drawer is open), the content swaps  
   → Wrap the `<AuditEventDrawerContent>` render in a `<motion.div key={detailEvent.id} {...contentEnterMotion}>` so each new event slides in (12px + fade, 180ms ease-apple) when the key changes. Import `{ motion }` from `motion/react` and `{ contentEnterMotion }` from `@/lib/motion`. The existing `rende
 - **EntityAuditActivityPanel — `<li>` rows in the activity list** — _state-change · value:medium · risk:low_  
-  `apps/app/src/features/audit/entity-audit-activity-panel.tsx:84`  
-  now: Each `<li>` in the entity timeline (used in the Status-tab activity panel on the deadline detail page) is completely static — no hover state, no press feedback. Yet the primary list (`AuditTimelineRow  
+   `apps/app/src/features/audit/entity-audit-activity-panel.tsx:84`  
+   now: Each `<li>` in the entity timeline (used in the Status-tab activity panel on the deadline detail page) is completely static — no hover state, no press feedback. Yet the primary list (`AuditTimelineRow  
 → Add `transition-colors hover:bg-state-base-hover`to the`<li>`className (line 84). This is a read-only list — no onClick — so it's purely a legibility aid (scanning rows, the hovered one lifts slightly in warmth). If the item is later made clickable (to open a detail sheet),`active:scale-[0.99]`
 - **AuditSkeleton → AuditLogTable swap (loading → data)** — _loading · value:medium · risk:low_  
   `apps/app/src/features/audit/audit-log-page.tsx:309-317 (AuditSkeleton) and 1063-1069 (table render)`  
