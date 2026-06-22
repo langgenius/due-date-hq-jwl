@@ -56,6 +56,29 @@
   --m-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* data / dates */
   --m-ls-eyebrow: 0.14em;
 
+  /* ---- type scale (semantic names, not values; rem so type honours the
+     reader's browser font-size) ----
+     One source of truth for size / leading / tracking so components stop
+     freelancing half-pixel values. Root = 16px. Fixed steps below cover UI +
+     body; the shared heading classes stay fluid (clamp) for marketing display. */
+  --m-text-3xs: 0.625rem; /* 10px — decorative product-mockup micro-chrome only */
+  --m-text-2xs: 0.6875rem; /* 11px — small pills, dense labels */
+  --m-text-xs: 0.75rem; /* 12px — eyebrows, mono meta, captions */
+  --m-text-sm: 0.8125rem; /* 13px — secondary / supporting body */
+  --m-text-base: 0.875rem; /* 14px — dense UI body */
+  --m-text-md: 0.9375rem; /* 15px — card titles, comfortable body */
+  --m-text-lg: 1rem; /* 16px — emphasised body / small lead */
+  --m-text-xl: 1.125rem; /* 18px — large body / sub-lead */
+
+  --m-leading-tight: 1.1; /* display / headings */
+  --m-leading-snug: 1.35; /* subheads, multi-line labels */
+  --m-leading-normal: 1.55; /* lead + standard body */
+  --m-leading-relaxed: 1.7; /* small dense prose */
+
+  --m-tracking-tight: -0.02em; /* display headings */
+  --m-tracking-snug: -0.015em; /* mid headings */
+  --m-tracking-wide: 0.06em; /* small-caps pills / micro labels */
+
   /* ---- layout (editorial, marketing-specific) ---- */
   --m-maxw: 1240px; /* one shared container width */
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
@@ -99,7 +122,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: var(--m-eyebrow-gap);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -110,7 +133,7 @@
     font-weight: 600;
     font-size: clamp(29px, 3.6vw, 44px);
     line-height: 1.08;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--m-tracking-tight);
     color: var(--m-ink);
   }
   .m-h2 .ital {
@@ -119,7 +142,7 @@
   .m-lead {
     max-width: var(--m-measure);
     font-size: clamp(17px, 1.4vw, 20px);
-    line-height: 1.55;
+    line-height: var(--m-leading-normal);
     color: var(--m-ink-2);
   }
 
@@ -140,7 +163,7 @@
        step above .m-h2 (clamp 29–44) — no near-collision at the top end. */
     font-size: clamp(34px, 4.4vw, 54px);
     line-height: 1.08;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--m-tracking-tight);
     color: var(--m-ink);
   }
   .m-page-lead {
@@ -154,14 +177,14 @@
     margin-top: 18px;
     max-width: 70ch;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     line-height: 1.5;
     color: var(--m-muted);
   }
   .m-page-reviewed {
     margin-top: 12px;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
   /* stacked content block — tighter than the home's airy sections, with a
@@ -176,7 +199,7 @@
     font-weight: 600;
     font-size: clamp(22px, 2.4vw, 30px);
     line-height: 1.2;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--m-tracking-snug);
     color: var(--m-ink);
   }
   /* split content (5 / 7) */
@@ -199,8 +222,8 @@
   .m-page-body {
     margin-top: 18px;
     max-width: 44ch;
-    font-size: 15px;
-    line-height: 1.7;
+    font-size: var(--m-text-md);
+    line-height: var(--m-leading-relaxed);
     color: var(--m-ink-2);
   }
   .m-page-grid-3 {
@@ -217,14 +240,14 @@
     border-radius: 12px;
   }
   .m-card__t {
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 600;
     line-height: 1.4;
     color: var(--m-ink);
   }
   .m-card__d {
     margin-top: 10px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     line-height: 1.65;
     color: var(--m-muted);
   }

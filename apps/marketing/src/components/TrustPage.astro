@@ -164,7 +164,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   .trustpg__note {
     max-width: 72ch;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     line-height: 1.55;
     color: var(--m-muted);
   }
@@ -173,13 +173,13 @@ const pad = (n: number) => String(n).padStart(2, '0')
     align-items: baseline;
     gap: 8px;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
   .trustpg__reviewed-k {
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
   }
   .trustpg__reviewed time {
     color: var(--m-ink-2);
@@ -206,7 +206,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .statement__label {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--m-accent);
@@ -233,7 +233,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     padding-bottom: 14px;
     border-bottom: 1px solid var(--m-hairline);
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     letter-spacing: 0.02em;
     color: var(--m-faint);
   }
@@ -254,12 +254,12 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__toc-num {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 500;
     color: var(--m-accent);
   }
   .trustpg__toc-txt {
-    font-size: 15px;
+    font-size: var(--m-text-md);
     line-height: 1.45;
     color: var(--m-ink);
   }
@@ -293,7 +293,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__index-of {
     font-family: var(--m-font-mono);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-faint);
   }
   .trustpg__sec-eyebrow {
@@ -375,7 +375,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__close-eyebrow {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.7);
@@ -406,7 +406,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     border-radius: 8px;
     background: #fff;
     color: var(--m-accent);
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 500;
     transition:
       background 0.18s ease,

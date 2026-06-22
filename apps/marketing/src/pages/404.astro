@@ -108,25 +108,25 @@ const routes = baseRoutes.map((route) => (route.href === 'app' ? { ...route, hre
   }
   .nf__status {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: var(--m-ls-eyebrow);
     color: var(--m-faint);
   }
   .nf__code {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-accent);
   }
   .nf__statusval {
     margin-top: 18px;
-    font-size: 17px;
+    font-size: var(--m-text-lg);
     font-weight: 600;
     color: var(--m-ink);
   }
   .nf__routeslabel {
     margin-top: 6px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: var(--m-ls-eyebrow);
     color: var(--m-faint);
   }
@@ -146,7 +146,7 @@ const routes = baseRoutes.map((route) => (route.href === 'app' ? { ...route, hre
     border: 1px solid var(--m-hairline);
     border-radius: 8px;
     background: var(--m-canvas);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink-2);
     transition:
       border-color 0.15s ease,

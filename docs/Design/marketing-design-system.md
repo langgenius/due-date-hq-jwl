@@ -19,8 +19,32 @@ This doc was produced during the 2026-06-22 site-wide system pass.
 
 Two type families do the work: a **display serif** (`Instrument Serif`) reserved for the hero
 headline only, and a **sans** (`Instrument Sans`) for everything else. `Geist Mono` carries
-data/dates/meta. The marketing scale is **fluid** (`clamp`) end-to-end; the values below are
-`min → max` across the viewport range.
+data/dates/meta. **Headings are fluid** (`clamp`, `min → max` across the viewport); **fixed UI +
+body sizes resolve through a rem token ladder** (`--m-text-*`) so every component pulls from one
+scale instead of freelancing raw px. Leading and tracking are tokenised too (`--m-leading-*`,
+`--m-tracking-*`).
+
+### Token ladder (fixed sizes)
+
+Rem-based (root = 16px) so type honours the reader's browser font-size. There are **no half-pixel
+sizes** — every fixed size in the home + long-tail layers is one of these eight steps.
+
+| Token | rem | px | Role |
+|---|---|---|---|
+| `--m-text-3xs` | 0.625 | 10 | Decorative product-mockup micro-chrome only (legibility floor) |
+| `--m-text-2xs` | 0.6875 | 11 | Small pills, dense labels |
+| `--m-text-xs` | 0.75 | 12 | Eyebrows, mono meta, captions |
+| `--m-text-sm` | 0.8125 | 13 | Secondary / supporting body |
+| `--m-text-base` | 0.875 | 14 | Dense UI body |
+| `--m-text-md` | 0.9375 | 15 | Card titles, comfortable body |
+| `--m-text-lg` | 1.0 | 16 | Emphasised body / small lead |
+| `--m-text-xl` | 1.125 | 18 | Large body / sub-lead |
+
+Leading: `--m-leading-tight` 1.1 · `--m-leading-snug` 1.35 · `--m-leading-normal` 1.55 ·
+`--m-leading-relaxed` 1.7. Tracking: `--m-tracking-tight` -0.02em · `--m-tracking-snug` -0.015em ·
+`--m-tracking-wide` 0.06em · `--m-ls-eyebrow` 0.14em.
+
+The shared classes below are backed by these tokens; the px column is the resolved value.
 
 | Step | Class | Family | Size (min→max) | Line-height | Tracking | Role |
 |---|---|---|---|---|---|---|

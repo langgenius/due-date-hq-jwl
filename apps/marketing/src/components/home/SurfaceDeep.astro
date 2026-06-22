@@ -362,7 +362,7 @@ const surfaces = t.surfaces
   }
   .surfd__lead {
     max-width: 40ch;
-    font-size: 16px;
+    font-size: var(--m-text-lg);
     line-height: 1.55;
     color: var(--m-muted);
   }
@@ -405,13 +405,13 @@ const surfaces = t.surfaces
 
   .sd__n {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 500;
     color: var(--m-faint);
   }
   .sd__name {
     margin-top: 8px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -429,7 +429,7 @@ const surfaces = t.surfaces
   }
   .sd__desc {
     margin-top: 14px;
-    font-size: 15px;
+    font-size: var(--m-text-md);
     line-height: 1.65;
     color: var(--m-ink-2);
     max-width: 48ch;
@@ -441,7 +441,7 @@ const surfaces = t.surfaces
     padding: 14px 16px;
     background: var(--m-accent-tint);
     border-radius: 8px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.6;
     color: var(--m-muted);
     max-width: 48ch;
@@ -449,7 +449,7 @@ const surfaces = t.surfaces
   .sd__why-label {
     display: block;
     margin-bottom: 4px;
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -466,7 +466,7 @@ const surfaces = t.surfaces
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    font-size: 13.5px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink-2);
   }
@@ -495,14 +495,14 @@ const surfaces = t.surfaces
     background: var(--m-section);
   }
   .frame__name {
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 600;
     color: var(--m-ink-2);
   }
   .frame__cap {
     margin-left: auto;
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     letter-spacing: 0.03em;
     color: var(--m-faint);
     white-space: nowrap;
@@ -512,7 +512,7 @@ const surfaces = t.surfaces
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -531,7 +531,7 @@ const surfaces = t.surfaces
   .frame__keys {
     margin-left: auto;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-faint);
   }
   .frame__keys kbd {
@@ -551,7 +551,7 @@ const surfaces = t.surfaces
     border-bottom: 1px solid var(--m-hairline-2);
   }
   .fchip {
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 500;
     color: var(--m-muted);
     padding: 4px 10px;
@@ -575,7 +575,7 @@ const surfaces = t.surfaces
     gap: 8px;
   }
   .sev {
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.02em;
     padding: 2px 7px;
@@ -591,7 +591,7 @@ const surfaces = t.surfaces
   }
   .juris {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-ink-2);
     background: var(--m-section);
@@ -605,7 +605,7 @@ const surfaces = t.surfaces
     align-items: center;
     gap: 5px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .src svg {
@@ -614,7 +614,7 @@ const surfaces = t.surfaces
   }
   .alertrow__title {
     margin-top: 9px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 500;
     color: var(--m-ink);
     line-height: 1.35;
@@ -627,7 +627,7 @@ const surfaces = t.surfaces
     gap: 8px;
     flex-wrap: wrap;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-ink);
   }
   .alertrow__change s {
@@ -635,7 +635,7 @@ const surfaces = t.surfaces
   }
   .delta {
     font-family: var(--m-font-sans);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     padding: 1px 7px;
     border-radius: 999px;
@@ -649,7 +649,7 @@ const surfaces = t.surfaces
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-ink-2);
   }
   .alertrow__affect b {
@@ -659,7 +659,7 @@ const surfaces = t.surfaces
   .alertrow__st {
     margin-left: auto;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-faint);
   }
 
@@ -691,7 +691,7 @@ const surfaces = t.surfaces
     gap: 10px 18px;
     padding: 12px 16px;
     border-top: 1px solid var(--m-hairline-2);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .cleg {
@@ -713,12 +713,12 @@ const surfaces = t.surfaces
   }
   .covstat {
     margin-left: auto;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .covstat b {
     font-family: var(--m-font-mono);
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 600;
     color: var(--m-ink);
   }
@@ -730,7 +730,7 @@ const surfaces = t.surfaces
   }
   .wltable th {
     text-align: left;
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -753,7 +753,7 @@ const surfaces = t.surfaces
   }
   .wlrisk__no {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
     width: 10px;
   }
@@ -776,26 +776,26 @@ const surfaces = t.surfaces
     background: var(--m-accent);
   }
   .wlclient {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: var(--m-ink);
   }
   .wlsub {
     margin-top: 2px;
     font-family: var(--m-font-mono);
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .wldue {
     font-family: var(--m-font-mono);
-    font-size: 11.5px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .wldue--late {
     color: var(--m-urgent);
   }
   .wlstat {
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     padding: 3px 9px;
     border-radius: 999px;
@@ -830,13 +830,13 @@ const surfaces = t.surfaces
     border-top: 1px solid var(--m-hairline-2);
   }
   .applyrow__k {
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 500;
     color: var(--m-muted);
   }
   .applyrow__v {
     font-family: var(--m-font-mono);
-    font-size: 12.5px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink);
   }
   .applyrow__v s {
@@ -857,7 +857,7 @@ const surfaces = t.surfaces
     border-radius: 8px;
     border: none;
     font-family: var(--m-font-sans);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
     color: #fff;
     background: var(--m-accent);
@@ -878,7 +878,7 @@ const surfaces = t.surfaces
   }
   .receipt__eyebrow {
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--m-faint);
@@ -894,7 +894,7 @@ const surfaces = t.surfaces
     display: flex;
     align-items: center;
     gap: 9px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-ink-2);
   }
   .receipt__rows svg {
