@@ -51,6 +51,15 @@ draft requirement, or a concrete draft already exists). No new backend — same
 Held the two net-new ideas (affected-clients, deadline-proximity) — they need a
 join/query this route doesn't load, and would re-bloat the card.
 
+### De-flash — drop the color, one quiet line (same day)
+Yuqi: "卡片太花里胡哨了" (too gaudy). The green ready + red high-severity stacked
+over gray waiting made NY/CA three-colored and wrapping. Removed the
+per-segment color entirely: the sub is now ONE muted line — the ready /
+high-severity differentiators joined by a dot when present, else the wait age as
+fallback. Data unchanged (ready-to-accept still derived); only the colored seals
+remain, so the grid reads as calm as the band. Single accent can be reintroduced
+if a signal needs to pop later.
+
 ## 2 + 3. Header button size = default, matching Deadlines
 
 Yuqi: the rule-library header buttons are the right size; other pages should

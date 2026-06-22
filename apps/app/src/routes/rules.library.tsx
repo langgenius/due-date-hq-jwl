@@ -869,35 +869,21 @@ function OverviewReviewBreakdown({
               <span className="text-lg leading-none font-medium tracking-tight tabular-nums text-text-primary">
                 <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
               </span>
-              {/* Sub — at most one quick-win + one risk signal, then wait age.
-                  Green "ready to accept" (the instant wins, only when present)
-                  and red high-severity are the two flags; both stay quiet/absent
-                  on the typical card so nothing reads as a wall of meta. Dots
-                  interleave only between the parts that actually render. */}
+              {/* Sub — one quiet line, no per-segment color (the colored
+                  green/red flags read as "花里胡哨" next to the calm band). The
+                  count carries the weight; the sub just qualifies it: the
+                  ready/high-severity differentiators when present, else the wait
+                  age (the sort rationale) as a fallback. All muted, one line. */}
               {(() => {
-                const parts = [
-                  g.readyCount > 0 ? (
-                    <span key="ready" className="text-text-success">
-                      {t`${g.readyCount} ready to accept`}
-                    </span>
-                  ) : null,
-                  g.highCount > 0 ? (
-                    <span key="high" className="text-text-warning">
-                      <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                    </span>
-                  ) : null,
-                  days != null ? <span key="days">{t`${days}d waiting`}</span> : null,
-                ].filter(Boolean)
-                if (parts.length === 0) return null
+                const facts = [
+                  g.readyCount > 0 ? t`${g.readyCount} ready to accept` : null,
+                  g.highCount > 0 ? t`${g.highCount} high-severity` : null,
+                ].filter((f): f is string => f !== null)
+                const text =
+                  facts.length > 0 ? facts.join(' · ') : days != null ? t`${days}d waiting` : null
+                if (text == null) return null
                 return (
-                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                    {parts.map((part, i) => (
-                      <Fragment key={i}>
-                        {i > 0 ? <span aria-hidden>·</span> : null}
-                        {part}
-                      </Fragment>
-                    ))}
-                  </span>
+                  <span className="truncate text-xs font-medium text-text-tertiary">{text}</span>
                 )
               })()}
             </button>
