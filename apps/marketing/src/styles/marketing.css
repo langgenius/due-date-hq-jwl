@@ -50,6 +50,25 @@
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
   --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
   --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
+
+  /* ---- readable measure ---- */
+  /* one ceiling for flowing body/lead copy so prose never runs past a
+     comfortable reading line on wide viewports (~66–70ch). Heading classes
+     keep their own tighter ch caps (titles want to wrap sooner). */
+  --m-measure: 68ch;
+
+  /* ---- motion / timing ---- */
+  /* shared easing + durations so hovers, focus rings and small state changes
+     feel like one system. Components opt in; nothing is forced onto them. */
+  --m-ease: cubic-bezier(0.22, 1, 0.36, 1); /* gentle, slightly-overshoot-free */
+  --m-dur-fast: 0.16s; /* hovers, focus, small affordances */
+  --m-dur: 0.24s; /* default state change */
+
+  /* ---- focus ---- */
+  /* keyboard focus ring for marketing surfaces — on-brand navy, kept light. */
+  --m-focus-ring: var(--m-accent);
+  --m-focus-width: 2px;
+  --m-focus-offset: 2px;
 }
 
 /* ============================================================================
@@ -87,6 +106,7 @@
     font-style: italic;
   }
   .m-lead {
+    max-width: var(--m-measure);
     font-size: clamp(17px, 1.4vw, 20px);
     line-height: 1.55;
     color: var(--m-ink-2);
@@ -264,8 +284,8 @@
     font-size: 13px;
     font-weight: 500;
     transition:
-      background 0.18s ease,
-      border-color 0.18s ease;
+      background var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
   .m-btn--primary {
     color: #fff;
@@ -303,6 +323,18 @@
     .m-page-grid-3 {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* ==========================================================================
+     Focus visibility — one keyboard-focus treatment for marketing surfaces.
+     :focus-visible only (so mouse/touch users never see the ring); on-brand
+     navy, light. Components that already ship their own ring are untouched —
+     this is the baseline for the many raw <a>/<button> in editorial markup.
+     ========================================================================== */
+  .m-section :where(a, button, [tabindex]):focus-visible,
+  .m-btn:focus-visible {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: var(--m-focus-offset);
   }
 
   /* ==========================================================================
