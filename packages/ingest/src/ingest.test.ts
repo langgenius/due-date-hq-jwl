@@ -14,6 +14,7 @@ import { createSourceFetcherRegistry } from './fetcher'
 import {
   announcementItemsFromSnapshot,
   announcementItemsFromSnapshotWithPdfLinks,
+  linkLooksTaxAnnouncementRelevant,
 } from './announcements'
 import { parseRssItems, parsedItemsFromRss } from './rss'
 import { extractLinks, extractLinksWithTableTitles, pickSelector } from './selectors'
@@ -179,7 +180,7 @@ describe('@duedatehq/ingest', () => {
       },
       {
         fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
-        body: '<a href="/forms/estate-tax-form.pdf">Estate Tax Form</a>',
+        body: '<a href="/forms/public-records-request.pdf">Public Records Request Form</a>',
       },
       { fetch: fetchMock },
     )
@@ -251,6 +252,32 @@ describe('@duedatehq/ingest', () => {
     expect(extractLinks('<a href="/press/item">Press item</a>', 'https://tax.ny.gov')).toEqual([
       { href: 'https://tax.ny.gov/press/item', text: 'Press item' },
     ])
+  })
+
+  it('catches state-DOR tax-notice vocabulary without admitting bare section nav', () => {
+    // 2026-06-22 P0: widened TAX_ANNOUNCEMENT_RE from a data-driven audit of all 50
+    // state DOR announcement pages. Real notices the disaster/deadline vocabulary
+    // used to drop must now pass; bare tax-type section-nav links must still drop.
+    const real = [
+      'NOTICE State Construction-Related Transaction Tax',
+      'NOTICE Revised Privilege License Interest Rate Factor Chart',
+      'NOTICE Surety Bond Cancellation Period',
+      'NOTICE Temporary Suspension of State Sales and Use Tax on Food',
+      'Notices Regarding Combined Reporting',
+      'Nevada Tax Notes March 2026 - Issue #206',
+      'DOR releases marijuana tax and fee revenue figures for March 2026',
+      'Application period to reopen for Parental Choice Tax Credit program',
+      'Idaho Tax Commission to administer more auditorium districts taxes',
+    ]
+    for (const t of real) {
+      expect(linkLooksTaxAnnouncementRelevant(t, '/news/item')).toBe(true)
+    }
+    // Bare tax-type / generic section-nav labels were deliberately left out so the
+    // filter does not start admitting sidebar chrome on every DOR page.
+    const nav = ['Income Tax', 'Property Tax', 'Newsroom', 'Forms', 'Contact Us', 'Careers']
+    for (const t of nav) {
+      expect(linkLooksTaxAnnouncementRelevant(t, '/individuals')).toBe(false)
+    }
   })
 
   it('recovers the row title for table-listing links whose anchor text is a format label', () => {
