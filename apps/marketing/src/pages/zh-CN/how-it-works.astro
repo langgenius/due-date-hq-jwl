@@ -1,0 +1,49 @@
+---
+/**
+ * /zh-CN/how-it-works — Simplified-Chinese mirror of the product tour. Same
+ * component composition, locale="zh-CN".
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import HowItWorks from '../../components/home/HowItWorks.astro'
+import SeeItWork from '../../components/home/SeeItWork.astro'
+import Surfaces from '../../components/home/Surfaces.astro'
+import Close from '../../components/home/Close.astro'
+import Footer from '../../components/home/Footer.astro'
+import zhCN from '../../i18n/zh-CN'
+import { getCtaHref } from '../../lib/app-url'
+
+const t = zhCN
+const ctaHref = getCtaHref('zh-CN')
+const pathname = '/zh-CN/how-it-works'
+---
+
+<BaseLayout
+  lang="zh-CN"
+  pathname={pathname}
+  title="DueDateHQ 如何运作 —— 从截止日变化到受影响的客户"
+  description="看清完整闭环：DueDateHQ 监控官方 IRS、各州与 FEMA 来源，将每条变化匹配到你的客户，按风险为你的一周排序，并在应用时为每个日期附上来源。"
+  ogImage={t.meta.ogImage}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="how" locale="zh-CN" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">产品导览</p>
+      <h1 class="m-page-title">从一次截止日变化，到它牵动的每一个客户。</h1>
+      <p class="m-page-lead">
+        完整的闭环 —— DueDateHQ 监控什么、如何把每条变化匹配到你的客户、你的一周靠哪张工作清单运转，以及你真正会用到的每个界面。
+      </p>
+    </section>
+    <HowItWorks locale="zh-CN" />
+    <SeeItWork locale="zh-CN" />
+    <Surfaces locale="zh-CN" />
+    <Close ctaHref={ctaHref} locale="zh-CN" />
+  </main>
+  <Footer locale="zh-CN" />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background: var(--m-canvas);
+  }
+</style>

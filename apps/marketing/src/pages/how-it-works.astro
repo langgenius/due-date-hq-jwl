@@ -1,0 +1,51 @@
+---
+/**
+ * /how-it-works — the dedicated product tour (core spine). Re-homes the product
+ * depth that doesn't belong on the landing: the risk-ranked worklist demo, the
+ * full loop, and the four surfaces. Nav points "How it works" here.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import HowItWorks from '../components/home/HowItWorks.astro'
+import SeeItWork from '../components/home/SeeItWork.astro'
+import Surfaces from '../components/home/Surfaces.astro'
+import Close from '../components/home/Close.astro'
+import Footer from '../components/home/Footer.astro'
+import en from '../i18n/en'
+import { getCtaHref } from '../lib/app-url'
+
+const t = en
+const ctaHref = getCtaHref()
+const pathname = '/how-it-works'
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title="How DueDateHQ works — from a deadline change to the clients it affects"
+  description="See the full loop: DueDateHQ watches official IRS, state, and FEMA sources, matches each change to your clients, ranks your week by risk, and applies the fix with a source on every date."
+  ogImage={t.meta.ogImage}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="how" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">Product tour</p>
+      <h1 class="m-page-title">From a deadline change to the clients it touches.</h1>
+      <p class="m-page-lead">
+        The whole loop — what DueDateHQ watches, how it matches each change to your clients, the
+        worklist your week runs on, and the surfaces you'll actually use.
+      </p>
+    </section>
+    <HowItWorks />
+    <SeeItWork />
+    <Surfaces />
+    <Close ctaHref={ctaHref} />
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style is:global>
+  body {
+    background: var(--m-canvas);
+  }
+</style>

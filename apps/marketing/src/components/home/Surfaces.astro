@@ -5,6 +5,7 @@
 interface Props { locale?: 'en' | 'zh-CN' }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
 // coverage mini-map tile heat (24 tiles): '' faint · n navy · a urgent · r danger
 const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 'a', '', '', '', '', 'r', '', '', '']
 
@@ -112,7 +113,7 @@ const t = zh
       </div>
       <h3 class="surface__t">{t.cards.alerts.t}</h3>
       <p class="surface__d">{t.cards.alerts.d}</p>
-      <a class="surface__link" href="#how">{t.seeIt} <span aria-hidden="true">→</span></a>
+      <a class="surface__link" href={`${base}/how-it-works#how`}>{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Coverage -->
@@ -124,7 +125,7 @@ const t = zh
       </div>
       <h3 class="surface__t">{t.cards.coverage.t}</h3>
       <p class="surface__d">{t.cards.coverage.d}</p>
-      <a class="surface__link" href="#sources">{t.seeIt} <span aria-hidden="true">→</span></a>
+      <a class="surface__link" href={`${base}/state-coverage`}>{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Worklist -->
@@ -153,7 +154,7 @@ const t = zh
       </div>
       <h3 class="surface__t">{t.cards.worklist.t}</h3>
       <p class="surface__d">{t.cards.worklist.d}</p>
-      <a class="surface__link" href="#work">{t.seeIt} <span aria-hidden="true">→</span></a>
+      <a class="surface__link" href={`${base}/how-it-works#work`}>{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
 
     <!-- Apply & audit -->
@@ -171,7 +172,7 @@ const t = zh
       </div>
       <h3 class="surface__t">{t.cards.apply.t}</h3>
       <p class="surface__d">{t.cards.apply.d}</p>
-      <a class="surface__link" href="#trust">{t.seeIt} <span aria-hidden="true">→</span></a>
+      <a class="surface__link" href={`${base}/security`}>{t.seeIt} <span aria-hidden="true">→</span></a>
     </article>
   </div>
 </section>

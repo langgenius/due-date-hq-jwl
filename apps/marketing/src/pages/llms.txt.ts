@@ -11,6 +11,12 @@ const corePages = [
       'the deadline-risk workbench — see which client filings and rule changes are at risk before the deadline, with every number traceable to its official source.',
   },
   {
+    label: 'How it works',
+    pathname: '/how-it-works',
+    description:
+      'the product tour — how DueDateHQ watches official sources, matches each change to a firm’s clients, ranks the week by risk, and applies the fix with a source on every date.',
+  },
+  {
     label: 'Pricing',
     pathname: '/pricing',
     description: 'plans for CPA practices: Free $0, Solo $39, Pro $79, and Team $149 per month.',

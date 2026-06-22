@@ -25,8 +25,9 @@ The core is small on purpose. The long-tail is large on purpose. They share one 
 | Route                         | Renders via                     | Design          | Tier                                |
 | ----------------------------- | ------------------------------- | --------------- | ----------------------------------- |
 | `/`                           | `components/home/*`             | **NEW `--m-*`** | core                                |
+| `/how-it-works`               | `home/HowItWorks+SeeItWork+Surfaces` | **NEW `--m-*`** | core (product tour)            |
 | `/legacy`                     | old `Hero/Problem/Workflow/...` | old · noindex   | — (archive)                         |
-| `/pricing`                    | `components/Pricing`            | old             | core                                |
+| `/pricing`                    | `components/Pricing`            | old → new chrome | core                               |
 | `/state-coverage`             | `StateCoveragePage`             | old             | long-tail hub                       |
 | `/states/[state]`             | `StateDetailPage`               | old             | long-tail leaf                      |
 | `/rules`                      | `GeoResourcePage`               | old             | long-tail hub                       |
@@ -67,8 +68,9 @@ The core is small on purpose. The long-tail is large on purpose. They share one 
 
 ### Navigation (core spine — keep current, it's right)
 
-`How it works` (`/#how`) · `Coverage` (`/state-coverage`) · `Pricing` (`/pricing`) · `Security` (`/security`) — plus `Sign in` · `Start free`.
+`How it works` (`/how-it-works`) · `Coverage` (`/state-coverage`) · `Pricing` (`/pricing`) · `Security` (`/security`) — plus `Sign in` · `Start free`.
 
+- **Update (2026-06-22):** "How it works" now resolves to a dedicated `/how-it-works` **product-tour page** (the loop + the risk-ranked worklist demo + the four surfaces), not the home `#how` anchor. The landing was trimmed to its pitch; product depth lives on this page. Core spine is now four real pages: How-it-works · Pricing · Security · About.
 - "Coverage" is the deliberate **bridge** from core into the long-tail (it's both a buyer scope-promise and the state-pages hub). Good — keep it.
 - Floating-pill design, centered. On non-home pages the nav switches to **page mode**: solid background, no scroll-spy rail, a breadcrumb-back affordance.
 
