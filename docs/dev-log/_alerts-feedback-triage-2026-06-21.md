@@ -162,3 +162,27 @@ loose floating cards, not a table. Pulled it into one continuous banded table:
 
 Decisions (Yuqi): zone titles get header-band backgrounds like the day bands;
 remove the per-row rounded corner; remove the bottom padding (full height).
+
+## Content gutter + header hierarchy (2026-06-22)
+
+Yuqi: "problem with hierarchy and padding on the left and right." Measured both:
+the right cluster (source · time) sat FLUSH against the band edge — 0px right
+gutter — while the left carried a ~28px inset (asymmetric, edge-jammed); and the
+zone-header bands + day bands were the same gray, so the section hierarchy read
+flat (a zone header and its day subgroups looked equal-weight).
+
+- **Symmetric content gutter** — every list element (toolbar, zone headers, day
+  headers, rows) takes back the `px-5` content inset (the /today ActionsTable
+  gutter) that the earlier flush-with-title pass had zeroed. Verified 20px both
+  sides. The band/row BGs still bleed full-width, so only the content insets —
+  the bands stay edge-aligned with the title, the source just stops jamming the
+  right edge.
+- **Two-level header hierarchy** — the day headers ("MAY 16, 2026") drop their
+  gray fill to white (`bg-background-default`); the gray `bg-background-subtle`
+  band is now reserved for the ZONE headers (Needs action / For your awareness).
+  So gray band = section, white uppercase label = day subgroup. White still
+  occludes scrolling rows (sticky). This refines #7 (day bands were gray to match
+  /today) now that the zone headers own the gray band.
+
+Decisions (Yuqi): restore symmetric L/R content padding; differentiate the
+section header (gray band) from the day subgroup (white label).

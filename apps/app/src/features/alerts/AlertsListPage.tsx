@@ -924,11 +924,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   as they scroll underneath and `z-20` sits above the
                   rows. */}
               {/* 2026-06-22 (Yuqi "remove the left/right padding — universal"):
-                  the toolbar, zone bands, rows + day bands all dropped their
-                  `px-5` inset so the list lines up flush with the "Alerts" page
-                  title (it used to sit 20px further in). The whole list shares
-                  one left edge. */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
+                  the toolbar, zone bands, rows + day bands all share ONE `px-5`
+                  content gutter (Yuqi 2026-06-22 "padding on left and right"): the
+                  earlier flush-with-title pass had zeroed it, leaving the right
+                  cluster jammed against the edge with no gutter. The gutter is back
+                  on every list element so the content edge is consistent and padded;
+                  the band BGs still bleed full-width, so the bands stay aligned with
+                  the title — only the content insets. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower
@@ -1267,7 +1270,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         `bg-background-subtle` + `border-b` chrome as the day bands —
                         so it reads as a structural table header, not floating text,
                         and the opaque band occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-divider-subtle bg-background-subtle py-2">
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-divider-subtle bg-background-subtle px-5 py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1336,7 +1339,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     ) : (
                       // The queue drained. The awareness digest still shows below,
                       // so the page is never blank — just calm.
-                      <div className="flex items-center gap-2 bg-background-default py-4 text-sm text-text-secondary">
+                      <div className="flex items-center gap-2 bg-background-default px-5 py-4 text-sm text-text-secondary">
                         <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                         <Trans>You're caught up — nothing needs action right now.</Trans>
                       </div>
@@ -1353,7 +1356,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           hover-revealed "Dismiss all" sweep (right) so the FYI
                           digest can be cleared in one move (the anti-junk-drawer
                           affordance). Sibling buttons — no nested interactives. */}
-                      <div className="group/awareband flex items-center gap-2 border-b border-divider-subtle bg-background-subtle py-2">
+                      <div className="group/awareband flex items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-2">
                         <button
                           type="button"
                           onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}

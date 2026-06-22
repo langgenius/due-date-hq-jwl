@@ -420,11 +420,15 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        // 2026-06-22 (Yuqi "remove the left/right padding — universal"): rows are
-        // flush with the page title now (no extra px-5 inset); the toolbar, zone
-        // bands + day bands drop the same inset so the whole list shares one left
-        // edge. Applies in the map navigator rail too (consistent, flush).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle outline-none transition-[color,box-shadow]',
+        // 2026-06-22 (Yuqi "padding on left and right"): the row carries `px-5`
+        // again (the /today ActionsTable gutter). The earlier flush-with-title pass
+        // had zeroed it, which left the right cluster (source · time) jammed flush
+        // against the band edge with 0 gutter while the left kept an inset — an
+        // asymmetric, edge-bled read. The hover/active BG still fills the full row
+        // box; only the content insets, so the bands stay aligned with the title.
+        // The toolbar, zone bands + day bands take the same `px-5` so the whole
+        // list shares one padded content edge.
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-[color,box-shadow]',
         // Muted (awareness digest) rows step the vertical padding down a notch.
         muted ? 'py-2.5' : 'py-3',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -1080,14 +1084,18 @@ function PulseAlertList({
 
           return (
             <div key={dayKey} className="flex flex-col">
-              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
-                    a faint band: "MAY 20, 2026". No weekday, count, or icon —
-                    the date is the section marker. Sticky below the toolbar
-                    (top-12) so "when" stays answered while a day's rows scroll
-                    under it; requires the frame's overflow-clip. The faint
-                    `bg-background-subtle` fill (matching aUZTy) gives a clean
-                    section break without the busier label competing with rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle py-2">
+              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow:
+                    "MAY 20, 2026". No weekday, count, or icon — the date is the
+                    section marker. Sticky below the toolbar (top-12) so "when"
+                    stays answered while a day's rows scroll under it; requires the
+                    frame's overflow-clip. 2026-06-22 (Yuqi "hierarchy"): the fill
+                    drops to white (`bg-background-default`) so the day header reads
+                    as a SUBGROUP marker subordinate to the gray zone-header band —
+                    two gray bands of equal weight (zone + day) had flattened the
+                    section hierarchy. White still occludes scrolling rows (sticky);
+                    the uppercase label + hairline carry the break. `px-5` matches
+                    the row/zone-band content gutter. */}
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default px-5 py-2">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
