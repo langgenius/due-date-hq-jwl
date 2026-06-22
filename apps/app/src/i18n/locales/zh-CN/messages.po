@@ -373,6 +373,11 @@ msgstr "{0, plural, other {覆盖 # 个实体}}"
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 msgstr "{0, plural, one {已应用到 # 个客户 · 已写入审计账本} other {已应用到 # 个客户 · 已写入审计账本}}"
 
+#. placeholder {0}: result.appliedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {Applied to # client} other {Applied to # clients}}"
+msgstr "{0, plural, one {已应用到 # 个客户} other {已应用到 # 个客户}}"
+
 #. placeholder {0}: genesis.clientCount
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {client imported} other {clients imported}}"
@@ -2818,11 +2823,6 @@ msgstr "已应用一项规则变更。"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Applied reviewed set to {0} clients"
 msgstr "已将已审核集合应用至 {0} 个客户"
-
-#. placeholder {0}: result.appliedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Applied to {0} clients"
-msgstr "已应用至 {0} 个客户"
 
 #. placeholder {0}: temporary.obligationCount
 #: src/features/rules/states-rail.tsx

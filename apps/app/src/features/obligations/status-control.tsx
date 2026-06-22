@@ -292,6 +292,12 @@ function ObligationQueueStatusControl({
 }) {
   const { t } = useLingui()
   const triggerStatus = displayStatus ?? row.status
+  const commitStatus = (status: ObligationStatus) => {
+    if (readOnly) return
+    if (status === row.status) return
+    if (!isLegalObligationTransition(row.status, status)) return
+    onChange(row.id, status)
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -332,15 +338,7 @@ function ObligationQueueStatusControl({
             {t`Coordinators can view status but can't change it.`}
           </p>
         ) : null}
-        <DropdownMenuRadioGroup
-          value={row.status}
-          onValueChange={(value) => {
-            if (readOnly) return
-            if (typeof value !== 'string' || !isObligationStatus(value)) return
-            if (value === row.status) return
-            onChange(row.id, value)
-          }}
-        >
+        <DropdownMenuRadioGroup value={row.status}>
           {statuses.map((status) => {
             // Illegal transitions are surfaced as disabled items rather
             // than hidden — preparers learn the state machine by
@@ -353,7 +351,10 @@ function ObligationQueueStatusControl({
                 value={status}
                 disabled={readOnly || illegal}
                 className="gap-2"
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  commitStatus(status)
+                }}
                 title={
                   readOnly
                     ? undefined

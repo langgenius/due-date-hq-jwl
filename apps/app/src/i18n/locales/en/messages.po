@@ -372,6 +372,11 @@ msgstr "{0, plural, one {across # entity} other {across # entities}}"
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 msgstr "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
 
+#. placeholder {0}: result.appliedCount
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {Applied to # client} other {Applied to # clients}}"
+msgstr "{0, plural, one {Applied to # client} other {Applied to # clients}}"
+
 #. placeholder {0}: genesis.clientCount
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {client imported} other {clients imported}}"
@@ -2806,11 +2811,6 @@ msgstr "Applied a rule change."
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Applied reviewed set to {0} clients"
 msgstr "Applied reviewed set to {0} clients"
-
-#. placeholder {0}: result.appliedCount
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Applied to {0} clients"
-msgstr "Applied to {0} clients"
 
 #. placeholder {0}: temporary.obligationCount
 #: src/features/rules/states-rail.tsx

@@ -32,8 +32,10 @@ test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
     appShellPage.primaryNavigation.getByRole('link', { name: /^Calendar$/ }),
   ).toHaveCount(0)
   await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
-  await expect(authenticatedPage.getByRole('region', { name: 'Priorities' })).toBeVisible()
-  await expect(authenticatedPage.getByRole('button', { name: 'Add' })).toBeVisible()
+  await expect(
+    authenticatedPage.getByRole('heading', { name: 'Add your first work' }),
+  ).toBeVisible()
+  await expect(authenticatedPage.getByRole('button', { name: 'Add', exact: true })).toBeVisible()
 })
 
 test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({

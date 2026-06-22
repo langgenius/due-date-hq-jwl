@@ -33,10 +33,11 @@ export class ObligationQueuePage {
     this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due', exact: true })
     this.statusFilterButton = page.getByRole('button', { name: 'Filter by status' })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
-    // 2026-06-10 (queue toolbar redesign): the standalone "Columns" button
-    // folded into a single "View" dropdown (aria-label "View, columns, and
-    // actions") whose Columns SUBMENU carries the visibility checklist.
-    this.viewMenuButton = page.getByRole('button', { name: 'View, columns, and actions' })
+    // 2026-06-22 (queue toolbar wording): the View dropdown now exposes the
+    // live column count in its accessible name ("View options — 7 of 11
+    // columns shown"). Match the stable prefix so the helper follows the
+    // current UI without coupling to the count.
+    this.viewMenuButton = page.getByRole('button', { name: /^View options\b/ })
   }
 
   // 2026-06-16 (queue toolbar): the status scope is now a collapsed dropdown
