@@ -6322,11 +6322,6 @@ msgstr "Effective · newest first"
 msgid "Effective · oldest first"
 msgstr "Effective · oldest first"
 
-#. placeholder {0}: formatMonthDay(detail.effectiveFrom)
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Effective {0}"
-msgstr "Effective {0}"
-
 #: src/routes/rules.library.tsx
 msgid "effective {effective}"
 msgstr "effective {effective}"
@@ -6334,10 +6329,6 @@ msgstr "effective {effective}"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Effective from tax year"
 msgstr "Effective from tax year"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Effective immediately"
-msgstr "Effective immediately"
 
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts

@@ -6346,11 +6346,6 @@ msgstr "生效日 · 最新优先"
 msgid "Effective · oldest first"
 msgstr "生效日 · 最早优先"
 
-#. placeholder {0}: formatMonthDay(detail.effectiveFrom)
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Effective {0}"
-msgstr "{0} 起生效"
-
 #: src/routes/rules.library.tsx
 msgid "effective {effective}"
 msgstr "生效于 {effective}"
@@ -6358,10 +6353,6 @@ msgstr "生效于 {effective}"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Effective from tax year"
 msgstr "自税年起生效"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Effective immediately"
-msgstr "立即生效"
 
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
