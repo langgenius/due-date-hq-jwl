@@ -206,7 +206,12 @@ const examples = t.examples
               </div>
               <div class="clip__posted">
                 {t.posted} <b>{e.doc.posted}</b>
-                <div class="clip__url">{e.doc.url}</div>
+                <span class="clip__url">
+                  {e.doc.url}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </span>
               </div>
             </header>
             <div class="clip__body">
@@ -391,10 +396,17 @@ const examples = t.examples
     font-weight: 600;
   }
   .clip__url {
-    margin-top: 2px;
+    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-family: var(--m-font-mono);
     font-size: 11px;
-    color: var(--m-faint);
+    color: var(--m-accent);
+  }
+  .clip__url svg {
+    width: 11px;
+    height: 11px;
   }
   .clip__body {
     margin-top: 16px;
