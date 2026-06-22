@@ -2743,6 +2743,66 @@ emit(
   ],
 )
 
+// Brightline-only: team review notes on the pending-review candidate rule so
+// the rule-review detail panel renders its threaded-notes module with real CPA
+// discussion. Keyed by the template/rule id (NOT a practice_rule UUID) — that's
+// what `orpc.rules.listRuleNotes` queries. FK-safe: firm_id → firm_profile and
+// author_id → user are both in the preserved identity preamble above.
+emit(
+  'rule_note',
+  [
+    'id',
+    'firm_id',
+    'rule_id',
+    'author_id',
+    'body',
+    'parent_note_id',
+    'created_at',
+    'updated_at',
+  ],
+  [
+    // Priya (partner) opens the review with the substantive question.
+    row(
+      s(uuid('6a', 1)),
+      s(bl.id),
+      s('ca.individual_estimated_tax.candidate.2026'),
+      s('mock_user_partner_priya'),
+      s(
+        'Holding this one until we confirm the Q1 installment date against the FTB schedule. CA estimated tax is front-loaded (30/40/0/30), so the first voucher does most of the work — I want the concrete date pinned before any client reminders go out.',
+      ),
+      'NULL',
+      ts('2026-06-02 10:15:00'),
+      ts('2026-06-02 10:15:00'),
+    ),
+    // Sarah (owner) replies in-thread with the source check.
+    row(
+      s(uuid('6a', 2)),
+      s(bl.id),
+      s('ca.individual_estimated_tax.candidate.2026'),
+      s('mock_user_owner_sarah'),
+      s(
+        'Pulled the FTB page — Q1 lands on the federal April date and rolls to the next business day on weekends, matching the fixed-date logic the candidate now carries. Thresholds and the no-tax safe harbor look right. Comfortable accepting once you have eyes on the installment split.',
+      ),
+      s(uuid('6a', 1)),
+      ts('2026-06-02 14:40:00'),
+      ts('2026-06-02 14:40:00'),
+    ),
+    // Miguel (manager) adds the operational caveat before sign-off.
+    row(
+      s(uuid('6a', 3)),
+      s(bl.id),
+      s('ca.individual_estimated_tax.candidate.2026'),
+      s('mock_user_manager_miguel'),
+      s(
+        'One caveat before we flip it on: a handful of our CA individuals are below the estimated-payment threshold and should be scoped out so we do not nudge clients who owe nothing. I will tag the applicability list this afternoon, then this is ready to accept.',
+      ),
+      'NULL',
+      ts('2026-06-03 09:05:00'),
+      ts('2026-06-03 09:05:00'),
+    ),
+  ],
+)
+
 // Flush supporting tables in FK-safe order.
 const SUPPORT_ORDER = [
   'migration_mapping',
