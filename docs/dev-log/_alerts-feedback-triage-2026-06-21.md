@@ -80,3 +80,15 @@ rewritten for the zones.
   time-urgent. Deliberate; revisit if deadline urgency should outrank reach.
 - Day-grouping stays in the awareness digest only; the action queue is flat.
 - Visual polish pass (zone band weight, density, motion) is ongoing.
+
+## Visual polish — framed "Needs action" pill (2026-06-22)
+
+Yuqi: the zone title "needs to live in a pill or something to be framed."
+The hero queue's "Needs action" label was floating text (Zap + label +
+neutral count chip) — it didn't read as a contained zone. It's now one
+framed pill: soft warning family (`bg-state-warning-hover` 50 / `border-
+state-warning-hover-alt` 100 / `text-text-warning`, the same chrome as the
+`PulseAlertsMap` cluster chips and the `alert()` warning container), with
+the count nested as a deeper 100-tint step — tonal, no solid-red jump, so it
+never double-highlights. The "For your awareness" band stays quiet text:
+asymmetric attention — the hero zone is framed/prominent, the digest demoted.

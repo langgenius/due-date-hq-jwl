@@ -1287,14 +1287,20 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           )}
                         />
                       ) : null}
-                      <span className="inline-flex items-center gap-1.5">
+                      {/* The zone title lives in a framed warning pill (Yuqi
+                          2026-06-22) so the hero queue reads as a contained chip,
+                          not floating text. Soft warning family (50 bg / 100
+                          border, the canonical PulseAlertsMap + alert() chrome);
+                          the count nests as a deeper 100-tint step — tonal, no
+                          solid-red jump, so it never double-highlights. */}
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-state-warning-hover-alt bg-state-warning-hover py-1 pr-1.5 pl-2.5">
                         <ZapIcon className="size-3.5 shrink-0 text-text-warning" aria-hidden />
-                        <span className="text-sm font-semibold text-text-primary">
+                        <span className="text-sm font-semibold text-text-warning">
                           <Trans>Needs action</Trans>
                         </span>
-                      </span>
-                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-section px-1.5 text-xs font-medium tabular-nums text-text-secondary">
-                        {actionAlerts.length}
+                        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-state-warning-hover-alt px-1.5 text-xs font-medium tabular-nums text-text-warning">
+                          {actionAlerts.length}
+                        </span>
                       </span>
                     </div>
                     {actionAlerts.length > 0 ? (
