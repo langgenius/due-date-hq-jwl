@@ -1882,9 +1882,7 @@ msgstr "Activates this rule for {clientCount, plural, one {# client} other {# cl
 msgid "active"
 msgstr "active"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/ActiveQueueChip.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -1894,10 +1892,6 @@ msgstr "active"
 #: src/routes/rules.library.tsx
 msgid "Active"
 msgstr "Active"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Active alerts"
-msgstr "Active alerts"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Active alerts for this client"
@@ -2413,11 +2407,6 @@ msgstr "Alert source revoked"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert status"
 msgstr "Alert status"
-
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Alert work queue"
-msgstr "Alert work queue"
 
 #. placeholder {0}: alert.title
 #: src/features/alerts/AlertHistoryView.tsx
@@ -3891,6 +3880,7 @@ msgstr "Cleaning up client's books"
 msgid "Clear"
 msgstr "Clear"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/onboarding/state-rule-activation-selector.tsx
 #: src/routes/obligations.tsx
 msgid "Clear all"
@@ -3948,7 +3938,6 @@ msgstr "Clear the blocker to proceed"
 msgid "Clear the filters to see your full inbox."
 msgstr "Clear the filters to see your full inbox."
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "Clear these filters"
 msgstr "Clear these filters"
@@ -5935,6 +5924,10 @@ msgstr "Dismiss alert: {alertTitle}"
 msgid "Dismiss alerts"
 msgstr "Dismiss alerts"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismiss all"
+msgstr "Dismiss all"
+
 #: src/routes/obligations.tsx
 msgid "Dismiss at-a-glance summary"
 msgstr "Dismiss at-a-glance summary"
@@ -5971,6 +5964,10 @@ msgstr "Dismissed alerts move off the active board into history. Restore them fr
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismissing hides the alert, but the filing window still closes — it can't be recovered after the deadline passes."
 msgstr "Dismissing hides the alert, but the filing window still closes — it can't be recovered after the deadline passes."
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Display"
+msgstr "Display"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Disposition"
@@ -7438,6 +7435,11 @@ msgstr "For the client list, open Clients and use the download icon at the top-r
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
 msgstr "For US CPA practices"
+
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "For your awareness"
+msgstr "For your awareness"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Foreign accounts"
@@ -12937,8 +12939,6 @@ msgid "review"
 msgstr "review"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -13834,6 +13834,10 @@ msgstr "Select all {count} rules in {label}"
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Select all alerts on {label}"
 msgstr "Select all alerts on {label}"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Select all alerts that need action"
+msgstr "Select all alerts that need action"
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Select all deadlines in this year"
@@ -14861,8 +14865,8 @@ msgid "Suggested {count} checklist items."
 msgstr "Suggested {count} checklist items."
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Suggested action"
-msgstr "Suggested action"
+msgid "Suggested actions"
+msgstr "Suggested actions"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms and vouchers"
@@ -17044,6 +17048,10 @@ msgstr "You're about to create:"
 #: src/routes/dashboard.tsx
 msgid "You're almost set up"
 msgstr "You're almost set up"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "You're caught up — nothing needs action right now."
+msgstr "You're caught up — nothing needs action right now."
 
 #: src/components/patterns/app-shell.tsx
 msgid "You're exploring a live, read-only demo."
