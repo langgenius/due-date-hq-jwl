@@ -310,19 +310,13 @@ async function waitFor(assertion: () => void, attempts = 100): Promise<void> {
   }
 }
 
-// 006bc09d made Review the default work queue (Yuqi feedback); fixtures that
-// live in the Active queue (deadline_shift / matched) need a segment switch
-// before their rows render.
+// The Review/Active MODE toggle was removed 2026-06-21 (Yuqi) for the unified
+// two-zone triage list ([[project_alerts_triage_model]]): "needs action" alerts
+// render in their own zone by default and the "for your awareness" digest is
+// expanded by default, so action fixtures are reachable with no segment switch.
+// Kept as a no-op so the existing call sites read unchanged.
 async function selectActiveQueue(): Promise<void> {
-  await waitForText('Active')
-  const segment = Array.from(document.querySelectorAll('button')).find((candidate) =>
-    candidate.textContent?.startsWith('Active'),
-  )
-  expect(segment).toBeTruthy()
-  await act(async () => {
-    segment?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    await Promise.resolve()
-  })
+  await Promise.resolve()
 }
 
 beforeEach(() => {
@@ -389,8 +383,8 @@ describe('AlertsListPage source health display', () => {
   })
 })
 
-describe('AlertsListPage work queue toggle', () => {
-  it('defaults to Review first and switches to Active alerts on request', async () => {
+describe('AlertsListPage triage zones', () => {
+  it('shows the needs-action queue and the awareness digest together, with no mode toggle', async () => {
     const activeDetail = alertDetail()
     const reviewOnlyAlert = listAlert({
       id: '23232323-2323-4232-8232-232323232323',
@@ -411,32 +405,24 @@ describe('AlertsListPage work queue toggle', () => {
 
     await render(<AlertsListPage embedded />)
 
-    // 2026-06-10 (Yuqi "review is more important than active"): Review leads the
-    // toggle and is the default queue.
-    await waitForText('Review-only source update')
-    expect(document.body.textContent).not.toContain('Seeded CA relief')
-    const queueButtons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('[aria-label="Alert work queue"] button'),
-    )
-    expect(queueButtons[0]?.textContent).toContain('Review')
-    expect(queueButtons[0]?.getAttribute('aria-pressed')).toBe('true')
-    expect(queueButtons[1]?.textContent).toContain('Active')
-
-    await act(async () => {
-      queueButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
+    // 2026-06-21 (Yuqi): no mode to pick — both zones render by default. The
+    // client-impacting alert lands in "Needs action"; the review-only alert in
+    // the (expanded) "For your awareness" digest.
     await waitForText('Seeded CA relief')
-    expect(document.body.textContent).not.toContain('Review-only source update')
+    await waitForText('Review-only source update')
+    expect(document.body.textContent).toContain('Needs action')
+    expect(document.body.textContent).toContain('For your awareness')
+    // The old Review/Active segment is gone.
+    expect(document.querySelector('[aria-label="Alert work queue"]')).toBeNull()
   })
 })
 
 describe('AlertsListPage catchup rows in the stream', () => {
-  it('renders catchup alerts as ordinary cards routed through the Review/Active split', async () => {
+  it('renders catchup alerts as ordinary cards routed through the triage zones', async () => {
     // 2026-06-11 (owner): no separate "Already in effect" band — catchup rows
-    // (origin='catchup') use the SAME cards and the same Review/Active queue
-    // routing as live rows. Their state-not-news semantics live entirely in
-    // the backend (excluded from new-alert counters, no emails).
+    // (origin='catchup') use the SAME cards and the same triage zones as live
+    // rows. Their state-not-news semantics live entirely in the backend
+    // (excluded from new-alert counters, no emails).
     const catchupShift = listAlert({
       id: '56565656-5656-4565-8565-565656565656',
       pulseId: '67676767-6767-4676-8676-676767676767',
@@ -465,21 +451,11 @@ describe('AlertsListPage catchup rows in the stream', () => {
 
     await render(<AlertsListPage embedded />)
 
-    // Default Review queue: the review-only catchup card shows; the
-    // deadline-shift catchup card is Active-queue material and stays out.
-    await waitForText('NY MFI computation change')
-    expect(document.body.textContent).not.toContain('GA wildfire relief')
-    expect(document.body.textContent).not.toContain('Already in effect')
-
-    const queueButtons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('[aria-label="Alert work queue"] button'),
-    )
-    await act(async () => {
-      queueButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
+    // Both catchup rows render by default — the deadline-shift in "Needs
+    // action", the review-only in the awareness digest. No "Already in effect" band.
     await waitForText('GA wildfire relief')
-    expect(document.body.textContent).not.toContain('NY MFI computation change')
+    await waitForText('NY MFI computation change')
+    expect(document.body.textContent).not.toContain('Already in effect')
   })
 })
 

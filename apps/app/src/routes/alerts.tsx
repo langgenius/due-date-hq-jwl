@@ -103,7 +103,14 @@ export function AlertsRoute() {
           page-specific. The trailing chevron is dropped to match /today
           (nav cue is the hover-deepen). */}
       {hasNationalMonitoringCoverage ? (
+        // 2026-06-21 (Yuqi /alerts #5 "should be vertically center aligned"):
+        // the analytics wrapper was a BARE `display:inline` span, so the
+        // MonitoringChip inside aligned to the text baseline instead of the
+        // flex cross-center the count pill sits on — it read a hair low next to
+        // "Alerts". `inline-flex items-center` makes it a proper flex item so
+        // the chip centers on the same line as the title + count pill.
         <span
+          className="inline-flex items-center"
           onClick={() =>
             track(ANALYTICS_EVENTS.sourcesHealthChipClicked, {
               // Non-PII rollup of the monitoring chip's status (the live

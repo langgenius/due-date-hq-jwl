@@ -121,19 +121,9 @@ async function openPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
-  // The alerts list defaults to the "Review" queue; the seeded deadline-shift
-  // alert (isActiveAlert) lives under "Active". Click the Active tab — click()
-  // auto-waits for the SPA to render the switch (a bare count()/isVisible()
-  // check races client hydration and silently skips) — and confirm it's
-  // selected before waiting for the alert card.
-  const alert = pulseListAlertButton(page)
-  if (!(await alert.isVisible().catch(() => false))) {
-    const active = page
-      .getByRole('group', { name: 'Alert work queue' })
-      .getByRole('button', { name: /^Active/ })
-    await active.click()
-    await expect(active).toHaveAttribute('aria-pressed', 'true')
-  }
+  // 2026-06-22: the unified triage list shows action alerts in the always-visible
+  // "Needs action" zone (no Review/Active toggle), so the seeded deadline-shift
+  // alert is reachable without switching tabs.
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }
