@@ -21,6 +21,14 @@
 > [_motion-deferred-tail-2026-06-22](../dev-log/_motion-deferred-tail-2026-06-22.md).
 > What stays open in this catalog is only the **rejected** items and a couple of
 > debatable delight beats; nothing is pending.
+>
+> **Update — 2026-06-22 (round 2): full re-sweep + delight pass.** A fresh 4-agent
+> survey (gaps this catalog missed + components added since) plus a delight layer
+> shipped **28 more net-new items** across all clusters — setup-step pops, choice/
+> needs-attention staggers, deadlines bulk-bar exit, a 7-site spinner a11y guard
+> sweep, audit crossfades, wizard step panels, stepper connector fill, the sidebar
+> chevron rotate, and the dropdown/select indicator zoom. See
+> [2026-06-22-motion-resweep-delight](../dev-log/2026-06-22-motion-resweep-delight.md).
 
 ## Shipped this pass (10)
 
