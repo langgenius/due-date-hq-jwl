@@ -24,6 +24,7 @@ import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { clientDetailPath } from '@/features/clients/client-url'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
@@ -654,7 +655,30 @@ function BriefTableRow({
               client names plus three card titles plus three section titles
               made eleven equal bolds; nothing won. The name is key data (500);
               the row's ONE loud element is the red lateness in DUE. */}
-          <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
+          {/* The client name is its OWN link to the client page (tooltip + hover
+              underline), distinct from the row's open-the-deadline click. Stop
+              propagation on click + Enter/Space so the name navigates to the
+              client without the row also opening the deadline. */}
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <Link
+                  {...props}
+                  to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
+                  }}
+                  className="block w-fit max-w-full truncate rounded-sm text-base font-medium text-text-primary underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  {row.clientName}
+                </Link>
+              )}
+            />
+            <TooltipContent>
+              <Trans>View {row.clientName}</Trans>
+            </TooltipContent>
+          </Tooltip>
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             <span className="truncate">{verb}</span>
             {showReadiness ? (

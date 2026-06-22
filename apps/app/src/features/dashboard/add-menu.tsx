@@ -137,7 +137,7 @@ export function DashboardAddMenu() {
           >
             <UploadIcon className="mt-0.5 size-4" aria-hidden />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <Trans>Import data</Trans>
+              <Trans>Import clients</Trans>
               <span className="text-caption text-text-tertiary">
                 {canRunMigration ? (
                   <Trans>Bulk import from a file or another tool</Trans>

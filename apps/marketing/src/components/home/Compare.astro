@@ -15,7 +15,8 @@ const ariaSummary =
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h">
-  <p class="m-eyebrow" id="cmp-h">How it compares</p>
+  <p class="m-eyebrow">How it compares</p>
+  <h2 class="m-h2 compare__h" id="cmp-h">They store your dates. We watch them <span class="ital">change.</span></h2>
 
   <div class="cmp-scroll">
     <div class="cmp" role="img" aria-label={ariaSummary}>
@@ -57,16 +58,17 @@ const ariaSummary =
 </section>
 
 <style>
-  .compare {
-    max-width: 940px;
+  .compare__h {
+    max-width: 20ch;
   }
   .cmp-scroll {
-    margin-top: 22px;
+    margin-top: clamp(28px, 3.5vw, 44px);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
   .cmp {
     min-width: 600px;
+    max-width: 940px;
     display: grid;
     grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr));
     border-top: 1px solid var(--m-ink);

@@ -1,3 +1,4 @@
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -20,7 +21,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  */
 export type SegmentedOption<T extends string> = {
   value: T
-  label: React.ReactNode
+  label: ReactNode
   /** Optional leading icon (rendered at size-3.5). */
   icon?: LucideIcon
   /**
@@ -68,30 +69,70 @@ export function Segmented<T extends string>({
   className?: string
   ariaLabel?: string
 }) {
+  const listRef = useRef<HTMLDivElement>(null)
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null)
+  const activeIndex = options.findIndex((option) => option.value === value)
+
+  // Slide the active fill between options instead of snapping it. Measure the
+  // active button's box and position an absolute indicator that transitions its
+  // left/width. CSS-only (packages/ui carries no motion lib); a ResizeObserver
+  // re-measures when a label/count change shifts the active button's width.
+  useLayoutEffect(() => {
+    const list = listRef.current
+    if (!list || activeIndex < 0) {
+      setIndicator(null)
+      return
+    }
+    const measure = () => {
+      const btn = list.querySelector<HTMLElement>(`[data-segment-index="${activeIndex}"]`)
+      if (btn) setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth })
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(list)
+    return () => observer.disconnect()
+  }, [activeIndex, size])
+
   return (
     <div
       role="group"
+      ref={listRef}
       aria-label={ariaLabel}
       aria-disabled={disabled || undefined}
       className={cn(
-        'inline-flex w-fit items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5',
+        'relative inline-flex w-fit items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5',
         disabled && 'opacity-50',
         className,
       )}
     >
-      {options.map((option) => {
+      {/* Sliding active indicator — slides between options on change instead of
+          the white fill snapping. Renders only once measured + when an option is
+          active; the buttons sit above it via `relative z-10`. */}
+      {indicator ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-lg border border-divider-subtle bg-components-segmented-item-bg-active transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
+          style={{ left: indicator.left, width: indicator.width }}
+        />
+      ) : null}
+      {options.map((option, index) => {
         const active = option.value === value
         const Icon = option.icon
         return (
           <button
             key={option.value}
             type="button"
+            data-segment-index={index}
             disabled={disabled}
             onClick={() => onValueChange(option.value)}
             aria-pressed={active}
             aria-label={option.ariaLabel}
             className={cn(
-              'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg font-medium whitespace-nowrap transition outline-none active:scale-[0.97] motion-reduce:active:scale-100',
+              // `border border-transparent` on every item keeps the box size
+              // identical active-or-not — the visible border + white fill now
+              // ride on the sliding indicator behind the items (relative z-10).
+              'relative z-10 inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg border border-transparent font-medium whitespace-nowrap transition outline-none active:scale-[0.97] motion-reduce:active:scale-100',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'disabled:cursor-not-allowed',
               size === 'sm'
@@ -100,8 +141,8 @@ export function Segmented<T extends string>({
                   ? 'h-8 px-3 text-base'
                   : 'h-7 px-2.5 text-xs',
               active
-                ? 'border border-divider-subtle bg-components-segmented-item-bg-active text-components-segmented-text-active'
-                : 'border border-transparent text-components-segmented-text hover:text-components-segmented-text-active',
+                ? 'text-components-segmented-text-active'
+                : 'text-components-segmented-text hover:text-components-segmented-text-active',
               option.dimmed && !active && 'opacity-60',
             )}
           >

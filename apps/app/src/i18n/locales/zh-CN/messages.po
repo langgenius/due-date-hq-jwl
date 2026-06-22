@@ -7896,6 +7896,7 @@ msgstr "导入批次已创建"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/dashboard/add-menu.tsx
 #: src/features/dashboard/create-choice-cards.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -7927,10 +7928,6 @@ msgstr "导入已完成"
 #: src/features/audit/audit-log-labels.ts
 msgid "Import completed: {0} clients, {1} deadlines, {2} skipped rows"
 msgstr "导入完成：{0} 个客户，{1} 个截止日，{2} 行已跳过"
-
-#: src/features/dashboard/add-menu.tsx
-msgid "Import data"
-msgstr "导入数据"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Import file uploaded"
@@ -16489,6 +16486,8 @@ msgid "View"
 msgstr "查看"
 
 #. placeholder {0}: client.name
+#. placeholder {0}: row.clientName
+#: src/features/dashboard/merged-brief-card.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View {0}"
 msgstr "查看 {0}"

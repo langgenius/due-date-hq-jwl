@@ -1502,9 +1502,9 @@ export function ObligationQueueRoute() {
       onMutate: async (input) => {
         await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
         await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
-        const previousLists = queryClient.getQueriesData<
-          InfiniteData<ObligationQueueListOutput>
-        >({ queryKey: orpc.obligations.list.key() })
+        const previousLists = queryClient.getQueriesData<InfiniteData<ObligationQueueListOutput>>({
+          queryKey: orpc.obligations.list.key(),
+        })
         const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
           queryKey: orpc.obligations.getDetail.key(),
         })

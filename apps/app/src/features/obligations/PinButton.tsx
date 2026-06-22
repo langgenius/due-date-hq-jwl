@@ -22,9 +22,7 @@ function flipPinnedInListCache(data: unknown, obligationId: string, isPinned: bo
   if (!data || typeof data !== 'object') return data
   const patchRows = (output: ObligationQueueListOutput): ObligationQueueListOutput => ({
     ...output,
-    rows: output.rows.map((row) =>
-      row.id === obligationId ? { ...row, isPinned } : row,
-    ),
+    rows: output.rows.map((row) => (row.id === obligationId ? { ...row, isPinned } : row)),
   })
   if ('pages' in data && Array.isArray((data as { pages: unknown }).pages)) {
     const infinite = data as { pages: ObligationQueueListOutput[]; pageParams: unknown[] }
@@ -68,7 +66,7 @@ export function PinButton({
       // status flip in routes/obligations.tsx.
       onMutate: async (variables) => {
         await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
-        const previousLists = queryClient.getQueriesData<unknown>({
+        const previousLists = queryClient.getQueriesData({
           queryKey: orpc.obligations.list.key(),
         })
         queryClient.setQueriesData<unknown>(

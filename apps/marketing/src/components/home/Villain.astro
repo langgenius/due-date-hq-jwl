@@ -1,22 +1,35 @@
 ---
-/** Villain — the navy accent band (the pain beat). White text on --m-accent. */
+/** Villain — the navy accent band (the pain beat). White only (no chromatic
+ *  text on dark); the accent lives in the translucent-white pain containers. */
+const pains = [
+  { lead: 'Fifty state sites.', sub: 'Refreshed by hand, hoping nothing slipped past you.' },
+  { lead: "An inbox you can't keep up with.", sub: 'The one notice that matters, buried in the noise.' },
+  { lead: 'A rule that moved in March.', sub: 'And you hear about it when your client gets the letter.' },
+]
 ---
 
-<section class="villain" aria-labelledby="villain-h">
+<section class="villain" data-nav-dark aria-labelledby="villain-h">
   <div class="villain__inner">
     <p class="villain__q">Sound familiar?</p>
-    <div class="villain__grid">
-      <h2 class="villain__h" id="villain-h">
-        It's not missing a deadline that keeps you up. It's <span class="ital">not knowing</span> if
-        you did.
-      </h2>
-      <p class="villain__body">
-        Fifty state websites. An inbox you can't keep up with.
-        <span class="dim"
-          >A rule changed back in March, and you won't hear until your client gets the notice.</span
-        > The work was never the hard part — <strong>the not-knowing is.</strong>
-      </p>
+    <h2 class="villain__h" id="villain-h">
+      It's not missing a deadline that keeps you up. It's <span class="ital">not knowing</span> if you
+      did.
+    </h2>
+
+    <div class="villain__pains">
+      {
+        pains.map((p) => (
+          <article class="vpain">
+            <p class="vpain__lead">{p.lead}</p>
+            <p class="vpain__sub">{p.sub}</p>
+          </article>
+        ))
+      }
     </div>
+
+    <p class="villain__punch">
+      The work was never the hard part. <strong>The not-knowing is.</strong>
+    </p>
   </div>
 </section>
 
@@ -28,26 +41,21 @@
     max-width: var(--m-maxw);
     margin-inline: auto;
     padding-inline: var(--m-gutter);
-    padding-block: clamp(56px, 9vw, 110px);
+    padding-block: clamp(56px, 9vw, 104px);
   }
   .villain__q {
-    font-size: 15px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.62);
-    margin-bottom: clamp(20px, 3vw, 32px);
-  }
-  .villain__grid {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--m-col-gap);
-    gap: clamp(28px, 5vw, 56px);
-    align-items: start;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: clamp(18px, 2.4vw, 26px);
   }
   .villain__h {
-    grid-column: span 6;
+    max-width: 24ch;
     font-family: var(--m-font-sans);
     font-weight: 500;
-    font-size: clamp(29px, 3.6vw, 44px);
+    font-size: clamp(29px, 3.6vw, 46px);
     line-height: 1.08;
     letter-spacing: -0.02em;
     color: #fff;
@@ -55,27 +63,45 @@
   .villain__h .ital {
     font-style: italic;
   }
-  .villain__body {
-    grid-column: span 6;
-    font-size: clamp(18px, 1.5vw, 21px);
-    line-height: 1.55;
+  .villain__pains {
+    margin-top: clamp(36px, 5vw, 56px);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+  .vpain {
+    padding: clamp(20px, 2.4vw, 28px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+  }
+  .vpain__lead {
+    font-size: clamp(15px, 1.2vw, 17px);
+    font-weight: 600;
+    color: #fff;
     letter-spacing: -0.01em;
-    color: rgba(255, 255, 255, 0.82);
   }
-  .villain__body .dim {
-    color: rgba(255, 255, 255, 0.5);
+  .vpain__sub {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.62);
   }
-  .villain__body strong {
+  .villain__punch {
+    margin-top: clamp(32px, 4vw, 48px);
+    max-width: 40ch;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .villain__punch strong {
     color: #fff;
     font-weight: 600;
   }
-  @media (max-width: 1000px) {
-    .villain__grid {
+  @media (max-width: 860px) {
+    .villain__pains {
       grid-template-columns: 1fr;
-    }
-    .villain__h,
-    .villain__body {
-      grid-column: auto;
     }
   }
 </style>

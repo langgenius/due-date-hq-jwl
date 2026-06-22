@@ -712,6 +712,15 @@ const sidebarMenuButtonVariants = cva(
     // already sits on the rail centerline, so the glyph never snaps/drifts
     // during the width animation. Only the icon↔label gap collapses.
     'group-data-[collapsed=true]/sidebar:gap-0',
+    // 2026-06-22 (Yuqi "collapsed selected box should be a square"): in the
+    // collapsed rail the row constrains to a centered 32×32 SQUARE (w-8 = h-8)
+    // so the active solid-accent pill and the hover wash read as a square tile,
+    // not a 38×32 stub of the expanded row-pill. The icon doesn't move: at
+    // px-[11px] in the full-width (38px) card the glyph already sits on the
+    // rail centerline; a centered w-8 box with px-2 ((32−16)/2 = 8) lands the
+    // glyph at the exact same x, so there's no snap on expand/collapse — only
+    // the highlight's right edge grows out into the pill.
+    'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:px-2',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route

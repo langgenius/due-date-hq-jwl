@@ -26,7 +26,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
-import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
+import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
@@ -103,15 +103,19 @@ export function ImportHistoryDrawer({
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
   // 820-880px wide drawer — auto-collapse the sidebar while open, restore on
-  // close. Mounted inside /clients route which is inside AppShell, so
-  // `useSidebar` is always available.
-  const { setAutoCollapsed } = useSidebar()
+  // close. This drawer mounts in TWO contexts: the /clients route (inside
+  // AppShell → SidebarProvider present) AND the migration wizard, which renders
+  // ABOVE AppShell (MigrationWizardProvider wraps it), so NO sidebar is in scope
+  // there. `useOptionalSidebar` returns null instead of throwing, so opening
+  // "Import history" from inside the wizard no longer crashes — it just skips the
+  // auto-collapse (the wizard already owns the full viewport).
+  const sidebar = useOptionalSidebar()
   useEffect(() => {
-    setAutoCollapsed(open)
+    sidebar?.setAutoCollapsed(open)
     return () => {
-      setAutoCollapsed(false)
+      sidebar?.setAutoCollapsed(false)
     }
-  }, [open, setAutoCollapsed])
+  }, [open, sidebar])
   const canRevertMigration = permission.can('migration.revert')
   const canRunMigration = permission.can('migration.run')
   const { openWizard } = useMigrationWizard()
