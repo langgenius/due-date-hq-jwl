@@ -850,41 +850,44 @@ function OverviewReviewBreakdown({
               key={g.jurisdiction}
               type="button"
               onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className="group flex cursor-pointer flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+              className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
-              {/* Identity (the card's "label") + a quiet drill affordance that
-                  slides + turns accent on hover. */}
+              {/* Identity (the card's "label"): seal + jurisdiction name. The
+                  whole card is the button + has a hover/focus state, so no
+                  per-card chevron is needed — it was redundant chrome. */}
               <div className="flex items-center gap-2.5">
                 <StateBadge code={g.jurisdiction} size="sm" preview={false} />
                 <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
                   {g.label}
                 </span>
-                <ChevronRightIcon
-                  aria-hidden
-                  className="size-4 shrink-0 text-text-tertiary transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-text-accent"
-                />
               </div>
-              {/* Value — pending count. Neutral per the band's color budget;
-                  urgency reads from SIZE (16px/500), the canonical KPI numeral. */}
-              <span className="text-lg leading-none font-medium tracking-tight tabular-nums text-text-primary">
-                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
-              </span>
-              {/* Sub — one quiet line, no per-segment color (the colored
-                  green/red flags read as "花里胡哨" next to the calm band). The
-                  count carries the weight; the sub just qualifies it: the
-                  ready/high-severity differentiators when present, else the wait
-                  age (the sort rationale) as a fallback. All muted, one line. */}
+              {/* Value (protagonist): the pending count is the biggest thing on
+                  the card — "numbers as protagonists, large but quiet". "to
+                  review" demotes to a quiet inline unit so it stops repeating
+                  loudly down the grid. Neutral per the band's color budget; the
+                  counts descend (19 → 16 → 12 → 10), so the number itself
+                  carries the "most urgent first" ranking. */}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-stat-value leading-none font-medium tracking-tight tabular-nums text-text-primary">
+                  {g.pendingReviewCount}
+                </span>
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>to review</Trans>
+                </span>
+              </div>
+              {/* Sub — shortened differentiators, no per-segment color, wraps
+                  rather than truncating (so NY's "8 ready · 4 high-severity"
+                  never clips at the 2-column breakpoint). Falls back to the wait
+                  age when a card carries no flags. */}
               {(() => {
                 const facts = [
-                  g.readyCount > 0 ? t`${g.readyCount} ready to accept` : null,
+                  g.readyCount > 0 ? t`${g.readyCount} ready` : null,
                   g.highCount > 0 ? t`${g.highCount} high-severity` : null,
                 ].filter((f): f is string => f !== null)
                 const text =
                   facts.length > 0 ? facts.join(' · ') : days != null ? t`${days}d waiting` : null
                 if (text == null) return null
-                return (
-                  <span className="truncate text-xs font-medium text-text-tertiary">{text}</span>
-                )
+                return <span className="text-xs font-medium text-text-tertiary">{text}</span>
               })()}
             </button>
           )

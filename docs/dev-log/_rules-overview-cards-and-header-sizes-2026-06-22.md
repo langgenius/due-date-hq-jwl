@@ -51,6 +51,25 @@ draft requirement, or a concrete draft already exists). No new backend — same
 Held the two net-new ideas (affected-clients, deadline-proximity) — they need a
 join/query this route doesn't load, and would re-bloat the card.
 
+### /critique action plan — number as protagonist (same day)
+Ran `/critique` on the card design. Detector clean (0/25 AI-slop tells); LLM
+review scored 32/40 ("strong"), flagging: the count wasn't the protagonist
+(16px, barely above the 14px name), "Most urgent first" was asserted but
+invisible (six equal-weight cards), and the de-color pass had left the sub
+`truncate`d (silent clip risk). User chose: keep the 6-card grid, sharpen
+within, work P1→P3.
+
+Applied (typeset + clarify + distill in one pass):
+- **Number as protagonist** — count is now `text-stat-value` (24px/500, the
+  band's KPI numeral) with "to review" demoted to a quiet 12px inline unit.
+  The eye lands on the count, and since the cards descend 19 → 16 → 12 → 10,
+  the number itself carries the ranking — "Most urgent first" is now legible
+  (age is uniform 57d in this seed, so the count was always the real sort key).
+- **Sub fixed** — shortened ("ready to accept" → "ready"), `truncate` removed
+  so it wraps instead of clipping at the 2-col breakpoint.
+- **Chevron removed** — redundant chrome; the whole card is already a button
+  with hover/focus states.
+
 ### De-flash — drop the color, one quiet line (same day)
 Yuqi: "卡片太花里胡哨了" (too gaudy). The green ready + red high-severity stacked
 over gray waiting made NY/CA three-colored and wrapping. Removed the
