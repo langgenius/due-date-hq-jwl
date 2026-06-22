@@ -103,7 +103,14 @@ export function AlertsRoute() {
           page-specific. The trailing chevron is dropped to match /today
           (nav cue is the hover-deepen). */}
       {hasNationalMonitoringCoverage ? (
+        // `inline-flex items-center` is REQUIRED: this analytics wrapper is a
+        // plain inline span, so without it the inner ghost Badge aligns to the
+        // inline text baseline and drops ~6px below the count chip + title
+        // (the LIVE pill sat at midY 55.8 vs the title's 50). Centering the
+        // wrapper re-seats the badge on the title's optical center. (This fix was
+        // lost in the 2026-06-22 revert of routes/alerts.tsx; re-applied.)
         <span
+          className="inline-flex items-center"
           onClick={() =>
             track(ANALYTICS_EVENTS.sourcesHealthChipClicked, {
               // Non-PII rollup of the monitoring chip's status (the live
