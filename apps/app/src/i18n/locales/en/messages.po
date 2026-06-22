@@ -362,11 +362,6 @@ msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {#d late} other {#d late}}"
 
-#. placeholder {0}: deadlinesNarrative.entities
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {across # entity} other {across # entities}}"
-msgstr "{0, plural, one {across # entity} other {across # entities}}"
-
 #. placeholder {0}: alert.matchedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
@@ -1338,10 +1333,6 @@ msgstr "{ruleReviewCount} rules pending review"
 #: src/routes/obligations.tsx
 msgid "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
 msgstr "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
-
-#: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
-msgstr "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -7042,10 +7033,6 @@ msgstr "File size"
 msgid "File type"
 msgstr "File type"
 
-#: src/routes/obligations.tsx
-msgid "filed"
-msgstr "filed"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -8015,10 +8002,6 @@ msgstr "In effect · act by {0}"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "In force today"
 msgstr "In force today"
-
-#: src/routes/obligations.tsx
-msgid "in progress"
-msgstr "in progress"
 
 #: src/features/obligations/status-control.tsx
 #: src/routes/readiness.tsx
@@ -11098,10 +11081,6 @@ msgstr "Outstanding"
 msgid "Over your client limit"
 msgstr "Over your client limit"
 
-#: src/routes/obligations.tsx
-msgid "overdue"
-msgstr "overdue"
-
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -11654,10 +11633,6 @@ msgstr "Policy"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Portal link copied"
 msgstr "Portal link copied"
-
-#: src/routes/obligations.tsx
-msgid "Portfolio mix: {filed} filed, {overdue} overdue, {inFlight} in progress"
-msgstr "Portfolio mix: {filed} filed, {overdue} overdue, {inFlight} in progress"
 
 #. placeholder {0}: neighbors.position
 #. placeholder {1}: neighbors.total

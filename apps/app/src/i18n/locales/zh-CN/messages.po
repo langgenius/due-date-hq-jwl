@@ -363,11 +363,6 @@ msgstr "{0, plural, one {# 项等待客户} other {# 项等待客户}}"
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {逾期 # 天} other {逾期 # 天}}"
 
-#. placeholder {0}: deadlinesNarrative.entities
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {across # entity} other {across # entities}}"
-msgstr "{0, plural, other {覆盖 # 个实体}}"
-
 #. placeholder {0}: alert.matchedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{0, plural, one {Applied to # client · logged to audit ledger} other {Applied to # clients · logged to audit ledger}}"
@@ -1343,10 +1338,6 @@ msgstr "{ruleReviewCount} 条规则待复核"
 #: src/routes/obligations.tsx
 msgid "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
 msgstr "{scopeTotal, plural, other {已跟踪 # 个截止事项}}"
-
-#: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
-msgstr "{scopeTotal, plural, one {已跟踪 # 项申报} other {已跟踪 # 项申报}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -7066,10 +7057,6 @@ msgstr "文件大小"
 msgid "File type"
 msgstr "文件类型"
 
-#: src/routes/obligations.tsx
-msgid "filed"
-msgstr "已申报"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -8043,10 +8030,6 @@ msgstr "生效中 · 须在 {0} 前处理"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "In force today"
 msgstr "今日生效"
-
-#: src/routes/obligations.tsx
-msgid "in progress"
-msgstr "进行中"
 
 #: src/features/obligations/status-control.tsx
 #: src/routes/readiness.tsx
@@ -11142,10 +11125,6 @@ msgstr "未交"
 msgid "Over your client limit"
 msgstr "已超出客户数上限"
 
-#: src/routes/obligations.tsx
-msgid "overdue"
-msgstr "已逾期"
-
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -11708,10 +11687,6 @@ msgstr "政策"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Portal link copied"
 msgstr "门户链接已复制"
-
-#: src/routes/obligations.tsx
-msgid "Portfolio mix: {filed} filed, {overdue} overdue, {inFlight} in progress"
-msgstr "组合分布：已申报 {filed} 项，已逾期 {overdue} 项，进行中 {inFlight} 项"
 
 #. placeholder {0}: neighbors.position
 #. placeholder {1}: neighbors.total
