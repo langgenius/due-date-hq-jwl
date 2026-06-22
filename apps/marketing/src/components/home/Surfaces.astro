@@ -3,8 +3,10 @@
  *  (titlebar + jurisdiction tabs) holds four connected panels — Alerts, Coverage,
  *  Worklist, Apply & audit — sharing one continuous surface so the product reads as
  *  one strong place to work, not four loose cards. A caption rail below names each
- *  surface, keeping its one-line pitch + "See it" link. The minis reuse the exact
- *  chip vocabulary from the Hero feed and the See-it-work worklist. */
+ *  surface, keeping its one-line pitch + a destination-predicting link (per-card
+ *  label: "See coverage" → /state-coverage, "See in the tour" → /how-it-works).
+ *  The minis reuse the exact chip vocabulary from the Hero feed and the
+ *  See-it-work worklist. */
 interface Props { locale?: 'en' | 'zh-CN' }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
@@ -21,7 +23,6 @@ const t = zh
       intro: '从第一条提醒到应用变更——四个界面，一个让你安心工作的地方。',
       win: '美国税务截止日 · 实时',
       tabs: ['联邦', '德州', '加州', '佛州'],
-      seeIt: '查看',
       cards: {
         alerts: {
           sev: '紧急',
@@ -31,11 +32,13 @@ const t = zh
           panel: '提醒动态',
           t: '提醒',
           d: '实时动态——每条变更落地即呈现，按紧急程度排序。',
+          see: '在导览中查看',
         },
         coverage: {
           panel: '覆盖',
           t: '覆盖',
           d: '一张地图涵盖所有辖区——看清变更落在何处。',
+          see: '查看覆盖范围',
         },
         worklist: {
           rows: [
@@ -46,6 +49,7 @@ const t = zh
           panel: '工作清单',
           t: '工作清单',
           d: '客户按风险排序——一眼看出先打给谁。',
+          see: '在导览中查看',
         },
         apply: {
           panel: '应用与审计',
@@ -53,6 +57,7 @@ const t = zh
           audit: '有来源 · 24 小时内可撤销 · 已记录',
           t: '应用与审计',
           d: '把变更推送给每一个受影响的人——背后留有完整记录。',
+          see: '在导览中查看',
         },
       },
     }
@@ -64,7 +69,6 @@ const t = zh
       intro: 'From the first alert to the applied change — four surfaces, one calm place to work.',
       win: 'US tax deadlines · live',
       tabs: ['Federal', 'Texas', 'California', 'Florida'],
-      seeIt: 'See it',
       cards: {
         alerts: {
           sev: 'Urgent',
@@ -74,11 +78,13 @@ const t = zh
           panel: 'Alert feed',
           t: 'Alerts',
           d: 'The live feed — every change as it lands, sorted by severity.',
+          see: 'See in the tour',
         },
         coverage: {
           panel: 'Coverage',
           t: 'Coverage',
           d: 'One map of every jurisdiction — see where changes are landing.',
+          see: 'See coverage',
         },
         worklist: {
           rows: [
@@ -89,6 +95,7 @@ const t = zh
           panel: 'Worklist',
           t: 'Worklist',
           d: 'Your clients in risk order — who to call first, at a glance.',
+          see: 'See in the tour',
         },
         apply: {
           panel: 'Apply & audit',
@@ -96,6 +103,7 @@ const t = zh
           audit: 'sourced · reversible 24h · logged',
           t: 'Apply & audit',
           d: 'Push a change to everyone it touches — with the full trail behind it.',
+          see: 'See in the tour',
         },
       },
     }
@@ -104,11 +112,11 @@ const surfaces = [
   { key: 'alerts', href: `${base}/how-it-works#how`, c: t.cards.alerts },
   { key: 'coverage', href: `${base}/state-coverage`, c: t.cards.coverage },
   { key: 'worklist', href: `${base}/how-it-works#work`, c: t.cards.worklist },
-  { key: 'apply', href: `${base}/security`, c: t.cards.apply },
+  { key: 'apply', href: `${base}/how-it-works`, c: t.cards.apply },
 ]
 ---
 
-<section class="m-section surfaces" aria-labelledby="surfaces-h" data-reveal>
+<section class="m-section surfaces" id="surfaces" aria-labelledby="surfaces-h" data-reveal>
   <div class="surfaces__head">
     <div>
       <p class="m-eyebrow">{t.eyebrow}</p>
@@ -201,7 +209,7 @@ const surfaces = [
         <div class="legend__body">
           <h3 class="legend__t">{s.c.t}</h3>
           <p class="legend__d">{s.c.d}</p>
-          <a class="legend__link" href={s.href}>{t.seeIt} <span aria-hidden="true">→</span></a>
+          <a class="legend__link" href={s.href}>{s.c.see} <span aria-hidden="true">→</span></a>
         </div>
       </li>
     ))}

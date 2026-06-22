@@ -2,9 +2,9 @@ import type { LandingCopy } from './types'
 
 const en: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — See deadline risk before it becomes a missed filing',
+    title: 'DueDateHQ — Catch every tax-deadline change and see who it affects',
     description:
-      'Glass-box deadline intelligence for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source.',
+      'Deadline-change monitoring for US CPA practices. DueDateHQ catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
     ogImage: '/og/home.en.png',
   },
   nav: {
@@ -28,16 +28,16 @@ const en: LandingCopy = {
     description:
       'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
     positioning:
-      "It's the deadline-and-rule-change radar that sits on top of your Drake, UltraTax, or TaxDome — replacing the Excel-and-Outlook patchwork you use to catch what they miss, not your stack.",
-    primaryCta: 'Open the workbench',
+      "It's deadline-and-rule-change monitoring that sits on top of your Drake, UltraTax, or TaxDome — replacing the Excel-and-Outlook patchwork you use to catch what they miss, not your stack.",
+    primaryCta: 'Start free',
     secondaryCta: 'See the workflow',
     demoCta: 'Try a live demo',
     trust: [
-      { label: 'Radar on top of your stack' },
+      { label: 'Watches your stack' },
       { label: 'No black-box AI' },
       { label: 'Cites every number' },
       { label: 'Keyboard-first' },
-      { label: '24h Alert SLA' },
+      { label: 'Around the clock' },
     ],
     surface: {
       breadcrumb: { workbench: 'Workbench', dashboard: 'Today', week: 'This week' },
@@ -55,7 +55,7 @@ const en: LandingCopy = {
         cta: 'Review',
       },
       metric: {
-        eyebrow: 'DEADLINE RADAR · THIS WEEK',
+        eyebrow: 'DEADLINE MONITOR · THIS WEEK',
         range: 'Apr 25 — May 01',
         value: '12',
         delta: '+3 vs last Mon',
@@ -198,7 +198,7 @@ const en: LandingCopy = {
         value: '30',
         unit: 'sec',
         description:
-          'See this week’s 5 most urgent clients on the Monday console. Deadline Radar loads instantly — your Monday triage queue is ready before you are.',
+          'See this week’s 5 most urgent clients on the Monday console. The deadline monitor loads instantly — your Monday triage queue is ready before you are.',
       },
       {
         ruleNumber: 'RULE 00',
@@ -507,10 +507,10 @@ const en: LandingCopy = {
         body: 'Federal, all 50 states, and DC — official tax authorities (IRS, FTB, state DORs) organized into one source-backed rule library.',
       },
       {
-        label: 'ALERT SLA',
+        label: 'MONITORING',
         value: '24',
-        unit: 'h',
-        body: 'From source publication to in-app banner + email digest, with the affected client list pre-computed.',
+        unit: '/7',
+        body: 'Sources scanned around the clock — when one publishes a change, it reaches an in-app banner + email digest with the affected client list pre-computed.',
       },
       {
         label: 'BLACK-BOX SUGGESTIONS',
@@ -535,9 +535,9 @@ const en: LandingCopy = {
   finalCta: {
     pill: '30 sec / Monday triage',
     pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
-    title: 'Open the workbench. Let the sources speak.',
+    title: 'Start free. Let the sources speak.',
     body: 'Start with a trial or demo workspace, then keep the practice live on Solo when the first source-backed queue is ready. No native app. Sign in with Google and the first deadline review appears within ten minutes of your first paste.',
-    primaryCta: 'Open the workbench',
+    primaryCta: 'Start free',
     secondaryCta: 'Contact sales',
     trust: 'trial available · cancel anytime',
   },
@@ -697,11 +697,11 @@ const en: LandingCopy = {
     structuredData: {
       organizationName: 'DueDateHQ',
       organizationDescription:
-        'DueDateHQ builds glass-box deadline intelligence software for US CPA practices.',
+        'DueDateHQ builds deadline-change monitoring software for US CPA practices, catching when an IRS, state, or FEMA deadline moves and showing which clients it affects.',
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
-        'A source-backed deadline intelligence workbench for CPA practices managing filing risk, state updates, evidence review, and shared deadline operations.',
+        'Deadline-change monitoring for CPA practices: it catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
       audience: 'US CPA practices',
     },
     rules: {

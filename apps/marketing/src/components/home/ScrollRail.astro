@@ -9,6 +9,8 @@ const zh = locale === 'zh-CN'
 const t = zh
   ? {
       items: [
+        { label: '问题', href: '#villain-h' },
+        { label: '产品', href: '#surfaces' },
         { label: '循环', href: '#how' },
         { label: '那份公告', href: '#notice' },
         { label: '来源', href: '#sources' },
@@ -18,6 +20,8 @@ const t = zh
     }
   : {
       items: [
+        { label: 'The problem', href: '#villain-h' },
+        { label: 'Surfaces', href: '#surfaces' },
         { label: 'The loop', href: '#how' },
         { label: 'The document', href: '#notice' },
         { label: 'Sources', href: '#sources' },
@@ -123,6 +127,18 @@ const items = t.items
   .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
     background: #fff;
     border-color: #fff;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spyrail,
+    .spyrail__item,
+    .spyrail__dot {
+      transition: none;
+    }
+    /* active dot changes colour only — no scale/box-shadow growth */
+    .spyrail__item.is-active .spyrail__dot {
+      transform: none;
+      box-shadow: none;
+    }
   }
 </style>
 

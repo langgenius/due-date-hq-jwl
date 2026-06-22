@@ -2,9 +2,9 @@ import type { LandingCopy } from './types'
 
 const zhCN: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — 在错过申报前看清截止日风险',
+    title: 'DueDateHQ — 抓住每一次税务截止日变化，并看清它影响谁',
     description:
-      '面向美国 CPA 团队的玻璃盒截止日智能工作台，把客户迁移、IRS 规则、州税变化、证据复核、负责人分工和每周分诊放在同一条可审计运营链路里。',
+      '面向美国 CPA 团队的截止日变化监控。DueDateHQ 在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
     ogImage: '/og/home.zh-CN.png',
   },
   nav: {
@@ -28,16 +28,16 @@ const zhCN: LandingCopy = {
     description:
       'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
     positioning:
-      '它是叠加在你现有 Drake、UltraTax 或 TaxDome 之上的「截止日与规则变化雷达」——替换的是你用来兜住这些系统遗漏的 Excel + Outlook 拼凑流程，而不是你的系统。',
-    primaryCta: '打开工作台',
+      '它是叠加在你现有 Drake、UltraTax 或 TaxDome 之上的「截止日与规则变化监控」——替换的是你用来兜住这些系统遗漏的 Excel + Outlook 拼凑流程，而不是你的系统。',
+    primaryCta: '免费开始',
     secondaryCta: '查看工作流',
     demoCta: '试用在线 Demo',
     trust: [
-      { label: '叠加在你系统之上的雷达' },
+      { label: '盯着你的整套系统' },
       { label: '不用黑盒 AI' },
       { label: '每个数字都有出处' },
       { label: '键盘优先' },
-      { label: '24 小时提醒 SLA' },
+      { label: '全天候监控' },
     ],
     surface: {
       breadcrumb: { workbench: 'Workbench', dashboard: '今天', week: '本周' },
@@ -55,7 +55,7 @@ const zhCN: LandingCopy = {
         cta: '查看',
       },
       metric: {
-        eyebrow: 'DEADLINE RADAR · 本周',
+        eyebrow: 'DEADLINE MONITOR · 本周',
         range: 'Apr 25 — May 01',
         value: '12',
         delta: '+3 vs 上周一',
@@ -198,7 +198,7 @@ const zhCN: LandingCopy = {
         value: '30',
         unit: '秒',
         description:
-          '在周一控制台一眼看清本周最紧急的 5 位客户。Deadline Radar 在服务端预聚合，队列在页面绘制前就已就位。',
+          '在周一控制台一眼看清本周最紧急的 5 位客户。截止日监控在服务端预聚合，队列在页面绘制前就已就位。',
       },
       {
         ruleNumber: 'RULE 00',
@@ -491,10 +491,10 @@ const zhCN: LandingCopy = {
         body: '联邦、全部 50 个州和 DC 的官方税务机构（IRS、FTB、各州 DOR）汇集到一套带来源的规则库。',
       },
       {
-        label: '提醒 SLA',
+        label: '全天候监控',
         value: '24',
-        unit: 'h',
-        body: '从来源发布到仪表盘横幅 + 邮件摘要，受影响客户列表已预先计算。',
+        unit: '/7',
+        body: '全天候扫描来源 —— 某个来源发布变化后，它会进入仪表盘横幅 + 邮件摘要，受影响客户列表已预先计算。',
       },
       {
         label: '黑盒建议',
@@ -516,9 +516,9 @@ const zhCN: LandingCopy = {
   finalCta: {
     pill: '30 秒 / 周一分诊',
     pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
-    title: '打开工作台。让来源自己说话。',
+    title: '免费开始。让来源自己说话。',
     body: '先用 trial 或 demo workspace 体验；当第一条带来源的队列准备好后，再用 Solo 保持生产 practice 在线。无需安装客户端，用 Google 登录，第一次粘贴后十分钟内看到截止日复核事项。',
-    primaryCta: '打开工作台',
+    primaryCta: '免费开始',
     secondaryCta: '联系销售',
     trust: '可试用 · 随时取消',
   },
@@ -677,11 +677,12 @@ const zhCN: LandingCopy = {
   geo: {
     structuredData: {
       organizationName: 'DueDateHQ',
-      organizationDescription: 'DueDateHQ 为美国 CPA 团队构建玻璃盒截止日智能软件。',
+      organizationDescription:
+        'DueDateHQ 为美国 CPA 团队构建截止日变化监控软件，在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并显示它影响哪些客户。',
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
-        '面向 CPA 团队的可追溯截止日智能工作台，用于管理申报风险、州税更新、证据复核和共享截止日运营。',
+        '面向 CPA 团队的截止日变化监控：在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
       audience: '美国 CPA 团队',
     },
     rules: {

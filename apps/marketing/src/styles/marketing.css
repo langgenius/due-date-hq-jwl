@@ -23,7 +23,11 @@
   --m-ink: var(--text-primary); /* headings / strong text */
   --m-ink-2: var(--text-secondary); /* body */
   --m-muted: var(--text-tertiary); /* supporting */
-  --m-faint: var(--text-quaternary); /* eyebrows / meta */
+  /* a11y: --text-quaternary (rgb 16 24 40 / 0.3) sits at ~1.9:1 on white — fails
+     for the real text it carries (eyebrows, "sample data" disclaimers, reviewed
+     meta). Repointed to a navy-tinted neutral at ~4.5:1, still the quietest tier
+     but legible. Stays distinct from --m-muted (gray-500). */
+  --m-faint: rgb(16 24 40 / 0.55); /* eyebrows / meta — quiet but legible (>=3.5:1) */
   --m-on-accent: var(--text-inverted); /* text on the navy band */
 
   --m-canvas: var(--color-util-colors-gray-100); /* cold light gray page base (#f2f4f7) */
@@ -125,7 +129,9 @@
     max-width: 18ch;
     font-family: var(--m-font-sans);
     font-weight: 600;
-    font-size: clamp(30px, 4vw, 48px);
+    /* Lifted to a clear H1 ceiling so the long-tail sans H1 reads a deliberate
+       step above .m-h2 (clamp 29–44) — no near-collision at the top end. */
+    font-size: clamp(34px, 4.4vw, 54px);
     line-height: 1.08;
     letter-spacing: -0.02em;
     color: var(--m-ink);
@@ -336,6 +342,13 @@
     outline: var(--m-focus-width) solid var(--m-focus-ring);
     outline-offset: var(--m-focus-offset);
   }
+  /* The Close finale sits on the navy band and uses its own local .close .btn
+     (not .m-section / .m-btn), so the rule above misses its CTAs — they got NO
+     keyboard ring. Give them a visible on-navy ring: cyan, 2px / 2px offset. */
+  .close :where(a, button):focus-visible {
+    outline: var(--m-focus-width) solid var(--m-cyan);
+    outline-offset: var(--m-focus-offset);
+  }
 
   /* ==========================================================================
      Scroll motion — progressive enhancement. The hidden pre-reveal state
@@ -353,5 +366,29 @@
       opacity: 1;
       transform: none;
     }
+  }
+
+  /* ==========================================================================
+     CJK (zh-CN) display-serif guard.
+     The hero/finale headlines render in Instrument Serif (--m-font-display),
+     which has NO Chinese glyphs — so on zh-CN they fall back unpredictably and
+     get a synthesized oblique on .ital accent words. One shared guard, keyed on
+     html[lang='zh-CN'] so it reliably out-specifies the Astro-scoped
+     ([data-astro-cid]) single-class component rules:
+       • swap to a CJK-capable serif → sans stack
+       • relax the Latin display metrics (line-height for full-width glyphs, no
+         negative tracking)
+       • drop faux-italic — Chinese has no italic; emphasis is given another way
+         in the markup, this just stops the oblique skew.
+     ========================================================================== */
+  html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
+    font-family:
+      'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC',
+      var(--m-font-sans);
+    line-height: 1.18;
+    letter-spacing: 0;
+  }
+  html[lang='zh-CN'] .ital {
+    font-style: normal;
   }
 }
