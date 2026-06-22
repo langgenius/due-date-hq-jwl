@@ -3516,7 +3516,11 @@ export function ObligationQueueRoute() {
         // matches /today's vertical breathing room at standard viewport
         // heights; the `xl:pb-0` override below keeps the pagination footer
         // flush at tall viewports where the queue fills the screen.
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12',
+        // gap-6 (was gap-8): 32px between every top block stacked into a
+        // space-wasteful header. gap-6 (24px) matches /alerts so the two pages
+        // share one density rhythm; combined with the slim editorial line + the
+        // trimmed eyebrow, the table rises well up the fold.
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12',
         // The xl height-cap + overflow-hidden (which turns the queue into an
         // inner-table scroll) applies ONLY when the detail panel is open — the
         // side-by-side split needs a full-height rail. With the panel closed
@@ -3543,10 +3547,6 @@ export function ObligationQueueRoute() {
           <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-text-tertiary">
             <Trans>Synced just now</Trans>
             <RefreshCwIcon className="size-3 shrink-0" aria-hidden />
-            <span aria-hidden>·</span>
-            <span className="tabular-nums">
-              <Plural value={scopeTotal} one="# deadline tracked" other="# deadlines tracked" />
-            </span>
           </span>
         }
         title={
@@ -3661,32 +3661,20 @@ export function ObligationQueueRoute() {
       {!panelOpenIntent && !glanceDismissed ? (
         <section
           aria-label={t`Deadlines at a glance`}
-          // Tight px-5/py-3.5 + 4px stack with a text-lg headline so the
-          // eyebrow/headline/metric trio reads as one compact editorial block,
-          // not a hero. `relative` + `pr-9` host the dismiss button without
-          // overlapping the metric line.
-          className="relative flex flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-4 pr-9"
+          // Slim ONE-LINE editorial strip — was a bordered card (px-5 py-4 +
+          // border + fill), wasteful for a single sentence. Now: accent dot +
+          // date eyebrow + the one-line read + inline dismiss, no card chrome, so
+          // the table rises ~70px. The StatBand below owns the numeric triage.
+          className="flex items-center gap-2.5"
         >
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            type="button"
-            onClick={dismissGlance}
-            aria-label={t`Dismiss at-a-glance summary`}
-            // size-7 hit area — kept in sync with the /today Daily Brief ✕
-            // (brief-banner-language.md keep-in-sync checklist).
-            className="absolute right-2 top-2 size-7"
-          >
-            <XIcon className="size-3.5" aria-hidden />
-          </Button>
-          <CapsFieldLabel as="div" variant="group" className="inline-flex items-center gap-2">
-            <span
-              className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
-              aria-hidden
-            />
+          <span className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt" aria-hidden />
+          <CapsFieldLabel as="span" variant="group" className="shrink-0">
             {bannerDateLabel}
           </CapsFieldLabel>
-          <h2 className="max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
+          <span aria-hidden className="shrink-0 text-text-tertiary">
+            ·
+          </span>
+          <p className="min-w-0 flex-1 truncate text-sm leading-snug text-text-primary">
             {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
               <Trans>
                 {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today —
@@ -3704,10 +3692,17 @@ export function ObligationQueueRoute() {
             ) : (
               <Trans>Nothing overdue — the week is on track.</Trans>
             )}
-          </h2>
-          {/* Metric line removed — the StatBand below already carries the
-              tracked/overdue/due counts, so the banner stays a tight editorial
-              lead (date + one sentence) instead of echoing the same numbers. */}
+          </p>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            type="button"
+            onClick={dismissGlance}
+            aria-label={t`Dismiss at-a-glance summary`}
+            className="size-7 shrink-0"
+          >
+            <XIcon className="size-3.5" aria-hidden />
+          </Button>
         </section>
       ) : null}
 
