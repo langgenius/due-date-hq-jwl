@@ -33,7 +33,7 @@ export function GET(): Response {
     '',
     '## Pricing',
     '',
-    'Solo $39/mo, Pro $79/mo, Team $149/mo, Enterprise from $399/mo. Solo, Pro, and Team each include one active practice; multiple practices are on Enterprise. Trial and demo workspaces are available.',
+    'Free $0/mo, Solo $39/mo, Pro $79/mo, Team $149/mo. Free, Solo, Pro, and Team each include one active practice; for multiple practices, contact our team. Trial and demo workspaces are available.',
     '',
     '## Federal filing deadlines (calendar-year filers)',
     '',

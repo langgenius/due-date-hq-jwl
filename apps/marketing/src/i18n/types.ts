@@ -299,7 +299,7 @@ export interface PricingPlanCopy {
   /** Seat allowance, e.g. "3 seats included". */
   seats: string
   cta: string
-  hrefKind: 'checkout' | 'app' | 'contact'
+  hrefKind: 'checkout' | 'app'
   checkoutPlan?: PricingCheckoutPlan
   features: string[]
 }
