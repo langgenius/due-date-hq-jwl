@@ -1183,6 +1183,9 @@ function InviteMemberDialog({
               onChange={(event) => setEmail(event.target.value)}
               placeholder={t`member@example.com`}
               autoComplete="email"
+              // autoFocus the first field so the dialog is ready to type into
+              // immediately — matches CreateClientDialog + the onboarding forms.
+              autoFocus
               disabled={seatsFull || inviteMutation.isPending}
               required
             />

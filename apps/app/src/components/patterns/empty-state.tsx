@@ -8,15 +8,21 @@ import { DuotoneIcon, type DuotoneTone } from '@/components/primitives/duotone-i
 /**
  * EmptyState — the shared "nothing here yet" surface.
  *
- * Three orthogonal variants live in one component because their chrome is
- * identical (dashed-border card, centered column, optional icon, heading,
- * description, single CTA):
+ * One component, two axes of sizing plus an optional visual treatment. The
+ * caller picks the SEMANTICS (empty vs. filtered vs. error) by choosing the
+ * `title` / `description` / `cta` copy; the props below only control chrome:
  *
- *  - `empty`     → the data source is genuinely empty. CTA usually unblocks
- *                  the user with a workspace action (Import / Connect / etc).
- *  - `filtered`  → data exists but the active filter excludes it. CTA is
- *                  always "Clear filters" (or equivalent reset).
- *  - `error`     → query failed. CTA is "Retry".
+ *  - `variant`: `'default'` (quiet inline dashed-border card, used app-wide) |
+ *    `'prominent'` (full-surface card with a tinted icon-circle, larger title,
+ *    wider copy, room for one or more CTAs — for when the empty state OWNS the
+ *    surface, e.g. an empty /deadlines or /alerts list).
+ *  - `density`: `'default'` | `'compact'` (drops the card chrome for
+ *    table-cell / drawer embeds).
+ *  - `visual` (prominent only): `'icon'` (tinted icon-circle, default) |
+ *    `'ghost-cards'` (a restrained fanned deck of blank placeholder cards) |
+ *    `'duotone'` (a soft two-tone icon chip for warm first-run empties).
+ *  - `iconTone` / `duotoneTone`: tint selection for the icon-circle / duotone
+ *    chip. `cta` + optional `footer` sit below the copy.
  *
  * Routes were previously rolling their own — dashboard had `EmptyDashboard`,
  * obligations had a private `EmptyState`, opportunities embedded one inline,
@@ -158,7 +164,7 @@ export function EmptyState({
           className={cn(
             'text-text-secondary',
             isProminent
-              ? 'max-w-[560px] text-sm leading-relaxed'
+              ? 'max-w-[60ch] text-sm leading-relaxed'
               : 'max-w-[42ch] text-description leading-5',
           )}
         >

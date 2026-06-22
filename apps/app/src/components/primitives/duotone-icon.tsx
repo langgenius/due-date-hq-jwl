@@ -31,7 +31,7 @@ const TONE_CLASS: Record<DuotoneTone, string> = {
 }
 
 const SIZE_CLASS = {
-  sm: 'size-7 rounded-md [&>svg]:size-4',
+  sm: 'size-7 rounded-sm [&>svg]:size-4',
   md: 'size-9 rounded-lg [&>svg]:size-5',
   lg: 'size-11 rounded-xl [&>svg]:size-6',
 } as const

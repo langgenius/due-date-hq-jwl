@@ -3838,9 +3838,13 @@ function RuleTableRow({
         // the named group token matches /clients list rows + /clients/[id]
         // filing-plan rows for cross-surface consistency.
         'group/row h-14 cursor-pointer',
-        // Needs-review row tint is orange-50 (warm-brown read), matching
-        // the top callout pill.
-        needsReviewRow && 'bg-[var(--color-util-colors-orange-50)]/60',
+        // Needs-review row tint is the canonical review violet
+        // (REVIEW_BG_TINT_CLS = bg-status-review-tint), matching every other
+        // review signal in the app (chip, progress bar, segment) — review is
+        // violet, not a third orange hue. The `/60` softens it to a row wash;
+        // it's a literal (not a template) so the JIT scanner keeps the utility
+        // (the dynamic `${REVIEW_BG_TINT_CLS}/60` form would be tree-shaken).
+        needsReviewRow && 'bg-status-review-tint/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
         // When the rule drawer is open for this row, paint the
         // accent-tint bg + 2px left accent rail. Mirrors the

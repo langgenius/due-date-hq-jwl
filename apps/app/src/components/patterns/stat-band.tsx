@@ -123,6 +123,8 @@ export function StatBand({
    * aria-label for the proportion bar summarizing the mix (e.g. "Portfolio:
    * 6 filed, 5 overdue, 17 in progress"). Supplied by the caller so the
    * translatable string lives where `t` already does; the band stays i18n-free.
+   * Optional: when omitted, the bar falls back to a "N label, …" summary built
+   * from the segments' own string labels, so `role="img"` is never unlabeled.
    */
   proportionBarLabel?: string | undefined
 }) {
@@ -153,6 +155,17 @@ export function StatBand({
   const barSegments = proportionBar?.filter((seg) => seg.value > 0) ?? []
   const barTotal = barSegments.reduce((n, seg) => n + seg.value, 0)
   const showBar = barTotal > 0
+  // The bar must never be an unlabeled `role="img"`. Prefer the caller's
+  // `proportionBarLabel` (it owns the translatable phrasing); if absent, fall
+  // back to a "N label, N label" summary built from the segments' own string
+  // labels so a screen reader still hears the mix. Non-string labels (rare —
+  // a chip node) are skipped from the fallback rather than rendered as
+  // "[object Object]".
+  const segmentSummary = barSegments
+    .map((seg) => (typeof seg.label === 'string' ? `${seg.value} ${seg.label}` : null))
+    .filter((part): part is string => part !== null)
+    .join(', ')
+  const barAccessibleLabel = proportionBarLabel ?? (segmentSummary || undefined)
 
   // The stat columns. Carries the grid/flex layout itself when the bar is
   // present (so the section can stack column-row over bar); otherwise the
@@ -256,7 +269,7 @@ export function StatBand({
         <div className="mt-4 px-5">
           <div
             role="img"
-            aria-label={proportionBarLabel}
+            aria-label={barAccessibleLabel}
             // Thin full-width segmented proportion bar — a quiet visual echo of
             // the counts above (no legend, no trend). Inset px-5 aligns it to
             // the column content. Seamless segments (no gap) read as one
@@ -268,6 +281,10 @@ export function StatBand({
             {barSegments.map((seg) => (
               <div
                 key={seg.key}
+                // Per-segment native tooltip (`N label`) so a sighted user can
+                // hover a color and learn what it is — the bar carries no inline
+                // legend. Only string labels become a title (a node can't).
+                title={typeof seg.label === 'string' ? `${seg.value} ${seg.label}` : undefined}
                 className={cn('h-full', seg.toneClass)}
                 style={{ width: `${(seg.value / barTotal) * 100}%` }}
               />

@@ -60,7 +60,7 @@ export function ValueDiff({
           render={(props) => (
             <span
               className={cn(
-                'inline-flex w-fit cursor-help items-center gap-1 rounded-md bg-background-subtle px-1.5 py-0.5 text-xs font-medium outline-none',
+                'inline-flex w-fit cursor-help items-center gap-1 rounded-sm bg-background-subtle px-1.5 py-0.5 text-xs font-medium outline-none',
                 className,
               )}
               {...props}

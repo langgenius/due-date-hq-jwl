@@ -290,7 +290,7 @@ export function CreateClientDialog({
                 )}
               </form.Field>
               <Field>
-                <FieldLabel>
+                <FieldLabel htmlFor="client-entity-trigger">
                   <Trans>Entity type</Trans>
                 </FieldLabel>
                 <Select
@@ -301,7 +301,7 @@ export function CreateClientDialog({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="client-entity-trigger" className="w-full">
                     <SelectValue>{entityLabels[entityType]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -441,7 +441,7 @@ export function CreateClientDialog({
 
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel>
+                <FieldLabel htmlFor="client-importance-trigger">
                   <Trans>Importance</Trans>
                 </FieldLabel>
                 <Select
@@ -452,7 +452,7 @@ export function CreateClientDialog({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="client-importance-trigger" className="w-full">
                     <SelectValue>
                       {importanceWeight === '3'
                         ? t`High`
