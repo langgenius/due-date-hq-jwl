@@ -396,4 +396,35 @@ html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-h
 }
 html[lang='zh-CN'] .ital {
   font-style: normal !important;
+  /* CJK has no italic — carry the accent emphasis in colour instead */
+  color: var(--m-accent);
+}
+/* on the dark bands (villain / close) keep the emphasis white — no coloured text on dark */
+html[lang='zh-CN'] .villain__h .ital,
+html[lang='zh-CN'] .close__h .ital {
+  color: inherit;
+}
+
+/* skip-to-content link — off-screen until keyboard focus */
+.m-skip {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  background: var(--m-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.15s ease;
+}
+.m-skip:focus {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-skip {
+    transition: none;
+  }
 }

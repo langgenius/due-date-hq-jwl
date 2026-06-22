@@ -259,35 +259,8 @@ const tiles = [
     position: relative;
     z-index: 1;
   }
-  /* the quiet "live" cue — one small accent dot per tile, top-right.
-     Same on every state: watched, uniformly, no louder anywhere. */
-  .ust::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 4px;
-    height: 4px;
-    border-radius: 999px;
-    background: var(--m-cyan);
-    pointer-events: none;
-  }
-  /* a very subtle, slow live breath — all dots together (no scan wave), so the
-     map just quietly signals "live" instead of animating across the country */
-  @media (prefers-reduced-motion: no-preference) {
-    .ust::after {
-      animation: ust-live 4.8s ease-in-out infinite;
-    }
-    @keyframes ust-live {
-      0%,
-      100% {
-        opacity: 0.5;
-      }
-      50% {
-        opacity: 1;
-      }
-    }
-  }
+  /* the map is a clean, calm coverage grid — every tile equally watched. The one
+     "live" cue lives in the legend (a single cyan dot), not 51 dots on the map. */
   .usmap__legend {
     margin-top: 20px;
     display: flex;

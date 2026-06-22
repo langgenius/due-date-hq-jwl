@@ -115,7 +115,17 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     <script is:inline set:html={THEME_INIT_SCRIPT}></script>
   </head>
   <body class="min-h-screen bg-bg-canvas text-text-primary antialiased">
+    <a class="m-skip" href="#main-content">{lang === 'zh-CN' ? '跳到主要内容' : 'Skip to content'}</a>
     <slot />
+    <script is:inline>
+      ;(function () {
+        var m = document.querySelector('main')
+        if (m) {
+          m.id = 'main-content'
+          m.setAttribute('tabindex', '-1')
+        }
+      })()
+    </script>
 
     <script>
       import { initMarketingAnalytics } from '../lib/analytics'
