@@ -26,7 +26,7 @@ const zhCN: LandingCopy = {
     eyebrow: '玻璃盒截止日智能',
     title: '在错过申报前看清截止日风险。',
     description:
-      'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
+      'DueDateHQ 是为美国 CPA 团队打造的截止日监控工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的工作台里。',
     positioning:
       '它是叠加在你现有 Drake、UltraTax 或 TaxDome 之上的「截止日与规则变化监控」——替换的是你用来兜住这些系统遗漏的 Excel + Outlook 拼凑流程，而不是你的系统。',
     primaryCta: '免费开始',
@@ -173,7 +173,7 @@ const zhCN: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '分配 owner',
+            exposure: '分配负责人',
             exposureTone: 'warning',
             evidence: 'IRS Pub 509',
             evidenceTone: 'info',
@@ -198,7 +198,7 @@ const zhCN: LandingCopy = {
         value: '30',
         unit: '秒',
         description:
-          '在周一控制台一眼看清本周最紧急的 5 位客户。截止日监控在服务端预聚合，队列在页面绘制前就已就位。',
+          '在周一工作台一眼看清本周最紧急的 5 位客户。截止日监控在服务端预聚合，队列在页面绘制前就已就位。',
       },
       {
         ruleNumber: 'RULE 00',
@@ -275,14 +275,14 @@ const zhCN: LandingCopy = {
   workflow: {
     eyebrow: '工作流',
     index: '02',
-    title: '分诊。迁移。校验。三个界面，一个控制台。',
+    title: '分诊。迁移。校验。三个切片，一个工作台。',
     paragraph:
       'DueDateHQ 围绕三条产品规则构建：所有操作都在键盘上、所有数字都是等宽对齐、所有 AI 输出都引证来源。下面是工作台的三个真实切片。',
     steps: [
       {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
-        headline: '周一控制台。',
+        headline: '周一工作台。',
         body: 'Owner 打开笔记本，看到 5 位高风险客户、证据状态，以及第一个动作的快捷键。Smart Priority 是纯函数排序 —— 仪表盘热路径里没有 LLM。',
         hints: [
           { keys: '⌘K', label: '命令面板' },
@@ -517,7 +517,7 @@ const zhCN: LandingCopy = {
     pill: '30 秒 / 周一分诊',
     pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
     title: '免费开始。让来源自己说话。',
-    body: '先用 trial 或 demo workspace 体验；当第一条带来源的队列准备好后，再用 Solo 保持生产 practice 在线。无需安装客户端，用 Google 登录，第一次粘贴后十分钟内看到截止日复核事项。',
+    body: '先用试用或演示工作区体验；当第一条带来源的队列准备好后，再用 Solo 套餐让你的正式事务所保持在线。无需安装客户端，用 Google 登录，第一次粘贴后十分钟内看到截止日复核事项。',
     primaryCta: '免费开始',
     secondaryCta: '联系销售',
     trust: '可试用 · 随时取消',
@@ -532,15 +532,15 @@ const zhCN: LandingCopy = {
     navPricingHref: '/zh-CN/pricing',
     hero: {
       eyebrow: '价格',
-      title: '一份价格，截止日变化再不漏接。',
+      title: '测试期全部免费，发布后才是这套定价。',
       description:
-        'DueDateHQ 7×24 盯着 IRS、全部 50 个州和 FEMA，让你的事务所在第一时间抓住每一次截止日变更，并精确知道它影响到哪些客户。先用 Free 运营一个 practice；随着客户和团队增长，再升级到 Solo、Pro 或 Team。',
+        'DueDateHQ 7×24 盯着 IRS、全部 50 个州和 FEMA，让你的事务所在第一时间抓住每一次截止日变更，并精确知道它影响到哪些客户。每个套餐现在都可以免费跑起来；下方价格是各套餐在测试期结束、正式发布后的收费，方便你随着客户和团队增长选好合适的套餐。',
       note: '测试期内所有套餐免费 · 用 Google 登录 · 我们不保存卡号',
     },
     plansHeader: {
       eyebrow: '套餐',
       title: '按你监控的客户数量计费。',
-      note: '美元定价 · 由 practice Owner 付费 · 随时取消',
+      note: '发布后定价 · 测试期免费使用 · 美元定价 · 由 practice Owner 付费 · 随时取消',
     },
     billingToggle: {
       ariaLabel: '账单周期',
@@ -645,7 +645,7 @@ const zhCN: LandingCopy = {
       {
         question: '"测试期免费"是什么意思？',
         answer:
-          'DueDateHQ 处于测试期时，所有套餐 —— Solo、Pro、Team —— 均可免费使用。你现在就能挑一个合适的套餐、把真实事务所跑起来，正式发布前不用付任何费用。',
+          'DueDateHQ 处于测试期时，所有套餐 —— Solo、Pro、Team —— 均可免费使用。你现在就能挑一个合适的套餐、把真实事务所跑起来，正式发布前不用付任何费用。各套餐上标注的价格是测试期结束、正式发布后该套餐的收费，而不是现在就扣款。',
       },
       {
         question: '我该从哪个套餐开始？',
@@ -670,7 +670,7 @@ const zhCN: LandingCopy = {
       {
         question: '我可以运营多个 practice 吗？',
         answer:
-          'Solo、Pro 和 Team 均包含 1 个 active practice。需要额外 practice、独立办公室，或 demo/production 分离时，请联系我们了解多 practice 方案。',
+          'Solo、Pro 和 Team 均包含 1 个启用中的 practice。需要额外 practice、独立办公室，或演示与生产环境分离时，请联系我们了解多 practice 方案。',
       },
     ],
   },
@@ -703,10 +703,10 @@ const zhCN: LandingCopy = {
         {
           eyebrow: '来源接入',
           title: '优先使用官方来源。',
-          body: '规则工作流从公开机构材料开始，而不是第三方摘要。DueDateHQ 优先处理 IRS publication、州税务机关页面、申报日历、表单说明、公告和灾害延期信息。',
+          body: '规则工作流从公开机构材料开始，而不是第三方摘要。DueDateHQ 优先处理 IRS 刊物、州税务机关页面、申报日历、表单说明、公告和灾害延期信息。',
           items: [
             {
-              title: 'Canonical 来源 URL',
+              title: '规范来源 URL',
               body: '每条规则保留官方页面 URL，便于复核者和用户查看同一来源。',
             },
             {
@@ -1211,7 +1211,7 @@ const zhCN: LandingCopy = {
                 body: '来自记忆或第三方笔记的规则，远不如绑定官方来源的规则可信。',
               },
               {
-                title: 'Owner 缺口',
+                title: '负责人缺口',
                 body: '当没有人负责复核、申报或补齐缺失数据时，截止日工作就会变危险。',
               },
             ],
@@ -1219,11 +1219,11 @@ const zhCN: LandingCopy = {
           {
             eyebrow: '分诊',
             title: '周一工作流应该排序风险，而不仅是排序日期。',
-            body: '当团队能在一个运营视图中扫描剩余天数、证据完整度、准备状态、州级更新和工作 owner 时，截止日风险才可管理。',
+            body: '当团队能在一个运营视图中扫描剩余天数、证据完整度、准备状态、州级更新和工作负责人时，截止日风险才可管理。',
             items: [
               {
                 title: '准备状态信号',
-                body: '风险队列应该显示哪些截止日被缺失事实、过期证据或 owner 缺口阻塞。',
+                body: '风险队列应该显示哪些截止日被缺失事实、过期证据或负责人缺口阻塞。',
               },
               {
                 title: '证据完整度',
@@ -1244,12 +1244,12 @@ const zhCN: LandingCopy = {
           {
             question: 'CPA 团队应该先处理哪个截止日？',
             answer:
-              '第一个事项通常不只是最早到期的日期。DueDateHQ 会结合剩余天数、状态、来源质量、客户上下文、准备状态和 owner 信号排序。',
+              '第一个事项通常不只是最早到期的日期。DueDateHQ 会结合剩余天数、状态、来源质量、客户上下文、准备状态和负责人信号排序。',
           },
           {
             question: '导入的客户数据如何影响截止日风险？',
             answer:
-              'Migration 数据会形成分诊所需的客户和义务上下文。实体类型、申报州、税种、owner 和 liability 输入都会改变风险图景。',
+              '迁移数据会形成分诊所需的客户和义务上下文。实体类型、申报州、税种、负责人和应缴税额等输入都会改变风险图景。',
           },
           {
             question: '什么样的截止日队列是可解释的？',
@@ -1276,7 +1276,7 @@ const zhCN: LandingCopy = {
           eyebrow: '指南',
           title: '截止日工作改变前，应该先有什么证据？',
           description:
-            '对 CPA 运营来说，申报提醒不够。团队需要来源证据、复核状态、客户上下文、必要时的 AI trace，以及 apply、undo、revert 和导入动作的审计历史。',
+            '对 CPA 运营来说，申报提醒不够。团队需要来源证据、复核状态、客户上下文、必要时的 AI 溯源，以及应用、撤销、回滚和导入动作的审计历史。',
           note: '带证据工作流支持复核，不替代专业判断。',
         },
         sections: [
@@ -1301,7 +1301,7 @@ const zhCN: LandingCopy = {
           },
           {
             eyebrow: '工作流',
-            title: '缺少证据时，界面应该 fail closed。',
+            title: '缺少证据时，界面应该优雅失败。',
             body: '如果规则缺少来源上下文，更安全的产品行为是请求验证，而不是生成自信的截止日建议。',
             items: [
               {

@@ -22,7 +22,7 @@ const columns = [
     title: zh ? '资源' : 'Resources',
     links: [
       { label: zh ? '规则库' : 'Rule library', href: `${base}/rules` },
-      { label: zh ? '州覆盖' : 'State coverage', href: `${base}/state-coverage` },
+      { label: zh ? '证据支持的软件' : 'Evidence-backed software', href: `${base}/guides/evidence-backed-tax-deadline-software` },
       { label: zh ? '对比:File In Time' : 'Compare: File In Time', href: `${base}/compare/file-in-time-alternative` },
       { label: zh ? '每周分诊指南' : 'Weekly triage guide', href: `${base}/guides/weekly-cpa-deadline-triage` },
     ],
@@ -60,7 +60,7 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
   <div class="footer__inner">
     <div class="footer__top">
       <div class="footer__brand">
-        <span class="footer__name">DueDateHQ</span>
+        <a href={`${base}/`} class="footer__name" aria-label={zh ? 'DueDateHQ 首页' : 'DueDateHQ home'}>DueDateHQ</a>
         <p class="footer__tag">{copy.tagline}</p>
         <p class="footer__aud">{copy.audience}</p>
       </div>
@@ -106,10 +106,16 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
     gap: clamp(28px, 4vw, 56px);
   }
   .footer__name {
+    display: inline-block;
     font-weight: 600;
     font-size: 18px;
     letter-spacing: -0.01em;
     color: var(--m-ink);
+    text-decoration: none;
+    transition: opacity var(--m-dur-fast) var(--m-ease);
+  }
+  .footer__name:hover {
+    opacity: 0.7;
   }
   .footer__tag {
     margin-top: 14px;

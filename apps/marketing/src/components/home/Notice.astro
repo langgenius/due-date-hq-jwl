@@ -312,9 +312,9 @@ const examples = t.examples
     color: var(--m-muted);
     cursor: pointer;
     transition:
-      color 0.22s ease,
-      background 0.22s ease,
-      box-shadow 0.22s ease;
+      color var(--m-dur) var(--m-ease),
+      background var(--m-dur) var(--m-ease),
+      box-shadow var(--m-dur) var(--m-ease);
   }
   .ntab:hover:not(.is-on) {
     color: var(--m-ink-2);
@@ -344,6 +344,24 @@ const examples = t.examples
   }
   .extract.is-on {
     display: grid;
+  }
+  /* The swap is display:none → grid, which can't tween — so the incoming panel
+     plays a short fade+rise as it mounts, giving the toggle a soft hand-off
+     instead of a hard snap. Reduced-motion gets it instantly (below). */
+  @media (prefers-reduced-motion: no-preference) {
+    .extract.is-on {
+      animation: notice-swap-in var(--m-dur) var(--m-ease) both;
+    }
+  }
+  @keyframes notice-swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   .clip {
     grid-column: span 5;

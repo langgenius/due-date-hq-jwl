@@ -41,6 +41,13 @@
   --m-urgent: var(--text-warning);
   --m-ok: var(--text-success);
   --m-danger: var(--text-destructive);
+  /* a11y: --m-ok (green-600 #079455) / --m-urgent (warning-600 #c83d2f) sit at
+     ~3.2–3.9:1 as ~10px pill TEXT over their own light tint — fail AA for text.
+     These darker -ink variants (green-700 / warning-700) clear ~4.8:1 on the
+     same tint; use them for the pill LABEL, keep the lighter token for the
+     tint fill + dot. (warning-700 stays in the red family — red is risk only.) */
+  --m-ok-ink: var(--color-util-colors-green-700); /* #067647 — legible on green tint */
+  --m-urgent-ink: var(--color-util-colors-warning-700); /* #a83227 — legible on warning tint */
 
   /* ---- type ---- */
   --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */

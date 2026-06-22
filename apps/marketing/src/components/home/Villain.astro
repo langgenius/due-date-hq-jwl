@@ -93,8 +93,27 @@ const pains = t.pains
 </section>
 
 <style>
+  /* The dark middle / the problem beat — a DEEPER, heavier navy than the bright
+     Close finale: the pressed navy pushed toward ink, with a soft top vignette so
+     the band reads somber and recessed (chroma in the container, text stays white). */
   .villain {
-    background: var(--m-accent);
+    position: relative;
+    isolation: isolate;
+    background: color-mix(in srgb, var(--m-accent-strong) 86%, var(--m-ink));
+  }
+  /* faint vignette — darkening toward the edges so the band feels weighed-down,
+     not lit; depth without a heavy shadow */
+  .villain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      130% 100% at 50% 0%,
+      transparent 0%,
+      color-mix(in srgb, var(--m-ink) 28%, transparent) 100%
+    );
+    pointer-events: none;
   }
   .villain__inner {
     max-width: var(--m-maxw);

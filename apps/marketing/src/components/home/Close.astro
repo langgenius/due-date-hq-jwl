@@ -155,25 +155,28 @@ const receiptRows = t.receiptRows
     inset: 0;
     z-index: -1;
     background: radial-gradient(
-      120% 90% at 100% 0%,
-      color-mix(in srgb, var(--m-cyan) 16%, transparent) 0%,
-      transparent 55%
+      130% 100% at 100% 0%,
+      color-mix(in srgb, var(--m-cyan) 24%, transparent) 0%,
+      transparent 58%
     );
     pointer-events: none;
   }
-  /* crisp cyan hairline along the very top — the finale's signature */
+  /* crisp cyan edge along the very top — the finale's signature, leaned harder
+     into so the close reads unmistakably brighter than the somber Villain band:
+     a taller, fuller-bleed cyan bar over a soft glow that bleeds down into the navy */
   .close__card::after {
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
-    height: 2px;
+    height: 3px;
     background: linear-gradient(
       90deg,
       transparent,
-      var(--m-cyan) 22%,
-      var(--m-cyan) 78%,
+      var(--m-cyan) 14%,
+      var(--m-cyan) 86%,
       transparent
     );
+    box-shadow: 0 0 18px 1px color-mix(in srgb, var(--m-cyan) 45%, transparent);
     pointer-events: none;
   }
   .close__body-wrap {
@@ -206,8 +209,8 @@ const receiptRows = t.receiptRows
   .close__h {
     font-family: var(--m-font-display);
     font-weight: 400;
-    font-size: clamp(38px, 5.4vw, 68px);
-    line-height: 1.03;
+    font-size: clamp(40px, 5.8vw, 74px);
+    line-height: 1.02;
     letter-spacing: -0.02em;
     color: #fff;
     max-width: 18ch;

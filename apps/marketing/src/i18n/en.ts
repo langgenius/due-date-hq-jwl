@@ -26,7 +26,7 @@ const en: LandingCopy = {
     eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
     title: 'See deadline risk before it becomes a missed filing.',
     description:
-      'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
+      'DueDateHQ is the deadline-monitoring workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first workbench built for the Monday 5-minute triage.',
     positioning:
       "It's deadline-and-rule-change monitoring that sits on top of your Drake, UltraTax, or TaxDome — replacing the Excel-and-Outlook patchwork you use to catch what they miss, not your stack.",
     primaryCta: 'Start free',
@@ -198,7 +198,7 @@ const en: LandingCopy = {
         value: '30',
         unit: 'sec',
         description:
-          'See this week’s 5 most urgent clients on the Monday console. The deadline monitor loads instantly — your Monday triage queue is ready before you are.',
+          'See this week’s 5 most urgent clients on the Monday workbench. The deadline monitor loads instantly — your Monday triage queue is ready before you are.',
       },
       {
         ruleNumber: 'RULE 00',
@@ -286,14 +286,14 @@ const en: LandingCopy = {
   workflow: {
     eyebrow: 'THE WORKFLOW',
     index: '02',
-    title: 'Triage. Migrate. Verify. Three surfaces, one console.',
+    title: 'Triage. Migrate. Verify. Three slices, one workbench.',
     paragraph:
       'DueDateHQ is built around three product rules: every action lives on the keyboard, every number is mono-tabular, every AI output cites its source. Below: three slices of the actual workbench.',
     steps: [
       {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
-        headline: 'The Monday console.',
+        headline: 'The Monday workbench.',
         body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority ranks by days remaining, evidence completeness, and alert status — no AI in the triage path.',
         hints: [
           { keys: '⌘K', label: 'Command' },
@@ -551,15 +551,15 @@ const en: LandingCopy = {
     navPricingHref: '/pricing',
     hero: {
       eyebrow: 'PRICING',
-      title: 'One price to never miss a deadline change.',
+      title: 'Free during the beta. Honest tiers after launch.',
       description:
-        'DueDateHQ watches IRS, all 50 states, and FEMA so your firm catches every deadline move and knows exactly which clients it hits. Start free on one practice, then move to Solo, Pro, or Team as your client count and team grow.',
+        'DueDateHQ watches IRS, all 50 states, and FEMA so your firm catches every deadline move and knows exactly which clients it hits. Every plan is free to run today; the prices below are what each tier will cost once we leave beta, so you can size the plan that fits as your client count and team grow.',
       note: 'Free for every plan during the beta · sign in with Google · we never store card numbers',
     },
     plansHeader: {
       eyebrow: 'PLANS',
       title: 'Priced by how many clients you watch.',
-      note: 'USD · BILLED TO THE PRACTICE OWNER · CANCEL ANYTIME',
+      note: 'POST-BETA PRICING · FREE TO RUN TODAY · USD · BILLED TO THE PRACTICE OWNER · CANCEL ANYTIME',
     },
     billingToggle: {
       ariaLabel: 'Billing interval',
@@ -664,7 +664,7 @@ const en: LandingCopy = {
       {
         question: 'What does "free during the beta" mean?',
         answer:
-          'Every plan — Solo, Pro, and Team — is free to use while DueDateHQ is in beta. You can pick the plan that fits and run your real practice on it today, with nothing to pay until we launch.',
+          'Every plan — Solo, Pro, and Team — is free to use while DueDateHQ is in beta. You can pick the plan that fits and run your real practice on it today, with nothing to pay until we launch. The prices shown on each tier are what that plan will cost after beta, not a charge today.',
       },
       {
         question: 'Which plan should I start on?',

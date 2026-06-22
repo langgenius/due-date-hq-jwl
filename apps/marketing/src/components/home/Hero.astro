@@ -38,7 +38,7 @@ const t = zh
       panelCount: '6 项变化 · 31 个客户',
       panelCap: '实时预览 · 非你的真实数据',
       filterAria: '按辖区筛选',
-      filters: ['全部', '联邦', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      filters: ['全部', '联邦', 'CA', 'TX', 'NY'],
       sevUrgent: '紧急',
       sevInfo: '信息',
       affectsLabel: '影响',
@@ -101,7 +101,7 @@ const t = zh
       panelCount: '6 changes · 31 clients',
       panelCap: 'live preview · not your data',
       filterAria: 'Filter by jurisdiction',
-      filters: ['All', 'Federal', 'CA', 'TX', 'NY', 'WA', 'FL'],
+      filters: ['All', 'Federal', 'CA', 'TX', 'NY'],
       sevUrgent: 'URGENT',
       sevInfo: 'INFO',
       affectsLabel: 'Affects',
@@ -208,7 +208,7 @@ const alerts = t.alerts
       <div class="panel__rows">
         {
           alerts.map((a) => (
-            <article class="row">
+            <article class={`row${a.sev === 'urgent' ? ' row--anchor' : ' row--secondary'}`}>
               <div class="row__top">
                 <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? t.sevUrgent : t.sevInfo}</span>
                 <span class="juris">{a.juris}</span>
@@ -229,7 +229,7 @@ const alerts = t.alerts
               {a.delta ? (
                 <p class="row__change">
                   <s>{a.from}</s> <span class="arrow">→</span> <b>{a.to}</b>
-                  <span class={`row__delta row__delta--${a.sev === 'urgent' ? 'later' : 'later'}`}>
+                  <span class="row__delta row__delta--later">
                     {a.delta}
                   </span>
                 </p>
@@ -250,7 +250,7 @@ const alerts = t.alerts
                   />
                 </svg>
                 {t.affectsLabel} <b>{a.affects}</b>
-                <span class="row__status">{a.status}</span>
+                {a.sev === 'urgent' ? <span class="row__status">{a.status}</span> : null}
               </p>
             </article>
           ))
@@ -310,7 +310,7 @@ const alerts = t.alerts
   }
   .hero__sub {
     margin-top: clamp(22px, 1.7vw, 28px);
-    max-width: 46ch;
+    max-width: 53ch;
     font-size: clamp(15px, 1.05vw, 16.5px);
     line-height: 1.6;
     color: var(--m-ink-2);
@@ -568,6 +568,11 @@ const alerts = t.alerts
     color: var(--m-ink);
     line-height: 1.35;
     letter-spacing: -0.01em;
+  }
+  /* Secondary rows recede so the anchor (urgent) row reads first. */
+  .row--secondary .row__title {
+    font-weight: 400;
+    color: var(--m-ink-2);
   }
   .row__change {
     margin-top: 9px;

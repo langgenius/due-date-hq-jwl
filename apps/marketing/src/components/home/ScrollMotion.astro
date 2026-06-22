@@ -36,6 +36,21 @@
           scrollTrigger: { trigger: el, start: 'top 82%', once: true },
         })
       })
+
+      // Post-load sweep: a deep-linked or short-viewport section whose top is
+      // already at/above the start line on load would otherwise stay at
+      // opacity:0 until the user scrolls up then back down. Force-reveal any
+      // [data-reveal] already in/above the viewport so nothing loads invisible.
+      const sweep = () => {
+        const line = window.innerHeight * 0.82 // mirrors start:'top 82%'
+        reveals().forEach((el) => {
+          if (el.getBoundingClientRect().top <= line) {
+            gsap.set(el, { opacity: 1, y: 0 })
+          }
+        })
+      }
+      // run once after ScrollTrigger has measured (next frame)
+      requestAnimationFrame(sweep)
     } catch (err) {
       // never let a motion failure leave content hidden
       console.error('[ScrollMotion]', err)
