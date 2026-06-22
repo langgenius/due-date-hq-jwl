@@ -116,65 +116,67 @@ const links = [
     border-radius: 999px;
     line-height: 1;
   }
+  /* clean floating pill — solid white, hairline, restrained micro-shadow */
   .nav__pill {
     justify-self: center;
     display: flex;
     align-items: center;
-    gap: 2px;
-    background: color-mix(in srgb, var(--m-surface) 72%, transparent);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    gap: 1px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    box-shadow: 0 2px 5px -2px color-mix(in srgb, var(--m-ink) 7%, transparent);
     border-radius: 999px;
-    padding: 5px;
+    padding: 4px;
   }
   .nav__link {
-    padding: 8px 15px;
+    padding: 7px 13px;
     border-radius: 999px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--m-muted);
     white-space: nowrap;
-    transition: color 0.2s ease;
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
   }
   .nav__link:hover {
     color: var(--m-ink);
+    background: var(--m-section);
   }
   .nav__link.is-active {
-    color: var(--m-ink);
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
     font-weight: 600;
   }
   .nav__right {
     justify-self: end;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
   }
+  /* secondary, quiet — smaller + muted, the CTA carries the emphasis */
   .nav__signin {
     display: inline-flex;
     align-items: center;
-    padding: 10px 16px;
-    border-radius: 999px;
-    font-size: 14px;
+    padding: 7px 8px;
+    font-size: 13px;
     font-weight: 500;
-    color: var(--m-ink-2);
-    transition:
-      color 0.2s ease,
-      background 0.2s ease;
+    color: var(--m-muted);
+    transition: color 0.18s ease;
   }
   .nav__signin:hover {
-    color: var(--m-accent);
-    background: var(--m-accent-tint);
+    color: var(--m-ink);
   }
   .nav__cta {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #fff;
     background: var(--m-accent);
     border-radius: 999px;
-    padding: 10px 20px;
+    padding: 9px 17px;
     transition: background 0.18s ease;
   }
   .nav__cta:hover {
