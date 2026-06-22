@@ -983,6 +983,12 @@ export function ClientDetailWorkspace({
                     <ClientWorkPlanPanel
                       obligations={queueRows}
                       isLoading={clientQueueQuery.isLoading}
+                      // On a failed deadlines fetch `queueRows` collapses to []
+                      // → without this the panel shows "No deadlines yet" for a
+                      // client that may have a full calendar. Route to a
+                      // distinct error + Retry branch instead.
+                      isError={clientQueueQuery.isError}
+                      onRetry={() => void clientQueueQuery.refetch()}
                       summary={workPlan}
                       clientName={client.name}
                       onChangeStatus={handleChangeObligationStatus}

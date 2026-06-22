@@ -591,6 +591,13 @@ export function DashboardRoute() {
             // While the dashboard query loads, the card renders a column-aligned
             // skeleton instead of masquerading as "Nothing here. You're clear."
             isLoading={dashboardQuery.isLoading}
+            // On a failed load `rows` collapses to [] → without this the card
+            // would render the all-clear/coffee state on a page that couldn't
+            // load. `isError` routes to a quiet inline error + Retry instead
+            // (the page-top destructive Alert above also fires; this keeps the
+            // section itself honest rather than falsely celebrating).
+            isError={dashboardQuery.isError}
+            onRetry={() => void dashboardQuery.refetch()}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
           />
         </>

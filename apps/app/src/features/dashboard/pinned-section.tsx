@@ -58,7 +58,7 @@ export function PinnedSection({
       <section aria-label={t`Pinned`} aria-busy className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <PinIcon className="size-4 text-text-tertiary" aria-hidden />
-          <h2 className="text-region-title text-text-primary">
+          <h2 className="text-base font-semibold text-text-secondary">
             <Trans>Pinned</Trans>
           </h2>
         </div>
@@ -76,7 +76,10 @@ export function PinnedSection({
       <div className="flex items-center gap-2">
         {/* Accent lives in the icon container, not the title text. */}
         <PinIcon className="size-4 text-text-accent" aria-hidden />
-        <h2 className="text-region-title text-text-primary">
+        {/* Pinned is a peer of Brief + Priorities, demoted to the secondary
+            section weight (text-base/600/secondary) so Alerts stays the sole
+            lead title on /today — not a second top-tier region anchor. */}
+        <h2 className="text-base font-semibold text-text-secondary">
           <Trans>Pinned</Trans>
         </h2>
       </div>

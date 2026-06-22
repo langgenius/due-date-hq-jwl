@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleAlertIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Table,
@@ -69,6 +70,8 @@ export function MergedBriefCard({
   rows,
   asOfDate,
   isLoading = false,
+  isError = false,
+  onRetry,
   onOpenObligation,
   className,
 }: {
@@ -78,6 +81,13 @@ export function MergedBriefCard({
   // While the dashboard query loads, render the column-aligned skeleton —
   // without it the zero counts masquerade as "Nothing here. You're clear."
   isLoading?: boolean
+  // On a failed dashboard load `rows` collapses to [] → the all-clear/coffee
+  // celebration would fire on a page that actually couldn't load. `isError`
+  // routes to a quiet inline "Couldn't load your priorities — Retry" instead,
+  // so the empty branch never masquerades as "all clear" (mirrors the Alerts
+  // section's error handling in needs-attention-section.tsx).
+  isError?: boolean
+  onRetry?: () => void
   onOpenObligation: (obligationId: string) => void
   // Lets /today make this section the flex-1 min-h-0 region of its desktop
   // bounded-height frame (the table then scrolls internally, not the page).
@@ -217,6 +227,45 @@ export function MergedBriefCard({
     )
   }
 
+  // ── Load failed → explicit error, never a false all-clear.
+  //    queryClient runs throwOnError:false, so a failed dashboard load would
+  //    otherwise fall through to `rows = []` → totalActive === 0 → the coffee
+  //    celebration below, silently claiming the CPA is all clear. Surface the
+  //    failure with a Retry instead. Matches the dashboard route's + Alerts
+  //    section's canonical destructive Alert + `<Button variant="link">`
+  //    Retry (see needs-attention-section.tsx). ──
+  if (isError) {
+    return (
+      <section aria-label={t`Priorities`} className={cn('flex w-full flex-col gap-3', className)}>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h2 className="text-base font-semibold text-text-secondary">
+            <Trans>Priorities</Trans>
+          </h2>
+        </div>
+        <Alert variant="destructive">
+          <CircleAlertIcon />
+          <AlertTitle>
+            <Trans>Couldn't load your priorities</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <Trans>Try again in a moment. If it keeps failing, contact support.</Trans>{' '}
+            {onRetry ? (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
+                onClick={() => onRetry()}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            ) : null}
+          </AlertDescription>
+        </Alert>
+      </section>
+    )
+  }
+
   return (
     // OPEN section — header + lede float on the page like the Alerts section;
     // the table below is the page's single framed surface. Fewer borders
@@ -341,14 +390,20 @@ export function MergedBriefCard({
         // sections celebrate the same way. Coffee, not confetti: the calm
         // brand's idea of a party. Every word is real state — no fiction.
         <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
-          {/* A faint navy skyline at rest behind the all-clear — the firm's city
+          {/* A faint skyline at rest behind the all-clear — the firm's city
               quiet, nothing on fire. Decorative (aria-hidden), masked to fade up
-              so it never competes with the coffee beat or the copy. */}
+              so it never competes with the coffee beat or the copy.
+              Colour is `text-text-primary` (NOT the fixed `--color-brand-ink`
+              primitive, which has no dark mirror → invisible on a dark canvas):
+              the semantic token resolves to dark navy-ink in light mode and
+              near-white in dark, so the skyline reads in both. Dark bumps the
+              opacity (0.07 → 0.10) because near-white at 7% on a dark surface is
+              too faint — keeps it present but still recessive under the mask. */}
           <svg
             aria-hidden
             viewBox="0 0 400 64"
             preserveAspectRatio="xMidYMax meet"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full text-[var(--color-brand-ink)] opacity-[0.07] [mask-image:linear-gradient(to_top,black,transparent)]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full text-text-primary opacity-[0.07] [mask-image:linear-gradient(to_top,black,transparent)] dark:opacity-10"
           >
             <g fill="currentColor">
               <rect x="6" y="34" width="22" height="30" />
