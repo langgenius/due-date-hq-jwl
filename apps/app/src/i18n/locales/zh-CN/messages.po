@@ -9835,6 +9835,10 @@ msgid "No"
 msgstr "否"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "No action needed — monitored updates"
+msgstr "无需处理 — 持续监控的更新"
+
+#: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
 msgstr "当前没有活跃提醒"
 
@@ -13027,6 +13031,10 @@ msgstr "审核 {count} 项"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "Review →"
 msgstr "查看 →"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Review and apply to affected clients"
+msgstr "审核并应用到受影响的客户"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx

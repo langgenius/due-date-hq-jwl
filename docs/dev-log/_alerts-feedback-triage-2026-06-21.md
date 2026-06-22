@@ -81,14 +81,32 @@ rewritten for the zones.
 - Day-grouping stays in the awareness digest only; the action queue is flat.
 - Visual polish pass (zone band weight, density, motion) is ongoing.
 
-## Visual polish — framed "Needs action" pill (2026-06-22)
+## Sibling zone headers — "one feed, two tiers" (2026-06-22)
 
-Yuqi: the zone title "needs to live in a pill or something to be framed."
-The hero queue's "Needs action" label was floating text (Zap + label +
-neutral count chip) — it didn't read as a contained zone. It's now one
-framed pill: soft warning family (`bg-state-warning-hover` 50 / `border-
-state-warning-hover-alt` 100 / `text-text-warning`, the same chrome as the
-`PulseAlertsMap` cluster chips and the `alert()` warning container), with
-the count nested as a deeper 100-tint step — tonal, no solid-red jump, so it
-never double-highlights. The "For your awareness" band stays quiet text:
-asymmetric attention — the hero zone is framed/prominent, the digest demoted.
+A `/design-critique` pass named the core flaw: the two zones read as two
+_unrelated tables_, and a first-time user can't tell what "Needs action" vs
+"For your awareness" even mean. An intermediate step (framing the "Needs
+action" title in a standalone warm pill while leaving awareness as plain
+text) actually _widened_ the gap — the shape asymmetry made them look like
+two different components, not two tiers of one feed.
+
+The fix: **both zone headers share ONE skeleton** — `[icon badge] · label ·
+count · purpose subtitle` — differentiated only by temperature.
+
+- **Needs action** — warm badge (`bg-state-warning-hover` square + Zap in
+  `text-text-warning`), warm count chip, subtitle "Review and apply to
+  affected clients".
+- **For your awareness** — same badge skeleton neutral (`bg-background-
+  subtle` square — the day-band gray, so it reads as clearly as the warm
+  badge on the white list, not a near-invisible outline — + Eye in
+  `text-text-tertiary`), neutral count chip, subtitle "No action needed —
+  monitored updates". Keeps its collapse chevron + Dismiss-all.
+
+Why it works: the **shared shape** gives kinship (siblings, one feed); the
+**temperature** gives the act-vs-read distinction; the **purpose subtitle**
+is the first-land orientation the bare label never gave — it says what's in
+the zone and what it asks of you. The summary line (4 + 4 = 8) was offered
+but deferred; the subtitles carry the orientation for now.
+
+Decisions (Yuqi): take the sibling-header rework (supersedes the standalone
+pill); leave the awareness day-bands as-is.

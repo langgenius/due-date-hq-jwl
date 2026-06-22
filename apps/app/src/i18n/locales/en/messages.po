@@ -9797,6 +9797,10 @@ msgid "No"
 msgstr "No"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "No action needed — monitored updates"
+msgstr "No action needed — monitored updates"
+
+#: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
 msgstr "No active alerts right now"
 
@@ -12969,6 +12973,10 @@ msgstr "Review {count}"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "Review →"
 msgstr "Review →"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Review and apply to affected clients"
+msgstr "Review and apply to affected clients"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
