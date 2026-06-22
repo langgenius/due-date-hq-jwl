@@ -53,7 +53,7 @@ Calendar-sync popover, then a `/design-critique` pass that drove a sixth fix.
 5. **Calendar-sync popover** (`obligations.tsx`) — Yuqi: "the pop up is weird
    and underdesigned… there is a white mask behind the popup section."
    - Removed a manual `<div className="fixed inset-0
-     bg-background-overlay-backdrop">` that painted a 95%-opaque WHITE scrim
+bg-background-overlay-backdrop">` that painted a 95%-opaque WHITE scrim
      over the whole page on open (that token resolves to rgba(255,255,255,0.95)).
      It was unique to this one popover; no other popover dims the page. Base
      UI's `PopoverRoot` wires `useDismiss` with outside-press enabled by
@@ -77,7 +77,7 @@ Calendar-sync popover, then a `/design-critique` pass that drove a sixth fix.
 ## Verify
 
 - `tsgo --noEmit` clean; `i18n:extract` + 7 zh-CN translations + `i18n:compile
-  --strict` clean; live-verified on a worktree dev server. NOTE: the running
+--strict` clean; live-verified on a worktree dev server. NOTE: the running
   :5173 server points at the MAIN checkout, not this worktree — had to spin a
   `--dir` server on :5191 to actually see the edits (a parallel session was
   editing main, which also produced transient route failures unrelated to this
