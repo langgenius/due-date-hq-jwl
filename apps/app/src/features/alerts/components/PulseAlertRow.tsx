@@ -7,6 +7,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CircleAlertIcon,
+  Loader2Icon,
   SparklesIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -195,6 +196,7 @@ function PulseAlertRow({
   active,
   onReview,
   onDismiss,
+  dismissing = false,
   compact = false,
   selectable = false,
   selected = false,
@@ -211,6 +213,12 @@ function PulseAlertRow({
   /** Real dismiss/archive handler — opens the reason dialog
    *  which fires `orpc.pulse.dismiss` on confirm. */
   onDismiss?: () => void
+  /**
+   * True while THIS row's dismiss mutation is in flight. Disables the
+   * Dismiss button + swaps its icon for a spinner so a CPA on a slow
+   * link can't double-fire the same dismiss (2026-06-22 audit).
+   */
+  dismissing?: boolean
   /**
    * Bulk-selection affordance. When `selectable`, the 18px leading
    * checkbox (Pencil `gT3zO chk`)
@@ -537,7 +545,7 @@ function PulseAlertRow({
               one red stays on the urgent deadline). Replaces the always-on
               "N% confidence" meter that used to sit in the bottom meta. */}
           {showLowConfidence ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Low confidence</Trans>
             </span>
@@ -801,13 +809,22 @@ function PulseAlertRow({
             variant="outline"
             size="xs"
             className="rounded-lg [corner-shape:round]"
+            // Disabled while this row's dismiss is in flight so a slow
+            // link can't double-fire the same dismiss; the spinner makes
+            // the pending state legible at the row (2026-06-22 audit).
+            disabled={dismissing}
             onClick={(event) => {
               event.stopPropagation()
+              if (dismissing) return
               onDismiss()
             }}
             aria-label={t`Dismiss alert`}
           >
-            <ArchiveIcon data-icon="inline-start" />
+            {dismissing ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <ArchiveIcon data-icon="inline-start" />
+            )}
             <Trans>Dismiss</Trans>
           </Button>
         ) : null}
@@ -877,6 +894,7 @@ function PulseAlertList({
   openAlertId,
   onReview,
   onDismiss,
+  dismissingId = null,
   selectable = false,
   selectedIds,
   onToggleSelected,
@@ -890,6 +908,9 @@ function PulseAlertList({
   openAlertId: string | null
   onReview: (alertId: string) => void
   onDismiss?: (alertId: string) => void
+  /** Id of the alert whose dismiss mutation is currently in flight, or
+   *  null. The matching row disables + spins its Dismiss button. */
+  dismissingId?: string | null
   /**
    * Force compact rows regardless of whether a detail panel is open.
    * The map view's right rail is ~420px, so it renders the same compact
@@ -971,6 +992,7 @@ function PulseAlertList({
         active={alert.id === openAlertId}
         onReview={() => onReview(alert.id)}
         {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
+        dismissing={alert.id === dismissingId}
         compact={panelOpen}
         selectable={selectable}
         selected={selectedIds?.has(alert.id) ?? false}

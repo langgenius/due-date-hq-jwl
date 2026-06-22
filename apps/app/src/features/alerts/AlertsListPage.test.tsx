@@ -159,6 +159,16 @@ vi.mock('./DrawerProvider', () => ({
   useAlertDrawer: () => ({ alertId: null, openDrawer: vi.fn(), closeDrawer: vi.fn() }),
 }))
 
+// The page registers J/K route hotkeys through the keyboard shell, which
+// requires a KeyboardProvider. The unit harness renders the page bare, so stub
+// the shell (matching members-page.test.tsx) — `useAppHotkey` becomes a no-op
+// and `useKeyboardShortcutsBlocked` resolves without the provider context.
+vi.mock('@/components/patterns/keyboard-shell', () => ({
+  useAppHotkey: vi.fn(),
+  useKeyboardShortcutsBlocked: () => false,
+  isInteractiveEventTarget: () => false,
+}))
+
 declare global {
   // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean

@@ -143,8 +143,10 @@ export function AlertListRail({
                 value: 'review',
                 // 2026-06-15 (Yuqi "number in toggle never in a badge"): the
                 // count is a plain number, not a pill. Review still pulls the
-                // eye when it carries work — its count reads in accent + semibold
-                // ("N waiting for you") vs Active's quiet tertiary count.
+                // eye when it carries work — its count reads in the accent tone
+                // ("N waiting for you") vs Active's quiet tertiary count. Color
+                // is the signal, not weight (color+bold is a banned
+                // double-highlight — matches AlertsListPage's Review tab).
                 label: (
                   <span className="inline-flex items-center gap-1.5">
                     <Trans>Review</Trans>
@@ -152,7 +154,7 @@ export function AlertListRail({
                       className={cn(
                         'tabular-nums',
                         (workQueueCounts?.review ?? 0) > 0
-                          ? 'font-semibold text-text-accent'
+                          ? 'text-text-accent'
                           : 'text-text-tertiary',
                       )}
                     >
@@ -379,7 +381,7 @@ function RailItem({
               row carries, so a shaky extraction reads the same in both places.
               High confidence shows nothing. */}
           {showLowConfidence ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Low confidence</Trans>
             </span>

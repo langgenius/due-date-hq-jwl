@@ -479,7 +479,7 @@ export function AlertCard({
               onReview()
             }}
             className={cn(
-              'font-semibold transition-opacity focus-visible:underline',
+              'font-medium transition-opacity focus-visible:underline',
               active
                 ? 'opacity-100'
                 : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',

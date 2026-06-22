@@ -661,7 +661,7 @@ function DecisionBanners({
           </Trans>
         }
         action={
-          <TextLink variant="destructive" size="sm" onClick={onRetry} className="font-semibold">
+          <TextLink variant="destructive" size="sm" onClick={onRetry}>
             <Trans>Retry now</Trans>
           </TextLink>
         }
@@ -706,7 +706,7 @@ function DecisionBanners({
         }
         action={
           undoOpen && REVERTABLE_STATUSES.has(alert.status) ? (
-            <TextLink variant="success" size="sm" onClick={onUndo} className="font-semibold">
+            <TextLink variant="success" size="sm" onClick={onUndo}>
               <Trans>Undo</Trans>
             </TextLink>
           ) : undefined
@@ -2206,13 +2206,19 @@ export function AlertDetailDrawer({
                         </span>
                       </div>
                       {canApply ? (
+                        // 2026-06-22 audit: this is a SHORTCUT to the footer's
+                        // primary "Apply to N clients", so it reads as a quieter
+                        // secondary — one filled primary per view. The green
+                        // ground is the only success cue; no green-on-green
+                        // solid override (it killed contrast + stacked a second
+                        // differently-coloured filled primary).
                         <div className="flex justify-end">
                           <Button
                             type="button"
+                            variant="secondary"
                             size="sm"
                             onClick={handleApply}
                             disabled={isMutating}
-                            className="bg-state-success-solid hover:bg-state-success-solid/90"
                           >
                             <Trans>Apply now</Trans>
                             <ArrowRightIcon data-icon="inline-end" />

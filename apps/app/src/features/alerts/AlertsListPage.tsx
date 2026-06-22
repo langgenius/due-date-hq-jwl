@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 // Flat `useQuery` with a 50-item page (not a keyset-paginated infinite
 // query); row-level Dismiss via `useMutation` + sonner toast.
@@ -40,6 +40,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
+import {
+  isInteractiveEventTarget,
+  useAppHotkey,
+  useKeyboardShortcutsBlocked,
+} from '@/components/patterns/keyboard-shell'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatRelativeTime } from '@/lib/utils'
 import { BulkConfirmDialog, BulkConfirmList } from '@/components/patterns/bulk-confirm-dialog'
@@ -297,6 +302,13 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
       },
     }),
   )
+
+  // Id of the alert whose single-row dismiss is in flight (or null). Threaded
+  // into PulseAlertList so THAT row's Dismiss button disables + spins while the
+  // mutation runs — a CPA on a slow link can't double-fire (2026-06-22 audit).
+  const dismissingId = dismissAlertMutation.isPending
+    ? (dismissAlertMutation.variables?.alertId ?? null)
+    : null
 
   // A flat 50-item query per surface. Client-side filters + sort below
   // operate on the loaded set; no pagination chrome. No origin filter:
@@ -558,6 +570,70 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   // Mirrors the /deadlines + obligation-drawer pattern. Both routes
   // (history or not) can review an alert in place.
   const panelOpen = openAlertId !== null
+
+  // Route keyboard nav (2026-06-22 audit) — /alerts had NO route-scope
+  // shortcuts, unlike its peer lists (/deadlines J/K, /rules). The list's
+  // "active" alert is the one whose detail panel is open, so J/K step the open
+  // selection through `sortedAlerts` (reusing the same `openDrawer(id)` paging
+  // the panel's prev/next arrows drive). With nothing open, J opens the first
+  // alert and K the last — so the keyboard can enter the list cold. Apply (A) /
+  // Dismiss (D) keep living on the open detail panel (AlertDetailDrawer's own
+  // keydown), so they never collide with these J/K route bindings.
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  const keyboardEnabled = !embedded && !shortcutsBlocked && sortedAlerts.length > 0
+  const moveActiveAlert = useCallback(
+    (direction: 1 | -1) => {
+      if (sortedAlerts.length === 0) return
+      const currentIndex = sortedAlerts.findIndex((alert) => alert.id === openAlertId)
+      const nextIndex =
+        currentIndex === -1
+          ? // Nothing open: J (down) lands on the first row, K (up) on the last.
+            direction === 1
+            ? 0
+            : sortedAlerts.length - 1
+          : Math.min(sortedAlerts.length - 1, Math.max(0, currentIndex + direction))
+      const nextId = sortedAlerts[nextIndex]?.id
+      if (nextId) openDrawerAndCollapseSidebar(nextId)
+    },
+    [sortedAlerts, openAlertId, openDrawerAndCollapseSidebar],
+  )
+  useAppHotkey(
+    'J',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      moveActiveAlert(1)
+    },
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'alerts.next-alert',
+        name: 'Next alert',
+        description: 'Open the next alert down the list.',
+        category: 'alerts',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'K',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      moveActiveAlert(-1)
+    },
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'alerts.previous-alert',
+        name: 'Previous alert',
+        description: 'Open the previous alert up the list.',
+        category: 'alerts',
+        scope: 'route',
+      },
+    },
+  )
+
   return (
     // When an alert is open, the page becomes a fixed-height (h-full)
     // flex container so the split-column inner can scroll independently
@@ -1179,6 +1255,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         selectable={false}
                         priorityById={priorityById}
                         onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
+                        dismissingId={dismissingId}
                       />
                     )}
                   </div>
@@ -1220,6 +1297,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   // The hover-only Dismiss button in each PulseAlertRow
                   // routes through the dismiss mutation → toast.
                   onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
+                  dismissingId={dismissingId}
                 />
               )}
             </>
