@@ -553,7 +553,7 @@ const en: LandingCopy = {
       eyebrow: 'PRICING',
       title: 'Pay for the deadline risk you can actually see.',
       description:
-        'Start with one practice on Solo, move to Pro or Team when that practice needs shared operations, and talk to us about Enterprise when you run multiple practices or offices.',
+        'Start free with one practice, then move up to Solo, Pro, or Team as you add clients and the practice needs shared deadline operations.',
       note: 'Trial/demo workspace available · DueDateHQ never stores card numbers',
     },
     plansHeader: {
@@ -568,6 +568,26 @@ const en: LandingCopy = {
       yearlyBadge: 'Save about 20%',
     },
     plans: [
+      {
+        name: 'Free',
+        price: '$0',
+        yearlyPrice: '$0',
+        priceKind: 'numeric',
+        cadence: '/ month',
+        yearlyCadence: '/ month',
+        description: 'Starter monitoring for one owner.',
+        clients: 'Up to 10 clients',
+        firms: '1 practice workspace',
+        seats: '1 seat',
+        cta: 'Get started',
+        hrefKind: 'app',
+        features: [
+          'Alert: live alerts and source rules',
+          'History: 30-day alert window',
+          'Workflow: one-seat manual review',
+          'Controls: manual changes only',
+        ],
+      },
       {
         name: 'Solo',
         price: '$39',
@@ -685,7 +705,7 @@ const en: LandingCopy = {
       {
         question: 'Can I create multiple practices?',
         answer:
-          'Solo, Pro, and Team include one active practice. Additional practices, offices, or demo/production separation are available on the Enterprise plan.',
+          'Solo, Pro, and Team each include one active practice. For additional practices, offices, or demo/production separation, contact our team about a multi-practice plan.',
       },
     ],
   },

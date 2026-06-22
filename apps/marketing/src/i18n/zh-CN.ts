@@ -526,7 +526,7 @@ const zhCN: LandingCopy = {
     meta: {
       title: 'DueDateHQ 价格 — 面向 CPA 团队的截止日智能',
       description:
-        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、提醒与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Solo、Pro、Team 与 Enterprise。',
+        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、提醒与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Free、Solo、Pro 与 Team。',
       ogImage: '/og/home.zh-CN.png',
     },
     navPricingHref: '/zh-CN/pricing',
@@ -534,7 +534,7 @@ const zhCN: LandingCopy = {
       eyebrow: '价格',
       title: '只为你能看清的截止日风险付费。',
       description:
-        '先用 Solo 运营一个 practice 工作区；当这个 practice 需要多人协作时升级到 Pro 或 Team；需要多个办公室或多个工作区时再与我们定制 Enterprise。',
+        '先用 Free 运营一个 practice 工作区；随着客户增多、需要共享截止日运营时，再升级到 Solo、Pro 或 Team。',
       note: '可使用 trial/demo workspace · DueDateHQ 不保存卡号',
     },
     plansHeader: {
@@ -549,6 +549,26 @@ const zhCN: LandingCopy = {
       yearlyBadge: '约省 20%',
     },
     plans: [
+      {
+        name: 'Free',
+        price: '$0',
+        yearlyPrice: '$0',
+        priceKind: 'numeric',
+        cadence: '/ 月',
+        yearlyCadence: '/ 月',
+        description: '适合单个 Owner 的起步监控。',
+        clients: '最多 10 个客户',
+        firms: '1 个 practice 工作区',
+        seats: '1 个席位',
+        cta: '开始使用',
+        hrefKind: 'app',
+        features: [
+          '提醒：实时提醒与来源规则',
+          '历史：30 天提醒窗口',
+          '工作流：单席位手动审核',
+          '控制：仅手动变更',
+        ],
+      },
       {
         name: 'Solo',
         price: '$39',
@@ -666,7 +686,7 @@ const zhCN: LandingCopy = {
       {
         question: '我可以创建多个 practice 吗？',
         answer:
-          'Solo、Pro 和 Team 均包含 1 个 active practice 工作区。额外 practice、办公室，或 demo/production 分离属于 Enterprise 计划。',
+          'Solo、Pro 和 Team 均包含 1 个 active practice 工作区。需要额外 practice、办公室，或 demo/production 分离时，请联系我们了解多 practice 方案。',
       },
     ],
   },
