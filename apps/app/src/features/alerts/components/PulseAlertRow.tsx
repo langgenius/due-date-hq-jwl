@@ -567,26 +567,24 @@ function PulseAlertRow({
               </span>
             ) : null}
 
-            {/* Spacer NdGpw (fill_container) — pushes the source + time cluster to
-              the right edge of the head row. */}
-            <span className="flex-1" aria-hidden />
-
-            {/* SOURCE — 2026-06-21 (Yuqi /alerts #6 "separate the change-type and
-              the source; source at the right-most, before the time"): the source
-              link leaves the left identity cluster (where it sat beside the
-              change-kind) and parks on the RIGHT, immediately before the
-              timestamp — the head now reads "<kind of change>" on the left and
-              "<from where> · <when>" on the right. Shrinks + truncates so a long
-              source never shoves the time off. Dropped in compact (map
-              navigator) rows — the source lives in the detail there (#4). */}
+            {/* SOURCE — inline in the meta line (Yuqi 2026-06-22 "the previous UI
+              was much better… source back inline"): reads in context right after
+              the change kind — "<change kind> · <from where>" — instead of floating
+              at the far-right edge. Restores the old version's calm meta line and
+              leaves the right column to the time/deadline alone. Truncates so a long
+              source never shoves anything; dropped in compact (map) rows. */}
             {!compact ? (
               <AlertSourceLink
                 source={alert.source}
                 sourceUrl={alert.sourceUrl}
                 withTooltip
-                className="max-w-[200px] shrink"
+                className="max-w-[220px] shrink"
               />
             ) : null}
+
+            {/* Spacer — pushes the time/deadline cluster to the right edge; the
+              source is inline on the left now. */}
+            <span className="flex-1" aria-hidden />
 
             {/* Wall-clock + unread dot — relocated here from the removed left
               wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
@@ -774,7 +772,10 @@ function PulseAlertRow({
               </span>
             ) : null}
             {impacted > 0 ? (
-              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
+              // 2026-06-22 (Yuqi "quieter impact"): demoted from primary ink to
+              // tertiary — it's a supporting fact, not the row's headline. Restores
+              // the old version's calmer read (which carried no loud impact line).
+              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-tertiary">
                 <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
                 <Plural value={impacted} one="Affects # client" other="Affects # clients" />
               </span>
@@ -783,25 +784,23 @@ function PulseAlertRow({
         ) : null}
       </div>
 
-      {/* Hover action cluster — Dismiss / Review. Floated into the row's empty
-          right gutter (the title is width-capped, so that column is blank),
-          vertically centred and absolute so it reserves NO height: dropping the
-          "No client impact" line (critique #7) would otherwise leave an empty
-          shelf on every no-impact row, or growing it on hover would shove the
-          rows below. Fades in on row hover; each button stopPropagation so the
-          row's onClick doesn't bubble. */}
+      {/* Hover action cluster — Dismiss / Review. 2026-06-22 (Yuqi "messy — where
+          is the consistency"): it used to float transparent over the right column,
+          so the buttons overlapped the source/time underneath. It's now a contained
+          floating PILL — opaque white bg + hairline ring + soft shadow — so it
+          cleanly OCCLUDES whatever's behind it and reads as one deliberate action
+          group lifted off the row. Vertically centred + absolute so it reserves no
+          height; fades in on hover; each button stopPropagation. */}
       <span
-        className="absolute top-1/2 right-5 inline-flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100"
+        className="absolute top-1/2 right-3 inline-flex -translate-y-1/2 items-center gap-1 rounded-xl bg-background-default p-1 opacity-0 shadow-md ring-1 ring-divider-subtle transition-opacity group-hover/row:opacity-100 focus-within:opacity-100"
         aria-hidden={!active}
       >
-        {/* Dismiss uses the canonical <Button> primitive (outline xs) so it
-            matches Review beside it and every other button in the app. The
-            squircle corner is overridden to a plain rounded-lg so these row
-            buttons match the row's chips. */}
+        {/* Dismiss — ghost inside the pill (the pill's ring is the only border, so
+            a per-button outline would double up). Review stays the primary. */}
         {onDismiss ? (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="xs"
             className="rounded-lg [corner-shape:round]"
             // Disabled while this row's dismiss is in flight so a slow

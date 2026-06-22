@@ -268,3 +268,30 @@ A 7-item feedback batch:
 Decisions (Yuqi): bands same size; remove L/R content padding (flush to table);
 rounded section tops; bottom padding for readability; always show the checkboxes
 (selection-first list).
+
+## Restore the calm — synthesis of old + new (2026-06-22)
+
+Yuqi shared a screenshot of the PRE-triage version: "the previous UI and user
+experience was much better… pick out the pros of each version, update and
+polish." The accumulated chrome (colored bands + always-on checkboxes + loud
+impact footers + floating Dismiss/Review) had made the page busy vs the old's
+calm. Agreed direction: **keep the new structure, restore the old's calm.**
+
+Kept (the new wins): title-first rows, two-zone triage, amber Needs-action band,
+always-on checkboxes, anchored toolbar. Restored from the old (Yuqi picked):
+
+- **Source back inline** — the source link leaves the far-right edge and reads in
+  the meta line after the change kind ("<change> · <from where>"), in context.
+  Reverses the 2026-06-21 #6 "source rightmost" call — the old inline placement
+  read calmer.
+- **Quieter impact + clean right column** — "Affects N clients" demoted primary →
+  tertiary (supporting fact, not headline); with the source gone from the right,
+  the right column is just the time/deadline (airy, like the old version).
+- **Hover cluster fixed** — Dismiss/Review floated transparent over the right
+  column and overlapped the source/time (Yuqi "messy — where is the
+  consistency"). Now a contained floating PILL (opaque white + hairline ring +
+  soft shadow, Dismiss → ghost inside it) that cleanly occludes whatever's behind
+  and reads as one deliberate lifted action group.
+
+Decisions (Yuqi): keep triage zones + restore the calm; source inline; quieter
+impact / clean right column.
