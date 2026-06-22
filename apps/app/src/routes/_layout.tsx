@@ -107,7 +107,22 @@ function RootLayoutShell({
   const isOwner = firm.ownerUserId === user.id
   useEffect(() => {
     setSuperProperties({ locale: i18n.locale })
-    identifyUser(user.email || user.id, { role: firm.role, is_owner: isOwner })
+    // Firm as USER properties (downgrade path): the Amplitude Accounts add-on
+    // (group analytics) isn't enabled on this plan, so the firm rides on the
+    // user as `firm_*` props — segmentable today. setFirmGroup below keeps the
+    // setGroup call so it lights up automatically if Accounts is enabled later.
+    const firmProps =
+      firm.id !== 'pending'
+        ? {
+            firm_name: firm.name,
+            firm_plan: firm.plan,
+            firm_seat_limit: firm.seatLimit,
+            firm_timezone: firm.timezone,
+            firm_open_obligation_count: firm.openObligationCount,
+            firm_created_date: firm.createdAt,
+          }
+        : {}
+    identifyUser(user.email || user.id, { role: firm.role, is_owner: isOwner, ...firmProps })
     if (firm.id !== 'pending') {
       setFirmGroup(firm.name, {
         plan: firm.plan,

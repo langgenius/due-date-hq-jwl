@@ -49,6 +49,11 @@ const EIN_RE = /\b\d{2}-\d{7}\b/
 const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/
 const PHONE_RE = /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/
 
+// Explicit allowlist: keys that contain a blocked token but are the ACCOUNT's
+// own identity (a firm = the customer, its business name is not client PII).
+// Kept narrow on purpose — client_name/first_name/etc. stay blocked.
+const ALLOWED_KEYS = new Set<string>(['firm_name'])
+
 function tokenize(key: string): string[] {
   return key
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2') // split camelCase humps
@@ -58,6 +63,7 @@ function tokenize(key: string): string[] {
 }
 
 function keyNamesPii(key: string): boolean {
+  if (ALLOWED_KEYS.has(key)) return false
   return tokenize(key).some((token) => BLOCKED_KEY_TOKENS.has(token))
 }
 
