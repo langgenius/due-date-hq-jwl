@@ -9,7 +9,7 @@ unit tests + tsc green.
 
 Feedback #1 ("can the user not touch the toggle and read about all? think
 about all use cases"). The Review/Active toggle was a taxonomy of the
-*alert* (`actionMode`), not a workflow for the *CPA*, and it forced you to
+_alert_ (`actionMode`), not a workflow for the _CPA_, and it forced you to
 pick a mode before seeing anything — defaulting (oddly) into the FYI bucket.
 
 `/alerts` is now ONE list that triages itself (no mode toggle). See
@@ -31,7 +31,7 @@ pick a mode before seeing anything — defaulting (oddly) into the FYI bucket.
 
 **Trust bug the deep-UX pass caught:** the naive `isActiveAlert` split filed
 the protective-claim window (closing in 19 days, no client matched yet) into
-*awareness* — a closing legal window demoted to FYI. `alertNeedsAction`
+_awareness_ — a closing legal window demoted to FYI. `alertNeedsAction`
 errs toward action and pulls it into the queue (count 3→4). Hiding real work
 is the one failure a triage model can't afford.
 
@@ -41,7 +41,7 @@ rewritten for the zones.
 
 ## The other six
 
-- **#2 Filters popover** — titled "Filters" header with a *persistent*
+- **#2 Filters popover** — titled "Filters" header with a _persistent_
   "Clear all" (was a stray bottom link); the four facets separated by
   full-width hairlines (`divide-y`, the clear-sections-not-boxes pattern);
   widened 264→280px so "Individual income" / "Franchise & fees" stop
@@ -76,7 +76,7 @@ rewritten for the zones.
 ## Open / follow-ups
 
 - Action-zone intra-sort is by client reach, so the protective-claim window
-  (reach 0, 19d deadline) ranks *last* in the queue despite being most
+  (reach 0, 19d deadline) ranks _last_ in the queue despite being most
   time-urgent. Deliberate; revisit if deadline urgency should outrank reach.
 - Day-grouping stays in the awareness digest only; the action queue is flat.
 - Visual polish pass (zone band weight, density, motion) is ongoing.

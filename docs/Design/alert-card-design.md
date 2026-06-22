@@ -263,7 +263,7 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
 
 The `/alerts` list is a single unified triage view — no Review/Active mode
 toggle. The split that toggle encoded (`actionMode`) was a taxonomy of the
-*alert*, not the *CPA's* workflow, and it forced a mode choice before you saw
+_alert_, not the _CPA's_ workflow, and it forced a mode choice before you saw
 anything. The list now organizes itself around the job:
 
 ```

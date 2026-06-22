@@ -149,7 +149,8 @@ export function AlertListRail({
             // and the FYI digest begins — but only when action items actually
             // precede it (an all-FYI rail needs no divider).
             const firstAwarenessId = visible.find((alert) => !alertNeedsAction(alert))?.id
-            const showDivider = firstAwarenessId !== undefined && firstAwarenessId !== visible[0]?.id
+            const showDivider =
+              firstAwarenessId !== undefined && firstAwarenessId !== visible[0]?.id
             return visible.map((alert) => (
               <Fragment key={alert.id}>
                 {showDivider && alert.id === firstAwarenessId ? (

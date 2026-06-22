@@ -364,19 +364,6 @@ function PulseAlertRow({
   const daysDiff = daysBetweenIso(detail?.originalDueDate ?? null, detail?.newDueDate ?? null)
   const showDateRow = oldDateLabel && newDateLabel
 
-  // `effectiveLabel` lets the facts row render "Effective immediately"
-  // / "Effective MMM D" alongside the form-revised line, in ZkXFr's
-  // horizontal time-rail + main-column architecture.
-  const isEffectiveNow = (() => {
-    if (!detail?.effectiveFrom) return false
-    const eff = new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime()
-    return eff <= Date.now()
-  })()
-  const effectiveLabel = detail?.effectiveFrom
-    ? isEffectiveNow
-      ? t`Effective immediately`
-      : t`Effective ${formatMonthDay(detail.effectiveFrom)}`
-    : null
   const formLabel = detail?.forms?.[0] ?? null
   // Hidden when the list's "Show suggested action" toggle is off. Also dropped
   // in `compact` (map navigator) rows — the prescriptive next-step belongs in
@@ -529,7 +516,7 @@ function PulseAlertRow({
               OUTSIDE this wrapper (below) so it stays present at rest — the one
               urgency cue that never recedes (Yuqi 2026-06-21). */}
           <div className={cn('flex min-w-0 flex-1 items-center gap-2', recede)}>
-          {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
+            {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
               tab is not reasonable or logical"): the ACTIVE badge is GONE
               from queue rows — the Review/Active tab already states which
               queue you're in, so the per-row pill was pure redundancy.
@@ -537,65 +524,65 @@ function PulseAlertRow({
               date-diff KeyChange + affected clients; Review rows read
               "No client impact". (ActiveQueueChip still marks the DETAIL
               header + history, where queues mix.) */}
-          {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
+            {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
-          {levelPill ? (
-            <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
-          ) : null}
+            {levelPill ? (
+              <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
+            ) : null}
 
-          {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
+            {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
               gray chip, NOT red (2026-06-15 critique #4): red is reserved for the
               single URGENT priority pill, so a row never wears two reds (urgency
               + reach reading as one alarm). Client reach is carried by weight + a
               quiet chip; it sits on a different axis from the urgency tier, so it
               must look different from it too. */}
-          {highImpact ? (
-            <SeverityChip level="neutral">
-              <Trans>High impact</Trans>
-            </SeverityChip>
-          ) : null}
+            {highImpact ? (
+              <SeverityChip level="neutral">
+                <Trans>High impact</Trans>
+              </SeverityChip>
+            ) : null}
 
-          {/* STATE — shared JurisdictionChip primitive (outline reference
+            {/* STATE — shared JurisdictionChip primitive (outline reference
               tag, no circular StateBadge seal). */}
-          <JurisdictionChip code={alert.jurisdiction} />
+            <JurisdictionChip code={alert.jurisdiction} />
 
-          {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
+            {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
               code chip), stock chrome so the form badge reads identically
               on every surface (per the pulse-alert-chrome contract: no
               className override on /alerts). Dropped in compact (map
               navigator) rows — the form code lives in the detail (Yuqi
               /alerts #4). */}
-          {!compact && formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+            {!compact && formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
-          {/* CHANGE KIND — icon + sentence-case medium secondary, matching
+            {/* CHANGE KIND — icon + sentence-case medium secondary, matching
               the detail hero exactly (2026-06-14). One treatment across
               list + rail + detail. */}
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-            <ChangeKindIcon changeKind={alert.changeKind} />
-            {changeKindLabel(alert.changeKind)}
-          </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+              <ChangeKindIcon changeKind={alert.changeKind} />
+              {changeKindLabel(alert.changeKind)}
+            </span>
 
-          {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
+            {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
               ONLY when the extraction is shaky: "Low confidence" (medium tier)
               / "Very low confidence" (low tier). High confidence shows nothing
               — the absence is the all-clear. Amber-family (never red — the row's
               one red stays on the urgent deadline). Replaces the always-on
               "N% confidence" meter that used to sit in the bottom meta. */}
-          {/* CONFIDENCE FLAG — dropped in compact (map navigator) rows; the
+            {/* CONFIDENCE FLAG — dropped in compact (map navigator) rows; the
               exact tier still reads in the detail's Source card (Yuqi /alerts
               #4). */}
-          {!compact && showLowConfidence ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
-              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-              <Trans>Low confidence</Trans>
-            </span>
-          ) : null}
+            {!compact && showLowConfidence ? (
+              <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
+                <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
+                <Trans>Low confidence</Trans>
+              </span>
+            ) : null}
 
-          {/* Spacer NdGpw (fill_container) — pushes the source + time cluster to
+            {/* Spacer NdGpw (fill_container) — pushes the source + time cluster to
               the right edge of the head row. */}
-          <span className="flex-1" aria-hidden />
+            <span className="flex-1" aria-hidden />
 
-          {/* SOURCE — 2026-06-21 (Yuqi /alerts #6 "separate the change-type and
+            {/* SOURCE — 2026-06-21 (Yuqi /alerts #6 "separate the change-type and
               the source; source at the right-most, before the time"): the source
               link leaves the left identity cluster (where it sat beside the
               change-kind) and parks on the RIGHT, immediately before the
@@ -603,48 +590,48 @@ function PulseAlertRow({
               "<from where> · <when>" on the right. Shrinks + truncates so a long
               source never shoves the time off. Dropped in compact (map
               navigator) rows — the source lives in the detail there (#4). */}
-          {!compact ? (
-            <AlertSourceLink
-              source={alert.source}
-              sourceUrl={alert.sourceUrl}
-              withTooltip
-              className="max-w-[200px] shrink"
-            />
-          ) : null}
+            {!compact ? (
+              <AlertSourceLink
+                source={alert.source}
+                sourceUrl={alert.sourceUrl}
+                withTooltip
+                className="max-w-[200px] shrink"
+              />
+            ) : null}
 
-          {/* Wall-clock + unread dot — relocated here from the removed left
+            {/* Wall-clock + unread dot — relocated here from the removed left
               wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
               content stays flush-left with the date band while the "when it
               arrived" + unread cue keep a home. Only when there's no date rail
               (day-grouped) and not compact; the dot reserves its slot when read
               so the times stay aligned across rows. */}
-          {!compact && !showRailDate ? (
-            <span className="flex shrink-0 items-center gap-1.5">
-              <span
-                className={cn(
-                  'size-1.5 shrink-0 rounded-full',
-                  // Unseen marker → bright highlight tier (--color-brand-highlight).
-                  unread ? 'bg-brand-highlight' : 'bg-transparent',
-                )}
-                aria-hidden
-              />
-              <Tooltip>
-                <TooltipTrigger
-                  render={(props) => (
-                    <span
-                      className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
-                      {...props}
-                    >
-                      {absoluteTime}
-                    </span>
+            {!compact && !showRailDate ? (
+              <span className="flex shrink-0 items-center gap-1.5">
+                <span
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    // Unseen marker → bright highlight tier (--color-brand-highlight).
+                    unread ? 'bg-brand-highlight' : 'bg-transparent',
                   )}
+                  aria-hidden
                 />
-                <TooltipContent>
-                  {railDate} · {railRelative}
-                </TooltipContent>
-              </Tooltip>
-            </span>
-          ) : null}
+                <Tooltip>
+                  <TooltipTrigger
+                    render={(props) => (
+                      <span
+                        className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
+                        {...props}
+                      >
+                        {absoluteTime}
+                      </span>
+                    )}
+                  />
+                  <TooltipContent>
+                    {railDate} · {railRelative}
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+            ) : null}
           </div>
 
           {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
