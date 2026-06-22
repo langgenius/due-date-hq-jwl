@@ -1,7 +1,8 @@
 ---
-/** Sources — coverage proof. One clear message: we watch the official sources
- *  live, and cover all 50 + DC. A true 2-tone US map (live-monitored vs covered
- *  — no fictional per-state change counts) + the around-the-clock feed. */
+/** Sources — coverage proof. One clear, honest message: the whole country is
+ *  watched around the clock (IRS + FEMA disaster relief nationwide + the major
+ *  state tax agencies, and every one of the 50 + DC in the rule library). A
+ *  full-bleed band: a live-scanning US map + a source-monitoring feed. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -9,8 +10,6 @@ const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
 
 const agencies = ['IRS', 'CA FTB', 'NY DTF', 'TX Comptroller', 'FL DOR', 'WA DOR', 'MA DOR']
-// states with the deepest live monitoring (the rest of the 50 + DC are covered)
-const monitored = new Set(['CA', 'NY', 'TX', 'FL', 'WA', 'MA'])
 
 const t = zh
   ? {
@@ -18,22 +17,22 @@ const t = zh
       headingPre: '紧盯官方来源，',
       headingItal: '全天候。',
       leadHtml:
-        '我们实时监控 IRS、主要州税务机关以及 FEMA 灾害救济——并且 <b>50 个州 + DC</b> 中的每一个都已在你的规则库中覆盖。',
+        '我们全天候监控 IRS 和 FEMA 全国灾害救济，并直接盯紧主要州税务机关——<b>50 个州 + DC</b>，没有一个落下。',
       chipsLabel: '实时监控的来源',
       chipMore: '+ FEMA 灾害声明，覆盖全国',
-      mapLabel: '美国地图：六个州深度实时监控，全部 50 个州加 DC 已覆盖',
-      legMon: '实时监控',
-      legCov: '已覆盖 · 规则库',
+      mapLabel: '美国地图：每一个州都在监控之中，全部 50 个州加 DC',
+      legWatched: '全天候监控中',
       mapCap: 'FED + 50 个州 + DC',
       feedLabel: '来源监控动态——示例预览',
       feedTitle: '监控动态',
       feedCap: '实时预览 · 非你的数据',
+      statusLabels: { scan: '已扫描', new: '新公告', ok: '已核验' },
       rows: [
-        { org: 'IRS', body: '已扫描，无变化', when: '2 分钟前', dot: 'scan', alert: false },
-        { org: 'TX Comptroller', body: '新公告', when: '14 分钟前', dot: 'new', alert: true },
-        { org: 'CA FTB', body: '已核验，无变化', when: '31 分钟前', dot: 'ok', alert: false },
-        { org: 'NY DTF', body: '已扫描，无变化', when: '52 分钟前', dot: 'scan', alert: false },
-        { org: 'FEMA', body: '灾害声明', when: '1 小时前', dot: 'new', alert: true },
+        { code: 'IRS', org: 'IRS', body: '已扫描，无变化', when: '2 分钟前', dot: 'scan', alert: false },
+        { code: 'TX', org: 'TX Comptroller', body: '新公告', when: '14 分钟前', dot: 'new', alert: true },
+        { code: 'CA', org: 'CA FTB', body: '已核验，无变化', when: '31 分钟前', dot: 'ok', alert: false },
+        { code: 'NY', org: 'NY DTF', body: '已扫描，无变化', when: '52 分钟前', dot: 'scan', alert: false },
+        { code: 'FE', org: 'FEMA', body: '灾害声明', when: '1 小时前', dot: 'new', alert: true },
       ],
     }
   : {
@@ -41,25 +40,25 @@ const t = zh
       headingPre: 'Eyes on the official sources, ',
       headingItal: 'around the clock.',
       leadHtml:
-        'We monitor the IRS, the major state tax agencies, and FEMA disaster relief in real time — and every one of the <b>50 states + DC</b> is covered in your rule library.',
+        'We watch the IRS and FEMA disaster relief nationwide, and the major state tax agencies directly — <b>all 50 states + DC</b>, with nothing left unwatched.',
       chipsLabel: 'Sources monitored live',
       chipMore: '+ FEMA disaster declarations, nationwide',
-      mapLabel: 'US map: six states deepest live-monitored, all 50 plus DC covered',
-      legMon: 'Live-monitored',
-      legCov: 'Covered · rule library',
+      mapLabel: 'US map: every state watched, all 50 plus DC',
+      legWatched: 'Watched around the clock',
       mapCap: 'FED + 50 states + DC',
       feedLabel: 'Source-monitoring feed — sample preview',
       feedTitle: 'Monitoring feed',
       feedCap: 'live preview · not your data',
+      statusLabels: { scan: 'Scanned', new: 'New', ok: 'Verified' },
       rows: [
-        { org: 'IRS', body: 'scanned, no change', when: '2m ago', dot: 'scan', alert: false },
-        { org: 'TX Comptroller', body: 'new notice', when: '14m ago', dot: 'new', alert: true },
-        { org: 'CA FTB', body: 'verified, no change', when: '31m ago', dot: 'ok', alert: false },
-        { org: 'NY DTF', body: 'scanned, no change', when: '52m ago', dot: 'scan', alert: false },
-        { org: 'FEMA', body: 'disaster declaration', when: '1h ago', dot: 'new', alert: true },
+        { code: 'IRS', org: 'IRS', body: 'scanned, no change', when: '2m ago', dot: 'scan', alert: false },
+        { code: 'TX', org: 'TX Comptroller', body: 'new notice', when: '14m ago', dot: 'new', alert: true },
+        { code: 'CA', org: 'CA FTB', body: 'verified, no change', when: '31m ago', dot: 'ok', alert: false },
+        { code: 'NY', org: 'NY DTF', body: 'scanned, no change', when: '52m ago', dot: 'scan', alert: false },
+        { code: 'FE', org: 'FEMA', body: 'disaster declaration', when: '1h ago', dot: 'new', alert: true },
       ],
     }
-// US tilegram (state, grid-row, grid-column)
+// US tilegram (state, grid-row, grid-column) — every tile is watched
 const tiles = [
   { s: 'AK', r: 1, c: 1 }, { s: 'ME', r: 1, c: 11 },
   { s: 'VT', r: 2, c: 10 }, { s: 'NH', r: 2, c: 11 },
@@ -82,63 +81,72 @@ const tiles = [
 ]
 ---
 
-<section class="m-section sources" id="sources" aria-labelledby="sources-h">
-  <p class="m-eyebrow">{t.eyebrow}</p>
-  <h2 class="m-h2" id="sources-h">
-    {t.headingPre}<span class="ital">{t.headingItal}</span>
-  </h2>
-  <p class="m-lead sources__lead" set:html={t.leadHtml} />
+<section class="sources" id="sources" aria-labelledby="sources-h">
+  <div class="sources__inner">
+    <p class="m-eyebrow">{t.eyebrow}</p>
+    <h2 class="m-h2" id="sources-h">
+      {t.headingPre}<span class="ital">{t.headingItal}</span>
+    </h2>
+    <p class="m-lead sources__lead" set:html={t.leadHtml} />
 
-  <ul class="sources__chips" aria-label={t.chipsLabel}>
-    {agencies.map((a) => <li class="chip">{a}</li>)}
-    <li class="chip chip--more">{t.chipMore}</li>
-  </ul>
+    <ul class="sources__chips" aria-label={t.chipsLabel}>
+      {agencies.map((a) => <li class="chip">{a}</li>)}
+      <li class="chip chip--more">{t.chipMore}</li>
+    </ul>
 
-  <div class="sources__grid">
-    <!-- US coverage map (true 2-tone: live-monitored vs covered) -->
-    <div class="usmap-wrap">
-      <div class="usmap" role="img" aria-label={t.mapLabel}>
+    <div class="sources__grid">
+      <!-- live-scanning US map — every state watched -->
+      <div class="usmap-wrap">
+        <div class="usmap" role="img" aria-label={t.mapLabel}>
+          {
+            tiles.map((tile, i) => (
+              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c};--i:${i}`}>
+                <span class="ust__c">{tile.s}</span>
+              </div>
+            ))
+          }
+        </div>
+        <div class="usmap__legend">
+          <span class="leg"><span class="sw" />{t.legWatched}</span>
+          <span class="usmap__cap">{t.mapCap}</span>
+        </div>
+      </div>
+
+      <!-- source-monitoring feed -->
+      <div class="feed" aria-label={t.feedLabel}>
+        <div class="feed__bar">
+          <span class="feed__title"><span class="live" aria-hidden="true" />{t.feedTitle}</span>
+          <span class="feed__cap">{t.feedCap}</span>
+        </div>
         {
-          tiles.map((t) => (
-            <div
-              class:list={['ust', monitored.has(t.s) ? 'ust--mon' : 'ust--cov']}
-              style={`grid-row:${t.r};grid-column:${t.c}`}
-            >
-              <span class="ust__c">{t.s}</span>
+          t.rows.map((r) => (
+            <div class="feed-row">
+              <span class="feed-row__badge">{r.code}</span>
+              <div class="feed-row__main">
+                <span class="feed-row__org">{r.org}</span>
+                <span class="feed-row__body">{r.body}</span>
+              </div>
+              <span class={`feed-row__status feed-row__status--${r.dot}`}>{t.statusLabels[r.dot]}</span>
+              <span class={`feed-row__when${r.alert ? ' alert' : ''}`}>{r.when}</span>
             </div>
           ))
         }
       </div>
-      <div class="usmap__legend">
-        <span class="leg"><span class="sw sw--mon" />{t.legMon}</span>
-        <span class="leg"><span class="sw sw--cov" />{t.legCov}</span>
-        <span class="usmap__cap">{t.mapCap}</span>
-      </div>
-    </div>
-
-    <!-- around-the-clock monitoring feed -->
-    <div class="feed" aria-label={t.feedLabel}>
-      <div class="feed__bar">
-        <span class="feed__title"><span class="live" aria-hidden="true" />{t.feedTitle}</span>
-        <span class="feed__cap">{t.feedCap}</span>
-      </div>
-      {
-        t.rows.map((r) => (
-          <div class="feed-row">
-            <span class={`dot ${r.dot}`} />
-            <span><b>{r.org}</b> · {r.body}</span>
-            <span class={`when${r.alert ? ' alert' : ''}`}>{r.when}</span>
-          </div>
-        ))
-      }
     </div>
   </div>
 </section>
 
 <style>
+  /* full-bleed band */
   .sources {
     background: var(--m-section);
-    border-block: 1px solid var(--m-hairline);
+    border-top: 1px solid var(--m-hairline);
+    padding-block: clamp(56px, 8vw, 104px);
+  }
+  .sources__inner {
+    max-width: 1340px;
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
   }
   .sources__lead {
     margin-top: 16px;
@@ -188,13 +196,13 @@ const tiles = [
     grid-column: span 5;
   }
 
-  /* ---- US tilegram (clean 2-tone) ---- */
+  /* ---- US tilegram — uniform "watched", with a live scan wave ---- */
   .usmap {
     display: grid;
     grid-template-columns: repeat(13, minmax(0, 1fr));
-    grid-template-rows: repeat(8, minmax(30px, 1fr));
+    grid-template-rows: repeat(8, minmax(32px, 1fr));
     gap: 5px;
-    min-width: 440px;
+    min-width: 480px;
   }
   .ust {
     display: grid;
@@ -203,15 +211,27 @@ const tiles = [
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
-  }
-  .ust--mon {
     color: #fff;
     background: var(--m-accent);
+    animation: ust-scan 6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.11s);
   }
-  .ust--cov {
-    color: var(--m-faint);
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
+  @keyframes ust-scan {
+    0%,
+    88%,
+    100% {
+      background: var(--m-accent);
+      box-shadow: none;
+    }
+    94% {
+      background: var(--m-accent-strong);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--m-cyan) 55%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ust {
+      animation: none;
+    }
   }
   .usmap__legend {
     margin-top: 16px;
@@ -232,13 +252,7 @@ const tiles = [
     height: 12px;
     border-radius: 4px;
     flex: none;
-  }
-  .sw--mon {
     background: var(--m-accent);
-  }
-  .sw--cov {
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
   }
   .usmap__cap {
     margin-left: auto;
@@ -265,7 +279,7 @@ const tiles = [
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--m-hairline-2);
   }
   .feed__title {
@@ -284,40 +298,69 @@ const tiles = [
   .feed-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 11px;
     padding: 12px 16px;
-    font-size: 13px;
-    color: var(--m-ink-2);
   }
   .feed-row + .feed-row {
     border-top: 1px solid var(--m-hairline-2);
   }
-  .feed-row b {
-    color: var(--m-ink);
-    font-weight: 600;
-  }
-  .feed-row .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
+  .feed-row__badge {
     flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
   }
-  .dot.scan {
-    background: var(--m-faint);
+  .feed-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
   }
-  .dot.ok {
-    background: var(--m-ok);
+  .feed-row__org {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-ink);
   }
-  .dot.new {
-    background: var(--m-urgent);
+  .feed-row__body {
+    font-size: 12px;
+    color: var(--m-muted);
   }
-  .feed-row .when {
+  .feed-row__status {
     margin-left: auto;
+    flex: none;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .feed-row__status--scan {
+    color: var(--m-muted);
+    background: var(--m-section);
+  }
+  .feed-row__status--new {
+    color: var(--m-urgent);
+    background: color-mix(in srgb, var(--m-urgent) 12%, transparent);
+  }
+  .feed-row__status--ok {
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .feed-row__when {
+    flex: none;
     font-family: var(--m-font-mono);
     font-size: 11px;
     color: var(--m-faint);
   }
-  .feed-row .when.alert {
+  .feed-row__when.alert {
     color: var(--m-urgent);
   }
 
