@@ -492,22 +492,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     [actionAlerts, awarenessAlerts],
   )
 
-  // The three alerts hitting the most clients, ranked by the same impact
-  // count the sort uses. Zero-impact alerts never qualify (an advisory
-  // with no matched clients isn't "high impact" just for placing in a
-  // short list). Independent of the current sort order so the flag is
-  // stable.
-  const highImpactIds = useMemo(() => {
-    const ranked = filteredAlerts
-      .filter((a) => alertImpactCount(a) > 0)
-      .toSorted(
-        (a, b) =>
-          alertImpactCount(b) - alertImpactCount(a) ||
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-      )
-      .slice(0, 3)
-    return new Set(ranked.map((a) => a.id))
-  }, [filteredAlerts])
   // Selection is pruned to the currently-loaded alert ids so a filter
   // change that hides a selected row also drops it from the action bar.
   const selectedCount = useMemo(
@@ -1229,7 +1213,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         // The map navigator rail renders flat (no date
                         // headers).
                         grouped={false}
-                        highImpactIds={highImpactIds}
                         selectable={false}
                         priorityById={priorityById}
                         onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
@@ -1272,7 +1255,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         `bg-background-subtle` + `border-b` chrome as the day bands —
                         so it reads as a structural table header, not floating text,
                         and the opaque band occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-state-destructive-border bg-state-destructive-hover px-5 py-2">
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-state-warning-hover-alt bg-state-warning-hover px-5 py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1296,17 +1279,18 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         />
                       ) : null}
                       {/* Sibling zone header skeleton — icon badge · label · count ·
-                          purpose line — shared with "For your awareness". 2026-06-22
-                          (Yuqi "change a colour, maybe destructive bg"): the action
-                          zone now wears a DESTRUCTIVE band (soft-red `bg-state-
-                          destructive-hover`) — the urgent queue gets the page's one
-                          chromatic section header, which also separates it cleanly
-                          from the awareness zone (neutral gray) and the day
-                          subgroups (white). The badge flips to solid-red + inverted
-                          icon (the strong accent), the count to a white chip with
-                          red text; the label stays primary ink (chromatic accent
-                          lives in the containers, not the text). */}
-                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-destructive-solid text-text-inverted">
+                          purpose line — shared with "For your awareness". The action
+                          zone wears a WARNING band (amber `bg-state-warning-hover`):
+                          the urgent queue gets the page's one chromatic section
+                          header — which separates it from the awareness zone (neutral
+                          gray) and the day subgroups (white) — at amber, not red.
+                          2026-06-22 design-critique: red read as chronic-alarm and
+                          competed with the row HIGH chips; amber keeps the section
+                          prominent while red stays reserved for true urgency (canon).
+                          Badge = solid amber + inverted icon (the strong accent),
+                          count = white chip / amber text, label = primary ink
+                          (chromatic accent lives in containers, not text). */}
+                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-warning-solid text-text-inverted">
                         <ZapIcon className="size-3.5" aria-hidden />
                       </span>
                       <div className="flex flex-col gap-0.5">
@@ -1314,7 +1298,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           <span className="text-sm font-semibold text-text-primary">
                             <Trans>Needs action</Trans>
                           </span>
-                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-default px-1.5 text-xs font-medium tabular-nums text-text-destructive">
+                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-default px-1.5 text-xs font-medium tabular-nums text-text-warning">
                             {actionAlerts.length}
                           </span>
                         </div>
@@ -1332,7 +1316,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         // The action zone is a flat priority queue (most-impacted
                         // first); day bands belong to the chronological digest.
                         grouped={false}
-                        highImpactIds={highImpactIds}
                         selectable={selectionEnabled}
                         selectedIds={selectedIds}
                         onToggleSelected={toggleSelected}
@@ -1424,7 +1407,6 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           showAction={false}
                           muted
                           grouped={sortOrder !== 'highest_impact'}
-                          highImpactIds={highImpactIds}
                           selectable={selectionEnabled}
                           selectedIds={selectedIds}
                           onToggleSelected={toggleSelected}

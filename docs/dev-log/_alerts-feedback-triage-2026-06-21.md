@@ -218,3 +218,26 @@ already shipped the turn before: the px-5 content gutter, the white day bands).
 
 Decisions (Yuqi): destructive bg for the action section header; push the view
 toggle right; make the deadline tag a distinct chip from the source link.
+
+## Title-first rows + drop HIGH IMPACT + red→amber band (2026-06-22)
+
+A `/design-critique` pass; Yuqi: "take all" three priority recommendations.
+
+- **Title-first rows** — the headline (the one thing you read to triage) sat on
+  line 2, under a lane of 4 chips. The row now LEADS with the title (severity
+  pill prefixes it inline); jurisdiction · form · change-kind · source · time
+  demote to a quiet meta row BELOW. Inverts the old "chip lane above the title"
+  order. Same line count, content-first hierarchy. (The `HeadRow` split into a
+  title row + a meta row; the title `<h3>` moved above the cluster.)
+- **Drop HIGH IMPACT** — the gray "HIGH IMPACT" chip read as a severity grade but
+  encoded a different axis (client reach), confusing next to the orange `HIGH`
+  tier chip. Removed entirely (prop + `highImpactIds` memo + threading) — reach
+  is already stated by "Affects N clients" in the footer. The leading chip now
+  means exactly one thing: severity.
+- **Red → amber band** — the "Needs action" destructive (red) band read as
+  chronic-alarm and competed with the row `HIGH` chips. Softened to amber
+  (`bg-state-warning-hover` + solid-amber badge), keeping the banded-section win
+  while red stays reserved for true urgency (restores the canon).
+
+Decisions (Yuqi, "take all"): lead rows with the title; remove the redundant
+HIGH IMPACT chip; dial the action band from red to amber.

@@ -203,7 +203,6 @@ function PulseAlertRow({
   selectionActive = false,
   onToggleSelected,
   priority,
-  highImpact = false,
   showAction = true,
   showRailDate = true,
   muted = false,
@@ -249,11 +248,6 @@ function PulseAlertRow({
    * entirely — just relocated to a quieter slot).
    */
   compact?: boolean
-  /**
-   * This alert ranks in the top 3 by client impact; render the "High
-   * impact" badge in the head-row meta cluster.
-   */
-  highImpact?: boolean
   /**
    * When false, the ACTION suggestion line is hidden. Default true.
    */
@@ -501,14 +495,42 @@ function PulseAlertRow({
         null
       ) : null}
 
-      {/* Main column — gap-1.5 (6px) between the head row, subject,
-          KeyChange, and bottom row. 2026-06-22 (Yuqi "still look messy →
-          calm the rows"): tightened from 8px so the four blocks read as one
-          coherent unit per row instead of four loosely-spaced bands. */}
+      {/* Main column — gap-1.5 (6px) between the title, meta row, KeyChange,
+          and footer. 2026-06-22 design-critique: title-FIRST order. The old
+          "chip lane above the title" buried the headline — the one thing you read
+          to triage — on line 2; it now leads on line 1 and the metadata demotes. */}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
-            level → state → form → change-kind (text) · sources →
-            spacer → source link → why. */}
+        {/* Title row — leads the row. The headline is the primary read, so it
+            sits on line 1; the severity chip (priority tier only) prefixes it and
+            everything else demotes to the meta row below. */}
+        <div className="flex min-w-0 items-start gap-2">
+          {/* Level pill (Pencil `Rrafe`) — smart-priority tier, only when the
+              alert is in the priority queue. The single urgency prefix on the
+              title now. (The HIGH IMPACT chip was removed 2026-06-22
+              design-critique #1: client reach is already stated by "Affects N
+              clients" in the footer, so a second uppercase chip on a different
+              axis was redundant and read as a severity grade it wasn't.) */}
+          {levelPill ? (
+            <span className="mt-px shrink-0">
+              <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
+            </span>
+          ) : null}
+          <h3
+            className={cn(
+              'line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium',
+              // Awareness-digest rows demote the title to secondary ink (still
+              // AA-readable) so the FYI stream reads quieter than the queue.
+              muted ? 'text-text-secondary' : 'text-text-primary',
+            )}
+            title={alert.title}
+          >
+            {alert.title}
+          </h3>
+        </div>
+
+        {/* Meta row — the reference cluster + source/time, demoted BELOW the
+            title (2026-06-22 design-critique: title-first). Recedes at rest
+            except the deadline tag + Why (the urgency cues that stay present). */}
         <div className="flex min-w-0 items-center gap-2">
           {/* Receding identity + supporting cluster — the chips, source, and the
               "arrived at" time dim to a quiet tier at rest (lift on hover/active),
@@ -517,32 +539,8 @@ function PulseAlertRow({
               OUTSIDE this wrapper (below) so it stays present at rest — the one
               urgency cue that never recedes (Yuqi 2026-06-21). */}
           <div className={cn('flex min-w-0 flex-1 items-center gap-2', recede)}>
-            {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
-              tab is not reasonable or logical"): the ACTIVE badge is GONE
-              from queue rows — the Review/Active tab already states which
-              queue you're in, so the per-row pill was pure redundancy.
-              The queues differ structurally instead: Active rows carry the
-              date-diff KeyChange + affected clients; Review rows read
-              "No client impact". (ActiveQueueChip still marks the DETAIL
-              header + history, where queues mix.) */}
-            {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
-              when the alert is in the priority queue. */}
-            {levelPill ? (
-              <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
-            ) : null}
-
-            {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
-              gray chip, NOT red (2026-06-15 critique #4): red is reserved for the
-              single URGENT priority pill, so a row never wears two reds (urgency
-              + reach reading as one alarm). Client reach is carried by weight + a
-              quiet chip; it sits on a different axis from the urgency tier, so it
-              must look different from it too. */}
-            {highImpact ? (
-              <SeverityChip level="neutral">
-                <Trans>High impact</Trans>
-              </SeverityChip>
-            ) : null}
-
+            {/* The level pill moved up to prefix the title (2026-06-22 design-
+              critique); the meta row leads with the reference tags instead. */}
             {/* STATE — shared JurisdictionChip primitive (outline reference
               tag, no circular StateBadge seal). */}
             <JurisdictionChip code={alert.jurisdiction} />
@@ -705,39 +703,6 @@ function PulseAlertRow({
             </button>
           ) : null}
         </div>
-
-        {/* Subject — title only. No 2-line summary dek (it largely
-            restated the title and added noise to every row). The title
-            carries the headline (clamped to 2 lines so long ones aren't
-            cut mid-thought); the full summary lives in the detail
-            drawer. */}
-        <h3
-          // `text-lg` (the 16px token, not a literal) + text-primary —
-          // the title is the row's primary read, so it takes the primary
-          // ink while everything around it recedes (batch 3 #3 polish).
-          // 2026-06-12 (Yuqi "is it because it is too wide — the alerts
-          // are so hard to read?" → attack): titles ran ~140ch at full
-          // row width, double the readable measure, so the eye lost the
-          // line on every return sweep. Capped at 72ch — long titles now
-          // wrap to two lines (distinct row silhouettes), and the freed
-          // right side stays meta-only.
-          // 2026-06-12 (Yuqi "flat hierarchies, nothing strong"): title led with
-          // the 16/600 tier — the one big ink jump per row.
-          // 2026-06-16 (Yuqi "why the titles so big and bold"): dialed back to
-          // 14/500. The headline still leads (it's the largest text block on the
-          // row + heavier than the 12px meta) but no longer shouts, and it now
-          // matches the deadline row weight for list-to-list cohesion. If this
-          // reads flat, the lever is weight (→ semibold), not size.
-          className={cn(
-            'line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium',
-            // Awareness-digest rows demote the title to secondary ink (still
-            // AA-readable) so the FYI stream reads quieter than the queue.
-            muted ? 'text-text-secondary' : 'text-text-primary',
-          )}
-          title={alert.title}
-        >
-          {alert.title}
-        </h3>
 
         {/* Date-diff card — before→after when a deadline shifted. Tone shared
             with the detail's DeadlineChangeCard via the one `due-date-diff` helper
@@ -943,7 +908,6 @@ function PulseAlertList({
   priorityById,
   compact,
   grouped = true,
-  highImpactIds,
   showAction = true,
   muted = false,
 }: {
@@ -979,11 +943,6 @@ function PulseAlertList({
    * newest/oldest list).
    */
   grouped?: boolean
-  /**
-   * Ids of the alerts that rank in the top 3 by client impact. Rows in
-   * this set render a "High impact" badge.
-   */
-  highImpactIds?: ReadonlySet<string>
   /**
    * When false, the per-row ACTION suggestion line is hidden. Default
    * true.
@@ -1046,7 +1005,6 @@ function PulseAlertList({
           ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
           : {})}
         priority={priorityById?.get(alert.id)}
-        highImpact={highImpactIds?.has(alert.id) ?? false}
         showAction={showAction}
         muted={muted}
         // Day-grouped lists: the band owns the date, rows show time only
