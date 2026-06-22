@@ -434,11 +434,13 @@ const surfaces = t.surfaces
     color: var(--m-ink-2);
     max-width: 48ch;
   }
-  /* "why it matters to a CPA" — a quiet, framed aside, the human payoff */
+  /* "why it matters to a CPA" — a quiet tinted note, the human payoff (a soft
+     accent-tint card, not a side-stripe — the design canon bans border-left accents) */
   .sd__why {
     margin-top: 18px;
-    padding-left: 16px;
-    border-left: 2px solid var(--m-accent);
+    padding: 14px 16px;
+    background: var(--m-accent-tint);
+    border-radius: 8px;
     font-size: 14px;
     line-height: 1.6;
     color: var(--m-muted);
