@@ -98,8 +98,14 @@ export function JurisdictionRail({
   const federalVisible = federal && matches(federal) ? federal : null
   const visibleStates = states.filter(matches)
   const shownStateCount = visibleStates.length
-  // Jurisdictions with rules awaiting review — drives the header review nudge.
-  const reviewableCount = items.filter((it) => it.reviewCount > 0).length
+  // Whether ANY jurisdiction has review work — gates the header nudge's
+  // existence (and the toggle predicate above).
+  const hasReviewWork = items.some((it) => it.reviewCount > 0)
+  // The nudge COUNTS rules, not jurisdictions: every "to review" figure on
+  // this surface (Overview banner, "Where to start" cards) speaks in rules,
+  // and this total is exactly the sum of the per-row dots the user sees — so
+  // "456 to review" reads true. (A jurisdiction count would misread as rules.)
+  const reviewRuleCount = items.reduce((sum, it) => sum + it.reviewCount, 0)
 
   return (
     <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
@@ -113,7 +119,7 @@ export function JurisdictionRail({
         <ListRailTitle>
           <Trans>Jurisdictions</Trans>
         </ListRailTitle>
-        {reviewableCount > 0 ? (
+        {hasReviewWork ? (
           <Button
             variant={reviewOnly ? 'ghost' : 'accent'}
             size="xs"
@@ -123,7 +129,7 @@ export function JurisdictionRail({
             {reviewOnly ? (
               <Trans>Show all</Trans>
             ) : (
-              <Trans>{reviewableCount} to review</Trans>
+              <Trans>{reviewRuleCount} to review</Trans>
             )}
           </Button>
         ) : null}
@@ -311,6 +317,7 @@ function RailRow({
   selected: boolean
   onSelect: () => void
 }) {
+  const { t } = useLingui()
   // Selected rows — Overview AND jurisdictions — read in accent-blue,
   // the canonical nav-item selected state shared with SettingsSubNav and
   // the main sidebar. Unselected rows stay quiet (text-secondary label,
@@ -354,8 +361,8 @@ function RailRow({
         {reviewCount > 0 ? (
           <span
             className="size-1 shrink-0 rounded-full bg-state-warning-solid"
-            title={`${reviewCount} need review`}
-            aria-label={`${reviewCount} rules need review`}
+            title={t`${reviewCount} rules to review`}
+            aria-label={t`${reviewCount} rules to review`}
           />
         ) : null}
         <span

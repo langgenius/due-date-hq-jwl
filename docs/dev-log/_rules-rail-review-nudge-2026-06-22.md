@@ -13,8 +13,27 @@ review:
 - focused → `Show all` (ghost) to clear.
 - queue clear → nothing renders (quiet = caught up).
 
-`N` = jurisdictions with `reviewCount > 0`. Complements the overview's
-"N rules need your review · Start review" banner + "Where to start" list — the
-rail nudge is the persistent one (visible while drilled into a jurisdiction).
+Complements the overview's "N rules need your review · Start review" banner +
+"Where to start" list — the rail nudge is the persistent one (visible while
+drilled into a jurisdiction).
 
-`tsgo` clean. (Local dev server was stale this session — verify after a refresh.)
+## Copy audit follow-up (same day)
+
+Audited the whole surface's review copy. Every "to review" count speaks in
+**rules** (banner "456", cards "19 to review") — except the rail pill, which
+counted **jurisdictions** ("52"). Sitting above rows whose dots are rule counts,
+"52 to review" misread as 52 rules.
+
+Fix in `states-rail.tsx`:
+- Pill count is now `reviewRuleCount` = `sum(it.reviewCount)` — the rule total,
+  which equals the sum of the per-row dots the user sees **and** the banner's
+  456 (= 479 total − 23 active). `hasReviewWork` (any jurisdiction with work)
+  still gates the pill's existence + toggle predicate.
+- Dot tooltip harmonized to one phrasing — `title`/`aria-label` both now
+  `t\`${reviewCount} rules to review\`` (was "N need review" / "N rules need
+  review", an unwrapped i18n gap with two phrasings in one element).
+- Deliberate idiom split kept: possessive full sentence in the banner ("need
+  your review"); **"to review"** for every count/CTA; "Pending/Awaiting review"
+  as state nouns.
+
+`tsgo` clean. Verified live: pill reads "456 to review", toggle → "Show all".
