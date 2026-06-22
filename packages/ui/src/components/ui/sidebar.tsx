@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -712,6 +712,15 @@ const sidebarMenuButtonVariants = cva(
     // already sits on the rail centerline, so the glyph never snaps/drifts
     // during the width animation. Only the icon↔label gap collapses.
     'group-data-[collapsed=true]/sidebar:gap-0',
+    // 2026-06-22 (Yuqi "collapsed selected box should be a square"): in the
+    // collapsed rail the row constrains to a centered 32×32 SQUARE (w-8 = h-8)
+    // so the active solid-accent pill and the hover wash read as a square tile,
+    // not a 38×32 stub of the expanded row-pill. The icon doesn't move: at
+    // px-[11px] in the full-width (38px) card the glyph already sits on the
+    // rail centerline; a centered w-8 box with px-2 ((32−16)/2 = 8) lands the
+    // glyph at the exact same x, so there's no snap on expand/collapse — only
+    // the highlight's right edge grows out into the pill.
+    'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:px-2',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route
@@ -1064,7 +1073,6 @@ export function SidebarTrigger({
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, hovered, toggleCollapsed } = useSidebar()
-  const Icon = collapsed ? ChevronRightIcon : ChevronLeftIcon
   const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
   // 2026-06-09 (Yuqi "the arrow does not move when it expanded"): the
   // handle must track the CARD's *visible* right edge, which follows
@@ -1102,7 +1110,21 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Icon className="size-3.5" aria-hidden />
+      {/* 2026-06-22 (motion sweep): one fixed ChevronRightIcon that ROTATES
+          in lockstep with the rail (same 360ms ease-apple as the width
+          transition) instead of an instant Right↔Left glyph swap. Collapsed =
+          rotate-0 (points right = "pull open"); expanded = rotate-180 (points
+          left = "push closed"). CSS-only; reduced-motion handled by
+          motion-reduce:transition-none on the same element. */}
+      <span
+        aria-hidden
+        className={cn(
+          'inline-flex transition-transform duration-[360ms] ease-apple motion-reduce:transition-none',
+          collapsed ? 'rotate-0' : 'rotate-180',
+        )}
+      >
+        <ChevronRightIcon className="size-3.5" aria-hidden />
+      </span>
     </button>
   )
 }

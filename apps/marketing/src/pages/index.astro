@@ -1,39 +1,67 @@
 ---
+/**
+ * Live homepage — the production-v2 redesign, built from components/home/* on the
+ * --m-* marketing token tier. The previous homepage is preserved verbatim at
+ * /legacy (apps/marketing/src/pages/legacy.astro), noindex.
+ *
+ * English inline copy for now; i18n (中文) wrapping + the remaining depth sections
+ * (See-it-work, Surfaces, Trust, Security, FAQ) land in later phases.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro'
-import TopNav from '../components/TopNav.astro'
-import Hero from '../components/Hero.astro'
-import SlaStrip from '../components/SlaStrip.astro'
-import Problem from '../components/Problem.astro'
-import Workflow from '../components/Workflow.astro'
-import Proof from '../components/Proof.astro'
-import Security from '../components/Security.astro'
-import FinalCta from '../components/FinalCta.astro'
-import Footer from '../components/Footer.astro'
+import TopNav from '../components/home/TopNav.astro'
+import ScrollRail from '../components/home/ScrollRail.astro'
+import Hero from '../components/home/Hero.astro'
+import Villain from '../components/home/Villain.astro'
+import HowItWorks from '../components/home/HowItWorks.astro'
+import Notice from '../components/home/Notice.astro'
+import Sources from '../components/home/Sources.astro'
+import Compare from '../components/home/Compare.astro'
+import SeeItWork from '../components/home/SeeItWork.astro'
+import Surfaces from '../components/home/Surfaces.astro'
+import Trust from '../components/home/Trust.astro'
+import Security from '../components/home/Security.astro'
+import Faq from '../components/home/Faq.astro'
+import Close from '../components/home/Close.astro'
+import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
-import { getCtaHref } from '../lib/app-url'
+import { getCtaHref, getAppHref } from '../lib/app-url'
 import { homeStructuredData } from '../lib/structured-data'
 
 const ctaHref = getCtaHref()
+const signInHref = getAppHref('/login')
 const t = en
 ---
 
 <BaseLayout
   lang="en"
   pathname="/"
-  title={t.meta.title}
-  description={t.meta.description}
+  title="DueDateHQ — catch every tax-deadline change, and see who it affects"
+  description="DueDateHQ watches the IRS and all 50 states around the clock. The moment a deadline moves, you know exactly which of your clients it affects — with the official source on every date."
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'en')}
 >
-  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TopNav ctaHref={ctaHref} signInHref={signInHref} />
+  <ScrollRail />
   <main>
-    <Hero t={t.hero} ctaHref={ctaHref} workflowAnchor="#workflow" />
-    <SlaStrip t={t.sla} />
-    <Problem t={t.problem} />
-    <Workflow t={t.workflow} />
-    <Proof t={t.proof} />
-    <Security t={t.security} />
-    <FinalCta t={t.finalCta} ctaHref={ctaHref} />
+    <Hero ctaHref={ctaHref} workflowAnchor="#how" />
+    <Villain />
+    <Surfaces />
+    <HowItWorks />
+    <Notice />
+    <Sources />
+    <Compare />
+    <SeeItWork />
+    <Trust />
+    <Security />
+    <Faq />
+    <Close ctaHref={ctaHref} />
   </main>
-  <Footer t={t.footer} enHref="/" zhHref="/zh-CN" currentLocale="en" />
+  <Footer />
 </BaseLayout>
+
+<style is:global>
+  /* the homepage sits on a cold light gray, not the warm canvas */
+  body {
+    background: var(--m-canvas);
+  }
+</style>

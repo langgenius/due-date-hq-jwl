@@ -148,7 +148,14 @@ function SelectItem({
         {children}
       </SelectPrimitive.ItemText>
       {indicatorAtStart ? (
-        <span className={overlayCheckboxIndicatorClassName} data-slot="select-item-indicator">
+        <span
+          // Selected check pops in once per selection (checkbox.tsx recipe).
+          className={cn(
+            overlayCheckboxIndicatorClassName,
+            '[&>svg]:animate-in [&>svg]:fade-in [&>svg]:zoom-in-75 [&>svg]:duration-150 motion-reduce:[&>svg]:animate-none',
+          )}
+          data-slot="select-item-indicator"
+        >
           <SelectPrimitive.ItemIndicator>
             <CheckIcon className="size-3" />
           </SelectPrimitive.ItemIndicator>
@@ -156,7 +163,7 @@ function SelectItem({
       ) : (
         <SelectPrimitive.ItemIndicator
           render={
-            <span className="pointer-events-none absolute top-1/2 right-2 flex size-4 -translate-y-1/2 items-center justify-center text-text-accent" />
+            <span className="pointer-events-none absolute top-1/2 right-2 flex size-4 -translate-y-1/2 items-center justify-center text-text-accent [&>svg]:animate-in [&>svg]:fade-in [&>svg]:zoom-in-75 [&>svg]:duration-150 motion-reduce:[&>svg]:animate-none" />
           }
         >
           <CheckIcon className="pointer-events-none" />

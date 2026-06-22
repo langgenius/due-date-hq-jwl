@@ -1,0 +1,130 @@
+---
+/** FAQ — three short answers (native <details> accordions). */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const t = zh
+  ? {
+      eyebrow: '常见问题',
+      heading: '简短回答。',
+      faqs: [
+        {
+          q: 'DueDateHQ 和 File In Time 有什么不同？',
+          a: 'File In Time 只记录你录入的截止日。DueDateHQ 会<b>替你盯着变化</b>——一旦 IRS 或某个州调整了截止日，它会立刻告诉你受影响的是哪些客户，并附上官方来源。这是监控，而不是一张截止日表格。',
+        },
+        {
+          q: '我需要离开 TaxDome / Karbon / Canopy 吗？',
+          a: '不需要。它的定位刻意做得很窄——只做每周的截止日分诊这一层，<b>以邮件为主，不用配置门户</b>，因此可以与你现有的工具并行使用。',
+        },
+        {
+          q: '我怎么知道这些日期是对的？',
+          a: '<b>它绝不编造日期。</b>任何无法落实到官方原文的内容都会宁可不显示也不猜——只有当一个日期是从来源读取并链接到来源后，它才会出现。',
+        },
+      ],
+    }
+  : {
+      eyebrow: 'Questions',
+      heading: 'The short answers.',
+      faqs: [
+        {
+          q: 'How is this different from File In Time?',
+          a: 'File In Time records the deadlines you enter. DueDateHQ <b>watches them for changes</b> — and the moment the IRS or a state moves one, shows you which clients it affects, with the official source attached. Monitoring, not a deadline table.',
+        },
+        {
+          q: 'Do I have to leave TaxDome / Karbon / Canopy?',
+          a: "No. It's deliberately narrow — the weekly deadline-triage layer, <b>email-first with no portal to configure</b>, so it sits alongside whatever you already run.",
+        },
+        {
+          q: 'How do I know the dates are right?',
+          a: "<b>It never invents a date.</b> Anything that can't be grounded in the official text is held back rather than guessed — so a date only appears once it's been read from, and linked to, the source.",
+        },
+      ],
+    }
+const faqs = t.faqs
+---
+
+<section class="m-section" id="faq" aria-labelledby="faq-h">
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2" id="faq-h">{t.heading}</h2>
+
+  <div class="faq__grid">
+    {
+      faqs.map((f) => (
+        <details class="faq__item">
+          <summary class="faq__q">
+            {f.q}
+            <span class="faq__sign" aria-hidden="true" />
+          </summary>
+          <div class="faq__a" set:html={f.a} />
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    margin-top: clamp(32px, 4vw, 48px);
+    max-width: 760px;
+  }
+  .faq__item {
+    border-top: 1px solid var(--m-hairline);
+  }
+  .faq__item:last-child {
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .faq__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 0;
+    font-size: clamp(16px, 1.3vw, 18px);
+    font-weight: 500;
+    color: var(--m-ink);
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+  .faq__sign {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .faq__sign::before,
+  .faq__sign::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: var(--m-muted);
+  }
+  .faq__sign::before {
+    width: 16px;
+    height: 1.5px;
+  }
+  .faq__sign::after {
+    width: 1.5px;
+    height: 16px;
+    transition: transform 0.2s ease;
+  }
+  .faq__item[open] .faq__sign::after {
+    transform: scaleY(0);
+  }
+  .faq__a {
+    padding: 0 0 24px;
+    max-width: 64ch;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--m-muted);
+  }
+  .faq__a :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+</style>

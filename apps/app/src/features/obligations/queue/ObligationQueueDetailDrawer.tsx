@@ -54,7 +54,7 @@ import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { contentEnterMotion } from '@/lib/motion'
+import { contentEnterMotion, EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -2006,11 +2006,23 @@ export function ObligationQueueDetailDrawer({
                     <span className="inline-flex items-baseline gap-1">
                       <Trans>Past deadline</Trans>
                       <span aria-hidden>·</span>
-                      <DueCountdownText
-                        days={
-                          -Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
-                        }
-                      />
+                      {/* The overdue hero number "comes alive" on load — a brief
+                          scale + fade settle so the urgency reads as present, not
+                          static. (Digit-counting was rejected: the value lives in
+                          an i18n <Plural> and a counting overdue figure would
+                          trivialize a serious signal.) Reduced-motion is global. */}
+                      <motion.span
+                        className="inline-flex"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                      >
+                        <DueCountdownText
+                          days={
+                            -Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
+                          }
+                        />
+                      </motion.span>
                     </span>
                   }
                   note={timingNote}
@@ -2099,7 +2111,7 @@ export function ObligationQueueDetailDrawer({
       <OuterWrapper {...outerWrapperProps}>
         <header
           className={cn(
-            'relative flex flex-col px-12 transition-all duration-300 ease-apple',
+            'relative flex flex-col px-12 transition-all duration-200 ease-apple',
             // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
             // page-mode hero leads the surface (the thin status banner + crumb
             // bar above it carry no top gap of their own), so a full pt-10
@@ -2197,7 +2209,7 @@ export function ObligationQueueDetailDrawer({
                   // the same cramped-two-line finding as the alert hero.
                   <h2
                     className={cn(
-                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-300 ease-apple',
+                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
                       heroCollapsed
                         ? 'line-clamp-1 text-item-title'
                         : 'line-clamp-3 text-surface-title',

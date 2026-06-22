@@ -154,7 +154,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(820px,calc(100vh-2rem))] w-[min(1100px,calc(100vw-2rem))] flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-0 shadow-overlay">
+      <DialogContent className="flex max-h-[min(820px,calc(100vh-2rem))] w-[min(720px,calc(100vw-2rem))] flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-0 shadow-overlay">
         {/* No redundant `Global` scope chip per-row (every row inside the
             GLOBAL section is already global — the section header carries that
             signal). The `Reserved` chip stays as it marks per-row state, not

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CircleCheckIcon, LoaderIcon, RocketIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, RocketIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -10,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { DuotoneIcon } from '@/components/primitives/duotone-icon'
 import { TickProgress } from '@/components/primitives/tick-progress'
 import { orpc } from '@/lib/rpc'
+import { SetupStepIcon } from './setup-step-icon'
 
 // Dismiss-for-session lives in localStorage rather than React state so the
 // nudge stays hidden across route changes within a browser session — but it is
@@ -51,9 +52,7 @@ export function SidebarSetupCard() {
   // identical query keys, so this reuses the warmed cache (no extra fetch when
   // /today is the current page) and stays in lockstep with the dashboard's own
   // first-run gating.
-  const clientsProbeQuery = useQuery(
-    orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }),
-  )
+  const clientsProbeQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }))
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
 
   const dismiss = useCallback(() => {
@@ -131,17 +130,7 @@ export function SidebarSetupCard() {
           const isNext = step === next
           return (
             <li key={step.key} className="flex items-center gap-2 text-xs">
-              {step.done ? (
-                <CircleCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
-              ) : (
-                <LoaderIcon
-                  className={cn(
-                    'size-3.5 shrink-0 text-text-tertiary',
-                    isNext && 'animate-spin text-text-accent motion-reduce:animate-none',
-                  )}
-                  aria-hidden
-                />
-              )}
+              <SetupStepIcon done={step.done} isNext={isNext} variant="sidebar" />
               <span
                 className={cn(
                   'truncate',

@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -54,6 +54,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -507,12 +508,13 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                 )}
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 13/500
-                      step title — a step lighter than the section body so the
-                      timeline reads as a quiet log, not a heading stack. */}
+                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 12/500
+                      step title — a step lighter than the section body (text-sm)
+                      so the timeline reads as a quiet log, not a heading stack.
+                      Tokenized from the off-scale text-[13px] to text-xs. */}
                   <span
                     className={cn(
-                      'text-[13px] font-medium',
+                      'text-xs font-medium',
                       step.state === 'current'
                         ? 'text-text-accent'
                         : step.state === 'future'
@@ -659,7 +661,7 @@ function DecisionBanners({
           </Trans>
         }
         action={
-          <TextLink variant="destructive" size="sm" onClick={onRetry} className="font-semibold">
+          <TextLink variant="destructive" size="sm" onClick={onRetry}>
             <Trans>Retry now</Trans>
           </TextLink>
         }
@@ -704,7 +706,7 @@ function DecisionBanners({
         }
         action={
           undoOpen && REVERTABLE_STATUSES.has(alert.status) ? (
-            <TextLink variant="success" size="sm" onClick={onUndo} className="font-semibold">
+            <TextLink variant="success" size="sm" onClick={onUndo}>
               <Trans>Undo</Trans>
             </TextLink>
           ) : undefined
@@ -835,6 +837,11 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
     </ol>
   )
 }
+
+// Apply-success celebration hold: how long the footer shows the green "Applied"
+// confirmation before the drawer closes. ~600ms reads as a deliberate beat of
+// recognition (the catalog's "win moment") without making the user wait.
+const APPLIED_CELEBRATION_MS = 600
 
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
@@ -987,6 +994,21 @@ export function AlertDetailDrawer({
   const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
   const [applyVerified, setApplyVerified] = useState(false)
 
+  // Apply-success celebration — the one-click Apply is the product's signature
+  // win, but it used to close the drawer instantly with only a toast. On success
+  // we flip the footer to a green "Applied" confirmation, hold briefly so the
+  // firm-wide win registers, then close. `applied` is reset by the render-time
+  // reset blocks below (alert change / close); the timer is cleared on unmount.
+  const [applied, setApplied] = useState(false)
+  const [appliedCount, setAppliedCount] = useState(0)
+  const appliedCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (appliedCloseTimer.current) clearTimeout(appliedCloseTimer.current)
+    },
+    [],
+  )
+
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
   const nextResetKey = detail
@@ -1015,6 +1037,7 @@ export function AlertDetailDrawer({
     setApplyVerified(false)
     setHeroScrolled(false)
     setDecisionDocked(true)
+    setApplied(false)
     setResetKey(nextResetKey)
   }
   if (!open && resetKey !== null) {
@@ -1025,6 +1048,7 @@ export function AlertDetailDrawer({
     setReviewNote('')
     setApplyVerificationOpen(false)
     setApplyVerified(false)
+    setApplied(false)
     setResetKey(null)
   }
 
@@ -1141,7 +1165,13 @@ export function AlertDetailDrawer({
             onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
           },
         })
-        onClose()
+        // Hold a brief green "Applied" confirmation in the footer before
+        // closing, so the firm-wide win registers (motion catalog). The timer
+        // is cleared on unmount; `applied` is reset by the render-time reset
+        // blocks when the alert changes or the drawer closes.
+        setAppliedCount(result.appliedCount)
+        setApplied(true)
+        appliedCloseTimer.current = setTimeout(() => onClose(), APPLIED_CELEBRATION_MS)
       },
       onError: (err) => {
         const description = i18n._(alertErrorDescriptor(err)) || (rpcErrorMessage(err) ?? '')
@@ -1516,16 +1546,22 @@ export function AlertDetailDrawer({
               scrolled out of view (Yuqi: "when you scroll up, still show the
               alert title, smaller"). At the top the big hero title is visible,
               so repeating it here would be redundant. */}
-          {detail && heroScrolled ? (
-            <>
-              <span className="shrink-0 text-text-muted" aria-hidden>
-                /
-              </span>
-              <span className="max-w-[420px] truncate text-text-secondary">
-                {detail.alert.title}
-              </span>
-            </>
-          ) : null}
+          <AnimatePresence mode="wait">
+            {detail && heroScrolled ? (
+              <motion.span
+                key="title"
+                {...fadeMotion}
+                className="flex min-w-0 items-center gap-1.5"
+              >
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  /
+                </span>
+                <span className="max-w-[420px] truncate text-text-secondary">
+                  {detail.alert.title}
+                </span>
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
         </nav>
         <div className="flex shrink-0 items-center gap-3">
           {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
@@ -2146,11 +2182,11 @@ export function AlertDetailDrawer({
                   {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
                     <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4 animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none">
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-state-success-hover text-text-success">
                           <ShieldCheckIcon className="size-4" aria-hidden />
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <span className="text-base font-semibold text-text-success">
+                          <span className="text-base font-semibold text-text-primary">
                             <Trans>Ready to apply · deadline selection confirmed</Trans>
                           </span>
                           <p className="text-sm text-text-secondary">
@@ -2165,18 +2201,24 @@ export function AlertDetailDrawer({
                             </Trans>
                           </p>
                         </div>
-                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-success tabular-nums sm:inline">
+                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-secondary tabular-nums sm:inline">
                           {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                         </span>
                       </div>
                       {canApply ? (
+                        // 2026-06-22 audit: this is a SHORTCUT to the footer's
+                        // primary "Apply to N clients", so it reads as a quieter
+                        // secondary — one filled primary per view. The green
+                        // ground is the only success cue; no green-on-green
+                        // solid override (it killed contrast + stacked a second
+                        // differently-coloured filled primary).
                         <div className="flex justify-end">
                           <Button
                             type="button"
+                            variant="secondary"
                             size="sm"
                             onClick={handleApply}
                             disabled={isMutating}
-                            className="bg-text-success hover:bg-text-success/90"
                           >
                             <Trans>Apply now</Trans>
                             <ArrowRightIcon data-icon="inline-end" />
@@ -2421,6 +2463,8 @@ export function AlertDetailDrawer({
                 <div className="flex min-w-0 flex-1">
                   {detail ? (
                     <DrawerActions
+                      applied={applied}
+                      appliedCount={appliedCount}
                       alertStatus={detail.alert.status}
                       sourceStatus={detail.alert.sourceStatus}
                       selectionCount={stats?.selectedCount ?? 0}
@@ -2586,6 +2630,8 @@ export function AlertDetailDrawer({
 }
 
 export function DrawerActions({
+  applied = false,
+  appliedCount = 0,
   alertStatus,
   sourceStatus,
   selectionCount,
@@ -2610,6 +2656,10 @@ export function DrawerActions({
   onCopyDraft,
   onDismiss,
 }: {
+  /** True during the brief post-apply success hold — shows a green confirmation. */
+  applied?: boolean
+  /** Number of clients the apply just landed on — shown in the confirmation. */
+  appliedCount?: number
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
@@ -2644,6 +2694,32 @@ export function DrawerActions({
   onDismiss: () => void
 }) {
   const { t } = useLingui()
+  // Apply-success celebration — while the parent holds before closing, replace
+  // the whole action cluster with a brief green "Applied" confirmation that
+  // fades in. Reduced-motion is handled globally by <MotionConfig>.
+  if (applied) {
+    return (
+      <div className="flex w-full items-center justify-end">
+        <motion.div
+          {...fadeMotion}
+          className="flex items-center gap-2 text-sm font-medium text-text-success"
+        >
+          {/* The check stamps down like an audit seal — scale + slight rotate
+              settling to rest — over the row's fade. The client count gives the
+              win its weight. Reduced-motion handled globally by MotionConfig. */}
+          <motion.span
+            className="inline-flex"
+            initial={{ scale: 1.6, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+          >
+            <CircleCheckIcon className="size-4 shrink-0" aria-hidden />
+          </motion.span>
+          <Plural value={appliedCount} one="Applied to # client" other="Applied to # clients" />
+        </motion.div>
+      </div>
+    )
+  }
   // The server rejects reverts past REVERT_WINDOW_MS (24h from apply), so
   // the footer only offers Undo while the window is genuinely open. After
   // that, a quiet closed-window line replaces the button — never an enabled

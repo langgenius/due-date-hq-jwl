@@ -1,13 +1,14 @@
 import { type ReactNode } from 'react'
-import { Trans } from '@lingui/react/macro'
-import { ArrowRightIcon, CircleCheckIcon, CircleDashedIcon, LoaderIcon, RocketIcon } from 'lucide-react'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { RocketIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DuotoneIcon } from '@/components/primitives/duotone-icon'
+import { FunIconButton } from '@/components/primitives/fun-icon-button'
 import { TickProgress } from '@/components/primitives/tick-progress'
+import { SetupStepIcon } from './setup-step-icon'
 
 export interface SetupStep {
   key: string
@@ -39,13 +40,14 @@ export function SetupProgressCard({
   description?: ReactNode
   className?: string
 }) {
+  const { t } = useLingui()
   const doneCount = steps.filter((s) => s.done).length
   if (steps.length === 0 || doneCount === steps.length) return null
   const pct = Math.round((doneCount / steps.length) * 100)
   const next = steps.find((s) => !s.done)
   return (
     <section
-      aria-label="Setup progress"
+      aria-label={t`Setup progress`}
       className={cn(
         'flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
         className,
@@ -78,16 +80,7 @@ export function SetupProgressCard({
           const isNext = step === next
           return (
             <li key={step.key} className="flex items-center gap-2.5 text-sm">
-              {step.done ? (
-                <CircleCheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
-              ) : isNext ? (
-                <LoaderIcon
-                  className="size-4 shrink-0 animate-spin text-text-accent motion-reduce:animate-none"
-                  aria-hidden
-                />
-              ) : (
-                <CircleDashedIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-              )}
+              <SetupStepIcon done={step.done} isNext={isNext} />
               <span
                 className={cn(
                   'truncate',
@@ -106,10 +99,19 @@ export function SetupProgressCard({
       </ul>
 
       {next ? (
-        <Button size="sm" className="w-full" nativeButton={false} render={<Link to={next.href} />}>
+        // The launch CTA gets the marquee FunIconButton (delight surface — a
+        // first-run onboarding moment, not the dense workbench). The rocket chip
+        // echoes the card's brand DuotoneIcon + cyan→navy TickProgress. Rendered
+        // as a real <Link> so it keeps href semantics (cmd/right-click).
+        <FunIconButton
+          icon={RocketIcon}
+          tone="brand"
+          className="w-full justify-center"
+          nativeButton={false}
+          render={<Link to={next.href} />}
+        >
           <Trans>Continue setup</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+        </FunIconButton>
       ) : null}
     </section>
   )

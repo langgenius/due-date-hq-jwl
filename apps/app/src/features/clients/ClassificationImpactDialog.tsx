@@ -408,7 +408,7 @@ export function ClassificationImpactDialog({
             aria-busy={applyMutation.isPending || undefined}
           >
             {applyMutation.isPending ? (
-              <Loader2Icon className="size-4 animate-spin" aria-hidden />
+              <Loader2Icon className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
             ) : null}
             {applyMutation.isPending
               ? t`Applying…`

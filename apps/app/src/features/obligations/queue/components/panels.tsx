@@ -31,6 +31,7 @@ import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProv
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
+import { RichHelpTooltip } from '@/components/primitives/rich-help-tooltip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import {
   type ObligationStatus,
@@ -65,7 +66,10 @@ import {
   MessageSquareTextIcon,
 } from 'lucide-react'
 import { Fragment, type ReactNode, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
+
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 export function ReadinessOverview({
   row,
@@ -293,11 +297,80 @@ export function ReadinessOverview({
 // (background-subtle, no shadow), so the strip no longer out-shouts
 // the page.
 
+// Internal-vs-filing schematic for the RichHelpTooltip on the
+// Internal-target card. The internal/filing distinction is genuinely
+// confusing — both are "the deadline" — so this draws the REAL spatial
+// relationship: the firm's internal target chip sits to the LEFT of the
+// statutory filing chip, joined by an arrow, with the actual day buffer
+// (computed from the two real row dates) labelled on the connector. When
+// the two dates coincide (no buffer) the schematic collapses to a single
+// "same date" chip rather than fabricating a gap. Pure presentation —
+// every value passed in is a real row-derived datum, no fiction. Lives on
+// the DARK tooltip surface, so chroma rides the CHIP containers (a brand
+// tint for internal, a neutral white wash for filing) and the copy stays
+// white per the no-coloured-text-on-dark canon.
+function InternalVsFilingSchematic({
+  internalLabel,
+  filingLabel,
+  bufferLabel,
+}: {
+  // Pretty dates ("May 9") for the two chips — already formatted by the
+  // caller from the real row ISO strings.
+  internalLabel: string
+  filingLabel: string
+  // The connector annotation, e.g. "5 days earlier". null when the two
+  // dates are the same (no buffer) — the schematic then shows one chip.
+  bufferLabel: string | null
+}) {
+  if (bufferLabel === null) {
+    return (
+      <div className="flex w-full items-center justify-center">
+        <div className="rounded-md bg-white/15 px-2.5 py-1.5 text-center">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/55">
+            <Trans>Same date</Trans>
+          </div>
+          <div className="text-xs font-semibold tabular-nums text-white">{filingLabel}</div>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="flex w-full flex-col gap-1.5">
+      <div className="flex items-stretch gap-1.5">
+        {/* Internal chip — brand-tinted container (chroma in the box, not
+            the text) marks the firm's earlier internal goal. */}
+        <div className="flex-1 rounded-md bg-[color-mix(in_srgb,var(--color-brand-highlight)_30%,transparent)] px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/60">
+            <Trans>Internal</Trans>
+          </div>
+          <div className="text-xs font-semibold tabular-nums text-white">{internalLabel}</div>
+        </div>
+        {/* Arrow connector — internal points AT the filing deadline. */}
+        <div className="flex w-4 shrink-0 items-center justify-center">
+          <ChevronRightIcon className="size-4 text-white/45" aria-hidden />
+        </div>
+        {/* Filing chip — neutral white wash marks the hard statutory date
+            the IRS / state enforces. */}
+        <div className="flex-1 rounded-md bg-white/15 px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/60">
+            <Trans>Filing</Trans>
+          </div>
+          <div className="text-xs font-semibold tabular-nums text-white">{filingLabel}</div>
+        </div>
+      </div>
+      {/* Buffer annotation, centred under the connector — the REAL lead
+          time between the two dates. */}
+      <div className="text-center text-[10px] font-medium text-white/55">{bufferLabel}</div>
+    </div>
+  )
+}
+
 function DeadlineDateCard({
   label,
   date,
   clock,
   meta,
+  labelHelp,
 }: {
   label: string
   date: string | null
@@ -312,6 +385,10 @@ function DeadlineDateCard({
   // Card-specific distinguishing line drawn from a REAL row field
   // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
   meta: string | null
+  // Optional inline help affordance rendered after the label (e.g. the
+  // RichHelpTooltip on the Internal-target card that explains the
+  // internal-vs-filing distinction). null = omit (no "?" dot).
+  labelHelp?: ReactNode
 }) {
   return (
     <div
@@ -323,9 +400,12 @@ function DeadlineDateCard({
       // stays a text-colour cue on the icon + date.
       className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
     >
-      <CapsFieldLabel as="span" variant="group">
-        {label}
-      </CapsFieldLabel>
+      <div className="flex min-h-6 items-center gap-0.5">
+        <CapsFieldLabel as="span" variant="group">
+          {label}
+        </CapsFieldLabel>
+        {labelHelp ? <span className="-my-1 shrink-0">{labelHelp}</span> : null}
+      </div>
       <span
         // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
         // is the primary datum in each key-date card, so it steps up to
@@ -563,6 +643,42 @@ export function PrimaryDeadlineStrip({
       typeof row.estimatedTaxDueCents === 'number' && row.estimatedTaxDueCents > 0
         ? t`${formatCents(row.estimatedTaxDueCents)} owed`
         : null
+    // RichHelpTooltip on the Internal-target card. The internal/filing
+    // pair is one of the product's genuinely-confusing concepts (both are
+    // "the deadline"), so it earns the richer dark surface with a VISUAL
+    // schematic — two date chips joined by an arrow — over the plain
+    // ConceptHelp paragraph. Every value is real row-derived data: the two
+    // chip dates are the same ISO strings the cards render, and the buffer
+    // is `daysBetween(internal, filing)`. Only mounts when BOTH dates are
+    // real (otherwise there's nothing to contrast).
+    const internalHelp: ReactNode = (() => {
+      if (internalIso === null || filingIso === null) return null
+      const buffer = daysBetween(internalIso, filingIso)
+      const schematicBuffer =
+        buffer <= 0 ? null : buffer === 1 ? t`1 day earlier` : t`${buffer} days earlier`
+      return (
+        <RichHelpTooltip
+          title={t`Internal target vs. filing deadline`}
+          side="bottom"
+          align="start"
+          previewTone="brand"
+          triggerLabel={t`What is the internal target?`}
+          preview={
+            <InternalVsFilingSchematic
+              internalLabel={formatDatePretty(internalIso)}
+              filingLabel={formatDatePretty(filingIso)}
+              bufferLabel={schematicBuffer}
+            />
+          }
+          description={
+            <Trans>
+              The filing deadline is the hard date the IRS or state enforces. The internal target is
+              the firm's earlier goal — work toward it to keep a safety buffer.
+            </Trans>
+          }
+        />
+      )
+    })()
     return (
       <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <DeadlineDateCard
@@ -576,6 +692,7 @@ export function PrimaryDeadlineStrip({
           date={internalIso}
           clock={internalClock.node}
           meta={internalBuffer}
+          labelHelp={internalHelp}
         />
         <DeadlineDateCard
           label={t`Payment due`}
@@ -932,7 +1049,7 @@ export function PathToFilingSummary({
                   className={cn(
                     // Continuous solid track; entered edges fill accent up to
                     // the active stage, the rest stays a neutral rule.
-                    'h-0 flex-1 border-t',
+                    'h-0 flex-1 border-t transition-colors',
                     (() => {
                       if (i === 0) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'
@@ -2633,23 +2750,33 @@ export function ActiveStageDetailCard({
                       )}
                     </span>
                   </button>
-                  {open ? (
-                    <ul className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3">
-                      {entry.events.map((event) => (
-                        <li key={event.id} className="flex items-start gap-2 text-xs">
-                          <span className="flex-1 leading-snug text-text-secondary">
-                            {humanizeAuditAction(event.action)}
-                            {event.actorLabel ? (
-                              <span className="text-text-tertiary"> · {event.actorLabel}</span>
-                            ) : null}
-                          </span>
-                          <span className="shrink-0 tabular-nums text-text-tertiary">
-                            {formatDate(event.createdAt.slice(0, 10))}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
+                  <AnimatePresence initial={false}>
+                    {open ? (
+                      <motion.ul
+                        key="events"
+                        className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3"
+                        style={{ overflow: 'hidden' }}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: MOTION_DURATION.surface, ease: EASE_APPLE }}
+                      >
+                        {entry.events.map((event) => (
+                          <li key={event.id} className="flex items-start gap-2 text-xs">
+                            <span className="flex-1 leading-snug text-text-secondary">
+                              {humanizeAuditAction(event.action)}
+                              {event.actorLabel ? (
+                                <span className="text-text-tertiary"> · {event.actorLabel}</span>
+                              ) : null}
+                            </span>
+                            <span className="shrink-0 tabular-nums text-text-tertiary">
+                              {formatDate(event.createdAt.slice(0, 10))}
+                            </span>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    ) : null}
+                  </AnimatePresence>
                 </li>
               )
             })}

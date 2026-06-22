@@ -281,7 +281,7 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
           />
         ) : (
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width={px} height={px}>
-            <circle cx="100" cy="100" r="95" fill="#1A3263" />
+            <circle cx="100" cy="100" r="95" fill="var(--color-brand-ink)" />
             <text
               x="100"
               y="100"
@@ -290,7 +290,7 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
               fontFamily="ui-sans-serif, system-ui, sans-serif"
               fontWeight={700}
               fontSize={upper.length > 2 ? 56 : 80}
-              fill="#EFE4BD"
+              fill="var(--color-brand-ivory)"
               letterSpacing={upper.length > 2 ? -2 : -3}
             >
               {upper}
@@ -312,7 +312,7 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
       <PreviewCard>
         <PreviewCardTrigger render={badge} delay={150} closeDelay={200} />
         <PreviewCardContent side="top" sideOffset={8} className="w-auto items-center gap-2 p-3">
-          <span className="flex size-40 items-center justify-center overflow-hidden rounded-lg bg-white p-1.5 ring-1 ring-black/5">
+          <span className="flex size-40 items-center justify-center overflow-hidden rounded-lg bg-background-default p-1.5 ring-1 ring-divider-subtle">
             <img
               src={sealUrl}
               alt=""

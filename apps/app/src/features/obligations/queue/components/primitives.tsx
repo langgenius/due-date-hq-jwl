@@ -293,7 +293,7 @@ export function EvidenceArtifactStatusGrid({ cells }: { cells: ArtifactStatusCel
                 cell.tone === 'success'
                   ? 'bg-state-success-solid'
                   : cell.tone === 'warning'
-                    ? 'bg-state-destructive-solid'
+                    ? 'bg-state-warning-solid'
                     : 'bg-text-tertiary',
               )}
               aria-hidden

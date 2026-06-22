@@ -8,10 +8,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { buildAuditChangeView } from '@/features/audit/audit-change-view'
-import {
-  useAuditActionLabels,
-  useAuditChangeLabels,
-} from '@/features/audit/audit-log-labels'
+import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/audit-log-labels'
 import {
   STATUS_VARIANT,
   useLifecycleV2StatusLabels,
@@ -129,9 +126,7 @@ function BlockerRecentTransitions({ auditEvents }: { auditEvents: AuditEventPubl
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
 
   // auditEvents arrive newest-first; keep the latest 1–2 status changes.
-  const recent = auditEvents
-    .filter((event) => STATUS_CHANGE_ACTIONS.has(event.action))
-    .slice(0, 2)
+  const recent = auditEvents.filter((event) => STATUS_CHANGE_ACTIONS.has(event.action)).slice(0, 2)
   if (recent.length === 0) return null
 
   return (

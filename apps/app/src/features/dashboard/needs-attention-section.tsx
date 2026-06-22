@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { CircleAlertIcon, ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
@@ -11,6 +12,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
@@ -321,14 +323,27 @@ function NeedsAttentionSection() {
             cardAlerts.length >= 3 && 'md:grid-cols-2 xl:grid-cols-3',
           )}
         >
-          {cardAlerts.map((alert) => (
-            <div key={alert.id} className="h-full min-w-0">
+          {cardAlerts.map((alert, index) => (
+            // Cards rise + fade in sequence (capped at 3) so the alert row
+            // lands as a quick cascade rather than three simultaneous pops.
+            // Reduced-motion is governed globally by the root <MotionConfig>.
+            <motion.div
+              key={alert.id}
+              className="h-full min-w-0"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: MOTION_DURATION.enter,
+                ease: EASE_APPLE,
+                delay: Math.min(index, 3) * 0.04,
+              }}
+            >
               <NeedsAttentionCard
                 alert={alert}
                 affectedClients={affectedByAlert.get(alert.id) ?? []}
                 onReview={() => openAlert(alert.id)}
               />
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : null}

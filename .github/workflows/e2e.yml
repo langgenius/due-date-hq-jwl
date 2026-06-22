@@ -93,8 +93,8 @@ jobs:
   # TODO(visual-baselines): this job is NON-BLOCKING (continue-on-error)
   # because no baselines are committed yet. Bootstrap: download the
   # visual-regression-report artifact from the first run, commit the actuals
-  # as baselines under e2e/__screenshots__/visual/, then DELETE the
-  # `continue-on-error: true` line below to make visual drift block CI.
+  # as baselines under e2e/__screenshots__/visual/, then DELETE both
+  # `continue-on-error: true` lines below to make visual drift block CI.
   # See e2e/README.md "Visual regression".
   visual:
     runs-on: ubuntu-latest
@@ -155,6 +155,7 @@ jobs:
         run: vp exec playwright install --with-deps chromium
 
       - name: Run visual regression
+        continue-on-error: true
         run: vp exec playwright test --project=visual
 
       - name: Upload visual diff artifacts

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, Loader2Icon } from 'lucide-react'
@@ -23,12 +24,24 @@ import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timez
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { ANALYTICS_EVENTS, consumeSignInMarker, track } from '@/lib/analytics'
 import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboarding-firm-flow'
 
 const MIN_NAME_LENGTH = 2
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 const ONBOARDING_STEP_COUNT = 3
+
+// Field rows rise in a quick top-down stagger on mount so the form reads as
+// settling into place rather than appearing all at once. Reduced-motion is
+// handled globally via the root <MotionConfig reducedMotion="user">.
+const FIELD_COLUMN_VARIANTS = {
+  show: { transition: { staggerChildren: 0.05 } },
+} as const
+const FIELD_ROW_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0 },
+} as const
 
 type OnboardingLoaderData = { user: AuthUser }
 
@@ -281,36 +294,50 @@ export function OnboardingRoute() {
             </p>
           </div>
 
-          {/* Fields */}
-          <div className="flex flex-col gap-5">
-            <Field>
-              <FieldHeaderRow
-                htmlFor="practice-name"
-                label={t`Practice name`}
-                hint={t`required, 2+ characters`}
-              />
-              <Input
-                id="practice-name"
-                name="name"
-                autoFocus
-                autoComplete="organization"
-                required
-                minLength={MIN_NAME_LENGTH}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder={t`e.g. Smith & Associates CPA`}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? 'practice-name-error' : undefined}
-              />
-              {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
-            </Field>
+          {/* Fields — rows stagger in top-down on mount. */}
+          <motion.div
+            className="flex flex-col gap-5"
+            initial="hidden"
+            animate="show"
+            variants={FIELD_COLUMN_VARIANTS}
+          >
+            <motion.div
+              variants={FIELD_ROW_VARIANTS}
+              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+            >
+              <Field>
+                <FieldHeaderRow
+                  htmlFor="practice-name"
+                  label={t`Practice name`}
+                  hint={t`required, 2+ characters`}
+                />
+                <Input
+                  id="practice-name"
+                  name="name"
+                  autoFocus
+                  autoComplete="organization"
+                  required
+                  minLength={MIN_NAME_LENGTH}
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder={t`e.g. Smith & Associates CPA`}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? 'practice-name-error' : undefined}
+                />
+                {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
+              </Field>
+            </motion.div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <motion.div
+              variants={FIELD_ROW_VARIANTS}
+              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+            >
               <Field>
                 <FieldHeaderRow
                   htmlFor="monitoring-start-date"
                   label={t`Monitoring start date`}
-                  hint={t`ISO date`}
+                  hint={t`watch deadlines from`}
                 />
                 <IsoDatePicker
                   id="monitoring-start-date"
@@ -346,22 +373,36 @@ export function OnboardingRoute() {
                   }
                 />
               </Field>
-            </div>
+            </motion.div>
 
-            <Field>
-              <FieldHeaderRow
-                htmlFor="firm-timezone"
-                label={t`Time zone`}
-                hint={t`drives alert + digest timing`}
+            <motion.div
+              variants={FIELD_ROW_VARIANTS}
+              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+            >
+              <Field>
+                <FieldHeaderRow
+                  htmlFor="firm-timezone"
+                  label={t`Time zone`}
+                  hint={t`when reminders send`}
+                />
+                <FirmTimezoneSelect
+                  id="firm-timezone"
+                  value={timezone}
+                  onValueChange={setTimezone}
+                />
+              </Field>
+            </motion.div>
+
+            <motion.div
+              variants={FIELD_ROW_VARIANTS}
+              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+            >
+              <StateRuleActivationSelector
+                selected={selectedRuleStates}
+                onChange={setSelectedRuleStates}
               />
-              <FirmTimezoneSelect id="firm-timezone" value={timezone} onValueChange={setTimezone} />
-            </Field>
-
-            <StateRuleActivationSelector
-              selected={selectedRuleStates}
-              onChange={setSelectedRuleStates}
-            />
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* CTA */}
           <div className="flex flex-col gap-3">

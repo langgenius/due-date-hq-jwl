@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
+import { motion } from 'motion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { PinIcon } from 'lucide-react'
 
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { fadeMotion } from '@/lib/motion'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { PinButton } from '@/features/obligations/PinButton'
@@ -56,7 +58,7 @@ export function PinnedSection({
       <section aria-label={t`Pinned`} aria-busy className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <PinIcon className="size-4 text-text-tertiary" aria-hidden />
-          <h2 className="text-region-title text-text-primary">
+          <h2 className="text-base font-semibold text-text-secondary">
             <Trans>Pinned</Trans>
           </h2>
         </div>
@@ -74,50 +76,57 @@ export function PinnedSection({
       <div className="flex items-center gap-2">
         {/* Accent lives in the icon container, not the title text. */}
         <PinIcon className="size-4 text-text-accent" aria-hidden />
-        <h2 className="text-region-title text-text-primary">
+        {/* Pinned is a peer of Brief + Priorities, demoted to the secondary
+            section weight (text-base/600/secondary) so Alerts stays the sole
+            lead title on /today — not a second top-tier region anchor. */}
+        <h2 className="text-base font-semibold text-text-secondary">
           <Trans>Pinned</Trans>
         </h2>
       </div>
 
       {/* Flat list inside one bordered card (canon: border + bg contrast for
           lift, no shadow; 12 wrapper radius). Rows are divided by hairlines,
-          not boxed individually. */}
-      <ul className="divide-y divide-border-subtle overflow-hidden rounded-xl border border-border bg-background">
-        {rows.map((row) => {
-          const days = daysUntilEffectiveInternalDueDate(row, asOfDate ?? undefined)
-          return (
-            <li key={row.id}>
-              <div className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-background-section">
-                <PinButton obligationId={row.id} isPinned={row.isPinned} />
-                {/* Client + form is the row's identity anchor — clicking it
+          not boxed individually. The card fades in as one surface when the pins
+          land (section arrival only — rows never animate; this is a work
+          surface, not a reveal). */}
+      <motion.div {...fadeMotion}>
+        <ul className="divide-y divide-border-subtle overflow-hidden rounded-xl border border-border bg-background">
+          {rows.map((row) => {
+            const days = daysUntilEffectiveInternalDueDate(row, asOfDate ?? undefined)
+            return (
+              <li key={row.id}>
+                <div className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-background-section">
+                  <PinButton obligationId={row.id} isPinned={row.isPinned} />
+                  {/* Client + form is the row's identity anchor — clicking it
                     opens the deadline drawer. */}
-                <button
-                  type="button"
-                  onClick={() => onOpenObligation(row.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-text-primary">
-                      {row.clientName}
+                  <button
+                    type="button"
+                    onClick={() => onOpenObligation(row.id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-text-primary">
+                        {row.clientName}
+                      </span>
+                      <span className="mt-0.5 flex items-center gap-1.5">
+                        <TaxCodeBadge code={row.taxType} size="compact" />
+                      </span>
                     </span>
-                    <span className="mt-0.5 flex items-center gap-1.5">
-                      <TaxCodeBadge code={row.taxType} size="compact" />
-                    </span>
-                  </span>
-                  <DueDateLabel
-                    days={days}
-                    status={row.status}
-                    paymentDueDate={row.paymentDueDate}
-                    asOfDate={asOfDate}
-                    className="shrink-0"
-                  />
-                  <ObligationStatusReadBadge status={row.status} className="shrink-0" />
-                </button>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+                    <DueDateLabel
+                      days={days}
+                      status={row.status}
+                      paymentDueDate={row.paymentDueDate}
+                      asOfDate={asOfDate}
+                      className="shrink-0"
+                    />
+                    <ObligationStatusReadBadge status={row.status} className="shrink-0" />
+                  </button>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </motion.div>
     </section>
   )
 }

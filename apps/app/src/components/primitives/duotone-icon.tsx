@@ -25,12 +25,13 @@ const TONE_CLASS: Record<DuotoneTone, string> = {
   // brand cyan pair + review violet use arbitrary var() so they don't depend on a
   // generated utility for these specific tokens.
   brand: 'bg-[var(--color-brand-highlight-soft)] text-[var(--color-brand-highlight-ink)]',
-  violet: 'bg-[color-mix(in_srgb,var(--color-status-review)_14%,transparent)] text-[var(--color-status-review)]',
+  violet:
+    'bg-[color-mix(in_srgb,var(--color-status-review)_14%,transparent)] text-[var(--color-status-review)]',
   neutral: 'bg-background-section text-text-secondary',
 }
 
 const SIZE_CLASS = {
-  sm: 'size-7 rounded-md [&>svg]:size-4',
+  sm: 'size-7 rounded-sm [&>svg]:size-4',
   md: 'size-9 rounded-lg [&>svg]:size-5',
   lg: 'size-11 rounded-xl [&>svg]:size-6',
 } as const
@@ -38,7 +39,7 @@ const SIZE_CLASS = {
 const BADGE_TONE_CLASS: Record<DuotoneTone, string> = {
   accent: 'bg-state-accent-solid text-text-primary-on-surface',
   success: 'bg-state-success-solid text-text-primary-on-surface',
-  warning: 'bg-text-warning text-text-primary-on-surface',
+  warning: 'bg-state-warning-solid text-text-primary-on-surface',
   brand: 'bg-[var(--color-brand-highlight)] text-white',
   violet: 'bg-[var(--color-status-review)] text-white',
   neutral: 'bg-text-secondary text-text-primary-on-surface',

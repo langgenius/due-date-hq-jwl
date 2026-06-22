@@ -38,10 +38,7 @@ export type FunIconButtonTone = 'ink' | 'brand' | 'accent' | 'success'
 /** Per-tone chip chrome. The chip is always DARK; tone only shifts its ring +
  *  gradient hue + the soft glow behind the glyph. All chroma stays in the
  *  container, never on text. */
-const CHIP_TONE: Record<
-  FunIconButtonTone,
-  { gradient: string; ring: string; glow: string }
-> = {
+const CHIP_TONE: Record<FunIconButtonTone, { gradient: string; ring: string; glow: string }> = {
   // Neutral near-black well — the default "Show in Maps" look.
   ink: {
     gradient:
@@ -49,22 +46,25 @@ const CHIP_TONE: Record<
     ring: 'ring-white/10',
     glow: 'bg-white/15',
   },
-  // Brand cyan-lit well.
+  // Brand cyan-lit well — navy chrome from the brand ink tokens (lit
+  // `brand-ink` top → deep `brand-ink-deep` floor), cyan ring + glow.
   brand: {
-    gradient:
-      'bg-[linear-gradient(180deg,#1b2b4a,#0b1220)]',
+    gradient: 'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-brand-highlight)_55%,transparent)]',
     glow: 'bg-[var(--color-brand-highlight)]/35',
   },
-  // Accent-blue lit well.
+  // Accent-blue lit well — same navy chrome as `brand` (lit `brand-ink` → deep
+  // `brand-ink-deep`); the accent identity lives in the blue ring + glow.
   accent: {
-    gradient: 'bg-[linear-gradient(180deg,#1e2a44,#0d1526)]',
+    gradient: 'bg-[linear-gradient(180deg,var(--color-brand-ink),var(--color-brand-ink-deep))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-text-accent)_50%,transparent)]',
     glow: 'bg-[var(--color-text-accent)]/35',
   },
-  // Go / success lit well.
+  // Go / success lit well — a deep green well (no brand token home for green;
+  // built from `text-success` mixed toward black so the chroma stays tokenized).
   success: {
-    gradient: 'bg-[linear-gradient(180deg,#173626,#08160f)]',
+    gradient:
+      'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-text-success)_22%,var(--color-brand-ink-deep)),color-mix(in_srgb,var(--color-text-success)_8%,var(--color-brand-ink-deep)))]',
     ring: 'ring-[color-mix(in_srgb,var(--color-text-success)_45%,transparent)]',
     glow: 'bg-[var(--color-text-success)]/30',
   },
@@ -91,6 +91,12 @@ export type FunIconButtonProps = {
   onClick?: () => void
   disabled?: boolean
   className?: string
+  // Polymorphic passthrough to the underlying Button primitive (Base UI). Pass
+  // `render={<Link to="…" />}` + `nativeButton={false}` to render the pill as a
+  // real anchor — so a navigating CTA keeps href semantics (cmd/right-click,
+  // open-in-new-tab) instead of a JS-only onClick.
+  render?: React.ComponentProps<typeof Button>['render']
+  nativeButton?: boolean
 } & Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label' | 'title' | 'type'>
 
 export function FunIconButton({
@@ -102,6 +108,8 @@ export function FunIconButton({
   disabled,
   className,
   type = 'button',
+  render,
+  nativeButton,
   ...rest
 }: FunIconButtonProps) {
   const t = CHIP_TONE[tone]
@@ -113,6 +121,8 @@ export function FunIconButton({
       size="lg"
       onClick={onClick}
       disabled={disabled}
+      render={render}
+      nativeButton={nativeButton}
       // `group/fib` lets the chip respond to track hover; reset Button's own
       // size padding/height — this pill carries the leading chip so it owns its
       // geometry, but keeps the primitive's squircle corners + focus + press.
@@ -163,9 +173,7 @@ export function FunIconButtonDemo() {
   return (
     <div className="flex flex-col gap-8 p-6">
       <section className="flex flex-col gap-3">
-        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
-          Tones (md)
-        </p>
+        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">Tones (md)</p>
         <div className="flex flex-wrap items-center gap-3">
           <FunIconButton icon={MapPinnedIcon} tone="ink">
             Show in Maps
@@ -197,9 +205,7 @@ export function FunIconButtonDemo() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
-          Disabled
-        </p>
+        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">Disabled</p>
         <FunIconButton icon={SparklesIcon} tone="brand" disabled>
           Draft with AI
         </FunIconButton>

@@ -101,7 +101,7 @@ export function DetailSectionCard({
               (bg-background-default) so it lifts off the gray band. */}
           {typeof index === 'number' ? (
             <span
-              className="inline-flex size-5 shrink-0 items-center justify-center self-center rounded-md bg-background-default text-xs font-semibold text-text-tertiary tabular-nums"
+              className="inline-flex size-5 shrink-0 items-center justify-center self-center rounded-sm bg-background-default text-xs font-semibold text-text-tertiary tabular-nums"
               aria-hidden
             >
               {index}

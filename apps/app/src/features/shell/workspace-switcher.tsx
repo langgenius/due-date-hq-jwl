@@ -1,12 +1,5 @@
 import { useState } from 'react'
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  LayersIcon,
-  LogOutIcon,
-  PlusIcon,
-  SettingsIcon,
-} from 'lucide-react'
+import { ChevronsUpDownIcon, LayersIcon, LogOutIcon, PlusIcon, SettingsIcon } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -132,9 +125,7 @@ export function WorkspaceSwitcher({
                 key={account.id}
                 aria-checked={selected}
                 aria-label={
-                  selected
-                    ? `${account.name} (current workspace)`
-                    : `Switch to ${account.name}`
+                  selected ? `${account.name} (current workspace)` : `Switch to ${account.name}`
                 }
                 className="flex items-center justify-between gap-3 py-1.5"
                 onClick={() => {
@@ -153,10 +144,7 @@ export function WorkspaceSwitcher({
                     className="shrink-0"
                   />
                   <span className="flex min-w-0 flex-col leading-tight">
-                    <span
-                      className="truncate text-sm font-medium text-text-primary"
-                      translate="no"
-                    >
+                    <span className="truncate text-sm font-medium text-text-primary" translate="no">
                       {account.name}
                     </span>
                     <span className="truncate text-xs text-text-tertiary">{account.email}</span>
@@ -168,14 +156,10 @@ export function WorkspaceSwitcher({
                   aria-hidden
                   className={cn(
                     'grid size-4 shrink-0 place-items-center rounded-full border',
-                    selected
-                      ? 'border-state-accent-solid'
-                      : 'border-divider-regular',
+                    selected ? 'border-state-accent-solid' : 'border-divider-regular',
                   )}
                 >
-                  {selected ? (
-                    <span className="size-2 rounded-full bg-state-accent-solid" />
-                  ) : null}
+                  {selected ? <span className="size-2 rounded-full bg-state-accent-solid" /> : null}
                 </span>
               </DropdownMenuItem>
             )
@@ -183,10 +167,7 @@ export function WorkspaceSwitcher({
         </DropdownMenuGroup>
 
         {onAddWorkspace ? (
-          <DropdownMenuItem
-            className="text-text-secondary"
-            onClick={() => onAddWorkspace()}
-          >
+          <DropdownMenuItem className="text-text-secondary" onClick={() => onAddWorkspace()}>
             <PlusIcon />
             <span>Add workspace</span>
           </DropdownMenuItem>

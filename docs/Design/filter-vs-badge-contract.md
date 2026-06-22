@@ -34,6 +34,16 @@ clickable, never style a filter without an affordance.
 5. **Hover behavior differs.**
    - Badges have no hover state.
    - Filters have a clear hover (cursor-pointer + ring or underline).
+6. **The applied VALUE reads in vivid blue, not brand navy** (2026-06-22).
+   On a `FilterTrigger`, the `Label │ Value ⌄` value (and its chevron + the
+   active leading icon) renders in vivid blue `#1570ef`
+   (`text-(--color-util-colors-blue-600)`), NOT the brand navy
+   `text-text-accent` (#2e368c). Navy sat right next to the gray label and the
+   two-tone read collapsed. Rule of thumb: **brand navy = chrome (button fills,
+   borders, the active-filter background tint); vivid blue = the scannable
+   applied value only.** Set in the primitive (`filter-trigger.tsx`,
+   `valueAccent` const), so every `valueLabel` caller inherits it. Contrast
+   4.57:1 on white — AA pass.
 
 ## Where each lives today
 

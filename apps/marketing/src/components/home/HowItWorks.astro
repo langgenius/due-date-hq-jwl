@@ -1,0 +1,246 @@
+---
+/** How it works — Watch → Match → Apply, workflow-diagram style (label tabs + dashed connectors). */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+const t = zh
+  ? {
+      eyebrow: '它如何运作',
+      hBefore: '繁琐的长尾交给它，',
+      hItal: '决定由你来做。',
+      steps: [
+        {
+          name: '监测',
+          icon: 'eye',
+          desc: '全天候监测官方的联邦与州级来源。只有当新日期<b>有官方原文依据</b>时，一次变化才会浮现出来。',
+        },
+        {
+          name: '匹配',
+          icon: 'target',
+          desc: '按<b>辖区、表格和实体类型</b>匹配到你的客户 —— 在你打开提醒之前，受影响的客户名单就已经算好了。',
+        },
+        {
+          name: '应用',
+          icon: 'zap',
+          desc: '一键把变化推送到<b>每一个受影响的客户</b> —— 在你确认之前，什么都不会改动。',
+        },
+      ],
+      loop: '然后它继续循环 —— 盯着下一次变化',
+    }
+  : {
+      eyebrow: 'How it works',
+      hBefore: 'It runs the long tail. You make the',
+      hItal: 'calls.',
+      steps: [
+        {
+          name: 'Watch',
+          icon: 'eye',
+          desc: 'Official federal and state sources, monitored around the clock. A change only surfaces once its new dates are <b>grounded in the official text</b>.',
+        },
+        {
+          name: 'Match',
+          icon: 'target',
+          desc: 'Matched to your clients by <b>jurisdiction, form, and entity type</b> — the affected list is computed before you even open the alert.',
+        },
+        {
+          name: 'Apply',
+          icon: 'zap',
+          desc: 'One click pushes the change across <b>every affected client</b> — and nothing moves until you approve it.',
+        },
+      ],
+      loop: 'Then it loops — watching for the next change',
+    }
+const steps = t.steps
+---
+
+<section class="m-section flow" id="how" aria-labelledby="how-h">
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2" id="how-h">{t.hBefore} <span class="ital">{t.hItal}</span></h2>
+
+  <div class="flow__diagram">
+    {
+      steps.map((s, i) => (
+        <>
+          <div class="node">
+            <span class="node__tab">
+              <span class="node__icon" aria-hidden="true">
+                {s.icon === 'eye' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  </svg>
+                )}
+                {s.icon === 'target' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="8.5" />
+                    <circle cx="12" cy="12" r="3.4" />
+                    <path d="M12 1.5v3.4M12 19.1v3.4M1.5 12h3.4M19.1 12h3.4" />
+                  </svg>
+                )}
+                {s.icon === 'zap' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z" />
+                  </svg>
+                )}
+              </span>
+              {s.name}
+            </span>
+            <p class="node__desc" set:html={s.desc} />
+          </div>
+          {i < steps.length - 1 && (
+            <div class="conn" aria-hidden="true">
+              <span class="conn__arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+            </div>
+          )}
+        </>
+      ))
+    }
+  </div>
+
+  <p class="flow__loop" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 12c-2-2.7-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.3 6-4Zm0 0c2 2.7 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.3-6 4Z" />
+    </svg>
+    {t.loop}
+  </p>
+</section>
+
+<style>
+  .flow__diagram {
+    margin-top: clamp(40px, 5vw, 60px);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    position: relative;
+  }
+  .node {
+    position: relative;
+    z-index: 1;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 34px 22px 22px;
+    box-shadow:
+      0 1px 2px rgba(18, 20, 28, 0.03),
+      0 20px 52px -44px rgba(18, 20, 28, 0.3);
+  }
+  .node__tab {
+    position: absolute;
+    top: 0;
+    left: 18px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 5px 15px 5px 5px;
+    box-shadow: 0 3px 10px -5px rgba(18, 20, 28, 0.18);
+  }
+  .node__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: var(--m-accent);
+  }
+  .node__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  .node__desc {
+    font-size: 13px;
+    color: var(--m-muted);
+    line-height: 1.55;
+  }
+  .node__desc :global(b) {
+    color: var(--m-ink-2);
+    font-weight: 600;
+  }
+  .conn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: clamp(40px, 4.5vw, 64px);
+    color: var(--m-accent);
+    position: relative;
+    z-index: 1;
+  }
+  .conn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 2px dashed color-mix(in srgb, var(--m-accent) 26%, transparent);
+    z-index: 0;
+  }
+  /* chevron floats over the dashed line on a canvas-coloured patch */
+  .conn__arrow {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    padding: 0 5px;
+    background: var(--m-canvas);
+    color: var(--m-accent);
+  }
+  .conn__arrow svg {
+    width: 17px;
+    height: 17px;
+  }
+  .flow__loop {
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-ink-2);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 7px 15px 7px 11px;
+  }
+  .flow__loop svg {
+    width: 15px;
+    height: 15px;
+    color: var(--m-accent);
+    flex: none;
+  }
+  @media (max-width: 1000px) {
+    .flow__diagram {
+      grid-template-columns: 1fr;
+    }
+    .conn {
+      padding: 10px 0;
+      min-width: 0;
+    }
+    .conn::before {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      right: auto;
+      border-top: 0;
+      border-left: 2px dashed color-mix(in srgb, var(--m-accent) 30%, transparent);
+    }
+    .conn__arrow svg {
+      transform: rotate(90deg);
+    }
+  }
+</style>

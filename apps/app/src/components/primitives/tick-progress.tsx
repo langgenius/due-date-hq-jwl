@@ -1,4 +1,8 @@
+import { motion } from 'motion/react'
+
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 /**
  * TickProgress — a segmented tick-mark progress bar (Yuqi ref: the "Almost
@@ -38,24 +42,37 @@ export function TickProgress({
     >
       {Array.from({ length: tickCount }).map((_, i) => {
         const on = i < filled
+        // Per-tick gradient: filled ticks ramp cyan → navy across the filled
+        // run, so the bar carries the brand gradient rather than one flat fill.
+        // Computed per tick (like StatusRing's arc) — a token can't express the
+        // position.
+        const tickClass = cn(
+          'h-3.5 w-[3px] shrink-0 rounded-full transition-colors duration-300',
+          !on && 'bg-divider-regular',
+        )
+        // Filled ticks fade up L→R on mount (opacity 0.35 → 1, ~25ms apart,
+        // capped ~200ms) so the gradient appears to climb the bar instead of
+        // painting at full width instantly. Opacity-only — colour/size/class
+        // are untouched. Empty ticks stay static. Reduced-motion is governed
+        // globally by the root <MotionConfig reducedMotion="user">.
+        if (!on) {
+          return <span key={i} aria-hidden className={tickClass} />
+        }
         return (
-          <span
+          <motion.span
             key={i}
             aria-hidden
-            className={cn(
-              'h-3.5 w-[3px] shrink-0 rounded-full transition-colors duration-300',
-              !on && 'bg-divider-regular',
-            )}
-            // Filled ticks ramp cyan → navy across the filled run, so the bar
-            // carries the brand gradient rather than one flat fill. Computed per
-            // tick (like StatusRing's arc) — a token can't express the position.
-            style={
-              on
-                ? {
-                    backgroundColor: `color-mix(in srgb, var(--color-brand-ink) ${(i / lastFilled) * 100}%, var(--color-brand-highlight))`,
-                  }
-                : undefined
-            }
+            className={tickClass}
+            initial={{ opacity: 0.35 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: MOTION_DURATION.enter,
+              ease: EASE_APPLE,
+              delay: Math.min(i, 8) * 0.025,
+            }}
+            style={{
+              backgroundColor: `color-mix(in srgb, var(--color-brand-ink) ${(i / lastFilled) * 100}%, var(--color-brand-highlight))`,
+            }}
           />
         )
       })}

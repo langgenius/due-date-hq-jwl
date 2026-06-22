@@ -6,7 +6,7 @@
 
 The Change type and Tax area facets inside the consolidated Filters popover were
 single-select `ToggleChip` rows (`FilterPillSection`) — pick exactly one bucket.
-A CPA narrowing to, say, both Deadlines *and* Source updates had to re-open the
+A CPA narrowing to, say, both Deadlines _and_ Source updates had to re-open the
 popover and lose the first pick. Upgraded both facets to MULTI-select checkbox
 sections.
 
@@ -36,7 +36,7 @@ sections.
   Check → Minus for the indeterminate state.
 - "Select all" reads checked when the array is empty (the canonical all); clicking
   it always lands back on `[]`. Unchecking one option from the all-state seeds the
-  array with every *other* option; re-checking the last missing option folds back
+  array with every _other_ option; re-checking the last missing option folds back
   to `[]` so the trigger badge clears.
 - **Per-facet count** ("2 selected") rides next to the section label via the
   existing `{count, plural, …}` message — the shared Filters trigger still

@@ -62,9 +62,9 @@ describe('matchesTaxAreaSelection (multi-select)', () => {
 
   it('keeps an alert when its taxAreas intersect any selected bucket', () => {
     expect(matchesTaxAreaSelection(['income_individual'], ['income_individual'])).toBe(true)
-    expect(
-      matchesTaxAreaSelection(['income_business'], ['income_individual', 'sales_use']),
-    ).toBe(false)
+    expect(matchesTaxAreaSelection(['income_business'], ['income_individual', 'sales_use'])).toBe(
+      false,
+    )
     expect(
       matchesTaxAreaSelection(['income_business'], ['income_individual', 'income_business']),
     ).toBe(true)

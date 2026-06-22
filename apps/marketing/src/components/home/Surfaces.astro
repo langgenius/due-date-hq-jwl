@@ -1,0 +1,455 @@
+---
+/** Product surfaces — a Legora "highlights"-style grid: four cards, each with an
+ *  embedded product mini-UI fragment on a graph-paper card. The minis reuse the
+ *  exact chip vocabulary from the Hero feed and the See-it-work worklist. */
+interface Props { locale?: 'en' | 'zh-CN' }
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+// coverage mini-map tile heat (24 tiles): '' faint · n navy · a urgent · r danger
+const tiles = ['', '', 'n', '', 'r', '', '', 'a', '', '', '', 'n', 'r', '', '', 'a', '', '', '', '', 'r', '', '', '']
+
+const t = zh
+  ? {
+      eyebrow: '产品',
+      headingPre: '一个',
+      headingItal: '工作台，',
+      headingPost: '搞定一切。',
+      intro: '从第一条提醒到应用变更——四个界面，一个让你安心工作的地方。',
+      seeIt: '查看',
+      cards: {
+        alerts: {
+          sev: '紧急',
+          title: 'IRS 推迟申报截止日',
+          affectPre: '影响 ',
+          affectN: '8 家客户',
+          t: '提醒',
+          d: '实时动态——每条变更落地即呈现，按紧急程度排序。',
+        },
+        coverage: {
+          t: '覆盖',
+          d: '一张地图涵盖所有辖区——看清变更落在何处。',
+        },
+        worklist: {
+          rows: [
+            { client: 'Hill Country Partners', status: '受阻', due: '逾期 2 天' },
+            { client: 'Brightway Logistics', status: '审核中', due: '还剩 3 天' },
+            { client: 'Cedar Park Dental', status: '等待中', due: '还剩 9 天' },
+          ],
+          t: '工作清单',
+          d: '客户按风险排序——一眼看出先打给谁。',
+        },
+        apply: {
+          btn: '应用到 8 家客户',
+          audit: '有来源 · 24 小时内可撤销 · 已记录',
+          t: '应用与审计',
+          d: '把变更推送给每一个受影响的人——背后留有完整记录。',
+        },
+      },
+    }
+  : {
+      eyebrow: 'The product',
+      headingPre: 'Everything in one ',
+      headingItal: 'workbench.',
+      headingPost: '',
+      intro: 'From the first alert to the applied change — four surfaces, one calm place to work.',
+      seeIt: 'See it',
+      cards: {
+        alerts: {
+          sev: 'Urgent',
+          title: 'IRS postpones filing deadlines',
+          affectPre: 'Affects ',
+          affectN: '8 clients',
+          t: 'Alerts',
+          d: 'The live feed — every change as it lands, sorted by severity.',
+        },
+        coverage: {
+          t: 'Coverage',
+          d: 'One map of every jurisdiction — see where changes are landing.',
+        },
+        worklist: {
+          rows: [
+            { client: 'Hill Country Partners', status: 'Blocked', due: '2d late' },
+            { client: 'Brightway Logistics', status: 'In review', due: 'in 3d' },
+            { client: 'Cedar Park Dental', status: 'Waiting', due: 'in 9d' },
+          ],
+          t: 'Worklist',
+          d: 'Your clients in risk order — who to call first, at a glance.',
+        },
+        apply: {
+          btn: 'Apply to 8 clients',
+          audit: 'sourced · reversible 24h · logged',
+          t: 'Apply & audit',
+          d: 'Push a change to everyone it touches — with the full trail behind it.',
+        },
+      },
+    }
+---
+
+<section class="m-section surfaces" aria-labelledby="surfaces-h">
+  <div class="surfaces__head">
+    <div>
+      <p class="m-eyebrow">{t.eyebrow}</p>
+      <h2 class="m-h2" id="surfaces-h">{t.headingPre}<span class="ital">{t.headingItal}</span>{t.headingPost}</h2>
+    </div>
+    <p class="surfaces__intro">
+      {t.intro}
+    </p>
+  </div>
+
+  <div class="surfaces__grid">
+    <!-- Alerts -->
+    <article class="surface">
+      <div class="surface__thumb">
+        <div class="mini">
+          <div class="mini__sevrow">
+            <span class="mini__sev">{t.cards.alerts.sev}</span>
+            <span class="mini__juris">FED</span>
+          </div>
+          <p class="mini__title">{t.cards.alerts.title}</p>
+          <div class="mini__change"><s>Apr 15</s> → <b>Nov 3</b> <span class="mini__delta">+202d</span></div>
+          <p class="mini__affect">{t.cards.alerts.affectPre}<b>{t.cards.alerts.affectN}</b></p>
+        </div>
+      </div>
+      <h3 class="surface__t">{t.cards.alerts.t}</h3>
+      <p class="surface__d">{t.cards.alerts.d}</p>
+      <a class="surface__link" href="#how">{t.seeIt} <span aria-hidden="true">→</span></a>
+    </article>
+
+    <!-- Coverage -->
+    <article class="surface">
+      <div class="surface__thumb">
+        <div class="mini mini--map" aria-hidden="true">
+          {tiles.map((tile) => <span class:list={['mini__tile', tile]} />)}
+        </div>
+      </div>
+      <h3 class="surface__t">{t.cards.coverage.t}</h3>
+      <p class="surface__d">{t.cards.coverage.d}</p>
+      <a class="surface__link" href="#sources">{t.seeIt} <span aria-hidden="true">→</span></a>
+    </article>
+
+    <!-- Worklist -->
+    <article class="surface">
+      <div class="surface__thumb">
+        <div class="mini mini--list">
+          <div class="mini__row">
+            <span class="mini__bar hi"></span>
+            <span class="mini__client">{t.cards.worklist.rows[0].client}</span>
+            <span class="mini__status blocked">{t.cards.worklist.rows[0].status}</span>
+            <span class="mini__due late">{t.cards.worklist.rows[0].due}</span>
+          </div>
+          <div class="mini__row">
+            <span class="mini__bar"></span>
+            <span class="mini__client">{t.cards.worklist.rows[1].client}</span>
+            <span class="mini__status review">{t.cards.worklist.rows[1].status}</span>
+            <span class="mini__due">{t.cards.worklist.rows[1].due}</span>
+          </div>
+          <div class="mini__row">
+            <span class="mini__bar"></span>
+            <span class="mini__client">{t.cards.worklist.rows[2].client}</span>
+            <span class="mini__status waiting">{t.cards.worklist.rows[2].status}</span>
+            <span class="mini__due">{t.cards.worklist.rows[2].due}</span>
+          </div>
+        </div>
+      </div>
+      <h3 class="surface__t">{t.cards.worklist.t}</h3>
+      <p class="surface__d">{t.cards.worklist.d}</p>
+      <a class="surface__link" href="#work">{t.seeIt} <span aria-hidden="true">→</span></a>
+    </article>
+
+    <!-- Apply & audit -->
+    <article class="surface">
+      <div class="surface__thumb">
+        <div class="mini mini--apply">
+          <span class="mini__applybtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+            </svg>
+            {t.cards.apply.btn}
+          </span>
+          <p class="mini__audit">{t.cards.apply.audit}</p>
+        </div>
+      </div>
+      <h3 class="surface__t">{t.cards.apply.t}</h3>
+      <p class="surface__d">{t.cards.apply.d}</p>
+      <a class="surface__link" href="#trust">{t.seeIt} <span aria-hidden="true">→</span></a>
+    </article>
+  </div>
+</section>
+
+<style>
+  .surfaces__head {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+  }
+  .surfaces__head > :nth-child(1) {
+    grid-column: span 7;
+  }
+  .surfaces__head > :nth-child(2) {
+    grid-column: span 5;
+  }
+  .surfaces__head .m-h2 {
+    max-width: 14ch;
+  }
+  .surfaces__intro {
+    max-width: 42ch;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .surfaces__grid {
+    margin-top: clamp(34px, 4vw, 52px);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(18px, 2.2vw, 28px);
+  }
+  .surface {
+    display: flex;
+    flex-direction: column;
+  }
+  .surface__thumb {
+    position: relative;
+    aspect-ratio: 5 / 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background-color: var(--m-section);
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--m-accent) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--m-accent) 6%, transparent) 1px, transparent 1px);
+    background-size: 15px 15px;
+    overflow: hidden;
+  }
+  /* embedded product mini-UI fragment — border + bg do the lift, micro-shadow only */
+  .mini {
+    width: 100%;
+    padding: 11px 12px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px -1px color-mix(in srgb, var(--m-ink) 12%, transparent);
+  }
+  .mini__sevrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .mini__sev {
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 10%, transparent);
+  }
+  .mini__juris {
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-family: var(--m-font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .mini__title {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--m-ink);
+  }
+  .mini__change {
+    margin-top: 7px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    color: var(--m-ink);
+  }
+  .mini__change s {
+    color: var(--m-muted);
+  }
+  .mini__delta {
+    padding: 0 5px;
+    border-radius: 999px;
+    font-family: var(--m-font-sans);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 14%, transparent);
+  }
+  .mini__affect {
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--m-hairline-2);
+    font-size: 11px;
+    color: var(--m-ink);
+  }
+  .mini__affect b {
+    color: var(--m-accent);
+  }
+  /* coverage mini-map */
+  .mini--map {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    padding: 12px;
+  }
+  .mini__tile {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--m-accent) 8%, var(--m-surface));
+  }
+  .mini__tile.n {
+    background: color-mix(in srgb, var(--m-accent) 30%, var(--m-surface));
+  }
+  .mini__tile.a {
+    background: color-mix(in srgb, var(--m-urgent) 26%, var(--m-surface));
+  }
+  .mini__tile.r {
+    background: color-mix(in srgb, var(--m-danger) 22%, var(--m-surface));
+  }
+  /* worklist mini */
+  .mini--list {
+    padding: 6px 8px;
+  }
+  .mini__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 2px;
+  }
+  .mini__row + .mini__row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .mini__bar {
+    width: 4px;
+    height: 18px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--m-hairline);
+  }
+  .mini__bar.hi {
+    background: var(--m-urgent);
+  }
+  .mini__client {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    color: var(--m-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mini__status {
+    flex: none;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .mini__status.blocked {
+    color: var(--m-danger);
+    background: color-mix(in srgb, var(--m-danger) 9%, transparent);
+  }
+  .mini__status.review {
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .mini__status.waiting {
+    color: var(--m-muted);
+    background: transparent;
+    border: 1px solid var(--m-hairline);
+  }
+  .mini__due {
+    flex: none;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    color: var(--m-muted);
+  }
+  .mini__due.late {
+    color: var(--m-urgent);
+  }
+  /* apply mini */
+  .mini--apply {
+    text-align: center;
+  }
+  .mini__applybtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--m-accent);
+  }
+  .mini__applybtn svg {
+    width: 12px;
+    height: 12px;
+  }
+  .mini__audit {
+    margin-top: 9px;
+    font-family: var(--m-font-mono);
+    font-size: 10px;
+    color: var(--m-muted);
+  }
+  /* card text */
+  .surface__t {
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .surface__d {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--m-muted);
+  }
+  .surface__link {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-accent);
+    transition: gap 0.15s ease;
+  }
+  .surface__link:hover {
+    gap: 9px;
+  }
+  @media (max-width: 1000px) {
+    .surfaces__head {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .surfaces__head > :nth-child(n) {
+      grid-column: auto;
+    }
+    .surfaces__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 540px) {
+    .surfaces__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

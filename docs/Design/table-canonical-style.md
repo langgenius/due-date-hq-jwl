@@ -97,3 +97,20 @@ Callsites SHOULD NOT change:
 - Zebra striping
 
 If a surface has a strong reason to deviate, document it in code and reference this doc.
+
+## Documented deviations
+
+- **/deadlines queue urgency expression** (2026-06-22, `obligations.tsx`):
+  - Per-row **urgency left-stripe** on the 2px left rail (red `destructive` /
+    coral `warning` by `dueDaysTone(days).variant`), suppressed on
+    filed/completed rows via `isDueDaysSuppressedForStatus`. Reuses the rail
+    slot that client-cluster grouping also uses; urgency is placed last in the
+    row `cn()` so it wins.
+  - Soft **urgency-band lane wash** (red-50 / warning-50) on the group-header
+    **cell** — NOT the row. The TableRow primitive's
+    `has-aria-expanded:bg-state-base-hover` always outranks a row-level bg when
+    the header carries a collapse button, so a row-level wash silently no-ops.
+  - **Every column gets an explicit `w-[NNNpx]`** (incl. Status) so
+    `table-fixed` distributes wide-screen slack PROPORTIONALLY across the row.
+    Leaving exactly one column width-less makes it the sole fill and it eats all
+    the slack as dead space (Status was ~40% of the table before this).

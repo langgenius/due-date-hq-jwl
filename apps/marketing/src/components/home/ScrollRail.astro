@@ -1,0 +1,173 @@
+---
+/** Left scroll-spy rail — a "ticker" in the left margin showing which section the
+ *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+const t = zh
+  ? {
+      items: [
+        { label: '循环', href: '#how' },
+        { label: '那份公告', href: '#notice' },
+        { label: '来源', href: '#sources' },
+        { label: '看它运作', href: '#work' },
+        { label: '为什么可信', href: '#trust' },
+        { label: '安全', href: '#security' },
+        { label: '常见问题', href: '#faq' },
+      ],
+    }
+  : {
+      items: [
+        { label: 'The loop', href: '#how' },
+        { label: 'The document', href: '#notice' },
+        { label: 'Sources', href: '#sources' },
+        { label: 'See it work', href: '#work' },
+        { label: 'Why trust it', href: '#trust' },
+        { label: 'Security', href: '#security' },
+        { label: 'Questions', href: '#faq' },
+      ],
+    }
+const items = t.items
+---
+
+<nav class="spyrail" id="spyrail" aria-label="Section navigation">
+  {
+    items.map((it) => (
+      <a class="spyrail__item" href={it.href}>
+        <span class="spyrail__dot" aria-hidden="true" />
+        {it.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .spyrail {
+    position: fixed;
+    left: clamp(20px, 3vw, 52px);
+    top: 50%;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-8px, -50%);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      visibility 0.3s ease;
+  }
+  .spyrail.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%);
+  }
+  @media (min-width: 1500px) {
+    .spyrail {
+      display: flex;
+    }
+  }
+  .spyrail__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-faint);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+  .spyrail__item:hover {
+    color: var(--m-ink-2);
+  }
+  .spyrail__item:hover .spyrail__dot {
+    border-color: var(--m-muted);
+  }
+  .spyrail__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    border: 1.5px solid var(--m-hairline);
+    background: transparent;
+    flex: none;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+  .spyrail__item.is-active {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .spyrail__item.is-active .spyrail__dot {
+    background: var(--m-accent);
+    border-color: var(--m-accent);
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 16%, transparent);
+  }
+  /* over a dark band — white instead of faint gray */
+  .spyrail.is-on-dark .spyrail__item {
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .spyrail.is-on-dark .spyrail__item:hover {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .spyrail.is-on-dark .spyrail__dot {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active {
+    color: #fff;
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
+    background: #fff;
+    border-color: #fff;
+  }
+</style>
+
+<script>
+  const rail = document.getElementById('spyrail')
+  if (rail) {
+    const items = Array.from(rail.querySelectorAll('.spyrail__item'))
+    const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
+    const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
+    let ticking = false
+    const update = () => {
+      ticking = false
+      // the section whose top has most recently passed a line ~40% down the viewport
+      const line = window.innerHeight * 0.4
+      let idx = -1
+      for (let i = 0; i < secs.length; i++) {
+        if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
+      }
+      items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
+      // reveal only once scrolled past the hero
+      rail.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.55)
+      // white-out when the rail sits over a dark band (the villain)
+      const railMid = window.innerHeight * 0.5
+      let onDark = false
+      for (const s of darkSections) {
+        const r = s.getBoundingClientRect()
+        if (r.top <= railMid && r.bottom >= railMid) {
+          onDark = true
+          break
+        }
+      }
+      rail.classList.toggle('is-on-dark', onDark)
+    }
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(update)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    update()
+  }
+</script>

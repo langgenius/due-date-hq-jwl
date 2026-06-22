@@ -13,8 +13,7 @@ const corePages = [
   {
     label: 'Pricing',
     pathname: '/pricing',
-    description:
-      'plans for CPA practices: Solo $39, Pro $79, Team $149 per month, and Enterprise from $399.',
+    description: 'plans for CPA practices: Free $0, Solo $39, Pro $79, and Team $149 per month.',
   },
   {
     label: 'Rule library',
@@ -153,7 +152,7 @@ export function GET(): Response {
     '## Coverage and pricing',
     '',
     '- Coverage: DueDateHQ monitors official IRS and state tax-authority sources across all 50 states and Washington DC for rule and filing-date changes. Source-backed changes are routed through human review before they become reminder-ready work.',
-    '- Pricing: Solo $39/mo, Pro $79/mo, Team $149/mo, Enterprise from $399/mo. Solo, Pro, and Team each include one active practice; multiple practices are on Enterprise. Trial and demo workspaces are available.',
+    '- Pricing: Free $0/mo, Solo $39/mo, Pro $79/mo, Team $149/mo. Free, Solo, Pro, and Team each include one active practice; for multiple practices, contact our team. Trial and demo workspaces are available.',
     '',
     '## Core public pages',
     '',

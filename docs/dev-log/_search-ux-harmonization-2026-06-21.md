@@ -25,8 +25,8 @@ spine so a CPA's muscle memory carries between pages.
   list/table/rail → `SearchInput`/`CollapsibleSearch`). `Search X…` = query a
   corpus you can't fully see, or navigate (⌘K palette + comboboxes →
   `CommandInput`). The codebase already followed this; it was never written down.
-- **Placeholder grammar.** Name the *collection* when the noun is the whole
-  searchable thing (`Filter rules`, `Filter notifications`); name the *fields*
+- **Placeholder grammar.** Name the _collection_ when the noun is the whole
+  searchable thing (`Filter rules`, `Filter notifications`); name the _fields_
   when search spans hidden columns. No trailing `…` for `Filter` (it's instant);
   `…` stays on `Search`.
 - **Zero-results = recovery, not a dead-end.** When a query matches nothing, show

@@ -471,11 +471,16 @@ export function SettingsProfileRoute() {
         {/* Preferences */}
         <SettingsCard title={t`Preferences`} subtitle={t`Language, date, and time formats`}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t`Language`}>
-              <LanguageSelect value={locale} onValueChange={switchLocale} />
+            <Field label={t`Language`} htmlFor="settings-language-trigger">
+              <LanguageSelect
+                id="settings-language-trigger"
+                value={locale}
+                onValueChange={switchLocale}
+              />
             </Field>
-            <Field label={t`Date format`}>
+            <Field label={t`Date format`} htmlFor="settings-date-format-trigger">
               <DateFormatSelect
+                id="settings-date-format-trigger"
                 value={displayPreferences.dateFormat}
                 onValueChange={switchDateFormatPreference}
               />
@@ -720,16 +725,27 @@ function SettingsCard({
 function Field({
   label,
   action,
+  htmlFor,
   children,
 }: {
   label: string
   action?: ReactNode
+  // When set, the label renders as a real <label htmlFor> so it programmatically
+  // names the control (e.g. a SelectTrigger carrying the matching `id`). Without
+  // it the label stays a plain caption (used for non-focusable readonly rows).
+  htmlFor?: string
   children: ReactNode
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-text-secondary">{label}</span>
+        {htmlFor ? (
+          <label htmlFor={htmlFor} className="text-xs font-medium text-text-secondary">
+            {label}
+          </label>
+        ) : (
+          <span className="text-xs font-medium text-text-secondary">{label}</span>
+        )}
         {action}
       </div>
       {children}
@@ -789,9 +805,12 @@ function ReadonlyValue({
 }
 
 function LanguageSelect({
+  id,
   value,
   onValueChange,
 }: {
+  // Ties the trigger to the surrounding <Field htmlFor> label for a11y.
+  id?: string
   value: Locale
   onValueChange: (next: Locale) => void
 }) {
@@ -800,7 +819,7 @@ function LanguageSelect({
   // checkmark, focus ring for free).
   return (
     <Select value={value} onValueChange={(next) => onValueChange(next as Locale)}>
-      <SelectTrigger className="w-full">
+      <SelectTrigger id={id} className="w-full">
         <SelectValue>{LOCALE_LABELS[value]}</SelectValue>
       </SelectTrigger>
       <SelectContent align="start">
@@ -815,16 +834,19 @@ function LanguageSelect({
 }
 
 function DateFormatSelect({
+  id,
   value,
   onValueChange,
 }: {
+  // Ties the trigger to the surrounding <Field htmlFor> label for a11y.
+  id?: string
   value: DateFormatPreference
   onValueChange: (next: DateFormatPreference) => void
 }) {
   // 2026-06-16 (audit): hand-rolled DropdownMenu → canonical Select primitive.
   return (
     <Select value={value} onValueChange={(next) => onValueChange(next as DateFormatPreference)}>
-      <SelectTrigger className="w-full">
+      <SelectTrigger id={id} className="w-full">
         <SelectValue>{DATE_FORMAT_LABELS[value]}</SelectValue>
       </SelectTrigger>
       <SelectContent align="start">

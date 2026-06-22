@@ -1,9 +1,12 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { XIcon } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+
+import { fadeMotion } from '@/lib/motion'
 
 /**
  * In-surface top bar atop the deadline detail PAGE — mirrors
@@ -52,14 +55,19 @@ export function DeadlineCrumbBar({
         >
           <Trans>Deadlines</Trans>
         </Link>
-        {title && heroScrolled ? (
-          <>
-            <span className="shrink-0 text-text-muted" aria-hidden>
-              /
-            </span>
-            <span className="max-w-[420px] truncate text-text-secondary">{title}</span>
-          </>
-        ) : null}
+        {/* The `/ {title}` segment reveals once the hero title scrolls out of
+            view. Fade it in/out (fadeMotion) instead of popping — keyed so
+            AnimatePresence runs the exit when it scrolls back to the top. */}
+        <AnimatePresence mode="wait">
+          {title && heroScrolled ? (
+            <motion.span key="title" {...fadeMotion} className="flex min-w-0 items-center gap-1.5">
+              <span className="shrink-0 text-text-muted" aria-hidden>
+                /
+              </span>
+              <span className="max-w-[420px] truncate text-text-secondary">{title}</span>
+            </motion.span>
+          ) : null}
+        </AnimatePresence>
       </nav>
       <div className="flex shrink-0 items-center gap-3">
         {position && position.total > 0 ? (

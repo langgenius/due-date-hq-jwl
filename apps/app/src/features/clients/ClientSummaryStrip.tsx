@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
@@ -9,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
+import { fadeMotion } from '@/lib/motion'
 
 import { useClientNextDue } from './use-client-next-due'
 
@@ -88,15 +90,24 @@ export function ClientSummaryStrip({
   // as four mismatched numbers). The band's single chromatic accent is the
   // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
   // here", not a loud signal.
+  // Cross-fade the numeral on refetch instead of a hard snap. `tabular-nums`
+  // keeps the width stable so the swap is pure opacity, no jitter. Keyed on the
+  // value so only a changed count animates.
   const num = (value: number) => (
-    <span
-      className={cn(
-        'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
-        value > 0 ? 'text-text-primary' : 'text-text-tertiary',
-      )}
-    >
-      {value}
-    </span>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={value}
+        {...fadeMotion}
+        className={cn(
+          // 500 (font-medium), NOT 600: KPI numerals are key DATA, and 600 is
+          // reserved for titles (type-weight canon). Size unchanged (16px).
+          'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
+          value > 0 ? 'text-text-primary' : 'text-text-tertiary',
+        )}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
   )
 
   const cells: SummaryCell[] = [
@@ -112,12 +123,13 @@ export function ClientSummaryStrip({
                 className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-1"
               >
                 <StateBadge code={code} size="xs" preview={false} />
-                <span className="text-sm font-semibold text-text-primary">{code}</span>
+                {/* Jurisdiction code is key data → 500 (font-medium), not 600. */}
+                <span className="text-sm font-medium text-text-primary">{code}</span>
               </span>
             ))}
           </span>
         ) : (
-          <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
+          <span className="text-lg leading-none font-medium text-text-tertiary">—</span>
         ),
     },
     {
@@ -158,14 +170,15 @@ export function ClientSummaryStrip({
             // inconsistent? are these sizes used elsewhere?" — the prior 18px
             // date was a one-off, off the StatBand scale). Red carries the
             // overdue urgency — the band's single accent.
-            'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+            // 500 (font-medium): the date is key data, 600 is titles-only.
+            'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
           {formatDatePretty(nextDue.currentDueDate)}
         </span>
       ) : (
-        <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
+        <span className="text-lg leading-none font-medium text-text-tertiary">—</span>
       ),
     },
   ]

@@ -10,19 +10,22 @@ neutrality (§4.10), row dividers, and zebra striping all already match. Applied
 genuine, canon-safe visual deltas:
 
 ## Filter popover (`ObligationFiltersPopover`)
+
 - **Option count → rounded grey pill, right-aligned.** Was bare `text-caption-xs`
   text sitting next to the label; now `ml-auto … rounded-full bg-background-section
-  px-1.5 py-0.5`, so each row reads "label ········ N" in a capsule like the
+px-1.5 py-0.5`, so each row reads "label ········ N" in a capsule like the
   reference facet submenus.
 - **Rows get `rounded-lg`** so the hover + selected wash read as a soft inset pill
   (ref: rounded-lg row hover), not a full-bleed band.
 
 ## Bulk action bar
+
 - **"Set status" icon `CircleIcon` → `CircleDotIcon`** — the generic empty ring was
   a placeholder; a dot-in-circle reads as "choose a state," and avoids colliding
   with the StatusRing "not started" empty-ring glyph used elsewhere.
 
 ## Audited but deliberately NOT changed (already correct / canon)
+
 - Checkbox indeterminate + checked (already the filled accent square + minus/check).
 - Status rendered as filled tinted pills (our canon — not the ref's text-only, which
   would be a system-wide regression of the SeverityChip/status-badge family).
@@ -32,6 +35,7 @@ genuine, canon-safe visual deltas:
 - Header StatBand on the deadlines table — real gap but a bigger add; deferred.
 
 ## Verification
+
 tsgo 0 · build green · no new i18n strings. (Filter count-pill + rounded-row are
 class-only; the harness can't reliably drive the cascading facet submenu, so
 verified by tsgo/build rather than a synthetic click.)

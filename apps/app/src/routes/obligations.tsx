@@ -12,7 +12,13 @@ import {
   type Updater,
   type VisibilityState,
 } from '@tanstack/react-table'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
@@ -68,7 +74,9 @@ import {
   type ObligationQueueDetailTab,
   type ObligationQueueDensity,
   type ObligationQueueFacetOption,
+  type ObligationQueueDetail,
   type ObligationQueueListInput,
+  type ObligationQueueListOutput,
   type ObligationQueueRow,
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
@@ -214,6 +222,7 @@ import {
   DETAIL_PANEL_CONTENT_EXIT_ANIM,
 } from '@/features/obligations/queue/constants'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -1482,10 +1491,66 @@ export function ObligationQueueRoute() {
 
   const updateStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
-      onSuccess: () => {
-        // Cache invalidation only — the per-call onSuccess (wired in
-        // `updateStatus` below) owns the toast so it can attach the
-        // contextual Undo action with the previous status closed over.
+      // Optimistic flip — the dropdown picks a status and the row's pill should
+      // reflect it instantly, not after the server round-trip + 7 invalidations
+      // refetch. The pill renders `row.status` straight from the list cache, so
+      // we patch the matching row across every cached page (and the detail
+      // cache, which feeds the detail pane). The onSuccess invalidations below
+      // still run and reconcile to server truth; this just removes the gap.
+      // Follows the codebase's optimistic style (e.g. `optimisticSort`). Snapshot
+      // → rollback on error → invalidate on settle (the canonical RQ recipe).
+      onMutate: async (input) => {
+        await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
+        await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
+        const previousLists = queryClient.getQueriesData<InfiniteData<ObligationQueueListOutput>>({
+          queryKey: orpc.obligations.list.key(),
+        })
+        const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
+          queryKey: orpc.obligations.getDetail.key(),
+        })
+        queryClient.setQueriesData<InfiniteData<ObligationQueueListOutput>>(
+          { queryKey: orpc.obligations.list.key() },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  pages: data.pages.map((page) => ({
+                    ...page,
+                    rows: page.rows.map((r) =>
+                      r.id === input.id ? { ...r, status: input.status } : r,
+                    ),
+                  })),
+                }
+              : data,
+        )
+        queryClient.setQueriesData<ObligationQueueDetail>(
+          { queryKey: orpc.obligations.getDetail.key() },
+          (data) =>
+            data && data.row.id === input.id
+              ? { ...data, row: { ...data.row, status: input.status } }
+              : data,
+        )
+        return { previousLists, previousDetails }
+      },
+      onError: (err, _input, context) => {
+        // Roll the cache back to the pre-mutation snapshots before surfacing the
+        // error, so the pill returns to its real status.
+        for (const [key, value] of context?.previousLists ?? []) {
+          queryClient.setQueryData(key, value)
+        }
+        for (const [key, value] of context?.previousDetails ?? []) {
+          queryClient.setQueryData(key, value)
+        }
+        toast.error(t`Couldn't update status`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+      onSettled: () => {
+        // Reconcile every dependent surface against server truth (counts,
+        // ordering, audit). The per-call onSuccess (wired in `updateStatus`
+        // below) owns the toast so it can attach the contextual Undo action
+        // with the previous status closed over.
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
@@ -1493,12 +1558,6 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't update status`, {
-          description:
-            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
-        })
       },
     }),
   )
@@ -2253,7 +2312,11 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { headerClassName: 'w-[196px]', cellClassName: 'w-[196px]' },
+        // 232px (was 196) — long client names ("Meridian Multistate Holdings")
+        // were truncating at the old width. The extra 36px comes out of the
+        // Status fill column's trailing slack, so the wide-screen right-margin
+        // gap shrinks at the same time the name gets room.
+        meta: { headerClassName: 'w-[232px]', cellClassName: 'w-[232px]' },
       },
       {
         // Smart Priority — second data column (right after Client). Client is
@@ -2765,6 +2828,13 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
+        // Explicit width so Status is no longer the lone FILL column. With
+        // every column fixed, table-fixed spreads wide-screen slack
+        // proportionally across the row instead of dumping ~40% of the table
+        // into a half-empty Status cell (the trailing dead-space the wide-screen
+        // review flagged). 240px holds the status pill + one inline signal badge
+        // (e.g. "In review" + "Rejected") before the secondary line wraps.
+        meta: { headerClassName: 'w-[240px]', cellClassName: 'w-[240px]' },
       },
     ],
     [
@@ -2968,8 +3038,12 @@ export function ObligationQueueRoute() {
         key: 'this-week',
         label: t`Due this week`,
         value: dueThisWeek,
+        // Neutral sub (not warning): the app's warning token reads as a near-red
+        // that competed with the Overdue destructive cell — two reds on one calm
+        // band. Overdue is the genuine risk and owns the band's only color;
+        // due-this-week is upcoming workload, so it reads neutral like In review
+        // / Filed (color-only-serves-risk + calm-on-dense canon).
         sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
-        subClass: dueThisWeek > 0 ? 'text-text-warning' : 'text-text-tertiary',
       },
       {
         key: 'in-review',
@@ -2984,6 +3058,56 @@ export function ObligationQueueRoute() {
         sub: t`this period`,
       },
     ]
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
+  // Proportion bar for the StatBand — a thin visual echo of the portfolio mix
+  // BELOW the cells (no legend; the cells already label the counts). Restrained
+  // 3-tone register only (green filed / red overdue / neutral in-flight), per
+  // the StatBand color budget — NOT one segment per status. Every value traces
+  // to the SAME real aggregates the cells use: `filed` = LIFECYCLE_V2 done set,
+  // `overdue` from the glance narrative, in-flight = everything not yet settled
+  // and not late (scopeTotal − filed − overdue: not-started + waiting + blocked
+  // + in-review + due-this-week, all rolled into one neutral lane). No
+  // period-over-period / trend data exists, so the bar shows only the present
+  // mix — never a delta. Returns no bar when the portfolio is empty (the band
+  // already renders the empty case).
+  const statBandProportion = useMemo(() => {
+    if (scopeTotal <= 0) return undefined
+    const sumStatuses = (statuses: readonly ObligationStatus[]) =>
+      statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
+    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
+    const { overdue } = deadlinesNarrative
+    // Clamp so a transient skew between facets (filed) and glance (overdue)
+    // can never produce a negative width.
+    const inFlight = Math.max(0, scopeTotal - filed - overdue)
+    return {
+      segments: [
+        {
+          key: 'filed',
+          value: filed,
+          // Settled / green — the "done" lane (done + paid).
+          toneClass: 'bg-state-success-solid',
+          label: t`filed`,
+        },
+        {
+          key: 'overdue',
+          value: overdue,
+          // The band's only red — genuine risk, matching the Overdue cell.
+          toneClass: 'bg-state-destructive-solid',
+          label: t`overdue`,
+        },
+        {
+          key: 'in-flight',
+          value: inFlight,
+          // Neutral gray — everything in progress (not-started, waiting,
+          // blocked, in-review, due-this-week). One quiet lane, not five colors.
+          toneClass: 'bg-state-base-handle',
+          label: t`in progress`,
+        },
+      ],
+      // Plain-string summary for the bar's aria-label. Trans-free: built with
+      // `t` so the translatable string lives here, not in the shared band.
+      ariaLabel: t`Portfolio mix: ${filed} filed, ${overdue} overdue, ${inFlight} in progress`,
+    }
   }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
@@ -3452,10 +3576,16 @@ export function ObligationQueueRoute() {
         }
         actions={
           <>
+            {/* Header actions render at the canonical h-9 (default size), NOT
+                sm/h-8 — same rule as /alerts: header buttons match the h-9
+                filter-trigger chrome below (Status / Sort by / Filter / View)
+                so the page reads as one button family. sm/h-8 sat 4px shorter
+                than the filter pills and made the header feel like a different
+                control set. */}
             {/* Export uses ArrowUpRightIcon (arrow up + out — data LEAVING the
                 app), not a download arrow — the convention used by Linear /
                 Notion / Figma for export actions. */}
-            <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
+            <Button variant="outline" onClick={() => openExportDialog('filtered')}>
               <ArrowUpRightIcon data-icon="inline-start" />
               <Trans>Export</Trans>
             </Button>
@@ -3480,7 +3610,7 @@ export function ObligationQueueRoute() {
                 open={addDeadlineOpen}
                 onOpenChange={setAddDeadlineOpen}
                 trigger={
-                  <Button type="button" variant="primary" size="sm" className="rounded-r-none">
+                  <Button type="button" variant="primary" className="rounded-r-none">
                     <PlusIcon data-icon="inline-start" />
                     <Trans>Add deadline</Trans>
                   </Button>
@@ -3492,7 +3622,6 @@ export function ObligationQueueRoute() {
                     <Button
                       type="button"
                       variant="primary"
-                      size="sm"
                       aria-label={t`More add-deadline options`}
                       className="-ml-px rounded-l-none px-2"
                     >
@@ -3550,6 +3679,8 @@ export function ObligationQueueRoute() {
           stats={statBandCells}
           loading={glanceQuery.isLoading || facetsQuery.isLoading}
           ariaLabel={t`Deadlines portfolio summary`}
+          proportionBar={statBandProportion?.segments}
+          proportionBarLabel={statBandProportion?.ariaLabel}
         />
       ) : null}
 
@@ -3905,13 +4036,21 @@ export function ObligationQueueRoute() {
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
+                        // Default h-9 (not sm) so it lines up with the Sort by
+                        // / Filter pills it sits beside. The `shown / total`
+                        // count rides on the trigger itself — the column
+                        // configuration is legible from the toolbar without
+                        // opening the menu (the same count repeats on the
+                        // Columns submenu trigger inside).
                         <Button
                           variant="ghost"
-                          size="sm"
-                          aria-label={t`View, columns, and actions`}
+                          aria-label={t`View options — ${visibleHideableCount} of ${totalHideableCount} columns shown`}
                         >
                           <Columns3Icon data-icon="inline-start" />
                           <Trans>View</Trans>
+                          <span className="tabular-nums text-text-tertiary">
+                            {visibleHideableCount}/{totalHideableCount}
+                          </span>
                         </Button>
                       }
                     />
@@ -4094,221 +4233,244 @@ export function ObligationQueueRoute() {
             )}
           </div>
 
-          {selectedIds.length > 0 ? (
-            /*
-             * Floating bulk-action toolbar.
-             *
-             * Uses the shared `<FloatingActionBar>` primitive on the elevated
-             * dark tone — a white pill would read as page chrome, not as a
-             * distinct selection-mode surface, so darkening the fill makes the
-             * "you are now in batch mode" signal unmistakable.
-             *
-             * Action layout:
-             *   • Primary (always inline): Assign owner, Set status,
-             *     Confirm projected (lifted to accent when in the
-             *     Projected lens).
-             *   • Secondary (collapsed under "More"): Snooze (coming
-             *     soon), Export selected, Remind to sign, Decide
-             *     extension. Collapsing them keeps the bar to 5 buttons +
-             *     counter + clear so it stays within the queue's optical
-             *     center.
-             *   • Trailing: Clear selection, separated by a divider.
-             *
-             * Fixed at `bottom-12` (48px from viewport bottom, baked into the
-             * primitive) rather than a sticky bar inside the queue column — a
-             * sticky bar reflowed the table downward 50px the moment a row was
-             * checked, breaking the reading flow ("where did my row go?").
-             */
-            <FloatingActionBar
-              ariaLabel={t`Bulk actions`}
-              tone="elevated"
-              // The default position centers on the viewport, but the
-              // persistent sidebar (220px / 13.75rem) pushes the queue panel's
-              // optical center ~110px right of the viewport center.
-              // `md:!left-[calc(50%+6.875rem)]` restores center alignment over
-              // the queue at md+ widths; at narrow viewports the sidebar
-              // collapses to an off-canvas drawer, so the bar falls back to the
-              // viewport-centered default.
-              className="md:!left-[calc(50%+6.875rem)]"
-            >
-              {/* The COUNT leads in semibold tabular-nums with the "deadlines
+          {/*
+           * Floating bulk-action toolbar.
+           *
+           * Uses the shared `<FloatingActionBar>` primitive on the elevated
+           * dark tone — a white pill would read as page chrome, not as a
+           * distinct selection-mode surface, so darkening the fill makes the
+           * "you are now in batch mode" signal unmistakable.
+           *
+           * Action layout:
+           *   • Primary (always inline): Assign owner, Set status,
+           *     Confirm projected (lifted to accent when in the
+           *     Projected lens).
+           *   • Secondary (collapsed under "More"): Snooze (coming
+           *     soon), Export selected, Remind to sign, Decide
+           *     extension. Collapsing them keeps the bar to 5 buttons +
+           *     counter + clear so it stays within the queue's optical
+           *     center.
+           *   • Trailing: Clear selection, separated by a divider.
+           *
+           * Fixed at `bottom-12` (48px from viewport bottom) rather than a
+           * sticky bar inside the queue column — a sticky bar reflowed the
+           * table downward 50px the moment a row was checked, breaking the
+           * reading flow ("where did my row go?").
+           *
+           * Mirrors the alerts bulk-bar (AlertsListPage `"alerts-bulk-bar"`):
+           * the AnimatePresence motion.div owns the fixed centering so the
+           * y/opacity enter+exit is actually visible — a y-transform on a
+           * plain wrapper can't move a `fixed` child. The primitive's own
+           * fixed centering + slide-in keyframes are neutralized so they
+           * don't fight the wrapper. The sidebar (220px / 13.75rem) pushes the
+           * queue's optical center ~110px right at md+, so the wrapper carries
+           * `md:left-[calc(50%+6.875rem)]`; below md the sidebar collapses and
+           * it falls back to viewport-centered.
+           */}
+          <AnimatePresence>
+            {selectedIds.length > 0 ? (
+              <motion.div
+                key="deadlines-bulk-bar"
+                className="fixed bottom-12 left-1/2 z-40 md:left-[calc(50%+6.875rem)]"
+                initial={{ opacity: 0, x: '-50%', y: 8 }}
+                animate={{ opacity: 1, x: '-50%', y: 0 }}
+                exit={{ opacity: 0, x: '-50%', y: 8 }}
+                transition={{ duration: MOTION_DURATION.exit, ease: EASE_APPLE }}
+              >
+                <FloatingActionBar
+                  ariaLabel={t`Bulk actions`}
+                  tone="elevated"
+                  // Positioning is owned by the AnimatePresence motion.div
+                  // wrapper so the enter/exit can animate the `fixed` bar —
+                  // neutralize the primitive's own fixed centering + slide-in
+                  // keyframes (they'd double-up / fight the wrapper's
+                  // y-transform). Visual recipe (fill/shadow/radius) untouched.
+                  className="!static !bottom-auto !left-auto !translate-x-0 !animate-none"
+                >
+                  {/* The COUNT leads in semibold tabular-nums with the "deadlines
                   selected" label dropped to 70% so the eye lands on the number
                   first ("28 · deadlines selected") and the bar has an anchor. */}
-              <span className="flex items-baseline gap-1.5 whitespace-nowrap pl-1 text-xs">
-                <span className="font-semibold tabular-nums">{selectedIds.length}</span>
-                <span className="text-text-inverted/70">
-                  <Plural
-                    value={selectedIds.length}
-                    one="deadline selected"
-                    other="deadlines selected"
-                  />
-                </span>
-              </span>
-              <Separator orientation="vertical" className="mx-0.5 h-4" />
-              {/* Every action leads with an icon so the bar scans as one
+                  <span className="flex items-baseline gap-1.5 whitespace-nowrap pl-1 text-xs">
+                    <span className="font-semibold tabular-nums">{selectedIds.length}</span>
+                    <span className="text-text-inverted/70">
+                      <Plural
+                        value={selectedIds.length}
+                        one="deadline selected"
+                        other="deadlines selected"
+                      />
+                    </span>
+                  </span>
+                  <Separator orientation="vertical" className="mx-0.5 h-4" />
+                  {/* Every action leads with an icon so the bar scans as one
                   consistent control row (no mixed icon/no-icon cluster). */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm">
-                      <UserRoundIcon data-icon="inline-start" />
-                      <Trans>Assign owner</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
-                    <Trans>Unassigned</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {assignableMembers.length === 0 ? (
-                    <DropdownMenuItem disabled>
-                      <Trans>No assignable members</Trans>
-                    </DropdownMenuItem>
-                  ) : (
-                    assignableMembers.map((member) => (
-                      <DropdownMenuItem
-                        key={member.assigneeId}
-                        onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
-                      >
-                        <span className="truncate">{member.name}</span>
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  disabled={!canUpdateObligationStatus}
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canUpdateObligationStatus}
-                      title={
-                        canUpdateObligationStatus
-                          ? undefined
-                          : t`Status changes require owner, partner, manager, or preparer access.`
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="sm">
+                          <UserRoundIcon data-icon="inline-start" />
+                          <Trans>Assign owner</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
                       }
-                    >
-                      <CircleDotIcon data-icon="inline-start" />
-                      <Trans>Set status</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  {statusDropdownOptions.map((status) =>
-                    status === 'extended' ? (
-                      <DropdownMenuItem
-                        key={status}
-                        disabled={bulkStatusMutation.isPending}
-                        onClick={() => {
-                          setExtendedMemo('')
-                          setExtendedMemoOpen(true)
-                        }}
-                      >
-                        <span className="flex items-center gap-2">
-                          <StatusMark
-                            status={status}
-                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
-                          />
-                          {statusLabels[status]}
-                        </span>
+                    />
+                    <DropdownMenuContent align="start" className="w-64">
+                      <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                        <Trans>Unassigned</Trans>
                       </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem
-                        key={status}
-                        disabled={bulkStatusMutation.isPending}
-                        onClick={() => changeSelectedStatus(status)}
-                      >
-                        <span className="flex items-center gap-2">
-                          <StatusMark
-                            status={status}
-                            className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
-                          />
-                          {statusLabels[status]}
-                        </span>
-                      </DropdownMenuItem>
-                    ),
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {/* Confirm projected stays inline because it's the primary
+                      <DropdownMenuSeparator />
+                      {assignableMembers.length === 0 ? (
+                        <DropdownMenuItem disabled>
+                          <Trans>No assignable members</Trans>
+                        </DropdownMenuItem>
+                      ) : (
+                        assignableMembers.map((member) => (
+                          <DropdownMenuItem
+                            key={member.assigneeId}
+                            onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
+                          >
+                            <span className="truncate">{member.name}</span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      disabled={!canUpdateObligationStatus}
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canUpdateObligationStatus}
+                          title={
+                            canUpdateObligationStatus
+                              ? undefined
+                              : t`Status changes require owner, partner, manager, or preparer access.`
+                          }
+                        >
+                          <CircleDotIcon data-icon="inline-start" />
+                          <Trans>Set status</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="start">
+                      {statusDropdownOptions.map((status) =>
+                        status === 'extended' ? (
+                          <DropdownMenuItem
+                            key={status}
+                            disabled={bulkStatusMutation.isPending}
+                            onClick={() => {
+                              setExtendedMemo('')
+                              setExtendedMemoOpen(true)
+                            }}
+                          >
+                            <span className="flex items-center gap-2">
+                              <StatusMark
+                                status={status}
+                                className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                              />
+                              {statusLabels[status]}
+                            </span>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            key={status}
+                            disabled={bulkStatusMutation.isPending}
+                            onClick={() => changeSelectedStatus(status)}
+                          >
+                            <span className="flex items-center gap-2">
+                              <StatusMark
+                                status={status}
+                                className={cn('size-4 shrink-0', STATUS_ICON_COLOR[status])}
+                              />
+                              {statusLabels[status]}
+                            </span>
+                          </DropdownMenuItem>
+                        ),
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {/* Confirm projected stays inline because it's the primary
                   action in the Projected lens (lifted to accent). */}
-              <Button
-                variant={projected ? 'accent' : 'ghost'}
-                size="sm"
-                disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
-                title={
-                  canUpdateObligationStatus
-                    ? t`Confirm projected deadlines so they enter the reminder pipeline`
-                    : t`Confirming requires owner, partner, manager, or preparer access.`
-                }
-                onClick={confirmSelectedProjected}
-              >
-                <CircleCheckIcon data-icon="inline-start" />
-                <Trans>Confirm projected</Trans>
-              </Button>
-              {/* Secondary actions collapse under a single "More" overflow
+                  <Button
+                    variant={projected ? 'accent' : 'ghost'}
+                    size="sm"
+                    disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
+                    title={
+                      canUpdateObligationStatus
+                        ? t`Confirm projected deadlines so they enter the reminder pipeline`
+                        : t`Confirming requires owner, partner, manager, or preparer access.`
+                    }
+                    onClick={confirmSelectedProjected}
+                  >
+                    <CircleCheckIcon data-icon="inline-start" />
+                    <Trans>Confirm projected</Trans>
+                  </Button>
+                  {/* Secondary actions collapse under a single "More" overflow
                   menu so the bar reads as ~5 affordances instead of 8. Order
                   is Export → Remind to sign → Decide extension. */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm" aria-label={t`More bulk actions`}>
-                      <Trans>More</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => openExportDialog('selected')}>
-                    <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Export selected</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
-                    title={
-                      canUpdateObligationStatus
-                        ? t`Email selected clients a Form 8879 signature reminder`
-                        : t`Requires status-update access`
-                    }
-                    onClick={() => setRemindToSignConfirmOpen(true)}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="sm" aria-label={t`More bulk actions`}>
+                          <Trans>More</Trans>
+                          <ChevronDownIcon data-icon="inline-end" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => openExportDialog('selected')}>
+                        <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Export selected</Trans>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={
+                          !canUpdateObligationStatus || bulkRemindSignatureMutation.isPending
+                        }
+                        title={
+                          canUpdateObligationStatus
+                            ? t`Email selected clients a Form 8879 signature reminder`
+                            : t`Requires status-update access`
+                        }
+                        onClick={() => setRemindToSignConfirmOpen(true)}
+                      >
+                        <SendIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Remind to sign</Trans>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={
+                          !canUpdateObligationStatus || bulkDecideExtensionMutation.isPending
+                        }
+                        title={
+                          canUpdateObligationStatus
+                            ? t`Apply an internal extension plan to the selected deadlines`
+                            : t`Requires status-update access`
+                        }
+                        onClick={() => setBulkExtensionOpen(true)}
+                      >
+                        <CalendarClockIcon className="mr-2 size-4" aria-hidden />
+                        <Trans>Set extension date</Trans>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Separator orientation="vertical" className="mx-0.5 h-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setRowSelection({})
+                      lastSelectedIdRef.current = null
+                    }}
+                    aria-label={t`Clear selection`}
                   >
-                    <SendIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Remind to sign</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
-                    title={
-                      canUpdateObligationStatus
-                        ? t`Apply an internal extension plan to the selected deadlines`
-                        : t`Requires status-update access`
-                    }
-                    onClick={() => setBulkExtensionOpen(true)}
-                  >
-                    <CalendarClockIcon className="mr-2 size-4" aria-hidden />
-                    <Trans>Decide extension</Trans>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Separator orientation="vertical" className="mx-0.5 h-4" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setRowSelection({})
-                  lastSelectedIdRef.current = null
-                }}
-                aria-label={t`Clear selection`}
-              >
-                <XIcon data-icon="inline-start" />
-                <Trans>Clear</Trans>
-              </Button>
-            </FloatingActionBar>
-          ) : null}
+                    <XIcon data-icon="inline-start" />
+                    <Trans>Clear</Trans>
+                  </Button>
+                </FloatingActionBar>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
           {isInitialLoading ? (
             // Skeleton rows match the rest of the app's loading rhythm;
@@ -4503,18 +4665,25 @@ export function ObligationQueueRoute() {
                     {tableRows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={visibleColumnCount} className="py-8">
-                          <ObligationQueueEmptyState
-                            onOpenWizard={openWizard}
-                            canRunMigration={canRunMigration}
-                            // 2026-06-16 (audit): reuse the canonical
-                            // `queueFiltersActive` predicate instead of a partial
-                            // inline copy that omitted projected / rule / obligation
-                            // — those filters could yield zero rows yet wrongly show
-                            // the "import deadlines" empty state instead of "no
-                            // matches · clear filters".
-                            hasActiveFilters={queueFiltersActive}
-                            onClearFilters={resetObligationQueue}
-                          />
+                          {/* Sanctioned zero-state fade — the empty state
+                              would otherwise snap in the instant the query
+                              returns zero rows. Quiet opacity-only fade
+                              (fadeMotion); reduced-motion handled globally by
+                              the root MotionConfig. */}
+                          <motion.div {...fadeMotion}>
+                            <ObligationQueueEmptyState
+                              onOpenWizard={openWizard}
+                              canRunMigration={canRunMigration}
+                              // 2026-06-16 (audit): reuse the canonical
+                              // `queueFiltersActive` predicate instead of a partial
+                              // inline copy that omitted projected / rule / obligation
+                              // — those filters could yield zero rows yet wrongly show
+                              // the "import deadlines" empty state instead of "no
+                              // matches · clear filters".
+                              hasActiveFilters={queueFiltersActive}
+                              onClearFilters={resetObligationQueue}
+                            />
+                          </motion.div>
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -4544,6 +4713,29 @@ export function ObligationQueueRoute() {
                               collapsedQueueGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
+                        // Leading urgency stripe — the row's 2px left rail picks
+                        // up the SAME tone the Internal-due pill uses, via
+                        // `dueDaysTone`, so the stripe and the date cell never
+                        // disagree: deep red when badly overdue (`destructive`),
+                        // coral when recently late or imminent (`warning`), and
+                        // no stripe once the row is 3+ days out (`outline`).
+                        // Suppressed (filed / completed / paid / N-A) rows show
+                        // no stripe: their lateness is a quality stat, not live
+                        // urgency. Urgency takes the rail over the gray
+                        // client-cluster tint — an overdue filing matters more
+                        // to surface than which cluster it sits in, and the
+                        // cluster still reads via row-welding + the continuation
+                        // indent.
+                        const rowDueVariant = dueDaysTone(
+                          daysUntilEffectiveInternalDueDate(tableRow.original),
+                        ).variant
+                        const urgencyRail = isDueDaysSuppressedForStatus(tableRow.original.status)
+                          ? null
+                          : rowDueVariant === 'destructive'
+                            ? 'border-l-state-destructive-solid'
+                            : rowDueVariant === 'warning'
+                              ? 'border-l-state-warning-solid'
+                              : null
                         // The group header TableRow below inherits canonical
                         // TableRow chrome; `bg-background-subtle` is kept
                         // because the group header is a quieter inset surface
@@ -4553,7 +4745,9 @@ export function ObligationQueueRoute() {
                             {groupHeader ? (
                               // Group header surface + px-5 py-2 padding match
                               // the canonical subgroup divider on /today +
-                              // /alerts.
+                              // /alerts. (The lane wash rides on the cell below,
+                              // not here — the row's own `has-aria-expanded`
+                              // hover rule outranks a row-level bg.)
                               <TableRow className="bg-background-subtle">
                                 {/* The chevron lives in a w-10 slot matching the
                                     leading select column, and the tone dot +
@@ -4565,7 +4759,24 @@ export function ObligationQueueRoute() {
                                     let the slot do the alignment. */}
                                 <TableCell
                                   colSpan={visibleColumnCount}
-                                  className="py-1.5 pr-5 pl-0"
+                                  // Urgency bands get a soft lane wash (red-50 /
+                                  // warning-50) so the OVERDUE and THIS WEEK
+                                  // zones read as colored lanes that cap the
+                                  // matching row stripes below — calm tints,
+                                  // never a filled red bar (keeps the queue's
+                                  // no-red-overload rule). Client / filing
+                                  // groupings stay neutral. Painted on the cell
+                                  // (not the row) so it isn't outranked by the
+                                  // row's has-aria-expanded hover state.
+                                  className={cn(
+                                    'py-1.5 pr-5 pl-0',
+                                    groupHeader.kind === 'urgency' &&
+                                      groupHeader.groupKey === 'overdue' &&
+                                      'bg-state-destructive-hover',
+                                    groupHeader.kind === 'urgency' &&
+                                      groupHeader.groupKey === 'this_week' &&
+                                      'bg-state-warning-hover',
+                                  )}
                                 >
                                   <button
                                     type="button"
@@ -4716,6 +4927,10 @@ export function ObligationQueueRoute() {
                                   (continuationRowIds.has(tableRow.original.id) ||
                                     withinGroupRowIds.has(tableRow.original.id)) &&
                                     'border-l-divider-regular',
+                                  // Urgency wins the rail last so it overrides
+                                  // the gray cluster tint on overdue / due-soon
+                                  // rows.
+                                  urgencyRail,
                                 )}
                                 onClick={(event) => {
                                   if (
@@ -5815,6 +6030,7 @@ function SignatureReminderDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() => {
               // Single: first click on a recently-reminded client just confirms.
               if (needsResendConfirm) {
@@ -5828,7 +6044,10 @@ function SignatureReminderDialog({
               })
             }}
           >
-            {needsResendConfirm ? (
+            {sending ? <Loader2Icon data-icon="inline-start" className="animate-spin" /> : null}
+            {sending ? (
+              <Trans>Sending…</Trans>
+            ) : needsResendConfirm ? (
               <Trans>Send anyway</Trans>
             ) : isBulk ? (
               <Trans>Send reminders</Trans>
@@ -5903,7 +6122,7 @@ function BulkExtensionDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            <Trans>Decide extension for selected deadlines</Trans>
+            <Trans>Set extension date for selected deadlines</Trans>
           </DialogTitle>
           <DialogDescription>
             <Trans>
@@ -6007,6 +6226,7 @@ function BulkExtensionDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() =>
               onSend({
                 memo: memo.trim(),
@@ -6015,7 +6235,8 @@ function BulkExtensionDialog({
               })
             }
           >
-            <Trans>Decide extensions</Trans>
+            {sending ? <Loader2Icon data-icon="inline-start" className="animate-spin" /> : null}
+            {sending ? <Trans>Setting…</Trans> : <Trans>Set extension date</Trans>}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -6675,36 +6896,37 @@ function ObligationFiltersPopover({
           )}
         </div>
 
-        {/* Footer — staged summary + Clear on the left, Cancel / Apply on the
-            right (Apply is the clear dark primary with a trailing arrow, per
-            `ZAciP`/`IruSl`). Distinct section tint anchors the action band. */}
-        <div className="flex items-center justify-between border-t border-divider-subtle bg-background-section px-4 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-caption-xs tabular-nums text-text-tertiary">
-              <Plural
-                value={stagedTotal}
-                _0="No filters staged"
-                one="# filter staged"
-                other="# filters staged"
-              />
-            </span>
-            {stagedTotal > 0 ? (
-              <Button
-                variant="ghost"
-                size="xs"
-                type="button"
-                onClick={() => setStage(emptyStage)}
-                className="h-auto px-1.5 py-0.5 text-caption-xs"
-              >
-                <Trans>Reset</Trans>
-              </Button>
-            ) : null}
-          </div>
+        {/* Footer — the reference's clean Reset / Apply PAIR (ref filter sheet
+            #3): Reset = outline counterpart on the left, Apply = the dark
+            primary with a trailing arrow on the right, each `flex-1` so the pair
+            splits the band evenly and reads as one deliberate action couplet
+            (not a tiny ghost link + a buried Cancel). The staged-count caption
+            sits above as a quiet line. Esc/✕/outside-click already cancel-
+            without-applying (header Esc chip), so the redundant Cancel button is
+            folded to keep the pair clean. Distinct section tint anchors the
+            band. Reset disables — instead of vanishing — when nothing is
+            staged, so the pair never reflows. */}
+        <div className="flex flex-col gap-2 border-t border-divider-subtle bg-background-section px-4 py-3">
+          <span className="text-caption-xs tabular-nums text-text-tertiary">
+            <Plural
+              value={stagedTotal}
+              _0="No filters staged"
+              one="# filter staged"
+              other="# filters staged"
+            />
+          </span>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              <Trans>Cancel</Trans>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => setStage(emptyStage)}
+              disabled={stagedTotal === 0}
+              className="flex-1"
+            >
+              <Trans>Reset</Trans>
             </Button>
-            <Button size="sm" onClick={apply}>
+            <Button size="sm" onClick={apply} className="flex-1">
               <Trans>Apply</Trans>
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
@@ -7123,7 +7345,7 @@ function ObligationActiveFilterChips({
             type="button"
             onClick={chip.onRemove}
             aria-label={t`Remove ${chip.label} filter`}
-            className="size-4 shrink-0 rounded-full"
+            className="shrink-0 rounded-full"
           >
             <XIcon className="size-3" aria-hidden />
           </Button>
@@ -7177,7 +7399,7 @@ function ObligationQueueEmptyState({
       icon={hasActiveFilters ? CalendarDaysIcon : CalendarClockIcon}
       title={
         hasActiveFilters ? (
-          <Trans>No deadlines match these filters.</Trans>
+          <Trans>No deadlines match these filters</Trans>
         ) : (
           <Trans>No deadlines yet</Trans>
         )
@@ -7270,87 +7492,125 @@ function CalendarSyncPopover() {
 
   return (
     <>
-      {open ? (
-        <div
-          aria-hidden
-          className="fixed inset-0 z-40 bg-background-overlay-backdrop"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
+      {/* No manual backdrop. A Base UI Popover already closes on outside-press
+          + Escape; the old `fixed inset-0 bg-background-overlay-backdrop` div
+          painted a 95%-opaque WHITE scrim over the whole page, making a small
+          anchored utility read like a broken modal (Yuqi: "white mask behind
+          the popup"). Popovers in this app never dim the page — only Dialogs
+          do. */}
       <Popover open={open} onOpenChange={setOpen}>
+        {/* Default h-9 (not sm) — matches the other /deadlines header actions
+            + the filter-trigger chrome. */}
         <PopoverTrigger
           render={
-            <Button variant="outline" size="sm">
+            <Button variant="outline">
               <CalendarDaysIcon data-icon="inline-start" />
               <Trans>Calendar sync</Trans>
             </Button>
           }
         />
-        <PopoverContent align="end" className="w-80 gap-3">
-          <PopoverHeader>
-            <PopoverTitle>
-              <Trans>My deadlines</Trans>
-            </PopoverTitle>
-            <p className="text-xs text-text-tertiary">
-              <Trans>
-                Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the
-                source of truth.
-              </Trans>
-            </p>
+        {/* gap-0/p-0 so the header band + body own their own padding and the
+            hairline can span the full width (clear-sections-not-boxes). */}
+        <PopoverContent align="end" className="w-80 gap-0 p-0">
+          {/* Header band — a soft accent tile gives the utility an identity
+              instead of a bare text title; the scope line says exactly what the
+              feed contains. */}
+          <PopoverHeader className="flex-row items-start gap-3 px-4 pt-4 pb-3">
+            <span
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent"
+              aria-hidden
+            >
+              <CalendarDaysIcon className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <PopoverTitle className="leading-tight">
+                <Trans>Calendar subscription</Trans>
+              </PopoverTitle>
+              <span className="text-xs leading-snug text-text-tertiary">
+                <Trans>Your assigned deadlines, in Google, Apple, or Outlook.</Trans>
+              </span>
+            </span>
           </PopoverHeader>
-          {subscriptionsQuery.isLoading ? (
-            <div className="grid gap-2">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          ) : feedUrl ? (
-            <div className="grid gap-2">
-              <Input
-                readOnly
-                value={feedUrl}
-                className="font-mono text-xs"
-                aria-label={t`Calendar URL`}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => void copyFeedUrl()} className="flex-1">
-                  <CopyIcon data-icon="inline-start" />
-                  <Trans>Copy URL</Trans>
-                </Button>
+          <div className="h-px w-full bg-divider-subtle" aria-hidden />
+          <div className="p-4">
+            {subscriptionsQuery.isLoading ? (
+              <div className="grid gap-2">
+                <Skeleton className="h-3 w-32 rounded-full" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            ) : feedUrl ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-caption-xs font-medium tracking-wide text-text-tertiary uppercase">
+                    <Trans>Private subscription link</Trans>
+                  </span>
+                  {/* The field IS the copy affordance — a trailing copy glyph,
+                      the pattern users expect for "grab this link" (Vercel /
+                      GitHub). Regenerate is demoted to a quiet footer action so
+                      the destructive path doesn't compete with the everyday
+                      copy. */}
+                  <div className="relative">
+                    <Input
+                      readOnly
+                      value={feedUrl}
+                      className="pr-9 font-mono text-xs"
+                      aria-label={t`Calendar URL`}
+                      onFocus={(event) => event.currentTarget.select()}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => void copyFeedUrl()}
+                      aria-label={t`Copy calendar URL`}
+                      className="absolute top-1/2 right-1 -translate-y-1/2"
+                    >
+                      <CopyIcon className="size-3.5" aria-hidden />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-caption-xs text-text-tertiary">
+                    <Trans>Anyone with the link can subscribe.</Trans>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="text-text-secondary"
+                    onClick={() => setRegenerateConfirmOpen(true)}
+                    disabled={regenerateMutation.isPending || !subscription}
+                  >
+                    <RefreshCwIcon
+                      data-icon="inline-start"
+                      className={cn(regenerateMutation.isPending && 'animate-spin')}
+                    />
+                    <Trans>Regenerate</Trans>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  <Trans>
+                    Generate a private link so deadlines assigned to you appear in your personal
+                    calendar.
+                  </Trans>
+                </p>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenerateConfirmOpen(true)}
-                  disabled={regenerateMutation.isPending || !subscription}
+                  onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
+                  disabled={upsertMutation.isPending}
+                  aria-busy={upsertMutation.isPending}
+                  className="w-full"
                 >
-                  <RefreshCwIcon
-                    data-icon="inline-start"
-                    className={cn(regenerateMutation.isPending && 'animate-spin')}
-                  />
-                  <Trans>Regenerate</Trans>
+                  {upsertMutation.isPending ? (
+                    <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                  ) : null}
+                  <Trans>Enable subscription</Trans>
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              <p className="text-xs text-text-secondary">
-                <Trans>
-                  Generate a private subscription URL so deadlines assigned to you appear in your
-                  personal calendar.
-                </Trans>
-              </p>
-              <Button
-                size="sm"
-                onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
-                disabled={upsertMutation.isPending}
-                aria-busy={upsertMutation.isPending}
-              >
-                {upsertMutation.isPending ? (
-                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
-                ) : null}
-                <Trans>Enable subscription</Trans>
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </PopoverContent>
       </Popover>
       <AlertDialog

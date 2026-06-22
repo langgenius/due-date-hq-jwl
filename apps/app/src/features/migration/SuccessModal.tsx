@@ -21,7 +21,7 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
-import { EASE_APPLE } from '@/lib/motion'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 export interface SuccessModalData {
   batchId: string
@@ -210,25 +210,53 @@ export function SuccessModal({
             <CapsFieldLabel as="span" variant="group" className="text-text-tertiary">
               <Trans>What to do next</Trans>
             </CapsFieldLabel>
-            <NextStep
-              tone="warning"
-              icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
-              title={t`Review your jurisdictions`}
-              sub={t`Confirm state calendars before their deadlines generate`}
-              onClick={() => onNavigate('/rules/library')}
-            />
-            <NextStep
-              icon={<MailIcon className="size-3.5" aria-hidden />}
-              title={t`Customise reminder templates`}
-              sub={t`Email copy + reply-to before turning rules on`}
-              onClick={() => onNavigate('/reminders')}
-            />
-            <NextStep
-              icon={<CalendarDaysIcon className="size-3.5" aria-hidden />}
-              title={t`Browse your first deadlines`}
-              sub={t`See what's due next on Today`}
-              onClick={() => onNavigate('/deadlines')}
-            />
+            {/* The three next-steps rise+fade in sequence (40ms apart). delayChildren
+                0.08 lets the hero check + stat row (already animated) land first.
+                Reduced-motion handled by the global MotionConfig. */}
+            <motion.div
+              className="flex flex-col gap-2"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.04, delayChildren: 0.08 } },
+              }}
+            >
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  tone="warning"
+                  icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
+                  title={t`Review your jurisdictions`}
+                  sub={t`Confirm state calendars before their deadlines generate`}
+                  onClick={() => onNavigate('/rules/library')}
+                />
+              </motion.div>
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  icon={<MailIcon className="size-3.5" aria-hidden />}
+                  title={t`Customise reminder templates`}
+                  sub={t`Email copy + reply-to before turning rules on`}
+                  onClick={() => onNavigate('/reminders')}
+                />
+              </motion.div>
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <NextStep
+                  icon={<CalendarDaysIcon className="size-3.5" aria-hidden />}
+                  title={t`Browse your first deadlines`}
+                  sub={t`See what's due next on Today`}
+                  onClick={() => onNavigate('/deadlines')}
+                />
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Footer */}

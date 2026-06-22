@@ -235,6 +235,9 @@ function SidebarQuickFind() {
         'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
+        // 2026-06-22 (Yuqi consistency): collapse to the same centered 32×32
+        // square as the nav rows so the hover wash matches the selected tile.
+        'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:px-2',
       )}
     >
       <SearchIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
@@ -315,6 +318,10 @@ function SidebarSystemStatus() {
             className={cn(
               'flex h-7 w-full items-center gap-3 rounded-lg px-[11px] text-left outline-none transition-[color,background-color] hover:bg-background-sidebar-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'group-data-[collapsed=true]/sidebar:gap-0',
+              // 2026-06-22 (Yuqi consistency): in the collapsed rail this is just
+              // the status dot — collapse to the same centered 32×32 square as the
+              // nav rows (size-8 squares the h-7 row) so its hover wash matches.
+              'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:px-2',
             )}
             {...props}
           >

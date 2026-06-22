@@ -1,0 +1,307 @@
+/* ============================================================================
+   Marketing semantic layer (--m-*)
+   ----------------------------------------------------------------------------
+   The editorial design from the production-v2 exploration, expressed as tokens
+   that map onto the SHARED @duedatehq/ui primitives — never raw hex. This is the
+   marketing-specific semantic tier: the product UI keeps its own (denser) tier;
+   both pull from the same primitives, so the brand navy/cyan/scales stay in one
+   source of truth.
+
+   Light only this pass, but every colour resolves through a semantic token that
+   already has a dark variant in semantic-dark.css — so dark mode is a later
+   retrofit, not a rewrite. New marketing components reference --m-* (and never
+   hardcode #2E368C etc.).
+   ============================================================================ */
+
+:root {
+  /* ---- colour (all → shared tokens) ---- */
+  --m-accent: var(--color-util-colors-primary-600); /* brand navy #2e368c */
+  --m-accent-strong: var(--color-util-colors-primary-700); /* hover/pressed */
+  --m-accent-tint: var(--color-util-colors-primary-50); /* #eef0fb faint wash */
+  --m-cyan: var(--color-brand-highlight); /* #14c5f6 — delight surfaces only */
+
+  --m-ink: var(--text-primary); /* headings / strong text */
+  --m-ink-2: var(--text-secondary); /* body */
+  --m-muted: var(--text-tertiary); /* supporting */
+  --m-faint: var(--text-quaternary); /* eyebrows / meta */
+  --m-on-accent: var(--text-inverted); /* text on the navy band */
+
+  --m-canvas: var(--color-util-colors-gray-100); /* cold light gray page base (#f2f4f7) */
+  --m-surface: var(--background-default); /* white card */
+  --m-section: var(--background-section); /* gray band */
+
+  --m-hairline: var(--divider-regular);
+  --m-hairline-2: var(--divider-subtle);
+
+  /* risk — reuse shared severity/status semantics (red strictly for risk) */
+  --m-urgent: var(--text-warning);
+  --m-ok: var(--text-success);
+  --m-danger: var(--text-destructive);
+
+  /* ---- type ---- */
+  --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */
+  --m-font-sans:
+    'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --m-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* data / dates */
+  --m-ls-eyebrow: 0.14em;
+
+  /* ---- layout (editorial, marketing-specific) ---- */
+  --m-maxw: 1240px; /* one shared container width */
+  --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
+  --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
+  --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
+}
+
+/* ============================================================================
+   Shared marketing primitives — one section/eyebrow/title/lead used across all
+   home components (DRY type system). Global classes (not Astro-scoped) so every
+   section pulls from the same source.
+   ============================================================================ */
+@layer components {
+  .m-section {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+    padding-block: clamp(56px, 8vw, 104px);
+  }
+  .m-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--m-eyebrow-gap);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .m-h2 {
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(29px, 3.6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .m-h2 .ital {
+    font-style: italic;
+  }
+  .m-lead {
+    font-size: clamp(17px, 1.4vw, 20px);
+    line-height: 1.55;
+    color: var(--m-ink-2);
+  }
+
+  /* ==========================================================================
+     Long-tail content-page kit — shared by the SEO/AEO/GEO templates
+     (rules · comparisons · guides · state coverage · trust pages · pricing).
+     One source of truth so every long-tail page matches the home's language.
+     ========================================================================== */
+  .m-page-hero {
+    padding-block: clamp(48px, 7vw, 84px) clamp(32px, 4vw, 48px);
+  }
+  .m-page-title {
+    margin-top: 4px;
+    max-width: 18ch;
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(30px, 4vw, 48px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .m-page-lead {
+    margin-top: 20px;
+    max-width: 60ch;
+    font-size: clamp(16px, 1.3vw, 18px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .m-page-note {
+    margin-top: 18px;
+    max-width: 70ch;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--m-muted);
+  }
+  .m-page-reviewed {
+    margin-top: 12px;
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    color: var(--m-faint);
+  }
+  /* stacked content block — tighter than the home's airy sections, with a
+     contained editorial rule above each */
+  .m-page-block {
+    padding-block: clamp(40px, 5vw, 64px);
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .m-page-h2 {
+    max-width: 24ch;
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+  }
+  /* split content (5 / 7) */
+  .m-page-split {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(28px, 4vw, 48px);
+    align-items: start;
+  }
+  .m-page-split__lead {
+    grid-column: span 5;
+  }
+  .m-page-cards {
+    grid-column: span 7;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+  .m-page-body {
+    margin-top: 18px;
+    max-width: 44ch;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--m-ink-2);
+  }
+  .m-page-grid-3 {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+  /* card (section items, faq, trust items) */
+  .m-card {
+    padding: 22px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .m-card__t {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--m-ink);
+  }
+  .m-card__d {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--m-muted);
+  }
+  /* definition list (key dates) */
+  .m-page-dl {
+    margin-top: 28px;
+    max-width: 860px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--m-surface);
+  }
+  .m-page-dl__row {
+    display: grid;
+    gap: 6px;
+    padding: 16px 22px;
+  }
+  .m-page-dl__row + .m-page-dl__row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .m-page-dl__row dt {
+    font-family: var(--m-font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .m-page-dl__row dd {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  /* cta block */
+  .m-page-cta {
+    display: grid;
+    gap: 24px;
+    padding: clamp(28px, 3.5vw, 40px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .m-page-cta__title {
+    max-width: 22ch;
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+  }
+  .m-page-cta__body {
+    margin-top: 14px;
+    max-width: 62ch;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--m-muted);
+  }
+  .m-page-cta__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  /* buttons */
+  .m-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding-inline: 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition:
+      background 0.18s ease,
+      border-color 0.18s ease;
+  }
+  .m-btn--primary {
+    color: #fff;
+    background: var(--m-accent);
+  }
+  .m-btn--primary:hover {
+    background: var(--m-accent-strong);
+  }
+  .m-btn--secondary {
+    color: var(--m-ink);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+  }
+  .m-btn--secondary:hover {
+    border-color: var(--m-muted);
+  }
+  @media (min-width: 1024px) {
+    .m-page-cta {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 40px;
+    }
+  }
+  @media (max-width: 1023px) {
+    .m-page-split__lead,
+    .m-page-cards {
+      grid-column: 1 / -1;
+    }
+    .m-page-cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .m-page-cards,
+    .m-page-grid-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+}

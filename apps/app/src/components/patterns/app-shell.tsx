@@ -165,18 +165,21 @@ export function AppShell(props: AppShellProps) {
               switcher's own h-14 sets the height. The collapse toggle
               hides itself when collapsed, so the row is just the firm
               identity in that mode. Identical metrics both ways → no jump.
-              `pt-3` adds 12px above the brand on top of the panel's own
-              12px, so the company tile sits ~24px down from the card's
-              top edge with clear breathing room. `pb-3` adds 12px below
-              the brand row too, separating the company identity from the
-              Quick find row beneath it.
+              2026-06-22 (Yuqi "same top padding as the page title"): the
+              brand row's top must line up with the page title. The card sits
+              12px down (inset-y-3) + 6px card pad (py-1.5) = 18px; `pt-3.5`
+              (14px) then lands the brand row at y=32 — exactly the page's
+              `pt-8` content top — so the sidebar identity and the page <h1>
+              start on the same line. (Was `pt-3`/12px → y=30, 2px high.)
+              `pb-3` adds 12px below the brand row, separating the company
+              identity from the Quick find row beneath it.
               The firm box spans the full header width — the collapse
               control is not here. It floats as an edge-handle arrow
               OUTSIDE the card, mounted by the Sidebar primitive itself
               (see SidebarCollapseToggle).
               The header is a static workspace identity — no dropdown, no
               switching, no Add-practice entry. */}
-          <div className="flex items-center pt-3 pb-3">
+          <div className="flex items-center pt-3.5 pb-3">
             <FirmIdentityHeader firm={props.firm} />
           </div>
           {/* There's no 1px rib under the firm switcher — the Pencil

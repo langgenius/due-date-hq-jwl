@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronDownIcon, ClipboardListIcon } from 'lucide-react'
+import { ChevronDownIcon, CircleAlertIcon, ClipboardListIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -175,6 +176,8 @@ function sortObligations(
 export function ClientWorkPlanPanel({
   obligations,
   isLoading,
+  isError = false,
+  onRetry,
   summary: _summary,
   clientName: _clientName,
   onChangeStatus,
@@ -188,6 +191,12 @@ export function ClientWorkPlanPanel({
 }: {
   obligations: readonly ObligationQueueRow[]
   isLoading: boolean
+  // On a failed deadlines fetch `obligations` collapses to [] → without this
+  // the panel shows "No deadlines yet" for a client that may have a full
+  // calendar. `isError` routes to a distinct "Couldn't load deadlines — Retry"
+  // branch instead, so the empty state never lies about a load failure.
+  isError?: boolean
+  onRetry?: () => void
   summary: ClientWorkPlanSummary
   clientName: string
   onChangeStatus: (id: string, status: ObligationStatus) => void
@@ -325,6 +334,31 @@ export function ClientWorkPlanPanel({
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-32 w-full" />
         </div>
+      ) : isError ? (
+        // Load failed → explicit error, never the "No deadlines yet" empty
+        // state (which would lie about a client that may have a full
+        // calendar). Canonical destructive Alert + `<Button variant="link">`
+        // Retry, matching the dashboard route + Alerts section.
+        <Alert variant="destructive">
+          <CircleAlertIcon />
+          <AlertTitle>
+            <Trans>Couldn't load deadlines</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <Trans>Try again in a moment. If it keeps failing, contact support.</Trans>{' '}
+            {onRetry ? (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
+                onClick={() => onRetry()}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            ) : null}
+          </AlertDescription>
+        </Alert>
       ) : obligations.length === 0 ? (
         <EmptyState
           icon={ClipboardListIcon}

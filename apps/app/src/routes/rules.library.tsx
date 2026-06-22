@@ -10,6 +10,7 @@ import {
   CalendarClockIcon,
   CheckIcon,
   ClockIcon,
+  DownloadIcon,
   SparklesIcon,
   ChevronRightIcon,
   CircleIcon,
@@ -89,6 +90,7 @@ import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { FunIconButton } from '@/components/primitives/fun-icon-button'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
@@ -3197,11 +3199,20 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
           </Trans>
         }
         cta={
+          // First-run empty state = a delight surface, so the primary "Import
+          // from sources" jump gets the marquee FunIconButton (download chip,
+          // brand tone). Rendered as a real <Link> so it keeps href semantics.
+          // The secondary "New rule" stays the quiet outline Button — only ONE
+          // loud action per surface.
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button size="sm" nativeButton={false} render={<Link to="/rules/sources" />}>
-              <PlusIcon data-icon="inline-start" />
+            <FunIconButton
+              icon={DownloadIcon}
+              tone="brand"
+              nativeButton={false}
+              render={<Link to="/rules/sources" />}
+            >
               <Trans>Import from sources</Trans>
-            </Button>
+            </FunIconButton>
             <Button variant="outline" size="sm" onClick={onNewRule}>
               <PlusIcon data-icon="inline-start" />
               <Trans>New rule</Trans>
@@ -3827,9 +3838,13 @@ function RuleTableRow({
         // the named group token matches /clients list rows + /clients/[id]
         // filing-plan rows for cross-surface consistency.
         'group/row h-14 cursor-pointer',
-        // Needs-review row tint is orange-50 (warm-brown read), matching
-        // the top callout pill.
-        needsReviewRow && 'bg-[var(--color-util-colors-orange-50)]/60',
+        // Needs-review row tint is the canonical review violet
+        // (REVIEW_BG_TINT_CLS = bg-status-review-tint), matching every other
+        // review signal in the app (chip, progress bar, segment) — review is
+        // violet, not a third orange hue. The `/60` softens it to a row wash;
+        // it's a literal (not a template) so the JIT scanner keeps the utility
+        // (the dynamic `${REVIEW_BG_TINT_CLS}/60` form would be tree-shaken).
+        needsReviewRow && 'bg-status-review-tint/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
         // When the rule drawer is open for this row, paint the
         // accent-tint bg + 2px left accent rail. Mirrors the

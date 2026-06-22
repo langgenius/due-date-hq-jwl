@@ -46,9 +46,13 @@
         --ok: #2e7d52;
         --ok-tint: #e7f0e8;
 
-        --maxw: 1140px;
+        --maxw: 1240px;
         --gutter: clamp(22px, 5vw, 64px);
+        /* shared 12-column grid gutter — one value so every section's columns align */
+        --col-gap: clamp(20px, 2.4vw, 32px);
         --ls-eyebrow: 0.14em;
+        /* one canonical gap from an eyebrow to its title — replaces ad-hoc inline margins */
+        --eyebrow-gap: 16px;
       }
 
       * {
@@ -135,9 +139,10 @@
         text-transform: uppercase;
         font-weight: 600;
         color: var(--faint);
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: 10px;
+        margin-bottom: var(--eyebrow-gap);
       }
       .eyebrow .tick {
         display: none;
@@ -226,7 +231,6 @@
         color: var(--ink);
         border: none;
         border-radius: 0;
-        box-shadow: inset 0 -1.5px 0 var(--ink);
       }
       .btn--ghost:hover {
         color: var(--accent);
@@ -300,6 +304,102 @@
         padding: 3px 7px;
         border-radius: 999px;
         line-height: 1;
+      }
+
+      /* nav adapts when it floats over a dark section (the villain band) */
+      .brand,
+      .brand__mark rect,
+      .brand__beta,
+      .nav__right .btn--primary {
+        transition:
+          color 0.25s ease,
+          background 0.25s ease,
+          fill 0.25s ease;
+      }
+      .nav--on-dark .brand {
+        color: #fff;
+      }
+      .nav--on-dark .brand__mark rect {
+        fill: #fff;
+      }
+      .nav--on-dark .brand__beta {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .nav--on-dark .nav__pillbar {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .nav--on-dark.is-scrolled .nav__pillbar {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .nav--on-dark .nav__link {
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .nav--on-dark .nav__link:hover,
+      .nav--on-dark .nav__link.is-active {
+        color: #fff;
+      }
+      .nav--on-dark .nav__glider {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .nav--on-dark .nav__right .btn--primary {
+        background: #fff;
+        color: var(--accent);
+      }
+      .nav--on-dark .nav__toggle {
+        color: #fff;
+      }
+
+      /* left scroll-spy rail — tells the reader where they are (shown on wide screens only) */
+      .spyrail {
+        position: fixed;
+        left: clamp(20px, 3vw, 52px);
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 40;
+        display: none;
+        flex-direction: column;
+        gap: 1px;
+      }
+      @media (min-width: 1500px) {
+        .spyrail {
+          display: flex;
+        }
+      }
+      .spyrail__item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--faint);
+        padding: 7px 0;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+      }
+      .spyrail__item:hover {
+        color: var(--ink-2);
+      }
+      .spyrail__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        border: 1.5px solid var(--hairline);
+        background: transparent;
+        flex: none;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .spyrail__item.is-active {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .spyrail__item.is-active .spyrail__dot {
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: scale(1.15);
       }
 
       /* centered floating-pill nav + sliding glider (Voiceflow-style) */
@@ -442,15 +542,22 @@
      HERO
      ============================================================ */
       .hero {
-        max-width: 1240px;
+        /* inherits the shared --maxw container from .wrap (was a bespoke 1240) */
         padding-top: clamp(28px, 3.2vw, 48px);
         padding-bottom: clamp(48px, 6vw, 84px);
       }
       .hero__grid {
         display: grid;
-        grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: clamp(36px, 5vw, 72px);
+        column-gap: var(--col-gap);
         align-items: start;
+      }
+      .hero__grid > :nth-child(1) {
+        grid-column: span 6;
+      }
+      .hero__grid > :nth-child(2) {
+        grid-column: span 6;
       }
       .hero__copy {
         max-width: 600px;
@@ -523,9 +630,9 @@
         border-bottom: 1px solid var(--hairline);
       }
       .ap__title {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--ink);
+        color: var(--ink-2);
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -576,10 +683,10 @@
       .ap__chip {
         flex: none;
         font-family: inherit;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
         color: var(--muted);
-        padding: 5px 11px;
+        padding: 4px 10px;
         border-radius: 999px;
         border: 1px solid var(--hairline);
         background: #fff;
@@ -809,9 +916,9 @@
         display: flex;
         align-items: center;
         gap: 7px;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--ink);
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--ink-2);
       }
       .ar__affect svg {
         width: 14px;
@@ -829,9 +936,9 @@
       }
       .ar__affect .split {
         margin-left: auto;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--muted);
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--faint);
       }
 
       /* row expand */
@@ -991,15 +1098,26 @@
       /* ============================================================
      SOUND FAMILIAR (villain beat — quiet)
      ============================================================ */
+      /* accent band — a dark navy beat between two light sections */
+      .villain {
+        background: var(--accent);
+      }
       .villain__grid {
         display: grid;
-        grid-template-columns: 0.82fr 1.18fr;
-        gap: clamp(32px, 6vw, 84px);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: clamp(28px, 5vw, 56px);
+        column-gap: var(--col-gap);
         align-items: start;
       }
+      .villain__grid > :nth-child(1) {
+        grid-column: span 6;
+      }
+      .villain__grid > :nth-child(2) {
+        grid-column: span 6;
+      }
       .villain h2 {
-        max-width: 16ch;
         font-weight: 500;
+        color: #fff;
       }
       .villain h2 .ital {
         font-weight: 500;
@@ -1007,20 +1125,21 @@
       .villain__q {
         font-size: 15px;
         font-weight: 500;
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.62);
+        margin-bottom: clamp(20px, 3vw, 32px);
       }
       .villain .body {
-        font-size: clamp(19px, 1.7vw, 23px);
-        line-height: 1.5;
-        color: var(--ink-2);
-        max-width: 40ch;
+        font-size: clamp(18px, 1.5vw, 21px);
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.82);
         letter-spacing: -0.01em;
+        align-self: start;
       }
       .villain .body .dim {
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.5);
       }
       .villain .body strong {
-        color: var(--ink);
+        color: #fff;
         font-weight: 600;
       }
 
@@ -1088,53 +1207,52 @@
         background: var(--surface-2);
         border: 1px solid var(--hairline);
         border-radius: 12px;
-        padding: 24px 22px 22px;
+        padding: 34px 22px 22px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
         position: relative;
         z-index: 1;
         box-shadow:
           0 1px 2px rgba(18, 20, 28, 0.03),
           0 20px 52px -44px rgba(18, 20, 28, 0.3);
       }
-      .flow-node__top {
-        display: flex;
+      /* a label tab straddling the card's top edge (workflow-diagram style) */
+      .flow-node__tab {
+        position: absolute;
+        top: 0;
+        left: 18px;
+        transform: translateY(-50%);
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
+        gap: 9px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        background: var(--surface-2);
+        border: 1px solid var(--hairline);
+        border-radius: 999px;
+        padding: 5px 15px 5px 5px;
+        box-shadow: 0 3px 10px -5px rgba(18, 20, 28, 0.18);
       }
-      .flow-node__icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+      .flow-node__tabicon {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
         flex: none;
         display: grid;
         place-items: center;
-        color: var(--accent);
-        background: var(--accent-tint);
+        color: #fff;
+        background: var(--accent);
       }
-      .flow-node__icon svg {
-        width: 20px;
-        height: 20px;
-      }
-      .flow-node__step {
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        font-weight: 600;
-        color: var(--faint);
-      }
-      .flow-node__name {
-        font-size: 17px;
-        font-weight: 600;
-        color: var(--ink);
-        letter-spacing: -0.01em;
-        margin-top: 2px;
+      .flow-node__tabicon svg {
+        width: 14px;
+        height: 14px;
       }
       .flow-node__desc {
         font-size: 13px;
         color: var(--muted);
-        line-height: 1.5;
+        line-height: 1.55;
       }
       .flow-node__desc b {
         color: var(--ink-2);
@@ -1143,9 +1261,9 @@
       /* connectors thread the three nodes into one pipeline (dashed spine + node marker) */
       .flow-conn {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
-        padding: 33px 4px 0;
+        padding: 0 4px;
         min-width: clamp(46px, 5vw, 68px);
         color: var(--accent);
         position: relative;
@@ -1156,7 +1274,7 @@
         position: absolute;
         left: -3px;
         right: -3px;
-        top: 44px;
+        top: 50%;
         border-top: 2px dashed rgba(46, 54, 140, 0.3);
         z-index: 0;
       }
@@ -1176,13 +1294,17 @@
         height: 12px;
       }
       .flow__loop {
-        margin-top: 16px;
+        margin-top: 24px;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 9px;
         font-size: 12px;
-        color: var(--muted);
-        font-family: 'Geist Mono', monospace;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 999px;
+        padding: 7px 15px 7px 11px;
       }
       .flow__loop svg {
         width: 14px;
@@ -1203,9 +1325,18 @@
       .extract {
         margin-top: clamp(40px, 5vw, 60px);
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 108px minmax(0, 0.88fr);
-        align-items: stretch;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: center;
         gap: 0;
+      }
+      .extract > .clip {
+        grid-column: span 5;
+      }
+      .extract > .beam {
+        grid-column: span 2;
+      }
+      .extract > .extract__out {
+        grid-column: span 5;
       }
 
       /* the source notice — a real letter/clipping on the desk */
@@ -1291,53 +1422,38 @@
       }
 
       /* extraction beam (centered connector) */
+      /* minimal connector: dot · dashed line · arrow (doc → extract) */
       .beam {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: relative;
+        padding: 0 8px;
       }
-      .beam__line {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
+      .beam__conn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        color: var(--accent);
       }
-      .beam__chip {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+      .beam__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
         background: var(--accent);
-        color: #fff;
+        flex: none;
+      }
+      .beam__dash {
+        flex: 1;
+        border-top: 1.5px dashed rgba(46, 54, 140, 0.32);
+      }
+      .beam__arrow {
+        flex: none;
         display: grid;
         place-items: center;
-        position: relative;
-        z-index: 2;
-        box-shadow: 0 8px 24px -12px rgba(46, 54, 140, 0.7);
       }
-      .beam__chip svg {
-        width: 21px;
-        height: 21px;
-      }
-      /* dark callout bubbles strung on the beam — the three things it does (ref 166001) */
-      .beam__steps {
-        position: relative;
-        z-index: 2;
-        margin-top: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 7px;
-      }
-      .beam__step {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        color: #fff;
-        background: var(--ink);
-        padding: 3px 11px;
-        border-radius: 999px;
-        white-space: nowrap;
+      .beam__arrow svg {
+        width: 16px;
+        height: 16px;
       }
 
       /* the extracted, structured change */
@@ -1613,9 +1729,16 @@
       }
       .sources__grid {
         display: grid;
-        grid-template-columns: 1fr 0.92fr;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: clamp(22px, 4vw, 44px);
+        column-gap: var(--col-gap);
         align-items: start;
+      }
+      .sources__grid > :nth-child(1) {
+        grid-column: span 6;
+      }
+      .sources__grid > :nth-child(2) {
+        grid-column: span 6;
       }
       .sources__list {
         display: flex;
@@ -1631,8 +1754,7 @@
         font-weight: 600;
         letter-spacing: -0.01em;
         color: var(--ink);
-        background: var(--paper);
-        border: 1px solid var(--hairline);
+        background: var(--surface-2);
         border-radius: 999px;
         padding: 8px 15px;
       }
@@ -2247,11 +2369,14 @@
      CLOSE
      ============================================================ */
       .close {
-        border-top: 1px solid var(--hairline);
+        padding-block: clamp(44px, 6vw, 84px);
       }
       .close .wrap {
-        padding-block: clamp(64px, 9vw, 116px);
-        max-width: 780px;
+        max-width: 900px;
+        background: var(--surface);
+        border-radius: 12px;
+        padding-block: clamp(48px, 7vw, 80px);
+        padding-inline: clamp(28px, 5vw, 60px);
       }
       .close__pill {
         display: inline-flex;
@@ -2313,10 +2438,10 @@
       .close__receipt {
         --r: 9px;
         margin: 36px 0 0;
-        max-width: 380px;
+        max-width: none;
         text-align: left;
-        background: var(--surface);
-        padding: 15px 18px calc(15px + var(--r));
+        background: var(--surface-2);
+        padding: 16px 20px calc(16px + var(--r));
         border-radius: 12px 12px 0 0;
         -webkit-mask:
           radial-gradient(var(--r) at 50% 100%, #000 98%, #0000 100%) bottom / calc(2 * var(--r))
@@ -2377,9 +2502,16 @@
       }
       .surfaces__head {
         display: grid;
-        grid-template-columns: 1.5fr 1fr;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: clamp(28px, 5vw, 72px);
+        column-gap: var(--col-gap);
         align-items: start;
+      }
+      .surfaces__head > :nth-child(1) {
+        grid-column: span 7;
+      }
+      .surfaces__head > :nth-child(2) {
+        grid-column: span 5;
       }
       .surfaces__head .h2 {
         max-width: 14ch;
@@ -2797,9 +2929,16 @@
       /* ---------- security & privacy ---------- */
       .security__grid {
         display: grid;
-        grid-template-columns: 0.9fr 1.1fr;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: clamp(34px, 5vw, 76px);
+        column-gap: var(--col-gap);
         align-items: center;
+      }
+      .security__grid > :nth-child(1) {
+        grid-column: span 5;
+      }
+      .security__grid > :nth-child(2) {
+        grid-column: span 7;
       }
       .security__copy {
         max-width: 420px;
@@ -2871,6 +3010,23 @@
      RESPONSIVE
      ============================================================ */
       @media (max-width: 1000px) {
+        /* drop the 12-col grid to a single stacked column; clear all spans */
+        .hero__grid,
+        .villain__grid,
+        .sources__grid,
+        .surfaces__head,
+        .security__grid {
+          grid-template-columns: 1fr;
+        }
+        /* :nth-child(n) matches all children at the SAME specificity (0,2,0) as the
+           desktop span rules, so the later media-query source order wins and clears them */
+        .hero__grid > :nth-child(n),
+        .villain__grid > :nth-child(n),
+        .sources__grid > :nth-child(n),
+        .surfaces__head > :nth-child(n),
+        .security__grid > :nth-child(n) {
+          grid-column: auto;
+        }
         .hero__grid {
           grid-template-columns: 1fr;
           gap: clamp(32px, 5vw, 46px);
@@ -2910,24 +3066,31 @@
           grid-template-columns: 1fr;
           gap: 0;
         }
+        .extract > .clip,
+        .extract > .beam,
+        .extract > .extract__out {
+          grid-column: auto;
+        }
         .clip {
           transform: none;
           max-width: 480px;
           margin: 0 auto;
         }
         .beam {
-          flex-direction: row;
-          gap: 14px;
-          padding: 24px 0;
+          padding: 14px 0;
         }
-        .beam__line {
-          display: none;
+        .beam__conn {
+          flex-direction: column;
+          height: 46px;
+          width: auto;
         }
-        .beam__steps {
-          margin-top: 0;
-          flex-direction: row;
-          flex-wrap: wrap;
-          justify-content: center;
+        .beam__dash {
+          border-top: 0;
+          border-left: 1.5px dashed rgba(46, 54, 140, 0.32);
+          width: 0;
+        }
+        .beam__arrow svg {
+          transform: rotate(90deg);
         }
         .extract__out {
           max-width: 480px;
@@ -3163,6 +3326,27 @@
         <a class="btn btn--primary" href="#close">Start free</a>
       </div>
     </header>
+
+    <nav class="spyrail" id="spyrail" aria-label="Section navigation">
+      <a class="spyrail__item" href="#how"
+        ><span class="spyrail__dot" aria-hidden="true"></span>How it works</a
+      >
+      <a class="spyrail__item" href="#notice"
+        ><span class="spyrail__dot" aria-hidden="true"></span>The document</a
+      >
+      <a class="spyrail__item" href="#sources"
+        ><span class="spyrail__dot" aria-hidden="true"></span>Sources</a
+      >
+      <a class="spyrail__item" href="#work"
+        ><span class="spyrail__dot" aria-hidden="true"></span>See it work</a
+      >
+      <a class="spyrail__item" href="#trust"
+        ><span class="spyrail__dot" aria-hidden="true"></span>Why trust it</a
+      >
+      <a class="spyrail__item" href="#faq"
+        ><span class="spyrail__dot" aria-hidden="true"></span>FAQ</a
+      >
+    </nav>
 
     <main id="main">
       <!-- ============================ HERO ============================ -->
@@ -4068,22 +4252,22 @@
 
       <!-- ===================== SOUND FAMILIAR (villain) ===================== -->
       <section class="villain section">
-        <div class="wrap villain__grid reveal">
-          <div>
-            <p class="villain__q">Sound familiar?</p>
-            <h2 class="h2" style="margin-top: 10px">
+        <div class="wrap reveal">
+          <p class="villain__q">Sound familiar?</p>
+          <div class="villain__grid">
+            <h2 class="h2">
               It's not missing a deadline that keeps you up. It's
               <span class="ital">not knowing</span> if you did.
             </h2>
+            <p class="body">
+              Fifty state websites. An inbox you can't keep up with.
+              <span class="dim"
+                >A rule changed back in March, and you won't hear until your client gets the
+                notice.</span
+              >
+              The work was never the hard part — <strong>the not-knowing is.</strong>
+            </p>
           </div>
-          <p class="body">
-            Fifty state websites. An inbox you can't keep up with.
-            <span class="dim"
-              >A rule changed back in March, and you won't hear until your client gets the
-              notice.</span
-            >
-            The work was never the hard part — <strong>the not-knowing is.</strong>
-          </p>
         </div>
       </section>
 
@@ -4093,7 +4277,7 @@
           <div class="flow__head reveal">
             <div>
               <p class="eyebrow"><span class="tick" aria-hidden="true"></span> How it works</p>
-              <h2 class="h2" id="how-h" style="margin-top: 18px">
+              <h2 class="h2" id="how-h">
                 It runs the long tail. You make the <span class="ital">calls.</span>
               </h2>
             </div>
@@ -4115,13 +4299,13 @@
             aria-label="Three-step loop: Watch — DueDateHQ monitors the IRS, all 50 states, and FEMA around the clock; Match — every change is matched to the exact clients affected by jurisdiction, form, and entity type; Apply — you push the sourced change across all of them in one click, reversible within 24 hours. The loop then repeats."
           >
             <div class="flow-node">
-              <div class="flow-node__top">
-                <span class="flow-node__icon" aria-hidden="true">
+              <span class="flow-node__tab">
+                <span class="flow-node__tabicon" aria-hidden="true">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.8"
+                    stroke-width="1.9"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
@@ -4129,14 +4313,11 @@
                     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                   </svg>
                 </span>
-                <div>
-                  <div class="flow-node__step">Step 01</div>
-                  <div class="flow-node__name">Watch</div>
-                </div>
-              </div>
+                Watch
+              </span>
               <p class="flow-node__desc">
-                The IRS, all <b>50 states</b>, and FEMA, monitored around the clock. A change only
-                surfaces when its new dates are grounded in the official text.
+                Official federal and state sources, monitored around the clock. A change only
+                surfaces once its new dates are <b>grounded in the official text</b>.
               </p>
             </div>
 
@@ -4156,13 +4337,13 @@
             </div>
 
             <div class="flow-node">
-              <div class="flow-node__top">
-                <span class="flow-node__icon" aria-hidden="true">
+              <span class="flow-node__tab">
+                <span class="flow-node__tabicon" aria-hidden="true">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.8"
+                    stroke-width="1.9"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
@@ -4170,11 +4351,8 @@
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
                 </span>
-                <div>
-                  <div class="flow-node__step">Step 02</div>
-                  <div class="flow-node__name">Match</div>
-                </div>
-              </div>
+                Match
+              </span>
               <p class="flow-node__desc">
                 Matched to your clients by <b>jurisdiction, form, and entity type</b> — the affected
                 list is computed before you even open the alert.
@@ -4197,27 +4375,24 @@
             </div>
 
             <div class="flow-node">
-              <div class="flow-node__top">
-                <span class="flow-node__icon" aria-hidden="true">
+              <span class="flow-node__tab">
+                <span class="flow-node__tabicon" aria-hidden="true">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.8"
+                    stroke-width="1.9"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                 </span>
-                <div>
-                  <div class="flow-node__step">Step 03</div>
-                  <div class="flow-node__name">Apply</div>
-                </div>
-              </div>
+                Apply
+              </span>
               <p class="flow-node__desc">
-                One click pushes the change across every affected client —
-                <b>sourced, audited, undo within 24h.</b> Nothing's applied without your approval.
+                One click pushes the change across <b>every affected client</b> — and nothing moves
+                until you approve it.
               </p>
             </div>
           </div>
@@ -4244,7 +4419,7 @@
         <div class="wrap">
           <div class="docint__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> The document, read</p>
-            <h2 class="h2" id="notice-h" style="margin-top: 18px">
+            <h2 class="h2" id="notice-h">
               It reads the official notice — and pulls out what changed and
               <span class="ital">who it hits.</span>
             </h2>
@@ -4296,36 +4471,24 @@
               </div>
             </article>
 
-            <!-- extraction beam -->
+            <!-- minimal connector: the document is read into the structured fields -->
             <div class="beam" aria-hidden="true">
-              <svg class="beam__line" viewBox="0 0 64 200" preserveAspectRatio="none">
-                <path
-                  d="M32 2 V198"
-                  stroke="#CBD0D8"
-                  stroke-width="1.5"
-                  stroke-dasharray="3 6"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span class="beam__chip">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8-18h3a2 2 0 0 1 2 2v3m0 8v3a2 2 0 0 1-2 2h-3"
-                  />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              </span>
-              <span class="beam__steps">
-                <span class="beam__step">Reads</span>
-                <span class="beam__step">Classifies</span>
-                <span class="beam__step">Matches</span>
+              <span class="beam__conn">
+                <span class="beam__dot"></span>
+                <span class="beam__dash"></span>
+                <span class="beam__arrow">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="M13 6l6 6-6 6" />
+                  </svg>
+                </span>
               </span>
             </div>
 
@@ -4422,9 +4585,7 @@
                     ><span class="client__form">05-158 · TX</span
                     ><span class="client__stat review">Review</span>
                   </div>
-                  <div class="client__more">
-                    + 9 more matched by jurisdiction, form &amp; entity type
-                  </div>
+                  <div class="client__more">+ 9 more on the same form &amp; entity type</div>
                 </div>
               </div>
 
@@ -4976,7 +5137,7 @@
         <div class="wrap">
           <div class="work__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> See it work</p>
-            <h2 class="h2" id="work-h" style="margin-top: 18px">
+            <h2 class="h2" id="work-h">
               Your week, ranked by who's most at <span class="ital">risk.</span>
             </h2>
             <p class="lead">The clients that matter rise to the top — before your first call.</p>
@@ -5096,9 +5257,7 @@
           <div class="surfaces__head reveal">
             <div>
               <p class="eyebrow">The product</p>
-              <h2 class="h2" id="surfaces-h" style="margin-top: 14px">
-                Everything in one workbench.
-              </h2>
+              <h2 class="h2" id="surfaces-h">Everything in one workbench.</h2>
             </div>
             <p class="surfaces__intro">
               From the first alert to the applied change — four surfaces, one calm place to work.
@@ -5122,7 +5281,7 @@
               </div>
               <h3 class="surface__t">Alerts</h3>
               <p class="surface__d">
-                Every deadline change, triaged by risk and matched to the clients it touches.
+                The live feed — every change as it lands, sorted by severity.
               </p>
               <a class="surface__link" href="#main">See it <span aria-hidden="true">→</span></a>
             </article>
@@ -5145,7 +5304,7 @@
               </div>
               <h3 class="surface__t">Coverage</h3>
               <p class="surface__d">
-                FED, all 50 states &amp; DC, and FEMA — watched around the clock.
+                One map of every jurisdiction — see where changes are landing.
               </p>
               <a class="surface__link" href="#sources">See it <span aria-hidden="true">→</span></a>
             </article>
@@ -5173,9 +5332,7 @@
                 </div>
               </div>
               <h3 class="surface__t">Worklist</h3>
-              <p class="surface__d">
-                Your week, ranked by who's most at risk — before your first call.
-              </p>
+              <p class="surface__d">Your clients in risk order — who to call first, at a glance.</p>
               <a class="surface__link" href="#work">See it <span aria-hidden="true">→</span></a>
             </article>
             <article class="surface">
@@ -5199,7 +5356,7 @@
               </div>
               <h3 class="surface__t">Apply &amp; audit</h3>
               <p class="surface__d">
-                Push the new date to every affected client — sourced, reversible, audited.
+                Push a change to everyone it touches — with the full trail behind it.
               </p>
               <a class="surface__link" href="#trust">See it <span aria-hidden="true">→</span></a>
             </article>
@@ -5214,10 +5371,10 @@
             <p class="eyebrow">
               <span class="tick" aria-hidden="true"></span> Why you can trust it
             </p>
-            <h2 class="h2" id="trust-h" style="margin: 18px 0 0">
+            <h2 class="h2" id="trust-h">
               Every date clicks back to its <span class="ital">source.</span>
             </h2>
-            <p class="lead" style="margin-top: 18px">
+            <p class="lead">
               We call it <span class="glass">glass-box</span> — a link, the exact quote, and a
               verified date on every change, or it's held back.
             </p>
@@ -5227,10 +5384,7 @@
             <div class="tstat">
               <div class="tstat__n mono">100%</div>
               <div class="tstat__t">Sourced</div>
-              <p class="tstat__b">
-                Every date carries a source link, an exact quote, and a verified date — or it's
-                suppressed.
-              </p>
+              <p class="tstat__b">Nothing is shown without a citation back to the official text.</p>
             </div>
             <div class="tstat">
               <div class="tstat__n mono">0</div>
@@ -5269,8 +5423,7 @@
             <p class="boundary__t">
               <b>Not tax advice.</b> DueDateHQ supports evidence-backed review — it is not tax
               advice, not a filing system, and not a replacement for a CPA, EA, or attorney. It
-              tells you where to look and why; you make the call. Your data stays in your own
-              isolated practice, never pooled across firms.
+              tells you where to look and why; you make the call.
             </p>
           </div>
         </div>
@@ -5284,7 +5437,7 @@
               <p class="eyebrow">
                 <span class="tick" aria-hidden="true"></span> Security &amp; privacy
               </p>
-              <h2 class="h2" id="sec-h" style="margin-top: 18px">
+              <h2 class="h2" id="sec-h">
                 Built for the data you're <span class="ital">trusted</span> with.
               </h2>
               <p class="security__body">
@@ -5378,7 +5531,7 @@
         <div class="wrap">
           <div class="faq__head reveal">
             <p class="eyebrow"><span class="tick" aria-hidden="true"></span> Questions</p>
-            <h2 class="h2" id="faq-h" style="margin-top: 18px">The short answers.</h2>
+            <h2 class="h2" id="faq-h">The short answers.</h2>
           </div>
           <div class="faq__grid reveal-group">
             <details class="faq__item reveal">
@@ -5413,9 +5566,9 @@
                 How do I know the dates are right?<span class="faq__sign" aria-hidden="true"></span>
               </summary>
               <div class="faq__a">
-                Every date keeps its IRS or state source link, an exact quote, and a verified date —
-                and <b>anything that can't be grounded in the source is held back, not shown.</b> It
-                never invents a date.
+                <b>It never invents a date.</b> Anything that can't be grounded in the official text
+                is held back rather than guessed — so a date only appears once it's been read from,
+                and linked to, the source.
               </div>
             </details>
           </div>
@@ -5594,7 +5747,7 @@
             DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. ©
             2026 DueDateHQ Inc.
           </p>
-          <span class="mono" style="color: var(--muted)">FED + 50 states + DC</span>
+          <span class="mono" style="color: var(--muted)">Your data stays in your practice</span>
         </div>
       </div>
     </footer>
@@ -5603,11 +5756,19 @@
       ;(function () {
         'use strict'
 
-        // nav scroll hairline
+        // nav scroll hairline + dark-section adaptation
         var nav = document.getElementById('nav')
+        var darkSections = Array.prototype.slice.call(document.querySelectorAll('.villain'))
         var onScroll = function () {
           if (window.scrollY > 8) nav.classList.add('is-scrolled')
           else nav.classList.remove('is-scrolled')
+          // when the nav's midline sits over a dark band, switch to the light treatment
+          var navMid = (nav.offsetHeight || 70) * 0.5
+          var overDark = darkSections.some(function (s) {
+            var r = s.getBoundingClientRect()
+            return r.top <= navMid && r.bottom >= navMid
+          })
+          nav.classList.toggle('nav--on-dark', overDark)
         }
         window.addEventListener('scroll', onScroll, { passive: true })
         onScroll()
@@ -5716,6 +5877,32 @@
             },
             { passive: true },
           )
+        }
+
+        // left scroll-spy rail — highlight the section the reader is in
+        var rail = document.getElementById('spyrail')
+        if (rail && 'IntersectionObserver' in window) {
+          var railItems = Array.prototype.slice.call(rail.querySelectorAll('.spyrail__item'))
+          var railSecs = railItems.map(function (it) {
+            return document.getElementById(it.getAttribute('href').slice(1))
+          })
+          var railIO = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (!e.isIntersecting) return
+                var idx = railSecs.indexOf(e.target)
+                if (idx < 0) return
+                railItems.forEach(function (it) {
+                  it.classList.remove('is-active')
+                })
+                railItems[idx].classList.add('is-active')
+              })
+            },
+            { rootMargin: '-45% 0px -50% 0px', threshold: 0 },
+          )
+          railSecs.forEach(function (s) {
+            if (s) railIO.observe(s)
+          })
         }
 
         // hero alerts demo — jurisdiction filter + row expand + apply/undo

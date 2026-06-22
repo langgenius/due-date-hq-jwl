@@ -95,7 +95,17 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
   ) {
     const LeadingIcon = leadingIcon
     const showLeadingIcon = !!LeadingIcon && !noLeadingIcon
-    const iconTone = leadingIconColor ?? (active ? 'text-text-accent' : 'text-text-tertiary')
+    // The CURRENT-VALUE accent is a VIVID blue (util-colors-blue-600 #1570ef),
+    // not the brand navy `text-text-accent` (#2e368c). Navy sits right next to
+    // the gray label (`text-text-secondary` #354052), so the two-tone
+    // `Label │ Value ⌄` read collapsed — the value didn't register as "the
+    // applied, colored part." The brighter blue separates cleanly from the
+    // label and is unmistakably an accent (2026-06-21, Yuqi: "why is this not
+    // accent colour? other places got it accent"). Brand navy stays the accent
+    // for chrome (buttons, borders); this vivid blue is reserved for the
+    // scannable applied-filter value.
+    const valueAccent = 'text-(--color-util-colors-blue-600)'
+    const iconTone = leadingIconColor ?? (active ? valueAccent : 'text-text-tertiary')
 
     const variantBg =
       variant === 'saved'
@@ -139,7 +149,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // the value is the colored, scannable part (what's applied).
           <>
             <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
-            <span className="font-medium text-text-accent tabular-nums">{valueLabel}</span>
+            <span className={cn('font-medium tabular-nums', valueAccent)}>{valueLabel}</span>
           </>
         ) : null}
         {hideChevron ? null : (
@@ -148,7 +158,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
               'size-3.5 shrink-0',
               // Chevron follows the value: accent when a value is applied,
               // quiet tertiary at rest.
-              valueLabel != null || active ? 'text-text-accent' : 'text-text-tertiary opacity-70',
+              valueLabel != null || active ? valueAccent : 'text-text-tertiary opacity-70',
             )}
             aria-hidden
           />

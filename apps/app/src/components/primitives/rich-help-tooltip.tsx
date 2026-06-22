@@ -179,12 +179,16 @@ export function RichHelpTooltip({
               size="sm"
               variant="inverted-ghost"
               className="w-full justify-center border border-white/15 bg-white/5 hover:border-white/25"
-              {...(action.href ? { render: <a href={action.href} /> } : { onClick: action.onClick })}
+              {...(action.href
+                ? { render: <a href={action.href} /> }
+                : { onClick: action.onClick })}
             >
               <ActionIcon className="size-3.5" aria-hidden />
               <span>{action.label}</span>
               {action.meta ? (
-                <span className="ml-auto font-normal tabular-nums text-white/55">{action.meta}</span>
+                <span className="ml-auto font-normal tabular-nums text-white/55">
+                  {action.meta}
+                </span>
               ) : null}
             </Button>
           </div>
