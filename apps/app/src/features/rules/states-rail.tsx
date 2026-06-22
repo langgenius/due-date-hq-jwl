@@ -4,16 +4,9 @@ import { Link } from 'react-router'
 import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import {
   ListRail,
   ListRailHead,
@@ -105,42 +98,35 @@ export function JurisdictionRail({
   const federalVisible = federal && matches(federal) ? federal : null
   const visibleStates = states.filter(matches)
   const shownStateCount = visibleStates.length
+  // Jurisdictions with rules awaiting review — drives the header review nudge.
+  const reviewableCount = items.filter((it) => it.reviewCount > 0).length
 
   return (
     <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
-      {/* ListHead — title + a needs-review FILTER. Deliberately a
-          `FilterTrigger` dropdown (the app's filter vocabulary, shared with the
-          rule filter bar), NOT a `Segmented`: the Segmented is reserved for
-          SCOPE toggles like the detail pane's Review/Active, so a list filter
-          and a content scope never read as the same control. (Earlier the lone
-          ToggleChip read as a static label; the Segmented read as a duplicate
-          of the detail scope — this resolves both.) */}
+      {/* ListHead — title + a review NUDGE. When jurisdictions have rules
+          awaiting review, surface an inviting accent CTA ("N to review") that
+          focuses the list on them — encouraging the CPA to clear the queue
+          rather than offering a neutral filter. It one-click toggles the
+          review-only view; when the queue is clear it disappears entirely
+          (quiet = caught up). */}
       <ListRailHead className="justify-between">
         <ListRailTitle>
           <Trans>Jurisdictions</Trans>
         </ListRailTitle>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <FilterTrigger active={reviewOnly} valueLabel={reviewOnly ? t`Needs review` : t`All`}>
-                <Trans>Show</Trans>
-              </FilterTrigger>
-            }
-          />
-          <DropdownMenuContent align="end" className="min-w-[180px]">
-            <DropdownMenuRadioGroup
-              value={reviewOnly ? 'review' : 'all'}
-              onValueChange={(value) => setReviewOnly(value === 'review')}
-            >
-              <DropdownMenuRadioItem value="all">
-                <Trans>All jurisdictions</Trans>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="review">
-                <Trans>Needs review</Trans>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {reviewableCount > 0 ? (
+          <Button
+            variant={reviewOnly ? 'ghost' : 'accent'}
+            size="xs"
+            onClick={() => setReviewOnly((value) => !value)}
+            aria-pressed={reviewOnly}
+          >
+            {reviewOnly ? (
+              <Trans>Show all</Trans>
+            ) : (
+              <Trans>{reviewableCount} to review</Trans>
+            )}
+          </Button>
+        ) : null}
       </ListRailHead>
 
       {/* FilterRow — full-width search, separated by a `border-b` (same
