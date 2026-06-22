@@ -16,13 +16,12 @@ const zh = locale === 'zh-CN'
 
 const t = zh
   ? {
-      headBefore: '捕捉每一次报税截止日变化 —— 并清楚看到它',
-      headItal: '影响到哪些',
-      headAfter: '客户。',
-      subLead: '你再也不用纠结',
-      subEm: '“截止日是不是变了？”',
-      subRest:
-        '我们全天候盯着 IRS、主要州税务机关和 FEMA —— 日期一变动，你立刻看到它影响到哪些客户。',
+      headBefore: '截止日刚刚变了。你知道它影响到',
+      headItal: '谁',
+      headAfter: '吗？',
+      subLead: 'DueDateHQ 全天候监控 IRS、各州税务机关和 FEMA ——',
+      subEm: '日期一变动，',
+      subRest: '你立刻看到它影响到哪些客户，每条变更都附官方来源。',
       subStrong: '粘贴你的客户名单，约 10 分钟后第一条带来源的截止日就会出现。',
       points: [
         { strong: '我们全天候盯着 IRS、主要州税务机关和 FEMA', rest: '' },
@@ -78,13 +77,12 @@ const t = zh
       ],
     }
   : {
-      headBefore: 'Catch every tax-deadline change — and see exactly',
+      headBefore: 'A deadline just moved. Do you know',
       headItal: 'who',
-      headAfter: 'it affects.',
-      subLead: "You'll never wonder",
-      subEm: '“did a deadline move?”',
-      subRest:
-        'again. We watch the IRS, the major state agencies, and FEMA — the moment a date moves, you see which clients it hits.',
+      headAfter: 'it hits?',
+      subLead: 'DueDateHQ watches the IRS, every state, and FEMA around the clock —',
+      subEm: 'the moment a date moves,',
+      subRest: 'you see exactly which clients it affects, with the source on every change.',
       subStrong:
         'Paste your client list and your first sourced deadline shows up in about 10 minutes.',
       points: [
@@ -318,6 +316,12 @@ const alerts = t.alerts
   .hero__sub em {
     font-style: italic;
     color: var(--m-ink);
+  }
+  /* zh: CJK has no italic — the synthesized oblique reads broken, so keep the
+     emphasis as colour/weight only (mirrors the .ital faux-italic guard). */
+  html[lang='zh-CN'] .hero__sub em {
+    font-style: normal;
+    font-weight: 500;
   }
   .hero__sub strong {
     color: var(--m-ink);
