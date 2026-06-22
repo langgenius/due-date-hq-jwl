@@ -30,6 +30,27 @@ grammar** so the two zones read as one family:
 
 Verified live: cards now read as a per-jurisdiction echo of the summary band.
 
+### "Ready to accept" quick-win signal (same day)
+Yuqi asked what other important info the cards could carry. The card already
+answered how-much (count), how-risky (high-severity), how-old (age) — the gap
+was *how fast can I clear it*. Added a per-jurisdiction **ready-to-accept** count
+(green flag, only when > 0), derived from the SAME AI-draft gate as
+`draftGatedPendingCount` (a pending rule is ready when it has no source-defined
+draft requirement, or a concrete draft already exists). No new backend — same
+`concreteDraftByTarget`/`concreteDraftTargetForRule` plumbing.
+
+- `topReviewJurisdictions` moved below `concreteDraftByTarget` (it now reads that
+  map) and its meta loop accumulates `ready` alongside `high`/`oldest`.
+- Card sub-line is now ordered segments — green `N ready to accept` · red
+  `N high-severity` · muted `Nd waiting` — with dots interleaved only between the
+  parts that render. At most one quick-win + one risk flag; both absent on the
+  typical card (stays pure-gray), so von-Restorff holds at the grid level.
+- Demo: NY "8 ready to accept", CA "5 ready to accept" (≈19 ready library-wide,
+  matching the banner's 437/456 draft-gated) — the instant wins now jump out.
+
+Held the two net-new ideas (affected-clients, deadline-proximity) — they need a
+join/query this route doesn't load, and would re-bloat the card.
+
 ## 2 + 3. Header button size = default, matching Deadlines
 
 Yuqi: the rule-library header buttons are the right size; other pages should

@@ -814,6 +814,8 @@ function OverviewReviewBreakdown({
     label: string
     pendingReviewCount: number
     highCount: number
+    /** Pending rules that can be accepted right now (no AI-draft gate). */
+    readyCount: number
     oldest: number | null
   }>
   onSelectJurisdiction: (jurisdiction: string) => void
@@ -867,19 +869,37 @@ function OverviewReviewBreakdown({
               <span className="text-lg leading-none font-medium tracking-tight tabular-nums text-text-primary">
                 <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
               </span>
-              {/* Sub — differentiators only; high-severity is the lone red flag,
-                  wait age stays muted. Omitted entirely when neither applies. */}
-              {g.highCount > 0 || days != null ? (
-                <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                  {g.highCount > 0 ? (
-                    <span className="text-text-warning">
+              {/* Sub — at most one quick-win + one risk signal, then wait age.
+                  Green "ready to accept" (the instant wins, only when present)
+                  and red high-severity are the two flags; both stay quiet/absent
+                  on the typical card so nothing reads as a wall of meta. Dots
+                  interleave only between the parts that actually render. */}
+              {(() => {
+                const parts = [
+                  g.readyCount > 0 ? (
+                    <span key="ready" className="text-text-success">
+                      {t`${g.readyCount} ready to accept`}
+                    </span>
+                  ) : null,
+                  g.highCount > 0 ? (
+                    <span key="high" className="text-text-warning">
                       <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
                     </span>
-                  ) : null}
-                  {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
-                  {days != null ? <span>{t`${days}d waiting`}</span> : null}
-                </span>
-              ) : null}
+                  ) : null,
+                  days != null ? <span key="days">{t`${days}d waiting`}</span> : null,
+                ].filter(Boolean)
+                if (parts.length === 0) return null
+                return (
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
+                    {parts.map((part, i) => (
+                      <Fragment key={i}>
+                        {i > 0 ? <span aria-hidden>·</span> : null}
+                        {part}
+                      </Fragment>
+                    ))}
+                  </span>
+                )
+              })()}
             </button>
           )
         })}
@@ -1500,47 +1520,13 @@ export function RulesLibraryRoute() {
   )
   // Overview "Where to start" + sharpened-stat data — all from already-wired
   // sources, no new fiction.
-  //   topReviewJurisdictions — backlog ranked by pending count (the drill-in).
+  //   topReviewJurisdictions — backlog ranked by pending count (the drill-in);
+  //                            defined below, after `concreteDraftByTarget`,
+  //                            since it derives the per-jurisdiction "ready to
+  //                            accept" split from that same draft gate.
   //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
-  const topReviewJurisdictions = useMemo(() => {
-    // Per-jurisdiction triage meta from the pending rules: how many are
-    // high-severity, and the oldest one's timestamp (drives "Nd waiting" +
-    // the urgency sort).
-    const meta = new Map<string, { high: number; oldest: number | null }>()
-    for (const r of rules) {
-      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
-      const cur = meta.get(r.jurisdiction) ?? { high: 0, oldest: null }
-      if (r.riskLevel === 'high') cur.high += 1
-      const changed = ruleChangedAt(r)
-      if (changed !== null && (cur.oldest === null || changed < cur.oldest)) cur.oldest = changed
-      meta.set(r.jurisdiction, cur)
-    }
-    return (
-      unfilteredGroups
-        .filter((g) => g.pendingReviewCount > 0)
-        .map((g) => {
-          const m = meta.get(g.jurisdiction)
-          return {
-            jurisdiction: g.jurisdiction,
-            label: g.label,
-            pendingReviewCount: g.pendingReviewCount,
-            highCount: m?.high ?? 0,
-            oldest: m?.oldest ?? null,
-          }
-        })
-        // Most urgent first = longest-waiting (oldest pending); ties broken by
-        // the bigger backlog, so when everything was seeded the same day the
-        // ranking still reads most-pending-first, not alphabetical.
-        .toSorted(
-          (a, b) =>
-            (a.oldest ?? Infinity) - (b.oldest ?? Infinity) ||
-            b.pendingReviewCount - a.pendingReviewCount,
-        )
-        .slice(0, 6)
-    )
-  }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],
@@ -1796,6 +1782,55 @@ export function RulesLibraryRoute() {
     const target = concreteDraftTargetForRule(selectedRule)
     return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
   }, [concreteDraftByTarget, selectedRule])
+
+  // "Where to start" backlog, ranked + triage meta. Lives here (not up with the
+  // other overview derivations) because `readyCount` reads the same AI-draft
+  // gate as `draftGatedPendingCount` — a pending rule is "ready to accept now"
+  // when it is NOT draft-gated (no source-defined draft requirement, OR a draft
+  // already exists). The few jurisdictions with ready rules are the instant
+  // wins; everywhere else the work starts with generating drafts.
+  const topReviewJurisdictions = useMemo(() => {
+    const meta = new Map<string, { high: number; oldest: number | null; ready: number }>()
+    for (const r of rules) {
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      const cur = meta.get(r.jurisdiction) ?? { high: 0, oldest: null, ready: 0 }
+      if (r.riskLevel === 'high') cur.high += 1
+      const changed = ruleChangedAt(r)
+      if (changed !== null && (cur.oldest === null || changed < cur.oldest)) cur.oldest = changed
+      // Ready = same gate as draftGatedPendingCount, inverted: no draft target
+      // (not source-defined) OR a concrete draft already exists.
+      const target = concreteDraftTargetForRule(r)
+      const drafted = target
+        ? Boolean(concreteDraftByTarget.get(concreteDraftTargetKey(target))?.draft)
+        : true
+      if (drafted) cur.ready += 1
+      meta.set(r.jurisdiction, cur)
+    }
+    return (
+      unfilteredGroups
+        .filter((g) => g.pendingReviewCount > 0)
+        .map((g) => {
+          const m = meta.get(g.jurisdiction)
+          return {
+            jurisdiction: g.jurisdiction,
+            label: g.label,
+            pendingReviewCount: g.pendingReviewCount,
+            highCount: m?.high ?? 0,
+            readyCount: m?.ready ?? 0,
+            oldest: m?.oldest ?? null,
+          }
+        })
+        // Most urgent first = longest-waiting (oldest pending); ties broken by
+        // the bigger backlog, so when everything was seeded the same day the
+        // ranking still reads most-pending-first, not alphabetical.
+        .toSorted(
+          (a, b) =>
+            (a.oldest ?? Infinity) - (b.oldest ?? Infinity) ||
+            b.pendingReviewCount - a.pendingReviewCount,
+        )
+        .slice(0, 6)
+    )
+  }, [unfilteredGroups, rules, concreteDraftByTarget])
 
   const handleRuleClick = useCallback(
     (rule: ObligationRule) => {
