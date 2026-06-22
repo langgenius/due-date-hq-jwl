@@ -1281,6 +1281,10 @@ msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last 
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
 
+#: src/features/rules/states-rail.tsx
+msgid "{reviewableCount} to review"
+msgstr "{reviewableCount} to review"
+
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
@@ -2461,7 +2465,6 @@ msgstr "Alerts archive"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/rules/sources-tab.tsx
-#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2558,10 +2561,6 @@ msgstr "All impact"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "All items received."
-
-#: src/features/rules/states-rail.tsx
-msgid "All jurisdictions"
-msgstr "All jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "all matched"
@@ -7263,6 +7262,22 @@ msgstr "Filter rules…"
 msgid "Filter the rule table by entity"
 msgstr "Filter the rule table by entity"
 
+#: src/routes/obligations.tsx
+msgid "Filter to deadlines due this week"
+msgstr "Filter to deadlines due this week"
+
+#: src/routes/obligations.tsx
+msgid "Filter to filed deadlines"
+msgstr "Filter to filed deadlines"
+
+#: src/routes/obligations.tsx
+msgid "Filter to in-review deadlines"
+msgstr "Filter to in-review deadlines"
+
+#: src/routes/obligations.tsx
+msgid "Filter to overdue deadlines"
+msgstr "Filter to overdue deadlines"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
@@ -9589,7 +9604,6 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
-#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -14166,10 +14180,10 @@ msgid "Shareholder count"
 msgstr "Shareholder count"
 
 #: src/features/dashboard/changes-since-last-section.tsx
-#: src/features/rules/states-rail.tsx
 msgid "Show"
 msgstr "Show"
 
+#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"
@@ -14177,6 +14191,10 @@ msgstr "Show all"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Show all alerts"
 msgstr "Show all alerts"
+
+#: src/routes/obligations.tsx
+msgid "Show all deadlines"
+msgstr "Show all deadlines"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"

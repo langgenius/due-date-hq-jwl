@@ -3038,8 +3038,10 @@ export function ObligationQueueRoute() {
         label: t`Total tracked`,
         value: scopeTotal,
         // Anchor stat — orients, never an always-on accent (StatBand color
-        // budget: a "Total" stays neutral).
+        // budget: a "Total" stays neutral). Click resets every filter.
         sub: t`all deadlines`,
+        onClick: () => void setObligationQueueQuery(null),
+        ariaLabel: t`Show all deadlines`,
       },
       {
         key: 'overdue',
@@ -3049,6 +3051,9 @@ export function ObligationQueueRoute() {
         // warning-toned zero never flags a problem that doesn't exist.
         sub: overdue > 0 ? t`needs action` : t`all on time`,
         subClass: overdue > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+        onClick: () =>
+          void setObligationQueueQuery({ due: 'overdue', dueWithin: null, status: null }),
+        ariaLabel: t`Filter to overdue deadlines`,
       },
       {
         key: 'this-week',
@@ -3060,21 +3065,37 @@ export function ObligationQueueRoute() {
         // due-this-week is upcoming workload, so it reads neutral like In review
         // / Filed (color-only-serves-risk + calm-on-dense canon).
         sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
+        onClick: () => void setObligationQueueQuery({ dueWithin: 7, due: null, status: null }),
+        ariaLabel: t`Filter to deadlines due this week`,
       },
       {
         key: 'in-review',
         label: t`In review`,
         value: inReview,
         sub: t`being prepared`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.review],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to in-review deadlines`,
       },
       {
         key: 'filed',
         label: t`Filed`,
         value: filed,
         sub: t`this period`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.done],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to filed deadlines`,
       },
     ]
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t, setObligationQueueQuery])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is

@@ -1286,6 +1286,10 @@ msgstr "{recentlyRemindedCount, plural, one {跳过最近几天已提醒过的 #
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} 个保留"
 
+#: src/features/rules/states-rail.tsx
+msgid "{reviewableCount} to review"
+msgstr "{reviewableCount} 项待审核"
+
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, other {# 个辖区需要快速审核}}"
@@ -2472,7 +2476,6 @@ msgstr "提醒归档"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/rules/sources-tab.tsx
-#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2569,10 +2572,6 @@ msgstr "全部影响"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "已收到全部项目。"
-
-#: src/features/rules/states-rail.tsx
-msgid "All jurisdictions"
-msgstr "所有管辖区"
 
 #: src/features/migration/Step3Normalize.tsx
 #, fuzzy
@@ -7288,6 +7287,22 @@ msgstr "筛选规则…"
 msgid "Filter the rule table by entity"
 msgstr "按实体筛选规则表"
 
+#: src/routes/obligations.tsx
+msgid "Filter to deadlines due this week"
+msgstr "筛选本周到期截止事项"
+
+#: src/routes/obligations.tsx
+msgid "Filter to filed deadlines"
+msgstr "筛选已申报截止事项"
+
+#: src/routes/obligations.tsx
+msgid "Filter to in-review deadlines"
+msgstr "筛选审核中截止事项"
+
+#: src/routes/obligations.tsx
+msgid "Filter to overdue deadlines"
+msgstr "筛选逾期截止事项"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
@@ -9627,7 +9642,6 @@ msgstr "需要协助"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
-#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "需复核"
@@ -14228,10 +14242,10 @@ msgid "Shareholder count"
 msgstr "股东数量"
 
 #: src/features/dashboard/changes-since-last-section.tsx
-#: src/features/rules/states-rail.tsx
 msgid "Show"
 msgstr "显示"
 
+#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "全部显示"
@@ -14239,6 +14253,10 @@ msgstr "全部显示"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Show all alerts"
 msgstr "显示全部警报"
+
+#: src/routes/obligations.tsx
+msgid "Show all deadlines"
+msgstr "显示全部截止事项"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
