@@ -17,22 +17,40 @@ const t = zh
       glassPre: '我们称之为',
       glassWord: '透明可查',
       glassPost: '——每条变更都附带链接、原文引述和经过核验的日期，否则就不会放出。',
+      ledgerLabel: '透明可查保证',
       stats: [
-        { n: '100%', t: '有来源', b: '没有指向官方原文的引述，就什么都不会显示。' },
-        { n: '0', t: '自动应用的变更', b: '任何变更都不会自行改动客户的截止日。是否应用，永远由你决定。' },
-        { n: '24h', t: '可撤销', b: '任何应用都能在 24 小时内干净撤销——每一次操作都有记录、可查验。' },
+        {
+          n: '100%',
+          t: '有来源',
+          b: '没有指向官方原文的引述，就什么都不会显示。',
+          ev: '每条变更都带链接与原文引述',
+        },
+        {
+          n: '0',
+          t: '自动应用的变更',
+          b: '任何变更都不会自行改动客户的截止日。是否应用，永远由你决定。',
+          ev: '应用与否，始终需要你确认',
+        },
+        {
+          n: '24h',
+          t: '可撤销',
+          b: '任何应用都能在 24 小时内干净撤销，每一次操作都有记录。',
+          ev: '完整操作日志，可逐条查验',
+        },
       ],
       dataEyebrow: '你的数据',
+      dataLead: '基础设施按默认安全设计——以下保护无需配置，开箱即有。',
       items: [
         { icon: 'lock', t: '加密', d: '传输中和存储时，每一个字节都加密。' },
         { icon: 'shield', t: '只属于你', d: '你的客户名单绝不出售、共享，也绝不在各事务所之间汇集。' },
         { icon: 'eye', t: '只看不报', d: '它读取来源、提出变更建议——绝不替你报税，也绝不动一分钱。' },
         { icon: 'key', t: '没有密码会泄露', d: '采用单点登录(SSO)，我们无密码可看、可存，也没人能钓走。' },
       ],
-      link: '查看完整的安全说明',
+      boundaryLabel: '使用边界',
       boundaryB: '不是税务建议。',
       boundaryRest:
         'DueDateHQ 支持有据可查的复核——它不是税务建议，不是申报系统，也不能替代 CPA、EA 或律师。它告诉你该看哪里、为什么；最终由你来判断。',
+      link: '查看完整的安全说明',
     }
   : {
       eyebrow: 'Why you can trust it',
@@ -42,22 +60,40 @@ const t = zh
       glassPre: 'We call it ',
       glassWord: 'glass-box',
       glassPost: " — a link, the exact quote, and a verified date on every change, or it's held back.",
+      ledgerLabel: 'The glass-box guarantee',
       stats: [
-        { n: '100%', t: 'Sourced', b: 'Nothing is shown without a citation back to the official text.' },
-        { n: '0', t: 'Auto-applied changes', b: "Nothing touches a client's deadline on its own. Apply is always your call." },
-        { n: '24h', t: 'Reversible', b: 'Any apply undoes cleanly within 24 hours — every action recorded and inspectable.' },
+        {
+          n: '100%',
+          t: 'Sourced',
+          b: 'Nothing is shown without a citation back to the official text.',
+          ev: 'A link and exact quote on every change',
+        },
+        {
+          n: '0',
+          t: 'Auto-applied changes',
+          b: "Nothing touches a client's deadline on its own. Apply is always your call.",
+          ev: 'Apply always needs your confirmation',
+        },
+        {
+          n: '24h',
+          t: 'Reversible',
+          b: 'Any apply undoes cleanly within 24 hours, every action recorded.',
+          ev: 'A full action log, inspectable line by line',
+        },
       ],
       dataEyebrow: 'Your data',
+      dataLead: 'The infrastructure is secure by default — these protections take no setup; they hold from day one.',
       items: [
         { icon: 'lock', t: 'Encrypted', d: 'In transit and at rest, every byte.' },
         { icon: 'shield', t: 'Yours alone', d: 'Your client list is never sold, shared, or pooled across firms.' },
         { icon: 'eye', t: 'Watches, never files', d: 'It reads sources and proposes changes — it never files a return or moves a dollar.' },
         { icon: 'key', t: 'No password to leak', d: 'Single sign-on, so there is no password for us to see, store, or for anyone to phish.' },
       ],
-      link: 'Read the full security overview',
+      boundaryLabel: 'Where it stops',
       boundaryB: 'Not tax advice.',
       boundaryRest:
         ' DueDateHQ supports evidence-backed review — it is not tax advice, not a filing system, and not a replacement for a CPA, EA, or attorney. It tells you where to look and why; you make the call.',
+      link: 'Read the full security overview',
     }
 const stats = t.stats
 const items = t.items
@@ -71,19 +107,31 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     {t.glassPre}<span class="glass">{t.glassWord}</span>{t.glassPost}
   </p>
 
+  <p class="ledger__label">{t.ledgerLabel}</p>
   <div class="tstats">
     {
       stats.map((s) => (
         <div class="tstat">
-          <div class="tstat__n">{s.n}</div>
-          <div class="tstat__t">{s.t}</div>
+          <div class="tstat__head">
+            <span class="tstat__n">{s.n}</span>
+            <span class="tstat__t">{s.t}</span>
+          </div>
           <p class="tstat__b">{s.b}</p>
+          <p class="tstat__ev">
+            <svg class="tstat__chk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m3.5 8.5 3 3 6-7" />
+            </svg>
+            {s.ev}
+          </p>
         </div>
       ))
     }
   </div>
 
-  <p class="trustsec__sub m-eyebrow">{t.dataEyebrow}</p>
+  <div class="datahead">
+    <p class="trustsec__sub m-eyebrow">{t.dataEyebrow}</p>
+    <p class="datahead__lead">{t.dataLead}</p>
+  </div>
   <div class="seccards">
     {
       items.map((it) => (
@@ -127,8 +175,11 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
         <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
       </svg>
     </span>
-    <p class="boundary__t"><b>{t.boundaryB}</b>{t.boundaryRest}</p>
-    <a class="boundary__link" href={secHref}>{t.link} <span aria-hidden="true">→</span></a>
+    <div class="boundary__body">
+      <p class="boundary__label">{t.boundaryLabel}</p>
+      <p class="boundary__t"><b>{t.boundaryB}</b>{t.boundaryRest}</p>
+      <a class="boundary__link" href={secHref}>{t.link} <span aria-hidden="true">→</span></a>
+    </div>
   </div>
 </section>
 
@@ -141,42 +192,86 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     color: var(--m-accent);
     font-weight: 600;
   }
+  /* ---- glass-box guarantee: a calm, evidence-first ledger (not a stat dump) ---- */
+  .ledger__label {
+    margin-top: clamp(38px, 4.8vw, 60px);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--m-hairline);
+    font-family: var(--m-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--m-faint);
+  }
   .tstats {
-    margin-top: clamp(36px, 4.5vw, 56px);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: clamp(24px, 3vw, 44px);
+    gap: clamp(22px, 2.6vw, 40px);
   }
   .tstat {
-    padding-top: 22px;
-    border-top: 1px solid var(--m-ink);
+    padding-top: clamp(22px, 2.4vw, 28px);
+  }
+  .tstat__head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
   }
   .tstat__n {
     font-family: var(--m-font-mono);
     font-weight: 600;
-    font-size: clamp(34px, 4.2vw, 52px);
-    line-height: 0.98;
+    font-size: clamp(30px, 3.4vw, 42px);
+    line-height: 0.95;
     letter-spacing: -0.02em;
-    color: var(--m-accent);
+    color: var(--m-ink);
   }
   .tstat__t {
-    margin: 14px 0 7px;
     font-weight: 600;
     font-size: 15px;
     color: var(--m-ink);
   }
   .tstat__b {
-    font-size: 13px;
+    margin-top: 12px;
+    font-size: 13.5px;
     line-height: 1.55;
     color: var(--m-muted);
-    max-width: 32ch;
+    max-width: 34ch;
+  }
+  .tstat__ev {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--m-hairline-2);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--m-ink-2);
+    max-width: 34ch;
+  }
+  .tstat__chk {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+    color: var(--m-accent);
+  }
+
+  /* ---- your data: secure-by-default infrastructure ---- */
+  .datahead {
+    margin-top: clamp(48px, 5.5vw, 68px);
+    padding-top: clamp(28px, 3vw, 36px);
+    border-top: 1px solid var(--m-hairline);
   }
   .trustsec__sub {
-    margin-top: clamp(40px, 5vw, 60px);
-    margin-bottom: 0;
+    margin-bottom: 8px;
+  }
+  .datahead__lead {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--m-ink-2);
+    max-width: 60ch;
   }
   .seccards {
-    margin-top: 18px;
+    margin-top: clamp(20px, 2.2vw, 28px);
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 14px;
@@ -189,9 +284,9 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
   }
   .secitem__ico {
     display: inline-flex;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     place-items: center;
     justify-content: center;
     align-items: center;
@@ -199,11 +294,13 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     background: var(--m-accent-tint);
   }
   .secitem__ico svg {
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
   }
   .secitem__t {
-    margin-top: 14px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--m-hairline-2);
     font-size: 15px;
     font-weight: 600;
     color: var(--m-ink);
@@ -214,15 +311,17 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     line-height: 1.55;
     color: var(--m-muted);
   }
+
+  /* ---- boundary: a signed, formal note that closes the section ---- */
   .boundary {
-    margin-top: clamp(34px, 4vw, 48px);
+    margin-top: clamp(36px, 4vw, 52px);
     padding-top: clamp(26px, 3vw, 34px);
     border-top: 1px solid var(--m-hairline);
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 18px 18px;
+    gap: 18px;
     align-items: start;
-    max-width: 980px;
+    max-width: 880px;
   }
   .boundary__icon {
     width: 36px;
@@ -238,7 +337,15 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     width: 18px;
     height: 18px;
   }
+  .boundary__label {
+    font-family: var(--m-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
   .boundary__t {
+    margin-top: 8px;
     font-size: 14px;
     line-height: 1.6;
     color: var(--m-muted);
@@ -248,7 +355,7 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
     font-weight: 600;
   }
   .boundary__link {
-    grid-column: 2;
+    margin-top: 16px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -263,6 +370,16 @@ const secHref = (zh ? '/zh-CN' : '') + '/security'
   @media (max-width: 900px) {
     .tstats {
       grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .ledger__label {
+      padding-bottom: 4px;
+    }
+    .tstat {
+      border-top: 1px solid var(--m-hairline-2);
+    }
+    .tstat:first-child {
+      border-top: 0;
     }
     .seccards {
       grid-template-columns: 1fr 1fr;

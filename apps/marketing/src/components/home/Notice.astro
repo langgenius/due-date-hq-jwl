@@ -289,36 +289,48 @@ const examples = t.examples
     font-weight: 600;
   }
 
-  /* toggle */
+  /* toggle — a recessed track; the active type rises out of it on a clean
+     white pill (micro-lift, not a flat tint fill) */
   .ntabs {
     margin-top: clamp(28px, 3.5vw, 40px);
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 2px;
-    padding: 3px;
-    background: var(--m-surface);
+    gap: 3px;
+    padding: 4px;
+    background: var(--m-section);
     border: 1px solid var(--m-hairline-2);
     border-radius: 999px;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--m-ink) 5%, transparent);
   }
   .ntab {
-    padding: 6px 14px;
+    position: relative;
+    padding: 7px 16px;
     border-radius: 999px;
     font-size: 12.5px;
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--m-muted);
     cursor: pointer;
     transition:
-      color 0.18s ease,
-      background 0.18s ease;
+      color 0.22s ease,
+      background 0.22s ease,
+      box-shadow 0.22s ease;
   }
-  .ntab:hover {
-    color: var(--m-ink);
+  .ntab:hover:not(.is-on) {
+    color: var(--m-ink-2);
+    background: color-mix(in srgb, var(--m-surface) 60%, transparent);
   }
   .ntab.is-on {
     color: var(--m-accent);
-    background: var(--m-accent-tint);
+    background: var(--m-surface);
     font-weight: 600;
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--m-ink) 8%, transparent),
+      0 0 0 1px var(--m-hairline-2);
+  }
+  .ntab:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
   }
 
   /* panels */
