@@ -11,6 +11,7 @@ import SeeItWork from '../components/home/SeeItWork.astro'
 import Surfaces from '../components/home/Surfaces.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
+import ScrollMotion from '../components/home/ScrollMotion.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
@@ -42,6 +43,7 @@ const pathname = '/how-it-works'
     <Close ctaHref={ctaHref} />
   </main>
   <Footer />
+  <ScrollMotion />
 </BaseLayout>
 
 <style is:global>

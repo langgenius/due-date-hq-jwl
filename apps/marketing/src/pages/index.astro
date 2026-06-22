@@ -21,6 +21,7 @@ import Security from '../components/home/Security.astro'
 import Faq from '../components/home/Faq.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
+import ScrollMotion from '../components/home/ScrollMotion.astro'
 import en from '../i18n/en'
 import { getCtaHref, getAppHref } from '../lib/app-url'
 import { homeStructuredData } from '../lib/structured-data'
@@ -53,6 +54,7 @@ const t = en
     <Close ctaHref={ctaHref} />
   </main>
   <Footer />
+  <ScrollMotion />
 </BaseLayout>
 
 <style is:global>

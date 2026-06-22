@@ -47,6 +47,11 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0A2540" />
 
+    {/* Progressive-enhancement flag: marks JS-on before first paint so the
+        scroll-reveal pre-hidden state (.m-js [data-reveal]) never flashes for
+        no-JS visitors. Paired with ScrollMotion.astro (GSAP). */}
+    <script is:inline>document.documentElement.classList.add('m-js')</script>
+
     {/* Agentation visual-feedback devtool — DEV builds only, localhost only, so it
         never ships to production. The import map must precede any module script,
         so it lives at the top of <head>. Add ?noagent to any URL to disable. */}

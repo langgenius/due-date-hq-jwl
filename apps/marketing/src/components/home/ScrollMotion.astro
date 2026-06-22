@@ -1,0 +1,78 @@
+---
+/**
+ * ScrollMotion — GSAP scroll-reveal + the Surfaces horizontal pin. Pure
+ * progressive enhancement: every [data-reveal] section and the Surfaces rail
+ * already work without JS and under prefers-reduced-motion (see marketing.css +
+ * Surfaces.astro). Include on pages that use those hooks (home, /how-it-works).
+ */
+---
+
+<script>
+  import gsap from 'gsap'
+  import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+  const reveals = () => Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
+  const showAll = () =>
+    reveals().forEach((el) => {
+      el.style.opacity = '1'
+      el.style.transform = 'none'
+    })
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (reduce) {
+    showAll()
+  } else {
+    try {
+      gsap.registerPlugin(ScrollTrigger)
+
+      // 1) Reveal on scroll — fade + rise as each section enters the viewport.
+      reveals().forEach((el) => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true },
+        })
+      })
+
+      // 2) Surfaces — pin the section and scrub the rail horizontally (desktop).
+      //    Below 1000px the native overflow-x rail (CSS) handles it.
+      ScrollTrigger.matchMedia({
+        '(min-width: 1000px)': () => {
+          const section = document.querySelector<HTMLElement>('[data-surfaces]')
+          const track = section?.querySelector<HTMLElement>('[data-surfaces-track]')
+          if (!section || !track) return
+          const dist = () => track.scrollWidth - track.clientWidth
+          if (dist() <= 0) return
+          section.style.overflow = 'hidden' // clip the off-screen rail (no page overflow)
+          track.style.overflow = 'visible' // GSAP drives the transform, not native scroll
+          const tween = gsap.to(track, {
+            x: () => -dist(),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'center center',
+              end: () => '+=' + dist(),
+              pin: true,
+              scrub: 0.6,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+            },
+          })
+          return () => {
+            section.style.overflow = ''
+            track.style.overflow = ''
+            tween.scrollTrigger?.kill()
+            tween.kill()
+          }
+        },
+      })
+    } catch (err) {
+      // never let a motion failure leave content hidden
+      console.error('[ScrollMotion]', err)
+      showAll()
+    }
+  }
+</script>

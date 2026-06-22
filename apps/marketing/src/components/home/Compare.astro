@@ -63,7 +63,7 @@ const rows = marksRows.map((marks, i) => ({ feature: t.features[i], marks }))
 const ariaSummary = t.ariaSummary
 ---
 
-<section class="m-section compare" aria-labelledby="cmp-h">
+<section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
   <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="m-h2 compare__h" id="cmp-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
   <p class="m-lead compare__lead" set:html={t.leadHtml} />

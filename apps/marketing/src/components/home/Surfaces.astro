@@ -86,7 +86,7 @@ const t = zh
     }
 ---
 
-<section class="m-section surfaces" aria-labelledby="surfaces-h">
+<section class="m-section surfaces" aria-labelledby="surfaces-h" data-surfaces>
   <div class="surfaces__head">
     <div>
       <p class="m-eyebrow">{t.eyebrow}</p>
@@ -97,7 +97,7 @@ const t = zh
     </p>
   </div>
 
-  <div class="surfaces__grid">
+  <div class="surfaces__grid" data-surfaces-track>
     <!-- Alerts -->
     <article class="surface">
       <div class="surface__thumb">
@@ -202,11 +202,23 @@ const t = zh
   }
   .surfaces__grid {
     margin-top: clamp(34px, 4vw, 52px);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
     gap: clamp(18px, 2.2vw, 28px);
+    /* no-JS / touch: a swipeable horizontal rail. GSAP upgrades it to a
+       scroll-pinned track on desktop (see ScrollMotion.astro). */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .surfaces__grid::-webkit-scrollbar {
+    display: none;
   }
   .surface {
+    flex: 0 0 auto;
+    width: clamp(280px, 74vw, 384px);
+    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
   }
@@ -443,14 +455,6 @@ const t = zh
     }
     .surfaces__head > :nth-child(n) {
       grid-column: auto;
-    }
-    .surfaces__grid {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-  @media (max-width: 540px) {
-    .surfaces__grid {
-      grid-template-columns: 1fr;
     }
   }
 </style>

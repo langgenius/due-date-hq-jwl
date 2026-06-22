@@ -304,4 +304,22 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* ==========================================================================
+     Scroll motion — progressive enhancement. The hidden pre-reveal state
+     applies ONLY when JS is on (`.m-js` set on <html> before paint). Without
+     JS, or with reduced-motion, every [data-reveal] stays fully visible.
+     GSAP (ScrollMotion.astro) animates them to opacity:1 / translateY(0).
+     ========================================================================== */
+  .m-js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    will-change: opacity, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .m-js [data-reveal] {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }

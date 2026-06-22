@@ -19,6 +19,7 @@
     "@duedatehq/ui": "workspace:*",
     "@tailwindcss/vite": "catalog:",
     "astro": "catalog:",
+    "gsap": "catalog:",
     "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:"
   },

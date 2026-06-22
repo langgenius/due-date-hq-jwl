@@ -10,6 +10,7 @@ import SeeItWork from '../../components/home/SeeItWork.astro'
 import Surfaces from '../../components/home/Surfaces.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
+import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 
@@ -40,6 +41,7 @@ const pathname = '/zh-CN/how-it-works'
     <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />
+  <ScrollMotion />
 </BaseLayout>
 
 <style is:global>

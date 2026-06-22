@@ -18,6 +18,7 @@ import Security from '../../components/home/Security.astro'
 import Faq from '../../components/home/Faq.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
+import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref, getAppHref } from '../../lib/app-url'
 import { homeStructuredData } from '../../lib/structured-data'
@@ -50,6 +51,7 @@ const t = zhCN
     <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />
+  <ScrollMotion />
 </BaseLayout>
 
 <style is:global>
