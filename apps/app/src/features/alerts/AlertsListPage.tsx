@@ -924,13 +924,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   (the page wash) + padding keep the cards reading cleanly
                   as they scroll underneath and `z-20` sits above the
                   rows. */}
-              {/* `px-5` aligns the toolbar's leading control to the card
-                  content edge below it (rows + day bands carry the same
-                  px-5). Without it the filter row sat ~20px left of the
-                  list, so "Review", the row checkboxes, and the day bands
-                  read as three staggered left edges (Yuqi 2026-06-15:
-                  "the left side is not aligned"). */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
+              {/* 2026-06-22 (Yuqi "remove the left/right padding — universal"):
+                  the toolbar, zone bands, rows + day bands all dropped their
+                  `px-5` inset so the list lines up flush with the "Alerts" page
+                  title (it used to sit 20px further in). The whole list shares
+                  one left edge. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower
@@ -1265,7 +1264,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         bands already stick at the same offset in their own zone,
                         so the two never collide (different scroll regions). The
                         page-wash bg occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 bg-background-inset px-5 py-2">
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 bg-background-inset py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1319,7 +1318,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     ) : (
                       // The queue drained. The awareness digest still shows below,
                       // so the page is never blank — just calm.
-                      <div className="flex items-center gap-2 rounded-xl bg-background-default px-5 py-4 text-sm text-text-secondary">
+                      <div className="flex items-center gap-2 rounded-xl bg-background-default py-4 text-sm text-text-secondary">
                         <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                         <Trans>You're caught up — nothing needs action right now.</Trans>
                       </div>
@@ -1336,12 +1335,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           hover-revealed "Dismiss all" sweep (right) so the FYI
                           digest can be cleared in one move (the anti-junk-drawer
                           affordance). Sibling buttons — no nested interactives. */}
-                      <div className="group/awareband flex items-center gap-2 px-5 py-1.5">
+                      <div className="group/awareband flex items-center gap-2 py-1.5">
                         <button
                           type="button"
                           onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
                           aria-expanded={!awarenessCollapsed}
-                          className="-mx-2 flex flex-1 cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <ChevronDownIcon
                             className={cn(
@@ -2118,7 +2117,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
       </span>
 
       {/* Header band — mirrors the day-group divider tokens */}
-      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-sm font-semibold tracking-eyebrow-tight text-text-tertiary uppercase">
+      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle py-2 text-sm font-semibold tracking-eyebrow-tight text-text-tertiary uppercase">
         <span className="inline-flex items-center gap-1.5">
           <PulsingDot tone="warning" active />
           <Trans>Checking {label}…</Trans>
@@ -2137,7 +2136,7 @@ function SkeletonAlertRow() {
   return (
     <div
       data-skeleton="alert"
-      className="flex gap-[10px] border-b border-divider-subtle px-5 py-3 last:border-b-0"
+      className="flex gap-[10px] border-b border-divider-subtle py-3 last:border-b-0"
     >
       {/* Time rail — 100px column matching PulseAlertRow */}
       <div className="flex w-[100px] shrink-0 flex-col gap-1.5">

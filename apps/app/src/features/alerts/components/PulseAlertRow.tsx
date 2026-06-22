@@ -437,7 +437,11 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-[color,box-shadow]',
+        // 2026-06-22 (Yuqi "remove the left/right padding — universal"): rows are
+        // flush with the page title now (no extra px-5 inset); the toolbar, zone
+        // bands + day bands drop the same inset so the whole list shares one left
+        // edge. Applies in the map navigator rail too (consistent, flush).
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle outline-none transition-[color,box-shadow]',
         // Muted (awareness digest) rows step the vertical padding down a notch.
         muted ? 'py-2.5' : 'py-3',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -1112,7 +1116,7 @@ function PulseAlertList({
                     under it; requires the frame's overflow-clip. The faint
                     `bg-background-subtle` fill (matching aUZTy) gives a clean
                     section break without the busier label competing with rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle py-2">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
