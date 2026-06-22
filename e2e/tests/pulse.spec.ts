@@ -245,21 +245,13 @@ function pulseListAlertButton(page: Page) {
   })
 }
 
-// The alerts list splits into "Review" and "Active" work queues (a Segmented
-// control labelled "Alert work queue") and defaults to "Review". The seeded
-// "IRS CA storm relief" alert is a deadline-shift (isActiveAlert) → it lives
-// under "Active". Click the Active tab — click() auto-waits for the SPA to
-// render the switch (a bare count()/isVisible() check races client hydration
-// and silently skips) — and confirm it became selected before the caller waits
-// for the alert card to load.
+// 2026-06-22: the Review/Active work-queue toggle was replaced by the unified
+// triage list — a "Needs action" priority queue + a "For your awareness" digest,
+// no mode toggle. The seeded "IRS CA storm relief" deadline-shift alert
+// (alertNeedsAction) renders in the always-visible "Needs action" zone, so it's
+// reachable without switching tabs; just wait for it to hydrate.
 async function revealSeededAlert(page: Page) {
-  const alert = pulseListAlertButton(page)
-  if (await alert.isVisible().catch(() => false)) return
-  const active = page
-    .getByRole('group', { name: 'Alert work queue' })
-    .getByRole('button', { name: /^Active/ })
-  await active.click()
-  await expect(active).toHaveAttribute('aria-pressed', 'true')
+  await expect(pulseListAlertButton(page)).toBeVisible()
 }
 
 async function openDashboardPulseAlert(page: Page) {

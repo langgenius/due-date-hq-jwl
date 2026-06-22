@@ -156,7 +156,9 @@ test.describe('alerts surfaces', () => {
 
   test('VISUAL: /alerts list', async ({ authenticatedPage }) => {
     await gotoFrozen(authenticatedPage, '/alerts')
-    await expect(authenticatedPage.getByRole('group', { name: 'Alert work queue' })).toBeVisible()
+    // 2026-06-22: the Review/Active toggle is gone — wait on the triage list's
+    // "Needs action" zone band to confirm the list hydrated before the shot.
+    await expect(authenticatedPage.getByText('Needs action').first()).toBeVisible()
 
     await expect(authenticatedPage).toHaveScreenshot(
       'alerts-list.png',
