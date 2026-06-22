@@ -241,3 +241,30 @@ A `/design-critique` pass; Yuqi: "take all" three priority recommendations.
 
 Decisions (Yuqi, "take all"): lead rows with the title; remove the redundant
 HIGH IMPACT chip; dial the action band from red to amber.
+
+## Selection-first + band parity + flush align (2026-06-22)
+
+A 7-item feedback batch:
+
+- **Band size parity** (#1) — "For your awareness" measured 63px vs "Needs
+  action" 55px; the collapse button's `py-1` (inside the band's `py-2`) added the
+  8px. Dropped it → both 55px.
+- **Flush-left** (#2) — the `px-5` content gutter (added two turns earlier) is
+  removed from the toolbar, both zone bands, day bands, and rows, so content
+  aligns to the table/title edge (x=313) instead of inset 20px. (Reverses the
+  earlier "padding on left and right" pass at Yuqi's ask; the right cluster sits
+  at the band edge again — accepted.)
+- **Rounded section tops** (#3/#4) — both zone bands get `rounded-t-xl` (12px),
+  so each section reads as a capped block.
+- **Bottom padding** (#5) — `pb-6` INSIDE the scroll area (not the shell), so the
+  last alert gets 24px breathing room when scrolled to the end without the
+  always-visible outer gap the old shell `pb-5` left.
+- **Checkboxes always visible** (#6) + **select-all** (#7) — row checkboxes, the
+  per-day select-all, and the zone select-all all drop their hover-reveal
+  (`opacity-0 group-hover…` → always on), so selection + "select all this zone"
+  are discoverable at rest. Retired the now-dead `selectionActive` prop +
+  threading.
+
+Decisions (Yuqi): bands same size; remove L/R content padding (flush to table);
+rounded section tops; bottom padding for readability; always show the checkboxes
+(selection-first list).

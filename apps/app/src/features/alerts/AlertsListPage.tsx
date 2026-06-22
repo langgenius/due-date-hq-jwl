@@ -864,7 +864,11 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
             tighter stack of related controls + content. */}
         <div
           className={cn(
-            'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]',
+            // pb-6 inside the scroll area (Yuqi 2026-06-22 "the table should have
+            // bottom padding to read the alert easily"): the last row gets
+            // breathing room when scrolled to the end, without the always-visible
+            // outer gap the shell pb-5 used to strand the list above.
+            'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pb-6 [scrollbar-gutter:stable]',
             // Reserve clearance for the floating bulk bar while a selection
             // exists, so the last cards scroll clear of it instead of being
             // occluded (the bar shows on the same condition below).
@@ -915,7 +919,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   on every list element so the content edge is consistent and padded;
                   the band BGs still bleed full-width, so the bands stay aligned with
                   the title — only the content insets. */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower
@@ -1255,7 +1259,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         `bg-background-subtle` + `border-b` chrome as the day bands —
                         so it reads as a structural table header, not floating text,
                         and the opaque band occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-state-warning-hover-alt bg-state-warning-hover px-5 py-2">
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 rounded-t-xl border-b border-state-warning-hover-alt bg-state-warning-hover py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1270,12 +1274,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                             for (const a of actionAlerts) toggleSelected(a.id, next)
                           }}
                           aria-label={t`Select all alerts that need action`}
-                          className={cn(
-                            'size-[18px] rounded transition-opacity',
-                            selectedCount > 0
-                              ? 'opacity-100'
-                              : 'opacity-0 group-hover/zone:opacity-100 focus-visible:opacity-100',
-                          )}
+                          className="size-[18px] rounded"
                         />
                       ) : null}
                       {/* Sibling zone header skeleton — icon badge · label · count ·
@@ -1327,7 +1326,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     ) : (
                       // The queue drained. The awareness digest still shows below,
                       // so the page is never blank — just calm.
-                      <div className="flex items-center gap-2 bg-background-default px-5 py-4 text-sm text-text-secondary">
+                      <div className="flex items-center gap-2 bg-background-default py-4 text-sm text-text-secondary">
                         <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
                         <Trans>You're caught up — nothing needs action right now.</Trans>
                       </div>
@@ -1344,12 +1343,12 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           hover-revealed "Dismiss all" sweep (right) so the FYI
                           digest can be cleared in one move (the anti-junk-drawer
                           affordance). Sibling buttons — no nested interactives. */}
-                      <div className="group/awareband flex items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-2">
+                      <div className="group/awareband flex items-center gap-2 rounded-t-xl border-b border-divider-subtle bg-background-subtle py-2">
                         <button
                           type="button"
                           onClick={() => setAwarenessCollapsed((collapsed) => !collapsed)}
                           aria-expanded={!awarenessCollapsed}
-                          className="flex flex-1 cursor-pointer items-center gap-2 py-1 pr-2 text-left outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="flex flex-1 cursor-pointer items-center gap-2 pr-2 text-left outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <ChevronDownIcon
                             className={cn(

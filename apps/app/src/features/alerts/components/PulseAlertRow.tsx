@@ -200,7 +200,6 @@ function PulseAlertRow({
   compact = false,
   selectable = false,
   selected = false,
-  selectionActive = false,
   onToggleSelected,
   priority,
   showAction = true,
@@ -227,13 +226,6 @@ function PulseAlertRow({
    */
   selectable?: boolean
   selected?: boolean
-  /**
-   * 2026-06-15 (critique #8): true when a bulk selection is already in
-   * progress (≥1 row ticked anywhere in the list). While active, every row's
-   * checkbox stays visible; otherwise the checkbox is hover-revealed so the
-   * read-first triage list isn't fronted by a column of empty boxes.
-   */
-  selectionActive?: boolean
   onToggleSelected?: (next: boolean) => void
   /** Smart-priority inset data (Pencil `IciLB`). Undefined hides the
    *  inset + the "Why?" toggle entirely. */
@@ -422,7 +414,7 @@ function PulseAlertRow({
         // box; only the content insets, so the bands stay aligned with the title.
         // The toolbar, zone bands + day bands take the same `px-5` so the whole
         // list shares one padded content edge.
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 outline-none transition-[color,box-shadow]',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle outline-none transition-[color,box-shadow]',
         // Muted (awareness digest) rows step the vertical padding down a notch.
         muted ? 'py-2.5' : 'py-3',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -439,14 +431,10 @@ function PulseAlertRow({
       {selectable ? (
         <div
           className={cn(
-            // 2026-06-15 critique #8: the slot ALWAYS reserves its width (revealing
-            // the box never shifts the row), but the box itself is hover-revealed
-            // unless this row is ticked or a selection is already underway — so a
-            // read-first triage list isn't led by a column of empty checkboxes.
-            'flex shrink-0 items-start pt-0.5 transition-opacity',
-            selected || selectionActive
-              ? 'opacity-100'
-              : 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100',
+            // 2026-06-22 (Yuqi "always show the checkbox"): the box is visible at
+            // rest now (was hover-revealed) so selection is discoverable without
+            // hovering — every row shows its checkbox.
+            'flex shrink-0 items-start pt-0.5',
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -962,10 +950,6 @@ function PulseAlertList({
   // rail) overrides the derived value.
   const panelOpen = compact ?? openAlertId !== null
 
-  // A bulk selection is "active" once any row is ticked — every checkbox then
-  // stays visible (critique #8); at zero selection the boxes hover-reveal.
-  const selectionActive = (selectedIds?.size ?? 0) > 0
-
   // Group alerts by firm-local date, preserving the (already
   // sort-ordered) array order. Map preserves insertion order so
   // earlier days come first when the sort is "Newest first".
@@ -1000,7 +984,6 @@ function PulseAlertList({
         compact={panelOpen}
         selectable={selectable}
         selected={selectedIds?.has(alert.id) ?? false}
-        selectionActive={selectionActive}
         {...(onToggleSelected
           ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
           : {})}
@@ -1058,7 +1041,7 @@ function PulseAlertList({
                     section hierarchy. White still occludes scrolling rows (sticky);
                     the uppercase label + hairline carry the break. `px-5` matches
                     the row/zone-band content gutter. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default px-5 py-2">
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default py-2">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
@@ -1076,12 +1059,7 @@ function PulseAlertList({
                       for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
                     }}
                     aria-label={t`Select all alerts on ${label}`}
-                    className={cn(
-                      'size-[18px] rounded transition-opacity',
-                      selectionActive
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
-                    )}
+                    className="size-[18px] rounded"
                   />
                 ) : null}
                 {/* 2026-06-21 (Yuqi /alerts #7 "same colour + size as today's
