@@ -21,10 +21,12 @@ echoed each other plus a legend-less bar.
   numbers.
 
 ## Verification
+
 tsgo 0 · i18n extract 0 (−1 obsolete string, zh-CN Missing 0) · compile --strict 0
 · build green · app tests 550/2.
 
 ## Still open (design calls put to the user)
+
 - **Summary "designed better" (deeper):** make the StatBand cells **interactive
   triage filters** (click "Overdue 5" → filter the table) — currently read-only.
 - **"Make the table more 'deadline'":** open direction (calendar/time cues,
