@@ -413,7 +413,7 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
             key={pill.key}
             to={pill.to}
             aria-label={pill.ariaLabel}
-            className="group/pill inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default py-1 pr-2 pl-2.5 text-caption outline-none transition-colors hover:border-divider-regular hover:bg-background-section focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="group/pill inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default py-1 pr-2 pl-2.5 text-caption outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Icon className={cn('size-3 shrink-0', pill.iconClass)} aria-hidden />
             <span className="font-medium text-text-primary">{pill.label}</span>
