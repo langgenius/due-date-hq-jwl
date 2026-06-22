@@ -136,3 +136,29 @@ stayed inside the row:
 
 Decisions (Yuqi): keep full width (no reading-measure cap); the calm comes from
 row internals (merged footer, tighter rhythm, quieter meta).
+
+## One banded table — section headers get a background (2026-06-22)
+
+Yuqi: "serious problem with sections — it is so loose now, visually the alert
+table." The zone headers floated as text on the page wash while the rows sat in
+a rounded card, and a `gap-4` split the two zones — so the page read as two
+loose floating cards, not a table. Pulled it into one continuous banded table:
+
+- **Banded section headers** — both zone headers ("Needs action" / "For your
+  awareness") now wear the SAME chrome as the day bands (`bg-background-subtle`
+  + `border-b border-divider-subtle`), so the page has one consistent
+  header-band system (zone header → day band → rows). The awareness badge flips
+  to a white (`bg-background-default`) tile so it stays crisp on the gray band.
+- **Square rows** — the list frame dropped `rounded-xl`; the rounded card
+  encapsulation was what put a rounded corner on the first/last row (and the
+  active-row highlight). Now a flush square table. `overflow-clip` stays (sticky
+  day bands need it).
+- **Zones butt together** — `gap-4` → `gap-0`; the banded headers + row
+  hairlines do the sectioning, so action rows flow straight into the awareness
+  band as one table.
+- **Full height** — the route shell's default `pb-5` is overridden to `pb-0` for
+  /alerts (`contentClassName`), so the table runs to the viewport bottom instead
+  of stranding the last rows above a gap.
+
+Decisions (Yuqi): zone titles get header-band backgrounds like the day bands;
+remove the per-row rounded corner; remove the bottom padding (full height).

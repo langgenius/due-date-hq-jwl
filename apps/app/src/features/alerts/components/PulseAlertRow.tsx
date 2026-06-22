@@ -1063,7 +1063,7 @@ function PulseAlertList({
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls.
-    <div className="flex shrink-0 flex-col overflow-clip rounded-xl bg-background-default">
+    <div className="flex shrink-0 flex-col overflow-clip bg-background-default">
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
