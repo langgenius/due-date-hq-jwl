@@ -189,7 +189,16 @@ PULSE_EMAIL_REQUIRE_AUTH = "true"
 # 2026-06-11: az.pass_through_entities/az.withholding_due_dates/nh.business_tax
 # (PDF targets) moved back to direct fetch — /content renders HTML only and
 # returned 'Invalid PDF structure' bodies for them in prod.
-PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.income_tax,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.income_tax,ks.tax_calendar,mi.income_tax,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,nh.income_tax"
+# 2026-06-22: announcement-source audit — ut/wi/ar parsed only nav-chrome or a
+# whole-page fallback because their news lists are JS-rendered or WAF-blocked:
+# wi = revenue.wi.gov SharePoint WebPart (confirmed 0 news links in static HTML),
+# ut = tax.utah.gov JS-rendered release list (direct fetch 502), ar =
+# dfa.arkansas.gov Cloudflare 520 for datacenter clients. Route via browserless.
+# NB: ar's Cloudflare WAF may still 520 browserless's datacenter IPs (residential
+# proxy would be needed) — verify /rules/sources after deploy and revert ar if it
+# does not recover. nh is already on this list but its page is a section-link hub,
+# so browserless can't help it; nh needs a real press-release listing URL instead.
+PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.income_tax,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.income_tax,ks.tax_calendar,mi.income_tax,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,nh.income_tax,ut.temporary_announcements,wi.temporary_announcements,ar.temporary_announcements"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings

@@ -4254,6 +4254,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
+    // dfa.arkansas.gov Cloudflare-520s datacenter clients, so direct fetch only
+    // ever parsed one nav link — routed via browserless (PULSE_BROWSERLESS_SOURCE_IDS,
+    // 2026-06-22). The WAF may still 520 browserless's datacenter IPs; if source
+    // health doesn't recover it needs a residential proxy.
     url: 'https://www.dfa.arkansas.gov/about/news/',
     // Index-level relief signal: AR posts disaster relief via DFA news +
     // gubernatorial orders; no dedicated relief page.
@@ -4697,11 +4701,15 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
     title: 'Utah State Tax Commission News Releases',
+    // tax.utah.gov 502s datacenter clients and renders the release list
+    // client-side, so direct fetch only ever produced a whole-page fallback
+    // snapshot (no per-item links) — routed via browserless to render it
+    // (PULSE_BROWSERLESS_SOURCE_IDS, 2026-06-22).
     url: 'https://tax.utah.gov/commission-office/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
     sourceNotes:
-      'Official Utah State Tax Commission dated news releases. Replaces the public-info landing page, which is a static hub with no dated announcement list.',
+      'Official Utah State Tax Commission dated news releases; the release list is JS-rendered so it is fetched via browserless.',
   },
   {
     id: 'va.temporary_announcements',
@@ -4729,6 +4737,11 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wi.temporary_announcements',
     jurisdiction: 'WI',
     title: 'Wisconsin DOR News',
+    // revenue.wi.gov renders the news list in a SharePoint WebPart (client-side) —
+    // the static HTML has zero news-item links, so direct fetch only produced a
+    // whole-page fallback snapshot. Routed via browserless to render the WebPart
+    // (PULSE_BROWSERLESS_SOURCE_IDS, 2026-06-22). The SharePoint listfeed.aspx RSS
+    // exposes only date-named page filenames, not headlines, so it is not usable.
     url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
   },
   {
