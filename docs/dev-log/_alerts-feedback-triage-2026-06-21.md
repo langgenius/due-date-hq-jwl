@@ -186,3 +186,29 @@ flat (a zone header and its day subgroups looked equal-weight).
 
 Decisions (Yuqi): restore symmetric L/R content padding; differentiate the
 section header (gray band) from the day subgroup (white label).
+
+## Destructive action band + toolbar balance + deadline chip (2026-06-22)
+
+A feedback batch; three items were live + actionable (the rest were stale — the
+"Alert work queue" Segmented it cited is gone, replaced by the triage zones — or
+already shipped the turn before: the px-5 content gutter, the white day bands).
+
+- **#6 Destructive "Needs action" band** — the action zone header drops gray for
+  a soft-red `bg-state-destructive-hover` band: the urgent queue gets the page's
+  one chromatic section header. Badge → solid-red + `text-text-inverted` icon
+  (the strong accent); count → white chip, red text; label stays primary ink
+  (chromatic accent in containers, not text). This also tiers the headers
+  unmistakably — red section (action) > gray section (awareness) > white label
+  (day). Note: bends the "amber=action, red=urgent" canon at Yuqi's explicit ask;
+  soft-red so it reads urgent, not alarming.
+- **#3 Toolbar balance** — the view (List/Map) toggle gets `ml-auto` and anchors
+  the RIGHT edge; the filter cluster (search · Filters · State · Sort) holds the
+  left. The row spans its width with intent instead of bunching loosely at the
+  start.
+- **#5 Deadline chip** — the "Nd left" tag sat as bare mono text beside the
+  source link's bare text (same gray, blended). It's now a discrete status chip
+  (filled `bg-background-subtle` pill), so "how long left" is visibly its own
+  thing, not part of the "from where" link. Stays neutral.
+
+Decisions (Yuqi): destructive bg for the action section header; push the view
+toggle right; make the deadline tag a distinct chip from the source link.

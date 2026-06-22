@@ -640,9 +640,14 @@ function PulseAlertRow({
           {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
               "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
               row's only red, this tag just says how long is left. Hidden for
-              far-out / no-deadline alerts (proximityTimeTag → null). */}
+              far-out / no-deadline alerts (proximityTimeTag → null).
+              2026-06-22 (Yuqi "differentiate from the source link"): the tag sat as
+              bare mono text right beside the source link's bare text — same gray,
+              they blended. It now reads as a discrete STATUS chip (filled
+              `bg-background-subtle` pill) so the "how long left" fact is visibly its
+              own thing, not part of the "from where" link. Stays neutral. */}
           {!compact && timeTag ? (
-            <span className="shrink-0 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
+            <span className="inline-flex shrink-0 items-center rounded-md bg-background-subtle px-1.5 py-0.5 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
               {timeTag}
             </span>
           ) : null}

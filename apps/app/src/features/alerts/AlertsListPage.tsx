@@ -1146,13 +1146,15 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* View switcher — icon-only Segmented at the far end.
-                        One labeled toggle per toolbar (the queue switch);
-                        this one reads as a view affordance, not a second
-                        queue (Yuqi batch 3 #1). */}
+                    {/* View switcher — icon-only Segmented pushed to the RIGHT
+                        edge (`ml-auto`). 2026-06-22 (Yuqi "too loose… stick to the
+                        right, something on the left"): the filter cluster
+                        (search · Filters · State · Sort) now reads on the left and
+                        the view toggle anchors the right, so the toolbar spans its
+                        width with intent instead of bunching loosely at the start. */}
                     <Segmented
                       size="lg"
-                      className="shrink-0"
+                      className="ml-auto shrink-0"
                       ariaLabel={t`View mode`}
                       value={viewMode}
                       onValueChange={setViewMode}
@@ -1270,7 +1272,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         `bg-background-subtle` + `border-b` chrome as the day bands —
                         so it reads as a structural table header, not floating text,
                         and the opaque band occludes rows scrolling underneath. */}
-                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-divider-subtle bg-background-subtle px-5 py-2">
+                    <div className="sticky top-12 z-10 flex items-center gap-2.5 border-b border-state-destructive-border bg-state-destructive-hover px-5 py-2">
                       {/* Zone-level select-all (the action zone is flat, so it has
                           no per-day band to host one). Hover-revealed like the row
                           checkboxes unless a selection is already underway. */}
@@ -1293,15 +1295,18 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           )}
                         />
                       ) : null}
-                      {/* Sibling zone header (Yuqi 2026-06-22): both zones share
-                          ONE skeleton — icon badge · label · count · purpose line —
-                          so they read as two tiers of one monitored feed, not two
-                          unrelated tables. Action runs warm; "For your awareness"
-                          runs the same skeleton neutral. The purpose subtitle is the
-                          first-land orientation the bare label never gave: it says
-                          what's here and what the zone asks of you. (Supersedes the
-                          standalone warm pill — that asymmetry widened the gap.) */}
-                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-warning-hover text-text-warning">
+                      {/* Sibling zone header skeleton — icon badge · label · count ·
+                          purpose line — shared with "For your awareness". 2026-06-22
+                          (Yuqi "change a colour, maybe destructive bg"): the action
+                          zone now wears a DESTRUCTIVE band (soft-red `bg-state-
+                          destructive-hover`) — the urgent queue gets the page's one
+                          chromatic section header, which also separates it cleanly
+                          from the awareness zone (neutral gray) and the day
+                          subgroups (white). The badge flips to solid-red + inverted
+                          icon (the strong accent), the count to a white chip with
+                          red text; the label stays primary ink (chromatic accent
+                          lives in the containers, not the text). */}
+                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-destructive-solid text-text-inverted">
                         <ZapIcon className="size-3.5" aria-hidden />
                       </span>
                       <div className="flex flex-col gap-0.5">
@@ -1309,7 +1314,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                           <span className="text-sm font-semibold text-text-primary">
                             <Trans>Needs action</Trans>
                           </span>
-                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-state-warning-hover px-1.5 text-xs font-medium tabular-nums text-text-warning">
+                          <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-background-default px-1.5 text-xs font-medium tabular-nums text-text-destructive">
                             {actionAlerts.length}
                           </span>
                         </div>
