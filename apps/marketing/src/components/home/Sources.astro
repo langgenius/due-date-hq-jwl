@@ -243,32 +243,47 @@ const tiles = [
     min-width: 520px;
   }
   .ust {
+    position: relative;
     display: grid;
     place-items: center;
     border-radius: 7px;
+    overflow: hidden;
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
     color: #fff;
     /* identical fill on every state — no priority tier */
     background: var(--m-accent);
+  }
+  .ust__c {
+    position: relative;
+    z-index: 1;
+  }
+  /* live scan wave — a cyan flash rippling across the map. Animating an overlay's
+     OPACITY (GPU-composited) instead of background + box-shadow on all 51 tiles
+     (paint, every frame) keeps the effect cheap. */
+  .ust::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--m-cyan);
+    opacity: 0;
     animation: ust-scan 6s ease-in-out infinite;
     animation-delay: calc(var(--i) * 0.11s);
+    pointer-events: none;
   }
   @keyframes ust-scan {
     0%,
     88%,
     100% {
-      background: var(--m-accent);
-      box-shadow: none;
+      opacity: 0;
     }
     94% {
-      background: var(--m-accent-strong);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--m-cyan) 55%, transparent);
+      opacity: 0.42;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ust {
+    .ust::after {
       animation: none;
     }
   }

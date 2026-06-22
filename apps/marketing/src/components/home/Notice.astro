@@ -177,8 +177,11 @@ const examples = t.examples
       examples.map((e, i) => (
         <button
           class:list={['ntab', i === 0 && 'is-on']}
+          id={`ntab-${i}`}
           role="tab"
           aria-selected={i === 0 ? 'true' : 'false'}
+          aria-controls={`npanel-${i}`}
+          tabindex={i === 0 ? 0 : -1}
           data-ntab={i}
           type="button"
         >
@@ -191,7 +194,14 @@ const examples = t.examples
   <div class="npanels">
     {
       examples.map((e, i) => (
-        <div class:list={['extract', i === 0 && 'is-on']} data-npanel={i} role="tabpanel">
+        <div
+          class:list={['extract', i === 0 && 'is-on']}
+          id={`npanel-${i}`}
+          data-npanel={i}
+          role="tabpanel"
+          aria-labelledby={`ntab-${i}`}
+          tabindex="0"
+        >
           <article class="clip" aria-hidden="true">
             <header class="clip__head">
               <span class="clip__seal">
@@ -652,19 +662,32 @@ const examples = t.examples
 </style>
 
 <script>
-  // toggle between change-type examples
+  // Change-type examples as a WAI tablist: click + roving tabindex + arrow-key nav.
   document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
     const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
     const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const idx = tab.dataset.ntab
-        tabs.forEach((t) => {
-          const on = t.dataset.ntab === idx
-          t.classList.toggle('is-on', on)
-          t.setAttribute('aria-selected', String(on))
-        })
-        panels.forEach((p) => p.classList.toggle('is-on', p.dataset.npanel === idx))
+    const activate = (idx: number, focus: boolean) => {
+      tabs.forEach((t, i) => {
+        const on = i === idx
+        t.classList.toggle('is-on', on)
+        t.setAttribute('aria-selected', String(on))
+        t.tabIndex = on ? 0 : -1
+        if (on && focus) t.focus()
+      })
+      panels.forEach((p, i) => p.classList.toggle('is-on', i === idx))
+    }
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => activate(i, false))
+      tab.addEventListener('keydown', (e) => {
+        let next = -1
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length
+        else if (e.key === 'Home') next = 0
+        else if (e.key === 'End') next = tabs.length - 1
+        if (next >= 0) {
+          e.preventDefault()
+          activate(next, true)
+        }
       })
     })
   })
