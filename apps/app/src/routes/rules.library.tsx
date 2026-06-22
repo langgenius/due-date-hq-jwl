@@ -831,11 +831,14 @@ function OverviewReviewBreakdown({
           <Trans>Most urgent first</Trans>
         </span>
       </div>
-      {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID — each
-          card is its own click target into that jurisdiction's review queue.
-          The triage signal stays text (high-severity · days waiting), the
-          pending count is the card's headline, and a Review affordance sits at
-          the foot. */}
+      {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID. Each card
+          is a click target into that jurisdiction's review queue AND a
+          per-jurisdiction echo of the StatBand above — same label · value · sub
+          grammar (identity → count → differentiators) so the two zones read as
+          one family rather than a flat band fighting a row of boxed cards.
+          Color budget mirrors the band: the count stays NEUTRAL, the lone red
+          flag is high-severity (von-Restorff — only the "review these first"
+          jurisdictions light up); the colorful state seals carry the rest. */}
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {jurisdictions.map((g) => {
           const days =
@@ -845,36 +848,38 @@ function OverviewReviewBreakdown({
               key={g.jurisdiction}
               type="button"
               onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className="group flex cursor-pointer flex-col gap-2.5 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+              className="group flex cursor-pointer flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
+              {/* Identity (the card's "label") + a quiet drill affordance that
+                  slides + turns accent on hover. */}
               <div className="flex items-center gap-2.5">
                 <StateBadge code={g.jurisdiction} size="sm" preview={false} />
                 <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
                   {g.label}
                 </span>
+                <ChevronRightIcon
+                  aria-hidden
+                  className="size-4 shrink-0 text-text-tertiary transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-text-accent"
+                />
               </div>
-              {/* Differentiators only: high severity (when present) + wait age. */}
-              <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                {g.highCount > 0 ? (
-                  <span className="text-text-warning">
-                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                  </span>
-                ) : null}
-                {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
-                {days != null ? <span>{t`${days}d waiting`}</span> : null}
+              {/* Value — pending count. Neutral per the band's color budget;
+                  urgency reads from SIZE (16px/500), the canonical KPI numeral. */}
+              <span className="text-lg leading-none font-medium tracking-tight tabular-nums text-text-primary">
+                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
               </span>
-              <div className="mt-1 flex items-center justify-between gap-2 border-t border-divider-subtle pt-2.5">
-                <span className="text-sm font-semibold tabular-nums text-text-warning">
-                  <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+              {/* Sub — differentiators only; high-severity is the lone red flag,
+                  wait age stays muted. Omitted entirely when neither applies. */}
+              {g.highCount > 0 || days != null ? (
+                <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
+                  {g.highCount > 0 ? (
+                    <span className="text-text-warning">
+                      <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                    </span>
+                  ) : null}
+                  {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
+                  {days != null ? <span>{t`${days}d waiting`}</span> : null}
                 </span>
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-text-accent">
-                  <Trans>Review</Trans>
-                  <ChevronRightIcon
-                    aria-hidden
-                    className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
-                  />
-                </span>
-              </div>
+              ) : null}
             </button>
           )
         })}
