@@ -12,6 +12,7 @@ const t = zh
       headingPost: '保管的数据而生。',
       body: '客户的财务细节是你手中最敏感的东西。DueDateHQ 正是为守护它们而生——同时绝不干扰你的判断。',
       fine: '无需配置客户门户。没有第三方数据中间商。',
+      link: '查看完整的安全说明',
       items: [
         { icon: 'lock', t: '加密', d: '传输中和存储时，每一个字节都加密。' },
         { icon: 'shield', t: '只属于你', d: '你的客户名单绝不出售、共享，也绝不在各事务所之间汇集。' },
@@ -26,6 +27,7 @@ const t = zh
       headingPost: ' with.',
       body: "Your clients' financial details are the most sensitive thing you hold. DueDateHQ is built to keep them that way — and to stay out of the way of your judgment.",
       fine: 'No client portal to configure. No third-party data brokers.',
+      link: 'Read the full security overview',
       items: [
         { icon: 'lock', t: 'Encrypted', d: 'In transit and at rest, every byte.' },
         { icon: 'shield', t: 'Yours alone', d: 'Your client list is never sold, shared, or pooled across firms.' },
@@ -34,6 +36,7 @@ const t = zh
       ],
     }
 const items = t.items
+const secHref = (zh ? '/zh-CN' : '') + '/security'
 ---
 
 <section class="m-section" id="security" aria-labelledby="sec-h">
@@ -45,6 +48,7 @@ const items = t.items
         {t.body}
       </p>
       <p class="security__fine">{t.fine}</p>
+      <a class="security__link" href={secHref}>{t.link} <span aria-hidden="true">→</span></a>
     </div>
     <div class="security__cluster">
       {
@@ -100,7 +104,13 @@ const items = t.items
     grid-column: span 7;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: clamp(24px, 3vw, 40px);
+    gap: 14px;
+  }
+  .secitem {
+    padding: clamp(18px, 1.8vw, 22px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
   }
   .security__body {
     margin-top: 20px;
@@ -113,6 +123,19 @@ const items = t.items
     margin-top: 16px;
     font-size: 13px;
     color: var(--m-faint);
+  }
+  .security__link {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--m-accent);
+    transition: gap 0.15s ease;
+  }
+  .security__link:hover {
+    gap: 9px;
   }
   .secitem__ico {
     display: inline-flex;
