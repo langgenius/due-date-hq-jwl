@@ -34,13 +34,14 @@ ClientsEmptyState, the deadlines empty state). Reuses the existing catalog strin
 - **Shortcut help dialog width** (`ShortcutHelpDialog.tsx`) — `1100px` was far too
   wide (sparse rows); tightened to `720px`.
 
-## Deferred — client-name tooltip (item #1)
-The feedback described the Priorities **client name** showing an underline + tooltip
-on hover, but it's currently a plain span (no tooltip/underline). The Tooltip
-*primitive* is already polished + centralized (rounded-xl, blur, shadow, arrow), so
-all real tooltip uses share a good design. What to add to the client name —
-a context tooltip + link-style underline to the client page (a nested click target),
-vs. a "show full name when truncated" tooltip — is a design call left for the user.
+## Client-name link + tooltip (item #1)
+The Priorities **client name** was a plain span. Per the user's call, it's now its
+OWN link to the client page (`clientDetailPath`) with a hover/focus underline and a
+`View {client}` tooltip (the polished, centralized `TooltipContent`). Because the
+row itself opens the *deadline*, the link stops propagation on click + Enter/Space
+so the two targets never fire together. (The Tooltip primitive was already polished
++ centralized — every real tooltip shares it — so "have you polished the tooltip
+elsewhere" was already yes.)
 
 ## Verification
 tsgo app + ui 0 · i18n extract 0 (zh-CN Missing 0; net −1 string) · compile --strict

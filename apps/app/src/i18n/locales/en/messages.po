@@ -16418,6 +16418,8 @@ msgid "View"
 msgstr "View"
 
 #. placeholder {0}: client.name
+#. placeholder {0}: row.clientName
+#: src/features/dashboard/merged-brief-card.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View {0}"
 msgstr "View {0}"
