@@ -17,6 +17,7 @@ const t = zh
       leadHtml:
         '没有出处，就不呈现——下方每一个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>，否则宁可保留不展示，也不去猜。',
       tablistLabel: '示例变化类型',
+      switchCue: '换一个示例看看',
       sourceQuote: '来源原文',
       theChange: '变化内容',
       whosAffected: '影响到谁',
@@ -93,6 +94,7 @@ const t = zh
       leadHtml:
         "No provenance, no render — every field below carries its <b>source quote</b> and a <b>verified date</b>, or it's held back rather than guessed.",
       tablistLabel: 'Example change types',
+      switchCue: 'See another example',
       sourceQuote: 'Source quote',
       theChange: 'The change',
       whosAffected: "Who's affected",
@@ -172,23 +174,32 @@ const examples = t.examples
   </h2>
   <p class="m-lead notice__lead" set:html={t.leadHtml} />
 
-  <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
-    {
-      examples.map((e, i) => (
-        <button
-          class:list={['ntab', i === 0 && 'is-on']}
-          id={`ntab-${i}`}
-          role="tab"
-          aria-selected={i === 0 ? 'true' : 'false'}
-          aria-controls={`npanel-${i}`}
-          tabindex={i === 0 ? 0 : -1}
-          data-ntab={i}
-          type="button"
-        >
-          {e.tab}
-        </button>
-      ))
-    }
+  <div class="nswitch">
+    <span class="nswitch__cue" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h13l-3-3M21 16H8l3 3" />
+      </svg>
+      {t.switchCue}
+    </span>
+    <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
+      {
+        examples.map((e, i) => (
+          <button
+            class:list={['ntab', i === 0 && 'is-on']}
+            id={`ntab-${i}`}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`npanel-${i}`}
+            tabindex={i === 0 ? 0 : -1}
+            data-ntab={i}
+            type="button"
+          >
+            <span class="ntab__dot" aria-hidden="true" />
+            <span class="ntab__txt">{e.tab}</span>
+          </button>
+        ))
+      }
+    </div>
   </div>
 
   <div class="npanels">
@@ -299,13 +310,38 @@ const examples = t.examples
     font-weight: 600;
   }
 
-  /* toggle — a recessed track; the active type rises out of it on a clean
-     white pill (micro-lift, not a flat tint fill) */
-  .ntabs {
+  /* ---- example switcher ----
+     A labelled segmented control: a small "see another example" cue makes the
+     interaction unmistakable, then a recessed track where the selected type
+     rises onto a clean white pill (navy label + a lit leading dot), so it
+     reads as an obvious switch, not decoration. */
+  .nswitch {
     margin-top: clamp(28px, 3.5vw, 40px);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+  .nswitch__cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .nswitch__cue svg {
+    width: 14px;
+    height: 14px;
+    color: var(--m-accent);
+  }
+
+  .ntabs {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 2px;
     padding: 4px;
     background: var(--m-section);
     border: 1px solid var(--m-hairline-2);
@@ -314,21 +350,41 @@ const examples = t.examples
   }
   .ntab {
     position: relative;
-    padding: 7px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 8px 13px;
     border-radius: 999px;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0;
     color: var(--m-muted);
     cursor: pointer;
     transition:
-      color var(--m-dur) var(--m-ease),
-      background var(--m-dur) var(--m-ease),
-      box-shadow var(--m-dur) var(--m-ease);
+      color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease);
+  }
+  /* leading status dot — hollow when idle, fills navy when this type is showing */
+  .ntab__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: none;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-muted) 55%, transparent);
+    transition:
+      background var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease);
   }
   .ntab:hover:not(.is-on) {
     color: var(--m-ink-2);
-    background: color-mix(in srgb, var(--m-surface) 60%, transparent);
+    background: color-mix(in srgb, var(--m-surface) 70%, transparent);
+  }
+  .ntab:hover:not(.is-on) .ntab__dot {
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-accent) 55%, transparent);
   }
   .ntab.is-on {
     color: var(--m-accent);
@@ -337,6 +393,10 @@ const examples = t.examples
     box-shadow:
       0 1px 2px color-mix(in srgb, var(--m-ink) 8%, transparent),
       0 0 0 1px var(--m-hairline-2);
+  }
+  .ntab.is-on .ntab__dot {
+    background: var(--m-accent);
+    box-shadow: 0 0 0 3px var(--m-accent-tint);
   }
   .ntab:focus-visible {
     outline: 2px solid var(--m-accent);

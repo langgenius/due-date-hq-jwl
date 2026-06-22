@@ -1,7 +1,7 @@
 ---
-/** Left scroll-spy rail — an editorial "section index" in the left margin: a
- *  continuous spine line with a dot per section, mono uppercase labels, a glowing
- *  active dot, and an "NN / TT" progress counter. Shown on wide screens only. */
+/** Left scroll-spy rail — a quiet "section index" in the left margin: a plain
+ *  list of section labels, with one calm active treatment (bright label + a small
+ *  filled dot). Shown on wide screens only. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -31,22 +31,17 @@ const t = zh
       ],
     }
 const items = t.items
-const total = String(items.length).padStart(2, '0')
 ---
 
 <nav class="spyrail" id="spyrail" aria-label="Section navigation">
-  <div class="spyrail__track">
-    <span class="spyrail__line" aria-hidden="true"></span>
-    {
-      items.map((it) => (
-        <a class="spyrail__item" href={it.href}>
-          <span class="spyrail__dot" aria-hidden="true" />
-          <span class="spyrail__label">{it.label}</span>
-        </a>
-      ))
-    }
-  </div>
-  <p class="spyrail__count" aria-hidden="true"><b id="spyrail-cur">01</b> / {total}</p>
+  {
+    items.map((it) => (
+      <a class="spyrail__item" href={it.href}>
+        <span class="spyrail__dot" aria-hidden="true" />
+        <span class="spyrail__label">{it.label}</span>
+      </a>
+    ))
+  }
 </nav>
 
 <style>
@@ -57,7 +52,7 @@ const total = String(items.length).padStart(2, '0')
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
     opacity: 0;
     visibility: hidden;
@@ -78,48 +73,26 @@ const total = String(items.length).padStart(2, '0')
     }
   }
 
-  /* the spine: a continuous line, overhanging the first/last dot like the ref */
-  .spyrail__track {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-block: 18px;
-  }
-  .spyrail__line {
-    position: absolute;
-    left: 3px; /* dot centre */
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--m-hairline);
-  }
-
   .spyrail__item {
-    position: relative;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
   }
+  /* a small marker dot; visible only on the active item, so inactive rows read
+     as a quiet flush list */
   .spyrail__dot {
-    position: relative;
-    z-index: 1;
-    width: 7px;
-    height: 7px;
+    width: 5px;
+    height: 5px;
     flex: none;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--m-muted) 42%, transparent);
-    transition:
-      background 0.25s ease,
-      box-shadow 0.25s var(--m-ease),
-      transform 0.25s var(--m-ease);
+    background: var(--m-accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
   .spyrail__label {
-    font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
     color: var(--m-faint);
     white-space: nowrap;
     transition: color 0.2s ease;
@@ -127,41 +100,18 @@ const total = String(items.length).padStart(2, '0')
   .spyrail__item:hover .spyrail__label {
     color: var(--m-muted);
   }
-  .spyrail__item:hover .spyrail__dot {
-    background: var(--m-muted);
-  }
 
-  /* active — a glowing filled dot + bright label, the one lit stop on the spine */
+  /* active — one calm treatment: ink label + the small filled dot appears */
   .spyrail__item.is-active .spyrail__label {
     color: var(--m-ink);
   }
   .spyrail__item.is-active .spyrail__dot {
-    background: var(--m-accent);
-    transform: scale(1.2);
-    box-shadow:
-      0 0 0 1px var(--m-accent),
-      0 0 10px 2px color-mix(in srgb, var(--m-accent) 55%, transparent);
+    opacity: 1;
   }
 
-  .spyrail__count {
-    margin: 4px 0 0;
-    padding-left: 21px; /* under the labels (dot 7 + gap 14) */
-    font-family: var(--m-font-mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    color: var(--m-faint);
-  }
-  .spyrail__count b {
-    font-weight: 600;
-    color: var(--m-muted);
-  }
-
-  /* ===== over a dark band (the villain) — white spine + glow ===== */
-  .spyrail.is-on-dark .spyrail__line {
-    background: rgba(255, 255, 255, 0.18);
-  }
+  /* ===== over a dark band (the villain) — white-out ===== */
   .spyrail.is-on-dark .spyrail__dot {
-    background: rgba(255, 255, 255, 0.4);
+    background: #fff;
   }
   .spyrail.is-on-dark .spyrail__label {
     color: rgba(255, 255, 255, 0.5);
@@ -169,30 +119,8 @@ const total = String(items.length).padStart(2, '0')
   .spyrail.is-on-dark .spyrail__item:hover .spyrail__label {
     color: rgba(255, 255, 255, 0.85);
   }
-  .spyrail.is-on-dark .spyrail__item:hover .spyrail__dot {
-    background: rgba(255, 255, 255, 0.7);
-  }
   .spyrail.is-on-dark .spyrail__item.is-active .spyrail__label {
     color: #fff;
-  }
-  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
-    background: #fff;
-    box-shadow:
-      0 0 0 1px #fff,
-      0 0 11px 2px rgba(255, 255, 255, 0.5);
-  }
-  .spyrail.is-on-dark .spyrail__count {
-    color: rgba(255, 255, 255, 0.4);
-  }
-  .spyrail.is-on-dark .spyrail__count b {
-    color: rgba(255, 255, 255, 0.72);
-  }
-
-  /* zh — CJK has no uppercase and the mono face lacks Chinese glyphs */
-  html[lang='zh-CN'] .spyrail__label {
-    text-transform: none;
-    letter-spacing: 0.05em;
-    font-family: var(--m-font-sans);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -202,9 +130,6 @@ const total = String(items.length).padStart(2, '0')
     .spyrail__label {
       transition: none;
     }
-    .spyrail__item.is-active .spyrail__dot {
-      transform: none;
-    }
   }
 </style>
 
@@ -212,7 +137,6 @@ const total = String(items.length).padStart(2, '0')
   const rail = document.getElementById('spyrail')
   if (rail) {
     const items = Array.from(rail.querySelectorAll('.spyrail__item'))
-    const cur = document.getElementById('spyrail-cur')
     const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
     const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
     let ticking = false
@@ -225,7 +149,6 @@ const total = String(items.length).padStart(2, '0')
         if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
       }
       items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
-      if (cur) cur.textContent = String(Math.max(0, idx) + 1).padStart(2, '0')
       // reveal only once scrolled past the hero
       rail.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.55)
       // white-out when the rail sits over a dark band (the villain)

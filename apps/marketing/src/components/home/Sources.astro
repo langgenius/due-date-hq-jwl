@@ -110,8 +110,8 @@ const tiles = [
       <div class="usmap-wrap">
         <div class="usmap" role="img" aria-label={t.mapLabel}>
           {
-            tiles.map((tile, i) => (
-              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c};--i:${i}`}>
+            tiles.map((tile) => (
+              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c}`}>
                 <span class="ust__c">{tile.s}</span>
               </div>
             ))
@@ -174,16 +174,15 @@ const tiles = [
 </section>
 
 <style>
-  /* full-bleed band — genuinely expansive, near edge-to-edge, no bottom border */
+  /* normal contained band — matches the other sections; no top/bottom border */
   .sources {
     background: var(--m-section);
-    border-top: 1px solid var(--m-hairline);
     padding-block: clamp(56px, 8vw, 112px);
   }
   .sources__inner {
-    /* nearly full-width: leave only a slim breathing margin so the band reads grand */
-    width: min(100% - clamp(28px, 5vw, 96px), 1880px);
+    max-width: var(--m-maxw);
     margin-inline: auto;
+    padding-inline: var(--m-gutter);
   }
   .sources__lead {
     margin-top: 18px;
@@ -234,7 +233,8 @@ const tiles = [
     align-self: stretch;
   }
 
-  /* ---- US tilegram — every tile identical: all 50 + DC, uniformly live ---- */
+  /* ---- US tilegram — a calm coverage grid: light neutral tiles, every one
+     carrying the same quiet "live" cue. No priority tier, no blue block. ---- */
   .usmap {
     display: grid;
     grid-template-columns: repeat(13, minmax(0, 1fr));
@@ -247,44 +247,45 @@ const tiles = [
     display: grid;
     place-items: center;
     border-radius: 7px;
-    overflow: hidden;
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
-    color: #fff;
-    /* identical fill on every state — no priority tier */
-    background: var(--m-accent);
+    color: var(--m-ink-2);
+    /* neutral surface on every state — identical, no priority tier */
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
   }
   .ust__c {
     position: relative;
     z-index: 1;
   }
-  /* live scan wave — a cyan flash rippling across the map. Animating an overlay's
-     OPACITY (GPU-composited) instead of background + box-shadow on all 51 tiles
-     (paint, every frame) keeps the effect cheap. */
+  /* the quiet "live" cue — one small accent dot per tile, top-right.
+     Same on every state: watched, uniformly, no louder anywhere. */
   .ust::after {
     content: '';
     position: absolute;
-    inset: 0;
+    top: 4px;
+    right: 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
     background: var(--m-cyan);
-    opacity: 0;
-    animation: ust-scan 6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.11s);
     pointer-events: none;
   }
-  @keyframes ust-scan {
-    0%,
-    88%,
-    100% {
-      opacity: 0;
-    }
-    94% {
-      opacity: 0.42;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
+  /* a very subtle, slow live breath — all dots together (no scan wave), so the
+     map just quietly signals "live" instead of animating across the country */
+  @media (prefers-reduced-motion: no-preference) {
     .ust::after {
-      animation: none;
+      animation: ust-live 4.8s ease-in-out infinite;
+    }
+    @keyframes ust-live {
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+      50% {
+        opacity: 1;
+      }
     }
   }
   .usmap__legend {
@@ -301,12 +302,25 @@ const tiles = [
     align-items: center;
     gap: 7px;
   }
+  /* legend swatch mirrors a map tile: neutral chip + the quiet cyan live-dot */
   .sw {
+    position: relative;
     width: 12px;
     height: 12px;
     border-radius: 4px;
     flex: none;
-    background: var(--m-accent);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .sw::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--m-cyan);
   }
   /* "51 jurisdictions watched live" — reinforces uniform, full-country coverage */
   .usmap__stat {
@@ -408,6 +422,8 @@ const tiles = [
   .feed-row.is-alert {
     background: color-mix(in srgb, var(--m-urgent) 5%, transparent);
   }
+  /* neutral provenance chip — navy stays only as the mono code's text accent,
+     not a blue fill on every row */
   .feed-row__badge {
     flex: none;
     width: 32px;
@@ -418,9 +434,9 @@ const tiles = [
     font-family: var(--m-font-mono);
     font-size: 10px;
     font-weight: 600;
-    color: var(--m-accent);
-    background: var(--m-accent-tint);
-    border: 1px solid color-mix(in srgb, var(--m-accent) 14%, transparent);
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
   }
   .feed-row__main {
     flex: 1 1 auto;
@@ -456,10 +472,9 @@ const tiles = [
     border-radius: 4px;
     padding: 1px 6px;
   }
+  /* Federal vs State told by the darker navy text only — no blue fill */
   .feed-row__agency--fed {
     color: var(--m-accent);
-    background: var(--m-accent-tint);
-    border-color: color-mix(in srgb, var(--m-accent) 16%, transparent);
   }
   .feed-row__body {
     font-size: 12px;
