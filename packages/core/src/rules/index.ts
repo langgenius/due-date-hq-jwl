@@ -4499,13 +4499,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'nd.temporary_announcements',
     jurisdiction: 'ND',
     title: 'North Dakota Office of State Tax Commissioner News',
-    // /news/tax-legislative-changes is a hub; /news is the parent newsroom that
-    // renders the reverse-chron dated release list as server-side HTML. Same
-    // RI-style correction: this is an HTML listing, not an RSS/Atom feed, so it
-    // is html_watch (not api_watch with feedUrl pointed at the same HTML page).
+    // 2026-06-22: fetch the RSS feed via feedUrl. The prior assumption that the
+    // /news HTML page server-renders the dated release list was wrong — verified
+    // live, /news only yields topic nav ("Where's My Refund", "Sales Tax
+    // Exemptions", …) and parsed zero real press releases (the dated list is
+    // JS-rendered). The /rss/news feed carries the 10 most-recent dated releases
+    // (Motor Fuel Tax, Taxable Sales Data, April 15 deadline, property-tax relief,
+    // …) as plain XML; the parser auto-detects <rss>. url stays the human page;
+    // feedUrl is what gets fetched (ruleSourceFetchUrl = feedUrl ?? url).
     url: 'https://www.tax.nd.gov/news',
-    acquisitionMethod: 'html_watch',
-    adapterKind: 'html_announcement_list',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.tax.nd.gov/rss/news',
   },
   {
     id: 'ne.temporary_announcements',
