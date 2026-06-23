@@ -16,7 +16,7 @@ important level, hence the same title size."
   grid + card padding), right track `minmax(0,1fr)`. They share a baseline
   (`items-start`) so the two headings line up as siblings.
 - **Container query, not a viewport breakpoint.** The split triggers at
-  `@4xl` (56rem / 896px) of the *wrapper's own width* via `@container`, because
+  `@4xl` (56rem / 896px) of the _wrapper's own width_ via `@container`, because
   the collapsible app sidebar makes viewport breakpoints unreliable for inner
   content width. Below that the two stack full-width. This is the app's first
   use of CQs — verified the utilities emit in the built CSS

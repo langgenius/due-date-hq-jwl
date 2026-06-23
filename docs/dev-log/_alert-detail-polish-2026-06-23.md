@@ -31,7 +31,7 @@ Page-feedback batch on the alert detail page. What shipped here:
 ## Findings (not bugs / deferred)
 
 - **#2 "Needs your decision" never appeared.** Not a bug — the eyebrow is
-  correctly hidden for *resolved* alerts. The reported alert (`…3020`) is already
+  correctly hidden for _resolved_ alerts. The reported alert (`…3020`) is already
   **dismissed**; on a pending alert (e.g. `…3003`) the eyebrow shows (verified
   live), and the stepper reads ✓✓✓ · ● Your decision · ○ Applied. Open question:
   cyan vs the current navy-accent — left navy for now (consistent with the other
@@ -43,7 +43,7 @@ Page-feedback batch on the alert detail page. What shipped here:
   a child of the 880-constrained content column, so its white bg only spanned the
   centered 880 band. Moved it OUT to a direct child of the scroll container,
   between the hero and the content column: `sticky top-0 bg-background-default
-  px-6 xl:px-12` (full-width white) with an inner `mx-auto max-w-[880px]` tab row.
+px-6 xl:px-12` (full-width white) with an inner `mx-auto max-w-[880px]` tab row.
   Now nav width == hero width (1186px live), both white → one continuous
   masthead; tabs stay aligned to the 880 content column. Scroll-spy + the
   shared-layout underline unchanged. Content column got `pt-6` for spacing.

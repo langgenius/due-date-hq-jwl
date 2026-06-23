@@ -60,7 +60,7 @@ reversed:
 - **Rows + day band re-padded:** restored `px-5` so content clears the new
   border (a framed card needs cell padding).
 - **Day band colour back:** `bg-background-default` → `bg-background-subtle` (the
-  tinted section band now reads correctly *because* the frame contains it). Kept
+  tinted section band now reads correctly _because_ the frame contains it). Kept
   the thinner `py-1.5`.
 - The toolbar stays flush (no px-5) above the card, aligned with the frame's
   left edge + the page header.
