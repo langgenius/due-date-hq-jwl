@@ -1146,13 +1146,16 @@ function OverviewCaughtUpCard({
     'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
   const linkArrowClass = 'size-3.5 transition-transform group-hover/link:translate-x-0.5'
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-background-subtle px-6 py-10">
+    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl border border-divider-warm bg-background-well-warm px-6 py-10">
       <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
+        {/* Palette finish: a clear review queue is a reward, so the disc wears
+            the LIME celebration highlight (matching the /today all-clear beat) —
+            dark check on lime, never a light glyph on the light fill. */}
         <span
           aria-hidden
-          className="flex size-12 items-center justify-center rounded-full bg-state-success-hover"
+          className="flex size-12 items-center justify-center rounded-full bg-highlight-celebrate"
         >
-          <CheckIcon className="size-[22px] text-state-success-solid" />
+          <CheckIcon className="size-[22px] text-text-primary" />
         </span>
         <span className="text-xl font-semibold tracking-title text-text-primary">
           <Trans>Review queue is clear</Trans>

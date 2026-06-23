@@ -189,10 +189,18 @@ default; navy stays the only chrome accent and the cool grays stay the workbench
 
 - **Stone well** — warm where the cool `--background-section` gray reads clinical:
   the moment is _resting / invitational_, not the dense workbench. Live homes:
-  `SetupProgressCard` + `sidebar-setup-card` (first-run onboarding nudges).
-- **Lime celebration** — kept **scarce**: the `/today` all-clear beat
-  (`merged-brief-card` coffee disc). Lime is very light → carries **dark navy /
-  ink** text on the fill, **never white** (mirrors the brand-highlight rule).
+  `SetupProgressCard` + `sidebar-setup-card` (onboarding nudges); and — as of the
+  2026-06-23 "bolder" pass — the **`EmptyState` `prominent` variant by default**
+  (`tone="warm"`, with `tone="plain"` to opt back to white), so every
+  full-surface empty reads warm + invitational. Plus the `/rules` "Review queue
+  is clear" card.
+- **Lime celebration** — kept **scarce**, reserved for genuine "you cleared it"
+  reward moments (never a quiet "nothing yet" state). Live homes: the `/today`
+  all-clear beat (`merged-brief-card` coffee disc), the `/rules` caught-up disc,
+  and the `EmptyState` `iconTone="celebrate"` (lime icon-circle). Lime is very
+  light → carries **dark navy / ink** glyphs + text, **never white** (mirrors the
+  brand-highlight rule). Specimens: `/preview` EmptyState row (warm + celebrate +
+  plain).
 - Raw stops live as `--color-util-colors-stone-50 / stone-200 / lime-100`.
 
 ---
