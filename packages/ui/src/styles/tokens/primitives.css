@@ -245,46 +245,55 @@
   --color-util-colors-gray-800: #18222f;
   --color-util-colors-gray-900: #101828;
 
-  /* ===== Util-colors: primary (warm navy-indigo) =========================
-   * 2026-06-16 (Yuqi — accent = navy; sage discarded): the product accent is a
-   * warm navy-indigo, deepened from the original Dify blue so it relates to the
-   * brand ink (#0a2540) without being it. The CALM default accent — buttons,
-   * links, selection. Base 600 #2e368c, hover 700 #222a6c, solid 500 #4350a3.
-   * A separate, BRIGHTER blue (--color-brand-highlight, below) carries
-   * emphasis / highlight / hint moments where something must pop louder than the
-   * navy. Ramp recomputed at the warm hue (~234°) so every tint stays coherent.
+  /* ===== Util-colors: primary (true navy blue) ===========================
+   * 2026-06-23 (palette retune): the product accent is a TRUE navy blue (hue
+   * ~218°), re-pointed from the prior warm navy-indigo (~234°). The CALM
+   * default accent — primary buttons, selection, links, focus ring. Anchored
+   * to the new palette: 600 = accent solid #22488C, 800 = deep/pressed
+   * #15315F, 300 = mid border #9DB2DA, 50 = wash/hover bg #EAEFF7. Ramp
+   * recomputed at the navy hue so every tint stays coherent. Navy is the ONLY
+   * chrome accent; status colours live only on status. The cyan that used to
+   * carry "highlight" now reads as INFO/sky (--color-brand-highlight family,
+   * re-pointed below).
    * ===================================================================== */
-  --color-util-colors-primary-25: #f7f8fd;
-  --color-util-colors-primary-50: #eef0fb;
-  --color-util-colors-primary-100: #dadef6;
-  --color-util-colors-primary-200: #bcc3ee;
-  --color-util-colors-primary-300: #959fe1;
-  --color-util-colors-primary-400: #6671cc;
-  --color-util-colors-primary-500: #4350a3;
-  --color-util-colors-primary-600: #2e368c;
-  --color-util-colors-primary-700: #222a6c;
-  --color-util-colors-primary-800: #1b2156;
-  --color-util-colors-primary-900: #151a40;
+  --color-util-colors-primary-25: #f6f8fc;
+  --color-util-colors-primary-50: #eaeff7;
+  --color-util-colors-primary-100: #d4def0;
+  --color-util-colors-primary-200: #b3c5e5;
+  --color-util-colors-primary-300: #9db2da;
+  --color-util-colors-primary-400: #5f80b8;
+  --color-util-colors-primary-500: #3a5f9c;
+  --color-util-colors-primary-600: #22488c;
+  --color-util-colors-primary-700: #1b3c75;
+  --color-util-colors-primary-800: #15315f;
+  --color-util-colors-primary-900: #102648;
 
-  /* ===== Util-colors: red ================================================ */
-  --color-util-colors-red-50: #fef3f2;
-  --color-util-colors-red-100: #fee4e2;
-  --color-util-colors-red-200: #fecdca;
-  --color-util-colors-red-300: #fda29b;
-  --color-util-colors-red-400: #f97066;
-  --color-util-colors-red-500: #f04438;
-  --color-util-colors-red-600: #d92d20;
-  --color-util-colors-red-700: #b42318;
+  /* ===== Util-colors: red (destructive) ==================================
+   * 2026-06-23 (palette retune): softer terracotta/brick destructive, warmer
+   * and less neon than the prior pure red. Anchored: 500 = solid #D2553F,
+   * 50 = wash #FBE9E4, 200 = mid border #EBA99B, 600 = ink #B23A28 (AA on
+   * white + wash). 400 stays the brighter step used by dark-mode solids. */
+  --color-util-colors-red-50: #fbe9e4;
+  --color-util-colors-red-100: #f7d6cd;
+  --color-util-colors-red-200: #eba99b;
+  --color-util-colors-red-300: #e08a78;
+  --color-util-colors-red-400: #db6e58;
+  --color-util-colors-red-500: #d2553f;
+  --color-util-colors-red-600: #b23a28;
+  --color-util-colors-red-700: #952f20;
 
-  /* ===== Util-colors: green ============================================== */
-  --color-util-colors-green-50: #ecfdf3;
-  --color-util-colors-green-100: #dcfae6;
-  --color-util-colors-green-200: #abefc6;
-  --color-util-colors-green-300: #75e0a7;
-  --color-util-colors-green-400: #47cd89;
-  --color-util-colors-green-500: #17b26a;
-  --color-util-colors-green-600: #079455;
-  --color-util-colors-green-700: #067647;
+  /* ===== Util-colors: green (success) ====================================
+   * 2026-06-23 (palette retune): softer, slightly desaturated success green.
+   * Anchored: 500 = solid #3FA86A, 50 = wash #E8F5EC, 200 = mid border #9CD3B0,
+   * 600 = ink #1E7A47 (AA on white + wash). Ramp recomputed at the new hue. */
+  --color-util-colors-green-50: #e8f5ec;
+  --color-util-colors-green-100: #d2ecdb;
+  --color-util-colors-green-200: #9cd3b0;
+  --color-util-colors-green-300: #74c293;
+  --color-util-colors-green-400: #54b67e;
+  --color-util-colors-green-500: #3fa86a;
+  --color-util-colors-green-600: #1e7a47;
+  --color-util-colors-green-700: #19663b;
 
   /* ===== Util-colors: yellow ============================================= */
   --color-util-colors-yellow-50: #fefbe8;
@@ -306,15 +315,19 @@
   --color-util-colors-orange-600: #e04f16;
   --color-util-colors-orange-700: #b93815;
 
-  /* ===== Util-colors: warning (peach/coral) ============================== */
-  --color-util-colors-warning-50: #fff4f1;
-  --color-util-colors-warning-100: #ffe4dd;
-  --color-util-colors-warning-200: #ffc7bd;
-  --color-util-colors-warning-300: #ffa091;
-  --color-util-colors-warning-400: #f77865;
-  --color-util-colors-warning-500: #f25f4c;
-  --color-util-colors-warning-600: #c83d2f;
-  --color-util-colors-warning-700: #a83227;
+  /* ===== Util-colors: warning (amber / ochre) ============================
+   * 2026-06-23 (palette retune): re-hued from the prior peach/coral to a warm
+   * AMBER so warning reads as caution-gold, distinct from destructive brick.
+   * Anchored: 500 = solid #C0883A, 50 = wash #F4ECDE, 200 = mid border #E2C690,
+   * 600 = ink #7A5320 (AA on white + wash). Ramp recomputed at the amber hue. */
+  --color-util-colors-warning-50: #f4ecde;
+  --color-util-colors-warning-100: #eddfc6;
+  --color-util-colors-warning-200: #e2c690;
+  --color-util-colors-warning-300: #d6ad60;
+  --color-util-colors-warning-400: #cb9a48;
+  --color-util-colors-warning-500: #c0883a;
+  --color-util-colors-warning-600: #7a5320;
+  --color-util-colors-warning-700: #65441a;
 
   /* ===== Util-colors: blue =============================================== */
   --color-util-colors-blue-50: #eff8ff;
@@ -326,15 +339,19 @@
   --color-util-colors-blue-600: #1570ef;
   --color-util-colors-blue-700: #175cd3;
 
-  /* ===== Util-colors: blue-light (sky) =================================== */
-  --color-util-colors-blue-light-50: #f0f9ff;
-  --color-util-colors-blue-light-100: #e0f2fe;
-  --color-util-colors-blue-light-200: #b9e6fe;
-  --color-util-colors-blue-light-300: #7cd4fd;
-  --color-util-colors-blue-light-400: #36bffa;
-  --color-util-colors-blue-light-500: #0ba5ec;
-  --color-util-colors-blue-light-600: #0086c9;
-  --color-util-colors-blue-light-700: #026aa2;
+  /* ===== Util-colors: blue-light (sky / INFO) ============================
+   * 2026-06-23 (palette retune): this is the INFO / live / monitoring / "New"
+   * sky family — the home for what the loud cyan (--color-brand-highlight)
+   * used to carry. Anchored: 500 = solid #3AB3E0, 50 = wash #E6F6FC,
+   * 200 = mid border #A9DCF0, 600 = ink #0E6E92 (AA on white + wash). */
+  --color-util-colors-blue-light-50: #e6f6fc;
+  --color-util-colors-blue-light-100: #cdecf8;
+  --color-util-colors-blue-light-200: #a9dcf0;
+  --color-util-colors-blue-light-300: #79cae9;
+  --color-util-colors-blue-light-400: #54bfe5;
+  --color-util-colors-blue-light-500: #3ab3e0;
+  --color-util-colors-blue-light-600: #0e6e92;
+  --color-util-colors-blue-light-700: #0b5a78;
 
   /* ===== Util-colors: indigo ============================================= */
   --color-util-colors-indigo-50: #eef4ff;
@@ -346,15 +363,18 @@
   --color-util-colors-indigo-600: #444ce7;
   --color-util-colors-indigo-700: #3538cd;
 
-  /* ===== Util-colors: violet ============================================= */
-  --color-util-colors-violet-50: #f5f3ff;
-  --color-util-colors-violet-100: #ece9fe;
-  --color-util-colors-violet-200: #ddd6fe;
-  --color-util-colors-violet-300: #c3b5fd;
-  --color-util-colors-violet-400: #a48afb;
-  --color-util-colors-violet-500: #875bf7;
-  --color-util-colors-violet-600: #7839ee;
-  --color-util-colors-violet-700: #6927da;
+  /* ===== Util-colors: violet (review) ====================================
+   * 2026-06-23 (palette retune): retuned review violet — same semantic, new
+   * hue/lightness. Anchored: 500 = solid #7A5AF0, 50 = wash #EEEBFD,
+   * 200 = mid border #C7BAFB, 700 = ink #4B3596 (AA on white + wash). */
+  --color-util-colors-violet-50: #eeebfd;
+  --color-util-colors-violet-100: #e1dcfc;
+  --color-util-colors-violet-200: #c7bafb;
+  --color-util-colors-violet-300: #a994f7;
+  --color-util-colors-violet-400: #9275f3;
+  --color-util-colors-violet-500: #7a5af0;
+  --color-util-colors-violet-600: #5f43c4;
+  --color-util-colors-violet-700: #4b3596;
 
   /* ===== Util-colors: teal =============================================== */
   --color-util-colors-teal-50: #f0fdf9;
@@ -401,14 +421,17 @@
   --color-brand-ivory: #f3eee6; /* warm ivory — mark fill on navy only (auth/splash ground reverted to cold gray `background-subtle` 2026-06-18) */
   --color-brand-gold: #b99b62; /* heritage gold (prior favicon) — secondary accent, sparing */
 
-  /* Highlight — the LOUD cyan, by EXCEPTION (2026-06-16, Yuqi). Navy
-   * (primary-600) is the calm default; this bright cyan-azure marks new/unseen
-   * items and is kept SCARCE — a marker, not a co-equal accent tier. Visible
-   * anchor: the `New` badge (primitives/new-badge.tsx) + the unread dots.
-   * Contrast: #14c5f6 is light — it CANNOT carry white text and is too light for
-   * body text on white. Use `highlight` for fills/dots/rings (dark/navy text on
-   * the fill), `highlight-ink` for legible text/links, `highlight-soft` for washes. */
-  --color-brand-highlight: #14c5f6; /* fills · dots · rings · the New badge */
-  --color-brand-highlight-ink: #066c98; /* darkened — AA text/links on light */
-  --color-brand-highlight-soft: #e3f6fd; /* light wash background */
+  /* Highlight — the INFO / sky family, by EXCEPTION (2026-06-23 palette retune;
+   * was the loud cyan #14c5f6). Navy (primary-600) is the calm default chrome
+   * accent; this sky-blue marks live / monitoring / new-unseen moments and is
+   * kept SCARCE — a marker, not a co-equal accent tier. Visible anchor: the
+   * `New` badge (primitives/new-badge.tsx) + the unread dots. Aligned to the
+   * blue-light (sky / INFO) ramp so highlight and the info status family read
+   * as one hue. Contrast: `highlight` (#3AB3E0, the INFO solid) is light — it
+   * CANNOT carry white text; use it for fills/dots/rings (dark/navy text on the
+   * fill), `highlight-ink` (#0E6E92, the INFO ink, AA on white) for legible
+   * text/links, `highlight-soft` (#E6F6FC, the INFO wash) for washes. */
+  --color-brand-highlight: #3ab3e0; /* INFO solid · fills · dots · rings · the New badge */
+  --color-brand-highlight-ink: #0e6e92; /* INFO ink — AA text/links on light */
+  --color-brand-highlight-soft: #e6f6fc; /* INFO wash background */
 }
