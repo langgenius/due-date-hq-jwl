@@ -2236,9 +2236,7 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
           <TextLink
             variant="accent"
             size="sm"
-            render={
-              <Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}&group=client`} />
-            }
+            render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}&group=client`} />}
           >
             <UsersIcon className="size-3.5" aria-hidden />
             <Trans>View affected clients</Trans>

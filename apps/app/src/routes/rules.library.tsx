@@ -2805,7 +2805,13 @@ export function RulesLibraryRoute() {
                       // same flat table lists that source's rules instead.
                       <SearchResultsTable
                         activeRuleId={ruleId}
-                        rules={isSearching ? matchedRules : sourceParam ? sourceMatchedRules : matchedRules}
+                        rules={
+                          isSearching
+                            ? matchedRules
+                            : sourceParam
+                              ? sourceMatchedRules
+                              : matchedRules
+                        }
                         query={searchLower}
                         onRuleClick={handleRuleClick}
                         focusedRowId={focusedRowId}
