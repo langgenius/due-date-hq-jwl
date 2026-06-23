@@ -1244,8 +1244,12 @@ export function AlertDetailDrawer({
             impact_level: alertImpactLevel(detail.alert),
           })
         }
-        toast.success(t`Alert dismissed`)
-        onClose()
+        // Dismiss resolves the alert → advance to the next in the rail (same
+        // triage flow as Mark reviewed), or close back to the list when it was
+        // the last one. The toast names where it went.
+        toast.success(t`Alert dismissed`, { description: t`Moved to Alert history.` })
+        if (onNext) onNext()
+        else onClose()
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
@@ -2451,7 +2455,11 @@ export function AlertDetailDrawer({
           {detail ? (
             <div
               className={cn(
-                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+                // bg matches the document body (bg-background-section), not white
+                // (Yuqi 2026-06-23 "remove white background") — still opaque so it
+                // masks the document scrolling under it, but no longer reads as a
+                // distinct white bar against the gray body.
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-section py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
                 decisionDocked ? 'border-transparent' : 'border-divider-subtle',
               )}
               // Float elevation as an inline style — an arbitrary
