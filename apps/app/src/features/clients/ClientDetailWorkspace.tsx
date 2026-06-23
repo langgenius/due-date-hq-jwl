@@ -23,6 +23,7 @@ import {
   RefreshCwIcon,
   ScrollTextIcon,
   SettingsIcon,
+  SquareChartGanttIcon,
   Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -54,6 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -1712,7 +1714,10 @@ function ClientHeaderOverflowMenu({
       <DropdownMenuContent align="end" className="min-w-[220px]">
         {canReadAudit ? (
           <DropdownMenuItem
-            onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+            // `entity=<id>` scopes the audit log to THIS client (the page now
+            // wires that param to the query's entityId). Was `entityId=`, which
+            // the page never read — so it used to show every client's events.
+            onClick={() => void navigate(`/audit?entity=${clientId}`)}
           >
             <ScrollTextIcon className="size-4" aria-hidden />
             <Trans>View audit log</Trans>
@@ -1896,6 +1901,7 @@ function ClientOwnerHeaderPill({
   onChange: (assigneeId: string | null) => void
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const isMine =
     name !== null &&
     currentUserName !== null &&
@@ -1971,6 +1977,21 @@ function ClientOwnerHeaderPill({
         }
       />
       <DropdownMenuContent align="start" className="w-56">
+        {/* Read action before the reassign list: jump to this owner's
+            deadlines (assignee filter is name-keyed). Turns the owner pill
+            from "reassign-only" into the client↔team↔work link — see who
+            holds this client's work, or hand it off below. */}
+        {name !== null ? (
+          <>
+            <DropdownMenuItem
+              onClick={() => void navigate(`/deadlines?assignee=${encodeURIComponent(name)}`)}
+            >
+              <SquareChartGanttIcon className="size-4" aria-hidden />
+              <Trans>View {name}&rsquo;s deadlines</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuRadioGroup
           value={currentAssigneeId ?? '__unassigned__'}
           onValueChange={(value) => {
