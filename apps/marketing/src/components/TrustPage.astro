@@ -37,10 +37,8 @@ const pad = (n: number) => String(n).padStart(2, '0')
 ---
 
 <main class="trustpg" data-slug={page.slug}>
-  <section class="m-section trustpg__hero" id="hero">
-    <p class="m-eyebrow trustpg__eyebrow">
-      <span class="trustpg__eyebrow-dot" aria-hidden="true"></span>{page.hero.eyebrow}
-    </p>
+  <section class="m-section m-page-hero trustpg__hero" id="hero">
+    <p class="m-eyebrow">{page.hero.eyebrow}</p>
     <h1 class={`trustpg__title${isSignature ? ' trustpg__title--display' : ''}`}>{page.hero.title}</h1>
     <p class="trustpg__lead">{page.hero.description}</p>
 
@@ -135,18 +133,8 @@ const pad = (n: number) => String(n).padStart(2, '0')
   /* ============================================================================
      Hero — calm by default; bold + display-serif on the signature pages.
      ============================================================================ */
-  .trustpg__hero {
-    padding-block: clamp(56px, 7vw, 96px) clamp(28px, 3.5vw, 44px);
-  }
-  .trustpg__eyebrow {
-    margin-bottom: 22px;
-  }
-  .trustpg__eyebrow-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--m-accent);
-  }
+  /* hero padding + eyebrow come from the shared kit (.m-page-hero on the section,
+     plain .m-eyebrow) — aligned with every other subpage */
   /* Display serif hero — one voice with every other page (home, leaves, finale).
      Calm size on the legal pages; the signature pages step up below. */
   .trustpg__title {

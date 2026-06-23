@@ -97,8 +97,8 @@ const ui = zh
 const matrixAria = ui.matrixTitle
 ---
 
-<section class="m-section pr" data-pricing-root data-billing-interval="monthly">
-  <div class="m-page-hero pr__hero">
+<section class="m-section m-page-hero pr" data-pricing-root data-billing-interval="monthly">
+  <div class="pr__hero">
     <p class="m-eyebrow">{t.hero.eyebrow}</p>
     <h1 class="pr__title">{t.hero.title}</h1>
     <p class="m-page-lead pr__lead">{t.hero.description}</p>
@@ -322,8 +322,11 @@ const matrixAria = ui.matrixTitle
 
 <style>
   /* ---- hero: display-serif headline, beta posture front and centre ---- */
+  /* hero padding comes from the shared .m-page-hero on the section (eyebrow lands
+     at the same Y as every subpage); this only restores the hero → plans gap the
+     inner wrapper used to carry */
   .pr__hero {
-    padding-block: clamp(40px, 5vw, 72px) clamp(28px, 3.5vw, 44px);
+    margin-bottom: clamp(20px, 3vw, 36px);
   }
   .pr__title {
     margin-top: 4px;

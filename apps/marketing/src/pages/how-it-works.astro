@@ -34,7 +34,7 @@ const pathname = '/how-it-works'
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" />
   <main>
-    <section class="m-section how-hero" id="hero">
+    <section class="m-section m-page-hero how-hero" id="hero">
       <p class="m-eyebrow">Product walkthrough</p>
       <h1 class="how-hero__title">
         From a deadline change to the clients it <span class="ital">touches.</span>
@@ -88,18 +88,11 @@ const pathname = '/how-it-works'
   <ScrollMotion />
 </BaseLayout>
 
-<style is:global>
-  body {
-    background: var(--m-canvas);
-  }
-</style>
-
 <style>
   /* page hero — bolder than the shared .m-page-hero kit: display serif, a real
      ceiling, and a worked-example strip that sets the concrete scene up front */
-  .how-hero {
-    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
-  }
+  /* hero padding comes from the shared .m-page-hero on the section (one Y for
+     every subpage eyebrow) — no per-page override */
   /* a full-width slot for a real product screenshot under the worked example */
   .how-shot {
     margin-top: clamp(28px, 4vw, 48px);

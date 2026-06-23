@@ -105,6 +105,14 @@
   --m-focus-offset: 2px;
 }
 
+/* One marketing canvas for EVERY page — the public site reads as a single
+   surface, not a patchwork of warm/cool backgrounds. Unlayered so it overrides
+   the BaseLayout <body>'s layered Tailwind `bg-bg-canvas` utility. Pages must NOT
+   re-declare their own body background. */
+body {
+  background: var(--m-canvas);
+}
+
 /* ============================================================================
    Cross-page View Transitions (astro:transitions ClientRouter). A calm, premium
    cross-fade with a small rise on the incoming page — never a slide or wipe.

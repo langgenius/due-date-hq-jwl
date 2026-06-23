@@ -30,7 +30,7 @@ const pathname = '/zh-CN/how-it-works'
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" locale="zh-CN" />
   <main>
-    <section class="m-section how-hero" id="hero">
+    <section class="m-section m-page-hero how-hero" id="hero">
       <p class="m-eyebrow">产品导览</p>
       <h1 class="how-hero__title">
         从一次截止日变化，<br />到它牵动的<span class="ital">每一个客户。</span>
@@ -78,19 +78,12 @@ const pathname = '/zh-CN/how-it-works'
   <ScrollMotion />
 </BaseLayout>
 
-<style is:global>
-  body {
-    background: var(--m-canvas);
-  }
-</style>
-
 <style>
   /* 页面 hero —— 比共享 .m-page-hero 更有分量：衬线显示体 + 真实的字号上限，
      再用一个走通的例子把抽象闭环落地。CJK 字形偏满、偏重，所以收一档字号、
      放宽行高、取消紧凑字距。 */
-  .how-hero {
-    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
-  }
+  /* hero padding comes from the shared .m-page-hero on the section (one Y for
+     every subpage eyebrow) — no per-page override */
   .how-hero__title {
     margin-top: 4px;
     max-width: 20ch;
