@@ -4800,6 +4800,10 @@ msgstr "无法复制链接"
 msgid "Couldn't copy link — your browser blocked clipboard access."
 msgstr "无法复制链接 — 浏览器阻止了剪贴板访问。"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't copy recap"
+msgstr "无法复制摘要"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy source excerpt"
 msgstr "无法复制原文摘录"

@@ -5785,6 +5785,12 @@ function NewRuleModal({
         // Re-fetch rules + coverage so the new rule appears in the
         // library and the gap row disappears.
         void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        // The server ACTIVATES the rule immediately, so it can generate
+        // deadlines + write an audit event — fan out to the downstream
+        // surfaces too (audit P3), matching the accept-rule mutation above.
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         track(ANALYTICS_EVENTS.customRuleCreated, {
           jurisdiction: seed.jurisdiction,
           filing_type: taxType.trim(),

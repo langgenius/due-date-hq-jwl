@@ -175,6 +175,11 @@ export function NotificationPreferencesPage() {
     orpc.notifications.previewMorningDigest.mutationOptions({
       onSuccess: () => {
         toast.success(t`Morning digest preview queued`)
+        // Refresh the runs list so the just-queued preview shows without a
+        // manual refetch (audit P3).
+        void queryClient.invalidateQueries({
+          queryKey: orpc.notifications.listMorningDigestRuns.key(),
+        })
       },
       onError: (error) => {
         toast.error(t`Couldn't queue morning digest preview`, {

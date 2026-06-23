@@ -4779,6 +4779,10 @@ msgstr "Couldn't copy link"
 msgid "Couldn't copy link — your browser blocked clipboard access."
 msgstr "Couldn't copy link — your browser blocked clipboard access."
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't copy recap"
+msgstr "Couldn't copy recap"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy source excerpt"
 msgstr "Couldn't copy source excerpt"

@@ -1859,6 +1859,7 @@ function HistoryCard({
  * recap's section labels + text to the clipboard.
  */
 function CopyRecapButton({ insight }: { insight: AiInsightPublic | null }) {
+  const { t } = useLingui()
   const [copied, setCopied] = useState(false)
   if (!insight || insight.sections.length === 0) return null
   const recap = insight.sections.map((section) => `${section.label}\n${section.text}`).join('\n\n')
@@ -1868,9 +1869,20 @@ function CopyRecapButton({ insight }: { insight: AiInsightPublic | null }) {
       variant="ghost"
       size="sm"
       onClick={() => {
-        void navigator.clipboard?.writeText(recap)
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1500)
+        // Only flip to "Copied" once the clipboard write actually resolves —
+        // confirming a copy that silently failed (no clipboard API / denied
+        // permission) was the lie. On failure, say so instead.
+        const write = navigator.clipboard?.writeText(recap)
+        if (!write) {
+          toast.error(t`Couldn't copy recap`)
+          return
+        }
+        write
+          .then(() => {
+            setCopied(true)
+            window.setTimeout(() => setCopied(false), 1500)
+          })
+          .catch(() => toast.error(t`Couldn't copy recap`))
       }}
     >
       {copied ? <CheckIcon data-icon="inline-start" /> : <CopyIcon data-icon="inline-start" />}
