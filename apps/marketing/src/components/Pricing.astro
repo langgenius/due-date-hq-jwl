@@ -95,7 +95,6 @@ const ui = zh
       ],
       yes: 'Included',
     }
-const matrixAria = ui.matrixTitle
 ---
 
 <section class="m-section m-page-hero pr" data-pricing-root data-billing-interval="monthly">
@@ -224,58 +223,67 @@ const matrixAria = ui.matrixTitle
     <h2 class="m-page-h2" id="pr-matrix-h">{ui.matrixTitle}</h2>
 
     <div class="pr__matrix-scroll">
-      <div class="pr__matrix" role="img" aria-label={matrixAria}>
-        <div class="pr__mc pr__mc--head pr__mc--corner"></div>
+      <div class="pr__matrix" role="table" aria-label={ui.matrixTitle}>
+        <div class="pr__mr pr__mr--head" role="row">
+          <div class="pr__mc pr__mc--head pr__mc--corner" role="columnheader" />
+          {
+            t.plans.map((plan) => (
+              <div
+                class:list={['pr__mc', 'pr__mc--head', Boolean(plan.badge) && 'pr__mc--rec pr__mhead--rec']}
+                role="columnheader"
+              >
+                <span class="pr__mname">{plan.name}</span>
+                <span class="pr__mprice">
+                  <span data-pricing-price data-monthly={plan.price} data-yearly={plan.yearlyPrice ?? plan.price}>
+                    {plan.price}
+                  </span>
+                  <span
+                    class="pr__mcadence"
+                    data-pricing-cadence
+                    data-monthly={plan.cadence}
+                    data-yearly={plan.yearlyCadence ?? plan.cadence}
+                  >
+                    {plan.cadence}
+                  </span>
+                </span>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="pr__mr pr__mr--group" role="row">
+          <div class="pr__mc pr__mc--group" role="cell" aria-colspan="5">{zh ? '容量' : 'Capacity'}</div>
+        </div>
         {
-          t.plans.map((plan) => (
-            <div class:list={['pr__mc', 'pr__mc--head', Boolean(plan.badge) && 'pr__mc--rec pr__mhead--rec']}>
-              <span class="pr__mname">{plan.name}</span>
-              <span class="pr__mprice">
-                <span data-pricing-price data-monthly={plan.price} data-yearly={plan.yearlyPrice ?? plan.price}>
-                  {plan.price}
-                </span>
-                <span
-                  class="pr__mcadence"
-                  data-pricing-cadence
-                  data-monthly={plan.cadence}
-                  data-yearly={plan.yearlyCadence ?? plan.cadence}
-                >
-                  {plan.cadence}
-                </span>
-              </span>
+          allowanceRows.map((row) => (
+            <div class="pr__mr" role="row">
+              <div class="pr__mc pr__mc--row" role="rowheader">{row.label}</div>
+              {t.plans.map((plan) => (
+                <div class:list={['pr__mc', 'pr__mc--cell', Boolean(plan.badge) && 'pr__mc--rec']} role="cell">
+                  {row.get(plan)}
+                </div>
+              ))}
             </div>
           ))
         }
 
-        <div class="pr__mc pr__mc--group">{zh ? '容量' : 'Capacity'}</div>
-        {
-          allowanceRows.map((row) => (
-            <>
-              <div class="pr__mc pr__mc--row">{row.label}</div>
-              {t.plans.map((plan) => (
-                <div class:list={['pr__mc', 'pr__mc--cell', Boolean(plan.badge) && 'pr__mc--rec']}>
-                  {row.get(plan)}
-                </div>
-              ))}
-            </>
-          ))
-        }
-
-        <div class="pr__mc pr__mc--group">{zh ? '能力' : 'What you get'}</div>
+        <div class="pr__mr pr__mr--group" role="row">
+          <div class="pr__mc pr__mc--group" role="cell" aria-colspan="5">{zh ? '能力' : 'What you get'}</div>
+        </div>
         {
           featureRows.map((row) => (
-            <>
-              <div class="pr__mc pr__mc--row">{row.label}</div>
+            <div class="pr__mr" role="row">
+              <div class="pr__mc pr__mc--row" role="rowheader">{row.label}</div>
               {row.values.map((value, i) => (
-                <div class:list={['pr__mc', 'pr__mc--cell', Boolean(t.plans[i].badge) && 'pr__mc--rec']}>
-                  {value ? (
-                    value
-                  ) : (
-                    <span class="pr__mdash" aria-hidden="true" />
-                  )}
+                <div
+                  class:list={['pr__mc', 'pr__mc--cell', Boolean(t.plans[i].badge) && 'pr__mc--rec']}
+                  role="cell"
+                  aria-label={value ? undefined : zh ? '未包含' : 'Not included'}
+                >
+                  {value ? value : <span class="pr__mdash" aria-hidden="true" />}
                 </div>
               ))}
-            </>
+            </div>
           ))
         }
       </div>
@@ -693,6 +701,10 @@ const matrixAria = ui.matrixTitle
   .pr__matrix {
     width: 100%;
     min-width: 760px;
+  }
+  /* real ARIA table: each row its own grid, same fractional template → columns
+     align across rows with no display:contents (keeps the semantics intact) */
+  .pr__mr {
     display: grid;
     grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr));
   }

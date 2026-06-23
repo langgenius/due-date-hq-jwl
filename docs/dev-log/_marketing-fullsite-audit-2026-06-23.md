@@ -104,10 +104,29 @@ with `.m-page-title`; no `✓` literal left on home.
 - **24h phrasing** — fixed the one outlier ("reversible 24h" → "reversible for 24h"
   in LoopDeep) to match Surfaces/Pricing.
 
+## Matrix a11y (focused pass — done)
+The two comparison matrices (home **Compare** + **Pricing**) were `role="img"` with a
+hand-maintained text summary — the cell data was invisible to screen readers.
+Converted both to **real ARIA tables** without any visual regression:
+- The trick that avoids the `display:contents` footgun (which strips table
+  semantics in several browsers): instead of one big grid of flat cells, make
+  **each row its own grid** with the *same fractional* `grid-template-columns`.
+  Because the columns are `fr` units (not content-sized), per-row grids produce
+  pixel-identical widths — verified col head/body `left` + `width` match exactly,
+  and the DueDateHQ / recommended-plan column tint is intact.
+- Roles: `role="table"` › `role="row"` › `columnheader` (product/plan heads) /
+  `rowheader` (feature labels) / `cell` (marks). Mark cells carry an `aria-label`
+  with their value word (Yes/No/Partial/Manual; "Not included" for empty pricing
+  cells) since the svg-check / dash are decorative. Group sub-headers are
+  full-width `role="cell"` with `aria-colspan`.
+- Pricing's `data-pricing-*` billing-toggle hooks preserved (verified intact).
+- `StateCoverage` has no comparison matrix (its cartogram is a `role="list"`,
+  already given per-tile `aria-label`s in the P2 round).
+
 ## Still open (bigger / lower-priority)
-- Comparison matrices (Compare/Pricing/StateCoverage) `role="img"` → real table
-  semantics (flat CSS-grid of divs; needs row grouping, non-trivial).
-- `StateDetailPage.std-kd` → extend `.m-page-dl` (key-dates module).
+- `StateDetailPage.std-kd` → extend `.m-page-dl`? CHECKED — not a real duplicate:
+  `.std-kd` is a side-by-side prominent key-dates layout, `.m-page-dl` is a stacked
+  quiet definition list. Only the wrapper matches; left as-is (correct).
 - `StateDetailPage` hardcoded PUBLISHED state list parallel to StateCoveragePage.
 - `FinalCta` + `primitives/SectionEyebrow` still on legacy Tailwind tokens (legacy-only).
 - Close "Book a demo call" points at the signup URL (no demo-booking route exists).

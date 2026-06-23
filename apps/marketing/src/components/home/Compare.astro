@@ -102,7 +102,11 @@ const t = zh
       ariaSummary:
         'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources 24/7 for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
     }
-const ariaSummary = t.ariaSummary
+// accessible value per mark — the cell's name (svg/dash are decorative); a real
+// table announces "<feature>, <product>, <value>" so each cell just needs its word
+const markLabel: Record<Mark, string> = zh
+  ? { yes: '内建', no: '不支持', partial: '勉强', manual: '手动' }
+  : { yes: 'Yes', no: 'No', partial: 'Partial', manual: 'Manual' }
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
@@ -110,42 +114,53 @@ const ariaSummary = t.ariaSummary
   <h2 class="compare__lead" id="cmp-h" set:html={t.leadHtml} />
 
   <div class="cmp-scroll">
-    <div class="cmp" role="img" aria-label={ariaSummary}>
-      <div class="cmp__c cmp__c--head cmp__c--corner"></div>
-      {
-        products.map((p, i) => (
-          <div class:list={['cmp__c', 'cmp__c--head', i === 3 && 'cmp__c--ddhq cmp__head--ddhq']}>
-            <span class="cmp__pname">{p.name}</span>
-            <span class="cmp__pkind">{p.kind}</span>
-          </div>
-        ))
-      }
+    <div class="cmp" role="table" aria-label={t.eyebrow}>
+      <div class="cmp__r cmp__r--head" role="row">
+        <div class="cmp__c cmp__c--head cmp__c--corner" role="columnheader" />
+        {
+          products.map((p, i) => (
+            <div
+              class:list={['cmp__c', 'cmp__c--head', i === 3 && 'cmp__c--ddhq cmp__head--ddhq']}
+              role="columnheader"
+            >
+              <span class="cmp__pname">{p.name}</span>
+              <span class="cmp__pkind">{p.kind}</span>
+            </div>
+          ))
+        }
+      </div>
       {
         groups.map((g) => (
           <>
-            <div class="cmp__c cmp__c--group">{g.label}</div>
+            <div class="cmp__r cmp__r--group" role="row">
+              <div class="cmp__c cmp__c--group" role="cell" aria-colspan="5">
+                {g.label}
+              </div>
+            </div>
             {g.rows.map((r) => (
-              <>
-                <div class="cmp__c cmp__c--row">{r.feature}</div>
+              <div class="cmp__r" role="row">
+                <div class="cmp__c cmp__c--row" role="rowheader">{r.feature}</div>
                 {r.marks.map((m, i) => (
-                  <div class:list={['cmp__c', 'cmp__c--mark', i === 3 && 'cmp__c--ddhq']}>
+                  <div
+                    class:list={['cmp__c', 'cmp__c--mark', i === 3 && 'cmp__c--ddhq']}
+                    role="cell"
+                    aria-label={markLabel[m]}
+                  >
                     {m === 'yes' && (
-                      <span class="yes" title={t.legendYes}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <span class="yes" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M20 6 9 17l-5-5" />
                         </svg>
                       </span>
                     )}
                     {m === 'no' && <span class="no" aria-hidden="true" />}
                     {m === 'partial' && (
-                      <span class="cmp__partial" title={t.legendPartial}>
-                        {t.partial}
-                      </span>
+                      <span class="cmp__partial" aria-hidden="true">{t.partial}</span>
                     )}
-                    {m === 'manual' && <span class="cmp__manual">{t.manual}</span>}
+                    {m === 'manual' && <span class="cmp__manual" aria-hidden="true">{t.manual}</span>}
                   </div>
                 ))}
-              </>
+              </div>
             ))}
           </>
         ))
@@ -179,9 +194,14 @@ const ariaSummary = t.ariaSummary
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+  /* a real ARIA table: each row is its own grid with the SAME fractional template,
+     so columns line up pixel-for-pixel across rows (no display:contents needed,
+     which keeps the table semantics intact for screen readers). */
   .cmp {
     width: 100%;
     min-width: 720px;
+  }
+  .cmp__r {
     display: grid;
     grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
   }
