@@ -660,6 +660,11 @@ msgstr "{0} 项"
 msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
 
+#. placeholder {0}: items.length
+#: src/features/rules/states-rail.tsx
+msgid "{0} jurisdictions"
+msgstr "{0} 个辖区"
+
 #. placeholder {0}: memberCounts[role] ?? 0
 #: src/routes/settings.permissions.tsx
 msgid "{0} members"
@@ -1752,6 +1757,10 @@ msgstr "针对单个截止日的简短说明，只基于已生效规则上下文
 #: src/features/concepts/concept-help.tsx
 msgid "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 msgstr "由客户事实和当前事务所已生效规则生成的具体合规截止日，比普通任务更结构化。"
+
+#: src/features/rules/states-rail.tsx
+msgid "A–Z"
+msgstr "A–Z"
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "About 5 minutes of focused work"
@@ -9702,6 +9711,7 @@ msgstr "需要协助"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "需复核"
@@ -10170,8 +10180,8 @@ msgid "No jurisdictions match \"{search}\""
 msgstr "没有匹配 \"{search}\" 的辖区"
 
 #: src/features/rules/states-rail.tsx
-msgid "No jurisdictions need review"
-msgstr "没有辖区需要审阅"
+#~ msgid "No jurisdictions need review"
+#~ msgstr "没有辖区需要审阅"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
@@ -14320,7 +14330,6 @@ msgstr "股东数量"
 msgid "Show"
 msgstr "显示"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "全部显示"
@@ -14376,8 +14385,8 @@ msgstr "显示 {firstItemNumber}-{lastItemNumber}，共 {totalCount} 条"
 
 #. placeholder {0}: states.length
 #: src/features/rules/states-rail.tsx
-msgid "Showing {shownStateCount} of {0} states"
-msgstr "显示 {shownStateCount} / {0} 个州"
+#~ msgid "Showing {shownStateCount} of {0} states"
+#~ msgstr "显示 {shownStateCount} / {0} 个州"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
@@ -14639,6 +14648,10 @@ msgstr "排序方式"
 #: src/routes/obligations.tsx
 msgid "Sort deadlines"
 msgstr "排序截止日"
+
+#: src/features/rules/states-rail.tsx
+msgid "Sort jurisdictions"
+msgstr "排序辖区"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"

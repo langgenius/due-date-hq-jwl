@@ -658,6 +658,11 @@ msgstr "{0} items"
 msgid "{0} items recorded"
 msgstr "{0} items recorded"
 
+#. placeholder {0}: items.length
+#: src/features/rules/states-rail.tsx
+msgid "{0} jurisdictions"
+msgstr "{0} jurisdictions"
+
 #. placeholder {0}: memberCounts[role] ?? 0
 #: src/routes/settings.permissions.tsx
 msgid "{0} members"
@@ -1744,6 +1749,10 @@ msgstr "A short explanation for one deadline, generated only from active rule co
 #: src/features/concepts/concept-help.tsx
 msgid "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 msgstr "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
+
+#: src/features/rules/states-rail.tsx
+msgid "A–Z"
+msgstr "A–Z"
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "About 5 minutes of focused work"
@@ -9664,6 +9673,7 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -10132,8 +10142,8 @@ msgid "No jurisdictions match \"{search}\""
 msgstr "No jurisdictions match \"{search}\""
 
 #: src/features/rules/states-rail.tsx
-msgid "No jurisdictions need review"
-msgstr "No jurisdictions need review"
+#~ msgid "No jurisdictions need review"
+#~ msgstr "No jurisdictions need review"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
@@ -14258,7 +14268,6 @@ msgstr "Shareholder count"
 msgid "Show"
 msgstr "Show"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"
@@ -14314,8 +14323,8 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 
 #. placeholder {0}: states.length
 #: src/features/rules/states-rail.tsx
-msgid "Showing {shownStateCount} of {0} states"
-msgstr "Showing {shownStateCount} of {0} states"
+#~ msgid "Showing {shownStateCount} of {0} states"
+#~ msgstr "Showing {shownStateCount} of {0} states"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
@@ -14577,6 +14586,10 @@ msgstr "Sort by"
 #: src/routes/obligations.tsx
 msgid "Sort deadlines"
 msgstr "Sort deadlines"
+
+#: src/features/rules/states-rail.tsx
+msgid "Sort jurisdictions"
+msgstr "Sort jurisdictions"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
