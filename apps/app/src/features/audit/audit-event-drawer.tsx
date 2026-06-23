@@ -171,11 +171,7 @@ function AuditEventDrawerContent({
                 audit log's "trace it back to the source" path. Only rendered
                 for entity types with a stable deep-link. */}
             {entityHref ? (
-              <TextLink
-                variant="accent"
-                size="sm"
-                render={<Link to={entityHref} />}
-              >
+              <TextLink variant="accent" size="sm" render={<Link to={entityHref} />}>
                 <Trans>View {entityTypeLabel}</Trans>
                 <ArrowUpRightIcon className="size-3.5" aria-hidden />
               </TextLink>
