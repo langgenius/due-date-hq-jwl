@@ -4755,25 +4755,22 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Wisconsin DOR News',
     // revenue.wi.gov renders its news in a SharePoint WebPart (client-side), so a
     // plain fetch only yields a whole-page fallback. 2026-06-23: the primary signal
-    // is now GovDelivery email — WI DOR ships its Tax Bulletin + press releases
-    // under the statewide WIGOV account; subscribe the inbox below to the DOR
-    // topics. The web watch is kept as a fallback and re-tried through browserless
-    // with a networkidle wait (PULSE_BROWSERLESS_SOURCE_IDS).
+    // is now email. NOTE: WI DOR E-News is NOT GovDelivery — it runs on Lyris
+    // ListManager at lists.wi.gov (confirmed from a live confirmation email:
+    // From lyris-confirm-*@lists.wi.gov, dkim d=lists.wi.gov). Subscribe the inbox
+    // below to the DOR topics (Tax Professional / Sales & Use / Withholding) that
+    // carry the Tax Bulletin + press releases. The web watch is kept as a fallback,
+    // re-tried through browserless with a networkidle wait.
     url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
     inboundEmail: {
       localParts: ['pulse-ingest+wi-dor-news'],
-      senderDomains: [
-        'content.govdelivery.com',
-        'public.govdelivery.com',
-        'service.govdelivery.com',
-        'wisconsin.gov',
-      ],
-      listIdPatterns: ['wigov', 'wisconsin department of revenue', 'wisconsin dor'],
-      canonicalUrlHosts: ['content.govdelivery.com', 'revenue.wi.gov', 'www.revenue.wi.gov'],
+      senderDomains: ['lists.wi.gov', 'wi.gov'],
+      listIdPatterns: ['lists.wi.gov', 'wisconsin department of revenue', 'wisconsin dor'],
+      canonicalUrlHosts: ['lists.wi.gov', 'revenue.wi.gov', 'www.revenue.wi.gov'],
       verificationStatus: 'verified_official',
       subscriptionUrl: 'https://www.revenue.wi.gov/Pages/HTML/lists.aspx',
       verificationNotes:
-        'WI DOR E-News via the statewide WIGOV GovDelivery account — subscribe to the DOR topics (Tax Professional / Sales & Use Tax / Withholding Tax). WIGOV is multi-agency; the per-source +tag keeps non-DOR statewide mail out.',
+        'WI DOR E-News via Lyris ListManager (lists.wi.gov), not GovDelivery — subscribe to the DOR topics (Tax Professional / Sales & Use Tax / Withholding Tax). The per-source +tag isolates DOR mail; each topic sends its own double-opt-in confirmation from lyris-confirm-*@lists.wi.gov.',
     },
   },
   {
