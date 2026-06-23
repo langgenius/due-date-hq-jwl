@@ -415,7 +415,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle py-3 outline-none transition-[color,box-shadow]',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -1015,13 +1015,12 @@ function PulseAlertList({
   )
 
   return (
-    // List frame — rounded-12 white surface, NO border stroke.
-    // 2026-06-12 (Yuqi /alerts #1 "hide the border"): the outer
-    // border-divider-regular is dropped; the rounded encapsulation
-    // survives via the clipped gray day-group bands at the frame's top
-    // corners and the row hairlines inside. (/today + /deadlines tables
-    // keep the bordered canonical frame — they're column tables; this is
-    // a card-list registry.)
+    // List frame — rounded-12 white surface WITH a hairline border.
+    // 2026-06-23 (Yuqi "the alert list needs left and right border"): the outer
+    // `border-divider-regular` is back — it frames the card so the full-bleed
+    // colored day bands and padded rows read as one bounded table (the same
+    // canonical frame /today + /deadlines use). (Supersedes the 2026-06-12
+    // "hide the border" pass.)
     // `overflow-clip` (not -hidden) clips the full-bleed day bands to the
     // rounded frame WITHOUT creating a scroll container — position:sticky
     // on the day bands (Yuqi #7) dies inside overflow-hidden but survives
@@ -1030,7 +1029,7 @@ function PulseAlertList({
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls.
-    <div className="flex shrink-0 flex-col overflow-clip rounded-xl bg-background-default">
+    <div className="flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default">
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
@@ -1051,12 +1050,12 @@ function PulseAlertList({
                     weekday, count, or icon — the date is the section marker.
                     Sticky below the toolbar (top-12) so "when" stays answered
                     while a day's rows scroll under it; requires the frame's
-                    overflow-clip. NO gray fill (Yuqi 2026-06-23 #3/#4: on a
-                    borderless list a full-bleed gray bar read as a weird floating
-                    header) — an opaque page-default fill masks the rows scrolling
-                    under it while reading as an eyebrow, not a bar. Thin (py-1.5)
-                    and flush-left with the rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default py-1.5">
+                    overflow-clip. A `bg-background-subtle` fill (Yuqi 2026-06-23
+                    "the date header row needs colour") gives the band a tint that
+                    reads as a section break inside the bordered frame, and stays
+                    opaque so rows mask cleanly as they scroll under it. Thin
+                    (py-1.5), padded to the row content edge (px-5). */}
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.

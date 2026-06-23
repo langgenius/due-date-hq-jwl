@@ -47,3 +47,20 @@ unify — Yuqi chose **1.5 everywhere (refined)**.
 - tsgo + build clean.
 - Live (1648×812): header / toolbar / day band / rows all flush at one left
   edge; band 31px tall, white (no gray bar). Checkbox change compiles + applies.
+
+## Correction — frame the list, re-colour the band (same day)
+
+Yuqi, seeing the result: "the alert list needs left and right border… and the
+date header row needs colour." The borderless/white-header direction was wrong —
+reversed:
+
+- **List frame back:** `border border-divider-regular` on the list wrapper (the
+  canonical bordered table frame, like /today + /deadlines). Supersedes the
+  2026-06-12 "hide the border" pass.
+- **Rows + day band re-padded:** restored `px-5` so content clears the new
+  border (a framed card needs cell padding).
+- **Day band colour back:** `bg-background-default` → `bg-background-subtle` (the
+  tinted section band now reads correctly *because* the frame contains it). Kept
+  the thinner `py-1.5`.
+- The toolbar stays flush (no px-5) above the card, aligned with the frame's
+  left edge + the page header.
