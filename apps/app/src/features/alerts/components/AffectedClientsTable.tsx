@@ -57,6 +57,7 @@ import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection
 // the ObligationStatusReadBadge it would wear elsewhere.
 type V2Stage = (typeof LIFECYCLE_V2_STATUSES)[number]
 const RAW_STATUS_TO_V2_STAGE: Record<ObligationStatus, V2Stage> = (() => {
+  // oxlint-disable-next-line no-unsafe-type-assertion -- empty literal cast; map is fully filled by the loop below before return
   const map = {} as Record<ObligationStatus, V2Stage>
   for (const stage of LIFECYCLE_V2_STATUSES) {
     for (const raw of LIFECYCLE_V2_STATUS_SETS[stage]) {

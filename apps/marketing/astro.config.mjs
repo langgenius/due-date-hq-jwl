@@ -18,7 +18,7 @@ const viteConfig = {
  */
 function lastmodForUrl(url) {
   const path = new URL(url).pathname.replace(/^\/zh-CN/, '').replace(/\/$/, '')
-  const slug = path.split('/').filter(Boolean).pop() ?? 'home'
+  const slug = path.split('/').findLast(Boolean) ?? 'home'
   return getContentDates(slug).reviewedOn
 }
 

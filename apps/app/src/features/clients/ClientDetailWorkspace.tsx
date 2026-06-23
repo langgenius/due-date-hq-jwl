@@ -578,8 +578,10 @@ export function ClientDetailWorkspace({
           onClick={
             panelOpen
               ? (event) => {
+                  // oxlint-disable-next-line no-unsafe-type-assertion -- React's EventTarget is always an Element here; needed for closest()
+                  const target = event.target as HTMLElement
                   if (
-                    (event.target as HTMLElement).closest(
+                    target.closest(
                       'button, a, [role="button"], [role="article"], input, select, textarea, label, [data-no-panel-close]',
                     )
                   )

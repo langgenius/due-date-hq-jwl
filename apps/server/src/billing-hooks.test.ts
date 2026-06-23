@@ -76,6 +76,7 @@ describe('buildBillingHooks', () => {
 
     for (const role of ['partner', 'manager', 'preparer', 'coordinator']) {
       const hooks = buildBillingHooks(makeAuthzDb([{ role, status: 'active' }]).db)
+      // oxlint-disable-next-line no-await-in-loop -- sequential per-role assertions for test isolation
       await expect(hooks.authorizeReference(input)).resolves.toBe(false)
     }
   })

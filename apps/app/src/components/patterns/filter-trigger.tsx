@@ -194,6 +194,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
               <span className="grid shrink-0 justify-items-start">
                 {valueOptions.map((opt, i) => (
                   <span
+                    // oxlint-disable-next-line no-array-index-key -- aria-hidden ghost spans, fixed-length width-measure stack
                     key={i}
                     aria-hidden
                     className="col-start-1 row-start-1 invisible whitespace-nowrap font-medium tabular-nums"

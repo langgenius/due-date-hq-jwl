@@ -428,6 +428,7 @@ async function mapWithConcurrency<T, R>(
         const index = next++
         const item = items[index]
         if (item === undefined) continue
+        // oxlint-disable-next-line no-await-in-loop -- worker-pool body; sequential per worker, outer Promise.all is the parallelism
         out[index] = await fn(item)
       }
     }),
@@ -461,7 +462,9 @@ const grouped = await mapWithConcurrency(
   async (group): Promise<RuleSourceHealthResult[]> => {
     const out: RuleSourceHealthResult[] = []
     for (const source of group) {
+      // oxlint-disable-next-line no-await-in-loop -- intra-host serial; per-host politeness avoids spurious TLS resets
       out.push(await checkWithRetry(source))
+      // oxlint-disable-next-line no-await-in-loop -- intra-host politeness gap between fetches
       if (group.length > 1) await wait(250)
     }
     return out

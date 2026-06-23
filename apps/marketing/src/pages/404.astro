@@ -19,7 +19,9 @@ const baseRoutes = [
   { label: 'Pricing', href: '/pricing' },
   { label: 'Open the workbench', href: 'app' },
 ]
-const routes = baseRoutes.map((route) => (route.href === 'app' ? { ...route, href: ctaHref } : route))
+const routes = baseRoutes.map((route) =>
+  route.href === 'app' ? { label: route.label, href: ctaHref } : route,
+)
 ---
 
 <BaseLayout

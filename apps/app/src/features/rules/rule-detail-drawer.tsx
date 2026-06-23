@@ -77,11 +77,6 @@ const ACCEPT_RULE_SUCCESS_TOAST_STYLE: CSSProperties = {
   borderColor: 'var(--state-success-hover-alt)',
   color: 'var(--text-success)',
 }
-const _ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
-  background: 'var(--state-destructive-hover)',
-  borderColor: 'var(--state-destructive-hover-alt)',
-  color: 'var(--text-destructive)',
-}
 const ENTITY_APPLICABILITY_LABELS: Record<string, string> = {
   any_business: 'business clients',
   c_corp: 'C corporations',

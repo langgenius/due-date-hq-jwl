@@ -25,10 +25,12 @@ function flipPinnedInListCache(data: unknown, obligationId: string, isPinned: bo
     rows: output.rows.map((row) => (row.id === obligationId ? { ...row, isPinned } : row)),
   })
   if ('pages' in data && Array.isArray((data as { pages: unknown }).pages)) {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- already narrowed by the in/Array.isArray guard above
     const infinite = data as { pages: ObligationQueueListOutput[]; pageParams: unknown[] }
     return { ...infinite, pages: infinite.pages.map(patchRows) }
   }
   if ('rows' in data && Array.isArray((data as { rows: unknown }).rows)) {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- already narrowed by the in/Array.isArray guard above
     return patchRows(data as ObligationQueueListOutput)
   }
   return data

@@ -1979,6 +1979,7 @@ export function RulesLibraryRoute() {
     )
   }, [rules, selectedRuleIds])
 
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-bulk surface mid-build
   const _openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2133,6 +2134,7 @@ export function RulesLibraryRoute() {
   // Start the batch review queue with everything that's pending. The
   // header button is the "I just want to clear my review queue" path
   // (CPA opens the page, hits Start review, walks through 459 cards).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-all flow mid-build
   const _startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2147,6 +2149,7 @@ export function RulesLibraryRoute() {
   // shell's `actions` slot. Replaces the prior standalone PageActions
   // row (which left a ~48px dead zone between the title and the next
   // content block).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces in pending review-all UI
   const _reviewCount = allReviewableRuleIds.length
   const currentBatchReviewRuleId =
     batchReviewIndex === null ? null : (batchReviewRuleIds?.[batchReviewIndex] ?? null)
@@ -3047,6 +3050,7 @@ type ProgressSegment = {
   text: string
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces with review-all progress
 function _RuleReviewProgressBar(
   props:
     | { loading: true; statusCounts?: never }
@@ -3303,6 +3307,7 @@ function RowNavHints() {
 // First-time empty state. Uses the canonical `EmptyState` primitive shared
 // with /deadlines + /clients + /alerts; renders inside the table-card frame
 // so the chrome stays consistent across full / empty states.
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3344,6 +3349,7 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   )
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3371,6 +3377,7 @@ function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 // Grouped rules table — the main visualization
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed grouped-table variant
 function _GroupedRulesTable({
   activeScope,
   activeRuleId,
@@ -4836,7 +4843,7 @@ function BulkReviewListModal({
   //  - draftNeedsReviewIds: has a draft but it's low-confidence / fuzzy-excerpt, so it
   //    must be reviewed individually (the server trust gate would skip it in bulk).
   const { draftSelections, draftNeedsReviewIds } = useMemo(() => {
-    const selections: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+    const drafts: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
     const needsReview = new Set<string>()
     for (const rule of included) {
       if (!isSourceDefinedRule(rule)) continue
@@ -4847,14 +4854,14 @@ function BulkReviewListModal({
       if (entry.bulkTrustIssue) {
         needsReview.add(rule.id)
       } else {
-        selections.push({
+        drafts.push({
           ruleId: rule.id,
           sourceId: entry.sourceId,
           aiOutputId: entry.draft.aiOutputId,
         })
       }
     }
-    return { draftSelections: selections, draftNeedsReviewIds: needsReview }
+    return { draftSelections: drafts, draftNeedsReviewIds: needsReview }
   }, [included, concreteDraftByTarget])
   const draftReadyIds = useMemo(
     () => new Set(draftSelections.map((s) => s.ruleId)),
@@ -4958,14 +4965,13 @@ function BulkReviewListModal({
 
   async function handleAccept() {
     if (!canAccept) return
-    const note = noteTrimmed
     try {
       const [templateResult, draftResult] = await Promise.all([
         templateSelections.length > 0
-          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: note })
+          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ accepted: [], skipped: [] }),
         draftSelections.length > 0
-          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: note })
+          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ verified: [], skipped: [] }),
       ])
       const accepted = templateResult.accepted.length + draftResult.verified.length
@@ -4993,8 +4999,10 @@ function BulkReviewListModal({
     for (const rule of included) {
       try {
         if (isSourceDefinedRule(rule)) {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectCandidateMutation.mutateAsync({ ruleId: rule.id, reason: noteTrimmed })
         } else {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectTemplateMutation.mutateAsync({
             ruleId: rule.id,
             expectedVersion: rule.version,
