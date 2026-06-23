@@ -106,8 +106,8 @@ const ariaSummary = t.ariaSummary
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
-  <p class="m-eyebrow" id="cmp-h">{t.eyebrow}</p>
-  <p class="compare__lead" set:html={t.leadHtml} />
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="compare__lead" id="cmp-h" set:html={t.leadHtml} />
 
   <div class="cmp-scroll">
     <div class="cmp" role="img" aria-label={ariaSummary}>

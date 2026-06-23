@@ -70,3 +70,18 @@ with `.m-page-title`; no `✓` literal left on home.
   `bg-bg-*`/`text-text-*` vocabulary (legacy-only); not part of the `--m-*` system.
 - 24h-reversibility phrasing varies ("reversible 24h" / "Reversible for 24 hours")
   — pick one canonical wording.
+
+## P1 follow-up (done)
+- **Shared pill-button primitive** — added `.m-cta` / `.m-cta--primary` /
+  `.m-cta--ghost` to marketing.css, with an `.m-cta-dark` on-navy context that
+  inverts the fills (primary→white pill, ghost→white text; chroma stays in the
+  container). Hero and the Close finale (the audit's named near-duplicates) now
+  use it; ~70 lines of duplicated scoped `.btn` CSS removed. Verified: hero primary
+  = navy fill / 999 / 11×24, ghost = ink; close primary = white pill / accent text
+  via `.m-cta-dark`, ghost = white. (Nav CTA + TrustPage close left as-is — the nav
+  has collapse-state coupling and the trust close is an 8px-radius button, not a
+  pill; converting either would be a visible change, logged for later.)
+- **Compare a11y** — the section had an eyebrow but no heading, so its accessible
+  name was the 2-word eyebrow. Promoted the deck lead to `<h2 class="compare__lead"
+  id="cmp-h">` (visually identical under Tailwind preflight) and moved the
+  `aria-labelledby` target onto it; the eyebrow is now an unlabelled kicker.

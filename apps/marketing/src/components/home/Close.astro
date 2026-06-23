@@ -71,11 +71,11 @@ const receiptRows = t.receiptRows
         {t.bodyLead}<strong>{t.bodyStrong}</strong>
       </p>
 
-      <div class="close__cta">
-        <a class="btn btn--primary" href={ctaHref} data-event="marketing.close.cta">
+      <div class="close__cta m-cta-dark">
+        <a class="m-cta m-cta--primary" href={ctaHref} data-event="marketing.close.cta">
           {t.ctaPrimary} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="btn btn--ghost" href={ctaHref}>{t.ctaGhost}</a>
+        <a class="m-cta m-cta--ghost" href={ctaHref}>{t.ctaGhost}</a>
       </div>
 
       <div class="close__trust">
@@ -242,43 +242,8 @@ const receiptRows = t.receiptRows
     gap: 10px 24px;
     align-items: center;
   }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--m-text-base);
-    font-weight: 500;
-    border-radius: 999px;
-    transition:
-      background 0.18s ease,
-      color 0.18s ease,
-      box-shadow 0.18s ease,
-      transform 0.12s ease;
-  }
-  .btn--primary {
-    background: #fff;
-    color: var(--m-accent);
-    padding: 12px 24px;
-  }
-  .btn--primary:hover {
-    background: rgba(255, 255, 255, 0.9);
-  }
-  .btn--primary:active {
-    transform: translateY(1px);
-  }
-  .btn--primary .arrow {
-    transition: transform 0.18s ease;
-  }
-  .btn--primary:hover .arrow {
-    transform: translateX(3px);
-  }
-  .btn--ghost {
-    color: #fff;
-    padding: 12px 6px;
-  }
-  .btn--ghost:hover {
-    box-shadow: inset 0 -1.5px 0 rgba(255, 255, 255, 0.7);
-  }
+  /* finale CTAs use the shared .m-cta pill in its .m-cta-dark (on-navy) context
+     — defined in marketing.css; no local button styles */
   .close__trust {
     margin-top: 26px;
     display: flex;
@@ -403,12 +368,6 @@ const receiptRows = t.receiptRows
     }
     .rcpt {
       max-width: 420px;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .btn,
-    .btn--primary .arrow {
-      transition: none;
     }
   }
 </style>

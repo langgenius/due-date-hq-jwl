@@ -204,12 +204,12 @@ const alerts = t.alerts
       </ul>
 
       <div class="hero__cta">
-        <a class="btn btn--primary" href={ctaHref} data-event="marketing.hero.cta">
+        <a class="m-cta m-cta--primary" href={ctaHref} data-event="marketing.hero.cta">
           {t.ctaStart} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="btn btn--ghost" href={workflowAnchor}>
+        <a class="m-cta m-cta--ghost" href={workflowAnchor}>
           <svg
-            class="btn__ico"
+            class="m-cta__ico"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -438,52 +438,8 @@ const alerts = t.alerts
     gap: 10px 22px;
     align-items: center;
   }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--m-text-md);
-    font-weight: 500;
-    /* fuller pill corners + a touch less height — friendlier, matches the nav CTA */
-    border-radius: 999px;
-    transition:
-      background 0.18s ease,
-      color 0.18s ease,
-      box-shadow 0.18s ease,
-      transform 0.12s ease;
-  }
-  .btn__ico {
-    width: 17px;
-    height: 17px;
-    flex: none;
-  }
-  .btn--primary {
-    background: var(--m-accent);
-    color: #fff;
-    padding: 11px 24px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
-  }
-  .btn--primary:hover {
-    background: var(--m-accent-strong);
-  }
-  .btn--primary:active {
-    transform: translateY(1px);
-  }
-  .btn--primary .arrow {
-    transition: transform 0.18s ease;
-  }
-  .btn--primary:hover .arrow {
-    transform: translateX(3px);
-  }
-  .btn--ghost {
-    color: var(--m-ink);
-    padding: 11px 16px;
-  }
-  /* a soft pill fill on hover — cleaner than the old inset underline */
-  .btn--ghost:hover {
-    color: var(--m-accent);
-    background: var(--m-section);
-  }
+  /* hero CTAs use the shared .m-cta / .m-cta--primary / .m-cta--ghost pill
+     (defined in marketing.css) — no local button styles */
   /* ---- alerts panel ---- */
   .panel {
     background: var(--m-surface);
