@@ -1152,6 +1152,22 @@ msgstr "{jurisdictions, plural, one {Monitoring # jurisdiction} other {Monitorin
 msgid "{label}, selected"
 msgstr "{label}, selected"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {pending} of {total} to review"
+msgstr "{label}: {pending} of {total} to review"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {pending} to review · {high} high-severity"
+msgstr "{label}: {pending} to review · {high} high-severity"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: all {total} reviewed"
+msgstr "{label}: all {total} reviewed"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: no rules tracked"
+msgstr "{label}: no rules tracked"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
@@ -2961,7 +2977,9 @@ msgstr "Assigned to you"
 msgid "Assigned to you ({0})"
 msgstr "Assigned to you ({0})"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Assigned to you ({assigneeName})"
@@ -3154,6 +3172,10 @@ msgstr "Authority citation"
 msgid "Authority confirmed payment cleared"
 msgstr "Authority confirmed payment cleared"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
+msgstr "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
+
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Authority refs"
 msgstr "Authority refs"
@@ -3249,6 +3271,7 @@ msgstr "Awaiting decision"
 msgid "Awaiting review"
 msgstr "Awaiting review"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Awaiting signature"
@@ -3660,6 +3683,11 @@ msgstr "Captured"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
+msgid "Card view"
+msgstr "Card view"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Category"
 msgstr "Category"
@@ -3961,6 +3989,10 @@ msgstr "Cleared from {0}"
 #: src/features/obligations/queue/components/evidence.tsx
 msgid "Cleared from {before}"
 msgstr "Cleared from {before}"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Click a jurisdiction to review its rules"
+msgstr "Click a jurisdiction to review its rules"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Click to open Sources."
@@ -5263,6 +5295,10 @@ msgstr "County"
 msgid "Coverage"
 msgstr "Coverage"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Coverage map"
+msgstr "Coverage map"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
 msgstr "Covers"
@@ -5504,6 +5540,16 @@ msgstr "Date-only"
 msgid "Dates"
 msgstr "Dates"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "day late"
+msgstr "day late"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "day left"
+msgstr "day left"
+
 #: src/features/members/member-model.ts
 msgid "Day-to-day client work"
 msgstr "Day-to-day client work"
@@ -5521,9 +5567,19 @@ msgstr "Days"
 msgid "days early"
 msgstr "days early"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "days late"
+msgstr "days late"
+
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days later"
 msgstr "days later"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "days left"
+msgstr "days left"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days sooner"
@@ -6106,6 +6162,7 @@ msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
 
 #: src/features/dashboard/merged-brief-card.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Due"
@@ -6141,11 +6198,15 @@ msgstr "Due dates"
 msgid "Due soon"
 msgstr "Due soon"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "Due this week"
 msgstr "Due this week"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 msgid "Due today"
 msgstr "Due today"
 
@@ -7035,11 +7096,16 @@ msgid "File type"
 msgstr "File type"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+msgid "filed"
+msgstr "filed"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 #: src/features/obligations/queue/components/panels.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
@@ -7088,6 +7154,10 @@ msgstr "Filed without extension"
 #: src/routes/obligations.tsx
 msgid "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
 msgstr "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
+
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Filed, but the client hasn't signed Form 8879 yet."
+msgstr "Filed, but the client hasn't signed Form 8879 yet."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -9941,6 +10011,14 @@ msgstr "No deadline overlay will be applied"
 msgid "No deadline pressure right now."
 msgstr "No deadline pressure right now."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No deadlines"
+msgstr "No deadlines"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No deadlines due"
+msgstr "No deadlines due"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "No deadlines due in the next 7 days"
 msgstr "No deadlines due in the next 7 days"
@@ -9949,6 +10027,7 @@ msgstr "No deadlines due in the next 7 days"
 msgid "No deadlines due in the selected window."
 msgstr "No deadlines due in the selected window."
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters"
 msgstr "No deadlines match these filters"
@@ -9962,6 +10041,7 @@ msgstr "No deadlines match these filters."
 msgid "No deadlines match."
 msgstr "No deadlines match."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -10214,6 +10294,10 @@ msgstr "No rule extension"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "No rule types"
 msgstr "No rule types"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "No rules"
+msgstr "No rules"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "No rules in {jurisdictionLabel} for this view."
@@ -10702,6 +10786,7 @@ msgid "Only the practice owner can start or change a subscription."
 msgstr "Only the practice owner can start or change a subscription."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "open"
 msgstr "open"
 
@@ -10723,6 +10808,12 @@ msgstr "Open"
 #: src/routes/rules.library.tsx
 msgid "Open {0}"
 msgstr "Open {0}"
+
+#. placeholder {0}: row.clientName
+#. placeholder {1}: row.taxType
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Open {0} {1} deadline"
+msgstr "Open {0} {1} deadline"
 
 #. placeholder {0}: row.clientName
 #: src/features/alerts/components/AffectedClientsTable.tsx
@@ -10768,6 +10859,7 @@ msgstr "Open billing"
 msgid "Open blocking deadline: {0} for {1}"
 msgstr "Open blocking deadline: {0} for {1}"
 
+#. placeholder {0}: client.name
 #. placeholder {0}: row.original.name
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Open client detail for {0}"
@@ -11076,8 +11168,10 @@ msgstr "Outstanding"
 msgid "Over your client limit"
 msgstr "Over your client limit"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
 msgid "Overdue"
@@ -11332,6 +11426,10 @@ msgstr "Pay {paymentLateDays}d late"
 msgid "Payment"
 msgstr "Payment"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Payment {paymentLateDays} days overdue"
+msgstr "Payment {paymentLateDays} days overdue"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
@@ -11481,6 +11579,7 @@ msgstr "Penalty waiver"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "Pending"
 msgstr "Pending"
 
@@ -12945,9 +13044,17 @@ msgstr "Review applied alert exceptions changing due dates."
 msgid "Review classification impact"
 msgstr "Review classification impact"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review coverage by jurisdiction"
+msgstr "Review coverage by jurisdiction"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
 msgstr "Review coverage, sources, and pending rules."
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review first"
+msgstr "Review first"
 
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
@@ -13087,6 +13194,7 @@ msgstr "Review-only source change. No due-date overlay will be applied."
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStatusBadge.tsx
 #: src/features/alerts/components/AlertStatusChip.tsx
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "Reviewed"
 msgstr "Reviewed"
 
@@ -14917,6 +15025,11 @@ msgstr "System notification"
 msgid "System updates"
 msgstr "System updates"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
+msgid "Table view"
+msgstr "Table view"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Target"
 msgstr "Target"
@@ -15956,6 +16069,7 @@ msgstr "Unable to start Microsoft sign-in"
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -16121,7 +16235,9 @@ msgstr "Up to 100 clients"
 msgid "Up to 300 clients"
 msgstr "Up to 300 clients"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/severity-section.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -16464,6 +16580,8 @@ msgid "View items needing your review"
 msgstr "View items needing your review"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "View mode"
 

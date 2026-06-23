@@ -103,6 +103,7 @@ import {
   stripJurisdictionPrefix,
   type EntityKey,
 } from '@/features/rules/rules-console-model'
+import { RuleCoverageMap, type RuleCoverageEntry } from '@/features/rules/RuleCoverageMap'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
@@ -1516,6 +1517,23 @@ export function RulesLibraryRoute() {
   //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
+  // Per-jurisdiction review coverage for the coverage-map tilegram: pending
+  // count (from the group) + high-severity pending (scanned from rules).
+  // (`topReviewJurisdictions` is defined further down on current main, after
+  // `concreteDraftByTarget` — left there, not re-added here.)
+  const coverageByJurisdiction = useMemo(() => {
+    const map = new Map<string, RuleCoverageEntry>()
+    for (const g of unfilteredGroups) {
+      map.set(g.jurisdiction, { pending: g.pendingReviewCount, high: 0, total: g.ruleCount })
+    }
+    for (const r of rules) {
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      if (r.riskLevel !== 'high') continue
+      const entry = map.get(r.jurisdiction)
+      if (entry) entry.high += 1
+    }
+    return map
+  }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],
@@ -2780,6 +2798,15 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                {/* Coverage map — the signature geographic view of the whole
+                    52-jurisdiction backlog, review pressure rendered as heat
+                    (red = high-severity first · amber = pending · green =
+                    reviewed). Drills into a jurisdiction on click. */}
+                <RuleCoverageMap
+                  coverage={coverageByJurisdiction}
+                  activeJurisdiction={activeJurisdiction}
+                  onSelect={selectJurisdiction}
+                />
                 {/* "Where to start" — the backlog ranked + actionable. The
                     overview's primary lower-zone module (Yuqi #1/#4). */}
                 <OverviewReviewBreakdown

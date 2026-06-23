@@ -11,11 +11,20 @@ import {
 } from '@tanstack/react-table'
 import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ActivityIcon, TriangleAlertIcon, ExternalLinkIcon, EyeIcon, LinkIcon } from 'lucide-react'
+import {
+  ActivityIcon,
+  TriangleAlertIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  LinkIcon,
+  LayoutGridIcon,
+  ListIcon,
+} from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -36,6 +45,8 @@ import { SortableHeader } from '@/components/patterns/sortable-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { CountPill } from '@/components/primitives/count-pill'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatDate, formatDatePretty } from '@/lib/utils'
@@ -121,6 +132,37 @@ const CLIENTS_COL_WIDTH = {
   done: 'w-[80px]',
   assignee: 'w-[80px]',
 } as const
+
+// /clients now leads with a portfolio CARD grid (relationships + risk made
+// tangible) and demotes the registry table to a toggle. `cards` is the
+// default; the choice persists per-browser so a CPA who prefers the dense
+// table keeps it. Mirrors the /alerts list↔map view-mode pattern.
+type ClientsViewMode = 'cards' | 'table'
+
+const CLIENTS_VIEW_STORAGE_KEY = 'duedatehq.clients-view'
+
+function readStoredClientsView(): ClientsViewMode {
+  if (typeof window === 'undefined') return 'cards'
+  try {
+    return window.localStorage.getItem(CLIENTS_VIEW_STORAGE_KEY) === 'table' ? 'table' : 'cards'
+  } catch {
+    return 'cards'
+  }
+}
+
+function useClientsViewMode(): [ClientsViewMode, (next: ClientsViewMode) => void] {
+  const [viewMode, setViewMode] = useState<ClientsViewMode>(readStoredClientsView)
+  const setAndPersist = useCallback((next: ClientsViewMode) => {
+    setViewMode(next)
+    try {
+      window.localStorage.setItem(CLIENTS_VIEW_STORAGE_KEY, next)
+    } catch {
+      // Storage can be unavailable (private mode / sandboxed iframe); the
+      // in-memory state still drives the current session.
+    }
+  }, [])
+  return [viewMode, setAndPersist]
+}
 
 /**
  * `TabSection` — canonical section primitive for the client detail
@@ -929,6 +971,9 @@ export function ClientFactsWorkspace({
   // a header opts in. Stored locally because sort feels transient (a
   // "show me by ___" gesture) rather than something to deep-link.
   const [sorting, setSorting] = useState<SortingState>([])
+  // Card (portfolio) vs table (registry) view. Defaults to cards and
+  // persists per-browser — see useClientsViewMode.
+  const [viewMode, setViewMode] = useClientsViewMode()
   // No client-side pagination: /clients renders the full filtered set in
   // one continuously-scrolling card body (sticky header), matching the
   // /deadlines queue's scroll model instead of a prev/next page footer.
@@ -1018,6 +1063,8 @@ export function ClientFactsWorkspace({
         onOwnerFilterChange={onOwnerFilterChange}
         extraFiltersActive={extraFiltersActive}
         onClearAllFilters={onClearAllFilters}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       {/* Table is framed in the canonical bordered card with `flex-1
@@ -1040,6 +1087,29 @@ export function ClientFactsWorkspace({
           onCreate={onCreateClient}
           canCreate={canCreate}
           onSampleData={onSampleData}
+        />
+      ) : viewMode === 'cards' ? (
+        // Portfolio card grid — the default view. Cards render in the
+        // route's due-ascending order (most-urgent client first), which
+        // is exactly the triage reading order, so no per-card sort UI is
+        // needed. The table view (toggle) keeps sortable column headers.
+        <ClientPortfolioGrid
+          clients={filteredClients}
+          isLoading={isLoading}
+          entityLabels={entityLabels}
+          readinessById={factsModel.readinessById}
+          obligationSummariesByClient={obligationSummariesByClient}
+          alertMatchesByClient={alertMatchesByClient}
+          currentUserName={currentUserName}
+          onOpen={handleOpenClientDetail}
+          hasActiveFilters={
+            searchQuery.length > 0 ||
+            stateFilter.length > 0 ||
+            entityFilter.length > 0 ||
+            ownerFilter.length > 0 ||
+            Boolean(extraFiltersActive)
+          }
+          onClearFilters={onClearAllFilters}
         />
       ) : (
         // Canonical workbench-table card frame. Same recipe as
@@ -1209,6 +1279,380 @@ function handleClientRowKeyDown(
  * a count chip when active). Reset on the right clears every filter at
  * once.
  */
+/**
+ * Portfolio card — the signature surface for the /clients directory.
+ * Trades the registry table's one-row-of-cells for a COMPACT tile (three
+ * tight zones: identity · countdown hero · workload) that makes a client's
+ * identity (monogram + entity + jurisdictions), live pressure (a BOLD
+ * days-to-deadline numeral), and workload (open / filed counts) legible at
+ * a glance. Urgency is expressed once, as the colour of the hero numeral
+ * (red late · amber due-soon · neutral) — no coloured card border, no bar —
+ * so a grid of late clients pops through big red numbers, not red chrome.
+ *
+ * Whole card is one click target → client detail (same destination as a
+ * table row). Reuses the table's cell vocabulary (NextDueRelativeLabel,
+ * ClientFilingStateChips, ObligationStatusReadBadge, the readiness +
+ * alert badges) so the two views read as one product, not two.
+ */
+function ClientPortfolioCard({
+  client,
+  summary,
+  readiness,
+  alertMatches,
+  entityLabel,
+  currentUserName,
+  onOpen,
+}: {
+  client: ClientPublic
+  summary: ClientObligationListSummary | undefined
+  readiness: ClientReadiness | undefined
+  alertMatches: readonly ClientAlertMatch[] | undefined
+  entityLabel: string
+  currentUserName: string | null
+  onOpen: (clientId: string) => void
+}) {
+  const { t } = useLingui()
+  const open = summary?.openCount ?? 0
+  const done = summary?.doneCount ?? 0
+  const dueIso = summary?.nextDueDate ?? null
+
+  // Days to (or past) the next deadline — the card's HERO metric. It drives
+  // one bold numeral whose colour is the ONLY urgency tone on the whole
+  // card: red when late, amber when due within a week, neutral when there's
+  // comfortable runway. So the grid stays calm and the late clients pop
+  // through a single big red number — never a red border + red text + red
+  // bar stacked on the same fact.
+  const dueDays = dueIso ? Math.ceil((Date.parse(dueIso) - Date.now()) / 86_400_000) : null
+  const heroTone =
+    dueDays === null
+      ? 'text-text-secondary'
+      : dueDays < 0
+        ? 'text-text-destructive'
+        : dueDays <= 7
+          ? 'text-text-warning'
+          : 'text-text-primary'
+
+  const assigneeName = client.assigneeName
+  const isMine =
+    currentUserName !== null &&
+    assigneeName !== null &&
+    assigneeName.trim().toLowerCase() === currentUserName.toLowerCase()
+
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={t`Open client detail for ${client.name}`}
+      onClick={() => onOpen(client.id)}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        event.preventDefault()
+        onOpen(client.id)
+      }}
+      className={cn(
+        'group/card flex cursor-pointer flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-3 outline-none transition-colors',
+        // Neutral chrome on EVERY card — urgency lives in the hero numeral,
+        // so the card never carries a coloured border. Quiet lift via
+        // border + bg only (no shadow, no accent wash).
+        'hover:border-divider-deep hover:bg-state-base-hover',
+        'focus-visible:border-state-accent-solid focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+      )}
+    >
+      {/* Identity: monogram · name + entity/state chips · owner */}
+      <div className="flex items-start gap-2.5">
+        <AssigneeAvatar name={client.name} shape="square" size="md" title={client.name} />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <h3
+              className="truncate text-sm font-medium text-text-primary group-hover/card:underline"
+              title={client.name}
+            >
+              {client.name}
+            </h3>
+            {client.isSample ? (
+              <Badge variant="secondary" className="shrink-0">
+                {t`Sample`}
+              </Badge>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="outline" className="text-xs font-normal">
+              {entityLabel}
+            </Badge>
+            <ClientFilingStateChips client={client} />
+          </div>
+        </div>
+        <AssigneeAvatar
+          name={assigneeName}
+          isMine={isMine}
+          size="sm"
+          title={
+            assigneeName === null
+              ? t`Unassigned`
+              : isMine
+                ? t`Assigned to you (${assigneeName})`
+                : assigneeName
+          }
+          className="shrink-0"
+        />
+      </div>
+
+      {/* Countdown hero — the days-to-deadline as one bold numeral (the
+          card's focal point AND its only urgency colour), with the exact
+          date + form beneath and the live status pill on the right. */}
+      <div className="flex items-start justify-between gap-2 border-t border-divider-subtle pt-2">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          {dueIso ? (
+            <>
+              <div className="flex items-baseline gap-1.5">
+                {dueDays === 0 ? (
+                  <span className={cn('text-lg font-semibold tracking-tight', heroTone)}>
+                    <Trans>Due today</Trans>
+                  </span>
+                ) : (
+                  <>
+                    <span
+                      className={cn(
+                        'text-stat-value font-semibold leading-none tracking-tight tabular-nums',
+                        heroTone,
+                      )}
+                    >
+                      {Math.abs(dueDays ?? 0)}
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {(dueDays ?? 0) < 0
+                        ? Math.abs(dueDays ?? 0) === 1
+                          ? t`day late`
+                          : t`days late`
+                        : (dueDays ?? 0) === 1
+                          ? t`day left`
+                          : t`days left`}
+                    </span>
+                  </>
+                )}
+              </div>
+              <span className="text-xs tabular-nums text-text-tertiary">
+                {formatDatePretty(dueIso)}
+                {summary?.nextTaxType ? ` · ${formatTaxCode(summary.nextTaxType)}` : ''}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm font-medium text-text-secondary">
+              <Trans>No deadlines due</Trans>
+            </span>
+          )}
+        </div>
+        {summary?.nextDueStatus ? (
+          <ObligationStatusReadBadge status={summary.nextDueStatus} />
+        ) : null}
+      </div>
+
+      {/* Workload footer — counts + setup/alert signals on one row, pinned
+          to the bottom of equal-height cards. */}
+      <div className="mt-auto flex items-center justify-between gap-2">
+        <span className="text-xs tabular-nums text-text-secondary">
+          {open > 0 ? (
+            <>
+              <span className="font-medium text-text-primary">{open}</span> {t`open`}
+              {done > 0 ? (
+                <span className="text-text-tertiary">
+                  {' · '}
+                  {done} {t`filed`}
+                </span>
+              ) : null}
+            </>
+          ) : done > 0 ? (
+            <span className="text-text-tertiary">
+              {done} {t`filed`}
+            </span>
+          ) : (
+            <span className="text-text-tertiary">
+              <Trans>No deadlines yet</Trans>
+            </span>
+          )}
+        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {readiness?.status === 'needs_facts' ? (
+            <ClientReadinessBadge readiness={readiness} compact />
+          ) : null}
+          {alertMatches && alertMatches.length > 0 ? (
+            <ClientAlertMatchBadge matches={alertMatches} />
+          ) : null}
+        </div>
+      </div>
+    </article>
+  )
+}
+
+/**
+ * Responsive portfolio grid (1 / 2 / 3-up at base / md / xl — same
+ * cadence as the /today alerts grid). Owns the scroll region so it slots
+ * into the same height-constrained shell the table card used. Renders a
+ * skeleton while loading and a filtered-empty recovery state when the
+ * active filters match nothing.
+ */
+function ClientPortfolioGrid({
+  clients,
+  isLoading,
+  entityLabels,
+  readinessById,
+  obligationSummariesByClient,
+  alertMatchesByClient,
+  currentUserName,
+  onOpen,
+  hasActiveFilters,
+  onClearFilters,
+}: {
+  clients: ClientPublic[]
+  isLoading: boolean
+  entityLabels: Record<ClientEntityType, string>
+  readinessById: ReadonlyMap<string, ClientReadiness>
+  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
+  alertMatchesByClient: ReadonlyMap<string, readonly ClientAlertMatch[]>
+  currentUserName: string | null
+  onOpen: (clientId: string) => void
+  hasActiveFilters: boolean
+  onClearFilters?: (() => void) | undefined
+}) {
+  const { t } = useLingui()
+
+  // Urgency swim lanes — Overdue → Due this week → Upcoming → No deadlines,
+  // soonest-first within each. The lanes make the countdown-hero colours
+  // structural (the red lane sits at the top, where triage starts) and
+  // mirror the /deadlines OVERDUE grouping, so the two surfaces read the
+  // same. Empty lanes are dropped, so a firm with nothing overdue just
+  // doesn't see the lane.
+  const lanes = useMemo(() => {
+    const now = Date.now()
+    const dueDaysOf = (client: ClientPublic): number | null => {
+      const iso = obligationSummariesByClient.get(client.id)?.nextDueDate
+      if (!iso) return null
+      return Math.ceil((Date.parse(iso) - now) / 86_400_000)
+    }
+    const buckets: Record<
+      'overdue' | 'week' | 'upcoming' | 'none',
+      { client: ClientPublic; days: number | null }[]
+    > = { overdue: [], week: [], upcoming: [], none: [] }
+    for (const client of clients) {
+      const days = dueDaysOf(client)
+      const key = days === null ? 'none' : days < 0 ? 'overdue' : days <= 7 ? 'week' : 'upcoming'
+      buckets[key].push({ client, days })
+    }
+    const byDue = (a: { days: number | null }, b: { days: number | null }) =>
+      (a.days ?? 0) - (b.days ?? 0)
+    buckets.overdue.sort(byDue)
+    buckets.week.sort(byDue)
+    buckets.upcoming.sort(byDue)
+    buckets.none.sort((a, b) => a.client.name.localeCompare(b.client.name))
+    return (['overdue', 'week', 'upcoming', 'none'] as const)
+      .map((key) => ({ key, clients: buckets[key].map((entry) => entry.client) }))
+      .filter((lane) => lane.clients.length > 0)
+  }, [clients, obligationSummariesByClient])
+
+  const laneLabel = (key: 'overdue' | 'week' | 'upcoming' | 'none') =>
+    key === 'overdue'
+      ? t`Overdue`
+      : key === 'week'
+        ? t`Due this week`
+        : key === 'upcoming'
+          ? t`Upcoming`
+          : t`No deadlines`
+
+  const renderCard = (client: ClientPublic) => (
+    <ClientPortfolioCard
+      key={client.id}
+      client={client}
+      summary={obligationSummariesByClient.get(client.id)}
+      readiness={readinessById.get(client.id)}
+      alertMatches={alertMatchesByClient.get(client.id)}
+      entityLabel={entityLabels[client.entityType]}
+      currentUserName={currentUserName}
+      onOpen={onOpen}
+    />
+  )
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* The lanes sit in a subtle gray WELL so the white cards separate
+          from the page (white-on-white otherwise reads as one flat field —
+          "border + bg contrast does the lift", no shadows). The well is the
+          single scroll region. */}
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-xl bg-background-section p-4">
+        {isLoading ? (
+          <ClientPortfolioGridSkeleton />
+        ) : clients.length === 0 ? (
+          <ClientPortfolioEmpty
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={onClearFilters}
+          />
+        ) : (
+          <div className="flex flex-col gap-5">
+            {lanes.map((lane) => (
+              <section key={lane.key} className="flex flex-col gap-2.5">
+                {/* Lane header — group caps label + neutral count. Tone is
+                    NOT repeated here; the cards' hero numerals carry the
+                    colour, so the lane chrome stays quiet. */}
+                <div className="flex items-center gap-2 px-0.5">
+                  <CapsFieldLabel as="h3" variant="group">
+                    {laneLabel(lane.key)}
+                  </CapsFieldLabel>
+                  <CountPill tone="neutral">{lane.clients.length}</CountPill>
+                </div>
+                <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                  {lane.clients.map(renderCard)}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ClientPortfolioGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3" aria-hidden>
+      {[0, 1, 2, 3, 4, 5].map((index) => (
+        <div
+          key={index}
+          className="flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-3"
+        >
+          <div className="flex items-start gap-2.5">
+            <Skeleton className="size-8 rounded-lg" />
+            <div className="flex flex-1 flex-col gap-1.5">
+              <Skeleton className="h-3.5 w-2/3" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+          <Skeleton className="h-9 w-full" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ClientPortfolioEmpty({
+  hasActiveFilters,
+  onClearFilters,
+}: {
+  hasActiveFilters: boolean
+  onClearFilters?: (() => void) | undefined
+}) {
+  return (
+    <div className="flex min-h-[280px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-divider-regular px-6 py-12 text-center">
+      <p className="text-sm font-medium text-text-secondary">
+        <Trans>No clients match these filters</Trans>
+      </p>
+      {hasActiveFilters && onClearFilters ? (
+        <Button variant="link" size="sm" className="h-auto p-0" onClick={onClearFilters}>
+          <Trans>Clear filters</Trans>
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
 function ClientsFilterToolbar({
   searchQuery,
   onSearchChange,
@@ -1223,6 +1667,8 @@ function ClientsFilterToolbar({
   onOwnerFilterChange,
   extraFiltersActive = false,
   onClearAllFilters,
+  viewMode,
+  onViewModeChange,
 }: {
   searchQuery: string
   onSearchChange: (next: string) => void
@@ -1237,6 +1683,8 @@ function ClientsFilterToolbar({
   onOwnerFilterChange: (next: string[]) => void
   extraFiltersActive?: boolean | undefined
   onClearAllFilters?: (() => void) | undefined
+  viewMode: ClientsViewMode
+  onViewModeChange: (next: ClientsViewMode) => void
 }) {
   const { t } = useLingui()
   const filtersActive =
@@ -1320,25 +1768,43 @@ function ClientsFilterToolbar({
       >
         <Trans>Clear filters</Trans>
       </Button>
-      {/* Canonical collapsing toolbar search — ghost magnifier at the
-          right edge, expands on hover/click/`/`, retains focus + query.
-          One control across /clients · /rules/library · /alerts. */}
-      <CollapsibleSearch
-        className="ml-auto"
-        value={searchQuery}
-        onChange={onSearchChange}
-        placeholder={t`Filter by name or EIN`}
-        ariaLabel={t`Filter clients`}
-        collapsedLabel={t`Filter clients`}
-        hotkey="/"
-        hotkeyMeta={{
-          id: 'clients.focus-search',
-          name: 'Filter clients',
-          description: 'Focus the /clients filter input.',
-          category: 'practice',
-          scope: 'route',
-        }}
-      />
+      {/* Right cluster — collapsing search + the card/table view switch,
+          mirroring the /alerts toolbar's "search then view-mode" reading
+          order at the far edge. */}
+      <div className="ml-auto flex items-center gap-2">
+        {/* Canonical collapsing toolbar search — ghost magnifier, expands
+            on hover/click/`/`, retains focus + query. One control across
+            /clients · /rules/library · /alerts. */}
+        <CollapsibleSearch
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder={t`Filter by name or EIN`}
+          ariaLabel={t`Filter clients`}
+          collapsedLabel={t`Filter clients`}
+          hotkey="/"
+          hotkeyMeta={{
+            id: 'clients.focus-search',
+            name: 'Filter clients',
+            description: 'Focus the /clients filter input.',
+            category: 'practice',
+            scope: 'route',
+          }}
+        />
+        {/* Icon-only Segmented — Cards (portfolio, default) ↔ Table
+            (registry). Same primitive + far-edge placement as the /alerts
+            list↔map switch. */}
+        <Segmented
+          size="lg"
+          className="shrink-0"
+          ariaLabel={t`View mode`}
+          value={viewMode}
+          onValueChange={onViewModeChange}
+          options={[
+            { value: 'cards', label: null, icon: LayoutGridIcon, ariaLabel: t`Card view` },
+            { value: 'table', label: null, icon: ListIcon, ariaLabel: t`Table view` },
+          ]}
+        />
+      </div>
     </div>
   )
 }

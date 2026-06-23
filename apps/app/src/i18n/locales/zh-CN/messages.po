@@ -1157,6 +1157,22 @@ msgstr "{jurisdictions, plural, other {正在监控 # 个辖区}}"
 msgid "{label}, selected"
 msgstr "{label}，已选择"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {pending} of {total} to review"
+msgstr "{label}：{total} 条中 {pending} 条待审核"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {pending} to review · {high} high-severity"
+msgstr "{label}：{pending} 条待审核 · {high} 条高严重度"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: all {total} reviewed"
+msgstr "{label}：{total} 条已全部审核"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: no rules tracked"
+msgstr "{label}：暂无规则"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
@@ -2974,7 +2990,9 @@ msgstr "分配给你"
 msgid "Assigned to you ({0})"
 msgstr "指派给你（{0}）"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Assigned to you ({assigneeName})"
@@ -3167,6 +3185,10 @@ msgstr "机关引用"
 msgid "Authority confirmed payment cleared"
 msgstr "税务机关确认款项已到账"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
+msgstr "税务机关付款已逾期 {paymentLateDays} 天 —— 确认前将持续产生罚息。"
+
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Authority refs"
 msgstr "权威依据"
@@ -3262,6 +3284,7 @@ msgstr "待决定"
 msgid "Awaiting review"
 msgstr "等待审核"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Awaiting signature"
@@ -3674,6 +3697,11 @@ msgstr "已记录"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
+msgid "Card view"
+msgstr "卡片视图"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Category"
 msgstr "类别"
@@ -3977,6 +4005,10 @@ msgstr "已清空，原值为 {0}"
 #: src/features/obligations/queue/components/evidence.tsx
 msgid "Cleared from {before}"
 msgstr "已清空，原值为 {before}"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Click a jurisdiction to review its rules"
+msgstr "点击辖区以审核其规则"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Click to open Sources."
@@ -5284,6 +5316,10 @@ msgstr "县"
 msgid "Coverage"
 msgstr "覆盖"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Coverage map"
+msgstr "覆盖地图"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
 msgstr "覆盖"
@@ -5526,6 +5562,16 @@ msgstr "仅日期"
 msgid "Dates"
 msgstr "日期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "day late"
+msgstr "天逾期"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "day left"
+msgstr "天后到期"
+
 #: src/features/members/member-model.ts
 msgid "Day-to-day client work"
 msgstr "日常客户工作"
@@ -5543,9 +5589,19 @@ msgstr "天数"
 msgid "days early"
 msgstr "提前天数"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "days late"
+msgstr "天逾期"
+
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days later"
 msgstr "天后"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "days left"
+msgstr "天后到期"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days sooner"
@@ -6130,6 +6186,7 @@ msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
 
 #: src/features/dashboard/merged-brief-card.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Due"
@@ -6165,11 +6222,15 @@ msgstr "截止日"
 msgid "Due soon"
 msgstr "即将到期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "Due this week"
 msgstr "本周到期"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 msgid "Due today"
 msgstr "今日到期"
 
@@ -7059,11 +7120,16 @@ msgid "File type"
 msgstr "文件类型"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+msgid "filed"
+msgstr "已申报"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 #: src/features/obligations/queue/components/panels.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
@@ -7112,6 +7178,10 @@ msgstr "未延期申报"
 #: src/routes/obligations.tsx
 msgid "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
 msgstr "已申报，但客户尚未签署 Form 8879 — 在客户签字前无法进行电子申报。"
+
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Filed, but the client hasn't signed Form 8879 yet."
+msgstr "已申报，但客户尚未签署 8879 表。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -9979,6 +10049,14 @@ msgstr "不会应用截止日覆盖"
 msgid "No deadline pressure right now."
 msgstr "当前没有截止压力。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No deadlines"
+msgstr "无截止日期"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No deadlines due"
+msgstr "暂无即将到期"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "No deadlines due in the next 7 days"
 msgstr "未来 7 天内没有到期的截止日期"
@@ -9987,6 +10065,7 @@ msgstr "未来 7 天内没有到期的截止日期"
 msgid "No deadlines due in the selected window."
 msgstr "所选时间窗内没有到期的截止事项。"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters"
 msgstr "没有符合这些筛选条件的截止任务"
@@ -10000,6 +10079,7 @@ msgstr "没有截止事项匹配这些筛选条件。"
 msgid "No deadlines match."
 msgstr "没有匹配的截止日期。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -10252,6 +10332,10 @@ msgstr "无规则延期"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "No rule types"
 msgstr "暂无规则类型"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "No rules"
+msgstr "暂无规则"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "No rules in {jurisdictionLabel} for this view."
@@ -10745,6 +10829,7 @@ msgid "Only the practice owner can start or change a subscription."
 msgstr "只有当前事务所 Owner 可以创建或变更订阅。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "open"
 msgstr "打开"
 
@@ -10766,6 +10851,12 @@ msgstr "展开"
 #: src/routes/rules.library.tsx
 msgid "Open {0}"
 msgstr "打开 {0}"
+
+#. placeholder {0}: row.clientName
+#. placeholder {1}: row.taxType
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Open {0} {1} deadline"
+msgstr "打开 {0} {1} 截止日期"
 
 #. placeholder {0}: row.clientName
 #: src/features/alerts/components/AffectedClientsTable.tsx
@@ -10811,6 +10902,7 @@ msgstr "打开账单"
 msgid "Open blocking deadline: {0} for {1}"
 msgstr "打开阻塞截止事项：{1} 的 {0}"
 
+#. placeholder {0}: client.name
 #. placeholder {0}: row.original.name
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Open client detail for {0}"
@@ -11120,8 +11212,10 @@ msgstr "未交"
 msgid "Over your client limit"
 msgstr "已超出客户数上限"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
 msgid "Overdue"
@@ -11380,6 +11474,10 @@ msgstr "缴款逾期 {paymentLateDays} 天"
 msgid "Payment"
 msgstr "付款"
 
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
+msgid "Payment {paymentLateDays} days overdue"
+msgstr "付款逾期 {paymentLateDays} 天"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
@@ -11531,6 +11629,7 @@ msgstr "罚金豁免"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "Pending"
 msgstr "待处理"
 
@@ -13003,9 +13102,17 @@ msgstr "查看已应用的、变更到期日的提醒例外。"
 msgid "Review classification impact"
 msgstr "查看分类影响"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review coverage by jurisdiction"
+msgstr "按辖区查看审核覆盖"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
 msgstr "查看覆盖、来源和待审核规则。"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review first"
+msgstr "优先审核"
 
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
@@ -13145,6 +13252,7 @@ msgstr "仅供审核的来源变更。不会应用截止日覆盖。"
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStatusBadge.tsx
 #: src/features/alerts/components/AlertStatusChip.tsx
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "Reviewed"
 msgstr "已审核"
 
@@ -14980,6 +15088,11 @@ msgstr "系统通知"
 msgid "System updates"
 msgstr "系统更新"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
+msgid "Table view"
+msgstr "表格视图"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Target"
 msgstr "目标"
@@ -16021,6 +16134,7 @@ msgstr "无法启动 Microsoft 登录"
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -16188,7 +16302,9 @@ msgstr "最多 100 个客户"
 msgid "Up to 300 clients"
 msgstr "最多 300 个客户"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/severity-section.tsx
+#: src/features/obligations/queue/DeadlineCardGrid.tsx
 #: src/routes/obligations.tsx
 msgid "Upcoming"
 msgstr "即将触发"
@@ -16532,6 +16648,8 @@ msgid "View items needing your review"
 msgstr "查看需要您审核的项目"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "查看模式"
 
