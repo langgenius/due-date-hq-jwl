@@ -138,7 +138,7 @@ const tiles = [
                 data-agency={STATE_AGENCY[tile.s] ?? `${STATE_NAMES[tile.s]} ${panel.agencyGeneric}`}
                 aria-label={`${STATE_NAMES[tile.s]} — ${panel.watched}`}
                 aria-pressed="false"
-                style={`grid-row:${tile.r};grid-column:${tile.c};--scan-d:${(((tile.r + tile.c) % 13) * 0.34).toFixed(2)}s`}
+                style={`grid-row:${tile.r};grid-column:${tile.c}`}
               >
                 <span class="ust__c">{tile.s}</span>
               </button>
@@ -235,7 +235,6 @@ const tiles = [
   function initSourcesMap() {
     document.querySelectorAll<HTMLElement>('.sources__grid').forEach((grid) => {
       const tiles = Array.from(grid.querySelectorAll<HTMLButtonElement>('.ust'))
-      const map = grid.querySelector<HTMLElement>('.usmap')
       const panel = grid.querySelector<HTMLElement>('[data-statepanel]')
       const col = grid.querySelector<HTMLElement>('.sources__rightcol')
       if (!panel || !col) return
@@ -247,8 +246,6 @@ const tiles = [
         if (nameEl) nameEl.textContent = tile.dataset.name ?? ''
         if (abbrEl) abbrEl.textContent = tile.dataset.state ?? ''
         if (agencyEl) agencyEl.textContent = tile.dataset.agency ?? ''
-        // spotlight the chosen state — the rest of the map recedes
-        map?.classList.add('is-selecting')
         panel.hidden = false
         col.setAttribute('data-showpanel', '')
       }
@@ -443,64 +440,18 @@ const tiles = [
     transition:
       background 0.16s ease,
       border-color 0.16s ease,
-      color 0.16s ease,
-      opacity 0.25s ease,
-      transform 0.16s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-  /* the LIVE cue — a faint scan-pulse sweeps the country diagonally (staggered by
-     --scan-d = row+col), so the whole map reads as continuously watched, matching
-     the "around the clock" caption. One overlay per tile, opacity-only (GPU). */
-  .ust::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--m-cyan);
-    opacity: 0;
-    pointer-events: none;
-    animation: ust-scan 5.2s ease-in-out infinite;
-    animation-delay: var(--scan-d, 0s);
-  }
-  @keyframes ust-scan {
-    0%,
-    16%,
-    100% {
-      opacity: 0;
-    }
-    6% {
-      opacity: 0.22;
-    }
+      color 0.16s ease;
   }
   .ust:hover {
     background: var(--m-surface);
     border-color: var(--m-accent);
     color: var(--m-ink);
-    transform: scale(1.08);
-    box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--m-accent) 45%, transparent);
-    z-index: 3;
   }
+  /* active — a calm cyan fill (no shadow, no size change) */
   .ust[aria-pressed='true'] {
-    background: var(--m-accent);
-    border-color: var(--m-accent);
-    color: #fff;
-    transform: scale(1.12);
-    box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--m-accent) 55%, transparent);
-    z-index: 4;
-  }
-  .ust[aria-pressed='true']::after {
-    animation: none;
-    opacity: 0;
-  }
-  /* once a state is chosen, the rest of the map recedes to spotlight it (#22) */
-  .usmap.is-selecting .ust:not([aria-pressed='true']) {
-    opacity: 0.42;
-  }
-  .usmap.is-selecting .ust:not([aria-pressed='true'])::after {
-    animation: none;
-    opacity: 0;
-  }
-  .usmap.is-selecting .ust:hover {
-    opacity: 1;
+    background: var(--m-cyan);
+    border-color: var(--m-cyan);
+    color: var(--m-ink);
   }
   .ust:focus-visible {
     outline: 2px solid var(--m-accent);
@@ -790,8 +741,7 @@ const tiles = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .feed__live-dot,
-    .ust::after {
+    .feed__live-dot {
       animation: none;
     }
   }

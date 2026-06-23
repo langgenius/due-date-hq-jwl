@@ -116,3 +116,29 @@ a soft elevation shadow), and `.nav--on-dark.nav--scrolled .nav__cta` explicitly
 sets `background: transparent` so it's a white-outline ghost, not the inherited
 white fill. (The expanded-on-dark pill is unreachable — the villain is always
 below the collapse threshold — so no change needed there.)
+
+### Calm-down round (simplify + de-noise)
+Standing note: text on the dark band was too complex — keep it simple.
+- **Villain text simplified** — tagline "A deadline moves — you find out when your
+  client does."; painline cut to one line; cap subs shortened. The "See how it
+  works" link is now a grounded ghost **button** (was a floating underline).
+- **Bench interaction removed** — the auto-spotlight tour read as a useless
+  gimmick; deleted it (JS + CSS). Kept only the purposeful jurisdiction filter
+  (tabs still swap the lead alert, no jump — verified).
+- **Map roaming scan removed** — the diagonal cyan scan-pulse was ugly; gone
+  (animation, keyframes, stagger var, is-selecting spotlight all removed). The
+  active tile is now a calm **cyan** fill — no shadow, no size change.
+- **Compare lead** back to **Instrument Sans** (the serif deck wasn't as
+  professional); emphasis by weight, not italic.
+- **Security** — `.tstat` border was `--m-ink` (a near-black line) → hairline;
+  tightened the stat/card/boundary rhythm so the section stops wasting space.
+- **Nav** — removed the collapsed-pill shadow (both light + on-dark); lighter
+  ghost-CTA border + quieter trailing arrow (0.6 opacity); more link padding
+  (`8px 18px`, pill max-width 640→700).
+- **Spyrail** — items closer (gap 14→11px), dash thinner (2→1.5px).
+- **Close** — "Get a guided setup" → "Book a demo call".
+- **Hero** — the secondary CTA's ugly inset-underline hover → a soft pill fill.
+- **Compare claims (#6)** — reviewed each cell for defensibility (they hold by
+  product category: competitors don't do regulatory-change monitoring; TaxDome
+  owns practice/billing/docs; File In Time = partial workflow). Flagged for a
+  human spot-check against the competitors' current sites before public launch.

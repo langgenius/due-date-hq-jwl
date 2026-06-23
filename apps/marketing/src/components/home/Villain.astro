@@ -15,48 +15,46 @@ const howHref = zh ? '/zh-CN/how-it-works' : '/how-it-works'
 const t = zh
   ? {
       q: '是不是很熟悉？',
-      hBefore: '让你不安的，不是截止日——',
-      hItal: '而是你',
-      hAfter: '根本没察觉它变了。',
-      painLine:
-        '五十个州的网站、一个永远清不完的收件箱、三月里悄悄改的一条规则——等你知道，客户已经收到了那封信。',
+      hBefore: '截止日一变 ——',
+      hItal: '等你知道，',
+      hAfter: '客户早就知道了。',
+      painLine: '五十个州的网站，一个永远清不完的收件箱。没人能靠人工全盯过来。',
       answerEyebrow: '我们怎么让你安心',
       caps: [
         {
           lead: '几分钟就能导入你的客户',
-          sub: '粘贴名单，或从你正在用的软件导入——无需大动干戈的迁移。',
+          sub: '粘贴名单，或从你正在用的工具导入。',
         },
         {
           lead: '我们全天候盯着每一个机构',
-          sub: 'IRS、全部 50 个州和 FEMA，持续监控——任何变化都漏不掉。',
+          sub: 'IRS、全部 50 个州和 FEMA——持续监控。',
         },
         {
           lead: '每条变化，都对应到受影响的客户',
-          sub: '日期一变动，你立刻看到具体影响哪些客户，并附官方来源。',
+          sub: '一眼看清变化影响哪些客户，并附官方来源。',
         },
       ],
       link: '看它如何运作',
     }
   : {
       q: 'Sound familiar?',
-      hBefore: "You're not afraid of the deadline —",
-      hItal: "you're afraid",
-      hAfter: 'of the one you never saw move.',
-      painLine:
-        "Fifty state sites, an inbox you can't clear, a rule that moved in March — and you hear about it when your client gets the letter.",
+      hBefore: 'A deadline moves —',
+      hItal: 'you find out',
+      hAfter: 'when your client does.',
+      painLine: "Fifty state sites and an inbox that never empties. No one can watch it all by hand.",
       answerEyebrow: 'How we keep you sure',
       caps: [
         {
           lead: 'Bring your clients over in minutes',
-          sub: 'Paste a list or import from the software you already run — no migration project.',
+          sub: 'Paste a list or import from the tools you already use.',
         },
         {
           lead: 'We watch every agency, around the clock',
-          sub: "The IRS, all fifty states, and FEMA — monitored continuously, so a change can't slip by.",
+          sub: 'The IRS, all fifty states, and FEMA — continuously.',
         },
         {
           lead: 'Every change, matched to who it hits',
-          sub: 'The moment a date moves, you see exactly which clients are affected, with the source.',
+          sub: 'See exactly which clients a change affects, with the source.',
         },
       ],
       link: 'See how it works',
@@ -242,20 +240,25 @@ const caps = t.caps
     line-height: 1.5;
     color: rgba(255, 255, 255, 0.6);
   }
+  /* a grounded ghost button, not a floating underline */
   .villain__link {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-top: clamp(18px, 2.2vw, 26px);
-    font-size: var(--m-text-md);
+    margin-top: clamp(20px, 2.4vw, 28px);
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.32);
-    padding-bottom: 2px;
-    transition: border-color 0.18s ease;
+    transition:
+      background 0.18s ease,
+      border-color 0.18s ease;
   }
   .villain__link:hover {
-    border-bottom-color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
   }
   .villain__link-arrow {
     transition: transform 0.18s ease;

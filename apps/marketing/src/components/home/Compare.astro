@@ -166,22 +166,22 @@ const ariaSummary = t.ariaSummary
 </section>
 
 <style>
-  /* with the redundant H2 gone, the lead carries the section — a deck-weight
-     statement, not body copy */
+  /* the lead carries the section — a sans-serif deck statement (cleaner +
+     more professional than the display serif), emphasis by weight not italic */
   .compare__lead {
     margin-top: 14px;
-    max-width: 24ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: clamp(26px, 3vw, 40px);
-    line-height: 1.12;
+    max-width: 30ch;
+    font-family: var(--m-font-sans);
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.2;
     letter-spacing: -0.015em;
     color: var(--m-ink);
     text-wrap: balance;
   }
   .compare__lead :global(b) {
-    font-weight: 400;
-    font-style: italic;
+    font-weight: 600;
+    color: var(--m-ink);
   }
   .cmp-scroll {
     margin-top: clamp(28px, 3.5vw, 44px);
