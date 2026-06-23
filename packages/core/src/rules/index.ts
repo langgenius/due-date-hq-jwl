@@ -4255,9 +4255,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
     // dfa.arkansas.gov Cloudflare-520s datacenter clients, so direct fetch only
-    // ever parsed one nav link — routed via browserless (PULSE_BROWSERLESS_SOURCE_IDS,
-    // 2026-06-22). The WAF may still 520 browserless's datacenter IPs; if source
-    // health doesn't recover it needs a residential proxy.
+    // ever parses one nav link. 2026-06-22: tried browserless, but its datacenter
+    // IPs get 520'd too (fetch errored 500) — reverted. Needs a residential proxy
+    // (same as oh.sales_tax_rate_changes); known limitation until then.
     url: 'https://www.dfa.arkansas.gov/about/news/',
     // Index-level relief signal: AR posts disaster relief via DFA news +
     // gubernatorial orders; no dedicated relief page.
@@ -4701,15 +4701,16 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
     title: 'Utah State Tax Commission News Releases',
-    // tax.utah.gov 502s datacenter clients and renders the release list
-    // client-side, so direct fetch only ever produced a whole-page fallback
-    // snapshot (no per-item links) — routed via browserless to render it
-    // (PULSE_BROWSERLESS_SOURCE_IDS, 2026-06-22).
+    // tax.utah.gov renders the release list client-side. 2026-06-22: tried
+    // browserless, but its /content call captures the page right after `load` (no
+    // gotoOptions/waitUntil), so the async-loaded releases never appear in the body
+    // (content hash matched the direct-fetch shell) — reverted. Stays on direct
+    // fetch with a whole-page fallback snapshot; known limitation.
     url: 'https://tax.utah.gov/commission-office/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
     sourceNotes:
-      'Official Utah State Tax Commission dated news releases; the release list is JS-rendered so it is fetched via browserless.',
+      'Official Utah State Tax Commission dated news releases; the release list is JS-rendered and not captured by direct fetch or browserless /content, so only a whole-page fallback snapshot is produced.',
   },
   {
     id: 'va.temporary_announcements',
@@ -4737,11 +4738,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wi.temporary_announcements',
     jurisdiction: 'WI',
     title: 'Wisconsin DOR News',
-    // revenue.wi.gov renders the news list in a SharePoint WebPart (client-side) —
-    // the static HTML has zero news-item links, so direct fetch only produced a
-    // whole-page fallback snapshot. Routed via browserless to render the WebPart
-    // (PULSE_BROWSERLESS_SOURCE_IDS, 2026-06-22). The SharePoint listfeed.aspx RSS
-    // exposes only date-named page filenames, not headlines, so it is not usable.
+    // revenue.wi.gov renders the news list in a SharePoint WebPart (client-side),
+    // so the static HTML has zero news-item links and only a whole-page fallback
+    // snapshot is produced. 2026-06-22: tried browserless, but its /content call
+    // grabs the shell before the WebPart's async news loads (content hash matched
+    // the direct-fetch shell) — reverted. The SharePoint listfeed.aspx RSS exposes
+    // only date-named page filenames, not headlines, so it is not usable either.
+    // Known limitation.
     url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
   },
   {
