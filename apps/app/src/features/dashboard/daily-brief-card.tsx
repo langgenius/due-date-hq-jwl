@@ -397,7 +397,11 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       // Matches the canonical status label used on /deadlines.
       label: <Trans>Waiting on client</Trans>,
       count: counts.waitingOnClientCount,
-      to: '/deadlines',
+      // Carry the filter so the queue arrives already scoped to these rows —
+      // the pill counts waiting-on-client deadlines, so landing on an
+      // unfiltered list would lose the user's place. (`waiting_on_client`
+      // is a canonical ?status= literal — see status-control ALL_STATUSES.)
+      to: '/deadlines?status=waiting_on_client',
       ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
     })
   }
