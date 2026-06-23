@@ -415,7 +415,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle py-3 outline-none transition-[color,box-shadow]',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -434,10 +434,14 @@ function PulseAlertRow({
             // the box never shifts the row), but the box itself is hover-revealed
             // unless this row is ticked or a selection is already underway — so a
             // read-first triage list isn't led by a column of empty checkboxes.
+            // Less obvious (Yuqi 2026-06-23 #5): a read-first triage list
+            // shouldn't be fronted by checkboxes. Stays a quiet ghost on row
+            // hover (60%) and only goes solid when the box itself is focused, or
+            // once this row / a selection is active.
             'flex shrink-0 items-start pt-0.5 transition-opacity',
             selected || selectionActive
               ? 'opacity-100'
-              : 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100',
+              : 'opacity-0 group-hover/row:opacity-60 hover:opacity-100 focus-within:opacity-100',
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -1043,14 +1047,16 @@ function PulseAlertList({
 
           return (
             <div key={dayKey} className="flex flex-col">
-              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
-                    a faint band: "MAY 20, 2026". No weekday, count, or icon —
-                    the date is the section marker. Sticky below the toolbar
-                    (top-12) so "when" stays answered while a day's rows scroll
-                    under it; requires the frame's overflow-clip. The faint
-                    `bg-background-subtle` fill (matching aUZTy) gives a clean
-                    section break without the busier label competing with rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
+              {/* Day header — a quiet uppercase date eyebrow: "MAY 20, 2026". No
+                    weekday, count, or icon — the date is the section marker.
+                    Sticky below the toolbar (top-12) so "when" stays answered
+                    while a day's rows scroll under it; requires the frame's
+                    overflow-clip. NO gray fill (Yuqi 2026-06-23 #3/#4: on a
+                    borderless list a full-bleed gray bar read as a weird floating
+                    header) — an opaque page-default fill masks the rows scrolling
+                    under it while reading as an eyebrow, not a bar. Thin (py-1.5)
+                    and flush-left with the rows. */}
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default py-1.5">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
@@ -1072,7 +1078,7 @@ function PulseAlertList({
                       'size-[18px] rounded transition-opacity',
                       selectionActive
                         ? 'opacity-100'
-                        : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
+                        : 'opacity-0 group-hover/band:opacity-60 hover:opacity-100 focus-visible:opacity-100',
                     )}
                   />
                 ) : null}
