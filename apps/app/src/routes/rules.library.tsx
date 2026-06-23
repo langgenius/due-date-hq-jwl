@@ -825,11 +825,15 @@ function OverviewReviewBreakdown({
   const now = Date.now()
 
   return (
-    <section className="flex shrink-0 flex-col gap-3">
+    // `@container` so the card grid below responds to THIS column's width
+    // (the right side of the overview split), not the viewport — the app
+    // sidebar makes viewport breakpoints unreliable for inner content.
+    <section className="@container flex shrink-0 flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-region-title text-text-primary">
+        {/* h2 peer of the Coverage map title — same region-title size. */}
+        <h2 className="text-region-title text-text-primary">
           <Trans>Where to start</Trans>
-        </span>
+        </h2>
         <span className="text-sm font-medium text-text-tertiary">
           <Trans>Most urgent first</Trans>
         </span>
@@ -842,7 +846,7 @@ function OverviewReviewBreakdown({
           Color budget mirrors the band: the count stays NEUTRAL, the lone red
           flag is high-severity (von-Restorff — only the "review these first"
           jurisdictions light up); the colorful state seals carry the rest. */}
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3 @lg:grid-cols-2">
         {jurisdictions.map((g) => {
           const days =
             g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
@@ -2798,21 +2802,32 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                {/* Coverage map — the signature geographic view of the whole
-                    52-jurisdiction backlog, review pressure rendered as heat
-                    (red = high-severity first · amber = pending · green =
-                    reviewed). Drills into a jurisdiction on click. */}
-                <RuleCoverageMap
-                  coverage={coverageByJurisdiction}
-                  activeJurisdiction={activeJurisdiction}
-                  onSelect={selectJurisdiction}
-                />
-                {/* "Where to start" — the backlog ranked + actionable. The
-                    overview's primary lower-zone module (Yuqi #1/#4). */}
-                <OverviewReviewBreakdown
-                  jurisdictions={topReviewJurisdictions}
-                  onSelectJurisdiction={selectJurisdiction}
-                />
+                {/* Coverage map + "Where to start" as equal-weight peers in a
+                    two-column split (left = the geographic coverage heat, right
+                    = the ranked actionable backlog). Container query, not a
+                    viewport breakpoint, so the app sidebar can't throw off when
+                    they go side-by-side; below the split width they stack. The
+                    left track is sized to the fixed tilegram (494px + card
+                    padding); the right track flexes. Matching region-title
+                    headings carry "same importance". */}
+                <div className="@container">
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-8 @4xl:grid-cols-[540px_minmax(0,1fr)] @4xl:items-start">
+                    {/* Coverage map — review pressure rendered as heat (red =
+                        high-severity first · amber = pending · green =
+                        reviewed). Drills into a jurisdiction on click. */}
+                    <RuleCoverageMap
+                      coverage={coverageByJurisdiction}
+                      activeJurisdiction={activeJurisdiction}
+                      onSelect={selectJurisdiction}
+                    />
+                    {/* "Where to start" — the backlog ranked + actionable
+                        (Yuqi #1/#4). */}
+                    <OverviewReviewBreakdown
+                      jurisdictions={topReviewJurisdictions}
+                      onSelectJurisdiction={selectJurisdiction}
+                    />
+                  </div>
+                </div>
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
                 <OverviewCoverageGaps
                   jurisdictions={gappedJurisdictions}

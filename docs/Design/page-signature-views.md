@@ -1,9 +1,13 @@
 # Page signature views
 
-Each list surface leads with a **distinctive signature view as the default**; the
-list/table is demoted to a one-click `Segmented` toggle (icon-only, persisted per
-browser). The signatures share one DNA so the product reads as one thing, while
-each page stays distinct.
+Each list surface carries a **distinctive signature view**, toggleable against the
+list/table via a one-click `Segmented` toggle (icon-only, persisted per browser).
+The signatures share one DNA so the product reads as one thing, while each page
+stays distinct.
+
+**Defaults differ per page (2026-06-23):** `/clients` defaults to **cards**;
+`/deadlines` defaults to the **table/list** (cards are the opt-in toggle). Same
+toggle, opposite default — a deliberate call, not drift.
 
 ## The shared card + lane DNA (Clients, Deadlines)
 
@@ -40,7 +44,27 @@ each page stays distinct.
 | **Clients** | Portfolio cards · urgency lanes | monogram identity; open/filed counts in footer |
 | **Deadlines** | Deadline cards · urgency lanes | form chip; settled → Filed lane; inline triage icons |
 | **Alerts** | (unchanged) live feed | a chronological stream is the right pattern; not card-ified |
-| **Rule Library** | Coverage map (US tilegram) | review pressure as heat; high-severity count bubble; drill-in on click |
+| **Rule Library** | Coverage map (US tilegram) | review pressure as heat; high-severity count bubble; drill-in on click; paired with **Where to start** (see below) |
+
+## Rule Library overview — two columns
+
+The overview pairs the **Coverage map** (left) with the **Where to start** backlog
+(right) as **equal-weight peers**: same `text-region-title` heading (18px/600),
+shared baseline, left = the geographic heat, right = the ranked actionable queue.
+
+- The split is a **container query** (`@container` → `@4xl` / 896px of the
+  wrapper's own width), **not** a viewport breakpoint — the collapsible app
+  sidebar makes viewport widths unreliable for inner content. Below the split
+  width the two stack full-width.
+- Left track is sized to the fixed tilegram (`540px`); the right track flexes
+  (`minmax(0,1fr)`).
+- "Where to start" is itself a `@container`; its jurisdiction cards are
+  `grid-cols-1 @lg:grid-cols-2`, so they read as a ranked column in a narrow
+  right track and go 2-up once it's ≥512px.
+
+This is the app's first use of container queries — prefer them over viewport
+breakpoints whenever an inner region's available width is decoupled from the
+viewport (sidebars, split panes).
 
 ## Shared jurisdiction tilegram
 
