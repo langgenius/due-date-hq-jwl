@@ -144,6 +144,22 @@ All `--m-*` colours resolve to shared semantic tokens, which resolve to the prim
 - Accent usage is purposeful: navy = the one action colour (primary button, links, focus); cyan
   is reserved for delight surfaces; red strictly for risk.
 
+### Subpage accent usage (2026-06-23)
+
+Subpages had read as monochrome navy. The approved expansion keeps navy as the workhorse and
+adds exactly two more roles — restrained, meaning-bearing, never decorative:
+
+- **Cyan (`--m-cyan`)** — the single *highlight* per surface, for "the winner / the live /
+  the moment of energy": the recommended pricing plan's badge gradient, the lit Apply outcome
+  in the how-it-works hero + loop, and the "has a detail page" tiles on /state-coverage (cyan
+  corner dot + hover ring). One shot per view — if everything glows, nothing does.
+- **Green (`--m-ok` / `--m-ok-ink`)** — *affirmative semantics only*: the "included" ✓ checks
+  on pricing cards, the live-scan pulse on the loop's Watch step. Green = "yes, we do this,"
+  never chrome.
+
+Everything structural (CTAs, frames, section rhythm, the navy finale) stays navy. Red remains
+risk-only. This is "navy + cyan + semantics," not a palette.
+
 ---
 
 ## 5. Grid

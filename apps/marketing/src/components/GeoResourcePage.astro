@@ -12,6 +12,7 @@
  *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import FaqList from './FaqList.astro'
 
 interface Props {
   page: ResourcePageCopy | GuidePageCopy
@@ -34,9 +35,6 @@ const t = zh
   ? {
       lastReviewed: '最近复核',
       sourced: '每个日期都附官方来源',
-      answersLabel: '常见问答',
-      qPrefix: '问',
-      aPrefix: '答',
       nextEyebrow: '下一步',
       nextTitle: '把这条规则接到你真实的客户名单上',
       nextBody: '阅读是一回事。真正的价值，是当这条日期变动时，你立刻知道它影响到你的哪些客户。',
@@ -51,9 +49,6 @@ const t = zh
   : {
       lastReviewed: 'Last reviewed',
       sourced: 'Sourced on every date',
-      answersLabel: 'Common questions',
-      qPrefix: 'Q',
-      aPrefix: 'A',
       nextEyebrow: 'Next step',
       nextTitle: 'Put this rule against your actual client list',
       nextBody:
@@ -241,23 +236,7 @@ const t = zh
   }
 
   <section class="m-section m-page-block geo-block geo-faq" id="faq">
-    <p class="m-eyebrow">{page.faqHeader.eyebrow}</p>
-    <h2 class="m-page-h2">{page.faqHeader.title}</h2>
-    <div class="m-page-grid-3 geo-faq__grid">
-      {
-        page.faq.map((item) => (
-          <section class="m-card geo-qa">
-            <h3 class="m-card__t geo-qa__q">
-              <span class="geo-qa__mark" aria-hidden="true">
-                {t.qPrefix}
-              </span>
-              <span>{item.question}</span>
-            </h3>
-            <p class="m-card__d geo-qa__a">{item.answer}</p>
-          </section>
-        ))
-      }
-    </div>
+    <FaqList eyebrow={page.faqHeader.eyebrow} title={page.faqHeader.title} items={page.faq} />
   </section>
 
   <section class="m-section m-page-block geo-block">
@@ -602,36 +581,6 @@ const t = zh
   }
   .geo-card .m-card__t {
     letter-spacing: -0.01em;
-  }
-
-  /* ---- FAQ — Q→A pairs (AEO-friendly) ---- */
-  .geo-qa {
-    display: flex;
-    flex-direction: column;
-  }
-  .geo-qa__q {
-    display: flex;
-    align-items: flex-start;
-    gap: 11px;
-  }
-  .geo-qa__mark {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    margin-top: 1px;
-    border-radius: 999px;
-    background: var(--m-accent-tint);
-    border: 1px solid color-mix(in srgb, var(--m-accent) 14%, transparent);
-    font-family: var(--m-font-mono);
-    font-size: var(--m-text-2xs);
-    font-weight: 600;
-    color: var(--m-accent);
-  }
-  .geo-qa__a {
-    /* align the answer under the question text, past the Q marker */
-    margin-left: 33px;
   }
 
   /* ---- next step — a confident link back into the funnel above the CTA ---- */

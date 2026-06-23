@@ -9,6 +9,7 @@
  *  honest limits, FAQ, and a cross-link footer back to the hub + neighbors. */
 import type { StatePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON, type OfficialSourceLink } from '../lib/content-metadata'
+import FaqList from './FaqList.astro'
 
 interface Props {
   page: StatePageCopy
@@ -234,18 +235,7 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
   </section>
 
   <section class="m-section m-page-block">
-    <p class="m-eyebrow">{labels.faqEyebrow}</p>
-    <h2 class="m-page-h2">{labels.faqTitle}</h2>
-    <div class="std__grid2">
-      {
-        page.faq.map((item) => (
-          <section class="m-card">
-            <h3 class="m-card__t">{item.question}</h3>
-            <p class="m-card__d">{item.answer}</p>
-          </section>
-        ))
-      }
-    </div>
+    <FaqList eyebrow={labels.faqEyebrow} title={labels.faqTitle} items={page.faq} />
   </section>
 
   <!-- Cross-link footer: neighbors + back to the full roster, then a clean CTA -->
@@ -499,13 +489,6 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
     color: var(--m-ink-2);
   }
 
-  /* ---- faq grid ---- */
-  .std__grid2 {
-    margin-top: 28px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(14px, 1.6vw, 18px);
-  }
 
   /* ---- cross-link footer ---- */
   .std-more__head {
@@ -595,9 +578,6 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
     }
   }
   @media (max-width: 720px) {
-    .std__grid2 {
-      grid-template-columns: 1fr;
-    }
     .std-kd__row {
       grid-template-columns: 1fr;
       gap: 6px;

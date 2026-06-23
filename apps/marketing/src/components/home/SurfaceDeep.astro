@@ -176,7 +176,13 @@ const surfaces = t.surfaces
             <p class="sd__title">{s.title}</p>
             <p class="sd__desc">{s.desc}</p>
             <p class="sd__why">
-              <span class="sd__why-label">{t.seeLabel}</span>
+              <span class="sd__why-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="3.4" />
+                  <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                </svg>
+                {t.seeLabel}
+              </span>
               {s.why}
             </p>
             <ul class="sd__bullets">
@@ -446,14 +452,22 @@ const surfaces = t.surfaces
     color: var(--m-muted);
     max-width: 48ch;
   }
+  /* a distinct callout label — NOT another uppercase eyebrow like .sd__name:
+     sentence case, icon-led, so it reads as the human payoff, not a section tag */
   .sd__why-label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: var(--m-text-2xs);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: -0.01em;
     color: var(--m-accent);
+  }
+  .sd__why-label svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
   }
   .sd__bullets {
     margin-top: 20px;
