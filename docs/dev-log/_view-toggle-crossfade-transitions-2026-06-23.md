@@ -2,6 +2,7 @@
 
 **Date:** 2026-06-23
 **Surfaces:**
+
 - `apps/app/src/features/obligations/queue/DeadlineCardGrid.tsx`,
   `apps/app/src/routes/obligations.tsx` — /deadlines card ⇄ table.
 - `apps/app/src/features/clients/ClientFactsWorkspace.tsx` — /clients
@@ -28,6 +29,7 @@ animate-in fade-in duration-300 ease-out motion-reduce:animate-none
   250–400ms for view/page transitions). `motion-reduce` disables it.
 
 Per surface:
+
 - **/deadlines** — class on the DeadlineCardGrid well root + the table-card div.
 - **/clients** — class on the registry-table card root + the ClientPortfolioGrid
   root (ClientPortfolioGrid takes no `className`, so the class sits on its own
