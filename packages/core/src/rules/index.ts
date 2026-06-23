@@ -4254,10 +4254,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
-    // dfa.arkansas.gov Cloudflare-520s datacenter clients, so direct fetch only
-    // ever parses one nav link. 2026-06-22: tried browserless, but its datacenter
-    // IPs get 520'd too (fetch errored 500) — reverted. Needs a residential proxy
-    // (same as oh.sales_tax_rate_changes); known limitation until then.
+    // dfa.arkansas.gov Cloudflare-520s datacenter clients (browserless included), so
+    // direct fetch only ever parses one nav link. 2026-06-23 research: DFA publishes
+    // news through its OWN CMS, NOT GovDelivery (the only AR-tax GovDelivery account,
+    // ARFORTSMITH, is the City of Fort Smith — do NOT use it), so email_inbound is
+    // not an option. Needs a residential proxy (same as oh.sales_tax_rate_changes);
+    // known limitation until then.
     url: 'https://www.dfa.arkansas.gov/about/news/',
     // Index-level relief signal: AR posts disaster relief via DFA news +
     // gubernatorial orders; no dedicated relief page.
@@ -4526,9 +4528,22 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
     title: 'New Hampshire DRA News and Announcements',
-    // /news-and-media 301-redirects here (the resource-center news & announcements
-    // page); point straight at the canonical target instead of the redirect.
+    // The resource-center page is a section hub (real items one click deeper) and
+    // the host WAF-blocks datacenter fetches. 2026-06-23: the primary signal is now
+    // email — NH DRA runs its OWN phpList ("Subscribe E-News", branded NH DRA) that
+    // pushes Announcements / TIRs / press releases / Declaratory Rulings; subscribe
+    // the inbox below. (DRA does NOT use GovDelivery, unlike other NH agencies.)
     url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
+    inboundEmail: {
+      localParts: ['pulse-ingest+nh-dra-news'],
+      senderDomains: ['maillist.nh.gov', 'nh.gov', 'revenue.nh.gov'],
+      listIdPatterns: ['maillist.nh.gov', 'nh department of revenue', 'dra.nh.gov'],
+      canonicalUrlHosts: ['revenue.nh.gov', 'www.revenue.nh.gov', 'maillist.nh.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://maillist.nh.gov/list/dra/?p=subscribe&id=11',
+      verificationNotes:
+        'NH DRA self-hosted phpList (maillist.nh.gov) — delivers Announcements, Technical Information Releases, press releases, Declaratory Rulings. Not GovDelivery.',
+    },
   },
   {
     id: 'nj.temporary_announcements',
@@ -4701,11 +4716,11 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
     title: 'Utah State Tax Commission News Releases',
-    // tax.utah.gov renders the release list client-side. 2026-06-22: tried
-    // browserless, but its /content call captures the page right after `load` (no
-    // gotoOptions/waitUntil), so the async-loaded releases never appear in the body
-    // (content hash matched the direct-fetch shell) — reverted. Stays on direct
-    // fetch with a whole-page fallback snapshot; known limitation.
+    // tax.utah.gov renders the release list client-side AND WAF-502s datacenter
+    // fetches. 2026-06-23 research: the Tax Commission has NO email feed for tax
+    // news/bulletins (only the Utah.gov PMN system, which is meeting notices), so
+    // email_inbound is not an option here. No clean fix without a residential-proxy
+    // browser fetch (paid); stays on direct fetch with a whole-page fallback.
     url: 'https://tax.utah.gov/commission-office/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
@@ -4738,14 +4753,28 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wi.temporary_announcements',
     jurisdiction: 'WI',
     title: 'Wisconsin DOR News',
-    // revenue.wi.gov renders the news list in a SharePoint WebPart (client-side),
-    // so the static HTML has zero news-item links and only a whole-page fallback
-    // snapshot is produced. 2026-06-22: tried browserless, but its /content call
-    // grabs the shell before the WebPart's async news loads (content hash matched
-    // the direct-fetch shell) — reverted. The SharePoint listfeed.aspx RSS exposes
-    // only date-named page filenames, not headlines, so it is not usable either.
-    // Known limitation.
+    // revenue.wi.gov renders its news in a SharePoint WebPart (client-side), so a
+    // plain fetch only yields a whole-page fallback. 2026-06-23: the primary signal
+    // is now GovDelivery email — WI DOR ships its Tax Bulletin + press releases
+    // under the statewide WIGOV account; subscribe the inbox below to the DOR
+    // topics. The web watch is kept as a fallback and re-tried through browserless
+    // with a networkidle wait (PULSE_BROWSERLESS_SOURCE_IDS).
     url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
+    inboundEmail: {
+      localParts: ['pulse-ingest+wi-dor-news'],
+      senderDomains: [
+        'content.govdelivery.com',
+        'public.govdelivery.com',
+        'service.govdelivery.com',
+        'wisconsin.gov',
+      ],
+      listIdPatterns: ['wigov', 'wisconsin department of revenue', 'wisconsin dor'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'revenue.wi.gov', 'www.revenue.wi.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.revenue.wi.gov/Pages/HTML/lists.aspx',
+      verificationNotes:
+        'WI DOR E-News via the statewide WIGOV GovDelivery account — subscribe to the DOR topics (Tax Professional / Sales & Use Tax / Withholding Tax). WIGOV is multi-agency; the per-source +tag keeps non-DOR statewide mail out.',
+    },
   },
   {
     id: 'wv.temporary_announcements',
