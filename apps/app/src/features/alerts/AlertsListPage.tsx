@@ -1197,7 +1197,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 // vertically — the fixed rail left the map ~500px at 1024
                 // (alerts responsive contract). Map on top, compact list
                 // below.
-                <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row">
+                <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row animate-in fade-in duration-300 ease-out motion-reduce:animate-none">
                   {/* TOP/LEFT: map grid in gray-50 panel */}
                   <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-background-section p-6">
                     <PulseAlertsMap
@@ -1269,6 +1269,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   openAlertId={openAlertId}
                   onReview={openDrawerAndCollapseSidebar}
                   showAction={showSuggestedAction}
+                  // Crossfade the list in on the map→list view toggle
+                  // (opacity-only, layout-safe; matches /deadlines).
+                  className="animate-in fade-in duration-300 ease-out motion-reduce:animate-none"
                   // Day-group headers only make sense chronologically, so
                   // drop them when the list is ordered by impact (a flat
                   // ranked list); every other sort keeps the day bands.

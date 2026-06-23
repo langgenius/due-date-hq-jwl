@@ -943,6 +943,7 @@ function PulseAlertList({
   grouped = true,
   highImpactIds,
   showAction = true,
+  className,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
@@ -993,6 +994,12 @@ function PulseAlertList({
    * true.
    */
   showAction?: boolean
+  /**
+   * Optional passthrough merged onto the list frame's outermost element.
+   * Used by /alerts to crossfade the list in on the list⇄map view toggle
+   * (opacity-only, layout-safe).
+   */
+  className?: string
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -1073,7 +1080,12 @@ function PulseAlertList({
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls.
-    <div className="flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default">
+    <div
+      className={cn(
+        'flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default',
+        className,
+      )}
+    >
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
