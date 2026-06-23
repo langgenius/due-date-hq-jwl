@@ -53,6 +53,37 @@ html {
   background: color-mix(in srgb, var(--text-tertiary) 56%, transparent);
 }
 
+/*
+ * Opt-in DESIGNED scrollbar (overrides the global hide above). Most scroll
+ * regions stay chromeless, but a few benefit from a visible affordance so the
+ * user can sense there's more to scroll — e.g. the /today Priorities list,
+ * whose bounded frame scrolls its body internally. Reuses the same flat
+ * 2px-radius, tertiary thumb as the (otherwise hidden) global style: a thin
+ * thumb floating in a transparent gutter via a transparent border + padding-box
+ * clip, so it reads as a quiet workbench detail, not a web-app default.
+ */
+.scrollbar-designed {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 32%, transparent) transparent;
+}
+.scrollbar-designed::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+.scrollbar-designed::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-designed::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  background-color: color-mix(in srgb, var(--text-tertiary) 32%, transparent);
+}
+.scrollbar-designed::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--text-tertiary) 56%, transparent);
+}
+
 input,
 textarea,
 [contenteditable='true'] {
