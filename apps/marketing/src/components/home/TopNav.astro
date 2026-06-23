@@ -23,21 +23,12 @@ const L = zh
   ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
   : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
 
-// One glyph per nav item — shown in place of the label when the bar collapses
-// into the centred pill on scroll. (lucide-style: house · compass · map · tag · shield)
-const NAV_ICONS: Record<string, string> = {
-  home: 'M3 10.6 12 3l9 7.6 M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5 M9.5 21v-6h5v6',
-  how: 'M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z M15.8 8.2l-2.3 5.3-5.3 2.3 2.3-5.3z',
-  coverage: 'M9 3 3 6v15l6-3 6 3 6-3V3l-6 3z M9 3v15 M15 6v15',
-  pricing: 'M20.6 13.4 11 3.8a2 2 0 0 0-1.4-.6H5a2 2 0 0 0-2 2v4.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z M7.5 7.5h.01',
-  security: 'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z',
-}
 const links = [
-  { key: 'home', label: L.homeNav, href: `${base}/`, icon: 'home' },
-  { key: 'how', label: L.how, href: `${base}/how-it-works`, icon: 'how' },
-  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage`, icon: 'coverage' },
-  { key: 'pricing', label: L.pricing, href: `${base}/pricing`, icon: 'pricing' },
-  { key: 'security', label: L.security, href: `${base}/security`, icon: 'security' },
+  { key: 'home', label: L.homeNav, href: `${base}/` },
+  { key: 'how', label: L.how, href: `${base}/how-it-works` },
+  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage` },
+  { key: 'pricing', label: L.pricing, href: `${base}/pricing` },
+  { key: 'security', label: L.security, href: `${base}/security` },
 ]
 ---
 
@@ -63,14 +54,8 @@ const links = [
             class:list={['nav__link', current === l.key && 'is-active']}
             href={l.href}
             aria-current={current === l.key ? 'page' : undefined}
-            title={l.label}
           >
-            <span class="nav__link-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d={NAV_ICONS[l.icon]} />
-              </svg>
-            </span>
-            <span class="nav__link-label">{l.label}</span>
+            {l.label}
           </a>
         ))
       }
@@ -206,18 +191,6 @@ const links = [
     border: none;
     padding: 0;
   }
-  /* collapsed: every item shrinks from its label to its glyph */
-  .nav--scrolled .nav__link {
-    padding: 8px;
-  }
-  .nav--scrolled .nav__link-icon {
-    max-width: 22px;
-    opacity: 1;
-  }
-  .nav--scrolled .nav__link-label {
-    max-width: 0;
-    opacity: 0;
-  }
   .nav--on-dark.nav--scrolled .nav__inner {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
@@ -308,8 +281,6 @@ const links = [
     padding: 4px;
   }
   .nav__link {
-    display: inline-flex;
-    align-items: center;
     padding: 7px 11px;
     border-radius: 999px;
     font-size: var(--m-text-sm);
@@ -318,33 +289,7 @@ const links = [
     white-space: nowrap;
     transition:
       color 0.18s ease,
-      background 0.18s ease,
-      padding 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-  /* label shows by default; the glyph swaps in when the bar collapses (see
-     .nav--scrolled below). Both sides animate via max-width like the brand name. */
-  .nav__link-icon {
-    display: inline-flex;
-    align-items: center;
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition:
-      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.22s ease;
-  }
-  .nav__link-icon svg {
-    width: 18px;
-    height: 18px;
-    flex: none;
-  }
-  .nav__link-label {
-    display: inline-block;
-    max-width: 140px;
-    overflow: hidden;
-    transition:
-      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.22s ease;
+      background 0.18s ease;
   }
   .nav__link:hover {
     color: var(--m-ink);
