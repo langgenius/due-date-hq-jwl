@@ -16,7 +16,6 @@ import SurfaceDeep from '../components/home/SurfaceDeep.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
-import Figure from '../components/Figure.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
@@ -45,38 +44,64 @@ const pathname = '/how-it-works'
         a source on every line. Here is the whole thing, surface by surface.
       </p>
 
-      <!-- one live worked example — grounds the abstract loop in a real change -->
+      <!-- one live worked example — the loop run once, end to end. The hero's
+           visual anchor: a four-stage flow, numbered, with the outcome lit. -->
       <div class="how-hero__ex" aria-label="One worked example, end to end">
-        <span class="how-hero__ex-lead">One change, start to finish</span>
-        <ol class="how-hero__chips">
-          <li class="hchip">
-            <span class="hchip__k">Watch</span>
-            <span class="hchip__v">IRS posts a disaster postponement</span>
+        <div class="how-hero__ex-head">
+          <span class="how-hero__ex-lead">One change, start to finish</span>
+          <span class="how-hero__ex-meta">the loop, once</span>
+        </div>
+        <ol class="how-flow">
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">01</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">Watch</span>
+            <span class="fstage__v">IRS posts a disaster postponement</span>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip">
-            <span class="hchip__k">Match</span>
-            <span class="hchip__v">8 of your clients hit</span>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip">
-            <span class="hchip__k">Rank</span>
-            <span class="hchip__v">2 are already late</span>
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">02</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3.4" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">Match</span>
+            <span class="fstage__v">8 of your clients hit</span>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip hchip--apply">
-            <span class="hchip__k">Apply</span>
-            <span class="hchip__v">Apr 15 → Nov 3, sourced &amp; logged</span>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </li>
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">03</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M7 12h10M10 17h4" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">Rank</span>
+            <span class="fstage__v">2 are already late</span>
+          </li>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </li>
+          <li class="fstage fstage--apply">
+            <div class="fstage__top">
+              <span class="fstage__n">04</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">Apply</span>
+            <span class="fstage__v"><s>Apr 15</s> → <b>Nov 3</b>, sourced &amp; logged</span>
           </li>
         </ol>
-      </div>
-
-      <div class="how-shot">
-        <Figure
-          label="Product screenshot"
-          ratio="16 / 9"
-          alt="Placeholder for a product screenshot of the alert that opens this change"
-        />
       </div>
     </section>
 
@@ -89,21 +114,16 @@ const pathname = '/how-it-works'
 </BaseLayout>
 
 <style>
-  /* page hero — bolder than the shared .m-page-hero kit: display serif, a real
-     ceiling, and a worked-example strip that sets the concrete scene up front */
-  /* hero padding comes from the shared .m-page-hero on the section (one Y for
-     every subpage eyebrow) — no per-page override */
-  /* a full-width slot for a real product screenshot under the worked example */
-  .how-shot {
-    margin-top: clamp(28px, 4vw, 48px);
-  }
+  /* page hero — display serif at the shared subpage title size (one tier below
+     the home hero, consistent with /pricing + /state-coverage). Padding comes
+     from the shared .m-page-hero on the section — no per-page override. */
   .how-hero__title {
     margin-top: 4px;
-    max-width: 16ch;
+    max-width: 20ch;
     font-family: var(--m-font-display);
     font-weight: 400;
     font-size: var(--m-page-title-size);
-    line-height: 1.02;
+    line-height: 1.04;
     letter-spacing: -0.02em;
     color: var(--m-ink);
     text-wrap: balance;
@@ -120,71 +140,141 @@ const pathname = '/how-it-works'
     color: var(--m-ink-2);
   }
 
+  /* worked-example flow — the hero's visual anchor: four numbered stages, the
+     outcome lit in accent + cyan, on a soft tinted panel */
   .how-hero__ex {
     margin-top: clamp(28px, 3vw, 40px);
-    padding: clamp(16px, 1.8vw, 22px) clamp(16px, 2vw, 24px);
-    background: var(--m-surface);
+    padding: clamp(18px, 2vw, 24px);
     border: 1px solid var(--m-hairline);
-    border-radius: 12px;
+    border-radius: 16px;
+    background:
+      radial-gradient(130% 150% at 0% 0%, var(--m-accent-tint), transparent 60%),
+      var(--m-surface);
+  }
+  .how-hero__ex-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
   }
   .how-hero__ex-lead {
-    display: block;
-    margin-bottom: 14px;
     font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
     color: var(--m-faint);
   }
-  .how-hero__chips {
+  .how-hero__ex-meta {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    color: var(--m-accent);
+  }
+  .how-flow {
     display: flex;
-    flex-wrap: wrap;
     align-items: stretch;
-    gap: 8px 10px;
+    gap: 6px;
     list-style: none;
     padding: 0;
   }
-  .hchip {
+  .fstage {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    padding: 9px 13px;
-    background: var(--m-section);
-    border: 1px solid var(--m-hairline-2);
-    border-radius: 8px;
+    gap: 7px;
+    padding: 14px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    transition:
+      transform var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
-  .hchip--apply {
-    background: var(--m-accent-tint);
-    border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
+  .fstage:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--m-accent) 30%, transparent);
+    box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--m-accent) 70%, transparent);
   }
-  .hchip__k {
-    font-size: var(--m-text-3xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--m-accent);
-  }
-  .hchip__v {
-    font-size: var(--m-text-sm);
-    color: var(--m-ink);
-    white-space: nowrap;
-  }
-  .hchip__arrow {
+  .fstage__top {
     display: flex;
     align-items: center;
-    color: var(--m-faint);
-    font-size: var(--m-text-base);
+    justify-content: space-between;
+    gap: 8px;
   }
-  @media (max-width: 720px) {
-    .hchip__v {
-      white-space: normal;
-    }
-    .hchip__arrow {
-      display: none;
-    }
-    .how-hero__chips {
+  .fstage__n {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-lg);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--m-accent) 38%, transparent);
+  }
+  .fstage__icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .fstage__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .fstage__k {
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .fstage__v {
+    font-size: var(--m-text-xs);
+    line-height: 1.4;
+    color: var(--m-muted);
+  }
+  /* the lit outcome — accent frame + tint, cyan number, the loop's payoff */
+  .fstage--apply {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 28%, transparent);
+  }
+  .fstage--apply .fstage__n {
+    color: var(--m-accent);
+  }
+  .fstage--apply .fstage__icon {
+    color: #fff;
+    background: linear-gradient(
+      135deg,
+      var(--m-accent),
+      color-mix(in srgb, var(--m-accent) 45%, var(--m-cyan))
+    );
+  }
+  .fstage--apply .fstage__v s {
+    color: var(--m-faint);
+  }
+  .fstage--apply .fstage__v b {
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .fstage__arrow {
+    display: flex;
+    align-items: center;
+    flex: none;
+    color: color-mix(in srgb, var(--m-accent) 45%, transparent);
+  }
+  .fstage__arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+  @media (max-width: 760px) {
+    .how-flow {
       flex-direction: column;
-      align-items: stretch;
+      gap: 8px;
+    }
+    .fstage__arrow {
+      transform: rotate(90deg);
+      align-self: center;
     }
   }
 </style>

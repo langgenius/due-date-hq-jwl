@@ -1403,7 +1403,6 @@ const zhCN: LandingCopy = {
       {
         title: 'COMPANY',
         links: [
-          { label: '关于', href: '/zh-CN/about' },
           { label: '安全', href: '/zh-CN/security' },
           { label: '隐私', href: '/zh-CN/privacy' },
           { label: '条款', href: '/zh-CN/terms' },

@@ -12,7 +12,6 @@ import SurfaceDeep from '../../components/home/SurfaceDeep.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
-import Figure from '../../components/Figure.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 
@@ -39,34 +38,64 @@ const pathname = '/zh-CN/how-it-works'
         DueDateHQ 全天候只跑一个闭环：盯紧官方来源、读懂一条变化到底改了什么、按谁最有风险为你的一周排序，再把新日期落到客户身上——每一行都附上来源。下面，就是这套东西的全貌，一块界面接一块界面地讲清楚。
       </p>
 
-      <!-- 一个完整走通的例子——把抽象的闭环落到一条真实变化上 -->
+      <!-- 一个完整走通的例子——闭环跑一次，从头到尾。hero 的视觉主角：四步流程，
+           编号清晰，最后的「应用」结果点亮。 -->
       <div class="how-hero__ex" aria-label="一个端到端的完整示例">
-        <span class="how-hero__ex-lead">一条变化，从头走到尾</span>
-        <ol class="how-hero__chips">
-          <li class="hchip">
-            <span class="hchip__k">监测</span>
-            <span class="hchip__v">IRS 发布灾害延期公告</span>
+        <div class="how-hero__ex-head">
+          <span class="how-hero__ex-lead">一条变化，从头走到尾</span>
+          <span class="how-hero__ex-meta">闭环跑一次</span>
+        </div>
+        <ol class="how-flow">
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">01</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">监测</span>
+            <span class="fstage__v">IRS 发布灾害延期公告</span>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip">
-            <span class="hchip__k">匹配</span>
-            <span class="hchip__v">命中你的 8 家客户</span>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip">
-            <span class="hchip__k">排序</span>
-            <span class="hchip__v">其中 2 家已逾期</span>
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">02</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3.4" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">匹配</span>
+            <span class="fstage__v">命中你的 8 家客户</span>
           </li>
-          <li class="hchip__arrow" aria-hidden="true">→</li>
-          <li class="hchip hchip--apply">
-            <span class="hchip__k">应用</span>
-            <span class="hchip__v">Apr 15 → Nov 3，有来源、已记录</span>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </li>
+          <li class="fstage">
+            <div class="fstage__top">
+              <span class="fstage__n">03</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M7 12h10M10 17h4" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">排序</span>
+            <span class="fstage__v">其中 2 家已逾期</span>
+          </li>
+          <li class="fstage__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </li>
+          <li class="fstage fstage--apply">
+            <div class="fstage__top">
+              <span class="fstage__n">04</span>
+              <span class="fstage__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z" /></svg>
+              </span>
+            </div>
+            <span class="fstage__k">应用</span>
+            <span class="fstage__v"><s>Apr 15</s> → <b>Nov 3</b>，有来源、已记录</span>
           </li>
         </ol>
-      </div>
-
-      <div class="how-shot">
-        <Figure label="产品截图" ratio="16 / 9" alt="产品截图占位（触发这次变化的提醒）" />
       </div>
     </section>
 
@@ -98,10 +127,6 @@ const pathname = '/zh-CN/how-it-works'
   .how-hero__title .ital {
     font-style: italic;
   }
-  /* a full-width slot for a real product screenshot under the worked example */
-  .how-shot {
-    margin-top: clamp(28px, 4vw, 48px);
-  }
   .how-hero__lead {
     margin-top: clamp(20px, 2vw, 28px);
     max-width: 52ch;
@@ -110,71 +135,139 @@ const pathname = '/zh-CN/how-it-works'
     color: var(--m-ink-2);
   }
 
+  /* worked-example flow — hero 视觉主角：四步编号流程，最后的「应用」用 accent + cyan 点亮 */
   .how-hero__ex {
     margin-top: clamp(28px, 3vw, 40px);
-    padding: clamp(16px, 1.8vw, 22px) clamp(16px, 2vw, 24px);
-    background: var(--m-surface);
+    padding: clamp(18px, 2vw, 24px);
     border: 1px solid var(--m-hairline);
-    border-radius: 12px;
+    border-radius: 16px;
+    background:
+      radial-gradient(130% 150% at 0% 0%, var(--m-accent-tint), transparent 60%),
+      var(--m-surface);
+  }
+  .how-hero__ex-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
   }
   .how-hero__ex-lead {
-    display: block;
-    margin-bottom: 14px;
     font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
     color: var(--m-faint);
   }
-  .how-hero__chips {
+  .how-hero__ex-meta {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    color: var(--m-accent);
+  }
+  .how-flow {
     display: flex;
-    flex-wrap: wrap;
     align-items: stretch;
-    gap: 8px 10px;
+    gap: 6px;
     list-style: none;
     padding: 0;
   }
-  .hchip {
+  .fstage {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    padding: 9px 13px;
-    background: var(--m-section);
-    border: 1px solid var(--m-hairline-2);
-    border-radius: 8px;
+    gap: 7px;
+    padding: 14px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    transition:
+      transform var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
-  .hchip--apply {
-    background: var(--m-accent-tint);
-    border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
+  .fstage:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--m-accent) 30%, transparent);
+    box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--m-accent) 70%, transparent);
   }
-  .hchip__k {
-    font-size: var(--m-text-3xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--m-accent);
-  }
-  .hchip__v {
-    font-size: var(--m-text-sm);
-    color: var(--m-ink);
-    white-space: nowrap;
-  }
-  .hchip__arrow {
+  .fstage__top {
     display: flex;
     align-items: center;
-    color: var(--m-faint);
-    font-size: var(--m-text-base);
+    justify-content: space-between;
+    gap: 8px;
   }
-  @media (max-width: 720px) {
-    .hchip__v {
-      white-space: normal;
-    }
-    .hchip__arrow {
-      display: none;
-    }
-    .how-hero__chips {
+  .fstage__n {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-lg);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--m-accent) 38%, transparent);
+  }
+  .fstage__icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .fstage__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .fstage__k {
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .fstage__v {
+    font-size: var(--m-text-xs);
+    line-height: 1.5;
+    color: var(--m-muted);
+  }
+  .fstage--apply {
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 28%, transparent);
+  }
+  .fstage--apply .fstage__n {
+    color: var(--m-accent);
+  }
+  .fstage--apply .fstage__icon {
+    color: #fff;
+    background: linear-gradient(
+      135deg,
+      var(--m-accent),
+      color-mix(in srgb, var(--m-accent) 45%, var(--m-cyan))
+    );
+  }
+  .fstage--apply .fstage__v s {
+    color: var(--m-faint);
+  }
+  .fstage--apply .fstage__v b {
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .fstage__arrow {
+    display: flex;
+    align-items: center;
+    flex: none;
+    color: color-mix(in srgb, var(--m-accent) 45%, transparent);
+  }
+  .fstage__arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+  @media (max-width: 760px) {
+    .how-flow {
       flex-direction: column;
-      align-items: stretch;
+      gap: 8px;
+    }
+    .fstage__arrow {
+      transform: rotate(90deg);
+      align-self: center;
     }
   }
 </style>
