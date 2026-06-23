@@ -123,10 +123,28 @@ Converted both to **real ARIA tables** without any visual regression:
 - `StateCoverage` has no comparison matrix (its cartogram is a `role="list"`,
   already given per-tile `aria-label`s in the P2 round).
 
-## Still open (bigger / lower-priority)
-- `StateDetailPage.std-kd` → extend `.m-page-dl`? CHECKED — not a real duplicate:
-  `.std-kd` is a side-by-side prominent key-dates layout, `.m-page-dl` is a stacked
-  quiet definition list. Only the wrapper matches; left as-is (correct).
-- `StateDetailPage` hardcoded PUBLISHED state list parallel to StateCoveragePage.
-- `FinalCta` + `primitives/SectionEyebrow` still on legacy Tailwind tokens (legacy-only).
-- Close "Book a demo call" points at the signup URL (no demo-booking route exists).
+## State-pages dedup (done)
+- **Single source for "which states are live"** — `StateDetailPage` hardcoded a
+  15-state `PUBLISHED` array parallel to seo-content. Removed it; the cross-link
+  footer now derives `neighbors` from an `allStates` prop the route passes from the
+  same `getStatePages()` it already calls for `getStaticPaths` (EN + zh). Verified:
+  California shows NY/TX/FL/WA/IL/NJ, self excluded, correct links — one source.
+- **StateCoverage double-listing** — published states were navigable twice (the
+  cartogram singled them out as linkable navy tiles AND the directory list below
+  re-listed them). Made the **cartogram uniform** (51 identical non-linkable tiles =
+  pure breadth proof, which also reinforces the "no priority states" message), so
+  the **directory list is the single navigation** (its rows carry a per-state
+  description + a crawlable link — better for SEO than tile clicks). Removed the
+  now-dead `.stcov-tile--page`/`__go` styles, the `--page` legend swatch, and the
+  `rosterLegendPage` i18n keys.
+
+## Still open (lowest-value, deliberately deferred)
+- `StateDetailPage.std-kd` → `.m-page-dl`? CHECKED — NOT a real duplicate (side-by-
+  side prominent layout vs stacked quiet list); left as-is (correct).
+- `FinalCta` + `primitives/SectionEyebrow` still on legacy Tailwind tokens — but
+  legacy-only (not on any live page); near-zero value.
+- Close "Book a demo call" points at the signup URL (no demo route exists) — your
+  explicit copy choice.
+- A tail of cosmetic P3 nits (ad-hoc letter-spacings vs `--m-ls-eyebrow`, geo-peek
+  3× "sourced", TrustPage close button hand-roll, SurfaceDeep 30-tile mini-map
+  labelled 51) — left as polish.

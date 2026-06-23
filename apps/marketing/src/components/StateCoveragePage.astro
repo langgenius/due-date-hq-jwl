@@ -50,7 +50,6 @@ const l = zh
       rosterBody:
         '没有「重点州」和「次要州」之分。每一个州税务机关、IRS，以及覆盖全国的 FEMA 灾害救济，都以同样的方式 24/7 盯紧。下方加粗并可点击的，是已经发布独立覆盖详情页的辖区。',
       rosterLegendLive: '全部实时监控',
-      rosterLegendPage: '已发布详情页',
       published: '详情页',
       routeNodes: [
         { k: '公开信号', v: '51 个辖区 · IRS · FEMA，7×24 监控' },
@@ -79,7 +78,6 @@ const l = zh
       rosterBody:
         'No "priority" states and no afterthoughts. Every state tax authority, the IRS, and FEMA disaster relief nationwide are monitored 24/7 the same way. The jurisdictions shown bold and linkable below already have a dedicated coverage detail page.',
       rosterLegendLive: 'All watched live',
-      rosterLegendPage: 'Has a detail page',
       published: 'Detail page',
       routeNodes: [
         { k: 'Public signal', v: '51 jurisdictions · IRS · FEMA, watched 24/7' },
@@ -161,7 +159,6 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
       </div>
       <ul class="stcov-roster__legend">
         <li><span class="stcov-roster__sw stcov-roster__sw--live" aria-hidden="true"></span>{l.rosterLegendLive}</li>
-        <li><span class="stcov-roster__sw stcov-roster__sw--page" aria-hidden="true"></span>{l.rosterLegendPage}</li>
       </ul>
     </div>
 
@@ -172,23 +169,12 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
       style={`--us-cols:${US_TILE_COLS};--us-rows:${US_TILE_ROWS}`}
     >
       {
+        /* uniform proof — every jurisdiction watched the same way (no "priority"
+           states). Navigation to the detail pages lives in the directory below,
+           so the map isn't a second, redundant set of links. */
         ROSTER.map((j) => {
           const style = `grid-column:${j.col + 1} / span 1;grid-row:${j.row + 1} / span 1`
-          return j.href ? (
-            <a
-              class="stcov-tile stcov-tile--page"
-              href={j.href}
-              role="listitem"
-              title={`${j.name} · ${l.viewCoverage}`}
-              aria-label={`${j.name} — ${l.viewCoverage}`}
-              style={style}
-            >
-              <span class="stcov-tile__abbr">{j.abbr}</span>
-              <svg class="stcov-tile__go" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M5 11 11 5M6 5h5v5" />
-              </svg>
-            </a>
-          ) : (
+          return (
             <span
               class="stcov-tile"
               role="listitem"
@@ -204,9 +190,9 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
     </div>
   </section>
 
-  <!-- Published detail pages — a flat directory of the deeper writeups (the
-       cartogram above already signals which states are linkable). Hairline rows
-       replace the card grid: less ink, same info, fewer boxes. -->
+  <!-- Published detail pages — THE directory for the deeper writeups (the map
+       above is uniform coverage proof only, not a second set of links). Hairline
+       rows, no boxes: each state gets a one-line description + a clear link. -->
   <section class="m-section m-page-block">
     <p class="m-eyebrow">{page.statesHeader.eyebrow}</p>
     <h2 class="m-page-h2">{page.statesHeader.title}</h2>
@@ -361,10 +347,6 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
     background: color-mix(in srgb, var(--m-accent) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--m-accent) 18%, transparent);
   }
-  .stcov-roster__sw--page {
-    background: var(--m-accent);
-    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-cyan) 70%, transparent);
-  }
 
   /* a real US-shape tilegram (cartogram) — each tile is positioned by [col,row]
      so the layout reads as the country, not an alphabetical grid. The shape itself
@@ -403,52 +385,6 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
-  }
-  /* a published detail page = the prominent, clickable tile: solid navy so it
-     stands out against the light field, a cyan corner mark, and an arrow that
-     surfaces on hover — these are the ones you can open. */
-  .stcov-tile--page {
-    background: var(--m-accent);
-    color: #fff;
-    border-color: transparent;
-    cursor: pointer;
-  }
-  .stcov-tile--page::after {
-    content: '';
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 5px;
-    height: 5px;
-    border-radius: 999px;
-    background: var(--m-cyan);
-    transition: opacity var(--m-dur-fast) var(--m-ease);
-  }
-  .stcov-tile__go {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 11px;
-    height: 11px;
-    opacity: 0;
-    color: var(--m-cyan);
-    transition: opacity var(--m-dur-fast) var(--m-ease);
-  }
-  .stcov-tile--page:hover,
-  .stcov-tile--page:focus-visible {
-    background: var(--m-accent-strong);
-    transform: translateY(-2px);
-    box-shadow:
-      inset 0 0 0 1.5px var(--m-cyan),
-      0 6px 14px -8px color-mix(in srgb, var(--m-accent) 75%, transparent);
-  }
-  .stcov-tile--page:hover::after,
-  .stcov-tile--page:focus-visible::after {
-    opacity: 0;
-  }
-  .stcov-tile--page:hover .stcov-tile__go,
-  .stcov-tile--page:focus-visible .stcov-tile__go {
-    opacity: 1;
   }
   @media (max-width: 900px) {
     .stcov-roster__head {

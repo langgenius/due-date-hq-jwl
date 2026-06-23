@@ -16,9 +16,12 @@ interface Props {
   coverageHref: string
   locale: 'en' | 'zh-CN'
   officialSources: OfficialSourceLink[]
+  /* every published state page (from the route's getStatePages) — the single
+     source for the cross-link footer; no parallel hardcoded list here */
+  allStates: Pick<StatePageCopy, 'slug' | 'name' | 'abbreviation'>[]
 }
 
-const { page, coverageHref, locale, officialSources } = Astro.props
+const { page, coverageHref, locale, officialSources, allStates } = Astro.props
 const zh = locale === 'zh-CN'
 const prefix = zh ? '/zh-CN' : ''
 
@@ -78,28 +81,9 @@ const labels = zh
       ctaNote: 'Free during the beta · no card required',
     }
 
-// Published detail pages (the real, linkable leaves). Kept here only to power the
-// cross-link footer — content stays in seo-content.ts. Order is curated so the
-// most-relevant neighbors (geographic / economic) lead for each state.
-const PUBLISHED: { slug: string; name: string; abbr: string }[] = [
-  { slug: 'california', name: 'California', abbr: 'CA' },
-  { slug: 'new-york', name: 'New York', abbr: 'NY' },
-  { slug: 'texas', name: 'Texas', abbr: 'TX' },
-  { slug: 'florida', name: 'Florida', abbr: 'FL' },
-  { slug: 'washington', name: 'Washington', abbr: 'WA' },
-  { slug: 'illinois', name: 'Illinois', abbr: 'IL' },
-  { slug: 'new-jersey', name: 'New Jersey', abbr: 'NJ' },
-  { slug: 'pennsylvania', name: 'Pennsylvania', abbr: 'PA' },
-  { slug: 'georgia', name: 'Georgia', abbr: 'GA' },
-  { slug: 'massachusetts', name: 'Massachusetts', abbr: 'MA' },
-  { slug: 'north-carolina', name: 'North Carolina', abbr: 'NC' },
-  { slug: 'arizona', name: 'Arizona', abbr: 'AZ' },
-  { slug: 'colorado', name: 'Colorado', abbr: 'CO' },
-  { slug: 'ohio', name: 'Ohio', abbr: 'OH' },
-  { slug: 'michigan', name: 'Michigan', abbr: 'MI' },
-]
-// Other published states (exclude the current one), capped to a tidy row of 6.
-const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
+// Cross-link footer: the other published state pages, from the single source of
+// truth (seo-content, via the route's getStatePages) — capped to a tidy row of 6.
+const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
 ---
 
 <main>
@@ -255,7 +239,7 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
           {neighbors.map((s) => (
             <li>
               <a class="std-more__card" href={`${prefix}/states/${s.slug}`}>
-                <span class="std-more__abbr">{s.abbr}</span>
+                <span class="std-more__abbr">{s.abbreviation}</span>
                 <span class="std-more__name">{s.name}</span>
               </a>
             </li>
