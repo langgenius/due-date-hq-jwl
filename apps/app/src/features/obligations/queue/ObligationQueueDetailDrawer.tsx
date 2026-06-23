@@ -1702,20 +1702,30 @@ export function ObligationQueueDetailDrawer({
   // workpaper count; Audit → event count; Extension → decided ✓ / not filed.
   // Status carries no chip (the workflow stage IS its own headline). Each is the
   // SAME node passed to the nav item and the section header.
+  // 2026-06-23 (Yuqi #6 "not a standard number badge"): the COUNT chips
+  // (Materials / Record / Audit) now render via the canonical `Badge`
+  // primitive at `size="sm"` — the documented tab-count bubble shape — so a
+  // count reads as a standard number badge across the app, not a bespoke mono
+  // data-pill. The Extension "Filed" chip stays on `sectionDataChip` (it's a
+  // boolean STATE, not a count). Materials keeps its "N left" meaning.
   const materialsChip =
-    outstandingMaterials > 0
-      ? sectionDataChip(t`${outstandingMaterials} left`, {
-          ariaLabel: t`${outstandingMaterials} outstanding`,
-        })
-      : null
+    outstandingMaterials > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${outstandingMaterials} outstanding`}>
+        {t`${outstandingMaterials} left`}
+      </Badge>
+    ) : null
   const evidenceChip =
-    evidenceCount > 0
-      ? sectionDataChip(t`${evidenceCount}`, { ariaLabel: t`${evidenceCount} workpapers` })
-      : null
+    evidenceCount > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${evidenceCount} workpapers`}>
+        {evidenceCount}
+      </Badge>
+    ) : null
   const auditChip =
-    auditCount > 0
-      ? sectionDataChip(t`${auditCount}`, { ariaLabel: t`${auditCount} events` })
-      : null
+    auditCount > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${auditCount} events`}>
+        {auditCount}
+      </Badge>
+    ) : null
   const extensionChip = extensionSaved
     ? sectionDataChip(
         <>
@@ -1965,8 +1975,18 @@ export function ObligationQueueDetailDrawer({
           top above the header — so status lives in the SAME place on both
           surfaces. The header status chip is dropped in page mode below to
           avoid stating status twice (critique: de-dupe status). */}
-      {row
-        ? (() => {
+      {/* 2026-06-23 (Yuqi alert↔deadline parity #4b): the shared
+          DetailStatusBanner ships with its own `px-6 xl:px-12` content inset
+          (it's tuned for the alert detail's roomier px-12 document margin).
+          On /deadlines the page header + crumb bar hug the left at `px-5`, so
+          the banner's "Past deadline · 42d late" text sat indented past the
+          "Deadlines" title's "D". This wrapper overrides the band's inner
+          inline padding to `px-5` so the banner left edge aligns to the
+          header content edge. (The shared component can't take a className,
+          so the override lives here on the consuming side.) */}
+      {row ? (
+        <div className="[&>div]:!px-5">
+          {(() => {
             const isDone =
               row.status === 'done' || row.status === 'completed' || row.status === 'paid'
             const isOverdue = row.daysUntilDue < 0 && !isDone
@@ -2051,8 +2071,9 @@ export function ObligationQueueDetailDrawer({
                 note={timingNote}
               />
             )
-          })()
-        : null}
+          })()}
+        </div>
+      ) : null}
       {/* Header — flipped 2026-05-23. The drawer is a per-obligation
           surface, so the obligation identity (Form 1040, Form 1120-S)
           deserves the primary slot, not the client. Earlier shape
@@ -2193,13 +2214,25 @@ export function ObligationQueueDetailDrawer({
           ) : null}
           {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
             on its own line; the standalone client kicker link was folded
-            into the household chip in the row below per the design稿. */}
+            into the household chip in the row below per the design稿.
+            2026-06-23 (Yuqi alert↔deadline hero parity #2): the form
+            REPRESENTATION ("Form 1040") reads BELOW the headline as its own
+            sub-identity line — mirroring how the alert hero stacks title →
+            dek — instead of being crammed into the headline string. The
+            human description is now the headline; the form code is a quiet
+            sub-line beneath it. The crumb leaf keeps the combined
+            "{label} — {description}" for the path read. */}
           {row
             ? (() => {
                 const meta = describeTaxCode(row.taxType)
-                const heroTitle = meta.description
-                  ? `${meta.label} — ${meta.description}`
-                  : meta.label
+                // Headline = the human description ("Individual income tax
+                // return"); fall back to the form label when no description
+                // exists. The form code renders on its own sub-line below.
+                const heroTitle = meta.description || meta.label
+                // The form representation, surfaced only when there's a
+                // distinct description above it (otherwise the headline
+                // already IS the form label, so a duplicate sub-line is noise).
+                const formSubIdentity = meta.description ? meta.label : null
                 return (
                   // Expanded state clamps at 3 lines — the same guard the
                   // alert hero carries (2026-06-11 hostile-data sweep: an
@@ -2207,17 +2240,27 @@ export function ObligationQueueDetailDrawer({
                   // content below the fold on all four tabs). Full text on
                   // the title attr. expanded (was 1.25) per
                   // the same cramped-two-line finding as the alert hero.
-                  <h2
-                    className={cn(
-                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
-                      heroCollapsed
-                        ? 'line-clamp-1 text-item-title'
-                        : 'line-clamp-3 text-surface-title',
-                    )}
-                    title={heroTitle}
-                  >
-                    {heroTitle}
-                  </h2>
+                  <>
+                    <h2
+                      className={cn(
+                        'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
+                        heroCollapsed
+                          ? 'line-clamp-1 text-item-title'
+                          : 'line-clamp-3 text-surface-title',
+                      )}
+                      title={
+                        meta.description ? `${meta.label} — ${meta.description}` : meta.label
+                      }
+                    >
+                      {heroTitle}
+                    </h2>
+                    {/* Form sub-identity — a quiet 14/500 line directly under
+                        the headline (the alert hero's dek slot). Hidden once
+                        the hero collapses so the pinned header stays compact. */}
+                    {formSubIdentity && !heroCollapsed ? (
+                      <p className="text-sm font-medium text-text-tertiary">{formSubIdentity}</p>
+                    ) : null}
+                  </>
                 )
               })()
             : null}
@@ -2670,12 +2713,17 @@ export function ObligationQueueDetailDrawer({
                           {panelLayout ? (
                             // 2026-06-16 (Yuqi "header should have a light background,
                             // and a thin/low-height header — not floating titles"): a real
-                            // HEADER BAND — light tint (bg-background-subtle) + hairline
-                            // bottom border + tight py-2.5, so it reads as a low defined
-                            // strip across the card top. -mx-5 -mt-5 break it out of the
-                            // p-5 to span edge-to-edge; the card's overflow-hidden clips
-                            // the band to the rounded-xl top corners.
-                            <header className="-mx-5 -mt-5 flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                            // HEADER BAND — light tint + hairline bottom border + tight
+                            // py-2.5, so it reads as a low defined strip across the card
+                            // top. -mx-5 -mt-5 break it out of the p-5 to span
+                            // edge-to-edge; the card's overflow-hidden clips the band to
+                            // the rounded-xl top corners.
+                            // 2026-06-23 (Yuqi #2b "slightly slightly darker"): bumped the
+                            // band one step darker than gray-100 — from bg-background-subtle
+                            // to bg-background-section-burn (the canonical darker neutral
+                            // surface) — so the strip reads a touch more defined against the
+                            // white card without becoming a loud fill.
+                            <header className="-mx-5 -mt-5 flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-section-burn px-5 py-1.5">
                               <h3 className="text-base font-semibold text-text-primary">
                                 <Trans>Workflow</Trans>
                               </h3>
@@ -4964,11 +5012,19 @@ export function ObligationQueueDetailDrawer({
             // blended into the white cards above it on the gray body).
             'sticky bottom-0 mt-auto flex min-h-16 border-t px-12 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
             footerDocked ? 'border-divider-regular' : 'border-transparent',
+            // 2026-06-23 (Yuqi alert↔deadline parity #4): the footer container +
+            // rhythm now mirror AlertDetailDrawer's docking footer exactly — the
+            // gray `bg-background-section` committed-decision surface (was the
+            // white `bg-background-default`) and its `py-4` vertical rhythm (was
+            // py-3), so both detail footers read as the same closing region. The
+            // action SET is unchanged (Last updated · Request input · Copy link
+            // on the left; Assign · Snooze · Mark as filed on the right) — only
+            // the surface/spacing grammar aligns.
             panelLayout
-              ? 'items-center bg-background-default py-3'
+              ? 'items-center bg-background-section py-4'
               : 'flex-wrap items-center justify-between gap-2 pt-4 pb-6',
             // The mobile Sheet keeps the warm canvas; page + the in-client panel
-            // take the white footer surface from the panelLayout arm above.
+            // take the gray footer surface from the panelLayout arm above.
             mode === 'sheet' && 'bg-background-canvas-warm',
           )}
           style={

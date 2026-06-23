@@ -916,10 +916,6 @@ msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "{attached} of {total} expected source documents attached for this filing"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{auditCount}"
-msgstr "{auditCount}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{auditCount} events"
 msgstr "{auditCount} events"
 
@@ -1077,10 +1073,6 @@ msgstr "{equity} equity owners"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
 msgstr "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{evidenceCount}"
-msgstr "{evidenceCount}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{evidenceCount} workpapers"

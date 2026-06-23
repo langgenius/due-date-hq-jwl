@@ -921,10 +921,6 @@ msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "本次申报已附 {attached}/{total} 份预期来源文件"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{auditCount}"
-msgstr "{auditCount}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{auditCount} events"
 msgstr "{auditCount} 个事件"
 
@@ -1082,10 +1078,6 @@ msgstr "{equity} 位权益所有人"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
 msgstr "{estimatedObligations, plural, other {将为当前客户生成约 # 个截止事项。}}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{evidenceCount}"
-msgstr "{evidenceCount}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{evidenceCount} workpapers"
