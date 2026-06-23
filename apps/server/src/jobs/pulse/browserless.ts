@@ -130,6 +130,8 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
   // CF authenticates with a Bearer header (token never in the URL); browserless.io
   // carries the token as a ?token= query param (browserlessEndpoint).
   const endpoint = cloudflare ? config.endpoint : browserlessEndpoint(config)
+  // DIAG 2026-06-23: confirm the actual POST target (remove once resolved).
+  console.log(JSON.stringify({ tag: 'DIAG_BROWSERLESS_FETCH', cloudflare, endpoint }))
   // Either service renders server-side (~30s goto budget), so the proxied request
   // gets a roomier watchdog than direct fetches.
   const timedFetch = withFetchTimeout(fetch, 60_000)

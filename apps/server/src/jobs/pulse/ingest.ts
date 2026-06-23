@@ -580,6 +580,17 @@ function createPulseIngestCtx(
   env: PulseIngestEnv,
   repo: PulseIngestRepo,
 ): { ctx: IngestCtx; browserlessSourceIds: ReadonlySet<string> } {
+  // DIAG 2026-06-23: trace the browserless endpoint the queue consumer reads at
+  // runtime — prod sources fail with a browserless.io error while the deployed var
+  // is the CF endpoint. Remove once the env/runtime mismatch is found.
+  console.log(
+    JSON.stringify({
+      tag: 'DIAG_BROWSERLESS',
+      url: env.PULSE_BROWSERLESS_URL ?? null,
+      hasToken: Boolean(env.PULSE_BROWSERLESS_TOKEN),
+      sourceIds: env.PULSE_BROWSERLESS_SOURCE_IDS ?? null,
+    }),
+  )
   const browserlessFetch = createBrowserlessFetch({
     ...(env.PULSE_BROWSERLESS_URL ? { endpoint: env.PULSE_BROWSERLESS_URL } : {}),
     ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
