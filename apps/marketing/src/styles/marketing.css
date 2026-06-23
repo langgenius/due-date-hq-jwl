@@ -226,6 +226,46 @@
     color: var(--m-accent);
     transform: translateX(-2px);
   }
+  /* Placeholder figure — a labelled, on-brand stand-in for a real image,
+     screenshot, or diagram. Swap the inner content for an <img> when ready; the
+     frame stays. Soft accent-tint wash so it reads intentional, not a dead box.
+     Set --m-figure-ratio to override the default aspect. */
+  .m-figure {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: var(--m-figure-ratio, 16 / 10);
+    border-radius: 12px;
+    border: 1px solid var(--m-hairline);
+    background:
+      radial-gradient(125% 125% at 100% 0%, var(--m-accent-tint), transparent 58%),
+      var(--m-section);
+    overflow: hidden;
+  }
+  .m-figure > img,
+  .m-figure > picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .m-figure__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    font-size: var(--m-text-xs);
+    font-weight: 500;
+    color: var(--m-muted);
+  }
+  .m-figure__mark svg {
+    width: 14px;
+    height: 14px;
+    color: var(--m-faint);
+    flex: none;
+  }
   .m-page-title {
     margin-top: 4px;
     max-width: 20ch;

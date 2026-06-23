@@ -16,6 +16,7 @@ import SurfaceDeep from '../components/home/SurfaceDeep.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
+import Figure from '../components/Figure.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
@@ -69,6 +70,14 @@ const pathname = '/how-it-works'
           </li>
         </ol>
       </div>
+
+      <div class="how-shot">
+        <Figure
+          label="Product screenshot"
+          ratio="16 / 9"
+          alt="Placeholder for a product screenshot of the alert that opens this change"
+        />
+      </div>
     </section>
 
     <LoopDeep />
@@ -90,6 +99,10 @@ const pathname = '/how-it-works'
      ceiling, and a worked-example strip that sets the concrete scene up front */
   .how-hero {
     padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
+  }
+  /* a full-width slot for a real product screenshot under the worked example */
+  .how-shot {
+    margin-top: clamp(28px, 4vw, 48px);
   }
   .how-hero__title {
     margin-top: 4px;

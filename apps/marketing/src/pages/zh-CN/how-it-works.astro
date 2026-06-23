@@ -12,6 +12,7 @@ import SurfaceDeep from '../../components/home/SurfaceDeep.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
+import Figure from '../../components/Figure.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 
@@ -63,6 +64,10 @@ const pathname = '/zh-CN/how-it-works'
           </li>
         </ol>
       </div>
+
+      <div class="how-shot">
+        <Figure label="产品截图" ratio="16 / 9" alt="产品截图占位（触发这次变化的提醒）" />
+      </div>
     </section>
 
     <LoopDeep locale="zh-CN" />
@@ -99,6 +104,10 @@ const pathname = '/zh-CN/how-it-works'
   }
   .how-hero__title .ital {
     font-style: italic;
+  }
+  /* a full-width slot for a real product screenshot under the worked example */
+  .how-shot {
+    margin-top: clamp(28px, 4vw, 48px);
   }
   .how-hero__lead {
     margin-top: clamp(20px, 2vw, 28px);

@@ -25,6 +25,11 @@ interface Props {
 const { page, primaryHref, secondaryHref, locale, back } = Astro.props
 const zh = locale === 'zh-CN'
 
+// The hero's product peek is built from the page's OWN first sourced date — real
+// data, no fabrication. Pages without key dates (some guides) fall back to a
+// labelled placeholder figure so the hero still carries a visual.
+const peekDate = page.keyDates?.rows?.[0]
+
 const t = zh
   ? {
       lastReviewed: '最近复核',
@@ -37,6 +42,11 @@ const t = zh
       nextBody: '阅读是一回事。真正的价值，是当这条日期变动时，你立刻知道它影响到你的哪些客户。',
       nextPrimary: '开始监控我的客户',
       nextSecondary: '看它如何运作',
+      watchedIn: 'DueDateHQ 持续监控',
+      previewTag: '预览',
+      nextDeadline: '下一个截止日',
+      peekCaption: '这个日期一变动，你当天就能看清它影响到哪些客户。',
+      figureAlt: '产品预览',
     }
   : {
       lastReviewed: 'Last reviewed',
@@ -50,11 +60,17 @@ const t = zh
         'Reading it is one thing. The point is knowing — the moment this date moves — exactly which of your clients it affects.',
       nextPrimary: 'Start watching my clients',
       nextSecondary: 'See how it works',
+      watchedIn: 'Watched in DueDateHQ',
+      previewTag: 'Preview',
+      nextDeadline: 'Next deadline',
+      peekCaption: 'If this date moves, you see exactly which clients it hits — the same day.',
+      figureAlt: 'Product preview',
     }
 ---
 
 <main class="geo">
   <section class="m-section m-page-hero geo-hero" id="hero">
+    <div class="geo-hero__text">
     {
       back && (
         <a class="m-page-back" href={back.href}>
@@ -101,6 +117,56 @@ const t = zh
         {t.sourced}
       </span>
     </div>
+    </div>
+
+    <aside class="geo-hero__aside">
+      {
+        peekDate ? (
+          <div class="geo-peek" role="img" aria-label={`${t.watchedIn} · ${t.previewTag}`}>
+            <div class="geo-peek__bar">
+              <span class="geo-peek__live" aria-hidden="true" />
+              <span class="geo-peek__app">{t.watchedIn}</span>
+              <span class="geo-peek__tag">{t.previewTag}</span>
+            </div>
+            <div class="geo-peek__card">
+              <p class="geo-peek__eyebrow">{page.hero.eyebrow}</p>
+              <p class="geo-peek__dl-label">{t.nextDeadline}</p>
+              <p class="geo-peek__dl">{peekDate.value}</p>
+              <span class="geo-peek__src">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                {page.keyDates.sourceLabel}
+              </span>
+            </div>
+            <p class="geo-peek__cap">{t.peekCaption}</p>
+          </div>
+        ) : (
+          <figure class="m-figure geo-hero__figure" aria-label={t.figureAlt}>
+            <span class="m-figure__mark">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" />
+                <circle cx="8.5" cy="9.5" r="1.5" fill="currentColor" />
+                <path
+                  d="M21 15l-5-4-5 4-3-2-5 4"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              {t.figureAlt}
+            </span>
+          </figure>
+        )
+      }
+    </aside>
   </section>
 
   {
@@ -230,11 +296,117 @@ const t = zh
      ==================================================================== */
 
   /* ---- hero ---- */
+  /* 2-column hero: serif text + a product peek built from the page's OWN sourced
+     date — every leaf shows the product, the way the home hero does. */
+  .geo-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(28px, 4vw, 56px);
+    align-items: center;
+  }
+  .geo-hero__aside {
+    width: 100%;
+  }
+  @media (max-width: 880px) {
+    .geo-hero {
+      grid-template-columns: 1fr;
+      gap: clamp(24px, 5vw, 36px);
+    }
+    .geo-hero__aside {
+      max-width: 460px;
+    }
+  }
   .geo-hero__title {
     max-width: 20ch;
   }
   .geo-hero__note {
     max-width: 64ch;
+  }
+  /* product peek — a compact in-product card echoing the home alert feed */
+  .geo-peek {
+    border-radius: 16px;
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    overflow: hidden;
+  }
+  .geo-peek__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--m-hairline);
+    background: var(--m-section);
+    font-size: var(--m-text-xs);
+  }
+  .geo-peek__live {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 18%, transparent);
+  }
+  .geo-peek__app {
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .geo-peek__tag {
+    margin-left: auto;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-3xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--m-faint);
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .geo-peek__card {
+    padding: 16px 18px;
+  }
+  .geo-peek__eyebrow {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .geo-peek__dl-label {
+    margin-top: 12px;
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+  .geo-peek__dl {
+    margin-top: 3px;
+    font-family: var(--m-font-mono);
+    font-size: clamp(18px, 2vw, 22px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .geo-peek__src {
+    margin-top: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--m-text-xs);
+    color: var(--m-accent);
+  }
+  .geo-peek__src svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+  }
+  .geo-peek__cap {
+    padding: 13px 18px;
+    border-top: 1px solid var(--m-hairline-2);
+    background: var(--m-accent-tint);
+    font-size: var(--m-text-sm);
+    line-height: 1.5;
+    color: var(--m-ink-2);
+  }
+  .geo-hero__figure {
+    --m-figure-ratio: 4 / 3;
   }
   /* trust row — the reviewed date + "sourced on every date" are real signals
      for an answer page; present them as a calm, confident bar, not afterthought */
