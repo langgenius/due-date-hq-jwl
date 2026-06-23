@@ -125,22 +125,22 @@ const pad = (n: number) => String(n).padStart(2, '0')
     border-radius: 999px;
     background: var(--m-accent);
   }
+  /* Display serif hero — one voice with every other page (home, leaves, finale).
+     Calm size on the legal pages; the signature pages step up below. */
   .trustpg__title {
     max-width: 20ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    font-size: clamp(31px, 4.2vw, 50px);
-    line-height: 1.08;
-    letter-spacing: -0.022em;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(31px, 4.2vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
     color: var(--m-ink);
     text-wrap: balance;
   }
-  /* Signature pages (security / about) get the display serif — bookending the
-     navy close, the only OTHER place the serif appears on these pages. */
+  /* Signature pages (security / about) take the bigger serif — more presence,
+     bookending the navy close. */
   .trustpg__title--display {
     max-width: 17ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
     font-size: clamp(38px, 5.4vw, 66px);
     line-height: 1.04;
     letter-spacing: -0.018em;

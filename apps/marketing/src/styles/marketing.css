@@ -154,16 +154,59 @@
   .m-page-hero {
     padding-block: clamp(48px, 7vw, 84px) clamp(32px, 4vw, 48px);
   }
+  /* Back affordance for drill-down (leaf) pages — an obvious, clickable "up a
+     level" link at the very top of the hero. ONE shared treatment across every
+     leaf (rules · guides · comparisons · states) so "go back" is always the same
+     gesture in the same place. The circled arrow makes it read as an affordance,
+     not just faint meta. */
+  .m-page-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-ink-2);
+    transition:
+      color var(--m-dur-fast) var(--m-ease),
+      gap var(--m-dur-fast) var(--m-ease);
+  }
+  .m-page-back:hover {
+    color: var(--m-accent);
+    gap: 11px;
+  }
+  .m-page-back__arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+    color: var(--m-muted);
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .m-page-back:hover .m-page-back__arrow {
+    border-color: var(--m-accent);
+    background: var(--m-accent-tint);
+    color: var(--m-accent);
+    transform: translateX(-2px);
+  }
   .m-page-title {
     margin-top: 4px;
-    max-width: 18ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    /* Lifted to a clear H1 ceiling so the long-tail sans H1 reads a deliberate
-       step above .m-h2 (clamp 29–44) — no near-collision at the top end. */
-    font-size: clamp(34px, 4.4vw, 54px);
-    line-height: 1.08;
-    letter-spacing: var(--m-tracking-tight);
+    max-width: 20ch;
+    /* Display serif H1 — the SAME editorial hero as the home + Close finale, so
+       every page (long-tail leaves included) opens in one voice. Serif reads
+       large and optically lighter, so it takes a slightly higher ceiling and
+       tighter leading than the sans .m-h2 it sits above. */
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 58px);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
     color: var(--m-ink);
   }
   .m-page-lead {

@@ -18,9 +18,11 @@ interface Props {
   primaryHref: string
   secondaryHref: string
   locale: 'en' | 'zh-CN'
+  /** Optional parent for the in-hero "back up a level" link (leaf pages only). */
+  back?: { href: string; label: string }
 }
 
-const { page, primaryHref, secondaryHref, locale } = Astro.props
+const { page, primaryHref, secondaryHref, locale, back } = Astro.props
 const zh = locale === 'zh-CN'
 
 const t = zh
@@ -53,6 +55,14 @@ const t = zh
 
 <main class="geo">
   <section class="m-section m-page-hero geo-hero" id="hero">
+    {
+      back && (
+        <a class="m-page-back" href={back.href}>
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>
+          {zh ? `返回${back.label}` : `Back to ${back.label}`}
+        </a>
+      )
+    }
     <p class="m-eyebrow">{page.hero.eyebrow}</p>
     <h1 class="m-page-title geo-hero__title">{page.hero.title}</h1>
     <p class="m-page-lead">{page.hero.description}</p>

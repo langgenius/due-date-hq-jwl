@@ -49,7 +49,7 @@ The shared classes below are backed by these tokens; the px column is the resolv
 | Step | Class | Family | Size (min→max) | Line-height | Tracking | Role |
 |---|---|---|---|---|---|---|
 | Display | _(scoped in `Hero.astro`)_ | display serif | 40 → 76px | 1.02 | — | Hero headline ONLY. Out of the shared layer by design. |
-| Page title | `.m-page-title` | sans 600 | 30 → 48px | 1.08 | -0.02em | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). `max-width: 18ch`. |
+| Page title | `.m-page-title` | **display serif 400** | 34 → 58px | 1.04 | -0.02em | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). Serif everywhere — every subpage opens in the **same editorial voice as the home hero**. `max-width: 20ch`. |
 | Section H2 | `.m-h2` | sans 600 | 29 → 44px | 1.08 | -0.02em | Home section headlines. Supports `.ital` (italic span). |
 | Page H2 | `.m-page-h2` | sans 600 | 22 → 30px | 1.20 | -0.015em | Long-tail block headings. `max-width: 24ch`. |
 | CTA title | `.m-page-cta__title` | sans 600 | 22 → 28px | 1.25 | -0.015em | CTA-block headline. `max-width: 22ch`. |

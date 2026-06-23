@@ -104,8 +104,8 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
 <main>
   <section class="m-section m-page-hero std-hero" id="hero">
     <nav class="std-hero__bc" aria-label="Breadcrumb">
-      <a href={coverageHref} class="std-hero__back">
-        <span class="std-hero__back-arrow" aria-hidden="true">←</span>{labels.backToHub}
+      <a href={coverageHref} class="m-page-back">
+        <span class="m-page-back__arrow" aria-hidden="true">←</span>{labels.backToHub}
       </a>
       <span class="std-hero__chip">
         <span class="std-hero__chip-abbr">{page.abbreviation}</span>
@@ -299,25 +299,10 @@ const neighbors = PUBLISHED.filter((s) => s.slug !== page.slug).slice(0, 6)
     gap: 12px 16px;
     margin-bottom: 18px;
   }
-  .std-hero__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: var(--m-text-xs);
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-faint);
-    transition: color 0.18s ease;
-  }
-  .std-hero__back:hover {
-    color: var(--m-accent);
-  }
-  .std-hero__back-arrow {
-    transition: transform 0.18s ease;
-  }
-  .std-hero__back:hover .std-hero__back-arrow {
-    transform: translateX(-2px);
+  /* back-link uses the shared .m-page-back kit; only neutralise its bottom
+     margin inside the breadcrumb row (the row owns the gap to the title) */
+  .std-hero__bc .m-page-back {
+    margin-bottom: 0;
   }
   .std-hero__chip {
     display: inline-flex;
