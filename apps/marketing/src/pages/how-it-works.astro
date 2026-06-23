@@ -16,6 +16,7 @@ import SurfaceDeep from '../components/home/SurfaceDeep.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
+import Figure from '../components/Figure.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
@@ -33,7 +34,7 @@ const pathname = '/how-it-works'
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" />
   <main>
-    <section class="m-section how-hero" id="hero">
+    <section class="m-section m-page-hero how-hero" id="hero">
       <p class="m-eyebrow">Product walkthrough</p>
       <h1 class="how-hero__title">
         From a deadline change to the clients it <span class="ital">touches.</span>
@@ -69,6 +70,14 @@ const pathname = '/how-it-works'
           </li>
         </ol>
       </div>
+
+      <div class="how-shot">
+        <Figure
+          label="Product screenshot"
+          ratio="16 / 9"
+          alt="Placeholder for a product screenshot of the alert that opens this change"
+        />
+      </div>
     </section>
 
     <LoopDeep />
@@ -79,17 +88,14 @@ const pathname = '/how-it-works'
   <ScrollMotion />
 </BaseLayout>
 
-<style is:global>
-  body {
-    background: var(--m-canvas);
-  }
-</style>
-
 <style>
   /* page hero — bolder than the shared .m-page-hero kit: display serif, a real
      ceiling, and a worked-example strip that sets the concrete scene up front */
-  .how-hero {
-    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
+  /* hero padding comes from the shared .m-page-hero on the section (one Y for
+     every subpage eyebrow) — no per-page override */
+  /* a full-width slot for a real product screenshot under the worked example */
+  .how-shot {
+    margin-top: clamp(28px, 4vw, 48px);
   }
   .how-hero__title {
     margin-top: 4px;
@@ -124,7 +130,7 @@ const pathname = '/how-it-works'
   .how-hero__ex-lead {
     display: block;
     margin-bottom: 14px;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -152,14 +158,14 @@ const pathname = '/how-it-works'
     border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
   }
   .hchip__k {
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--m-accent);
   }
   .hchip__v {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink);
     white-space: nowrap;
   }
@@ -167,7 +173,7 @@ const pathname = '/how-it-works'
     display: flex;
     align-items: center;
     color: var(--m-faint);
-    font-size: 14px;
+    font-size: var(--m-text-base);
   }
   @media (max-width: 720px) {
     .hchip__v {

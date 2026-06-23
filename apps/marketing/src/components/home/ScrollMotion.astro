@@ -18,11 +18,12 @@
       el.style.transform = 'none'
     })
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  if (reduce) {
-    showAll()
-  } else {
+  function setup() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      showAll()
+      return
+    }
     try {
       gsap.registerPlugin(ScrollTrigger)
 
@@ -57,4 +58,15 @@
       showAll()
     }
   }
+
+  // Run on first load AND after every View-Transition swap; kill triggers before
+  // a swap so they never leak or fire against detached nodes.
+  document.addEventListener('astro:page-load', setup)
+  document.addEventListener('astro:before-swap', () => {
+    try {
+      ScrollTrigger.getAll().forEach((t) => t.kill())
+    } catch {
+      /* ignore */
+    }
+  })
 </script>

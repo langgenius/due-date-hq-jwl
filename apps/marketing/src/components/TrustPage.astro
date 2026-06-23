@@ -8,6 +8,7 @@
  *  the page — chroma in containers, never in text. */
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import type { TrustPageCopy } from '../lib/trust-pages'
+import Figure from './Figure.astro'
 
 interface Props {
   page: TrustPageCopy
@@ -22,15 +23,22 @@ const sectionsLabel = zh ? '本页内容' : 'On this page'
 /** Two pages earn an evidence-first tone (display-serif hero, statement rail);
  *  the rest stay calm and legal. Security + about lead with conviction. */
 const isSignature = page.slug === 'security' || page.slug === 'about'
+// Signature pages carry a hero visual: a diagram on security, a photo on about.
+const heroFigureLabel =
+  page.slug === 'security'
+    ? zh
+      ? '架构示意图'
+      : 'Architecture diagram'
+    : zh
+      ? '团队照片'
+      : 'Team photo'
 const sectionCount = page.sections.length
 const pad = (n: number) => String(n).padStart(2, '0')
 ---
 
 <main class="trustpg" data-slug={page.slug}>
-  <section class="m-section trustpg__hero" id="hero">
-    <p class="m-eyebrow trustpg__eyebrow">
-      <span class="trustpg__eyebrow-dot" aria-hidden="true"></span>{page.hero.eyebrow}
-    </p>
+  <section class="m-section m-page-hero trustpg__hero" id="hero">
+    <p class="m-eyebrow">{page.hero.eyebrow}</p>
     <h1 class={`trustpg__title${isSignature ? ' trustpg__title--display' : ''}`}>{page.hero.title}</h1>
     <p class="trustpg__lead">{page.hero.description}</p>
 
@@ -41,6 +49,18 @@ const pad = (n: number) => String(n).padStart(2, '0')
         <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
       </p>
     </div>
+
+    {
+      isSignature && (
+        <div class="trustpg__figure">
+          <Figure
+            label={heroFigureLabel}
+            ratio={page.slug === 'security' ? '16 / 7' : '16 / 9'}
+            alt={heroFigureLabel}
+          />
+        </div>
+      )
+    }
   </section>
 
   {
@@ -113,37 +133,32 @@ const pad = (n: number) => String(n).padStart(2, '0')
   /* ============================================================================
      Hero — calm by default; bold + display-serif on the signature pages.
      ============================================================================ */
-  .trustpg__hero {
-    padding-block: clamp(56px, 7vw, 96px) clamp(28px, 3.5vw, 44px);
-  }
-  .trustpg__eyebrow {
-    margin-bottom: 22px;
-  }
-  .trustpg__eyebrow-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--m-accent);
-  }
+  /* hero padding + eyebrow come from the shared kit (.m-page-hero on the section,
+     plain .m-eyebrow) — aligned with every other subpage */
+  /* Display serif hero — one voice with every other page (home, leaves, finale).
+     Calm size on the legal pages; the signature pages step up below. */
   .trustpg__title {
     max-width: 20ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    font-size: clamp(31px, 4.2vw, 50px);
-    line-height: 1.08;
-    letter-spacing: -0.022em;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(31px, 4.2vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
     color: var(--m-ink);
     text-wrap: balance;
   }
-  /* Signature pages (security / about) get the display serif — bookending the
-     navy close, the only OTHER place the serif appears on these pages. */
+  /* Signature pages (security / about) take the bigger serif — more presence,
+     bookending the navy close. */
   .trustpg__title--display {
     max-width: 17ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
     font-size: clamp(38px, 5.4vw, 66px);
     line-height: 1.04;
     letter-spacing: -0.018em;
+  }
+  /* hero visual on the signature pages (security diagram / about photo) */
+  .trustpg__figure {
+    margin-top: clamp(28px, 4vw, 44px);
+    max-width: 820px;
   }
   .trustpg__lead {
     margin-top: 24px;
@@ -164,7 +179,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   .trustpg__note {
     max-width: 72ch;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     line-height: 1.55;
     color: var(--m-muted);
   }
@@ -173,13 +188,13 @@ const pad = (n: number) => String(n).padStart(2, '0')
     align-items: baseline;
     gap: 8px;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
   .trustpg__reviewed-k {
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
   }
   .trustpg__reviewed time {
     color: var(--m-ink-2);
@@ -206,7 +221,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .statement__label {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--m-accent);
@@ -233,7 +248,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     padding-bottom: 14px;
     border-bottom: 1px solid var(--m-hairline);
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     letter-spacing: 0.02em;
     color: var(--m-faint);
   }
@@ -254,12 +269,12 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__toc-num {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 500;
     color: var(--m-accent);
   }
   .trustpg__toc-txt {
-    font-size: 15px;
+    font-size: var(--m-text-md);
     line-height: 1.45;
     color: var(--m-ink);
   }
@@ -293,7 +308,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__index-of {
     font-family: var(--m-font-mono);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-faint);
   }
   .trustpg__sec-eyebrow {
@@ -375,7 +390,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .trustpg__close-eyebrow {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.7);
@@ -406,7 +421,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     border-radius: 8px;
     background: #fff;
     color: var(--m-accent);
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 500;
     transition:
       background 0.18s ease,

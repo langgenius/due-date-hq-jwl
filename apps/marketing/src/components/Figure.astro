@@ -1,0 +1,31 @@
+---
+/** Figure — a labelled, on-brand placeholder for a real image / screenshot /
+ *  diagram. Drop it where a visual belongs; swap the inner content for an <img>
+ *  (or a slot) when the real asset is ready — the frame styling (.m-figure in
+ *  marketing.css) stays. Keeps every placeholder consistent across the site. */
+interface Props {
+  /** Short label shown in the placeholder pill (e.g. "Product screenshot"). */
+  label: string
+  /** CSS aspect-ratio for the frame. Defaults to 16 / 10. */
+  ratio?: string
+  /** Accessible label; falls back to `label`. */
+  alt?: string
+}
+const { label, ratio = '16 / 10', alt } = Astro.props
+---
+
+<figure class="m-figure" style={`--m-figure-ratio: ${ratio}`} aria-label={alt ?? label}>
+  <span class="m-figure__mark">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"></rect>
+      <circle cx="8.5" cy="9.5" r="1.5" fill="currentColor"></circle>
+      <path
+        d="M21 15l-5-4-5 4-3-2-5 4"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+    </svg>
+    {label}
+  </span>
+</figure>

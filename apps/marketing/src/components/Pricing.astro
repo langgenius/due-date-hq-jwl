@@ -97,8 +97,8 @@ const ui = zh
 const matrixAria = ui.matrixTitle
 ---
 
-<section class="m-section pr" data-pricing-root data-billing-interval="monthly">
-  <div class="m-page-hero pr__hero">
+<section class="m-section m-page-hero pr" data-pricing-root data-billing-interval="monthly">
+  <div class="pr__hero">
     <p class="m-eyebrow">{t.hero.eyebrow}</p>
     <h1 class="pr__title">{t.hero.title}</h1>
     <p class="m-page-lead pr__lead">{t.hero.description}</p>
@@ -322,8 +322,11 @@ const matrixAria = ui.matrixTitle
 
 <style>
   /* ---- hero: display-serif headline, beta posture front and centre ---- */
+  /* hero padding comes from the shared .m-page-hero on the section (eyebrow lands
+     at the same Y as every subpage); this only restores the hero → plans gap the
+     inner wrapper used to carry */
   .pr__hero {
-    padding-block: clamp(40px, 5vw, 72px) clamp(28px, 3.5vw, 44px);
+    margin-bottom: clamp(20px, 3vw, 36px);
   }
   .pr__title {
     margin-top: 4px;
@@ -354,7 +357,7 @@ const matrixAria = ui.matrixTitle
     flex: none;
     padding: 4px 10px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -363,7 +366,7 @@ const matrixAria = ui.matrixTitle
     background: var(--m-accent);
   }
   .pr__beta-text {
-    font-size: 13.5px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink-2);
   }
@@ -386,7 +389,7 @@ const matrixAria = ui.matrixTitle
   .pr__planshead-note {
     margin-top: 12px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -409,7 +412,7 @@ const matrixAria = ui.matrixTitle
     height: 36px;
     padding-inline: 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: var(--m-muted);
     cursor: pointer;
@@ -428,7 +431,7 @@ const matrixAria = ui.matrixTitle
     padding: 1px 6px;
     border-radius: 4px;
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
@@ -478,7 +481,7 @@ const matrixAria = ui.matrixTitle
     align-items: center;
     justify-content: center;
     border-radius: 11px 11px 0 0;
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -494,7 +497,7 @@ const matrixAria = ui.matrixTitle
     min-height: 70px;
   }
   .pr__name {
-    font-size: 18px;
+    font-size: var(--m-text-xl);
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--m-ink);
@@ -504,7 +507,7 @@ const matrixAria = ui.matrixTitle
   }
   .pr__desc {
     margin-top: 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     line-height: 1.55;
     color: var(--m-muted);
   }
@@ -516,12 +519,13 @@ const matrixAria = ui.matrixTitle
     align-items: baseline;
     gap: 8px;
   }
-  /* The price must out-weight the 18px/600 plan name unmistakably. Mono reads
-     optically lighter at display size, so it gets the larger jump (~52px) and
-     tighter tracking to close the gap and clearly dominate the card. */
+  /* The price out-SCALES the plan name unmistakably — dominance comes from size
+     + tighter tracking, not extra weight (one 400/500/600 system). Mono reads
+     optically lighter at display size, so it takes the larger jump (~52px) and
+     negative tracking to clearly dominate the card at the shared 600. */
   .pr__price {
     font-family: var(--m-font-mono);
-    font-weight: 700;
+    font-weight: 600;
     font-size: clamp(42px, 4.8vw, 52px);
     line-height: 1;
     letter-spacing: -0.035em;
@@ -538,13 +542,13 @@ const matrixAria = ui.matrixTitle
     letter-spacing: -0.02em;
   }
   .pr__cadence {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-muted);
   }
   .pr__savings {
     margin-top: 8px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-accent);
   }
@@ -565,7 +569,7 @@ const matrixAria = ui.matrixTitle
     margin-top: 20px;
     padding-inline: 16px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     transition:
       background 0.18s ease,
@@ -605,12 +609,12 @@ const matrixAria = ui.matrixTitle
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-    font-size: 12.5px;
+    font-size: var(--m-text-sm);
     line-height: 1.4;
   }
   .pr__metarow dt {
     flex: none;
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -635,7 +639,7 @@ const matrixAria = ui.matrixTitle
     display: flex;
     flex-direction: column;
     gap: 11px;
-    font-size: 12.5px;
+    font-size: var(--m-text-sm);
     line-height: 1.45;
     color: var(--m-ink);
   }
@@ -684,7 +688,7 @@ const matrixAria = ui.matrixTitle
     min-height: 56px;
     padding: 13px 18px;
     border-bottom: 1px solid var(--m-hairline-2);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
   }
   .pr__mc--head {
     flex-direction: column;
@@ -700,7 +704,7 @@ const matrixAria = ui.matrixTitle
     border-bottom: 1px solid var(--m-hairline);
   }
   .pr__mname {
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 600;
     color: var(--m-ink);
   }
@@ -712,13 +716,13 @@ const matrixAria = ui.matrixTitle
     align-items: baseline;
     gap: 5px;
     font-family: var(--m-font-mono);
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
     color: var(--m-ink);
   }
   .pr__mcadence {
     font-family: var(--m-font-sans);
-    font-size: 10.5px;
+    font-size: var(--m-text-2xs);
     font-weight: 400;
     color: var(--m-faint);
   }
@@ -727,7 +731,7 @@ const matrixAria = ui.matrixTitle
     min-height: 0;
     padding-block: 22px 10px;
     border-bottom: 1px solid var(--m-hairline);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -792,13 +796,13 @@ const matrixAria = ui.matrixTitle
   }
   .pr__recap-t {
     margin-top: 14px;
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 600;
     color: var(--m-ink);
   }
   .pr__recap-d {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     line-height: 1.55;
     color: var(--m-muted);
   }
@@ -821,14 +825,14 @@ const matrixAria = ui.matrixTitle
     border-top: 1px solid var(--m-hairline-2);
   }
   .pr__faq-q {
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 600;
     line-height: 1.4;
     color: var(--m-ink);
   }
   .pr__faq-a {
     margin-top: 10px;
-    font-size: 13.5px;
+    font-size: var(--m-text-base);
     line-height: 1.65;
     color: var(--m-muted);
   }
@@ -908,9 +912,7 @@ const matrixAria = ui.matrixTitle
     })
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPricingBillingToggles, { once: true })
-  } else {
-    initPricingBillingToggles()
-  }
+  // re-init on first load + every View-Transition navigation (DOMContentLoaded
+  // does not fire on a client-side swap)
+  document.addEventListener('astro:page-load', initPricingBillingToggles)
 </script>

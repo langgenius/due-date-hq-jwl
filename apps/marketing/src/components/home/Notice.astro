@@ -326,7 +326,7 @@ const examples = t.examples
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -355,7 +355,7 @@ const examples = t.examples
     gap: 8px;
     padding: 8px 16px 8px 13px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     letter-spacing: 0;
     color: var(--m-muted);
@@ -475,7 +475,7 @@ const examples = t.examples
     flex: 1;
   }
   .clip__name {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -483,12 +483,12 @@ const examples = t.examples
   }
   .clip__sub {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .clip__posted {
     text-align: right;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
     white-space: nowrap;
   }
@@ -502,7 +502,7 @@ const examples = t.examples
     align-items: center;
     gap: 4px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-accent);
   }
   .clip__url svg {
@@ -513,7 +513,7 @@ const examples = t.examples
     margin-top: 16px;
     display: grid;
     gap: 12px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.55;
     color: var(--m-ink-2);
     min-height: 78px;
@@ -569,7 +569,7 @@ const examples = t.examples
   }
   .field__label {
     display: inline-flex;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -581,7 +581,7 @@ const examples = t.examples
     justify-content: space-between;
   }
   .field__count {
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
@@ -590,14 +590,14 @@ const examples = t.examples
   }
   .field__quote {
     margin-top: 10px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink);
   }
   .field__verify {
     margin-top: 8px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .field__ok {
@@ -610,7 +610,7 @@ const examples = t.examples
     flex-wrap: wrap;
     gap: 8px;
     font-family: var(--m-font-mono);
-    font-size: 15px;
+    font-size: var(--m-text-md);
     color: var(--m-ink);
   }
   .field__change s {
@@ -621,7 +621,7 @@ const examples = t.examples
   }
   .field__delta {
     font-family: var(--m-font-sans);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-ok);
     background: color-mix(in srgb, var(--m-ok) 12%, transparent);
@@ -630,7 +630,7 @@ const examples = t.examples
   }
   .field__badge {
     font-family: var(--m-font-sans);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 500;
     color: var(--m-muted);
     background: var(--m-section);
@@ -659,25 +659,25 @@ const examples = t.examples
     flex: none;
     display: grid;
     place-items: center;
-    font-size: 9px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
   }
   .arow__name {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink);
     white-space: nowrap;
   }
   .arow__meta {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .arow__status {
     margin-left: auto;
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.02em;
   }
@@ -689,7 +689,7 @@ const examples = t.examples
   }
   .field__more {
     margin-top: 9px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
 
@@ -723,32 +723,36 @@ const examples = t.examples
 
 <script>
   // Change-type examples as a WAI tablist: click + roving tabindex + arrow-key nav.
-  document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
-    const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
-    const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
-    const activate = (idx: number, focus: boolean) => {
-      tabs.forEach((t, i) => {
-        const on = i === idx
-        t.classList.toggle('is-on', on)
-        t.setAttribute('aria-selected', String(on))
-        t.tabIndex = on ? 0 : -1
-        if (on && focus) t.focus()
-      })
-      panels.forEach((p, i) => p.classList.toggle('is-on', i === idx))
-    }
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => activate(i, false))
-      tab.addEventListener('keydown', (e) => {
-        let next = -1
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length
-        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length
-        else if (e.key === 'Home') next = 0
-        else if (e.key === 'End') next = tabs.length - 1
-        if (next >= 0) {
-          e.preventDefault()
-          activate(next, true)
-        }
+  // Re-binds on first load + every View-Transition navigation.
+  function initNotice() {
+    document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
+      const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
+      const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
+      const activate = (idx: number, focus: boolean) => {
+        tabs.forEach((t, i) => {
+          const on = i === idx
+          t.classList.toggle('is-on', on)
+          t.setAttribute('aria-selected', String(on))
+          t.tabIndex = on ? 0 : -1
+          if (on && focus) t.focus()
+        })
+        panels.forEach((p, i) => p.classList.toggle('is-on', i === idx))
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => activate(i, false))
+        tab.addEventListener('keydown', (e) => {
+          let next = -1
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length
+          else if (e.key === 'Home') next = 0
+          else if (e.key === 'End') next = tabs.length - 1
+          if (next >= 0) {
+            e.preventDefault()
+            activate(next, true)
+          }
+        })
       })
     })
-  })
+  }
+  document.addEventListener('astro:page-load', initNotice)
 </script>

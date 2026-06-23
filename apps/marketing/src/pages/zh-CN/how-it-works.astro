@@ -12,6 +12,7 @@ import SurfaceDeep from '../../components/home/SurfaceDeep.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
+import Figure from '../../components/Figure.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
 
@@ -29,7 +30,7 @@ const pathname = '/zh-CN/how-it-works'
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" locale="zh-CN" />
   <main>
-    <section class="m-section how-hero" id="hero">
+    <section class="m-section m-page-hero how-hero" id="hero">
       <p class="m-eyebrow">产品导览</p>
       <h1 class="how-hero__title">
         从一次截止日变化，<br />到它牵动的<span class="ital">每一个客户。</span>
@@ -63,6 +64,10 @@ const pathname = '/zh-CN/how-it-works'
           </li>
         </ol>
       </div>
+
+      <div class="how-shot">
+        <Figure label="产品截图" ratio="16 / 9" alt="产品截图占位（触发这次变化的提醒）" />
+      </div>
     </section>
 
     <LoopDeep locale="zh-CN" />
@@ -73,19 +78,12 @@ const pathname = '/zh-CN/how-it-works'
   <ScrollMotion />
 </BaseLayout>
 
-<style is:global>
-  body {
-    background: var(--m-canvas);
-  }
-</style>
-
 <style>
   /* 页面 hero —— 比共享 .m-page-hero 更有分量：衬线显示体 + 真实的字号上限，
      再用一个走通的例子把抽象闭环落地。CJK 字形偏满、偏重，所以收一档字号、
      放宽行高、取消紧凑字距。 */
-  .how-hero {
-    padding-block: clamp(52px, 7vw, 96px) clamp(36px, 4.5vw, 56px);
-  }
+  /* hero padding comes from the shared .m-page-hero on the section (one Y for
+     every subpage eyebrow) — no per-page override */
   .how-hero__title {
     margin-top: 4px;
     max-width: 20ch;
@@ -99,6 +97,10 @@ const pathname = '/zh-CN/how-it-works'
   }
   .how-hero__title .ital {
     font-style: italic;
+  }
+  /* a full-width slot for a real product screenshot under the worked example */
+  .how-shot {
+    margin-top: clamp(28px, 4vw, 48px);
   }
   .how-hero__lead {
     margin-top: clamp(20px, 2vw, 28px);
@@ -118,7 +120,7 @@ const pathname = '/zh-CN/how-it-works'
   .how-hero__ex-lead {
     display: block;
     margin-bottom: 14px;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -146,14 +148,14 @@ const pathname = '/zh-CN/how-it-works'
     border-color: color-mix(in srgb, var(--m-accent) 18%, transparent);
   }
   .hchip__k {
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--m-accent);
   }
   .hchip__v {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink);
     white-space: nowrap;
   }
@@ -161,7 +163,7 @@ const pathname = '/zh-CN/how-it-works'
     display: flex;
     align-items: center;
     color: var(--m-faint);
-    font-size: 14px;
+    font-size: var(--m-text-base);
   }
   @media (max-width: 720px) {
     .hchip__v {

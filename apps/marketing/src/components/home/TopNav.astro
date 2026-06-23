@@ -20,13 +20,24 @@ const base = zh ? '/zh-CN' : ''
 const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
 const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
 const L = zh
-  ? { how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
-  : { how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
+  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
+  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
+
+// One glyph per nav item — shown in place of the label when the bar collapses
+// into the centred pill on scroll. (lucide-style: house · compass · map · tag · shield)
+const NAV_ICONS: Record<string, string> = {
+  home: 'M3 10.6 12 3l9 7.6 M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5 M9.5 21v-6h5v6',
+  how: 'M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z M15.8 8.2l-2.3 5.3-5.3 2.3 2.3-5.3z',
+  coverage: 'M9 3 3 6v15l6-3 6 3 6-3V3l-6 3z M9 3v15 M15 6v15',
+  pricing: 'M20.6 13.4 11 3.8a2 2 0 0 0-1.4-.6H5a2 2 0 0 0-2 2v4.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z M7.5 7.5h.01',
+  security: 'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z',
+}
 const links = [
-  { key: 'how', label: L.how, href: `${base}/how-it-works` },
-  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage` },
-  { key: 'pricing', label: L.pricing, href: `${base}/pricing` },
-  { key: 'security', label: L.security, href: `${base}/security` },
+  { key: 'home', label: L.homeNav, href: `${base}/`, icon: 'home' },
+  { key: 'how', label: L.how, href: `${base}/how-it-works`, icon: 'how' },
+  { key: 'coverage', label: L.coverage, href: `${base}/state-coverage`, icon: 'coverage' },
+  { key: 'pricing', label: L.pricing, href: `${base}/pricing`, icon: 'pricing' },
+  { key: 'security', label: L.security, href: `${base}/security`, icon: 'security' },
 ]
 ---
 
@@ -52,8 +63,14 @@ const links = [
             class:list={['nav__link', current === l.key && 'is-active']}
             href={l.href}
             aria-current={current === l.key ? 'page' : undefined}
+            title={l.label}
           >
-            {l.label}
+            <span class="nav__link-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d={NAV_ICONS[l.icon]} />
+              </svg>
+            </span>
+            <span class="nav__link-label">{l.label}</span>
           </a>
         ))
       }
@@ -187,6 +204,18 @@ const links = [
     border: none;
     padding: 0;
   }
+  /* collapsed: every item shrinks from its label to its glyph */
+  .nav--scrolled .nav__link {
+    padding: 8px;
+  }
+  .nav--scrolled .nav__link-icon {
+    max-width: 22px;
+    opacity: 1;
+  }
+  .nav--scrolled .nav__link-label {
+    max-width: 0;
+    opacity: 0;
+  }
   .nav--on-dark.nav--scrolled .nav__inner {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
@@ -244,7 +273,7 @@ const links = [
     align-items: center;
     gap: 10px;
     font-weight: 600;
-    font-size: 18px;
+    font-size: var(--m-text-xl);
     letter-spacing: -0.01em;
     color: var(--m-ink);
     transition:
@@ -255,7 +284,7 @@ const links = [
     display: inline-flex;
   }
   .brand__beta {
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -277,15 +306,43 @@ const links = [
     padding: 4px;
   }
   .nav__link {
+    display: inline-flex;
+    align-items: center;
     padding: 7px 13px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: var(--m-muted);
     white-space: nowrap;
     transition:
       color 0.18s ease,
-      background 0.18s ease;
+      background 0.18s ease,
+      padding 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  /* label shows by default; the glyph swaps in when the bar collapses (see
+     .nav--scrolled below). Both sides animate via max-width like the brand name. */
+  .nav__link-icon {
+    display: inline-flex;
+    align-items: center;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.22s ease;
+  }
+  .nav__link-icon svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+  }
+  .nav__link-label {
+    display: inline-block;
+    max-width: 140px;
+    overflow: hidden;
+    transition:
+      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.22s ease;
   }
   .nav__link:hover {
     color: var(--m-ink);
@@ -311,7 +368,7 @@ const links = [
     display: inline-flex;
     align-items: center;
     padding: 7px 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: var(--m-muted);
     transition: color 0.18s ease;
@@ -339,7 +396,7 @@ const links = [
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     white-space: nowrap;
     color: #fff;
@@ -458,7 +515,7 @@ const links = [
     min-height: 44px;
     padding: 0 12px;
     border-radius: 8px;
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 500;
     color: var(--m-ink);
     transition:
@@ -487,7 +544,7 @@ const links = [
     justify-content: center;
     min-height: 44px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     font-weight: 500;
     color: var(--m-ink-2);
     transition:
@@ -504,7 +561,7 @@ const links = [
     justify-content: center;
     gap: 6px;
     min-height: 46px;
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 500;
     color: #fff;
     background: var(--m-accent);
@@ -560,8 +617,10 @@ const links = [
   // Solidify + slightly shrink on scroll; flip to white when the nav sits over a
   // dark band ([data-nav-dark], e.g. the villain). rAF-throttled scroll handler
   // (IntersectionObserver isn't used so the same logic works headless + live).
-  const nav = document.querySelector<HTMLElement>('.nav')
-  if (nav) {
+  // Re-inits per View-Transition navigation; window listeners drop on swap.
+  function initNavScroll(signal: AbortSignal) {
+    const nav = document.querySelector<HTMLElement>('.nav')
+    if (!nav) return
     const darkSections = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-dark]'))
     let ticking = false
     const update = () => {
@@ -589,21 +648,29 @@ const links = [
         requestAnimationFrame(update)
       }
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true, signal })
+    window.addEventListener('resize', onScroll, { passive: true, signal })
     update()
   }
+  let navScrollCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    navScrollCtl = new AbortController()
+    initNavScroll(navScrollCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => navScrollCtl?.abort())
 </script>
 
 <script>
   // Mobile sheet (≤920px): hamburger toggles an accessible dialog with the four
   // nav links + Sign in + CTA. Esc closes, focus moves into the sheet and is
   // restored on close, outside-click + link-click + resize-up all dismiss it.
-  const burger = document.querySelector<HTMLButtonElement>('.nav__burger')
-  const sheet = document.querySelector<HTMLElement>('.nav__sheet')
-  const scrim = document.querySelector<HTMLElement>('[data-nav-scrim]')
+  // Re-inits per View-Transition navigation; every listener drops on the swap.
+  function initMobileSheet(signal: AbortSignal) {
+    const burger = document.querySelector<HTMLButtonElement>('.nav__burger')
+    const sheet = document.querySelector<HTMLElement>('.nav__sheet')
+    const scrim = document.querySelector<HTMLElement>('[data-nav-scrim]')
+    if (!burger || !sheet || !scrim) return
 
-  if (burger && sheet && scrim) {
     let lastFocused: HTMLElement | null = null
 
     const focusables = () =>
@@ -645,43 +712,52 @@ const links = [
       if (restoreFocus) (lastFocused ?? burger).focus()
     }
 
-    burger.addEventListener('click', () => (isOpen() ? close() : open()))
-    scrim.addEventListener('click', () => close())
+    burger.addEventListener('click', () => (isOpen() ? close() : open()), { signal })
+    scrim.addEventListener('click', () => close(), { signal })
     // any link tap navigates → let it close (no focus restore, we're leaving)
     sheet.querySelectorAll('a[href]').forEach((a) =>
-      a.addEventListener('click', () => close(false)),
+      a.addEventListener('click', () => close(false), { signal }),
     )
 
-    document.addEventListener('keydown', (e) => {
-      if (!isOpen()) return
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        close()
-        return
-      }
-      // simple focus trap inside the sheet
-      if (e.key === 'Tab') {
-        const items = focusables()
-        if (!items.length) return
-        const first = items[0]
-        const last = items[items.length - 1]
-        const active = document.activeElement
-        if (e.shiftKey && active === first) {
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (!isOpen()) return
+        if (e.key === 'Escape') {
           e.preventDefault()
-          last.focus()
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault()
-          first.focus()
+          close()
+          return
         }
-      }
-    })
+        // simple focus trap inside the sheet
+        if (e.key === 'Tab') {
+          const items = focusables()
+          if (!items.length) return
+          const first = items[0]
+          const last = items[items.length - 1]
+          const active = document.activeElement
+          if (e.shiftKey && active === first) {
+            e.preventDefault()
+            last.focus()
+          } else if (!e.shiftKey && active === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      },
+      { signal },
+    )
 
     // crossing back to desktop width must not leave a hidden-but-open sheet
     const mq = window.matchMedia('(min-width: 921px)')
-    const onWide = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (e.matches) close(false)
-    }
-    if (mq.addEventListener) mq.addEventListener('change', onWide)
-    else mq.addListener(onWide)
+    mq.addEventListener('change', (e) => e.matches && close(false), { signal })
   }
+  let sheetCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    sheetCtl = new AbortController()
+    initMobileSheet(sheetCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => {
+    sheetCtl?.abort()
+    document.body.style.overflow = ''
+  })
 </script>

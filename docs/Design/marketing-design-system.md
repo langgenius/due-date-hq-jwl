@@ -19,23 +19,47 @@ This doc was produced during the 2026-06-22 site-wide system pass.
 
 Two type families do the work: a **display serif** (`Instrument Serif`) reserved for the hero
 headline only, and a **sans** (`Instrument Sans`) for everything else. `Geist Mono` carries
-data/dates/meta. The marketing scale is **fluid** (`clamp`) end-to-end; the values below are
-`min → max` across the viewport range.
+data/dates/meta. **Headings are fluid** (`clamp`, `min → max` across the viewport); **fixed UI +
+body sizes resolve through a rem token ladder** (`--m-text-*`) so every component pulls from one
+scale instead of freelancing raw px. Leading and tracking are tokenised too (`--m-leading-*`,
+`--m-tracking-*`).
 
-| Step        | Class                              | Family        | Size (min→max) | Line-height | Tracking                             | Role                                                                                            |
-| ----------- | ---------------------------------- | ------------- | -------------- | ----------- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Display     | _(scoped in `Hero.astro`)_         | display serif | 40 → 76px      | 1.02        | —                                    | Hero headline ONLY. Out of the shared layer by design.                                          |
-| Page title  | `.m-page-title`                    | sans 600      | 30 → 48px      | 1.08        | -0.02em                              | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). `max-width: 18ch`. |
-| Section H2  | `.m-h2`                            | sans 600      | 29 → 44px      | 1.08        | -0.02em                              | Home section headlines. Supports `.ital` (italic span).                                         |
-| Page H2     | `.m-page-h2`                       | sans 600      | 22 → 30px      | 1.20        | -0.015em                             | Long-tail block headings. `max-width: 24ch`.                                                    |
-| CTA title   | `.m-page-cta__title`               | sans 600      | 22 → 28px      | 1.25        | -0.015em                             | CTA-block headline. `max-width: 22ch`.                                                          |
-| Lead        | `.m-lead`                          | sans 400      | 17 → 20px      | 1.55        | —                                    | Home section lead paragraph. **Now capped at `--m-measure` (68ch).**                            |
-| Page lead   | `.m-page-lead`                     | sans 400      | 16 → 18px      | 1.60        | —                                    | Long-tail page lead. `max-width: 60ch`.                                                         |
-| Body        | `.m-page-body`                     | sans 400      | 15px           | 1.70        | —                                    | Long-tail flowing body. `max-width: 44ch` (narrow split column).                                |
-| Card title  | `.m-card__t`                       | sans 600      | 15px           | 1.40        | —                                    | Card / FAQ / trust-item title.                                                                  |
-| Card desc   | `.m-card__d`                       | sans 400      | 13px           | 1.65        | —                                    | Card supporting copy (`--m-muted`).                                                             |
-| Eyebrow     | `.m-eyebrow`                       | sans 600      | 12px           | —           | `--m-ls-eyebrow` (0.14em), uppercase | Section kicker (`--m-faint`).                                                                   |
-| Note / meta | `.m-page-note`, `.m-page-reviewed` | mono          | 12px           | 1.50        | —                                    | Mono meta (footnotes, "last reviewed").                                                         |
+### Token ladder (fixed sizes)
+
+Rem-based (root = 16px) so type honours the reader's browser font-size. There are **no half-pixel
+sizes** — every fixed size in the home + long-tail layers is one of these eight steps.
+
+| Token           | rem    | px  | Role                                                           |
+| --------------- | ------ | --- | -------------------------------------------------------------- |
+| `--m-text-3xs`  | 0.625  | 10  | Decorative product-mockup micro-chrome only (legibility floor) |
+| `--m-text-2xs`  | 0.6875 | 11  | Small pills, dense labels                                      |
+| `--m-text-xs`   | 0.75   | 12  | Eyebrows, mono meta, captions                                  |
+| `--m-text-sm`   | 0.8125 | 13  | Secondary / supporting body                                    |
+| `--m-text-base` | 0.875  | 14  | Dense UI body                                                  |
+| `--m-text-md`   | 0.9375 | 15  | Card titles, comfortable body                                  |
+| `--m-text-lg`   | 1.0    | 16  | Emphasised body / small lead                                   |
+| `--m-text-xl`   | 1.125  | 18  | Large body / sub-lead                                          |
+
+Leading: `--m-leading-tight` 1.1 · `--m-leading-snug` 1.35 · `--m-leading-normal` 1.55 ·
+`--m-leading-relaxed` 1.7. Tracking: `--m-tracking-tight` -0.02em · `--m-tracking-snug` -0.015em ·
+`--m-tracking-wide` 0.06em · `--m-ls-eyebrow` 0.14em.
+
+The shared classes below are backed by these tokens; the px column is the resolved value.
+
+| Step        | Class                              | Family                | Size (min→max) | Line-height | Tracking                             | Role                                                                                                                                                                                     |
+| ----------- | ---------------------------------- | --------------------- | -------------- | ----------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Display     | _(scoped in `Hero.astro`)_         | display serif         | 40 → 76px      | 1.02        | —                                    | Hero headline ONLY. Out of the shared layer by design.                                                                                                                                   |
+| Page title  | `.m-page-title`                    | **display serif 400** | 34 → 58px      | 1.04        | -0.02em                              | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). Serif everywhere — every subpage opens in the **same editorial voice as the home hero**. `max-width: 20ch`. |
+| Section H2  | `.m-h2`                            | sans 600              | 29 → 44px      | 1.08        | -0.02em                              | Home section headlines. Supports `.ital` (italic span).                                                                                                                                  |
+| Page H2     | `.m-page-h2`                       | sans 600              | 22 → 30px      | 1.20        | -0.015em                             | Long-tail block headings. `max-width: 24ch`.                                                                                                                                             |
+| CTA title   | `.m-page-cta__title`               | sans 600              | 22 → 28px      | 1.25        | -0.015em                             | CTA-block headline. `max-width: 22ch`.                                                                                                                                                   |
+| Lead        | `.m-lead`                          | sans 400              | 17 → 20px      | 1.55        | —                                    | Home section lead paragraph. **Now capped at `--m-measure` (68ch).**                                                                                                                     |
+| Page lead   | `.m-page-lead`                     | sans 400              | 16 → 18px      | 1.60        | —                                    | Long-tail page lead. `max-width: 60ch`.                                                                                                                                                  |
+| Body        | `.m-page-body`                     | sans 400              | 15px           | 1.70        | —                                    | Long-tail flowing body. `max-width: 44ch` (narrow split column).                                                                                                                         |
+| Card title  | `.m-card__t`                       | sans 600              | 15px           | 1.40        | —                                    | Card / FAQ / trust-item title.                                                                                                                                                           |
+| Card desc   | `.m-card__d`                       | sans 400              | 13px           | 1.65        | —                                    | Card supporting copy (`--m-muted`).                                                                                                                                                      |
+| Eyebrow     | `.m-eyebrow`                       | sans 600              | 12px           | —           | `--m-ls-eyebrow` (0.14em), uppercase | Section kicker (`--m-faint`).                                                                                                                                                            |
+| Note / meta | `.m-page-note`, `.m-page-reviewed` | mono                  | 12px           | 1.50        | —                                    | Mono meta (footnotes, "last reviewed").                                                                                                                                                  |
 
 ### Scale logic / contrast
 
