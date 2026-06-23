@@ -1170,6 +1170,12 @@ function OverviewCaughtUpCard({
   )
 }
 
+// Coverage map temporarily hidden (Yuqi, 2026-06-23) — the overview leads
+// straight into "Where to start" full-width. Flip to `true` to restore the
+// two-column map + backlog layout; the RuleCoverageMap component and its
+// `coverageByJurisdiction` wiring are kept intact for that.
+const SHOW_COVERAGE_MAP = false
+
 // ---------------------------------------------------------------------------
 // Main route
 // ---------------------------------------------------------------------------
@@ -2802,32 +2808,34 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                {/* Coverage map + "Where to start" as equal-weight peers in a
-                    two-column split (left = the geographic coverage heat, right
-                    = the ranked actionable backlog). Container query, not a
-                    viewport breakpoint, so the app sidebar can't throw off when
-                    they go side-by-side; below the split width they stack. The
-                    left track is sized to the fixed tilegram (494px + card
-                    padding); the right track flexes. Matching region-title
-                    headings carry "same importance". */}
-                <div className="@container">
-                  <div className="grid grid-cols-1 gap-x-6 gap-y-8 @4xl:grid-cols-[540px_minmax(0,1fr)] @4xl:items-start">
-                    {/* Coverage map — review pressure rendered as heat (red =
-                        high-severity first · amber = pending · green =
-                        reviewed). Drills into a jurisdiction on click. */}
-                    <RuleCoverageMap
-                      coverage={coverageByJurisdiction}
-                      activeJurisdiction={activeJurisdiction}
-                      onSelect={selectJurisdiction}
-                    />
-                    {/* "Where to start" — the backlog ranked + actionable
-                        (Yuqi #1/#4). */}
-                    <OverviewReviewBreakdown
-                      jurisdictions={topReviewJurisdictions}
-                      onSelectJurisdiction={selectJurisdiction}
-                    />
+                {SHOW_COVERAGE_MAP ? (
+                  // Coverage map + "Where to start" as equal-weight peers in a
+                  // two-column split (left = the geographic coverage heat, right =
+                  // the ranked actionable backlog). Container query, not a viewport
+                  // breakpoint, so the app sidebar can't throw off when they go
+                  // side-by-side; below the split width they stack. Left track is
+                  // sized to the fixed tilegram; the right track flexes.
+                  <div className="@container">
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 @4xl:grid-cols-[540px_minmax(0,1fr)] @4xl:items-start">
+                      <RuleCoverageMap
+                        coverage={coverageByJurisdiction}
+                        activeJurisdiction={activeJurisdiction}
+                        onSelect={selectJurisdiction}
+                      />
+                      <OverviewReviewBreakdown
+                        jurisdictions={topReviewJurisdictions}
+                        onSelectJurisdiction={selectJurisdiction}
+                      />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  // Coverage map hidden for now — "Where to start" leads the
+                  // overview full-width. Flip SHOW_COVERAGE_MAP to restore the map.
+                  <OverviewReviewBreakdown
+                    jurisdictions={topReviewJurisdictions}
+                    onSelectJurisdiction={selectJurisdiction}
+                  />
+                )}
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
                 <OverviewCoverageGaps
                   jurisdictions={gappedJurisdictions}

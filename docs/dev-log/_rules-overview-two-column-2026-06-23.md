@@ -108,3 +108,18 @@ there). Removing red entirely lost the high-severity signal on the map.
 Verify: tsgo + build clean · live — 4 red dots (NY/CA/TX/FED), 48 green, 52 total
 · 2 new i18n strings (Review first / "{label}: {high} high-severity — review
 first"), compile --strict clean.
+
+## Follow-up 4 — hide the coverage map for now
+
+After the colour iterations, Yuqi: "hide the coverage map for now." The visual
+encoding wasn't landing, so the map is shelved rather than iterated further.
+
+- `const SHOW_COVERAGE_MAP = false` gates the overview: the map is hidden and
+  **"Where to start" leads the overview full-width** (the two-column split only
+  applies when the map is shown).
+- The `RuleCoverageMap` component + its `coverageByJurisdiction` wiring are kept
+  intact (referenced in the flag's other branch) — re-enabling is a one-line
+  flip to `true`. No code deleted; the colour question is just paused.
+
+Verify: tsgo + build clean · live — coverage map absent, "Where to start" the
+only overview heading, full-width.
