@@ -134,8 +134,11 @@ const items = t.items
 </style>
 
 <script>
-  const rail = document.getElementById('spyrail')
-  if (rail) {
+  // Section-index spy-rail. Re-inits per View-Transition navigation; window
+  // listeners drop on the next swap.
+  function initSpyRail(signal: AbortSignal) {
+    const rail = document.getElementById('spyrail')
+    if (!rail) return
     const items = Array.from(rail.querySelectorAll('.spyrail__item'))
     const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
     const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
@@ -169,8 +172,14 @@ const items = t.items
         requestAnimationFrame(update)
       }
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true, signal })
+    window.addEventListener('resize', onScroll, { passive: true, signal })
     update()
   }
+  let spyCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    spyCtl = new AbortController()
+    initSpyRail(spyCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => spyCtl?.abort())
 </script>

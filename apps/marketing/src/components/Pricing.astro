@@ -909,9 +909,7 @@ const matrixAria = ui.matrixTitle
     })
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPricingBillingToggles, { once: true })
-  } else {
-    initPricingBillingToggles()
-  }
+  // re-init on first load + every View-Transition navigation (DOMContentLoaded
+  // does not fire on a client-side swap)
+  document.addEventListener('astro:page-load', initPricingBillingToggles)
 </script>

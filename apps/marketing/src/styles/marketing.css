@@ -106,6 +106,37 @@
 }
 
 /* ============================================================================
+   Cross-page View Transitions (astro:transitions ClientRouter). A calm, premium
+   cross-fade with a small rise on the incoming page — never a slide or wipe.
+   Fully disabled under reduced-motion.
+   ============================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: m-vt-out 0.2s var(--m-ease) both;
+  }
+  ::view-transition-new(root) {
+    animation: m-vt-in 0.34s var(--m-ease) both;
+  }
+  @keyframes m-vt-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes m-vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* ============================================================================
    Shared marketing primitives — one section/eyebrow/title/lead used across all
    home components (DRY type system). Global classes (not Astro-scoped) so every
    section pulls from the same source.

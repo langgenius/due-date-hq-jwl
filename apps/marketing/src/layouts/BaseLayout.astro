@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions'
 import { THEME_INIT_SCRIPT } from '@duedatehq/ui/theme/no-flash-script'
 import type { Locale } from '@duedatehq/i18n/locales'
 import StructuredData from '../components/StructuredData.astro'
@@ -113,18 +114,26 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     {structuredData && <StructuredData data={structuredData} />}
 
     <script is:inline set:html={THEME_INIT_SCRIPT}></script>
+
+    {/* Smooth cross-page navigation. Scripts that drive motion/nav re-init on
+        astro:page-load (ScrollMotion, TopNav, Notice, ScrollRail) so nothing
+        goes inert after a swap. Animation + reduced-motion live in marketing.css. */}
+    <ClientRouter />
   </head>
   <body class="min-h-screen bg-bg-canvas text-text-primary antialiased">
     <a class="m-skip" href="#main-content">{lang === 'zh-CN' ? '跳到主要内容' : 'Skip to content'}</a>
     <slot />
-    <script is:inline>
-      ;(function () {
-        var m = document.querySelector('main')
-        if (m) {
+    <script>
+      // Tag <main> as the skip-link target on first load AND after every
+      // View-Transition swap (the swapped-in page brings a fresh <main>).
+      const tagMain = () => {
+        const m = document.querySelector('main')
+        if (m && m.id !== 'main-content') {
           m.id = 'main-content'
           m.setAttribute('tabindex', '-1')
         }
-      })()
+      }
+      document.addEventListener('astro:page-load', tagMain)
     </script>
 
     <script>
