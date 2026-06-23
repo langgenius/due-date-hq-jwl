@@ -4254,6 +4254,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
+    // dfa.arkansas.gov Cloudflare-520s datacenter clients (browserless included), so
+    // direct fetch only ever parses one nav link. 2026-06-23 research: DFA publishes
+    // news through its OWN CMS, NOT GovDelivery (the only AR-tax GovDelivery account,
+    // ARFORTSMITH, is the City of Fort Smith — do NOT use it), so email_inbound is
+    // not an option. Needs a residential proxy (same as oh.sales_tax_rate_changes);
+    // known limitation until then.
     url: 'https://www.dfa.arkansas.gov/about/news/',
     // Index-level relief signal: AR posts disaster relief via DFA news +
     // gubernatorial orders; no dedicated relief page.
@@ -4449,9 +4455,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'MI',
     title: 'Michigan Treasury Taxes News',
     // 2026-06-10: metadata corrected api_watch/rss → html_watch (HTML page, not
-    // a feed). michigan.gov WAF-403s non-browser clients — fetched via
-    // browserless (PULSE_BROWSERLESS_SOURCE_IDS).
-    url: 'https://www.michigan.gov/taxes/news',
+    // a feed). michigan.gov WAF-403s non-browser clients — fetched via CF Browser
+    // Rendering (PULSE_BROWSERLESS_SOURCE_IDS).
+    // 2026-06-23: repointed /taxes/news (a frozen 2018-2021 notices archive) → the
+    // live Treasury newsroom, which carries current dated tax items ("Individual
+    // Income Tax Hits Processing Milestone", "33 Counties Eligible for Tax
+    // Extension Relief", …). Verified via CF render.
+    url: 'https://www.michigan.gov/treasury/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
   },
@@ -4487,7 +4497,17 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'mt.temporary_announcements',
     jurisdiction: 'MT',
     title: 'Montana DOR News',
-    url: 'https://mtrevenue.gov/news/',
+    // 2026-06-23: mtrevenue.gov/news/ shells out to a client-side JSON feed; the
+    // HTML never server-renders the list and a browser render grabs the shell
+    // before the XHR settles (it sat on PULSE_BROWSERLESS_SOURCE_IDS capturing a
+    // "Loading…" spinner). Fetch the JSON feed directly — announcements.ts
+    // auto-detects the agency-news-JSON array. url stays the human page; feedUrl
+    // is what gets fetched (ruleSourceFetchUrl = feedUrl ?? url). Removed from
+    // PULSE_BROWSERLESS_SOURCE_IDS.
+    url: 'https://revenue.mt.gov/news/',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://revenue.mt.gov/news/article_source.json',
   },
   {
     id: 'nc.temporary_announcements',
@@ -4499,13 +4519,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'nd.temporary_announcements',
     jurisdiction: 'ND',
     title: 'North Dakota Office of State Tax Commissioner News',
-    // /news/tax-legislative-changes is a hub; /news is the parent newsroom that
-    // renders the reverse-chron dated release list as server-side HTML. Same
-    // RI-style correction: this is an HTML listing, not an RSS/Atom feed, so it
-    // is html_watch (not api_watch with feedUrl pointed at the same HTML page).
+    // 2026-06-22: fetch the RSS feed via feedUrl. The prior assumption that the
+    // /news HTML page server-renders the dated release list was wrong — verified
+    // live, /news only yields topic nav ("Where's My Refund", "Sales Tax
+    // Exemptions", …) and parsed zero real press releases (the dated list is
+    // JS-rendered). The /rss/news feed carries the 10 most-recent dated releases
+    // (Motor Fuel Tax, Taxable Sales Data, April 15 deadline, property-tax relief,
+    // …) as plain XML; the parser auto-detects <rss>. url stays the human page;
+    // feedUrl is what gets fetched (ruleSourceFetchUrl = feedUrl ?? url).
     url: 'https://www.tax.nd.gov/news',
-    acquisitionMethod: 'html_watch',
-    adapterKind: 'html_announcement_list',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.tax.nd.gov/rss/news',
   },
   {
     id: 'ne.temporary_announcements',
@@ -4517,9 +4542,22 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
     title: 'New Hampshire DRA News and Announcements',
-    // /news-and-media 301-redirects here (the resource-center news & announcements
-    // page); point straight at the canonical target instead of the redirect.
+    // The resource-center page is a section hub (real items one click deeper) and
+    // the host WAF-blocks datacenter fetches. 2026-06-23: the primary signal is now
+    // email — NH DRA runs its OWN phpList ("Subscribe E-News", branded NH DRA) that
+    // pushes Announcements / TIRs / press releases / Declaratory Rulings; subscribe
+    // the inbox below. (DRA does NOT use GovDelivery, unlike other NH agencies.)
     url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
+    inboundEmail: {
+      localParts: ['pulse-ingest+nh-dra-news'],
+      senderDomains: ['maillist.nh.gov', 'nh.gov', 'revenue.nh.gov'],
+      listIdPatterns: ['maillist.nh.gov', 'nh department of revenue', 'dra.nh.gov'],
+      canonicalUrlHosts: ['revenue.nh.gov', 'www.revenue.nh.gov', 'maillist.nh.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://maillist.nh.gov/list/dra/?p=subscribe&id=11',
+      verificationNotes:
+        'NH DRA self-hosted phpList (maillist.nh.gov) — delivers Announcements, Technical Information Releases, press releases, Declaratory Rulings. Not GovDelivery.',
+    },
   },
   {
     id: 'nj.temporary_announcements',
@@ -4589,9 +4627,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Ohio Department of Taxation Tax Alerts Archive',
     // 2026-06-10: repointed /taxalerts (subscription hub) → the dated alerts
     // archive content page. tax.ohio.gov WAF-404s non-browser clients (even its
-    // homepage), so this is fetched via browserless (PULSE_BROWSERLESS_SOURCE_IDS).
+    // homepage), so this is fetched via CF Browser Rendering (PULSE_BROWSERLESS_SOURCE_IDS).
     // OH's only web watch — the parallel oh.temporary_announcements is email-only.
-    url: 'https://tax.ohio.gov/professional/ohtaxalert/taxalertsarchive',
+    // 2026-06-23: CF render bypassed the WAF (un-parks this source), but the archive
+    // ROOT is just a category index; repointed to the dated Sales & Use Taxes alert
+    // list (this source = sales_tax_rate_changes). Verified: "Sales and Use Tax Rate
+    // Change effective October 1, 2025", … render as dated items.
+    url: 'https://tax.ohio.gov/professional/ohtaxalert/taxalertsarchive/salesuse',
     alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
@@ -4662,10 +4704,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'tn.temporary_announcements',
     jurisdiction: 'TN',
     title: 'Tennessee DOR Revenue News',
-    // /revenue/revenue-news.html is a hub; /content/tn/revenue/news.html is the
-    // AEM path that serves the actual reverse-chron dated news list (important
-    // notices + enforcement releases) and is the form that fetches reliably.
-    url: 'https://www.tn.gov/content/tn/revenue/news.html',
+    // 2026-06-23: tn.gov DROPS datacenter connections outright (no response, not a
+    // 403/520), so the web watch had been dead since 06-18. TN DOR mirrors its
+    // official notices (SUT-/FT-/LOT-/TOB-/FONCE-/GEN- series) on a Zendesk Help
+    // Center at revenue.support.tn.gov — Zendesk-hosted, reachable from datacenter.
+    // Fetch the Zendesk articles JSON (feedUrl); announcementItemsFromSnapshot
+    // detects the {articles:[…]} shape and parses title/body/html_url/updated_at.
+    // url stays the human page; ruleSourceFetchUrl = feedUrl ?? url.
+    url: 'https://revenue.support.tn.gov/hc/en-us',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl:
+      'https://revenue.support.tn.gov/api/v2/help_center/en-us/articles.json?sort_by=updated_at&sort_order=desc&per_page=30',
   },
   {
     id: 'tx.temporary_announcements',
@@ -4692,11 +4742,16 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
     title: 'Utah State Tax Commission News Releases',
+    // tax.utah.gov renders the release list client-side AND WAF-502s datacenter
+    // fetches. 2026-06-23 research: the Tax Commission has NO email feed for tax
+    // news/bulletins (only the Utah.gov PMN system, which is meeting notices), so
+    // email_inbound is not an option here. No clean fix without a residential-proxy
+    // browser fetch (paid); stays on direct fetch with a whole-page fallback.
     url: 'https://tax.utah.gov/commission-office/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
     sourceNotes:
-      'Official Utah State Tax Commission dated news releases. Replaces the public-info landing page, which is a static hub with no dated announcement list.',
+      'Official Utah State Tax Commission dated news releases; the release list is JS-rendered and not captured by direct fetch or browserless /content, so only a whole-page fallback snapshot is produced.',
   },
   {
     id: 'va.temporary_announcements',
@@ -4724,7 +4779,25 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wi.temporary_announcements',
     jurisdiction: 'WI',
     title: 'Wisconsin DOR News',
+    // revenue.wi.gov renders its news in a SharePoint WebPart (client-side), so a
+    // plain fetch only yields a whole-page fallback. 2026-06-23: the primary signal
+    // is now email. NOTE: WI DOR E-News is NOT GovDelivery — it runs on Lyris
+    // ListManager at lists.wi.gov (confirmed from a live confirmation email:
+    // From lyris-confirm-*@lists.wi.gov, dkim d=lists.wi.gov). Subscribe the inbox
+    // below to the DOR topics (Tax Professional / Sales & Use / Withholding) that
+    // carry the Tax Bulletin + press releases. The web watch is kept as a fallback,
+    // re-tried through browserless with a networkidle wait.
     url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
+    inboundEmail: {
+      localParts: ['pulse-ingest+wi-dor-news'],
+      senderDomains: ['lists.wi.gov', 'wi.gov'],
+      listIdPatterns: ['lists.wi.gov', 'wisconsin department of revenue', 'wisconsin dor'],
+      canonicalUrlHosts: ['lists.wi.gov', 'revenue.wi.gov', 'www.revenue.wi.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.revenue.wi.gov/Pages/HTML/lists.aspx',
+      verificationNotes:
+        'WI DOR E-News via Lyris ListManager (lists.wi.gov), not GovDelivery — subscribe to the DOR topics (Tax Professional / Sales & Use Tax / Withholding Tax). The per-source +tag isolates DOR mail; each topic sends its own double-opt-in confirmation from lyris-confirm-*@lists.wi.gov.',
+    },
   },
   {
     id: 'wv.temporary_announcements',

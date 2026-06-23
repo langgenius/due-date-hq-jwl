@@ -104,6 +104,7 @@ export function DailyBriefCard({
       if (typeof window === 'undefined') return null
       try {
         const raw = window.localStorage.getItem(BRIEF_COLLAPSED_STORAGE_KEY)
+        // oxlint-disable-next-line no-unsafe-type-assertion -- localStorage payload is owned by this module; caller wraps in try/catch
         return raw ? (JSON.parse(raw) as { key: string; collapsed: boolean }) : null
       } catch {
         return null
@@ -243,7 +244,7 @@ export function DailyBriefCard({
         // docs/Design/brief-banner-language.md.
         // The unfold: expanding from the tab plays the house animate-in recipe
         // (fade + 4px slide from the tab's position) — the paper opens.
-        className="group relative z-10 flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+        className="group relative z-10 flex flex-col gap-1 rounded-xl bg-state-accent-hover px-5 py-2.5 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
       >
         {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}
@@ -267,12 +268,12 @@ export function DailyBriefCard({
           whole card is hovered (the section owns `group`), echoing the tab's
           "pick the paper up off the mat" motion without adding any chrome. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5">
             <NewspaperIcon
-              className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+              className="size-3.5 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
               aria-hidden
             />
-            <h2 className="text-base font-semibold text-text-secondary">
+            <h2 className="text-sm font-semibold text-text-secondary">
               <Trans>Daily Brief</Trans>
             </h2>
           </span>
@@ -354,6 +355,7 @@ function DeterministicBriefTeaser({
       className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       {parts.map((part, i) => (
+        // oxlint-disable-next-line no-array-index-key -- separator-joined inline parts, fixed order
         <Fragment key={i}>
           {i > 0 ? ' · ' : null}
           {part}
@@ -397,7 +399,11 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       // Matches the canonical status label used on /deadlines.
       label: <Trans>Waiting on client</Trans>,
       count: counts.waitingOnClientCount,
-      to: '/deadlines',
+      // Carry the filter so the queue arrives already scoped to these rows —
+      // the pill counts waiting-on-client deadlines, so landing on an
+      // unfiltered list would lose the user's place. (`waiting_on_client`
+      // is a canonical ?status= literal — see status-control ALL_STATUSES.)
+      to: '/deadlines?status=waiting_on_client',
       ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
     })
   }
@@ -548,7 +554,18 @@ function FirmTodayLine({
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
         </Trans>{' '}
-        <TextLink variant="accent" size="sm" render={<Link to="/deadlines" />}>
+        {/* Carry the filter the sentence describes — overdue deadlines of this
+            form type — so the queue arrives scoped to exactly that cluster
+            (`due` + `taxType` are real /deadlines params). */}
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={
+            <Link
+              to={`/deadlines?due=overdue&taxType=${encodeURIComponent(concentration.taxType)}`}
+            />
+          }
+        >
           <Trans>View deadlines</Trans>
         </TextLink>
       </p>

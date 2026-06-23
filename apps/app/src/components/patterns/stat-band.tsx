@@ -141,7 +141,7 @@ export function StatBand({
         {stats.map((stat) => (
           <div
             key={stat.key}
-            className="flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0"
+            className="flex min-w-0 flex-1 flex-col gap-1 px-5 first:pl-0 sm:border-l sm:border-divider-subtle sm:first:border-l-0"
           >
             <Skeleton className="h-2.5 w-16 rounded" />
             <Skeleton className="h-6 w-12 rounded" />
@@ -208,8 +208,11 @@ export function StatBand({
     // Subtle vertical hairline between columns (row layout only) gives the
     // band structure without re-introducing a card border; the first
     // column and the mobile 2-up grid stay divider-free.
+    // first:pl-0 flushes the first stat's text to the band's left edge (= the
+    // page content margin) so the summary left-aligns with the page header +
+    // editorial line above it, instead of sitting 20px inset from the px-5.
     const columnClass =
-      'flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0'
+      'flex min-w-0 flex-1 flex-col gap-1 px-5 first:pl-0 sm:border-l sm:border-divider-subtle sm:first:border-l-0'
     // Interactive columns gain a hover wash + focus ring so they read
     // as tappable; the read-only column stays dead-quiet.
     const interactiveClass = cn(

@@ -49,7 +49,11 @@ export function SetupProgressCard({
     <section
       aria-label={t`Setup progress`}
       className={cn(
-        'flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
+        // 2026-06-23 (palette finish): a warm stone WELL instead of the plain
+        // white card — onboarding is a "resting / invitational" moment, where
+        // the warm half of the palette earns its place (the cool gray well
+        // reads clinical for a first-run nudge). Framed by the stone hairline.
+        'flex flex-col gap-3 rounded-xl border border-divider-warm bg-background-well-warm p-4 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
         className,
       )}
     >

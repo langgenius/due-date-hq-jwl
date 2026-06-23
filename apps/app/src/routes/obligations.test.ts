@@ -369,8 +369,9 @@ describe('internal due date queue display', () => {
 
 describe('urgency band derivation', () => {
   // 2026-06-04 (Yuqi h4bQ2): bands group the /deadlines table by the
-  // INTERNAL (effective) due date. Boundaries: <0 overdue, 0..7 this
-  // week, >7 upcoming.
+  // INTERNAL (effective) due date. Boundaries: <0 overdue, 0 today,
+  // 1..7 this week, >7 upcoming (2026-06-22: "Today" split into its own
+  // horizon so a deadline product reads time-forward).
   const baseRow = {
     currentDueDate: '2026-06-01',
     daysUntilDue: 0,
@@ -382,8 +383,9 @@ describe('urgency band derivation', () => {
     expect(urgencyBandOf({ ...baseRow, daysUntilDue: -12 }, '2026-06-01')).toBe('overdue')
   })
 
-  it('treats today and the next seven days as this week', () => {
-    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 0 }, '2026-06-01')).toBe('this_week')
+  it('gives due-today its own band, and days 1–7 to this week', () => {
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 0 }, '2026-06-01')).toBe('today')
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 1 }, '2026-06-01')).toBe('this_week')
     expect(urgencyBandOf({ ...baseRow, daysUntilDue: 7 }, '2026-06-01')).toBe('this_week')
   })
 
@@ -407,8 +409,8 @@ describe('urgency band derivation', () => {
     ).toBe('this_week')
   })
 
-  it('orders bands overdue → this week → upcoming', () => {
-    expect(URGENCY_BAND_ORDER).toEqual(['overdue', 'this_week', 'upcoming'])
+  it('orders bands overdue → today → this week → upcoming', () => {
+    expect(URGENCY_BAND_ORDER).toEqual(['overdue', 'today', 'this_week', 'upcoming'])
   })
 })
 

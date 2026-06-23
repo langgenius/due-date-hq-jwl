@@ -23,6 +23,7 @@ import {
   RefreshCwIcon,
   ScrollTextIcon,
   SettingsIcon,
+  SquareChartGanttIcon,
   Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -54,6 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -578,8 +580,10 @@ export function ClientDetailWorkspace({
           onClick={
             panelOpen
               ? (event) => {
+                  // oxlint-disable-next-line no-unsafe-type-assertion -- React's EventTarget is always an Element here; needed for closest()
+                  const target = event.target as HTMLElement
                   if (
-                    (event.target as HTMLElement).closest(
+                    target.closest(
                       'button, a, [role="button"], [role="article"], input, select, textarea, label, [data-no-panel-close]',
                     )
                   )
@@ -1712,7 +1716,10 @@ function ClientHeaderOverflowMenu({
       <DropdownMenuContent align="end" className="min-w-[220px]">
         {canReadAudit ? (
           <DropdownMenuItem
-            onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+            // `entity=<id>` scopes the audit log to THIS client (the page now
+            // wires that param to the query's entityId). Was `entityId=`, which
+            // the page never read — so it used to show every client's events.
+            onClick={() => void navigate(`/audit?entity=${clientId}`)}
           >
             <ScrollTextIcon className="size-4" aria-hidden />
             <Trans>View audit log</Trans>
@@ -1852,6 +1859,7 @@ function HistoryCard({
  * recap's section labels + text to the clipboard.
  */
 function CopyRecapButton({ insight }: { insight: AiInsightPublic | null }) {
+  const { t } = useLingui()
   const [copied, setCopied] = useState(false)
   if (!insight || insight.sections.length === 0) return null
   const recap = insight.sections.map((section) => `${section.label}\n${section.text}`).join('\n\n')
@@ -1861,9 +1869,20 @@ function CopyRecapButton({ insight }: { insight: AiInsightPublic | null }) {
       variant="ghost"
       size="sm"
       onClick={() => {
-        void navigator.clipboard?.writeText(recap)
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1500)
+        // Only flip to "Copied" once the clipboard write actually resolves —
+        // confirming a copy that silently failed (no clipboard API / denied
+        // permission) was the lie. On failure, say so instead.
+        const write = navigator.clipboard?.writeText(recap)
+        if (!write) {
+          toast.error(t`Couldn't copy recap`)
+          return
+        }
+        write
+          .then(() => {
+            setCopied(true)
+            window.setTimeout(() => setCopied(false), 1500)
+          })
+          .catch(() => toast.error(t`Couldn't copy recap`))
       }}
     >
       {copied ? <CheckIcon data-icon="inline-start" /> : <CopyIcon data-icon="inline-start" />}
@@ -1896,6 +1915,7 @@ function ClientOwnerHeaderPill({
   onChange: (assigneeId: string | null) => void
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const isMine =
     name !== null &&
     currentUserName !== null &&
@@ -1971,6 +1991,21 @@ function ClientOwnerHeaderPill({
         }
       />
       <DropdownMenuContent align="start" className="w-56">
+        {/* Read action before the reassign list: jump to this owner's
+            deadlines (assignee filter is name-keyed). Turns the owner pill
+            from "reassign-only" into the client↔team↔work link — see who
+            holds this client's work, or hand it off below. */}
+        {name !== null ? (
+          <>
+            <DropdownMenuItem
+              onClick={() => void navigate(`/deadlines?assignee=${encodeURIComponent(name)}`)}
+            >
+              <SquareChartGanttIcon className="size-4" aria-hidden />
+              <Trans>View {name}&rsquo;s deadlines</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuRadioGroup
           value={currentAssigneeId ?? '__unassigned__'}
           onValueChange={(value) => {

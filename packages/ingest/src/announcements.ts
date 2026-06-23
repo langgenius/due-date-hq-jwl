@@ -6,7 +6,7 @@ import {
   textExcerpt,
 } from './http'
 import { parsedItemsFromRss } from './rss'
-import { extractLinks, stripHtml } from './selectors'
+import { extractLinksWithTableTitles, stripHtml } from './selectors'
 import type { IngestCtx, ParsedItem, RawSnapshot } from './types'
 
 export interface AnnouncementSourceConfig {
@@ -39,10 +39,23 @@ export interface PdfAnnouncementLinkParseOptions extends Pick<
 // sources (Taxpayer Advocate blog, Actions on Decisions, Internal Revenue
 // Bulletins): protective-claim / refund-window link text was being dropped by the
 // state-DOR-tuned vocabulary above, so those sources parsed to zero items.
+// `amnesty` … `effective <month>` added 2026-06-22: once the row-aware extractor
+// recovers IL bulletin titles (table layout, see extractLinksWithTableTitles), the
+// disaster/deadline-tuned vocabulary still dropped core tax-change bulletins —
+// rate changes, occupation/motor-fuel/cigarette/grocery taxes, amnesty windows,
+// "Effective July 1, 2026" datelines (which never contain the literal "effective
+// date"). This is what missed il.2026.remote-retailer-amnesty in the recall eval.
+// `private letter ruling` … `use tax` added 2026-06-22 from a data-driven audit of
+// all 50 state DOR announcement pages: ~1.4k dropped link titles were labelled
+// real-vs-noise and the gaps consolidated into specific tax-type / document-type /
+// policy-event phrases (kept multi-word to avoid admitting topic nav like a bare
+// "Income Tax" sidebar link). Recovers 185 genuine notices across ~40 states for 3
+// tax-topic false positives. Bare tax-type words (income tax, property tax, tax
+// credit, …) were deliberately NOT added — they match section-nav chrome.
 const TAX_ANNOUNCEMENT_RE =
-  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
+  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure|amnesty|occupation tax|rate change|tax rate|motor fuel|cigarette|tobacco|grocery tax|excise|telecommunications tax|effective (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|private letter ruling|information letter|technical advice|advice memoranda|tax ruling|administrative rule|transaction tax|privilege license|privilege tax|surety bond|combined reporting|commercial activity tax|marketplace facilitator|economic nexus|pass-through entity|gross income tax|financial institutions tax|petroleum activity tax|municipal net profit tax|service provider tax|capital projects tax|auditorium district|health insurance claims assessment|realty transfer fee|transfer tax|mansion tax|estate tax|severance tax|nonresident partner|cannabis|marijuana|marihuana|nicotine|dyed diesel|ethanol blend|wager|nonsettling manufacturer fee|nsm fee|child tax credit|food tax credit|charitable credit|working families tax credit|parental choice tax credit|grocery credit|homestead exemption|data center exemption|property tax credit|property tax extension limitation|property tax reimbursement|tax deferral|senior freeze|rent rebate|tax rebate|ptell|conformity|repeal|tax changes|tax legislation|legislative session summary|income tax brackets|standard deduction|interest rate|interest waiver|penalty and interest|tax holiday|tax notes|taxable sales|business interest limitation|irc 163|use tax/i
 const HIGH_SIGNAL_TAX_CHANGE_RE =
-  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
+  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure|amnesty|occupation tax|rate change|tax rate|motor fuel|cigarette|excise|private letter ruling|advice memoranda|tax ruling|administrative rule|transaction tax|privilege license|privilege tax|surety bond|combined reporting|commercial activity tax|marketplace facilitator|economic nexus|gross income tax|financial institutions tax|petroleum activity tax|municipal net profit tax|service provider tax|capital projects tax|realty transfer fee|transfer tax|mansion tax|estate tax|severance tax|cannabis|marijuana|marihuana|nicotine|dyed diesel|wager|nonsettling manufacturer fee|nsm fee|child tax credit|food tax credit|working families tax credit|parental choice tax credit|grocery credit|senior freeze|ptell|conformity|repeal|tax changes|tax legislation|tax holiday|tax notes|business interest limitation|irc 163|use tax/i
 const ANNOUNCEMENT_NOISE_RE =
   /award|auction|career|hiring|job opening|staff|appointment|webinar|seminar|office hour|office closure|holiday schedule|unclaimed property|scam|fraud|phishing|identity theft|password|login|portal maintenance|system maintenance|newsletter/i
 
@@ -54,6 +67,13 @@ export function linkLooksTaxAnnouncementRelevant(text: string, href: string): bo
 
 const WY_TAXING_ISSUES_RE = /^(\d{2})-(\d{4})\s+Taxing Issues$/i
 
+// TN DOR's legal notices (SUT-/FT-/LOT-/TOB-/FONCE-/F&E/GEN-… series) live in a
+// Zendesk Help Center alongside TNTAP portal how-tos. Keep the notices, drop the
+// portal help — a negative title filter is more robust than whitelisting every
+// notice-series prefix (their naming is inconsistent: "FONCE-3" vs "F&E
+// Apportionment-6"), and the notice titles themselves carry no tax vocabulary.
+const TN_PORTAL_HELP_RE = /\btntap\b|^\s*logging\b|password|sign[- ]?in|log[- ]?in|how (?:to|do)\b/i
+
 function defaultLinkFilterForSource(
   source: AnnouncementSourceConfig,
 ): ((link: AnnouncementLink) => boolean) | undefined {
@@ -64,10 +84,13 @@ function defaultLinkFilterForSource(
 function defaultRelevancePredicateForSource(
   source: AnnouncementSourceConfig,
 ): (text: string, href: string) => boolean {
-  if (source.id !== 'wy.temporary_announcements') {
-    return linkLooksTaxAnnouncementRelevant
+  if (source.id === 'wy.temporary_announcements') {
+    return (text) => WY_TAXING_ISSUES_RE.test(text.trim())
   }
-  return (text) => WY_TAXING_ISSUES_RE.test(text.trim())
+  if (source.id === 'tn.temporary_announcements') {
+    return (text) => !TN_PORTAL_HELP_RE.test(text)
+  }
+  return linkLooksTaxAnnouncementRelevant
 }
 
 function defaultPublishedAtForLink(
@@ -160,7 +183,7 @@ export function announcementItemsFromHtml(
   limit = 20,
   options: Pick<AnnouncementParseOptions, 'linkFilter' | 'relevancePredicate'> = {},
 ): ParsedItem[] {
-  return extractLinks(body, source.url)
+  return extractLinksWithTableTitles(body, source.url)
     .filter((link) => linkPassesOptions(source, link, options))
     .slice(0, limit)
     .map((link) => {
@@ -209,12 +232,153 @@ export function sourceSnapshotAnnouncementItem(
   }
 }
 
+// Zendesk Help Center JSON. Some agencies mirror their notices on a Zendesk
+// support portal that is reachable when the primary .gov host is not — e.g.
+// revenue.support.tn.gov carries TN DOR's notices while tn.gov drops datacenter
+// connections. The /api/v2/help_center/.../articles.json payload already carries
+// each article's title, body, canonical html_url and updated_at, so no detail
+// re-fetch is needed. `updated_at` rides in the dedupe identity, so a re-edited
+// notice re-surfaces.
+interface ZendeskArticle {
+  title?: string
+  html_url?: string
+  body?: string
+  updated_at?: string
+  created_at?: string
+}
+function looksLikeZendeskHelpCenter(body: string): boolean {
+  return /^\s*\{/.test(body) && body.includes('"articles"') && body.includes('"html_url"')
+}
+function zendeskArticleItems(
+  source: AnnouncementSourceConfig,
+  body: string,
+  fetchedAt: Date,
+  limit: number,
+): ParsedItem[] {
+  let parsed: { articles?: ZendeskArticle[] }
+  try {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- Zendesk-API shape; downstream code reads only the optional `articles` array defensively
+    parsed = JSON.parse(body) as { articles?: ZendeskArticle[] }
+  } catch {
+    return []
+  }
+  const articles = Array.isArray(parsed.articles) ? parsed.articles : []
+  return articles
+    .flatMap((article) => {
+      const title = article.title
+      const url = article.html_url
+      if (!title || !url) return []
+      const updatedAt = article.updated_at ?? article.created_at
+      const published = updatedAt ? new Date(updatedAt) : fetchedAt
+      return [
+        Object.assign(
+          {
+            sourceId: source.id,
+            externalId: stableExternalId(url),
+            title,
+            publishedAt: Number.isNaN(published.getTime()) ? fetchedAt : published,
+            officialSourceUrl: url,
+            rawText: textExcerpt([title, stripHtml(article.body ?? '')].join('\n\n')),
+            dedupeText: [normalizeSourceText(title), url, updatedAt ?? ''].join('\n'),
+          },
+          source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
+        ),
+      ]
+    })
+    .slice(0, limit)
+}
+
+// Agency newsroom JSON. Some DORs render their news list client-side from a flat
+// JSON array the page's own JS fetches (Montana: mtrevenue.gov/news/ shells out
+// to /news/article_source.json). The HTML shell never server-renders the list
+// and a browser render captures it before that XHR settles, so we fetch the JSON
+// directly via feedUrl. Each entry carries a title, a site-relative link, an ISO
+// `date` and a teaser/summary.
+interface AgencyNewsJsonEntry {
+  title?: string
+  link?: string
+  summary?: string
+  teaser?: string
+  date?: string
+}
+function looksLikeAgencyNewsJson(body: string): boolean {
+  return (
+    /^\s*\[/.test(body) &&
+    body.includes('"link"') &&
+    body.includes('"date"') &&
+    body.includes('"teaser"')
+  )
+}
+function agencyNewsJsonItems(
+  source: AnnouncementSourceConfig,
+  body: string,
+  fetchedAt: Date,
+  limit: number,
+): ParsedItem[] {
+  let parsed: AgencyNewsJsonEntry[]
+  try {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- agency JSON feed; per-item parsing below tolerates missing/extra fields
+    parsed = JSON.parse(body) as AgencyNewsJsonEntry[]
+  } catch {
+    return []
+  }
+  if (!Array.isArray(parsed)) return []
+  return parsed
+    .flatMap((entry) => {
+      const title = entry.title?.trim()
+      if (!title || !entry.link) return []
+      let url: string
+      try {
+        url = new URL(entry.link, source.url).toString()
+      } catch {
+        return []
+      }
+      const published = entry.date ? new Date(entry.date) : fetchedAt
+      const excerpt = stripHtml(entry.summary || entry.teaser || '')
+      return [
+        Object.assign(
+          {
+            sourceId: source.id,
+            externalId: stableExternalId(url),
+            title,
+            publishedAt: Number.isNaN(published.getTime()) ? fetchedAt : published,
+            officialSourceUrl: url,
+            rawText: textExcerpt([title, excerpt].filter(Boolean).join('\n\n')),
+            dedupeText: [normalizeSourceText(title), url, entry.date ?? ''].join('\n'),
+          },
+          source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
+        ),
+      ]
+    })
+    .slice(0, limit)
+}
+
 export function announcementItemsFromSnapshot(
   source: AnnouncementSourceConfig,
   snapshot: Pick<RawSnapshot, 'body' | 'fetchedAt'>,
   options: AnnouncementParseOptions = {},
 ): ParsedItem[] {
   const limit = options.limit ?? 20
+  if (looksLikeZendeskHelpCenter(snapshot.body)) {
+    // Filter on the article TITLE (not the body): a Help Center mixes the legal
+    // notice series with portal how-tos, and notice bodies routinely mention
+    // "payment"/"TNTAP" etc., so a body match would both admit the how-tos and
+    // (because notice titles like "FONCE-3" lack disaster/deadline vocabulary)
+    // drop real notices. The per-source predicate decides; TN excludes the portal
+    // help (see defaultRelevancePredicateForSource).
+    const items = zendeskArticleItems(source, snapshot.body, snapshot.fetchedAt, limit).filter(
+      (item) =>
+        linkPassesOptions(source, { text: item.title, href: item.officialSourceUrl }, options),
+    )
+    if (items.length > 0) return items
+  }
+  if (looksLikeAgencyNewsJson(snapshot.body)) {
+    const items = agencyNewsJsonItems(source, snapshot.body, snapshot.fetchedAt, limit).filter(
+      (item) =>
+        linkPassesOptions(source, { text: item.title, href: item.officialSourceUrl }, options),
+    )
+    if (items.length > 0) return items
+  }
   if (/<(?:rss|feed)\b/i.test(snapshot.body)) {
     const items = parsedItemsFromRss({
       sourceId: source.id,
@@ -230,6 +394,7 @@ export function announcementItemsFromSnapshot(
           options,
         ),
       )
+      // oxlint-disable-next-line no-map-spread -- copy-on-write enrichment; item is shared upstream input
       .map((item) => {
         // Same item-local identity + detail enrichment as the HTML path. The
         // dedupeText switch re-hashes existing feed items exactly once; the
@@ -275,7 +440,7 @@ function linksFromSnapshot(
       text: `${item.title} ${item.rawText}`.trim(),
     }))
   }
-  return extractLinks(snapshot.body, source.url)
+  return extractLinksWithTableTitles(snapshot.body, source.url)
 }
 
 function googleDriveFileId(url: URL): string | null {

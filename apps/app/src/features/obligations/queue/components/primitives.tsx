@@ -376,6 +376,7 @@ export function MaterialsProgressLegend({
         <div className="flex h-2 w-full gap-px overflow-hidden rounded-sm" aria-hidden>
           {Array.from({ length: total }).map((_, i) => (
             <div
+              // oxlint-disable-next-line no-array-index-key -- bar segments are stateless tiles; position IS the segment identity
               key={i}
               className={cn(
                 'h-full flex-1 rounded-[1px] transition-colors',

@@ -173,6 +173,7 @@ import { StatusBanner } from '@/components/patterns/status-banner'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { TableHeaderMultiFilter } from '@/components/patterns/table-header-filter'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 
@@ -639,6 +640,8 @@ export function PreviewRoute() {
     'waiting_on_client',
   ])
   const [activeState, setActiveState] = useState<string | null>('CA')
+  const [singleSelectStatus, setSingleSelectStatus] = useState('all')
+  const [singleSelectSort, setSingleSelectSort] = useState('newest')
   const [rulesFilter, setRulesFilter] = useState<'all' | 'verified' | 'draft'>('all')
   const [chipOn, setChipOn] = useState(true)
   const [segmentedValue, setSegmentedValue] = useState<'list' | 'map'>('list')
@@ -1932,6 +1935,22 @@ export function PreviewRoute() {
                   }
                   className="w-full"
                 />
+                <EmptyState
+                  variant="prominent"
+                  iconTone="celebrate"
+                  icon={CircleCheckIcon}
+                  title="You're all caught up"
+                  description="Lime celebration tone (iconTone=celebrate) — a dark glyph on the lime disc, reserved for genuine 'you cleared it' moments (queue clear / all done), never a quiet 'nothing yet' state."
+                  className="w-full"
+                />
+                <EmptyState
+                  variant="prominent"
+                  tone="plain"
+                  icon={CalendarClockIcon}
+                  title="Plain prominent empty (opt-out)"
+                  description="tone=plain keeps the white card for the rare context where the warm stone well (the prominent default) would clash."
+                  className="w-full"
+                />
               </div>
             </Row>
             <Row label="EmptyCellMark" mono="patterns/empty-cell-mark">
@@ -2020,11 +2039,14 @@ export function PreviewRoute() {
           >
             <Row label="FilterTrigger" mono="patterns/filter-trigger">
               <FilterTrigger active={false}>Owner</FilterTrigger>
-              <FilterTrigger active onClick={() => setFilterActive((v) => !v)}>
-                Owner: Avery
+              <FilterTrigger active valueLabel="Avery" onClick={() => setFilterActive((v) => !v)}>
+                Owner
               </FilterTrigger>
-              <FilterTrigger active leadingIcon={FilterIcon}>
-                Status: 3
+              {/* Canonical consolidated "Filters" read — accent-solid count
+                  badge via the `count` prop, shared across /deadlines, /alerts,
+                  /rules, /audit. */}
+              <FilterTrigger active leadingIcon={FilterIcon} count={3}>
+                Filters
               </FilterTrigger>
               <FilterTrigger
                 active={filterActive}
@@ -2033,6 +2055,43 @@ export function PreviewRoute() {
               >
                 Toggle me
               </FilterTrigger>
+              {/* Compact h-7 variant for narrow rails (detail-rail Sort/Status). */}
+              <FilterTrigger size="sm" active valueLabel="Due date" leadingIcon={FilterIcon}>
+                Sort by
+              </FilterTrigger>
+            </Row>
+            <Row label="SingleSelectFilter" mono="patterns/single-select-filter">
+              {/* One-value filter: first option is the resting default; the pill
+                  goes accent + shows the picked value when off-default. */}
+              <SingleSelectFilter
+                label="Status"
+                ariaLabel="Filter by status"
+                value={singleSelectStatus}
+                onValueChange={setSingleSelectStatus}
+                leadingIcon={FilterIcon}
+                options={[
+                  { value: 'all', label: 'All', count: 463 },
+                  { value: 'in_review', label: 'In review', count: 12 },
+                  { value: 'blocked', label: 'Blocked', count: 2 },
+                  { value: 'filed', label: 'Filed', count: 247 },
+                ]}
+              />
+              {/* Sort picker: `active={false}` keeps it neutral, but the value
+                  slot still names the current order ("Sort by │ Newest"). */}
+              <SingleSelectFilter
+                label="Sort by"
+                ariaLabel="Sort"
+                value={singleSelectSort}
+                onValueChange={setSingleSelectSort}
+                active={false}
+                noLeadingIcon
+                align="end"
+                options={[
+                  { value: 'newest', label: 'Newest first', triggerLabel: 'Newest' },
+                  { value: 'oldest', label: 'Oldest first', triggerLabel: 'Oldest' },
+                  { value: 'impact', label: 'Highest impact', triggerLabel: 'Impact' },
+                ]}
+              />
             </Row>
             <Row label="TableHeaderMultiFilter" mono="patterns/table-header-filter">
               <TableHeaderMultiFilter

@@ -69,7 +69,6 @@ export function ClientsCreateSplitButton({
       <div className="inline-flex items-stretch">
         <Button
           type="button"
-          size="sm"
           className="rounded-r-none border-r border-r-state-accent-active-alt/30"
           onClick={() => setDialogOpen(true)}
           disabled={!canCreate}
@@ -84,7 +83,6 @@ export function ClientsCreateSplitButton({
             render={
               <Button
                 type="button"
-                size="sm"
                 aria-label={t`More create options`}
                 className="rounded-l-none px-2"
                 disabled={!canCreate && !canImport}

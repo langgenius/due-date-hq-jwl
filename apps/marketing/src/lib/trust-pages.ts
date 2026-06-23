@@ -2,7 +2,7 @@ import type { Locale } from '@duedatehq/i18n/locales'
 
 import type { MetaCopy } from '../i18n/types'
 
-export const trustPageSlugs = ['about', 'security', 'privacy', 'terms', 'status'] as const
+export const trustPageSlugs = ['security', 'privacy', 'terms', 'status'] as const
 
 export type TrustPageSlug = (typeof trustPageSlugs)[number]
 
@@ -14,6 +14,12 @@ export interface TrustPageCopy {
     title: string
     description: string
     note: string
+  }
+  /** Optional signature line shown directly under the hero — a single,
+   *  page-defining statement (e.g. the security posture). */
+  statement?: {
+    label: string
+    text: string
   }
   sections: {
     eyebrow: string
@@ -32,87 +38,6 @@ export interface TrustPageCopy {
 export const trustPages: Record<Locale, TrustPageCopy[]> = {
   en: [
     {
-      slug: 'about',
-      meta: {
-        title: 'About DueDateHQ — Deadline operations for CPA practices',
-        description:
-          'DueDateHQ helps US CPA practices manage deadline risk with source-backed rules, state filing signals, evidence review, and audit-ready workflow history.',
-        ogImage: '/og/home.en.png',
-      },
-      hero: {
-        eyebrow: 'ABOUT DUEDATEHQ',
-        title: 'Deadline operations should be visible before they become missed-deadline risk.',
-        description:
-          'DueDateHQ is built for US CPA practices that need one place to migrate client deadline data, monitor source-backed filing rules, review state changes, and explain why work was prioritized.',
-        note: 'Public pages describe software workflows and source handling. DueDateHQ does not provide tax, legal, or accounting advice.',
-      },
-      sections: [
-        {
-          eyebrow: 'PRODUCT BOUNDARY',
-          title: 'Software for deadline operations, not a substitute for CPA judgment.',
-          body: 'DueDateHQ focuses on operational visibility: which clients may be at risk, which source supports a rule, which state signal changed, and who reviewed the action.',
-          items: [
-            {
-              title: 'Source-backed rules',
-              body: 'Rules keep official-source URLs, excerpts, verification timestamps, and review state near the operational action.',
-            },
-            {
-              title: 'Firm context',
-              body: 'Client filing profiles, jurisdictions, obligation status, ownership, and evidence quality shape triage.',
-            },
-            {
-              title: 'Audit history',
-              body: 'Apply, undo, revert, and import workflows are designed to leave a reviewable operational record.',
-            },
-          ],
-        },
-        {
-          eyebrow: 'AUDIENCE',
-          title: 'Built for small and mid-sized US CPA teams.',
-          body: 'The product is designed around deadline-heavy practices that currently coordinate filing work across spreadsheets, inboxes, legacy trackers, and agency websites.',
-          items: [
-            {
-              title: 'Monday triage',
-              body: 'Missed-deadline risk, days remaining, evidence state, and alerts are meant to fit into a short weekly review.',
-            },
-            {
-              title: 'Migration-first setup',
-              body: 'Existing client exports can become structured deadline work without a per-client setup project.',
-            },
-            {
-              title: 'Human review gates',
-              body: 'AI can assist classification and summaries, but source evidence and reviewer action remain the control points.',
-            },
-          ],
-        },
-        {
-          eyebrow: 'SOURCING & GOVERNANCE',
-          title: 'How the rule catalog is sourced and verified.',
-          body: "DueDateHQ's deadline and rule catalog is curated by accounting-operations practitioners against primary sources, and every entry is human-reviewed from candidate to verified before it becomes reminder-ready.",
-          items: [
-            {
-              title: 'Primary sources',
-              body: "IRS Publication 509, the Internal Revenue Bulletin and IRS form instructions, and each state Department of Revenue's official pages.",
-            },
-            {
-              title: 'Candidate → verified',
-              body: 'Every rule moves from a source-backed candidate through human review before it can become reminder-ready work.',
-            },
-            {
-              title: 'Evidence beside the rule',
-              body: 'The source URL, excerpt, and verification timestamp stay attached to each rule and alert.',
-            },
-          ],
-        },
-      ],
-      contact: {
-        title: 'Talk to the team.',
-        body: 'Use the public contact channel for product questions, pilots, and implementation fit.',
-        label: 'Contact DueDateHQ',
-        href: 'mailto:sales@duedatehq.com?subject=DueDateHQ',
-      },
-    },
-    {
       slug: 'security',
       meta: {
         title: 'DueDateHQ Security — Source-backed deadline operations',
@@ -122,54 +47,97 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'SECURITY',
-        title: 'Deadline risk workflows need security boundaries and evidence boundaries.',
+        title:
+          'Two boundaries hold the product together: who can reach your data, and what stands behind every date.',
         description:
-          'DueDateHQ separates public marketing pages from the authenticated app, keeps client operations behind the SaaS app domain, and designs deadline changes around reviewable source evidence.',
-        note: 'This page summarizes product and operational security posture. Detailed security reviews are handled with the DueDateHQ team.',
+          'DueDateHQ keeps the public marketing site fully separate from the authenticated app, holds all client operations behind the SaaS app domain, and designs every deadline change around source evidence you can review yourself. Security here is not a badge — it is how the workflow is shaped.',
+        note: 'This page summarizes our product and operational security posture in plain terms. Deeper security reviews and documentation are handled directly with the DueDateHQ team.',
+      },
+      statement: {
+        label: 'Our posture',
+        text: 'We earn trust the same way we ask you to: with evidence, not assertions. Nothing changes a client deadline on its own, every action is reversible and recorded, and we make no security claim on this page that the product does not actually do.',
       },
       sections: [
         {
-          eyebrow: 'APP BOUNDARY',
-          title: 'The public site and SaaS app have different roles.',
-          body: 'The marketing domain is for public discovery. The app domain is for authenticated practice work, tenant data, and operational actions.',
+          eyebrow: 'ACCESS BOUNDARY',
+          title: 'The public site and the app are deliberately different places.',
+          body: 'The marketing domain exists for public discovery. The app domain exists for authenticated practice work, tenant data, and operational actions — and the two never share a surface.',
           items: [
             {
               title: 'Authenticated workspace',
-              body: 'Client deadline operations live in the app workspace, not the public marketing sitemap.',
+              body: 'Client deadline operations live entirely inside the app workspace — never in the public marketing sitemap, robots, or SEO surface.',
             },
             {
               title: 'Tenant-aware API',
-              body: 'Server procedures run through session, firm-access, tenant, and rate-limit middleware before protected business actions.',
+              body: 'Every protected action passes through session, firm-access, tenant, and rate-limit middleware before it can touch business data.',
             },
             {
-              title: 'No client data in SEO pages',
-              body: 'Public pages explain product behavior and examples; they do not expose practice client records.',
+              title: 'No client data on public pages',
+              body: 'Public pages explain how the product behaves using examples — they do not, and structurally cannot, expose a practice’s client records.',
             },
           ],
         },
         {
-          eyebrow: 'OPERATIONAL CONTROLS',
-          title: 'Evidence and audit trails are part of the control model.',
-          body: 'Deadline changes should be explainable. DueDateHQ keeps source context, reviewer state, and action history close to the workflow.',
+          eyebrow: 'EVIDENCE BOUNDARY',
+          title: 'Audit trails and source evidence are the control model — not an afterthought.',
+          body: 'A deadline change you cannot explain is a deadline change you cannot trust. We keep source context, reviewer state, and action history right inside the workflow, so any change can be defended later.',
           items: [
             {
-              title: 'Source evidence',
-              body: 'Rules and alerts preserve source URL, excerpt, verification timestamp, and review status.',
+              title: 'Source on every date',
+              body: 'Rules and alerts carry the source URL, the exact excerpt, a verification timestamp, and review status — the proof travels with the change.',
             },
             {
-              title: 'Human approval',
-              body: 'Candidate changes route through review before they become firm operations.',
+              title: 'Human approval gate',
+              body: 'A candidate change cannot become firm operations until a person reviews and approves it. There is no silent auto-apply path.',
             },
             {
-              title: 'Reversible actions',
-              body: 'Apply, undo, and revert paths are designed for reviewable operational history.',
+              title: 'Reversible by design',
+              body: 'Apply, undo, and revert are built for a clean, reviewable history — a mistake is recoverable, and the recovery is recorded too.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DATA BOUNDARY',
+          title: 'We hold the deadlines and their evidence — not your whole practice.',
+          body: 'DueDateHQ layers on the systems you already run. We keep the filing dates, the official sources behind them, and the review history a deadline workflow needs — and leave documents, returns, and billing to the tools you already trust.',
+          items: [
+            {
+              title: 'Scoped to deadline operations',
+              body: 'We store rules, dates, source evidence, and review and audit history — not client documents, completed returns, or engagement files.',
+            },
+            {
+              title: 'Layered, not a system of record',
+              body: 'DueDateHQ sits alongside TaxDome, Karbon, or whatever you already run. It does not pull in their data or try to replace them.',
+            },
+            {
+              title: 'Isolated per firm',
+              body: 'Every record is scoped to your workspace and tenant — nothing is shared across practices, and nothing is surfaced on a public page.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'ACCOUNT BOUNDARY',
+          title: 'Getting in is deliberate, and staying scoped is automatic.',
+          body: 'Access is controlled at the account, the firm, and the request — so reaching any business data takes a signed-in person with the right firm membership, every time.',
+          items: [
+            {
+              title: 'Sign in with Google',
+              body: 'Accounts authenticate through Google — there is no separate DueDateHQ password for us to store, reset, or leak.',
+            },
+            {
+              title: 'Owner-controlled billing',
+              body: 'Only a practice owner can start or change a paid plan, and we never store card numbers — payments run through our payment processor.',
+            },
+            {
+              title: 'Least access by default',
+              body: 'Members see plan status and shared work — not billing or other practices. Access is granted per firm, not across the platform.',
             },
           ],
         },
       ],
       contact: {
-        title: 'Need a security review?',
-        body: 'Contact the team for deployment, data handling, and security review questions.',
+        title: 'Running a security review?',
+        body: 'Reach the team directly for deployment details, data handling, and security questionnaire support. We would rather show you than tell you.',
         label: 'Contact security',
         href: 'mailto:security@duedatehq.com?subject=DueDateHQ%20Security',
       },
@@ -184,10 +152,10 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'PRIVACY',
-        title: 'Privacy starts with keeping public pages and practice work separate.',
+        title: 'Privacy begins with a structural choice: public pages never touch practice data.',
         description:
-          'DueDateHQ public pages describe product capabilities. Authenticated practice data belongs in the app workspace and is not part of the public SEO surface.',
-        note: 'This public summary is not a replacement for a signed agreement or formal privacy review.',
+          'These public pages describe what the product can do. Your authenticated practice data lives in the app workspace and is never part of the public SEO surface — that separation is built in, not promised.',
+        note: 'This public summary is not a replacement for a signed agreement or a formal privacy review.',
       },
       sections: [
         {
@@ -230,8 +198,8 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
         },
       ],
       contact: {
-        title: 'Privacy questions.',
-        body: 'Use the privacy channel for data handling and privacy review questions.',
+        title: 'Have a privacy question?',
+        body: 'Reach the privacy channel for data-handling and privacy-review questions. Please do not send sensitive client records over public email.',
         label: 'Contact privacy',
         href: 'mailto:privacy@duedatehq.com?subject=DueDateHQ%20Privacy',
       },
@@ -246,16 +214,17 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'TERMS',
-        title: 'DueDateHQ is deadline operations software for professional teams.',
+        title:
+          'DueDateHQ is deadline operations software — a tool for professionals, not a decision-maker.',
         description:
-          'The product helps practices organize source-backed deadline work, evidence review, Alerts monitoring, migration, and audit-ready operational history.',
-        note: 'This page is a public summary. Contractual terms are handled through the DueDateHQ legal channel.',
+          'The product helps a practice organize source-backed deadline work, evidence review, Alerts monitoring, migration, and an audit-ready operational history. What it does not do is just as important as what it does.',
+        note: 'This page is a plain-language public summary. Contractual terms are handled through the DueDateHQ legal channel.',
       },
       sections: [
         {
           eyebrow: 'USE BOUNDARY',
-          title: 'The product supports review; it does not make filing decisions for a firm.',
-          body: 'DueDateHQ helps surface risk and source context. The CPA practice remains responsible for professional judgment, client facts, and filing decisions.',
+          title: 'The product supports your review; it never makes the filing decision for you.',
+          body: 'DueDateHQ surfaces risk and source context. The CPA practice stays responsible for professional judgment, the client’s facts, and every filing decision. We are the instrument panel, not the pilot.',
           items: [
             {
               title: 'No tax advice',
@@ -307,10 +276,10 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'STATUS',
-        title: 'Service status and incidents.',
+        title: 'Current status: all systems operating normally.',
         description:
-          'DueDateHQ currently separates the public marketing site from the authenticated app. Public discovery pages and app operations are monitored as distinct surfaces.',
-        note: 'For incident-specific updates, contact support. This page is the current public status summary.',
+          'DueDateHQ tracks the public marketing site and the authenticated app as distinct surfaces, so an issue on one is never an issue everywhere. This page is the current public status summary.',
+        note: 'For incident-specific updates, contact support. We keep this page honest and current.',
       },
       sections: [
         {
@@ -362,87 +331,6 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
   ],
   'zh-CN': [
     {
-      slug: 'about',
-      meta: {
-        title: '关于 DueDateHQ — 面向 CPA 事务所的截止日运营',
-        description:
-          'DueDateHQ 帮助美国 CPA 事务所用带来源的规则、州级申报信号、证据复核、客户上下文、负责人分工和可审计工作流持续管理截止日风险。',
-        ogImage: '/og/home.zh-CN.png',
-      },
-      hero: {
-        eyebrow: '关于 DueDateHQ',
-        title: '截止日运营应该在错过截止日之前就可见。',
-        description:
-          'DueDateHQ 面向美国 CPA 事务所，把客户截止日迁移、带来源规则、州级变化复核和风险排序放在同一个运营工作台。',
-        note: '公开页面说明软件工作流和来源处理方式。DueDateHQ 不提供税务、法律或会计建议。',
-      },
-      sections: [
-        {
-          eyebrow: '产品边界',
-          title: '这是截止日运营软件，不替代 CPA 专业判断。',
-          body: 'DueDateHQ 关注运营可见性：哪些客户可能有风险、哪条官方来源支撑规则、哪个州级信号发生变化，以及谁复核了动作。',
-          items: [
-            {
-              title: '带来源的规则',
-              body: '规则把官方来源 URL、摘录、验证时间戳和复核状态放在运营动作旁边。',
-            },
-            {
-              title: '事务所上下文',
-              body: '客户申报档案、辖区、义务状态、负责人和证据质量会影响分诊。',
-            },
-            {
-              title: '审计历史',
-              body: '应用、撤销、回滚和导入工作流都设计为留下可复核的运营记录。',
-            },
-          ],
-        },
-        {
-          eyebrow: '服务对象',
-          title: '面向美国中小型 CPA 团队。',
-          body: '产品围绕截止日密集型事务所设计，这些团队通常在表格、收件箱、旧 tracker 和机构网站之间协调申报工作。',
-          items: [
-            {
-              title: '周一分诊',
-              body: '错过截止日的风险、剩余天数、证据状态和提醒应能进入短时间周会复核。',
-            },
-            {
-              title: '迁移优先',
-              body: '已有客户导出可以成为结构化截止日工作，而不是每个客户重新设置一次。',
-            },
-            {
-              title: '人工复核闸口',
-              body: 'AI 可以辅助分类和总结，但来源证据和复核动作仍是控制点。',
-            },
-          ],
-        },
-        {
-          eyebrow: '来源与治理',
-          title: '规则目录如何取源与核验。',
-          body: 'DueDateHQ 的截止日与规则目录由会计运营实践者对照一手来源整理，每一条都经人工从候选到已核验复核后，才进入可提醒状态。',
-          items: [
-            {
-              title: '一手来源',
-              body: 'IRS Publication 509、Internal Revenue Bulletin 与 IRS 表格说明，以及各州 Department of Revenue 的官方页面。',
-            },
-            {
-              title: '候选 → 已核验',
-              body: '每条规则都从带来源的候选项经人工复核，之后才可能成为可提醒的工作项。',
-            },
-            {
-              title: '证据留在规则旁',
-              body: '来源链接、来源摘录和核验时间戳始终附在每条规则与提醒旁边。',
-            },
-          ],
-        },
-      ],
-      contact: {
-        title: '联系团队。',
-        body: '产品问题、试点和实施适配可以通过公开联系渠道沟通。',
-        label: '联系 DueDateHQ',
-        href: 'mailto:sales@duedatehq.com?subject=DueDateHQ',
-      },
-    },
-    {
       slug: 'security',
       meta: {
         title: 'DueDateHQ 安全 — 带来源的截止日运营',
@@ -452,54 +340,96 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: '安全',
-        title: '截止日风险工作流需要安全边界和证据边界。',
+        title: '两条边界撑起整个产品：谁能碰到你的数据，以及每个日期背后站着什么。',
         description:
-          'DueDateHQ 区分公开 marketing 页面和认证后的 app，把客户运营留在 SaaS app 域名内，并围绕可复核来源证据设计截止日变更。',
-        note: '本页总结产品和运营安全姿态。详细安全评审请联系 DueDateHQ 团队。',
+          'DueDateHQ 把公开 marketing 站和认证后的 app 完全分开，把全部客户运营留在 SaaS app 域名内，并围绕你能亲自复核的来源证据设计每一次截止日变更。这里的安全不是一枚徽章，而是工作流本身的形状。',
+        note: '本页用平实的话总结产品和运营安全姿态。更深入的安全评审与文档，直接与 DueDateHQ 团队对接。',
+      },
+      statement: {
+        label: '我们的姿态',
+        text: '我们用要求你的同一种方式赢得信任：靠证据，不靠声明。没有什么会自行改动客户截止日，每个动作都可回滚、可记录，本页上也不会出现产品其实做不到的任何安全说法。',
       },
       sections: [
         {
-          eyebrow: 'App 边界',
-          title: '公开站和 SaaS app 承担不同职责。',
-          body: 'Marketing 域名用于公开发现；app 域名用于认证后的事务所工作、租户数据和运营动作。',
+          eyebrow: '访问边界',
+          title: '公开站和 app，是被有意分开的两个地方。',
+          body: 'Marketing 域名为公开发现而存在；app 域名为认证后的事务所工作、租户数据和运营动作而存在——两者从不共用一个 surface。',
           items: [
             {
               title: '认证工作台',
-              body: '客户截止日运营位于 app 工作台内，不进入公开 marketing sitemap。',
+              body: '客户截止日运营完全位于 app 工作台内——不进入公开 marketing sitemap、robots 或 SEO surface。',
             },
             {
               title: '租户感知 API',
-              body: '受保护业务动作会先经过 session、firm-access、tenant 和 rate-limit middleware。',
+              body: '每个受保护动作都要先经过 session、firm-access、tenant 和 rate-limit middleware，才能碰到业务数据。',
             },
             {
-              title: 'SEO 页面无客户数据',
-              body: '公开页面只解释产品行为和示例，不暴露事务所客户记录。',
+              title: '公开页面无客户数据',
+              body: '公开页面用示例解释产品如何运作——在结构上就不会、也无法暴露事务所的客户记录。',
             },
           ],
         },
         {
-          eyebrow: '运营控制',
-          title: '证据和审计轨迹是控制模型的一部分。',
-          body: '截止日变化应该可解释。DueDateHQ 把来源上下文、复核状态和动作历史放在工作流附近。',
+          eyebrow: '证据边界',
+          title: '审计轨迹和来源证据就是控制模型，不是事后补的。',
+          body: '一个你解释不清的截止日变化，就是一个你信不过的变化。我们把来源上下文、复核状态和动作历史放进工作流本身，让任何一次变更日后都站得住。',
           items: [
             {
-              title: '来源证据',
-              body: '规则和提醒保留 source URL、摘录、验证时间戳和复核状态。',
+              title: '每个日期都有来源',
+              body: '规则和提醒都带着 source URL、原文摘录、验证时间戳和复核状态——证据跟着变更一起走。',
             },
             {
-              title: '人工批准',
-              body: '候选变化在成为事务所运营前会进入复核。',
+              title: '人工批准闸口',
+              body: '候选变化在有人复核并批准之前，不会成为事务所运营。没有悄悄自动应用的路径。',
             },
             {
-              title: '可回滚动作',
-              body: '应用、撤销和回滚路径都服务于可复核的运营历史。',
+              title: '为可回滚而设计',
+              body: '应用、撤销、回滚都为干净、可复核的历史而建——出了错可以恢复，连恢复本身也会被记录。',
+            },
+          ],
+        },
+        {
+          eyebrow: '数据边界',
+          title: '我们保管的是截止日和它们的证据——不是你的整个事务所。',
+          body: 'DueDateHQ 装在你已有的系统之上。我们保留截止日工作流需要的申报日期、背后的官方来源和复核历史——把文档、报税表和开票留给你本来就信任的工具。',
+          items: [
+            {
+              title: '只聚焦截止日运营',
+              body: '我们存的是规则、日期、来源证据，以及复核与审计历史——不存客户文档、已完成的报税表或业务底稿。',
+            },
+            {
+              title: '叠加，而非系统底座',
+              body: 'DueDateHQ 与 TaxDome、Karbon 或你现有的工具并行；它不会读取它们的数据，也不试图取代它们。',
+            },
+            {
+              title: '按事务所隔离',
+              body: '每条记录都限定在你的工作区和租户内——不跨事务所共享，也不会出现在任何公开页面上。',
+            },
+          ],
+        },
+        {
+          eyebrow: '账户边界',
+          title: '进来是刻意为之的，而留在权限范围内是自动的。',
+          body: '访问在账户、事务所和每一次请求三个层面被控制——要碰到任何业务数据，都需要一个已登录、且具备相应事务所成员身份的人，每次都是。',
+          items: [
+            {
+              title: '用 Google 登录',
+              body: '账户通过 Google 认证——没有单独的 DueDateHQ 密码需要我们去存储、重置或泄露。',
+            },
+            {
+              title: '计费由所有者掌控',
+              body: '只有事务所所有者能开通或变更付费套餐，而且我们从不存储卡号——支付通过支付服务商完成。',
+            },
+            {
+              title: '默认最小权限',
+              body: '成员看到的是套餐状态和共享工作，而非计费或其他事务所；权限按事务所授予，而非平台级。',
             },
           ],
         },
       ],
       contact: {
-        title: '需要安全评审？',
-        body: '部署、数据处理和安全评审问题可以联系团队。',
+        title: '正在做安全评审？',
+        body: '部署细节、数据处理和安全问卷支持，都可以直接联系团队。比起讲给你听，我们更愿意做给你看。',
         label: '联系安全团队',
         href: 'mailto:security@duedatehq.com?subject=DueDateHQ%20Security',
       },
@@ -514,9 +444,9 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: '隐私',
-        title: '隐私从区分公开页面和事务所工作开始。',
+        title: '隐私从一个结构上的选择开始：公开页面永远不碰事务所数据。',
         description:
-          'DueDateHQ 公开页面描述产品能力。认证后的事务所数据属于 app 工作台，不属于公开 SEO surface。',
+          '这些公开页面描述产品能做什么。你认证后的事务所数据留在 app 工作台，永远不属于公开 SEO surface——这道分隔是built-in 的，不是承诺出来的。',
         note: '本公开摘要不替代签署协议或正式隐私评审。',
       },
       sections: [
@@ -560,8 +490,8 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
         },
       ],
       contact: {
-        title: '隐私问题。',
-        body: '数据处理和隐私评审问题可以通过隐私渠道联系。',
+        title: '有隐私问题？',
+        body: '数据处理和隐私评审问题可以通过隐私渠道联系。请不要通过公开邮件发送敏感客户记录。',
         label: '联系隐私团队',
         href: 'mailto:privacy@duedatehq.com?subject=DueDateHQ%20Privacy',
       },
@@ -576,16 +506,16 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: '条款',
-        title: 'DueDateHQ 是面向专业团队的截止日运营软件。',
+        title: 'DueDateHQ 是截止日运营软件——一件给专业人士用的工具，而不是替你做决定的人。',
         description:
-          '产品帮助事务所组织带来源的截止日工作、证据复核、提醒监控、迁移和可审计运营历史。',
-        note: '本页是公开摘要。合同条款通过 DueDateHQ legal 渠道处理。',
+          '产品帮助事务所组织带来源的截止日工作、证据复核、提醒监控、迁移和可审计运营历史。它不做什么，和它做什么一样重要。',
+        note: '本页是平实的公开摘要。合同条款通过 DueDateHQ legal 渠道处理。',
       },
       sections: [
         {
           eyebrow: '使用边界',
-          title: '产品支持复核，不替事务所做申报决定。',
-          body: 'DueDateHQ 帮助呈现风险和来源上下文。CPA 事务所仍负责专业判断、客户事实和申报决定。',
+          title: '产品支持你的复核，永远不替你做申报决定。',
+          body: 'DueDateHQ 帮助呈现风险和来源上下文。CPA 事务所仍负责专业判断、客户事实和每一个申报决定。我们是仪表盘，不是飞行员。',
           items: [
             {
               title: '不提供税务建议',
@@ -638,10 +568,10 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: '状态',
-        title: '当前公开状态：所有系统正常。',
+        title: '当前状态：所有系统运行正常。',
         description:
-          'DueDateHQ 当前区分公开 marketing 站和认证 app。公开发现页面和 app 运营作为不同 surface 维护。',
-        note: '具体事故更新请联系 support。本页是当前公开状态摘要。',
+          'DueDateHQ 把公开 marketing 站和认证 app 当作不同 surface 跟踪，所以一处出问题，从不等于处处出问题。本页是当前公开状态摘要。',
+        note: '具体事故更新请联系 support。我们让这一页保持诚实、保持最新。',
       },
       sections: [
         {

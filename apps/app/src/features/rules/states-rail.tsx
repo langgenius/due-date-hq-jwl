@@ -1,26 +1,22 @@
 import type { ReactNode } from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
+import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import {
   ListRail,
+  ListRailBody,
   ListRailHead,
   ListRailSection,
   ListRailTitle,
 } from '@/components/patterns/list-rail'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 
@@ -28,13 +24,19 @@ import { StateBadge } from '@/components/primitives/state-badge'
  * `JurisdictionRail` — the left master pane of the Rule Library
  * (canonical Pencil `O0pyRO` PH-SecondarySidebar).
  *
+ * Built on the shared `ListRail*` shell and tuned to read as ONE system
+ * with `AlertListRail` (the alert detail's left list panel): the same
+ * `ListRailHead` (title + a neutral `CountPill`), a `ListRailSection`
+ * sort/group `Segmented` echoing the alerts rail's work-queue toggle, a
+ * full-width compact `SearchInput`, and a `ListRailBody` of compact rows.
+ *
  * Renders a searchable jurisdiction list: an "Overview" entry (the All
- * jurisdictions surface), a pinned FEDERAL section, then the states A–Z
- * under a STATES section label. The Overview row carries a lucide
- * dashboard icon; each JURISDICTION row carries its `StateBadge` seal
- * (FED / state code), its rule count in a mono count, and a quiet amber
- * "needs review" dot when the jurisdiction has pending-review rules. The
- * selected jurisdiction drives the flat rule table in the right pane.
+ * jurisdictions surface), a pinned FEDERAL section, then the states under
+ * a STATES section label. The Overview row carries a lucide dashboard
+ * icon; each JURISDICTION row carries its `StateBadge` seal (FED / state
+ * code), its rule count in a fixed-width right-aligned box, and a quiet
+ * amber "needs review" dot when the jurisdiction has pending-review rules.
+ * The selected jurisdiction drives the flat rule table in the right pane.
  *
  * Style maps the Pencil's raw hex onto design-system tokens (per repo
  * rule — no new theme colors): the selected row — Overview OR a
@@ -55,6 +57,9 @@ export type RailJurisdiction = {
   /** Rules in this jurisdiction awaiting CPA review — drives the amber dot. */
   reviewCount: number
 }
+
+/** Sort/group order for the states list (the rail-head `Segmented`). */
+type RailSort = 'az' | 'review'
 
 export function JurisdictionRail({
   items,
@@ -83,69 +88,101 @@ export function JurisdictionRail({
 }) {
   const { t } = useLingui()
   const query = search.trim().toLowerCase()
-  // Filter toggle (rail header funnel icon): when on, the list collapses
-  // to only jurisdictions with rules still awaiting review.
-  const [reviewOnly, setReviewOnly] = useState(false)
+  // Sort/group control (rail-head Segmented, #8). Default 'az' = the
+  // current alphabetical order. 'review' floats jurisdictions with pending
+  // review work to the top so the CPA can clear the queue first.
+  const [sort, setSort] = useState<RailSort>('az')
 
   const federal = useMemo(() => items.find((it) => it.jurisdiction === 'FED') ?? null, [items])
-  const states = useMemo(
-    () =>
-      items
-        .filter((it) => it.jurisdiction !== 'FED')
-        .toSorted((a, b) => a.label.localeCompare(b.label)),
-    [items],
-  )
+  const states = useMemo(() => {
+    const rest = items.filter((it) => it.jurisdiction !== 'FED')
+    if (sort === 'review') {
+      // Needs-review first (most pending on top), then A–Z within each band.
+      return rest.toSorted(
+        (a, b) => b.reviewCount - a.reviewCount || a.label.localeCompare(b.label),
+      )
+    }
+    return rest.toSorted((a, b) => a.label.localeCompare(b.label))
+  }, [items, sort])
 
   const matches = (it: RailJurisdiction) =>
-    (!query ||
-      it.label.toLowerCase().includes(query) ||
-      it.jurisdiction.toLowerCase().includes(query)) &&
-    (!reviewOnly || it.reviewCount > 0)
+    !query ||
+    it.label.toLowerCase().includes(query) ||
+    it.jurisdiction.toLowerCase().includes(query)
 
   const federalVisible = federal && matches(federal) ? federal : null
   const visibleStates = states.filter(matches)
   const shownStateCount = visibleStates.length
+  // Whether ANY jurisdiction has review work — gates the head count pill +
+  // the sort control's "Needs review" affordance.
+  const hasReviewWork = items.some((it) => it.reviewCount > 0)
+  // The count SUMS rules, not jurisdictions: every "to review" figure on this
+  // surface (Overview banner, "Where to start" cards) speaks in rules, and
+  // this total is exactly the sum of the per-row dots the user sees — so the
+  // head count reads true. (A jurisdiction count would misread as rules.)
+  const reviewRuleCount = items.reduce((sum, it) => sum + it.reviewCount, 0)
 
   return (
     <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
-      {/* ListHead — title + a needs-review FILTER. Deliberately a
-          `FilterTrigger` dropdown (the app's filter vocabulary, shared with the
-          rule filter bar), NOT a `Segmented`: the Segmented is reserved for
-          SCOPE toggles like the detail pane's Review/Active, so a list filter
-          and a content scope never read as the same control. (Earlier the lone
-          ToggleChip read as a static label; the Segmented read as a duplicate
-          of the detail scope — this resolves both.) */}
-      <ListRailHead className="justify-between">
+      {/* ListHead — title + a neutral "N to review" count pill, mirroring the
+          alerts rail's "Alerts · N open" head (title + CountPill). Neutral
+          tone: a standing backlog count isn't an alarm; the pill disappears
+          when the queue is clear (quiet = caught up).
+          #7 — `pr-6` (24px) overrides the shell's `px-[18px]` so the head's
+          trailing element right-aligns with the per-row count column: each
+          row's count box sits at body `px-3` (12px) + row `px-3` (12px) = 24px
+          from the rail edge, so the columns line up vertically down the rail. */}
+      <ListRailHead className="justify-between pr-6">
         <ListRailTitle>
           <Trans>Jurisdictions</Trans>
         </ListRailTitle>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <FilterTrigger active={reviewOnly} valueLabel={reviewOnly ? t`Needs review` : t`All`}>
-                <Trans>Show</Trans>
-              </FilterTrigger>
-            }
-          />
-          <DropdownMenuContent align="end" className="min-w-[180px]">
-            <DropdownMenuRadioGroup
-              value={reviewOnly ? 'review' : 'all'}
-              onValueChange={(value) => setReviewOnly(value === 'review')}
-            >
-              <DropdownMenuRadioItem value="all">
-                <Trans>All jurisdictions</Trans>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="review">
-                <Trans>Needs review</Trans>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {hasReviewWork ? (
+          <CountPill tone="neutral">
+            <Trans>{reviewRuleCount} to review</Trans>
+          </CountPill>
+        ) : null}
       </ListRailHead>
 
-      {/* FilterRow — full-width search, separated by a `border-b` (same
-          section rhythm as the canonical rails). */}
-      <ListRailSection className="px-3">
+      {/* Sort/group control (#8) — A–Z vs Needs review, the simplest sort-by,
+          echoing the alerts rail's work-queue Segmented so the two rails read
+          as one system. "Needs review" only appears when there's review work
+          to surface; otherwise A–Z stands alone (no dead toggle). */}
+      {hasReviewWork ? (
+        <ListRailSection>
+          <Segmented
+            className="w-full [&>button]:flex-1"
+            ariaLabel={t`Sort jurisdictions`}
+            value={sort}
+            onValueChange={setSort}
+            options={[
+              { value: 'az', label: <Trans>A–Z</Trans> },
+              {
+                value: 'review',
+                // Count reads in accent when the toggle isn't active and there's
+                // work waiting (color is the signal, not weight — color+bold is a
+                // banned double-highlight). Matches the alerts rail's Review tab.
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Trans>Needs review</Trans>
+                    <span
+                      className={cn(
+                        'tabular-nums',
+                        sort === 'review' ? 'text-text-secondary' : 'text-text-accent',
+                      )}
+                    >
+                      {reviewRuleCount}
+                    </span>
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </ListRailSection>
+      ) : null}
+
+      {/* FilterRow — full-width compact search, same treatment as the alerts
+          rail (canonical `SearchInput variant="compact"`). */}
+      <ListRailSection>
         <SearchInput
           variant="compact"
           value={search}
@@ -156,12 +193,10 @@ export function JurisdictionRail({
         />
       </ListRailSection>
 
-      {/* Scrolling jurisdiction list. `flex-initial` (grow 0 / shrink 1), not
-          `flex-1`: with a short list (a firm covering just a few states) the
-          nav collapses to its content so the "Showing N of M" footer hugs the
-          list instead of leaving a tall void pinned above the bottom edge.
-          With a long list it still shrinks + scrolls, footer pinned. */}
-      <nav className="min-h-0 flex-initial overflow-y-auto px-2 py-3">
+      {/* ListBody — the canonical scrolling body (same primitive the alerts
+          rail uses). `px-3 py-2` so each row's left edge + trailing count
+          column settle under the head's `px-[18px]` (body px-3 + row px-3). */}
+      <ListRailBody className="px-3 py-2">
         <div className="flex flex-col gap-0.5">
           {/* Overview — the All-jurisdictions surface, always first. */}
           {!query ? (
@@ -235,20 +270,21 @@ export function JurisdictionRail({
             </>
           ) : null}
 
-          {(query || reviewOnly) && shownStateCount === 0 && !federalVisible ? (
+          {query && shownStateCount === 0 && !federalVisible ? (
             <p className="px-3 py-6 text-center text-xs text-text-tertiary">
-              {query ? t`No jurisdictions match "${search}"` : t`No jurisdictions need review`}
+              {t`No jurisdictions match "${search}"`}
             </p>
           ) : null}
         </div>
-      </nav>
+      </ListRailBody>
 
-      {/* Footer — "Showing N of M states", a quiet `border-t` strip that
-          settles into the column edge (same divider rhythm as the head/search
-          rows above). */}
+      {/* Footer — a plain total (#16). The list isn't paginated (every
+          jurisdiction renders), so the old "Showing N of M states" read as
+          truncation that never happens. A quiet `border-t` strip with the
+          honest count, same divider rhythm as the head/search rows above. */}
       <div className="flex shrink-0 items-center border-t border-divider-subtle px-[18px] py-3">
         <span className="text-xs font-medium text-text-tertiary tabular-nums">
-          {t`Showing ${shownStateCount} of ${states.length} states`}
+          {t`${items.length} jurisdictions`}
         </span>
       </div>
     </ListRail>
@@ -325,12 +361,35 @@ function RailRow({
   selected: boolean
   onSelect: () => void
 }) {
+  const { i18n } = useLingui()
+  const reviewLabel = i18n._(
+    plural(reviewCount, {
+      one: '# rule to review',
+      other: '# rules to review',
+    }),
+  )
+
+  // #15 — when this JURISDICTION row becomes the active selection (driven by
+  // the `?jurisdiction=` URL param, set when a "Where to start" card is
+  // clicked on the page), scroll it into view so the rail reveals the row the
+  // user just drilled into. Gated on `code` so the Overview row (always at the
+  // top) never self-scrolls. `block:'nearest'` so an already-visible row never
+  // teleports; smooth so the reveal reads as a gentle settle, not a jump.
+  const rowRef = useRef<HTMLButtonElement | null>(null)
+  const shouldReveal = selected && Boolean(code)
+  useEffect(() => {
+    if (shouldReveal) {
+      rowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [shouldReveal])
+
   // Selected rows — Overview AND jurisdictions — read in accent-blue,
   // the canonical nav-item selected state shared with SettingsSubNav and
   // the main sidebar. Unselected rows stay quiet (text-secondary label,
   // muted count) so the active jurisdiction is the one strong row.
   return (
     <button
+      ref={rowRef}
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'true' : undefined}
@@ -368,8 +427,8 @@ function RailRow({
         {reviewCount > 0 ? (
           <span
             className="size-1 shrink-0 rounded-full bg-state-warning-solid"
-            title={`${reviewCount} need review`}
-            aria-label={`${reviewCount} rules need review`}
+            title={reviewLabel}
+            aria-label={reviewLabel}
           />
         ) : null}
         <span

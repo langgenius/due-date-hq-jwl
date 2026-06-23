@@ -2560,6 +2560,44 @@ describe('makePulseOpsRepo', () => {
     expect(challenge).toMatchObject({ healthStatus: 'paused', nextCheckAt: weekLater })
   })
 
+  it('escalates a sustained non-block failure (a week past last success) to paused', async () => {
+    const sustainedUpdate = async (lastSuccessAt: Date | null) => {
+      const { db, directStatements } = fakeDb([
+        [{ consecutiveFailures: 40, healthStatus: 'failing', lastSuccessAt }],
+      ])
+      await makePulseOpsRepo(db).recordSourceFailure({
+        sourceId: 'ma.temporary_announcements',
+        checkedAt: new Date('2026-06-22T00:00:00.000Z'),
+        // Caller's 15-min retry cadence — the escalation must override it.
+        nextCheckAt: new Date('2026-06-22T00:15:00.000Z'),
+        // A geo/IP WAF 403 (mass.gov) — NOT a recognizable robots/Cloudflare block,
+        // so it only parks via the sustained-age escalation, not isTerminalSourceBlock.
+        error:
+          'Pulse source fetch failed for ma.temporary_announcements: 403 — Not allowed | Mass Gov',
+      })
+      const update = directStatements.find((statement) => isKind(statement, 'update')) as {
+        value: Record<string, unknown>
+      }
+      return update.value
+    }
+
+    // 8 days since last success → standing block → parked paused on the weekly back-off.
+    expect(await sustainedUpdate(new Date('2026-06-14T00:00:00.000Z'))).toMatchObject({
+      healthStatus: 'paused',
+      nextCheckAt: new Date('2026-06-29T00:00:00.000Z'),
+    })
+    // Only 2 days since last success → still within recovery grace, stays failing.
+    expect(await sustainedUpdate(new Date('2026-06-20T00:00:00.000Z'))).toMatchObject({
+      healthStatus: 'failing',
+      nextCheckAt: new Date('2026-06-22T00:15:00.000Z'),
+    })
+    // Never-succeeded source has no baseline to age off of → left on the streak.
+    expect(await sustainedUpdate(null)).toMatchObject({
+      healthStatus: 'failing',
+      nextCheckAt: new Date('2026-06-22T00:15:00.000Z'),
+    })
+  })
+
   it('re-drives excerpt-location guard rejections but keeps other guard rejections dead', async () => {
     const { db } = fakeDb([[]])
 

@@ -1,76 +1,165 @@
 ---
-/** How it compares — a restrained 4-column matrix. The point isn't feature
- *  parity, it's the one row only DueDateHQ owns: watching the sources. */
+/** How it compares — an honest matrix. We own the monitoring rows; we openly
+ *  concede practice-management breadth (we're narrow by design). The point is
+ *  the positioning: we're the layer the all-in-ones are missing, not a rival.
+ *
+ *  The table is grouped so the honesty is structural, not a footnote: a
+ *  "What we watch for you" block where DueDateHQ is the only yes, and a
+ *  "Runs your whole practice (by design, not us)" block where the all-in-ones
+ *  win and we deliberately say so. Columns span the status quo (Excel + Outlook)
+ *  and a deadline tool (File In Time) through to an all-in-one suite (TaxDome). */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
-const products = ['Excel + Outlook', 'File In Time', 'TaxDome', 'DueDateHQ']
-const marksRows = [
-  ['manual', 'yes', 'yes', 'yes'],
-  ['no', 'no', 'no', 'yes'],
-  ['no', 'no', 'no', 'yes'],
-  ['no', 'no', 'no', 'yes'],
+
+// columns: status quo · deadline tracker · all-in-one suite · us
+const products = [
+  { name: 'Excel + Outlook', kind: zh ? '现状' : 'Status quo' },
+  { name: 'File In Time', kind: zh ? '截止日工具' : 'Deadline tool' },
+  { name: 'TaxDome', kind: zh ? '全能套件' : 'All-in-one' },
+  { name: 'DueDateHQ', kind: zh ? '监测层' : 'The layer' },
 ]
+
+// mark vocabulary, per product:
+//   yes · no · partial (technically, but…) · manual
+type Mark = 'yes' | 'no' | 'partial' | 'manual'
+
+// Two honest groups. Group 1: the change-monitoring job — our ground.
+// Group 2: full practice management — their ground, narrow by design for us.
+const groups: { label: string; rows: { feature: string; marks: Mark[] }[] }[] = zh
+  ? [
+      {
+        label: '我们替你盯着的事',
+        rows: [
+          { feature: '记录已知截止日', marks: ['manual', 'yes', 'yes', 'yes'] },
+          { feature: '7×24 盯着来源', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'AI 读懂变化', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: '标出受影响客户', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: '一键应用新日期', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: '每个日期附来源', marks: ['no', 'no', 'no', 'yes'] },
+        ],
+      },
+      {
+        label: '管理整个事务所',
+        rows: [
+          { feature: '事务所与工作流管理', marks: ['no', 'partial', 'yes', 'no'] },
+          { feature: '开票与收款', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: '文档存储与客户门户', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: '装在现有工具之上', marks: ['no', 'no', 'no', 'yes'] },
+        ],
+      },
+    ]
+  : [
+      {
+        label: 'What we watch for you',
+        rows: [
+          { feature: 'Tracks deadlines you know', marks: ['manual', 'yes', 'yes', 'yes'] },
+          { feature: 'Watches sources 24/7', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'Reads what changed', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'Flags affected clients', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'One-click apply', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'Source on every date', marks: ['no', 'no', 'no', 'yes'] },
+        ],
+      },
+      {
+        label: 'Runs your whole practice',
+        rows: [
+          { feature: 'Practice & workflow management', marks: ['no', 'partial', 'yes', 'no'] },
+          { feature: 'Billing & invoicing', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: 'Document storage & portal', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: 'Layers on what you use', marks: ['no', 'no', 'no', 'yes'] },
+        ],
+      },
+    ]
+
 const t = zh
   ? {
       eyebrow: '横向对比',
-      headingPre: '别人替你记日期，我们替你盯它',
-      headingItal: '变。',
-      features: ['记录截止日', '盯着来源看变化', '标出影响到谁', '每个日期都有来源'],
+      headingPre: '不是又一个全能套件。而是它们都缺的那一',
+      headingItal: '层。',
+      leadHtml: '全能套件帮你打理事务所。我们盯着<b>截止日什么时候变</b>。',
+      partial: '勉强',
       manual: '手动',
+      legendYes: '内建',
+      legendPartial: '技术上能，但不监测变化',
+      footnote: '套件管事务所，我们盯截止日变化——两者并不冲突。',
       ariaSummary:
-        '对比。Excel 和 Outlook 手动记录你录入的截止日；File In Time 和 TaxDome 也只是记录。只有 DueDateHQ 盯着官方来源看变化、标出受影响的客户，并为每个日期保留来源。',
-      footPre: 'Excel 和 File In Time 只记录你录入的日期。',
-      footBold: '只有 DueDateHQ 盯着来源——还告诉你影响到谁。',
+        '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。只有 DueDateHQ 7×24 盯着官方来源看变化、用 AI 读懂变化、精确标出受影响客户、一键应用并为每个日期保留来源；而完整的事务所管理、开票、文档存储是套件的强项，我们刻意不做，只装在它们之上。',
     }
   : {
       eyebrow: 'How it compares',
-      headingPre: 'They store your dates. We watch them ',
-      headingItal: 'change.',
-      features: ['Tracks deadlines', 'Watches sources for changes', "Flags who's affected", 'Source on every date'],
+      headingPre: "We're not building another all-in-one. We're the layer they're all ",
+      headingItal: 'missing.',
+      leadHtml:
+        'All-in-ones run your practice. We watch <b>when the deadlines themselves move</b>.',
+      partial: 'partial',
       manual: 'manual',
+      legendYes: 'Built in',
+      legendPartial: 'Technically, but no change monitoring',
+      footnote: 'Your suite runs the practice; we watch the deadlines — not in competition.',
       ariaSummary:
-        'Comparison. Excel and Outlook track the deadlines you enter, manually; File In Time and ' +
-        'TaxDome track them too. Only DueDateHQ watches the official sources for changes, flags which ' +
-        'clients are affected, and keeps a source on every date.',
-      footPre: 'Excel and File In Time track the dates you enter.',
-      footBold: "Only DueDateHQ watches the sources — and tells you who's affected.",
+        'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources 24/7 for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
     }
-const rows = marksRows.map((marks, i) => ({ feature: t.features[i], marks }))
-const ariaSummary = t.ariaSummary
+// accessible value per mark — the cell's name (svg/dash are decorative); a real
+// table announces "<feature>, <product>, <value>" so each cell just needs its word
+const markLabel: Record<Mark, string> = zh
+  ? { yes: '内建', no: '不支持', partial: '勉强', manual: '手动' }
+  : { yes: 'Yes', no: 'No', partial: 'Partial', manual: 'Manual' }
 ---
 
-<section class="m-section compare" aria-labelledby="cmp-h">
+<section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
   <p class="m-eyebrow">{t.eyebrow}</p>
-  <h2 class="m-h2 compare__h" id="cmp-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
+  <h2 class="compare__lead" id="cmp-h" set:html={t.leadHtml} />
 
   <div class="cmp-scroll">
-    <div class="cmp" role="img" aria-label={ariaSummary}>
-      <div class="cmp__c cmp__c--head"></div>
+    <div class="cmp" role="table" aria-label={t.eyebrow}>
+      <div class="cmp__r cmp__r--head" role="row">
+        <div class="cmp__c cmp__c--head cmp__c--corner" role="columnheader" />
+        {
+          products.map((p, i) => (
+            <div
+              class:list={['cmp__c', 'cmp__c--head', i === 3 && 'cmp__c--ddhq cmp__head--ddhq']}
+              role="columnheader"
+            >
+              <span class="cmp__pname">{p.name}</span>
+              <span class="cmp__pkind">{p.kind}</span>
+            </div>
+          ))
+        }
+      </div>
       {
-        products.map((p, i) => (
-          <div class:list={['cmp__c', 'cmp__c--head', i === 3 && 'cmp__c--ddhq cmp__head--ddhq']}>
-            {p}
-          </div>
-        ))
-      }
-      {
-        rows.map((r) => (
+        groups.map((g) => (
           <>
-            <div class="cmp__c cmp__c--row">{r.feature}</div>
-            {r.marks.map((m, i) => (
-              <div class:list={['cmp__c', 'cmp__c--mark', i === 3 && 'cmp__c--ddhq']}>
-                {m === 'yes' && (
-                  <span class="yes">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  </span>
-                )}
-                {m === 'no' && <span class="no" aria-hidden="true" />}
-                {m === 'manual' && <span class="cmp__manual">{t.manual}</span>}
+            <div class="cmp__r cmp__r--group" role="row">
+              <div class="cmp__c cmp__c--group" role="cell" aria-colspan="5">
+                {g.label}
+              </div>
+            </div>
+            {g.rows.map((r) => (
+              <div class="cmp__r" role="row">
+                <div class="cmp__c cmp__c--row" role="rowheader">{r.feature}</div>
+                {r.marks.map((m, i) => (
+                  <div
+                    class:list={['cmp__c', 'cmp__c--mark', i === 3 && 'cmp__c--ddhq']}
+                    role="cell"
+                    aria-label={markLabel[m]}
+                  >
+                    {m === 'yes' && (
+                      <span class="yes" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </span>
+                    )}
+                    {m === 'no' && <span class="no" aria-hidden="true" />}
+                    {m === 'partial' && (
+                      <span class="cmp__partial" aria-hidden="true">{t.partial}</span>
+                    )}
+                    {m === 'manual' && <span class="cmp__manual" aria-hidden="true">{t.manual}</span>}
+                  </div>
+                ))}
               </div>
             ))}
           </>
@@ -79,51 +168,104 @@ const ariaSummary = t.ariaSummary
     </div>
   </div>
 
-  <p class="compare__foot">
-    {t.footPre}
-    <b>{t.footBold}</b>
-  </p>
+  <p class="compare__foot">{t.footnote}</p>
 </section>
 
 <style>
-  .compare__h {
-    max-width: 20ch;
+  /* the lead carries the section — a sans-serif deck statement (cleaner +
+     more professional than the display serif), emphasis by weight not italic */
+  .compare__lead {
+    margin-top: 14px;
+    max-width: 30ch;
+    font-family: var(--m-font-sans);
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+    text-wrap: balance;
+  }
+  .compare__lead :global(b) {
+    font-weight: 600;
+    color: var(--m-ink);
   }
   .cmp-scroll {
     margin-top: clamp(28px, 3.5vw, 44px);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+  /* a real ARIA table: each row is its own grid with the SAME fractional template,
+     so columns line up pixel-for-pixel across rows (no display:contents needed,
+     which keeps the table semantics intact for screen readers). */
   .cmp {
-    min-width: 600px;
-    max-width: 940px;
+    width: 100%;
+    min-width: 720px;
+  }
+  .cmp__r {
     display: grid;
-    grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr));
-    border-top: 1px solid var(--m-ink);
+    grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
   }
   .cmp__c {
     display: flex;
     align-items: center;
     min-height: 52px;
-    padding: 15px 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--m-hairline-2);
-    font-size: 14px;
+    font-size: var(--m-text-base);
   }
+  /* column heads — product name + what kind of tool it is */
   .cmp__c--head {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
     min-height: 0;
-    padding-block: 13px;
-    justify-content: center;
+    padding-block: 16px 14px;
     border-bottom: 1px solid var(--m-hairline);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--m-muted);
     text-align: center;
+  }
+  .cmp__c--corner {
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .cmp__pname {
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-ink);
     white-space: nowrap;
+  }
+  .cmp__c--ddhq .cmp__pname,
+  .cmp__head--ddhq .cmp__pname {
+    color: var(--m-accent);
+  }
+  .cmp__pkind {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    white-space: nowrap;
+  }
+  .cmp__head--ddhq .cmp__pkind {
+    color: var(--m-accent);
+    opacity: 0.72;
+  }
+  /* group divider rows span all columns */
+  .cmp__c--group {
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding-block: 22px 10px;
+    border-bottom: 1px solid var(--m-hairline);
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-muted);
   }
   .cmp__c--row {
     color: var(--m-ink);
     font-weight: 500;
     letter-spacing: -0.01em;
+    line-height: 1.35;
   }
   .cmp__c--mark {
     justify-content: center;
@@ -132,7 +274,7 @@ const ariaSummary = t.ariaSummary
     background: var(--m-accent-tint);
   }
   .cmp__head--ddhq {
-    color: var(--m-accent);
+    background: var(--m-accent-tint);
   }
   .yes {
     display: inline-flex;
@@ -151,19 +293,16 @@ const ariaSummary = t.ariaSummary
     border-radius: 999px;
     background: var(--m-hairline);
   }
-  .cmp__manual {
-    font-size: 12px;
+  .cmp__manual,
+  .cmp__partial {
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .compare__foot {
-    margin-top: 20px;
-    max-width: 62ch;
-    font-size: 13px;
-    line-height: 1.5;
+    margin-top: clamp(20px, 2.4vw, 28px);
+    max-width: 72ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
     color: var(--m-muted);
-  }
-  .compare__foot b {
-    color: var(--m-ink);
-    font-weight: 600;
   }
 </style>

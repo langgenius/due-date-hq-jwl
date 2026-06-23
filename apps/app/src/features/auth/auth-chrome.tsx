@@ -112,6 +112,7 @@ export function AuthTrustLine({ className }: { className?: string }) {
       )}
     >
       {TRUST_ITEMS.map((item, i) => (
+        // oxlint-disable-next-line no-array-index-key -- fixed-order TRUST_ITEMS, separator pattern
         <Fragment key={i}>
           {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
           <span className="flex items-center gap-1.5 text-[11px] font-medium italic text-text-tertiary">

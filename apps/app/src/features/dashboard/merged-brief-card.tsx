@@ -427,8 +427,11 @@ export function MergedBriefCard({
           </svg>
           <span
             // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
-            // fade — a small "you're clear" beat. Calm, not confetti.
-            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
+            // fade — a small "you're clear" beat. Calm, not confetti. Palette
+            // finish: the disc wears the LIME celebration highlight (the one
+            // sanctioned home for the all-clear beat) — navy glyph on lime for
+            // a warm, legible pop, never white text on the light fill.
+            className="flex size-14 items-center justify-center rounded-full bg-highlight-celebrate animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
             <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />
@@ -485,7 +488,7 @@ export function MergedBriefCard({
           // frame: it absorbs leftover height and scrolls the table body
           // INTERNALLY (overflow-y), so the dashboard page itself never scrolls.
           // Below xl it's natural-height and the page scrolls normally.
-          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
+          className="scrollbar-designed overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
         >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>

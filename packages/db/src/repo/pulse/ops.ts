@@ -187,6 +187,13 @@ export function pulseExpiredCondition(now: Date) {
 // the streak climb) with the honest reason preserved in lastError, and back the
 // re-probe off to weekly so we still notice if the block is ever lifted.
 const SOURCE_BLOCKED_RECHECK_MS = 7 * 24 * 60 * 60 * 1000
+// A source still failing a full WEEK after its last success is a standing block
+// the retry can't clear (geo/IP WAF 403 like mass.gov, origin TLS 525, a dead
+// host) even when the error text isn't a recognizable robots/Cloudflare block.
+// recordSourceFailure escalates it to the same terminal 'paused' state so it
+// stops climbing red forever and tripping the idle watchdog; a real recovery
+// still self-heals via recordSourceSuccess.
+const SOURCE_SUSTAINED_FAILURE_PARK_MS = 7 * 24 * 60 * 60 * 1000
 function isTerminalSourceBlock(error: string): boolean {
   // We deliberately obey robots.txt (assertRobotsAllowed) — retrying can't help.
   if (error.includes('robots.txt disallows')) return true
@@ -1023,14 +1030,28 @@ export function makePulseOpsRepo(db: Db) {
       // isTerminalSourceBlock. Re-probe weekly so a lifted block self-heals via
       // recordSourceSuccess (→ healthy).
       const blocked = isTerminalSourceBlock(input.error)
-      const nextCheckAt = blocked
+      // Escalate a sustained non-block failure (still failing a week past its
+      // last success) to the same terminal park — see SOURCE_SUSTAINED_FAILURE_PARK_MS.
+      // Keyed on last-success AGE, not a failure count, so it's cadence-independent
+      // (a 2h-cadence source and a 24h one both park after the same wall-clock).
+      // Skipped for never-succeeded sources (no baseline to age off of) and for
+      // already-paused ones.
+      const lastSuccessMs = current?.lastSuccessAt?.getTime() ?? null
+      const sustainedBlock =
+        !blocked &&
+        current?.healthStatus !== 'paused' &&
+        consecutiveFailures >= 12 &&
+        lastSuccessMs !== null &&
+        checkedAt.getTime() - lastSuccessMs > SOURCE_SUSTAINED_FAILURE_PARK_MS
+      const terminal = blocked || sustainedBlock
+      const nextCheckAt = terminal
         ? new Date(checkedAt.getTime() + SOURCE_BLOCKED_RECHECK_MS)
         : input.nextCheckAt
       // Derive the visible health from the failure streak — nothing ever wrote
       // 'degraded'/'failing' before, so months-dead sources read healthy in the
       // sources UI. At the 15-min failure retry cap, 12 failures ≈ 3 hours of
       // sustained death. recordSourceSuccess resets to healthy.
-      const derivedHealth = blocked
+      const derivedHealth = terminal
         ? ('paused' as const)
         : current?.healthStatus === 'paused'
           ? null

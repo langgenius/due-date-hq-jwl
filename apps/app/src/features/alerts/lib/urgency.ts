@@ -99,6 +99,10 @@ export function proximityToTier(proximity: DeadlineProximity): PulsePriorityLeve
     case 'scheduled':
     case 'none':
       return 'normal'
+    default: {
+      const exhaustive: never = proximity
+      return exhaustive
+    }
   }
 }
 

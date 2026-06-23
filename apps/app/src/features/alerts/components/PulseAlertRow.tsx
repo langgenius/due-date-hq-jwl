@@ -200,13 +200,13 @@ function PulseAlertRow({
   compact = false,
   selectable = false,
   selected = false,
-  selectionActive = false,
+  selectionActive: _selectionActive = false,
   onToggleSelected,
   priority,
   highImpact = false,
   showAction = true,
   showRailDate = true,
-  muted = false,
+  narrow = false,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -266,12 +266,19 @@ function PulseAlertRow({
    */
   showRailDate?: boolean
   /**
-   * 2026-06-21 (Yuqi, triage demotion): the "For your awareness" digest renders
-   * its rows `muted` — title in secondary ink + tighter padding — so the FYI
-   * stream reads a step quieter than the full-weight "Needs action" queue,
-   * without a disabled look (the title stays AA-readable).
+   * 2026-06-23: true ONLY for the map view's narrow (~460px) navigator
+   * rail. Trims the head row to the essentials a CPA needs to triage in
+   * a tight column — the urgency tier pill + the due/lateness tag stay,
+   * but the secondary meta (High-impact chip, form code, change-kind
+   * text, low-confidence pill, source link) drops off line one so the
+   * title + status signal aren't crammed and clipped. Demote-not-delete:
+   * every trimmed fact is still one click away in the detail drawer (and
+   * the source/change-kind also live on the wide list). The wide list
+   * (`narrow=false`) is untouched. Distinct from `compact` (which is
+   * also true on the panel-open wide list, where the visible rail is
+   * AlertListRail, not this row).
    */
-  muted?: boolean
+  narrow?: boolean
 }) {
   const { t } = useLingui()
   // Cache-only subscription — the date-diff / form fields fill in when the
@@ -364,17 +371,25 @@ function PulseAlertRow({
   const daysDiff = daysBetweenIso(detail?.originalDueDate ?? null, detail?.newDueDate ?? null)
   const showDateRow = oldDateLabel && newDateLabel
 
+  // `effectiveLabel` lets the facts row render "Effective immediately"
+  // / "Effective MMM D" alongside the form-revised line, in ZkXFr's
+  // horizontal time-rail + main-column architecture.
+  const isEffectiveNow = (() => {
+    if (!detail?.effectiveFrom) return false
+    const eff = new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime()
+    return eff <= Date.now()
+  })()
+  const effectiveLabel = detail?.effectiveFrom
+    ? isEffectiveNow
+      ? t`Effective immediately`
+      : t`Effective ${formatMonthDay(detail.effectiveFrom)}`
+    : null
   const formLabel = detail?.forms?.[0] ?? null
-  // Hidden when the list's "Show suggested action" toggle is off. Also dropped
-  // in `compact` (map navigator) rows — the prescriptive next-step belongs in
-  // the detail, not the at-a-glance list (Yuqi /alerts #4: trim the map list).
-  // Nulling it here also drops it from `showKeyChange` so the KeyChange row
-  // collapses cleanly when nothing else fills it.
-  const actionText = showAction && !compact ? deriveActionText(alert.changeKind) : null
-  // Only the date-diff + action line actually render in the KeyChange block
-  // (effective/form facts live in the drawer), so gate on those — a truthy
-  // effectiveLabel/formLabel alone would otherwise reserve an empty block.
-  const showKeyChange = !!(showDateRow || actionText)
+  // Hidden when the list's "Show suggested action" toggle is off.
+  // Nulling it here also drops it from `showKeyChange` so the KeyChange
+  // row collapses cleanly when nothing else fills it.
+  const actionText = showAction ? deriveActionText(alert.changeKind) : null
+  const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
 
   // 2026-06-16 (Yuqi "dim anything besides the alert title when not selected"):
   // on rows that AREN'T the open one, everything but the headline recedes — the
@@ -382,18 +397,9 @@ function PulseAlertRow({
   // and the KeyChange/action all drop to a quiet tier so the list scans as a
   // clean column of titles. Hovering a row, or opening it (`active`), lifts its
   // detail back to full. The title <h3> never recedes.
-  // 2026-06-21 (Yuqi "the chips are still quite faint"): the recede is now
-  // zone-aware. The "Needs action" queue keeps its identity chips LEGIBLE — a
-  // light recessive dim (opacity-80) so state / change-kind / urgency read at a
-  // glance for triage, while the title still leads on size + weight. The muted
-  // "For your awareness" digest dims further (opacity-60) so it stays the quiet
-  // zone. Both lift to full on hover/active.
   const recede = active
     ? undefined
-    : cn(
-        'transition-opacity duration-150 group-hover/row:opacity-100',
-        muted ? 'opacity-60' : 'opacity-80',
-      )
+    : 'opacity-60 transition-opacity duration-150 group-hover/row:opacity-100'
 
   return (
     <article
@@ -424,13 +430,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        // 2026-06-22 (Yuqi "remove the left/right padding — universal"): rows are
-        // flush with the page title now (no extra px-5 inset); the toolbar, zone
-        // bands + day bands drop the same inset so the whole list shares one left
-        // edge. Applies in the map navigator rail too (consistent, flush).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle outline-none transition-[color,box-shadow]',
-        // Muted (awareness digest) rows step the vertical padding down a notch.
-        muted ? 'py-2.5' : 'py-3',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -449,10 +449,10 @@ function PulseAlertRow({
             // the box never shifts the row), but the box itself is hover-revealed
             // unless this row is ticked or a selection is already underway — so a
             // read-first triage list isn't led by a column of empty checkboxes.
-            'flex shrink-0 items-start pt-0.5 transition-opacity',
-            selected || selectionActive
-              ? 'opacity-100'
-              : 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100',
+            // Always visible (Yuqi 2026-06-23: "alert list should have the
+            // checkbox always showing"). The unchecked box is a quiet outline,
+            // so a persistent column stays subtle without hover-gating.
+            'flex shrink-0 items-start pt-0.5',
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -460,7 +460,7 @@ function PulseAlertRow({
             checked={selected}
             onCheckedChange={(next) => onToggleSelected?.(next)}
             aria-label={t`Select alert: ${alert.title}`}
-            className="size-[18px] rounded"
+            className="size-4 rounded"
           />
         </div>
       ) : null}
@@ -508,15 +508,8 @@ function PulseAlertRow({
         {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
-        <div className="flex min-w-0 items-center gap-2">
-          {/* Receding identity + supporting cluster — the chips, source, and the
-              "arrived at" time dim to a quiet tier at rest (lift on hover/active),
-              so the list scans as a column of titles. It GROWS (flex-1) to push
-              the time-to-act tag to the right edge. The deadline tag itself sits
-              OUTSIDE this wrapper (below) so it stays present at rest — the one
-              urgency cue that never recedes (Yuqi 2026-06-21). */}
-          <div className={cn('flex min-w-0 flex-1 items-center gap-2', recede)}>
-            {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
+        <div className={cn('flex min-w-0 items-center gap-2', recede)}>
+          {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
               tab is not reasonable or logical"): the ACTIVE badge is GONE
               from queue rows — the Review/Active tab already states which
               queue you're in, so the per-row pill was pure redundancy.
@@ -524,121 +517,118 @@ function PulseAlertRow({
               date-diff KeyChange + affected clients; Review rows read
               "No client impact". (ActiveQueueChip still marks the DETAIL
               header + history, where queues mix.) */}
-            {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
+          {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
-            {levelPill ? (
-              <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
-            ) : null}
+          {levelPill ? (
+            <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
+          ) : null}
 
-            {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
+          {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
               gray chip, NOT red (2026-06-15 critique #4): red is reserved for the
               single URGENT priority pill, so a row never wears two reds (urgency
               + reach reading as one alarm). Client reach is carried by weight + a
               quiet chip; it sits on a different axis from the urgency tier, so it
-              must look different from it too. */}
-            {highImpact ? (
-              <SeverityChip level="neutral">
-                <Trans>High impact</Trans>
-              </SeverityChip>
-            ) : null}
+              must look different from it too.
+              Dropped on the narrow map rail (2026-06-23): the affects-N-clients
+              meta on line two carries reach there without crowding line one. */}
+          {highImpact && !narrow ? (
+            <SeverityChip level="neutral">
+              <Trans>High impact</Trans>
+            </SeverityChip>
+          ) : null}
 
-            {/* STATE — shared JurisdictionChip primitive (outline reference
-              tag, no circular StateBadge seal). */}
-            <JurisdictionChip code={alert.jurisdiction} />
+          {/* STATE — shared JurisdictionChip primitive (outline reference
+              tag, no circular StateBadge seal). Kept on the narrow rail: the
+              two-letter jurisdiction is the cheapest triage anchor (and the
+              map rail is filtered BY state, so it confirms the active tile). */}
+          <JurisdictionChip code={alert.jurisdiction} />
 
-            {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
+          {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
               code chip), stock chrome so the form badge reads identically
               on every surface (per the pulse-alert-chrome contract: no
-              className override on /alerts). Dropped in compact (map
-              navigator) rows — the form code lives in the detail (Yuqi
-              /alerts #4). */}
-            {!compact && formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+              className override on /alerts). Dropped on the narrow map rail —
+              the form code lives in the detail drawer's structured fields. */}
+          {formLabel && !narrow ? <TaxCodeBadge code={formLabel} /> : null}
 
-            {/* CHANGE KIND — icon + sentence-case medium secondary, matching
+          {/* CHANGE KIND — icon + sentence-case medium secondary, matching
               the detail hero exactly (2026-06-14). One treatment across
-              list + rail + detail. */}
+              list + rail + detail. Dropped on the narrow map rail — the kind
+              reads in the detail hero; the title already carries the gist. */}
+          {!narrow ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
               <ChangeKindIcon changeKind={alert.changeKind} />
               {changeKindLabel(alert.changeKind)}
             </span>
+          ) : null}
 
-            {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
+          {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
               ONLY when the extraction is shaky: "Low confidence" (medium tier)
               / "Very low confidence" (low tier). High confidence shows nothing
               — the absence is the all-clear. Amber-family (never red — the row's
               one red stays on the urgent deadline). Replaces the always-on
-              "N% confidence" meter that used to sit in the bottom meta. */}
-            {/* CONFIDENCE FLAG — dropped in compact (map navigator) rows; the
-              exact tier still reads in the detail's Source card (Yuqi /alerts
-              #4). */}
-            {!compact && showLowConfidence ? (
-              <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
-                <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-                <Trans>Low confidence</Trans>
-              </span>
-            ) : null}
+              "N% confidence" meter that used to sit in the bottom meta. Dropped
+              on the narrow map rail — the detail Source card still states the
+              exact confidence tier. */}
+          {showLowConfidence && !narrow ? (
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
+              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
+              <Trans>Low confidence</Trans>
+            </span>
+          ) : null}
 
-            {/* Spacer NdGpw (fill_container) — pushes the source + time cluster to
-              the right edge of the head row. */}
-            <span className="flex-1" aria-hidden />
+          {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
+              #6). Pinned to the far right it left a wide dead gap between the
+              title and "where this came from", a long horizontal eye-sweep on
+              every row. It now reads beside the change-kind — "what kind of
+              change, from where" as one phrase — and shrinks/truncates so it
+              never crowds the right-side time-to-act. Dropped on the narrow map
+              rail — the source link lives on the detail's Source card. */}
+          {!narrow ? (
+            <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
+          ) : null}
 
-            {/* SOURCE — 2026-06-21 (Yuqi /alerts #6 "separate the change-type and
-              the source; source at the right-most, before the time"): the source
-              link leaves the left identity cluster (where it sat beside the
-              change-kind) and parks on the RIGHT, immediately before the
-              timestamp — the head now reads "<kind of change>" on the left and
-              "<from where> · <when>" on the right. Shrinks + truncates so a long
-              source never shoves the time off. Dropped in compact (map
-              navigator) rows — the source lives in the detail there (#4). */}
-            {!compact ? (
-              <AlertSourceLink
-                source={alert.source}
-                sourceUrl={alert.sourceUrl}
-                withTooltip
-                className="max-w-[200px] shrink"
-              />
-            ) : null}
+          {/* Spacer NdGpw (fill_container) */}
+          <span className="flex-1" aria-hidden />
 
-            {/* Wall-clock + unread dot — relocated here from the removed left
+          {/* Wall-clock + unread dot — relocated here from the removed left
               wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
               content stays flush-left with the date band while the "when it
               arrived" + unread cue keep a home. Only when there's no date rail
               (day-grouped) and not compact; the dot reserves its slot when read
               so the times stay aligned across rows. */}
-            {!compact && !showRailDate ? (
-              <span className="flex shrink-0 items-center gap-1.5">
-                <span
-                  className={cn(
-                    'size-1.5 shrink-0 rounded-full',
-                    // Unseen marker → bright highlight tier (--color-brand-highlight).
-                    unread ? 'bg-brand-highlight' : 'bg-transparent',
+          {!compact && !showRailDate ? (
+            <span className="flex shrink-0 items-center gap-1.5">
+              <span
+                className={cn(
+                  'size-1.5 shrink-0 rounded-full',
+                  // Unseen marker → bright highlight tier (--color-brand-highlight).
+                  unread ? 'bg-brand-highlight' : 'bg-transparent',
+                )}
+                aria-hidden
+              />
+              <Tooltip>
+                <TooltipTrigger
+                  render={(props) => (
+                    <span
+                      className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
+                      {...props}
+                    >
+                      {absoluteTime}
+                    </span>
                   )}
-                  aria-hidden
                 />
-                <Tooltip>
-                  <TooltipTrigger
-                    render={(props) => (
-                      <span
-                        className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
-                        {...props}
-                      >
-                        {absoluteTime}
-                      </span>
-                    )}
-                  />
-                  <TooltipContent>
-                    {railDate} · {railRelative}
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-            ) : null}
-          </div>
+                <TooltipContent>
+                  {railDate} · {railRelative}
+                </TooltipContent>
+              </Tooltip>
+            </span>
+          ) : null}
 
           {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
               "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
               row's only red, this tag just says how long is left. Hidden for
               far-out / no-deadline alerts (proximityTimeTag → null). */}
-          {!compact && timeTag ? (
+          {timeTag ? (
             <span className="shrink-0 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
               {timeTag}
             </span>
@@ -667,10 +657,8 @@ function PulseAlertRow({
 
           {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
               the smart-priority reason inset below. Only renders when
-              the alert carries priority-queue reasons. Dropped in compact
-              (map navigator) rows — priority reasoning belongs to the full
-              list + detail, not the at-a-glance navigator (Yuqi /alerts #4). */}
-          {!compact && showPriority ? (
+              the alert carries priority-queue reasons. */}
+          {showPriority ? (
             <button
               type="button"
               onClick={(event) => {
@@ -720,12 +708,7 @@ function PulseAlertRow({
           // row + heavier than the 12px meta) but no longer shouts, and it now
           // matches the deadline row weight for list-to-list cohesion. If this
           // reads flat, the lever is weight (→ semibold), not size.
-          className={cn(
-            'line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium',
-            // Awareness-digest rows demote the title to secondary ink (still
-            // AA-readable) so the FYI stream reads quieter than the queue.
-            muted ? 'text-text-secondary' : 'text-text-primary',
-          )}
+          className="line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium text-text-primary"
           title={alert.title}
         >
           {alert.title}
@@ -787,7 +770,7 @@ function PulseAlertRow({
             chip per scoring reason ("+30 · A preparer asked about
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
-        {!compact && showPriority && whyOpen && priority ? (
+        {showPriority && whyOpen && priority ? (
           <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
@@ -824,12 +807,19 @@ function PulseAlertRow({
             explicitly). The hover Dismiss/Review cluster floats separately (below)
             so a no-impact row carries no empty shelf at rest. */}
         {impacted > 0 ? (
-          // 2026-06-21 (design-critique): dropped the hard `border-t` + extra
-          // top padding — for a single "Affects N clients" line it read as a
-          // heavy separate footer block (rows measured 133px). The parent
-          // `gap-2` already spaces it; it now sits as a quiet footer line.
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm">
+            {/* On the wide list the reach line answers triage question #1 in the
+                loud form (primary ink). On the narrow map rail it reads in a
+                calm secondary tone instead — it's now the line that CARRIES
+                reach (the High-impact chip dropped off line one there), and the
+                tight column wants one quiet meta, not a second bold signal
+                fighting the title + urgency tag above it. */}
+            <span
+              className={cn(
+                'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium',
+                narrow ? 'text-text-secondary' : 'text-text-primary',
+              )}
+            >
               <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
@@ -949,10 +939,11 @@ function PulseAlertList({
   onToggleSelected,
   priorityById,
   compact,
+  narrow = false,
   grouped = true,
   highImpactIds,
   showAction = true,
-  muted = false,
+  className,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
@@ -968,6 +959,13 @@ function PulseAlertList({
    * from `openAlertId` (a row is compact while the detail panel is up).
    */
   compact?: boolean
+  /**
+   * 2026-06-23: passthrough to every row's `narrow` — true ONLY for the
+   * map view's narrow (~460px) navigator rail. Trims each row's head line
+   * to the urgency tier + due/lateness tag and calms the affects-N-clients
+   * meta. The wide list never sets it.
+   */
+  narrow?: boolean
   /**
    * Bulk-selection wiring. When `selectable`, every row grows a leading
    * checkbox and the list renders the "Select all · N dispatches"
@@ -996,8 +994,12 @@ function PulseAlertList({
    * true.
    */
   showAction?: boolean
-  /** Render every row `muted` (the awareness-digest demotion). */
-  muted?: boolean
+  /**
+   * Optional passthrough merged onto the list frame's outermost element.
+   * Used by /alerts to crossfade the list in on the list⇄map view toggle
+   * (opacity-only, layout-safe).
+   */
+  className?: string
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -1055,7 +1057,7 @@ function PulseAlertList({
         priority={priorityById?.get(alert.id)}
         highImpact={highImpactIds?.has(alert.id) ?? false}
         showAction={showAction}
-        muted={muted}
+        narrow={narrow}
         // Day-grouped lists: the band owns the date, rows show time only
         // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
         showRailDate={!grouped}
@@ -1064,13 +1066,12 @@ function PulseAlertList({
   )
 
   return (
-    // List frame — rounded-12 white surface, NO border stroke.
-    // 2026-06-12 (Yuqi /alerts #1 "hide the border"): the outer
-    // border-divider-regular is dropped; the rounded encapsulation
-    // survives via the clipped gray day-group bands at the frame's top
-    // corners and the row hairlines inside. (/today + /deadlines tables
-    // keep the bordered canonical frame — they're column tables; this is
-    // a card-list registry.)
+    // List frame — rounded-12 white surface WITH a hairline border.
+    // 2026-06-23 (Yuqi "the alert list needs left and right border"): the outer
+    // `border-divider-regular` is back — it frames the card so the full-bleed
+    // colored day bands and padded rows read as one bounded table (the same
+    // canonical frame /today + /deadlines use). (Supersedes the 2026-06-12
+    // "hide the border" pass.)
     // `overflow-clip` (not -hidden) clips the full-bleed day bands to the
     // rounded frame WITHOUT creating a scroll container — position:sticky
     // on the day bands (Yuqi #7) dies inside overflow-hidden but survives
@@ -1079,7 +1080,12 @@ function PulseAlertList({
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls.
-    <div className="flex shrink-0 flex-col overflow-clip rounded-xl bg-background-default">
+    <div
+      className={cn(
+        'flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default',
+        className,
+      )}
+    >
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
@@ -1096,14 +1102,16 @@ function PulseAlertList({
 
           return (
             <div key={dayKey} className="flex flex-col">
-              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
-                    a faint band: "MAY 20, 2026". No weekday, count, or icon —
-                    the date is the section marker. Sticky below the toolbar
-                    (top-12) so "when" stays answered while a day's rows scroll
-                    under it; requires the frame's overflow-clip. The faint
-                    `bg-background-subtle` fill (matching aUZTy) gives a clean
-                    section break without the busier label competing with rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle py-2">
+              {/* Day header — a quiet uppercase date eyebrow: "MAY 20, 2026". No
+                    weekday, count, or icon — the date is the section marker.
+                    Sticky below the toolbar (top-12) so "when" stays answered
+                    while a day's rows scroll under it; requires the frame's
+                    overflow-clip. A `bg-background-subtle` fill (Yuqi 2026-06-23
+                    "the date header row needs colour") gives the band a tint that
+                    reads as a section break inside the bordered frame, and stays
+                    opaque so rows mask cleanly as they scroll under it. Thin
+                    (py-1.5), padded to the row content edge (px-5). */}
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
@@ -1121,22 +1129,12 @@ function PulseAlertList({
                       for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
                     }}
                     aria-label={t`Select all alerts on ${label}`}
-                    className={cn(
-                      'size-[18px] rounded transition-opacity',
-                      selectionActive
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
-                    )}
+                    // Always visible, matching the row checkboxes (Yuqi: checkbox
+                    // always showing).
+                    className="size-4 rounded"
                   />
                 ) : null}
-                {/* 2026-06-21 (Yuqi /alerts #7 "same colour + size as today's
-                    table header?"): yes on colour (bg-background-subtle band +
-                    text-text-tertiary) — but the label was text-xs (12px) /
-                    eyebrow-tracking while /today's ActionsTable header is the
-                    canonical `text-column-label` token (11px / 600 / +0.5px).
-                    Switched to the same token so the two surfaces' group bands
-                    read identically. */}
-                <span className="text-column-label text-text-tertiary uppercase tabular-nums">
+                <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
                   {label}
                 </span>
               </div>

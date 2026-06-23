@@ -2,9 +2,9 @@ import type { LandingCopy } from './types'
 
 const en: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — See deadline risk before it becomes a missed filing',
+    title: 'DueDateHQ — Catch every tax-deadline change and see who it affects',
     description:
-      'Glass-box deadline intelligence for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source.',
+      'Deadline-change monitoring for US CPA practices. DueDateHQ catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
     ogImage: '/og/home.en.png',
   },
   nav: {
@@ -26,18 +26,18 @@ const en: LandingCopy = {
     eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
     title: 'See deadline risk before it becomes a missed filing.',
     description:
-      'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
+      'DueDateHQ is the deadline-monitoring workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first workbench built for the Monday 5-minute triage.',
     positioning:
-      "It's the deadline-and-rule-change radar that sits on top of your Drake, UltraTax, or TaxDome — replacing the Excel-and-Outlook patchwork you use to catch what they miss, not your stack.",
-    primaryCta: 'Open the workbench',
+      "It's deadline-and-rule-change monitoring that sits on top of your Drake, UltraTax, or TaxDome — replacing the Excel-and-Outlook patchwork you use to catch what they miss, not your stack.",
+    primaryCta: 'Start free',
     secondaryCta: 'See the workflow',
     demoCta: 'Try a live demo',
     trust: [
-      { label: 'Radar on top of your stack' },
+      { label: 'Watches your stack' },
       { label: 'No black-box AI' },
       { label: 'Cites every number' },
       { label: 'Keyboard-first' },
-      { label: '24h Alert SLA' },
+      { label: 'Around the clock' },
     ],
     surface: {
       breadcrumb: { workbench: 'Workbench', dashboard: 'Today', week: 'This week' },
@@ -55,7 +55,7 @@ const en: LandingCopy = {
         cta: 'Review',
       },
       metric: {
-        eyebrow: 'DEADLINE RADAR · THIS WEEK',
+        eyebrow: 'DEADLINE MONITOR · THIS WEEK',
         range: 'Apr 25 — May 01',
         value: '12',
         delta: '+3 vs last Mon',
@@ -198,7 +198,7 @@ const en: LandingCopy = {
         value: '30',
         unit: 'sec',
         description:
-          'See this week’s 5 most urgent clients on the Monday console. Deadline Radar loads instantly — your Monday triage queue is ready before you are.',
+          'See this week’s 5 most urgent clients on the Monday workbench. The deadline monitor loads instantly — your Monday triage queue is ready before you are.',
       },
       {
         ruleNumber: 'RULE 00',
@@ -286,14 +286,14 @@ const en: LandingCopy = {
   workflow: {
     eyebrow: 'THE WORKFLOW',
     index: '02',
-    title: 'Triage. Migrate. Verify. Three surfaces, one console.',
+    title: 'Triage. Migrate. Verify. Three slices, one workbench.',
     paragraph:
       'DueDateHQ is built around three product rules: every action lives on the keyboard, every number is mono-tabular, every AI output cites its source. Below: three slices of the actual workbench.',
     steps: [
       {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
-        headline: 'The Monday console.',
+        headline: 'The Monday workbench.',
         body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority ranks by days remaining, evidence completeness, and alert status — no AI in the triage path.',
         hints: [
           { keys: '⌘K', label: 'Command' },
@@ -507,10 +507,10 @@ const en: LandingCopy = {
         body: 'Federal, all 50 states, and DC — official tax authorities (IRS, FTB, state DORs) organized into one source-backed rule library.',
       },
       {
-        label: 'ALERT SLA',
+        label: 'MONITORING',
         value: '24',
-        unit: 'h',
-        body: 'From source publication to in-app banner + email digest, with the affected client list pre-computed.',
+        unit: '/7',
+        body: 'Sources scanned around the clock — when one publishes a change, it reaches an in-app banner + email digest with the affected client list pre-computed.',
       },
       {
         label: 'BLACK-BOX SUGGESTIONS',
@@ -535,9 +535,9 @@ const en: LandingCopy = {
   finalCta: {
     pill: '30 sec / Monday triage',
     pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
-    title: 'Open the workbench. Let the sources speak.',
+    title: 'Start free. Let the sources speak.',
     body: 'Start with a trial or demo workspace, then keep the practice live on Solo when the first source-backed queue is ready. No native app. Sign in with Google and the first deadline review appears within ten minutes of your first paste.',
-    primaryCta: 'Open the workbench',
+    primaryCta: 'Start free',
     secondaryCta: 'Contact sales',
     trust: 'trial available · cancel anytime',
   },
@@ -551,21 +551,21 @@ const en: LandingCopy = {
     navPricingHref: '/pricing',
     hero: {
       eyebrow: 'PRICING',
-      title: 'Pay for the deadline risk you can actually see.',
+      title: 'Free during the beta. Honest tiers after launch.',
       description:
-        'Start free with one practice, then move up to Solo, Pro, or Team as you add clients and the practice needs shared deadline operations.',
-      note: 'Trial/demo workspace available · DueDateHQ never stores card numbers',
+        'DueDateHQ watches IRS, all 50 states, and FEMA so your firm catches every deadline move and knows exactly which clients it hits. Every plan is free to run today; the prices below are what each tier will cost once we leave beta, so you can size the plan that fits as your client count and team grow.',
+      note: 'Free for every plan during the beta · sign in with Google · we never store card numbers',
     },
     plansHeader: {
       eyebrow: 'PLANS',
-      title: 'Choose the plan that matches your practice.',
-      note: 'USD PRICING · OWNER-APPROVED UPGRADES',
+      title: 'Priced by how many clients you watch.',
+      note: 'POST-BETA PRICING · FREE TO RUN TODAY · USD · BILLED TO THE PRACTICE OWNER · CANCEL ANYTIME',
     },
     billingToggle: {
       ariaLabel: 'Billing interval',
       monthly: 'Monthly',
       yearly: 'Yearly',
-      yearlyBadge: 'Save about 20%',
+      yearlyBadge: 'Save 20%',
     },
     plans: [
       {
@@ -575,17 +575,17 @@ const en: LandingCopy = {
         priceKind: 'numeric',
         cadence: '/ month',
         yearlyCadence: '/ month',
-        description: 'Starter monitoring for one owner.',
+        description: 'Watch your first 10 clients, free forever.',
         clients: 'Up to 10 clients',
         firms: '1 practice workspace',
         seats: '1 seat',
-        cta: 'Get started',
+        cta: 'Start free',
         hrefKind: 'app',
         features: [
-          'Alert: live alerts and source rules',
+          'Monitoring: live IRS + state change alerts',
+          'Evidence: official source on every date',
           'History: 30-day alert window',
-          'Workflow: one-seat manual review',
-          'Controls: manual changes only',
+          'Apply: one owner, manual review',
         ],
       },
       {
@@ -595,8 +595,8 @@ const en: LandingCopy = {
         priceKind: 'numeric',
         cadence: '/ month',
         yearlyCadence: '/ mo, billed yearly',
-        yearlySavings: 'Save $96/year',
-        description: 'Full-history monitoring for one owner.',
+        yearlySavings: 'Save $96 a year',
+        description: 'Full monitoring for a one-owner practice.',
         clients: 'Up to 100 clients',
         firms: '1 practice workspace',
         seats: '1 owner seat',
@@ -604,33 +604,33 @@ const en: LandingCopy = {
         hrefKind: 'checkout',
         checkoutPlan: 'solo',
         features: [
-          'Alert: live alerts and source rules',
-          'History: full alert record',
-          'Workflow: one-owner review',
-          'Controls: migration preview',
+          'Monitoring: live IRS + state change alerts',
+          'Evidence: official source on every date',
+          'History: complete alert record',
+          'Apply: migration preview before import',
         ],
       },
       {
         name: 'Pro',
-        badge: 'Recommended',
+        badge: 'Most popular',
         price: '$79',
         yearlyPrice: '$63',
         priceKind: 'numeric',
         cadence: '/ month',
         yearlyCadence: '/ mo, billed yearly',
-        yearlySavings: 'Save $192/year',
-        description: 'Shared operations for a small team.',
+        yearlySavings: 'Save $192 a year',
+        description: 'A shared worklist for a small team.',
         clients: 'Up to 300 clients',
         firms: '1 production practice',
         seats: '3 seats included',
-        cta: 'Upgrade to Pro',
+        cta: 'Start Pro',
         hrefKind: 'checkout',
         checkoutPlan: 'pro',
         features: [
-          'Alert: bulk alert actions',
-          'History: full alert record',
-          'Workflow: shared deadline work',
-          'Controls: guided production imports',
+          'Monitoring: bulk apply across affected clients',
+          'Evidence: official source on every date',
+          'History: complete alert record',
+          'Apply: guided production imports',
         ],
       },
       {
@@ -640,51 +640,56 @@ const en: LandingCopy = {
         priceKind: 'numeric',
         cadence: '/ month',
         yearlyCadence: '/ mo, billed yearly',
-        yearlySavings: 'Save $360/year',
-        description: 'Manager controls for a larger team.',
+        yearlySavings: 'Save $360 a year',
+        description: 'Oversight for a larger practice.',
         clients: 'Up to 1,000 clients',
         firms: '1 production practice',
         seats: '10 seats included',
-        cta: 'Upgrade to Team',
+        cta: 'Start Team',
         hrefKind: 'checkout',
         checkoutPlan: 'team',
         features: [
-          'Alert: priority alert review',
-          'History: full alert record',
-          'Workflow: manager workload insights',
-          'Controls: migration review + audit exports',
+          'Monitoring: priority alert review queue',
+          'Evidence: official source on every date',
+          'History: complete alert record',
+          'Apply: migration review + audit exports',
         ],
       },
     ],
     faqHeader: {
       eyebrow: 'FAQ',
-      title: 'Common questions about plans.',
+      title: 'Questions before you pick a plan.',
     },
     faq: [
       {
-        question: 'Who can upgrade a practice?',
+        question: 'What does "free during the beta" mean?',
         answer:
-          'Only the active practice owner can start or change a paid subscription. Member roles can review plan status but cannot make billing changes.',
+          'Every plan — Solo, Pro, and Team — is free to use while DueDateHQ is in beta. You can pick the plan that fits and run your real practice on it today, with nothing to pay until we launch. The prices shown on each tier are what that plan will cost after beta, not a charge today.',
+      },
+      {
+        question: 'Which plan should I start on?',
+        answer:
+          'Match the plan to your client count: Free covers your first 10, Solo up to 100 for a one-owner practice, Pro up to 300 for a small team sharing a worklist, and Team up to 1,000 with manager oversight. You can move up at any time.',
       },
       {
         question: 'What does Pro add over Solo?',
         answer:
-          'Pro adds a three-seat shared workspace, Alerts monitoring, and the Deadlines views a small practice needs for deadline operations.',
+          'Pro turns a single-owner workspace into a shared one: three seats, bulk apply across every affected client, and the shared deadline worklist a small team works from together.',
       },
       {
         question: 'When should I choose Team?',
         answer:
-          'Team is for one practice that needs up to ten seats and a larger operating group, but does not need multiple active practices.',
+          'Team fits one practice that needs up to ten seats, a priority alert review queue, and manager-level audit exports — without running multiple separate practices.',
       },
       {
-        question: 'Can I keep using Solo?',
+        question: 'Who handles billing, and can I cancel?',
         answer:
-          'Yes. Solo is the paid single-owner plan for one live practice. Trial and demo practices stay separate from production billing.',
+          'Only the practice owner can start or change a paid plan; members can see plan status but make no billing changes. There is no contract — cancel anytime, and we never store your card number.',
       },
       {
-        question: 'Can I create multiple practices?',
+        question: 'Can I run more than one practice?',
         answer:
-          'Solo, Pro, and Team each include one active practice. For additional practices, offices, or demo/production separation, contact our team about a multi-practice plan.',
+          'Solo, Pro, and Team each include one active practice. For additional practices, separate offices, or demo/production separation, contact us about a multi-practice plan.',
       },
     ],
   },
@@ -692,11 +697,11 @@ const en: LandingCopy = {
     structuredData: {
       organizationName: 'DueDateHQ',
       organizationDescription:
-        'DueDateHQ builds glass-box deadline intelligence software for US CPA practices.',
+        'DueDateHQ builds deadline-change monitoring software for US CPA practices, catching when an IRS, state, or FEMA deadline moves and showing which clients it affects.',
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
-        'A source-backed deadline intelligence workbench for CPA practices managing filing risk, state updates, evidence review, and shared deadline operations.',
+        'Deadline-change monitoring for CPA practices: it catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
       audience: 'US CPA practices',
     },
     rules: {
@@ -1375,7 +1380,7 @@ const en: LandingCopy = {
         'This DueDateHQ public page is not available. Return to the homepage or review pricing.',
       ogImage: '/og/home.en.png',
     },
-    eyebrow: '404 · PUBLIC PAGE NOT FOUND',
+    eyebrow: '404 · Public page not found',
     title: 'This page is not available.',
     body: 'The public marketing site only serves published DueDateHQ pages. You can return to the homepage, review pricing, or open the app if you were trying to reach your workbench.',
     primaryCta: 'Return home',
@@ -1385,6 +1390,7 @@ const en: LandingCopy = {
     routesLabel: 'PUBLISHED PATHS',
     routes: [
       { label: 'Homepage', href: '/' },
+      { label: 'How it works', href: '/how-it-works' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Open the workbench', href: 'app' },
     ],
@@ -1423,7 +1429,6 @@ const en: LandingCopy = {
       {
         title: 'COMPANY',
         links: [
-          { label: 'About', href: '/about' },
           { label: 'Security', href: '/security' },
           { label: 'Privacy', href: '/privacy' },
           { label: 'Terms', href: '/terms' },

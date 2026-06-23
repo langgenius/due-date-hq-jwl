@@ -110,7 +110,10 @@ function AlertsNotificationsBell() {
   )
   const markAllReadMutation = useMutation(
     orpc.notifications.markAllRead.mutationOptions({
-      onSuccess: invalidate,
+      onSuccess: () => {
+        invalidate()
+        toast.success(t`All notifications marked read`)
+      },
       onError: onMutationError,
     }),
   )

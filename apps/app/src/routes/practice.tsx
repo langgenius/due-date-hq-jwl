@@ -276,10 +276,15 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     orpc.firms.softDeleteCurrent.mutationOptions({
       onSuccess: (result) => {
         void resetPracticeScopedQueryCache(queryClient)
+        toast.success(t`Practice deleted`)
         void navigate(result.nextFirmId ? '/' : '/onboarding', { replace: true })
       },
       onError: (err) => {
-        setError(err.message || t`Couldn't delete practice`)
+        const message = err.message || t`Couldn't delete practice`
+        setError(message)
+        toast.error(t`Couldn't delete practice`, {
+          description: message,
+        })
       },
     }),
   )

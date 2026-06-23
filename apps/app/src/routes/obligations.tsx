@@ -12,13 +12,7 @@ import {
   type Updater,
   type VisibilityState,
 } from '@tanstack/react-table'
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
@@ -44,6 +38,8 @@ import {
   CalendarClockIcon,
   CheckIcon,
   LayersIcon,
+  LayoutGridIcon,
+  ListIcon,
   ListChecksIcon,
   BookmarkIcon,
   RotateCcwIcon,
@@ -98,6 +94,7 @@ import {
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
@@ -173,6 +170,7 @@ import {
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -221,6 +219,7 @@ import {
   DETAIL_PANEL_CONTENT_ENTER_ANIM,
   DETAIL_PANEL_CONTENT_EXIT_ANIM,
 } from '@/features/obligations/queue/constants'
+import { DeadlineCardGrid } from '@/features/obligations/queue/DeadlineCardGrid'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -231,6 +230,20 @@ import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/quer
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn, formatDate, formatDatePretty } from '@/lib/utils'
+
+// /deadlines leads with the signature CARD view (urgency lanes) and demotes
+// the registry table to a toggle, mirroring /clients. The choice persists
+// per-browser; cards is the default — the table is opt-in.
+type DeadlinesViewMode = 'cards' | 'table'
+const DEADLINES_VIEW_STORAGE_KEY = 'duedatehq.deadlines-view'
+function readStoredDeadlinesView(): DeadlinesViewMode {
+  if (typeof window === 'undefined') return 'cards'
+  try {
+    return window.localStorage.getItem(DEADLINES_VIEW_STORAGE_KEY) === 'table' ? 'table' : 'cards'
+  } catch {
+    return 'cards'
+  }
+}
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -324,10 +337,43 @@ const THIS_WEEK_MAX_DAYS = 7
 //   Total ≈ 90px. Set to 96 for breathing room.
 const INSIDE_CHROME_PX = 96
 
+type ObligationListStatusCachePage = Pick<ObligationQueueListOutput, 'rows'>
+
+function hasStatusPatchableRows(value: unknown): value is ObligationListStatusCachePage {
+  return value !== null && typeof value === 'object' && 'rows' in value && Array.isArray(value.rows)
+}
+
+function hasStatusPatchablePages(value: unknown): value is { pages: unknown[] } {
+  return (
+    value !== null && typeof value === 'object' && 'pages' in value && Array.isArray(value.pages)
+  )
+}
+
 function computeResponsivePageSize(containerHeight: number): number {
   const usable = Math.max(0, containerHeight - INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
   return Math.max(CLIENT_PAGE_SIZE_MIN, Math.min(CLIENT_PAGE_SIZE_MAX, fit || CLIENT_PAGE_SIZE_MIN))
+}
+
+function patchStatusInListCache(
+  data: unknown,
+  obligationId: string,
+  status: ObligationStatus,
+): unknown {
+  const patchRows = (output: ObligationListStatusCachePage): ObligationListStatusCachePage => ({
+    ...output,
+    rows: output.rows.map((row) => (row.id === obligationId ? { ...row, status } : row)),
+  })
+  if (hasStatusPatchablePages(data)) {
+    return {
+      ...data,
+      pages: data.pages.map((page) => (hasStatusPatchableRows(page) ? patchRows(page) : page)),
+    }
+  }
+  if (hasStatusPatchableRows(data)) {
+    return patchRows(data)
+  }
+  return data
 }
 
 // Uses a callback-ref shape (not a `React.RefObject`): the hook returns a
@@ -1067,6 +1113,18 @@ export function ObligationQueueRoute() {
   // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
   // impossible without "is this mine."
   const currentUserName = useCurrentUserName()
+  // Card (signature, default) vs table (registry) view, persisted per-browser.
+  const [deadlinesViewMode, setDeadlinesViewModeState] =
+    useState<DeadlinesViewMode>(readStoredDeadlinesView)
+  const setDeadlinesViewMode = useCallback((next: DeadlinesViewMode) => {
+    setDeadlinesViewModeState(next)
+    try {
+      window.localStorage.setItem(DEADLINES_VIEW_STORAGE_KEY, next)
+    } catch {
+      // Storage can be unavailable (private mode / sandbox); in-memory state
+      // still drives the current session.
+    }
+  }, [])
   // Hover-revealed peek affordance on the Client cell — same pattern as
   // `/clients` row peek (see ClientFactsWorkspace.tsx). Lets you glance into
   // the client without leaving the queue or swapping the obligation drawer's
@@ -1502,26 +1560,15 @@ export function ObligationQueueRoute() {
       onMutate: async (input) => {
         await queryClient.cancelQueries({ queryKey: orpc.obligations.list.key() })
         await queryClient.cancelQueries({ queryKey: orpc.obligations.getDetail.key() })
-        const previousLists = queryClient.getQueriesData<InfiniteData<ObligationQueueListOutput>>({
+        const previousLists = queryClient.getQueriesData({
           queryKey: orpc.obligations.list.key(),
         })
         const previousDetails = queryClient.getQueriesData<ObligationQueueDetail>({
           queryKey: orpc.obligations.getDetail.key(),
         })
-        queryClient.setQueriesData<InfiniteData<ObligationQueueListOutput>>(
+        queryClient.setQueriesData<unknown>(
           { queryKey: orpc.obligations.list.key() },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  pages: data.pages.map((page) => ({
-                    ...page,
-                    rows: page.rows.map((r) =>
-                      r.id === input.id ? { ...r, status: input.status } : r,
-                    ),
-                  })),
-                }
-              : data,
+          (data: unknown) => patchStatusInListCache(data, input.id, input.status),
         )
         queryClient.setQueriesData<ObligationQueueDetail>(
           { queryKey: orpc.obligations.getDetail.key() },
@@ -1940,6 +1987,7 @@ export function ObligationQueueRoute() {
     // of the same group cluster naturally.
     const urgencyBandLabels: Record<UrgencyBand, string> = {
       overdue: t`Overdue`,
+      today: t`Today`,
       this_week: t`This week`,
       upcoming: t`Upcoming`,
     }
@@ -2709,9 +2757,10 @@ export function ObligationQueueRoute() {
           if (obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed') {
             secondaryStatusLabels.push(t`Accepted`)
           }
-          if (paymentLateDays !== null) {
-            secondaryStatusLabels.push(t`Payment due`)
-          }
+          // Payment-overdue is NOT folded into the secondary line anymore — it
+          // now renders as the amber `$` glyph on the badge row (matching
+          // DeadlineCardGrid), so a text "Payment due" entry here would
+          // double-signal the same fact (one home per fact).
           return (
             // The Status cell can stack a pill + several signal badges
             // (payment-late / awaiting-signature / accepted). Bound the cell
@@ -2778,16 +2827,20 @@ export function ObligationQueueRoute() {
                     <Trans>Accepted</Trans>
                   </Badge>
                 ) : null}
+                {/* Payment-overdue signal — the quiet amber `$` glyph, matched
+                  to DeadlineCardGrid so the card + table reads identically (the
+                  same `paymentOverdueDays` predicate, `text-text-warning` tone,
+                  size-4 icon, title tooltip). Shown in BOTH the compact panel-
+                  open layout and the full table row (it was previously omitted
+                  in the table, leaving only the secondary "Payment due" line). */}
                 {paymentLateDays !== null ? (
-                  panelOpenIntent ? (
-                    <span
-                      title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
-                      aria-label={t`Payment ${paymentLateDays}d late`}
-                      className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
-                    >
-                      <CircleDollarSignIcon className="size-4" aria-hidden />
-                    </span>
-                  ) : null
+                  <span
+                    title={t`Authority payment ${paymentLateDays}d overdue — penalty interest accrues until it's confirmed.`}
+                    aria-label={t`Payment ${paymentLateDays} days overdue`}
+                    className="inline-flex size-5 shrink-0 items-center justify-center text-text-warning"
+                  >
+                    <CircleDollarSignIcon className="size-4" aria-hidden />
+                  </span>
                 ) : null}
                 {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                   <BlockedByChip
@@ -3022,8 +3075,10 @@ export function ObligationQueueRoute() {
         label: t`Total tracked`,
         value: scopeTotal,
         // Anchor stat — orients, never an always-on accent (StatBand color
-        // budget: a "Total" stays neutral).
+        // budget: a "Total" stays neutral). Click resets every filter.
         sub: t`all deadlines`,
+        onClick: () => void setObligationQueueQuery(null),
+        ariaLabel: t`Show all deadlines`,
       },
       {
         key: 'overdue',
@@ -3033,6 +3088,9 @@ export function ObligationQueueRoute() {
         // warning-toned zero never flags a problem that doesn't exist.
         sub: overdue > 0 ? t`needs action` : t`all on time`,
         subClass: overdue > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+        onClick: () =>
+          void setObligationQueueQuery({ due: 'overdue', dueWithin: null, status: null }),
+        ariaLabel: t`Filter to overdue deadlines`,
       },
       {
         key: 'this-week',
@@ -3044,71 +3102,37 @@ export function ObligationQueueRoute() {
         // due-this-week is upcoming workload, so it reads neutral like In review
         // / Filed (color-only-serves-risk + calm-on-dense canon).
         sub: dueThisWeek > 0 ? t`next 7 days` : t`none due`,
+        onClick: () => void setObligationQueueQuery({ dueWithin: 7, due: null, status: null }),
+        ariaLabel: t`Filter to deadlines due this week`,
       },
       {
         key: 'in-review',
         label: t`In review`,
         value: inReview,
         sub: t`being prepared`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.review],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to in-review deadlines`,
       },
       {
         key: 'filed',
         label: t`Filed`,
         value: filed,
         sub: t`this period`,
+        onClick: () =>
+          void setObligationQueueQuery({
+            status: [...LIFECYCLE_V2_STATUS_SETS.done],
+            due: null,
+            dueWithin: null,
+          }),
+        ariaLabel: t`Filter to filed deadlines`,
       },
     ]
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
-  // Proportion bar for the StatBand — a thin visual echo of the portfolio mix
-  // BELOW the cells (no legend; the cells already label the counts). Restrained
-  // 3-tone register only (green filed / red overdue / neutral in-flight), per
-  // the StatBand color budget — NOT one segment per status. Every value traces
-  // to the SAME real aggregates the cells use: `filed` = LIFECYCLE_V2 done set,
-  // `overdue` from the glance narrative, in-flight = everything not yet settled
-  // and not late (scopeTotal − filed − overdue: not-started + waiting + blocked
-  // + in-review + due-this-week, all rolled into one neutral lane). No
-  // period-over-period / trend data exists, so the bar shows only the present
-  // mix — never a delta. Returns no bar when the portfolio is empty (the band
-  // already renders the empty case).
-  const statBandProportion = useMemo(() => {
-    if (scopeTotal <= 0) return undefined
-    const sumStatuses = (statuses: readonly ObligationStatus[]) =>
-      statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
-    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
-    const { overdue } = deadlinesNarrative
-    // Clamp so a transient skew between facets (filed) and glance (overdue)
-    // can never produce a negative width.
-    const inFlight = Math.max(0, scopeTotal - filed - overdue)
-    return {
-      segments: [
-        {
-          key: 'filed',
-          value: filed,
-          // Settled / green — the "done" lane (done + paid).
-          toneClass: 'bg-state-success-solid',
-          label: t`filed`,
-        },
-        {
-          key: 'overdue',
-          value: overdue,
-          // The band's only red — genuine risk, matching the Overdue cell.
-          toneClass: 'bg-state-destructive-solid',
-          label: t`overdue`,
-        },
-        {
-          key: 'in-flight',
-          value: inFlight,
-          // Neutral gray — everything in progress (not-started, waiting,
-          // blocked, in-review, due-this-week). One quiet lane, not five colors.
-          toneClass: 'bg-state-base-handle',
-          label: t`in progress`,
-        },
-      ],
-      // Plain-string summary for the bar's aria-label. Trans-free: built with
-      // `t` so the translatable string lives here, not in the shared band.
-      ariaLabel: t`Portfolio mix: ${filed} filed, ${overdue} overdue, ${inFlight} in progress`,
-    }
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t])
+  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t, setObligationQueueQuery])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
@@ -3116,7 +3140,8 @@ export function ObligationQueueRoute() {
   const scopeStatusSet = useCallback(
     (status: ObligationStatus): readonly ObligationStatus[] =>
       lifecycleV2 && status in LIFECYCLE_V2_STATUS_SETS
-        ? LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
+        ? // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by the `in` check on the line above
+          LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
         : [status],
     [lifecycleV2],
   )
@@ -3529,7 +3554,11 @@ export function ObligationQueueRoute() {
         // matches /today's vertical breathing room at standard viewport
         // heights; the `xl:pb-0` override below keeps the pagination footer
         // flush at tall viewports where the queue fills the screen.
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12',
+        // gap-6 (was gap-8): 32px between every top block stacked into a
+        // space-wasteful header. gap-6 (24px) matches /alerts so the two pages
+        // share one density rhythm; combined with the slim editorial line + the
+        // trimmed eyebrow, the table rises well up the fold.
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12',
         // The xl height-cap + overflow-hidden (which turns the queue into an
         // inner-table scroll) applies ONLY when the detail panel is open — the
         // side-by-side split needs a full-height rail. With the panel closed
@@ -3556,10 +3585,6 @@ export function ObligationQueueRoute() {
           <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-text-tertiary">
             <Trans>Synced just now</Trans>
             <RefreshCwIcon className="size-3 shrink-0" aria-hidden />
-            <span aria-hidden>·</span>
-            <span className="tabular-nums">
-              <Plural value={scopeTotal} one="# deadline tracked" other="# deadlines tracked" />
-            </span>
           </span>
         }
         title={
@@ -3667,23 +3692,6 @@ export function ObligationQueueRoute() {
         }
       />
 
-      {/* Portfolio summary band — the shared StatBand "card summary" that also
-          drives /clients, /rules/sources, /rules/library, and /alerts/history.
-          It sits ALONGSIDE the narrative banner, not in place of it: the band
-          is multi-dimensional triage cells (tracked · overdue · due this week ·
-          in review · filed), the banner below is the one editorial sentence.
-          Hidden while a detail panel is open so the split view keeps its
-          vertical budget for the table, matching the banner. */}
-      {!panelOpenIntent ? (
-        <StatBand
-          stats={statBandCells}
-          loading={glanceQuery.isLoading || facetsQuery.isLoading}
-          ariaLabel={t`Deadlines portfolio summary`}
-          proportionBar={statBandProportion?.segments}
-          proportionBarLabel={statBandProportion?.ariaLabel}
-        />
-      ) : null}
-
       {/* A single narrative banner — an editorial read of where the week
           stands (eyebrow date + one headline + a metric line). Derived from
           the loaded glance page + client facet. Hidden while a detail panel is
@@ -3691,32 +3699,20 @@ export function ObligationQueueRoute() {
       {!panelOpenIntent && !glanceDismissed ? (
         <section
           aria-label={t`Deadlines at a glance`}
-          // Tight px-5/py-3.5 + 4px stack with a text-lg headline so the
-          // eyebrow/headline/metric trio reads as one compact editorial block,
-          // not a hero. `relative` + `pr-9` host the dismiss button without
-          // overlapping the metric line.
-          className="relative flex flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-4 pr-9"
+          // Slim ONE-LINE editorial strip — was a bordered card (px-5 py-4 +
+          // border + fill), wasteful for a single sentence. Now: accent dot +
+          // date eyebrow + the one-line read + inline dismiss, no card chrome, so
+          // the table rises ~70px. The StatBand below owns the numeric triage.
+          className="flex items-center gap-2.5"
         >
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            type="button"
-            onClick={dismissGlance}
-            aria-label={t`Dismiss at-a-glance summary`}
-            // size-7 hit area — kept in sync with the /today Daily Brief ✕
-            // (brief-banner-language.md keep-in-sync checklist).
-            className="absolute right-2 top-2 size-7"
-          >
-            <XIcon className="size-3.5" aria-hidden />
-          </Button>
-          <CapsFieldLabel as="div" variant="group" className="inline-flex items-center gap-2">
-            <span
-              className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
-              aria-hidden
-            />
+          <span className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt" aria-hidden />
+          <CapsFieldLabel as="span" variant="group" className="shrink-0">
             {bannerDateLabel}
           </CapsFieldLabel>
-          <h2 className="max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
+          <span aria-hidden className="shrink-0 text-text-tertiary">
+            ·
+          </span>
+          <p className="min-w-0 flex-1 truncate text-sm leading-snug text-text-primary">
             {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
               <Trans>
                 {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today —
@@ -3734,25 +3730,31 @@ export function ObligationQueueRoute() {
             ) : (
               <Trans>Nothing overdue — the week is on track.</Trans>
             )}
-          </h2>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
-            <span className="tabular-nums">
-              {/* scopeTotal is every tracked deadline (incl. filed/completed),
-                  NOT the "open" count the nav/Today/Workload show. Label it
-                  "tracked", never "active" — "active" collided with "open"
-                  and made 28-vs-15 read as a contradiction (re-critique). */}
-              <Plural value={scopeTotal} one="# filing tracked" other="# filings tracked" />
-            </span>
-            <span aria-hidden>·</span>
-            <span className="tabular-nums">
-              <Plural
-                value={deadlinesNarrative.entities}
-                one="across # entity"
-                other="across # entities"
-              />
-            </span>
           </p>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            type="button"
+            onClick={dismissGlance}
+            aria-label={t`Dismiss at-a-glance summary`}
+            className="size-7 shrink-0"
+          >
+            <XIcon className="size-3.5" aria-hidden />
+          </Button>
         </section>
+      ) : null}
+
+      {/* Portfolio summary band — the shared StatBand "card summary" (also drives
+          /clients, /rules/sources, /rules/library, /alerts/history). The editorial
+          banner above is the one-sentence read of the week; this band is the
+          numeric triage. Hidden while a detail panel is open so the split view
+          keeps its vertical budget for the table. */}
+      {!panelOpenIntent ? (
+        <StatBand
+          stats={statBandCells}
+          loading={glanceQuery.isLoading || facetsQuery.isLoading}
+          ariaLabel={t`Deadlines portfolio summary`}
+        />
       ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:
@@ -3788,13 +3790,12 @@ export function ObligationQueueRoute() {
         ) : null}
         <div
           className={cn(
-            // `gap-4` (16px) so the sticky filter bar (status tabs + action
-            // chips + sort/columns) has a clearer breathing gap above the table
-            // card — separating the "controls" layer from the "data" layer so
-            // the two sections don't read as one dense band. The bulk-action
-            // toolbar is a FloatingActionBar (fixed at viewport bottom), so
-            // this gap only affects filter→table spacing.
-            'flex min-w-0 flex-1 flex-col gap-4',
+            // `gap-2` (8px, tightened again 2026-06-23 per Yuqi: "still too
+            // much gap") keeps the sticky filter bar close to the table so the
+            // controls + data read as one tight unit, not two separated bands.
+            // The bulk-action toolbar is a FloatingActionBar (fixed at viewport
+            // bottom), so this gap only affects filter→table spacing.
+            'flex min-w-0 flex-1 flex-col gap-2',
             // Reserve clearance for the floating bulk bar while a selection
             // exists, so the last rows scroll clear of the fixed bar instead of
             // being occluded. The bar only shows in full-page mode (this column
@@ -3860,7 +3861,40 @@ export function ObligationQueueRoute() {
                     <FilterTrigger
                       leadingIcon={CircleIcon}
                       active={activeScope !== 'all'}
-                      valueLabel={activeScope === 'all' ? t`All` : statusLabels[activeScope]}
+                      // The applied value reads as the SELECTED STATUS, not a
+                      // generic scope name: its canonical StatusMark glyph (own
+                      // status tone) + the status label, so the collapsed pill
+                      // (`Status │ ◐ In progress ⌄`) carries the same status
+                      // signal the dropdown rows + table cells use. "All" stays
+                      // plain text (no status to glyph).
+                      valueLabel={
+                        activeScope === 'all' ? (
+                          t`All`
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={activeScope}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[activeScope])}
+                            />
+                            {statusLabels[activeScope]}
+                          </span>
+                        )
+                      }
+                      // Reserve the value slot to the widest scope value (the
+                      // glyph + longest status label) so the pill stops resizing
+                      // when a different status scope is picked.
+                      valueOptions={[
+                        t`All`,
+                        ...visibleScopeStatuses.map((status) => (
+                          <span key={status} className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={status}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[status])}
+                            />
+                            {statusLabels[status]}
+                          </span>
+                        )),
+                      ]}
                       aria-label={t`Filter by status`}
                     >
                       <span>
@@ -3966,6 +4000,25 @@ export function ObligationQueueRoute() {
                   column-visibility menu, icon-only per the design. */}
               {panelOpenIntent ? null : (
                 <div className="ml-auto flex items-center gap-1">
+                  {/* Card ↔ table view switch — icon-only Segmented. The
+                      signature urgency-lane card grid is the default; the
+                      registry table is one toggle away. Mirrors /clients. */}
+                  <Segmented
+                    size="sm"
+                    className="mr-1 shrink-0"
+                    ariaLabel={t`View mode`}
+                    value={deadlinesViewMode}
+                    onValueChange={setDeadlinesViewMode}
+                    options={[
+                      {
+                        value: 'cards',
+                        label: null,
+                        icon: LayoutGridIcon,
+                        ariaLabel: t`Card view`,
+                      },
+                      { value: 'table', label: null, icon: ListIcon, ariaLabel: t`Table view` },
+                    ]}
+                  />
                   {/* 2026-06-15 (Yuqi "deadlines — sort by clients, main page is
                       missing sortby"): a visible Sort-by control. The list
                       already supports clustering by client/filing/urgency (the
@@ -3974,58 +4027,31 @@ export function ObligationQueueRoute() {
                       pill that names the active ordering — mirroring the detail
                       rail's "Sorted by …" control. "Client" clusters rows under
                       client headers. */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <FilterTrigger
-                          leadingIcon={LayersIcon}
-                          active={group !== DEFAULT_GROUP}
-                          valueLabel={
-                            group === 'client'
-                              ? t`Client`
-                              : group === 'filing'
-                                ? t`Filing`
-                                : group === 'urgency'
-                                  ? t`Urgency`
-                                  : t`Due date`
-                          }
-                          aria-label={t`Sort deadlines`}
-                        >
-                          <span>
-                            <Trans>Sort by</Trans>
-                          </span>
-                        </FilterTrigger>
+                  <SingleSelectFilter
+                    label={<Trans>Sort by</Trans>}
+                    ariaLabel={t`Sort deadlines`}
+                    leadingIcon={LayersIcon}
+                    value={group}
+                    active={group !== DEFAULT_GROUP}
+                    align="end"
+                    menuClassName="min-w-[180px]"
+                    options={[
+                      { value: 'due', label: t`Due date` },
+                      { value: 'urgency', label: t`Urgency` },
+                      { value: 'client', label: t`Client` },
+                      { value: 'filing', label: t`Filing` },
+                    ]}
+                    onValueChange={(next) => {
+                      if (
+                        next === 'due' ||
+                        next === 'urgency' ||
+                        next === 'client' ||
+                        next === 'filing'
+                      ) {
+                        void setObligationQueueQuery({ group: next })
                       }
-                    />
-                    <DropdownMenuContent align="end" className="min-w-[180px]">
-                      <DropdownMenuRadioGroup
-                        value={group}
-                        onValueChange={(next) => {
-                          if (
-                            next === 'due' ||
-                            next === 'urgency' ||
-                            next === 'client' ||
-                            next === 'filing'
-                          ) {
-                            void setObligationQueueQuery({ group: next })
-                          }
-                        }}
-                      >
-                        <DropdownMenuRadioItem value="due">
-                          <Trans>Due date</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="urgency">
-                          <Trans>Urgency</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="client">
-                          <Trans>Client</Trans>
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="filing">
-                          <Trans>Filing</Trans>
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    }}
+                  />
                   {/* Consolidated VIEW + ACTIONS menu. VIEW = Columns / Group
                       by / Density submenus (each trigger shows its current
                       value); ACTIONS = Export visible rows · Save current view
@@ -4314,7 +4340,10 @@ export function ObligationQueueRoute() {
                       }
                     />
                     <DropdownMenuContent align="start" className="w-64">
-                      <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                      <DropdownMenuItem
+                        disabled={bulkAssigneeMutation.isPending}
+                        onClick={() => changeSelectedAssignee(null)}
+                      >
                         <Trans>Unassigned</Trans>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -4326,6 +4355,7 @@ export function ObligationQueueRoute() {
                         assignableMembers.map((member) => (
                           <DropdownMenuItem
                             key={member.assigneeId}
+                            disabled={bulkAssigneeMutation.isPending}
                             onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
                           >
                             <span className="truncate">{member.name}</span>
@@ -4530,6 +4560,15 @@ export function ObligationQueueRoute() {
                 </Button>
               </AlertDescription>
             </Alert>
+          ) : deadlinesViewMode === 'cards' ? (
+            // Signature card view — urgency lanes (Overdue → Filed), the
+            // default. Reuses the same filtered/sorted `orderedRows` as the
+            // table; the registry table is the toggle below.
+            <DeadlineCardGrid
+              rows={orderedRows}
+              isLoading={listQuery.isLoading}
+              onOpen={(obligationId) => openQueueDetail(obligationId)}
+            />
           ) : (
             // Table + Pagination wrapped in a single bordered card
             // (`tableCardRef`). The card:
@@ -4561,6 +4600,10 @@ export function ObligationQueueRoute() {
                 // the full-page card sizes to content and never leaves a tall
                 // empty bordered rectangle on short result sets.
                 'flex flex-col rounded-xl border border-divider-regular bg-background-default',
+                // Incoming-view fade on table ⇄ cards toggle (matches
+                // DeadlineCardGrid). Opacity-only → the measured card height is
+                // unaffected; reduced-motion disables it.
+                'animate-in fade-in duration-300 ease-out motion-reduce:animate-none',
                 // Corner clipping. Full-page mode uses `overflow-clip`: it clips
                 // the gray header's rounded top corners to the card's border
                 // WITHOUT establishing a scroll container, so the page-level
@@ -4773,8 +4816,12 @@ export function ObligationQueueRoute() {
                                     groupHeader.kind === 'urgency' &&
                                       groupHeader.groupKey === 'overdue' &&
                                       'bg-state-destructive-hover',
+                                    // "Today" owns the amber act-now lane now that
+                                    // it's split out of this_week; this_week +
+                                    // upcoming stay neutral so the heat concentrates
+                                    // on the two horizons that need action today.
                                     groupHeader.kind === 'urgency' &&
-                                      groupHeader.groupKey === 'this_week' &&
+                                      groupHeader.groupKey === 'today' &&
                                       'bg-state-warning-hover',
                                   )}
                                 >
@@ -4813,7 +4860,7 @@ export function ObligationQueueRoute() {
                                             groupHeader.groupKey === 'overdue'
                                             ? 'bg-text-destructive'
                                             : groupHeader.kind === 'urgency' &&
-                                                groupHeader.groupKey === 'this_week'
+                                                groupHeader.groupKey === 'today'
                                               ? 'bg-text-warning'
                                               : 'bg-text-tertiary',
                                         )}
@@ -5686,14 +5733,18 @@ export function daysUntilEffectiveInternalDueDate(
 // `urgency` is no longer a Group-by option; keep this helper scoped to due-date
 // urgency semantics. Thresholds match the toolbar chip semantics: Past due =
 // days < 0, Due this week = 0..7.
-export type UrgencyBand = 'overdue' | 'this_week' | 'upcoming'
-export const URGENCY_BAND_ORDER = ['overdue', 'this_week', 'upcoming'] as const
+export type UrgencyBand = 'overdue' | 'today' | 'this_week' | 'upcoming'
+export const URGENCY_BAND_ORDER = ['overdue', 'today', 'this_week', 'upcoming'] as const
 export function urgencyBandOf(
   row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
   today = todayIsoDate(),
 ): UrgencyBand {
   const days = daysUntilEffectiveInternalDueDate(row, today)
   if (days < 0) return 'overdue'
+  // Today is its own horizon — "due today" is a different decision than "due
+  // later this week", and a deadline product should say so. Splitting it out of
+  // this_week gives the time-forward ladder Overdue · Today · This week · Upcoming.
+  if (days === 0) return 'today'
   if (days <= 7) return 'this_week'
   return 'upcoming'
 }
@@ -6679,37 +6730,21 @@ function ObligationFiltersPopover({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* Consolidated Filters trigger — the shared vocabulary: slider icon +
+          "Filters" + the canonical accent-solid count badge (via the
+          FilterTrigger `count` prop) + chevron. Identical to /alerts, /rules,
+          /audit. The active read is the FilterTrigger's own bg tint; no
+          per-caller border / weight / size overrides. */}
       <PopoverTrigger
         render={
           <FilterTrigger
             active={committedActiveCount > 0}
             leadingIcon={SlidersHorizontalIcon}
-            {...(committedActiveCount > 0 ? { leadingIconColor: 'text-text-accent' } : {})}
-            // When filters are applied the trigger reads as ENGAGED at a
-            // glance: accent border + accent-tinted leading icon (the bg tint
-            // is the FilterTrigger's own `active` state). The count rides in a
-            // filled accent pill rather than the quiet muted-mono `valueLabel`,
-            // so "filters are on" is unmistakable from across the toolbar.
-            className={cn(
-              'font-semibold',
-              committedActiveCount > 0 &&
-                'border-state-accent-border text-text-accent data-[state=open]:border-state-accent-border',
-            )}
-            valueLabel={
-              committedActiveCount > 0 ? (
-                <Badge
-                  variant="accent-solid"
-                  className="min-w-4 px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums"
-                >
-                  {committedActiveCount}
-                </Badge>
-              ) : undefined
-            }
-            hideChevron
+            count={committedActiveCount}
             aria-label={t`Filters`}
           >
             <span>
-              <Trans>Filter</Trans>
+              <Trans>Filters</Trans>
             </span>
           </FilterTrigger>
         }

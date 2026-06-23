@@ -1,4 +1,4 @@
-import { ArrowUpRightIcon, ChevronRightIcon } from 'lucide-react'
+import { ArrowUpRightIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 
@@ -30,12 +30,21 @@ export type StageTask = {
 //                                    off in-app).
 //
 // Renders nothing if the task list is empty.
+//
+// `pendingTaskId` carries the in-flight task while its backing mutation
+// runs. The matching button shows a spinner (the canonical
+// `Loader2Icon` + `animate-spin` leading glyph, same as the footer /
+// authority-response buttons) and is disabled; EVERY other action
+// button is disabled too, so a double-click can't fire the same stage
+// action twice and a different stage action can't be fired mid-flight.
 export function StageActions({
   tasks,
   onTaskClick,
+  pendingTaskId = null,
 }: {
   tasks: StageTask[]
   onTaskClick: (task: StageTask) => void
+  pendingTaskId?: string | null
 }) {
   const primary = tasks.find((task) => task.primary && task.flavor === 'mutation')
   const secondary = tasks.filter(
@@ -43,6 +52,10 @@ export function StageActions({
   )
   const reminders = tasks.filter((task) => task.flavor === 'manual')
   if (!primary && secondary.length === 0 && reminders.length === 0) return null
+  // Any mutation in flight locks the whole cluster — not just the
+  // button that fired it — so a second stage action can't race the
+  // first while it settles.
+  const anyPending = pendingTaskId !== null
   return (
     <div className="flex flex-col gap-1">
       {primary || secondary.length > 0 ? (
@@ -53,12 +66,18 @@ export function StageActions({
               onClick={() => onTaskClick(primary)}
               title={primary.hint ?? undefined}
               className="w-fit"
+              disabled={anyPending}
+              aria-busy={pendingTaskId === primary.id || undefined}
             >
+              {pendingTaskId === primary.id ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" aria-hidden />
+              ) : null}
               {primary.label}
             </Button>
           ) : null}
           {secondary.map((task) => {
             const destructive = task.id === 'mark-blocked'
+            const taskPending = pendingTaskId === task.id
             return (
               <Button
                 key={task.id}
@@ -66,13 +85,17 @@ export function StageActions({
                 size="sm"
                 onClick={() => onTaskClick(task)}
                 title={task.hint ?? undefined}
+                disabled={anyPending}
+                aria-busy={taskPending || undefined}
                 className={cn(
                   'h-7 gap-1.5 px-2 text-xs font-normal',
                   !destructive && 'text-text-secondary',
                 )}
               >
                 <span>{task.label}</span>
-                {task.flavor === 'routing' ? (
+                {taskPending ? (
+                  <Loader2Icon className="size-3.5 animate-spin text-text-tertiary" aria-hidden />
+                ) : task.flavor === 'routing' ? (
                   <ArrowUpRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
                 ) : destructive ? null : (
                   <ChevronRightIcon className="size-3.5 text-text-tertiary" aria-hidden />

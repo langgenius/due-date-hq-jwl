@@ -329,6 +329,7 @@ export function AlertHistoryView() {
                     </TableCell>
                   </TableRow>
                   {Array.from({ length: 6 }).map((_, index) => (
+                    // oxlint-disable-next-line no-array-index-key -- skeleton placeholder rows, no real data identity
                     <SkeletonHistoryRow key={index} />
                   ))}
                 </>

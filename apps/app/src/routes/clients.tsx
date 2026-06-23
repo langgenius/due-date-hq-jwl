@@ -485,7 +485,6 @@ export function ClientsRoute() {
             {hasSampleClients && canCreateClient ? (
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => removeSampleMutation.mutate({})}
                 disabled={removeSampleMutation.isPending}
               >
@@ -500,7 +499,6 @@ export function ClientsRoute() {
                 users if the visible label ever becomes icon-only. */}
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleImportHistoryOpenChange(true)}
               aria-label={t`Import history`}
             >
@@ -587,6 +585,7 @@ export function ClientsRoute() {
         onCreateClient={canCreateClient ? () => setCreateDialogOpen(true) : undefined}
         canCreate={canCreateClient}
         onSampleData={canCreateClient ? () => seedSampleMutation.mutate({}) : undefined}
+        sampleDataPending={seedSampleMutation.isPending}
       />
 
       {/* Controlled create dialog driven by the empty-state hero's

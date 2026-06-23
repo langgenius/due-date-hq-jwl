@@ -1,14 +1,21 @@
 ---
-/** Pricing — restyled to the marketing --m-* tier. The four tiers, billing
- *  toggle, checkout hrefs, and data-* hooks are the team's live billing wiring
- *  and are preserved exactly; only the styling changes, plus a beta banner:
- *  pricing is real but DueDateHQ is free during the beta. */
+/** Pricing — restyled to the marketing --m-* tier and pushed bolder. The four
+ *  tiers, billing toggle, checkout hrefs, and data-* hooks are the team's live
+ *  billing wiring and are preserved exactly; this pass strengthens the hierarchy
+ *  (display-serif hero, a clearly-dominant recommended plan), adds a derived
+ *  feature-comparison matrix and an "every plan includes" recap, and keeps the
+ *  beta posture: pricing is real but DueDateHQ is free during the beta.
+ *
+ *  The comparison matrix is DERIVED from the same plan data rendered in the cards
+ *  (allowances + the `Label: value` feature lines) — no new copy keys, no
+ *  fabricated facts, one source of truth. */
 import type {
   PricingBillingInterval,
   PricingCheckoutPlan,
   PricingCopy,
   PricingPlanCopy,
 } from '../i18n/types'
+import FaqList from './FaqList.astro'
 
 interface Props {
   t: PricingCopy
@@ -17,27 +24,90 @@ interface Props {
 }
 
 const { t, appHref, checkoutHrefs } = Astro.props
+// locale is derived from the i18n payload (no extra prop the page wrappers must
+// pass): the zh catalog routes pricing under /zh-CN/pricing.
+const zh = t.navPricingHref.startsWith('/zh-CN')
 
 function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): string {
   if (plan.hrefKind === 'checkout') return checkoutHrefs[plan.checkoutPlan ?? 'pro'][interval]
   return appHref
 }
+
+// ---- Derived comparison matrix --------------------------------------------
+// Each feature line is authored as "Label: value". We split on the first colon
+// so the matrix rows are the labels and the cells are the per-plan values —
+// every datum already lives in the cards above, just transposed for scanning.
+function splitFeature(feature: string): { label: string; value: string } {
+  const idx = feature.indexOf(':')
+  if (idx === -1) return { label: feature.trim(), value: '' }
+  return { label: feature.slice(0, idx).trim(), value: feature.slice(idx + 1).trim() }
+}
+
+// allowance rows come first (clients / workspace / seats), then the labelled
+// feature rows in author order. Labels are taken from the first plan so they
+// stay in sync with whatever the copy authors name them.
+const allowanceRows = [
+  { label: zh ? '客户上限' : 'Clients', get: (p: PricingPlanCopy) => p.clients },
+  { label: zh ? '工作区' : 'Workspace', get: (p: PricingPlanCopy) => p.firms },
+  { label: zh ? '席位' : 'Seats', get: (p: PricingPlanCopy) => p.seats },
+]
+
+const featureLabels = t.plans[0].features.map((f) => splitFeature(f).label)
+const featureRows = featureLabels.map((label, rowIdx) => ({
+  label,
+  values: t.plans.map((p) => splitFeature(p.features[rowIdx] ?? '').value),
+}))
+
+// ---- Page-specific copy (template-owned, not in the shared i18n object) ----
+const ui = zh
+  ? {
+      betaTag: '测试期',
+      betaText: '所有套餐在测试期内免费 —— 今天无需付费。下面是正式发布后的计费方式。',
+      betaStrong: '免费',
+      matrixEyebrow: '逐项对比',
+      matrixTitle: '四个套餐，并排看清。',
+      matrixNote: '所有价格为月费；切换年付即按 8 折计费。',
+      recapEyebrow: '每个套餐都包含',
+      recapTitle: '无论选哪个套餐，核心保障都一样。',
+      recap: [
+        { icon: 'watch', t: '7×24 监控', d: 'IRS、全部 50 个州和 FEMA 一有变化就提醒。' },
+        { icon: 'source', t: '每个日期都有来源', d: '官方原文链接随每条变更附上，可逐条点开核验。' },
+        { icon: 'client', t: '精确到客户', d: '每次变化都标出影响到你的哪些客户。' },
+        { icon: 'undo', t: '24 小时可撤销', d: '任何应用都能干净撤回，每一步都留审计记录。' },
+      ],
+      yes: '包含',
+    }
+  : {
+      betaTag: 'Beta',
+      betaText:
+        "Every plan is free while we're in beta — nothing to pay today. Here's how billing will work once we launch.",
+      betaStrong: 'free',
+      matrixEyebrow: 'Side by side',
+      matrixTitle: 'All four plans, line by line.',
+      matrixNote: 'Prices shown monthly; switch to yearly to bill at 20% off.',
+      recapEyebrow: 'In every plan',
+      recapTitle: 'The core promise is the same on every plan.',
+      recap: [
+        { icon: 'watch', t: 'Watches 24/7', d: 'IRS, all 50 states, and FEMA — the moment a deadline moves.' },
+        { icon: 'source', t: 'A source on every date', d: 'The official text is linked to every change, ready to verify.' },
+        { icon: 'client', t: 'Down to the client', d: 'Every change flags exactly which of your clients it hits.' },
+        { icon: 'undo', t: 'Reversible for 24h', d: 'Any apply undoes cleanly, with every action on the audit trail.' },
+      ],
+      yes: 'Included',
+    }
 ---
 
-<section class="m-section pr" data-pricing-root data-billing-interval="monthly">
-  <div class="pr__beta" role="note">
-    <span class="pr__beta-tag">Beta</span>
-    <p class="pr__beta-text">
-      Every plan is <b>free while we're in beta</b> — nothing to pay today. Here's how pricing will
-      work once we launch.
-    </p>
-  </div>
-
-  <div class="m-page-hero pr__hero">
+<section class="m-section m-page-hero pr" data-pricing-root data-billing-interval="monthly">
+  <div class="pr__hero">
     <p class="m-eyebrow">{t.hero.eyebrow}</p>
-    <h1 class="m-page-title">{t.hero.title}</h1>
-    <p class="m-page-lead">{t.hero.description}</p>
-    <p class="m-page-note">{t.hero.note}</p>
+    <h1 class="m-page-title pr__title">{t.hero.title}</h1>
+    <p class="m-page-lead pr__lead">{t.hero.description}</p>
+
+    <div class="pr__beta" role="note">
+      <span class="pr__beta-tag">{ui.betaTag}</span>
+      <p class="pr__beta-text">{ui.betaText}</p>
+    </div>
+    <p class="m-page-note pr__note">{t.hero.note}</p>
   </div>
 
   <section class="pr__plans">
@@ -47,7 +117,6 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
         <h2 class="m-page-h2">{t.plansHeader.title}</h2>
       </div>
       <div class="pr__toggleblock">
-        <span class="pr__togglenote">{t.plansHeader.note}</span>
         <div role="group" aria-label={t.billingToggle.ariaLabel} class="pr__toggle">
           <button type="button" data-pricing-billing-toggle="monthly" aria-pressed="true" class="pr__toggle-btn">
             {t.billingToggle.monthly}
@@ -68,13 +137,12 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
           const yearlyHref = hrefFor(plan, 'yearly')
           return (
             <article class:list={['pr__card', isRecommended && 'pr__card--rec']}>
+              {plan.badge ? <p class="pr__ribbon">{plan.badge}</p> : null}
               <div class="pr__cardbody">
                 <div class="pr__cardtop">
                   <h3 class="pr__name">{plan.name}</h3>
-                  {plan.badge ? <span class="pr__badge">{plan.badge}</span> : null}
+                  <p class="pr__desc">{plan.description}</p>
                 </div>
-
-                <p class="pr__desc">{plan.description}</p>
 
                 <div class="pr__priceblock">
                   <div class="pr__pricerow">
@@ -96,40 +164,53 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
                     <p data-pricing-savings class="pr__savings is-hidden">
                       {plan.yearlySavings}
                     </p>
-                  ) : null}
-                  <div class="pr__meta">
-                    <span class="pr__metastrong">{plan.clients}</span>
-                    <span>{plan.firms}</span>
-                    <span class="pr__seats">
-                      <span aria-hidden="true" class="pr__dot" />
-                      <span class="pr__seatstxt">{plan.seats}</span>
-                    </span>
-                  </div>
+                  ) : (
+                    <p class="pr__savings-spacer" aria-hidden="true" />
+                  )}
                 </div>
+
+                <a
+                  href={monthlyHref}
+                  data-pricing-cta
+                  data-href-monthly={monthlyHref}
+                  data-href-yearly={yearlyHref}
+                  class:list={['pr__cta', isRecommended ? 'pr__cta--rec' : 'pr__cta--plain']}
+                  data-event={`marketing.pricing.${plan.hrefKind}`}
+                >
+                  <span>{plan.cta}</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+
+                <dl class="pr__meta">
+                  <div class="pr__metarow">
+                    <dt>{zh ? '客户' : 'Clients'}</dt>
+                    <dd class="pr__metastrong">{plan.clients}</dd>
+                  </div>
+                  <div class="pr__metarow">
+                    <dt>{zh ? '工作区' : 'Workspace'}</dt>
+                    <dd>{plan.firms}</dd>
+                  </div>
+                  <div class="pr__metarow">
+                    <dt>{zh ? '席位' : 'Seats'}</dt>
+                    <dd>{plan.seats}</dd>
+                  </div>
+                </dl>
 
                 <div class="pr__divider" aria-hidden="true" />
 
                 <ul class="pr__features">
                   {plan.features.map((feature) => (
                     <li class="pr__feat">
-                      <span aria-hidden="true" class="pr__check">✓</span>
+                      <span aria-hidden="true" class="pr__check">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m3.5 8.5 3 3 6-7" />
+                        </svg>
+                      </span>
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-
-              <a
-                href={monthlyHref}
-                data-pricing-cta
-                data-href-monthly={monthlyHref}
-                data-href-yearly={yearlyHref}
-                class:list={['pr__cta', isRecommended ? 'pr__cta--rec' : 'pr__cta--plain']}
-                data-event={`marketing.pricing.${plan.hrefKind}`}
-              >
-                <span>{plan.cta}</span>
-                {isRecommended ? <span aria-hidden="true">→</span> : null}
-              </a>
             </article>
           )
         })
@@ -137,39 +218,160 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     </div>
   </section>
 
-  <section class="pr__faq">
-    <p class="m-eyebrow">{t.faqHeader.eyebrow}</p>
-    <h2 class="m-page-h2">{t.faqHeader.title}</h2>
-    <div class="m-page-grid-3">
+  <section class="pr__matrix-sec" aria-labelledby="pr-matrix-h">
+    <p class="m-eyebrow">{ui.matrixEyebrow}</p>
+    <h2 class="m-page-h2" id="pr-matrix-h">{ui.matrixTitle}</h2>
+
+    <div class="pr__matrix-scroll">
+      <div class="pr__matrix" role="table" aria-label={ui.matrixTitle}>
+        <div class="pr__mr pr__mr--head" role="row">
+          <div class="pr__mc pr__mc--head pr__mc--corner" role="columnheader" />
+          {
+            t.plans.map((plan) => (
+              <div
+                class:list={['pr__mc', 'pr__mc--head', Boolean(plan.badge) && 'pr__mc--rec pr__mhead--rec']}
+                role="columnheader"
+              >
+                <span class="pr__mname">{plan.name}</span>
+                <span class="pr__mprice">
+                  <span data-pricing-price data-monthly={plan.price} data-yearly={plan.yearlyPrice ?? plan.price}>
+                    {plan.price}
+                  </span>
+                  <span
+                    class="pr__mcadence"
+                    data-pricing-cadence
+                    data-monthly={plan.cadence}
+                    data-yearly={plan.yearlyCadence ?? plan.cadence}
+                  >
+                    {plan.cadence}
+                  </span>
+                </span>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="pr__mr pr__mr--group" role="row">
+          <div class="pr__mc pr__mc--group" role="cell" aria-colspan="5">{zh ? '容量' : 'Capacity'}</div>
+        </div>
+        {
+          allowanceRows.map((row) => (
+            <div class="pr__mr" role="row">
+              <div class="pr__mc pr__mc--row" role="rowheader">{row.label}</div>
+              {t.plans.map((plan) => (
+                <div class:list={['pr__mc', 'pr__mc--cell', Boolean(plan.badge) && 'pr__mc--rec']} role="cell">
+                  {row.get(plan)}
+                </div>
+              ))}
+            </div>
+          ))
+        }
+
+        <div class="pr__mr pr__mr--group" role="row">
+          <div class="pr__mc pr__mc--group" role="cell" aria-colspan="5">{zh ? '能力' : 'What you get'}</div>
+        </div>
+        {
+          featureRows.map((row) => (
+            <div class="pr__mr" role="row">
+              <div class="pr__mc pr__mc--row" role="rowheader">{row.label}</div>
+              {row.values.map((value, i) => (
+                <div
+                  class:list={['pr__mc', 'pr__mc--cell', Boolean(t.plans[i].badge) && 'pr__mc--rec']}
+                  role="cell"
+                  aria-label={value ? undefined : zh ? '未包含' : 'Not included'}
+                >
+                  {value ? value : <span class="pr__mdash" aria-hidden="true" />}
+                </div>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="pr__recap">
+    <div class="pr__recap-head">
+      <p class="m-eyebrow">{ui.recapEyebrow}</p>
+      <h2 class="m-page-h2">{ui.recapTitle}</h2>
+    </div>
+    <div class="pr__recap-panel">
       {
-        t.faq.map((item) => (
-          <section class="m-card">
-            <h3 class="m-card__t">{item.question}</h3>
-            <p class="m-card__d">{item.answer}</p>
-          </section>
+        ui.recap.map((r) => (
+          <div class="pr__recap-item">
+            <span class="pr__recap-ic" aria-hidden="true">
+              {r.icon === 'watch' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                </svg>
+              )}
+              {r.icon === 'source' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 12a3 3 0 0 1 3-3h4a3 3 0 0 1 0 6h-1" />
+                  <path d="M15 12a3 3 0 0 1-3 3H8a3 3 0 0 1 0-6h1" />
+                </svg>
+              )}
+              {r.icon === 'client' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="8.5" />
+                  <circle cx="12" cy="12" r="3.2" />
+                </svg>
+              )}
+              {r.icon === 'undo' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8h10a5 5 0 0 1 0 10H7" />
+                  <path d="m3 8 4-4M3 8l4 4" />
+                </svg>
+              )}
+            </span>
+            <div class="pr__recap-text">
+              <p class="pr__recap-t">{r.t}</p>
+              <p class="pr__recap-d">{r.d}</p>
+            </div>
+          </div>
         ))
       }
     </div>
   </section>
+
+  <section class="pr__faq">
+    <FaqList eyebrow={t.faqHeader.eyebrow} title={t.faqHeader.title} items={t.faq} />
+  </section>
 </section>
 
 <style>
-  /* beta banner */
+  /* ---- hero: display-serif headline, beta posture front and centre ---- */
+  /* hero padding comes from the shared .m-page-hero on the section (eyebrow lands
+     at the same Y as every subpage); this only restores the hero → plans gap the
+     inner wrapper used to carry */
+  .pr__hero {
+    margin-bottom: clamp(20px, 3vw, 36px);
+  }
+  /* font comes from the shared .m-page-title; only these overrides are page-specific */
+  .pr__title {
+    max-width: 18ch;
+    line-height: 1;
+  }
+  .pr__lead {
+    max-width: 62ch;
+  }
   .pr__beta {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: clamp(8px, 2vw, 20px);
+    margin-top: 28px;
     padding: 14px 18px;
     background: var(--m-accent-tint);
     border: 1px solid color-mix(in srgb, var(--m-accent) 18%, transparent);
     border-radius: 12px;
+    max-width: 64ch;
   }
   .pr__beta-tag {
     flex: none;
-    padding: 3px 9px;
+    padding: 4px 10px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -178,19 +380,15 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     background: var(--m-accent);
   }
   .pr__beta-text {
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink-2);
   }
-  .pr__beta-text b {
-    color: var(--m-ink);
-    font-weight: 600;
-  }
-  .pr__hero {
-    padding-block: clamp(28px, 4vw, 48px) clamp(28px, 4vw, 44px);
+  .pr__note {
+    margin-top: 16px;
   }
 
-  /* plans header + billing toggle */
+  /* ---- plans header + billing toggle ---- */
   .pr__plans {
     margin-top: 8px;
   }
@@ -199,21 +397,8 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .pr__togglenote {
-    font-family: var(--m-font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--m-muted);
-  }
-  .pr__toggleblock {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
+    gap: 16px 24px;
+    margin-bottom: 28px;
   }
   .pr__toggle {
     display: inline-flex;
@@ -222,7 +407,7 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     padding: 4px;
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
-    border-radius: 10px;
+    border-radius: 12px;
   }
   .pr__toggle-btn {
     display: inline-flex;
@@ -232,7 +417,7 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     height: 36px;
     padding-inline: 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     color: var(--m-muted);
     cursor: pointer;
@@ -251,7 +436,7 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     padding: 1px 6px;
     border-radius: 4px;
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
@@ -261,149 +446,138 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     background: color-mix(in srgb, #fff 24%, transparent);
   }
 
-  /* plan grid + cards */
+  /* ---- plan grid + cards ---- */
+  /* Four equal columns: every tier reads on the same rhythm, so the price, CTA
+     and feature rows line up across all four. Emphasis on the recommended plan
+     comes from an accent frame + a straddling badge, never from a wider column —
+     that keeps the CTAs on one line. */
   .pr__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: clamp(14px, 1.6vw, 18px);
+    gap: clamp(12px, 1.3vw, 16px);
     align-items: stretch;
+    /* headroom for the recommended badge straddling the top edge */
+    margin-top: 18px;
   }
   .pr__card {
+    position: relative;
     display: flex;
     flex-direction: column;
-    padding: clamp(22px, 2.4vw, 30px);
+    padding: clamp(22px, 2.1vw, 26px);
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
   }
+  /* the recommended plan is unmistakable: accent frame, a faint tinted body, a
+     soft lift, and a badge straddling the top edge. The page's single shot of
+     brand cyan lives here — the winner gets the highlight, nothing else does. */
   .pr__card--rec {
     border: 1.5px solid var(--m-accent);
     background: color-mix(in srgb, var(--m-accent) 4%, var(--m-surface));
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--m-accent) 14%, transparent),
+      0 14px 30px -20px color-mix(in srgb, var(--m-accent) 55%, transparent);
+  }
+  .pr__ribbon {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding-inline: 14px;
+    border-radius: 999px;
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(
+      96deg,
+      var(--m-accent),
+      color-mix(in srgb, var(--m-accent) 42%, var(--m-cyan))
+    );
+    box-shadow: 0 4px 10px -5px color-mix(in srgb, var(--m-accent) 60%, transparent);
   }
   .pr__cardbody {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 24px;
   }
+  /* fixed header height keeps the price + CTA rows aligned across all four
+     cards regardless of how many lines each description wraps to */
   .pr__cardtop {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    min-height: 78px;
   }
   .pr__name {
-    font-size: 18px;
+    font-size: var(--m-text-xl);
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--m-ink);
   }
-  .pr__badge {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
+  .pr__card--rec .pr__name {
     color: var(--m-accent);
-    background: var(--m-accent-tint);
   }
   .pr__desc {
-    font-size: 13px;
-    line-height: 1.6;
+    margin-top: 8px;
+    font-size: var(--m-text-sm);
+    line-height: 1.55;
     color: var(--m-muted);
   }
+  .pr__priceblock {
+    margin-top: 18px;
+  }
+  /* price big, cadence on its own line beneath it. Stacking keeps every card's
+     price block the same height (the yearly "/ mo, billed yearly" string never
+     has to share a line with the number), so the CTAs stay on one row. */
   .pr__pricerow {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
   }
+  /* The price out-SCALES the plan name unmistakably — dominance comes from size
+     + tighter tracking, not extra weight (one 400/500/600 system). Mono reads
+     optically lighter at display size, so it takes the larger jump (~52px) and
+     negative tracking to clearly dominate the card at the shared 600. */
   .pr__price {
     font-family: var(--m-font-mono);
-    font-weight: 700;
-    font-size: clamp(34px, 4vw, 40px);
+    font-weight: 600;
+    font-size: clamp(42px, 4.8vw, 52px);
     line-height: 1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
     color: var(--m-ink);
   }
+  /* word-priced tiers ("Free"/"Let's talk") keep sans + a calmer tracking */
   .pr__price--text {
     font-family: var(--m-font-sans);
     font-weight: 600;
+    letter-spacing: -0.02em;
   }
   .pr__cadence {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-muted);
-  }
-  .pr__savings {
-    margin-top: 6px;
-    font-family: var(--m-font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--m-accent);
-  }
-  .pr__savings.is-hidden {
-    display: none;
-  }
-  .pr__meta {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--m-ink-2);
-  }
-  .pr__metastrong {
-    font-weight: 500;
-    color: var(--m-ink);
-  }
-  .pr__seats {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-  }
-  .pr__dot {
-    width: 6px;
-    height: 6px;
-    flex: none;
-    border-radius: 999px;
-    background: var(--m-hairline);
-  }
-  .pr__seatstxt {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .pr__divider {
-    height: 1px;
-    width: 100%;
-    background: var(--m-hairline-2);
-  }
-  .pr__features {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--m-ink);
-  }
-  .pr__feat {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .pr__check {
-    display: grid;
-    place-items: center;
-    width: 16px;
-    height: 16px;
-    flex: none;
-    border-radius: 4px;
-    font-size: 10px;
+  .pr__savings {
+    margin-top: 8px;
+    height: 14px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
     font-weight: 600;
-    line-height: 1;
+    line-height: 14px;
     color: var(--m-accent);
-    background: var(--m-accent-tint);
+  }
+  /* hidden, not removed — keeps the savings line's space reserved so every
+     card's CTA stays on one row in monthly mode too (not just yearly) */
+  .pr__savings.is-hidden {
+    visibility: hidden;
+  }
+  /* same reserved height for plans that never show a savings line (Free) */
+  .pr__savings-spacer {
+    margin-top: 8px;
+    height: 14px;
   }
   .pr__cta {
     display: inline-flex;
@@ -411,14 +585,21 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     justify-content: center;
     gap: 6px;
     height: 44px;
-    margin-top: 28px;
+    margin-top: 20px;
     padding-inline: 16px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 500;
     transition:
       background 0.18s ease,
-      border-color 0.18s ease;
+      border-color 0.18s ease,
+      gap 0.15s ease;
+  }
+  .pr__cta span[aria-hidden] {
+    transition: transform 0.18s ease;
+  }
+  .pr__cta:hover span[aria-hidden] {
+    transform: translateX(3px);
   }
   .pr__cta--rec {
     color: #fff;
@@ -435,22 +616,256 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
   .pr__cta--plain:hover {
     border-color: var(--m-muted);
   }
+  /* allowances as a tight definition list under the CTA */
+  .pr__meta {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pr__metarow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: var(--m-text-sm);
+    line-height: 1.4;
+  }
+  .pr__metarow dt {
+    flex: none;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .pr__metarow dd {
+    text-align: right;
+    color: var(--m-ink-2);
+  }
+  .pr__metastrong {
+    font-weight: 500;
+    color: var(--m-ink) !important;
+  }
+  .pr__divider {
+    height: 1px;
+    width: 100%;
+    margin-top: 20px;
+    background: var(--m-hairline-2);
+  }
+  .pr__features {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    font-size: var(--m-text-sm);
+    line-height: 1.45;
+    color: var(--m-ink);
+  }
+  .pr__feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+  }
+  /* green "included" ticks — the affirmative semantic colour, not navy chrome */
+  .pr__check {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    margin-top: 1px;
+    border-radius: 4px;
+    color: var(--m-ok-ink);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .pr__check svg {
+    width: 11px;
+    height: 11px;
+  }
 
-  /* faq */
+  /* ---- comparison matrix: derived, scannable, confident ---- */
+  .pr__matrix-sec {
+    margin-top: clamp(48px, 6vw, 80px);
+    padding-top: clamp(36px, 4vw, 52px);
+    border-top: 1px solid var(--m-hairline);
+  }
+  .pr__matrix-scroll {
+    margin-top: clamp(24px, 3vw, 36px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* same construction as the home "How it compares" table: a hairline ledger,
+     no heavy rule. Left-aligned throughout so values read as a column, not a
+     centred grid. */
+  .pr__matrix {
+    width: 100%;
+    min-width: 760px;
+  }
+  /* real ARIA table: each row its own grid, same fractional template → columns
+     align across rows with no display:contents (keeps the semantics intact) */
+  .pr__mr {
+    display: grid;
+    grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr));
+  }
+  .pr__mc {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--m-hairline-2);
+    font-size: var(--m-text-base);
+  }
+  .pr__mc--head {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 4px;
+    min-height: 0;
+    padding-block: 16px 14px;
+    border-bottom: 1px solid var(--m-hairline);
+    text-align: left;
+  }
+  .pr__mc--corner {
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .pr__mname {
+    font-size: var(--m-text-base);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .pr__mhead--rec .pr__mname {
+    color: var(--m-accent);
+  }
+  .pr__mprice {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .pr__mcadence {
+    font-family: var(--m-font-sans);
+    font-size: var(--m-text-2xs);
+    font-weight: 400;
+    color: var(--m-faint);
+  }
+  .pr__mc--group {
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding-block: 22px 10px;
+    border-bottom: 1px solid var(--m-hairline);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .pr__mc--row {
+    font-weight: 600;
+    color: var(--m-ink);
+    letter-spacing: -0.01em;
+  }
+  .pr__mc--cell {
+    justify-content: flex-start;
+    text-align: left;
+    color: var(--m-ink-2);
+    line-height: 1.4;
+  }
+  .pr__mc--rec {
+    background: var(--m-accent-tint);
+  }
+  .pr__mhead--rec {
+    background: var(--m-accent-tint);
+  }
+  .pr__mdash {
+    width: 14px;
+    height: 1.5px;
+    border-radius: 999px;
+    background: var(--m-hairline);
+  }
+
+  /* ---- "in every plan" recap: calm reinforcement of the glass-box promise ---- */
+  .pr__recap {
+    margin-top: clamp(48px, 6vw, 80px);
+    padding-top: clamp(36px, 4vw, 52px);
+    border-top: 1px solid var(--m-hairline);
+  }
+  /* one cohesive panel, not four floating wireframe boxes: items sit flush with
+     hairline dividers (1px-gap technique), each led by an accent icon chip. Reads
+     as a single confident "every plan includes" statement. */
+  .pr__recap-panel {
+    margin-top: clamp(24px, 3vw, 32px);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--m-hairline);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .pr__recap-item {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: clamp(20px, 2vw, 26px);
+    background: var(--m-surface);
+  }
+  .pr__recap-ic {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 12%, transparent);
+  }
+  .pr__recap-ic svg {
+    width: 21px;
+    height: 21px;
+  }
+  .pr__recap-t {
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .pr__recap-d {
+    margin-top: 6px;
+    font-size: var(--m-text-sm);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+
+  /* ---- faq: shared FaqList accordion; this only carries the section rhythm ---- */
   .pr__faq {
-    margin-top: clamp(40px, 5vw, 64px);
-    padding-top: clamp(32px, 4vw, 48px);
-    border-top: 1px solid var(--m-hairline-2);
+    margin-top: clamp(48px, 6vw, 80px);
+    padding-top: clamp(36px, 4vw, 52px);
+    border-top: 1px solid var(--m-hairline);
   }
 
   @media (max-width: 1100px) {
+    /* a clean 2-up grid below the 4-up width */
     .pr__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pr__recap-panel {
       grid-template-columns: 1fr 1fr;
     }
   }
   @media (max-width: 560px) {
     .pr__grid {
       grid-template-columns: 1fr;
+    }
+    .pr__recap-panel {
+      grid-template-columns: 1fr;
+    }
+    .pr__planshead {
+      align-items: flex-start;
     }
   }
 </style>
@@ -499,9 +914,7 @@ function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): strin
     })
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPricingBillingToggles, { once: true })
-  } else {
-    initPricingBillingToggles()
-  }
+  // re-init on first load + every View-Transition navigation (DOMContentLoaded
+  // does not fire on a client-side swap)
+  document.addEventListener('astro:page-load', initPricingBillingToggles)
 </script>

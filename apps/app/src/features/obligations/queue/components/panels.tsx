@@ -54,13 +54,16 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   TriangleAlertIcon,
   ArrowUpRightIcon,
+  CalendarClockIcon,
   CircleCheckIcon,
   ChevronRightIcon,
   ClipboardListIcon,
   ClockIcon,
   ConstructionIcon,
+  DollarSignIcon,
   FileCheckIcon,
   HourglassIcon,
+  LandmarkIcon,
   LoaderIcon,
   Loader2Icon,
   MessageSquareTextIcon,
@@ -366,12 +369,20 @@ function InternalVsFilingSchematic({
 }
 
 function DeadlineDateCard({
+  icon: Icon,
   label,
   date,
   clock,
   meta,
+  metaTone = 'default',
   labelHelp,
 }: {
+  // Small leading glyph that gives each card a quiet identity so the
+  // three stop reading as one repeated date tile (Yuqi 2026-06-23 "so
+  // plain… quite flat"). Calm by design — it rides in a soft
+  // background-subtle chip with a tertiary glyph, never a coloured
+  // alarm. Lucide stroke is 1.5 globally, so don't set it here.
+  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   label: string
   date: string | null
   // The relative-time clock (e.g. "12 days overdue", "in 4 days").
@@ -385,6 +396,10 @@ function DeadlineDateCard({
   // Card-specific distinguishing line drawn from a REAL row field
   // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
   meta: string | null
+  // `money` lifts the meta one weight + to text-primary so the dollar
+  // figure on the Payment card reads as a real number, not a caption.
+  // `default` keeps the quiet tertiary buffer line on the Internal card.
+  metaTone?: 'default' | 'money'
   // Optional inline help affordance rendered after the label (e.g. the
   // RichHelpTooltip on the Internal-target card that explains the
   // internal-vs-filing distinction). null = omit (no "?" dot).
@@ -395,32 +410,47 @@ function DeadlineDateCard({
       // 2026-06-10 (Yuqi page-polish #3 "where is the frame?"): each
       // anchor-date column gets a subtle outline back — a light
       // divider-subtle border + rounded-8 corner — for definition. Kept
-      // FLAT: no filled bg-background-subtle, no shadow; the frame reads
-      // as a quiet reference card, not a heavy filled tile. Overdue state
-      // stays a text-colour cue on the icon + date.
-      className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
+      // FLAT: no shadow; the frame reads as a quiet reference card, not a
+      // heavy filled tile. 2026-06-23 (Yuqi "so plain… too wasteful of
+      // space"): tighter padding (py-2) + smaller gap so the card hugs
+      // its content, and a leading icon chip gives it intentional
+      // hierarchy without raising the volume.
+      className="flex flex-col gap-1 rounded-lg border border-divider-subtle px-3 py-2"
     >
-      <div className="flex min-h-6 items-center gap-0.5">
+      <div className="flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className="grid size-4 shrink-0 place-items-center rounded bg-background-subtle text-text-tertiary"
+        >
+          <Icon className="size-2.5" aria-hidden />
+        </span>
         <CapsFieldLabel as="span" variant="group">
           {label}
         </CapsFieldLabel>
         {labelHelp ? <span className="-my-1 shrink-0">{labelHelp}</span> : null}
       </div>
-      <span
-        // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
-        // is the primary datum in each key-date card, so it steps up to
-        // text-sm (from the earlier text-caption-xs) to read clearly. The
-        // label above and the clock/meta below stay smaller so the date
-        // owns the hierarchy.
-        className="text-sm leading-tight font-semibold tabular-nums text-text-primary"
-      >
-        {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
-      </span>
-      {clock ? (
-        <span className="text-caption-xs font-medium text-text-tertiary">{clock}</span>
-      ) : null}
+      {/* Date + relative clock share ONE baseline-aligned line (Yuqi
+          2026-06-23: "42d late in the same line as May 12, 2026") — tighter
+          and less wasteful of vertical space than stacking them. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-sm leading-tight font-semibold tabular-nums text-text-primary">
+          {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
+        </span>
+        {clock ? (
+          <span className="text-caption-xs font-medium text-text-tertiary">{clock}</span>
+        ) : null}
+      </div>
       {meta ? (
-        <span className="text-caption-xs font-medium text-text-secondary tabular-nums">{meta}</span>
+        <span
+          className={cn(
+            'tabular-nums',
+            metaTone === 'money'
+              ? 'text-caption font-medium text-text-primary'
+              : 'text-caption-xs font-medium text-text-secondary',
+          )}
+        >
+          {meta}
+        </span>
       ) : null}
     </div>
   )
@@ -682,12 +712,17 @@ export function PrimaryDeadlineStrip({
     return (
       <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <DeadlineDateCard
+          // Landmark = the hard statutory date the IRS / state enforces —
+          // the same glyph the alert detail uses for the issuing authority.
+          icon={LandmarkIcon}
           label={t`Filing deadline`}
           date={filingIso}
           clock={filingClock.node}
           meta={null}
         />
         <DeadlineDateCard
+          // CalendarClock = the firm's earlier internal target date.
+          icon={CalendarClockIcon}
           label={t`Internal target`}
           date={internalIso}
           clock={internalClock.node}
@@ -695,10 +730,14 @@ export function PrimaryDeadlineStrip({
           labelHelp={internalHelp}
         />
         <DeadlineDateCard
+          // DollarSign = the money leg; `money` meta tone lifts the "$X
+          // owed" figure so it reads as a real number, not a caption.
+          icon={DollarSignIcon}
           label={t`Payment due`}
           date={paymentIso}
           clock={paymentClock.node}
           meta={paymentAmount}
+          metaTone="money"
         />
       </div>
     )
@@ -1047,8 +1086,13 @@ export function PathToFilingSummary({
                 <span
                   aria-hidden
                   className={cn(
-                    // Continuous solid track; entered edges fill accent up to
-                    // the active stage, the rest stays a neutral rule.
+                    // Continuous solid track. 2026-06-23 (Yuqi "avoid the
+                    // accent here in the workflow… misleading"): entered edges
+                    // are a firm NEUTRAL rule (divider-deep), not an accent
+                    // fill — the accent connector read as a coloured progress
+                    // bar that looked interactive/important. The remaining
+                    // edges stay the lighter divider-regular rule, so the
+                    // path the row has crossed is still legible by weight.
                     'h-0 flex-1 border-t transition-colors',
                     (() => {
                       if (i === 0) return 'opacity-0'
@@ -1058,7 +1102,7 @@ export function PathToFilingSummary({
                         prevIdx === currentIndex ||
                         (prevIdx < currentIndex && (prevIdx === 0 || stamps[prevIdx] !== null))
                       return thisEntered && prevEntered
-                        ? 'border-state-accent-solid'
+                        ? 'border-divider-deep'
                         : 'border-divider-regular'
                     })(),
                   )}
@@ -1086,12 +1130,23 @@ export function PathToFilingSummary({
                     // ALWAYS accent — red lives in the status banner only, so
                     // the page states overdue once instead of echoing it in
                     // every component.
+                    // 2026-06-23 (Yuqi "avoid the accent here in the
+                    // workflow… misleading and too boring"): the accent fill
+                    // is gone — it read as an important/interactive control on
+                    // a strip that's only a summary. The lifecycle now reads
+                    // by NEUTRAL contrast: the active node is a solid near-
+                    // black "you are here" chip (text-primary fill), done
+                    // stages a quiet filled neutral chip, upcoming an empty
+                    // outline ring. No chroma, but a clear weight ladder so
+                    // it's no longer boring either.
                     'grid size-5 shrink-0 place-items-center rounded-full border transition-colors',
-                    state === 'done' || state === 'active'
-                      ? 'border-transparent bg-state-accent-solid text-text-inverted'
-                      : state === 'skipped'
-                        ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
-                        : 'border-divider-regular bg-background-default text-text-tertiary/70',
+                    state === 'active'
+                      ? 'border-transparent bg-text-primary text-text-inverted'
+                      : state === 'done'
+                        ? 'border-divider-deep bg-background-section text-text-secondary'
+                        : state === 'skipped'
+                          ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
+                          : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
                   {(() => {
@@ -1410,6 +1465,7 @@ export function ActiveStageDetailCard({
   onMarkSigned,
   onRemindSignature,
   onSubmitEfile,
+  pending,
   flat = false,
 }: {
   row: ObligationQueueRow
@@ -1427,6 +1483,19 @@ export function ActiveStageDetailCard({
   onRemindSignature: () => void
   // P0: e-file the signed return (efileState → submitted).
   onSubmitEfile: () => void
+  // In-flight flags for the mutations the in-card StageActions fire,
+  // so the active stage's button can show a spinner + disable the
+  // whole cluster while a transition is committing (no double-fire).
+  // Each flag mirrors the matching `.isPending` from the drawer's
+  // mutations. Omitted in the legacy sheet/specimen paths that don't
+  // wire mutations — the cluster then renders without guards.
+  pending?: {
+    changeStatus?: boolean
+    confirmAcceptance?: boolean
+    prepStage?: boolean
+    reviewStage?: boolean
+    efileState?: boolean
+  }
   // 2026-06-16 (Yuqi NrQaI "this is in section, why are the others not"): in
   // the page/panel Status workspace this card sits INSIDE one shared white
   // bordered section card alongside the stepper, so it must render FLAT — no
@@ -2120,6 +2189,52 @@ export function ActiveStageDetailCard({
         return toast.info(t`This action isn't wired up yet.`)
     }
   }
+  // In-flight task id for StageActions. Each wired task fires exactly
+  // one of the drawer's mutations (same map as handleTaskClick); a task
+  // is "pending" when its backing mutation is in flight. Only one stage
+  // action can run at a time, so the first task in the current list
+  // whose mutation is pending is the one to show the spinner on. Tasks
+  // that open a dialog (remind-8879, unwind/record-rejection) fire no
+  // immediate mutation, so they have no spinner. Returns null when
+  // nothing is in flight (the common case) or when `pending` is omitted.
+  const pendingTaskId: string | null = useMemo(() => {
+    if (!pending) return null
+    const isTaskPending = (taskId: string): boolean => {
+      switch (taskId) {
+        // changeStatus mutation
+        case 'start':
+        case 'resume':
+        case 'unblocked':
+        case 'received':
+        case 'mark-blocked':
+        case 'request-docs':
+        case 'file':
+        case 'complete':
+        case 'complete-paid':
+          return pending.changeStatus === true
+        // markAccepted mutation
+        case 'confirm':
+        case 'confirm-default':
+        case 'confirm-resubmit':
+          return pending.confirmAcceptance === true
+        // updatePrepStage mutation
+        case 'send-review':
+          return pending.prepStage === true
+        // updateReviewStage mutation
+        case 'approve-return':
+        case 'leave-review-note':
+        case 'mark-notes-addressed':
+          return pending.reviewStage === true
+        // updateEfileState mutation
+        case 'mark-signed':
+        case 'submit':
+          return pending.efileState === true
+        default:
+          return false
+      }
+    }
+    return tasks.find((task) => isTaskPending(task.id))?.id ?? null
+  }, [pending, tasks])
   // Is this Filed (done) AND in the e-file route, vs Filed (paid)
   // AND in the payment route? Both map to the same milestone but
   // walk different sub-status pipelines.
@@ -2584,7 +2699,7 @@ export function ActiveStageDetailCard({
                       reminders collapse to one tertiary text line. */}
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
                     </div>
                   ) : null}
                 </li>
@@ -2655,7 +2770,7 @@ export function ActiveStageDetailCard({
                   </div>
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
                     </div>
                   ) : null}
                 </li>
@@ -2670,7 +2785,7 @@ export function ActiveStageDetailCard({
            inline. No "What's next" eyebrow because the button is
            self-evident as the next action. */
         <div>
-          <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+          <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
         </div>
       ) : null}
 

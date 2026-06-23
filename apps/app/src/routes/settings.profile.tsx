@@ -818,6 +818,7 @@ function LanguageSelect({
   // select field — replaced with the canonical Select primitive (keyboard nav,
   // checkmark, focus ring for free).
   return (
+    // oxlint-disable-next-line no-unsafe-type-assertion -- Radix Select returns string; SelectItems below restrict it to the Locale union
     <Select value={value} onValueChange={(next) => onValueChange(next as Locale)}>
       <SelectTrigger id={id} className="w-full">
         <SelectValue>{LOCALE_LABELS[value]}</SelectValue>
@@ -845,6 +846,7 @@ function DateFormatSelect({
 }) {
   // 2026-06-16 (audit): hand-rolled DropdownMenu → canonical Select primitive.
   return (
+    // oxlint-disable-next-line no-unsafe-type-assertion -- Radix Select returns string; SelectItems below restrict it to the DateFormatPreference union
     <Select value={value} onValueChange={(next) => onValueChange(next as DateFormatPreference)}>
       <SelectTrigger id={id} className="w-full">
         <SelectValue>{DATE_FORMAT_LABELS[value]}</SelectValue>

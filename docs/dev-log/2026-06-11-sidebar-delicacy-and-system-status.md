@@ -48,3 +48,12 @@ rail). It lives in a new `topSlot` on the muted `NavGroupSection`.
   dead-center, then dropping the `justify-center` overrides. Icons now hold the
   same position in both modes → no snap, still centered (verified: nav icon
   center 41px == rail center 41px).
+
+## Rail glyph alignment (follow-up)
+
+Every rail glyph now shares ONE centerline (x=41) in both collapsed and
+expanded. The icon centers had a 1–2px spread (monogram 40 / nav 41 / search 42
+/ account 42) from differing per-element padding. A 28px avatar needs a 5px
+left inset and a 16px icon needs 11px to land on the same center, so: monogram
+`+pl-px` → 41, search `px-3 → px-[11px]` → 41, account `px-1.5 → pl-[5px]` → 41.
+Nav icons + the status dot were already 41. Verified live in both states.

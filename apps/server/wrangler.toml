@@ -172,7 +172,12 @@ AI_SYSTEM_DAILY_LIMIT = "1500"
 # this to "true", AND (3) set marketing PUBLIC_ENABLE_DEMO="true" so the Hero
 # "Try a live demo" button appears. The demo session is server-enforced read-only.
 ENABLE_PUBLIC_DEMO = "false"
-PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
+# 2026-06-23: migrated off browserless.io (cost) to Cloudflare Browser Rendering.
+# createBrowserlessFetch switches on the host: this *.cloudflare.com endpoint uses
+# CF's /content REST API (Bearer auth via PULSE_BROWSERLESS_TOKEN = a CF API token
+# scoped "Browser Rendering: Edit"). Rollback = restore the browserless.io URL AND
+# re-set the browserless.io token. ~$0: 10 browser-hrs/mo included in Workers Paid.
+PULSE_BROWSERLESS_URL = "https://api.cloudflare.com/client/v4/accounts/305dbc7da819eb47bb3f3f3bc8927046/browser-rendering/content"
 # Inbound email attribution gate (jobs/pulse/govdelivery.ts): matched official
 # sources require sender-domain + passing DKIM/SPF verdicts before their mail
 # can queue extraction. Set to "false" only to debug legitimate mail being
@@ -189,7 +194,16 @@ PULSE_EMAIL_REQUIRE_AUTH = "true"
 # 2026-06-11: az.pass_through_entities/az.withholding_due_dates/nh.business_tax
 # (PDF targets) moved back to direct fetch — /content renders HTML only and
 # returned 'Invalid PDF structure' bodies for them in prod.
-PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.income_tax,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.income_tax,ks.tax_calendar,mi.income_tax,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,nh.income_tax"
+# nh.temporary_announcements is a section-link hub, so a browser can't help it
+# either — it needs a real press-release listing URL (still open).
+# 2026-06-23: on Cloudflare Browser Rendering (networkidle0 wait), ADDED ar + ut —
+# both were impossible on browserless.io (ar Cloudflare-520'd its datacenter IPs;
+# ut WAF-502'd them AND its CMS news loads via async XHR after `load`). Verified by
+# rendering both through CF /content: ar returns its dated /news/<slug>/ list, ut's
+# release-PDF list loads under networkidle0. Dropped 4 phantom ids that match no
+# source (az/ks/mi/nh.income_tax). VERIFY ar/ut via last_change_detected_at + the
+# whole fleet's source-health after deploy.
+PULSE_BROWSERLESS_SOURCE_IDS = "pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.tax_calendar,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,wi.temporary_announcements,ar.temporary_announcements,ut.temporary_announcements"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings

@@ -1,17 +1,16 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { ArrowUpRightIcon, ExternalLinkIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { toast } from 'sonner'
 
-import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
+import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
   Table,
-  TableBody,
   TableCell,
   TableHead,
   TableHeader,
@@ -85,6 +84,17 @@ export function SourcesTab() {
   const rulesQuery = useQuery(
     orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
   )
+
+  // sourceId → number of rules that cite it. De-isolates the Sources page:
+  // each row shows "Feeds N rules" linking into the library filtered to that
+  // source (matches the library's `?source=` filter, which is sourceIds-based).
+  const ruleCountBySourceId = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const rule of rulesQuery.data ?? []) {
+      for (const sourceId of rule.sourceIds) map.set(sourceId, (map.get(sourceId) ?? 0) + 1)
+    }
+    return map
+  }, [rulesQuery.data])
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
@@ -326,6 +336,7 @@ export function SourcesTab() {
                   source={source}
                   health={sourceHealthBySourceId.get(source.id)}
                   sourceTypeLabels={sourceTypeLabels}
+                  ruleCount={ruleCountBySourceId.get(source.id) ?? 0}
                 />
               ))}
               {visibleRows.length === 0 ? (
@@ -368,8 +379,6 @@ export function SourcesTab() {
           onNextPage={() => setPageIndex(Math.min(pageCount - 1, currentPageIndex + 1))}
         />
       </SectionFrame>
-
-      <SourceCoverageSection />
     </div>
   )
 }
@@ -427,136 +436,6 @@ function SourcesKpiStrip({
   return <StatBand stats={stats} ariaLabel={t`Source feed summary`} />
 }
 
-/**
- * Coverage-by-jurisdiction matrix — answers "are we actually watching
- * everything for my states?" Each row reports how comprehensively a
- * jurisdiction is covered and which watcher roles (primary web, guidance
- * notices, email signal, …) are missing. Powered by the previously-unused
- * `pulse.listAlertSourceCoverage`.
- */
-function SourceCoverageSection() {
-  const { t } = useLingui()
-  const queryClient = useQueryClient()
-  const coverageQuery = useQuery(
-    orpc.pulse.listAlertSourceCoverage.queryOptions({ input: undefined }),
-  )
-  // Opt-in catch-up: pull this firm up to the still-open, high-value windows it
-  // missed by joining / importing clients after approval (the live fan-out only
-  // reaches firms that exist at approval time). Refreshes the alerts list so any
-  // newly-surfaced alerts appear without a reload.
-  const catchUpMutation = useMutation(
-    orpc.pulse.catchUpStillOpenWindows.mutationOptions({
-      onSuccess: ({ materializedCount }) => {
-        void queryClient.invalidateQueries({ queryKey: orpc.pulse.listAlerts.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.pulse.activeCount.key() })
-        toast.success(
-          materializedCount > 0
-            ? materializedCount === 1
-              ? t`Surfaced 1 still-open alert for your firm.`
-              : t`Surfaced ${materializedCount} still-open alerts for your firm.`
-            : t`No still-open windows to add.`,
-        )
-      },
-      onError: () => {
-        toast.error(t`Couldn't run catch-up. Please try again.`)
-      },
-    }),
-  )
-  const roleLabels = useMemo<Record<PulseAlertSourceCoverage['requiredRoles'][number], string>>(
-    () => ({
-      primary_web_news: t`Primary web`,
-      guidance_notice: t`Guidance notices`,
-      email_signal: t`Email signal`,
-      rule_source_watch: t`Rule watch`,
-      tax_type_sources: t`Tax-type sources`,
-      relief_or_disaster_signal: t`Relief / disaster`,
-      rights_window_signal: t`Rights window`,
-      multi_agency_sources: t`Multi-agency`,
-    }),
-    [t],
-  )
-
-  const coverage = coverageQuery.data?.coverage ?? []
-  if (coverageQuery.isLoading || coverage.length === 0) return null
-
-  const coverageLevelVariant = {
-    comprehensive: 'success',
-    standard: 'info',
-    missing: 'destructive',
-  } as const
-
-  return (
-    <SectionFrame>
-      <div className="flex items-start justify-between gap-3 px-4 py-3">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-semibold text-text-primary">
-            <Trans>Coverage by jurisdiction</Trans>
-          </h2>
-          <p className="text-xs text-text-tertiary">
-            <Trans>
-              Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed.
-            </Trans>
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-          onClick={() => catchUpMutation.mutate(undefined)}
-          disabled={catchUpMutation.isPending}
-          title={t`Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed.`}
-        >
-          {catchUpMutation.isPending ? (
-            <Trans>Catching up…</Trans>
-          ) : (
-            <Trans>Catch up still-open windows</Trans>
-          )}
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="px-4">JURISDICTION</TableHead>
-            <TableHead className="w-[140px] px-2">COVERAGE</TableHead>
-            <TableHead className="w-[88px] px-2">ROLES</TableHead>
-            <TableHead className="px-2">MISSING</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {coverage.map((row) => (
-            <TableRow key={row.jurisdiction} className="hover:bg-transparent">
-              <TableCell className="px-4 py-3">
-                <JurisdictionCode code={row.jurisdiction} />
-              </TableCell>
-              <TableCell className="px-2 py-3">
-                <Badge variant={coverageLevelVariant[row.coverageLevel]} size="sm">
-                  {row.coverageLevel}
-                </Badge>
-              </TableCell>
-              <TableCell className="px-2 py-3 font-mono text-xs tabular-nums text-text-secondary">
-                {row.coveredRoles.length}/{row.requiredRoles.length}
-              </TableCell>
-              <TableCell className="px-2 py-3">
-                {row.missingRoles.length === 0 ? (
-                  <span className="text-xs text-text-tertiary">—</span>
-                ) : (
-                  <div className="flex flex-wrap gap-1" title={row.missingReason ?? undefined}>
-                    {row.missingRoles.map((role) => (
-                      <Badge key={role} variant="outline" size="sm">
-                        {roleLabels[role]}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </SectionFrame>
-  )
-}
-
 function matchesSelected(value: string, selected: readonly string[]): boolean {
   return selected.length === 0 || selected.includes(value)
 }
@@ -610,10 +489,12 @@ function SourceRow({
   source,
   health,
   sourceTypeLabels,
+  ruleCount,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
   sourceTypeLabels: SourceTypeLabelMap
+  ruleCount: number
 }) {
   const { t } = useLingui()
   // Keep every interactive affordance on this row pointed at the exact
@@ -674,13 +555,28 @@ function SourceRow({
           </span>
           <span className="block truncate font-mono text-sm text-text-tertiary">{source.id}</span>
         </a>
+        {/* Internal "Feeds N rules" link — the de-isolation path into the rule
+            library, filtered to this source (?source=). Sibling of the external
+            anchor (not nested); stopPropagation so the row's open-source handler
+            doesn't also fire. Hidden when no rule cites this source. */}
+        {ruleCount > 0 ? (
+          <TextLink
+            variant="accent"
+            size="default"
+            className="mt-1"
+            onClick={(event) => event.stopPropagation()}
+            render={<Link to={`/rules/library?source=${encodeURIComponent(source.id)}`} />}
+          >
+            <Plural value={ruleCount} one="Feeds # rule" other="Feeds # rules" />
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+        ) : null}
       </TableCell>
       <TableCell className="px-2 py-3">
         {/* Shared JurisdictionCode — the quiet gray mono chip used by the
-            coverage table on this same page and the /rules/library
-            jurisdiction table. Replaces a hand-rolled accent `<Badge>` so
-            the jurisdiction cell reads identically across every rules-console
-            table instead of being a lone blue-pill outlier. */}
+            /rules/library jurisdiction table. Replaces a hand-rolled accent
+            `<Badge>` so the jurisdiction cell reads identically across the
+            rules-console tables instead of being a lone blue-pill outlier. */}
         <JurisdictionCode code={source.jurisdiction} />
       </TableCell>
       <TableCell className="px-2 py-3">

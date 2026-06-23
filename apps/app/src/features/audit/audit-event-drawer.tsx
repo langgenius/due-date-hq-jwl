@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'motion/react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { SparklesIcon } from 'lucide-react'
+import { ArrowUpRightIcon, SparklesIcon } from 'lucide-react'
 
 import type { AiEventMetadata, AuditActorType, AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -12,7 +13,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import {
@@ -34,6 +37,28 @@ import {
   useAuditChangeLabels,
   useAuditEntityTypeLabels,
 } from './audit-log-labels'
+
+// Map an audit event's entity back to the page where that entity lives, so a
+// CPA reading "who changed what" can jump straight to the thing that changed.
+// Only entity types with a stable deep-link are routable; everything else
+// (pulse ids whose alert id differs, internal batches) returns null and the
+// drawer simply omits the jump rather than risk a dead link.
+function auditEntityHref(entityType: string, entityId: string): string | null {
+  switch (entityType) {
+    case 'client':
+      // The /clients/:clientKey loader resolves a bare client UUID.
+      return `/clients/${encodeURIComponent(entityId)}`
+    case 'obligation':
+    case 'obligation_instance':
+      return deadlineDetailHref({ obligationId: entityId })
+    case 'obligation_rule':
+      return `/rules/library?rule=${encodeURIComponent(entityId)}`
+    case 'rule_source':
+      return '/rules/sources'
+    default:
+      return null
+  }
+}
 
 function AuditEventField({ label, value }: { label: string; value: string }) {
   return (
@@ -96,6 +121,7 @@ function AuditEventDrawerContent({
   const actionLabel = formatAuditActionLabel(event.action, actionLabels)
   const entityTypeLabel = formatAuditEntityTypeLabel(event.entityType, entityTypeLabels)
   const entityDisplay = getAuditEntityDisplay(event, entityTypeLabel)
+  const entityHref = auditEntityHref(event.entityType, event.entityId)
   const firmTime = formatDateTimeWithTimezone(event.createdAt, firmTimezone)
   const utcTime = formatDateTimeWithTimezone(event.createdAt, 'UTC')
   const changeView = buildAuditChangeView(event, changeLabels, firmTimezone)
@@ -141,6 +167,15 @@ function AuditEventDrawerContent({
             <AuditEventField label={t`Entity`} value={entityDisplay.primary} />
             <AuditEventField label={t`Entity type`} value={entityTypeLabel} />
             <AuditEventField label={t`Entity id`} value={shortenAuditId(event.entityId)} />
+            {/* Jump from the forensic record to the entity that changed — the
+                audit log's "trace it back to the source" path. Only rendered
+                for entity types with a stable deep-link. */}
+            {entityHref ? (
+              <TextLink variant="accent" size="sm" render={<Link to={entityHref} />}>
+                <Trans>View {entityTypeLabel}</Trans>
+                <ArrowUpRightIcon className="size-3.5" aria-hidden />
+              </TextLink>
+            ) : null}
             <AuditEventField label={t`Actor`} value={actor} />
             <AuditEventField label={t`Actor type`} value={actorTypeLabel} />
             {event.reason ? <AuditEventField label={t`Reason`} value={event.reason} /> : null}

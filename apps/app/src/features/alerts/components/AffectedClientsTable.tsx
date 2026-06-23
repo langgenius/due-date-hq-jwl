@@ -7,7 +7,7 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
 } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import type { ObligationStatus, PulseAffectedClient } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -33,6 +33,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDatePretty } from '@/lib/utils'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
+import { clientDetailPath } from '@/features/clients/client-url'
 import {
   LIFECYCLE_V2_STATUSES,
   LIFECYCLE_V2_STATUS_SETS,
@@ -57,6 +58,7 @@ import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection
 // the ObligationStatusReadBadge it would wear elsewhere.
 type V2Stage = (typeof LIFECYCLE_V2_STATUSES)[number]
 const RAW_STATUS_TO_V2_STAGE: Record<ObligationStatus, V2Stage> = (() => {
+  // oxlint-disable-next-line no-unsafe-type-assertion -- empty literal cast; map is fully filled by the loop below before return
   const map = {} as Record<ObligationStatus, V2Stage>
   for (const stage of LIFECYCLE_V2_STATUSES) {
     for (const raw of LIFECYCLE_V2_STATUS_SETS[stage]) {
@@ -325,9 +327,22 @@ export function AffectedClientsTable({
                       Location column (Pencil KwfpP), so the name reads clean at
                       the obligations-queue size/weight. */}
                     <TableCell className="min-w-0 whitespace-normal">
-                      <span className="break-words text-sm font-medium leading-tight text-text-primary">
+                      {/* The name links to the client's detail page — the
+                        alert's "who is affected" → "open that client" path.
+                        stopPropagation (click + Enter/Space) so the row's own
+                        select / open-deadline handler doesn't also fire. The
+                        hover-arrow still owns the open-deadline path. */}
+                      <Link
+                        to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
+                        }}
+                        title={row.clientName}
+                        className="block w-fit max-w-full break-words rounded-sm text-sm font-medium leading-tight text-text-primary underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
                         {row.clientName}
-                      </span>
+                      </Link>
                     </TableCell>
                     {/* ENTITY — humanized entity type (Sole prop / LLC / …). */}
                     <TableCell className="whitespace-nowrap text-text-secondary">

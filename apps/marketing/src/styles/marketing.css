@@ -23,7 +23,11 @@
   --m-ink: var(--text-primary); /* headings / strong text */
   --m-ink-2: var(--text-secondary); /* body */
   --m-muted: var(--text-tertiary); /* supporting */
-  --m-faint: var(--text-quaternary); /* eyebrows / meta */
+  /* a11y: --text-quaternary (rgb 16 24 40 / 0.3) sits at ~1.9:1 on white — fails
+     for the real text it carries (eyebrows, "sample data" disclaimers, reviewed
+     meta). Repointed to a navy-tinted neutral at ~4.5:1, still the quietest tier
+     but legible. Stays distinct from --m-muted (gray-500). */
+  --m-faint: rgb(16 24 40 / 0.55); /* eyebrows / meta — quiet but legible (>=3.5:1) */
   --m-on-accent: var(--text-inverted); /* text on the navy band */
 
   --m-canvas: var(--color-util-colors-gray-100); /* cold light gray page base (#f2f4f7) */
@@ -37,6 +41,13 @@
   --m-urgent: var(--text-warning);
   --m-ok: var(--text-success);
   --m-danger: var(--text-destructive);
+  /* a11y: --m-ok (green-600 #079455) / --m-urgent (warning-600 #c83d2f) sit at
+     ~3.2–3.9:1 as ~10px pill TEXT over their own light tint — fail AA for text.
+     These darker -ink variants (green-700 / warning-700) clear ~4.8:1 on the
+     same tint; use them for the pill LABEL, keep the lighter token for the
+     tint fill + dot. (warning-700 stays in the red family — red is risk only.) */
+  --m-ok-ink: var(--color-util-colors-green-700); /* #067647 — legible on green tint */
+  --m-urgent-ink: var(--color-util-colors-warning-700); /* #a83227 — legible on warning tint */
 
   /* ---- type ---- */
   --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */
@@ -45,11 +56,97 @@
   --m-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* data / dates */
   --m-ls-eyebrow: 0.14em;
 
+  /* ---- type scale (semantic names, not values; rem so type honours the
+     reader's browser font-size) ----
+     One source of truth for size / leading / tracking so components stop
+     freelancing half-pixel values. Root = 16px. Fixed steps below cover UI +
+     body; the shared heading classes stay fluid (clamp) for marketing display. */
+  --m-text-3xs: 0.625rem; /* 10px — decorative product-mockup micro-chrome only */
+  --m-text-2xs: 0.6875rem; /* 11px — small pills, dense labels */
+  --m-text-xs: 0.75rem; /* 12px — eyebrows, mono meta, captions */
+  --m-text-sm: 0.8125rem; /* 13px — secondary / supporting body */
+  --m-text-base: 0.875rem; /* 14px — dense UI body */
+  --m-text-md: 0.9375rem; /* 15px — card titles, comfortable body */
+  --m-text-lg: 1rem; /* 16px — emphasised body / small lead */
+  --m-text-xl: 1.125rem; /* 18px — large body / sub-lead */
+
+  --m-leading-tight: 1.1; /* display / headings */
+  --m-leading-snug: 1.35; /* subheads, multi-line labels */
+  --m-leading-normal: 1.55; /* lead + standard body */
+  --m-leading-relaxed: 1.7; /* small dense prose */
+
+  --m-tracking-tight: -0.02em; /* display headings */
+  --m-tracking-snug: -0.015em; /* mid headings */
+  --m-tracking-wide: 0.06em; /* small-caps pills / micro labels */
+
+  /* ONE size for every subpage hero title — a clear tier below the home hero
+     (clamp …76) so coverage / pricing / rules / states / trust / how-it-works
+     all read at the same size. Pages must use this, not a per-page clamp. */
+  --m-page-title-size: clamp(34px, 4.8vw, 64px);
+
   /* ---- layout (editorial, marketing-specific) ---- */
   --m-maxw: 1240px; /* one shared container width */
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
   --m-col-gap: clamp(20px, 2.4vw, 32px); /* 12-col grid gutter */
   --m-eyebrow-gap: 16px; /* one canonical eyebrow→title gap */
+
+  /* ---- readable measure ---- */
+  /* one ceiling for flowing body/lead copy so prose never runs past a
+     comfortable reading line on wide viewports (~66–70ch). Heading classes
+     keep their own tighter ch caps (titles want to wrap sooner). */
+  --m-measure: 68ch;
+
+  /* ---- motion / timing ---- */
+  /* shared easing + durations so hovers, focus rings and small state changes
+     feel like one system. Components opt in; nothing is forced onto them. */
+  --m-ease: cubic-bezier(0.22, 1, 0.36, 1); /* gentle, slightly-overshoot-free */
+  --m-dur-fast: 0.16s; /* hovers, focus, small affordances */
+  --m-dur: 0.24s; /* default state change */
+
+  /* ---- focus ---- */
+  /* keyboard focus ring for marketing surfaces — on-brand navy, kept light. */
+  --m-focus-ring: var(--m-accent);
+  --m-focus-width: 2px;
+  --m-focus-offset: 2px;
+}
+
+/* One marketing canvas for EVERY page — the public site reads as a single
+   surface, not a patchwork of warm/cool backgrounds. Unlayered so it overrides
+   the BaseLayout <body>'s layered Tailwind `bg-bg-canvas` utility. Pages must NOT
+   re-declare their own body background. */
+body {
+  background: var(--m-canvas);
+}
+
+/* ============================================================================
+   Cross-page View Transitions (astro:transitions ClientRouter). A calm, premium
+   cross-fade with a small rise on the incoming page — never a slide or wipe.
+   Fully disabled under reduced-motion.
+   ============================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: m-vt-out 0.2s var(--m-ease) both;
+  }
+  ::view-transition-new(root) {
+    animation: m-vt-in 0.34s var(--m-ease) both;
+  }
+  @keyframes m-vt-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes m-vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 /* ============================================================================
@@ -69,7 +166,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: var(--m-eyebrow-gap);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -80,15 +177,16 @@
     font-weight: 600;
     font-size: clamp(29px, 3.6vw, 44px);
     line-height: 1.08;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--m-tracking-tight);
     color: var(--m-ink);
   }
   .m-h2 .ital {
     font-style: italic;
   }
   .m-lead {
+    max-width: var(--m-measure);
     font-size: clamp(17px, 1.4vw, 20px);
-    line-height: 1.55;
+    line-height: var(--m-leading-normal);
     color: var(--m-ink-2);
   }
 
@@ -100,13 +198,97 @@
   .m-page-hero {
     padding-block: clamp(48px, 7vw, 84px) clamp(32px, 4vw, 48px);
   }
+  /* Back affordance for drill-down (leaf) pages — an obvious, clickable "up a
+     level" link at the very top of the hero. ONE shared treatment across every
+     leaf (rules · guides · comparisons · states) so "go back" is always the same
+     gesture in the same place. The circled arrow makes it read as an affordance,
+     not just faint meta. */
+  .m-page-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-ink-2);
+    transition:
+      color var(--m-dur-fast) var(--m-ease),
+      gap var(--m-dur-fast) var(--m-ease);
+  }
+  .m-page-back:hover {
+    color: var(--m-accent);
+    gap: 11px;
+  }
+  .m-page-back__arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+    color: var(--m-muted);
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .m-page-back:hover .m-page-back__arrow {
+    border-color: var(--m-accent);
+    background: var(--m-accent-tint);
+    color: var(--m-accent);
+    transform: translateX(-2px);
+  }
+  /* Placeholder figure — a labelled, on-brand stand-in for a real image,
+     screenshot, or diagram. Swap the inner content for an <img> when ready; the
+     frame stays. Soft accent-tint wash so it reads intentional, not a dead box.
+     Set --m-figure-ratio to override the default aspect. */
+  .m-figure {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: var(--m-figure-ratio, 16 / 10);
+    border-radius: 12px;
+    border: 1px solid var(--m-hairline);
+    background:
+      radial-gradient(125% 125% at 100% 0%, var(--m-accent-tint), transparent 58%), var(--m-section);
+    overflow: hidden;
+  }
+  .m-figure > img,
+  .m-figure > picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .m-figure__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    font-size: var(--m-text-xs);
+    font-weight: 500;
+    color: var(--m-muted);
+  }
+  .m-figure__mark svg {
+    width: 14px;
+    height: 14px;
+    color: var(--m-faint);
+    flex: none;
+  }
   .m-page-title {
     margin-top: 4px;
-    max-width: 18ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    font-size: clamp(30px, 4vw, 48px);
-    line-height: 1.08;
+    max-width: 20ch;
+    /* Display serif H1 — the SAME editorial hero as the home + Close finale, so
+       every page (long-tail leaves included) opens in one voice. Serif reads
+       large and optically lighter, so it takes a slightly higher ceiling and
+       tighter leading than the sans .m-h2 it sits above. */
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: var(--m-page-title-size);
+    line-height: 1.04;
     letter-spacing: -0.02em;
     color: var(--m-ink);
   }
@@ -121,14 +303,14 @@
     margin-top: 18px;
     max-width: 70ch;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     line-height: 1.5;
     color: var(--m-muted);
   }
   .m-page-reviewed {
     margin-top: 12px;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
   /* stacked content block — tighter than the home's airy sections, with a
@@ -143,7 +325,7 @@
     font-weight: 600;
     font-size: clamp(22px, 2.4vw, 30px);
     line-height: 1.2;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--m-tracking-snug);
     color: var(--m-ink);
   }
   /* split content (5 / 7) */
@@ -166,8 +348,8 @@
   .m-page-body {
     margin-top: 18px;
     max-width: 44ch;
-    font-size: 15px;
-    line-height: 1.7;
+    font-size: var(--m-text-md);
+    line-height: var(--m-leading-relaxed);
     color: var(--m-ink-2);
   }
   .m-page-grid-3 {
@@ -184,14 +366,14 @@
     border-radius: 12px;
   }
   .m-card__t {
-    font-size: 15px;
+    font-size: var(--m-text-md);
     font-weight: 600;
     line-height: 1.4;
     color: var(--m-ink);
   }
   .m-card__d {
     margin-top: 10px;
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     line-height: 1.65;
     color: var(--m-muted);
   }
@@ -264,8 +446,8 @@
     font-size: 13px;
     font-weight: 500;
     transition:
-      background 0.18s ease,
-      border-color 0.18s ease;
+      background var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
   .m-btn--primary {
     color: #fff;
@@ -282,6 +464,79 @@
   .m-btn--secondary:hover {
     border-color: var(--m-muted);
   }
+
+  /* ---- pill CTA — the shared marketing call-to-action (hero + finale). One pill
+     base; the on-dark context (.m-cta-dark, e.g. the navy close card) inverts the
+     fills so chroma stays in the container, never coloured text on dark. Distinct
+     from .m-btn (the denser 8px app-style button). ---- */
+  .m-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition:
+      background var(--m-dur-fast) ease,
+      color var(--m-dur-fast) ease,
+      box-shadow var(--m-dur-fast) ease,
+      transform 0.12s ease;
+  }
+  .m-cta__ico {
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+  .m-cta .arrow {
+    transition: transform var(--m-dur-fast) ease;
+  }
+  .m-cta:hover .arrow {
+    transform: translateX(3px);
+  }
+  .m-cta:active {
+    transform: translateY(1px);
+  }
+  .m-cta--primary {
+    background: var(--m-accent);
+    color: #fff;
+    padding: 11px 24px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+  }
+  .m-cta--primary:hover {
+    background: var(--m-accent-strong);
+  }
+  .m-cta--ghost {
+    color: var(--m-ink);
+    padding: 11px 16px;
+  }
+  .m-cta--ghost:hover {
+    color: var(--m-accent);
+    background: var(--m-section);
+  }
+  /* on a navy surface: primary → white pill, ghost → white text */
+  .m-cta-dark .m-cta--primary {
+    background: #fff;
+    color: var(--m-accent);
+    box-shadow: none;
+  }
+  .m-cta-dark .m-cta--primary:hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .m-cta-dark .m-cta--ghost {
+    color: #fff;
+  }
+  .m-cta-dark .m-cta--ghost:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .m-cta,
+    .m-cta .arrow {
+      transition: none;
+    }
+  }
+
   @media (min-width: 1024px) {
     .m-page-cta {
       grid-template-columns: 1fr auto;
@@ -303,5 +558,103 @@
     .m-page-grid-3 {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* ==========================================================================
+     Focus visibility — one keyboard-focus treatment for marketing surfaces.
+     :focus-visible only (so mouse/touch users never see the ring); on-brand
+     navy, light. Components that already ship their own ring are untouched —
+     this is the baseline for the many raw <a>/<button> in editorial markup.
+     ========================================================================== */
+  .m-section :where(a, button, [tabindex]):focus-visible,
+  .m-btn:focus-visible {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: var(--m-focus-offset);
+  }
+  /* The Close finale sits on the navy band and uses its own local .close .btn
+     (not .m-section / .m-btn), so the rule above misses its CTAs — they got NO
+     keyboard ring. Give them a visible on-navy ring: cyan, 2px / 2px offset. */
+  .close :where(a, button):focus-visible {
+    outline: var(--m-focus-width) solid var(--m-cyan);
+    outline-offset: var(--m-focus-offset);
+  }
+
+  /* ==========================================================================
+     Scroll motion — progressive enhancement. The hidden pre-reveal state
+     applies ONLY when JS is on (`.m-js` set on <html> before paint). Without
+     JS, or with reduced-motion, every [data-reveal] stays fully visible.
+     GSAP (ScrollMotion.astro) animates them to opacity:1 / translateY(0).
+     ========================================================================== */
+  .m-js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    will-change: opacity, transform;
+  }
+  /* opt-in: a container whose direct children rise in with a stagger (a list
+     assembling with rhythm). GSAP clears them; without JS / reduced-motion they
+     stay visible. */
+  .m-js [data-reveal-stagger] > * {
+    opacity: 0;
+    transform: translateY(14px);
+    will-change: opacity, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .m-js [data-reveal],
+    .m-js [data-reveal-stagger] > * {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   CJK (zh-CN) display-serif guard — UNLAYERED + !important on purpose.
+   Instrument Serif (--m-font-display) has NO Chinese glyphs, so zh heroes must
+   swap to a CJK serif stack and drop the synthesized faux-italic on .ital
+   accent words. This MUST sit outside @layer components: Astro's scoped
+   component <style> rules are UNLAYERED and therefore beat any @layer rule
+   regardless of specificity — so a layered guard is a silent no-op. Unlayered +
+   !important reliably wins over both the scoped base rules and the per-component
+   data-zh overrides.
+   ========================================================================== */
+html[lang='zh-CN']
+  :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
+  font-family:
+    'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC', var(--m-font-sans) !important;
+  line-height: 1.18 !important;
+  letter-spacing: 0 !important;
+}
+html[lang='zh-CN'] .ital {
+  font-style: normal !important;
+  /* CJK has no italic — carry the accent emphasis in colour instead */
+  color: var(--m-accent);
+}
+/* on the dark bands (villain / close) keep the emphasis white — no coloured text on dark */
+html[lang='zh-CN'] .villain__h .ital,
+html[lang='zh-CN'] .close__h .ital {
+  color: inherit;
+}
+
+/* skip-to-content link — off-screen until keyboard focus */
+.m-skip {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  background: var(--m-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.15s ease;
+}
+.m-skip:focus {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-skip {
+    transition: none;
   }
 }

@@ -25,7 +25,7 @@ const t = zh
       ],
     }
   : {
-      eyebrow: 'Questions',
+      eyebrow: 'Common questions',
       heading: 'The short answers.',
       faqs: [
         {
@@ -45,29 +45,49 @@ const t = zh
 const faqs = t.faqs
 ---
 
-<section class="m-section" id="faq" aria-labelledby="faq-h">
-  <p class="m-eyebrow">{t.eyebrow}</p>
-  <h2 class="m-h2" id="faq-h">{t.heading}</h2>
+<section class="m-section" id="faq" aria-labelledby="faq-h" data-reveal>
+  <div class="faq__layout">
+    <div class="faq__intro">
+      <p class="m-eyebrow">{t.eyebrow}</p>
+      <h2 class="m-h2" id="faq-h">{t.heading}</h2>
+    </div>
 
-  <div class="faq__grid">
-    {
-      faqs.map((f) => (
-        <details class="faq__item">
-          <summary class="faq__q">
-            {f.q}
-            <span class="faq__sign" aria-hidden="true" />
-          </summary>
-          <div class="faq__a" set:html={f.a} />
-        </details>
-      ))
-    }
+    <div class="faq__grid">
+      {
+        faqs.map((f) => (
+          <details class="faq__item">
+            <summary class="faq__q">
+              {f.q}
+              <span class="faq__sign" aria-hidden="true" />
+            </summary>
+            <div class="faq__a" set:html={f.a} />
+          </details>
+        ))
+      }
+    </div>
   </div>
 </section>
 
 <style>
+  /* full-width editorial split — title on the left, the accordion fills the rest */
+  .faq__layout {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(28px, 4vw, 48px);
+    align-items: start;
+  }
+  .faq__intro {
+    grid-column: span 4;
+  }
   .faq__grid {
-    margin-top: clamp(32px, 4vw, 48px);
-    max-width: 760px;
+    grid-column: span 8;
+  }
+  @media (max-width: 860px) {
+    .faq__intro,
+    .faq__grid {
+      grid-column: 1 / -1;
+    }
   }
   .faq__item {
     border-top: 1px solid var(--m-hairline);
@@ -119,7 +139,7 @@ const faqs = t.faqs
   .faq__a {
     padding: 0 0 24px;
     max-width: 64ch;
-    font-size: 15px;
+    font-size: var(--m-text-md);
     line-height: 1.6;
     color: var(--m-muted);
   }

@@ -83,7 +83,9 @@ import {
   formatRelativeTime,
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-import { PinButton } from '@/features/obligations/PinButton'
+// PinButton shelved 2026-06-23 (pin feature paused) — kept as a commented
+// import so the footer toggle is a one-line restore. See render-site note.
+// import { PinButton } from '@/features/obligations/PinButton'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
@@ -130,7 +132,9 @@ import {
   ChevronDownIcon,
   CircleOffIcon,
   CopyIcon,
+  ArrowUpRightIcon,
   ExternalLinkIcon,
+  SquareChartGanttIcon,
   FileTextIcon,
   HistoryIcon,
   LinkIcon,
@@ -205,6 +209,10 @@ function DeadlineTopActions({
   markFiledPending: boolean
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
+  // Captured as a const so the truthy-narrowed `string` survives into the
+  // navigate closure below (a `row.assigneeName` property access wouldn't).
+  const assigneeName = row.assigneeName
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
@@ -230,10 +238,10 @@ function DeadlineTopActions({
   ]
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      {/* Pin / unpin — the entry point for the /today Pinned section. Quiet
-          icon-only control, leftmost so the labeled action buttons stay the
-          row's loud cluster. */}
-      <PinButton obligationId={row.id} isPinned={row.isPinned} />
+      {/* Pin / unpin toggle SHELVED 2026-06-23 alongside the /today Pinned
+          section (Yuqi: "save pinned for the future"). Restore by re-adding
+          `<PinButton obligationId={row.id} isPinned={row.isPinned} />` here and
+          re-mounting PinnedSection on the dashboard. PinButton.tsx is kept. */}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -244,13 +252,38 @@ function DeadlineTopActions({
           }
         />
         <DropdownMenuContent align="end" className="w-56">
+          {/* Read action before the reassign list: jump to this owner's other
+              deadlines (assignee filter is name-keyed). Completes the
+              who→work pattern on the deadline detail — see everything this
+              teammate is carrying, or hand this one off below. */}
+          {row.assigneeId && assigneeName ? (
+            <>
+              <DropdownMenuItem
+                onClick={() =>
+                  void navigate(`/deadlines?assignee=${encodeURIComponent(assigneeName)}`)
+                }
+              >
+                <SquareChartGanttIcon className="size-4" aria-hidden />
+                <Trans>View {assigneeName}&rsquo;s deadlines</Trans>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {assignableMembers.length > 0 ? (
             <DropdownMenuRadioGroup
               value={row.assigneeId ?? ''}
               onValueChange={(value) => onAssign(value || null)}
             >
               {assignableMembers.map((member) => (
-                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                <DropdownMenuRadioItem
+                  key={member.assigneeId}
+                  value={member.assigneeId}
+                  // In-flight guard: the trigger is disabled while an
+                  // assign commits, but the radio items + Clear stay
+                  // clickable inside an already-open menu — disable them
+                  // too so a reassign can't double-fire mid-flight.
+                  disabled={assignPending}
+                >
                   {member.name}
                 </DropdownMenuRadioItem>
               ))}
@@ -263,7 +296,7 @@ function DeadlineTopActions({
           {row.assigneeId ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onAssign(null)}>
+              <DropdownMenuItem onClick={() => onAssign(null)} disabled={assignPending}>
                 <Trans>Clear assignee</Trans>
               </DropdownMenuItem>
             </>
@@ -1418,6 +1451,13 @@ export function ObligationQueueDetailDrawer({
   }
 
   function removeChecklistItem(itemId: string) {
+    // In-flight guard: the Remove control lives in a per-row overflow
+    // menu (ChecklistItemRow) that isn't disabled while the shared
+    // delete mutation runs, so a fast double-click could fire the
+    // delete twice. Drop the second call while one is already
+    // committing — the delete is shared (one at a time), so any pending
+    // delete means the click is a duplicate.
+    if (deleteChecklistItemMutation.isPending) return
     deleteChecklistItemMutation.mutate({ itemId })
   }
 
@@ -1702,20 +1742,30 @@ export function ObligationQueueDetailDrawer({
   // workpaper count; Audit → event count; Extension → decided ✓ / not filed.
   // Status carries no chip (the workflow stage IS its own headline). Each is the
   // SAME node passed to the nav item and the section header.
+  // 2026-06-23 (Yuqi #6 "not a standard number badge"): the COUNT chips
+  // (Materials / Record / Audit) now render via the canonical `Badge`
+  // primitive at `size="sm"` — the documented tab-count bubble shape — so a
+  // count reads as a standard number badge across the app, not a bespoke mono
+  // data-pill. The Extension "Filed" chip stays on `sectionDataChip` (it's a
+  // boolean STATE, not a count). Materials keeps its "N left" meaning.
   const materialsChip =
-    outstandingMaterials > 0
-      ? sectionDataChip(t`${outstandingMaterials} left`, {
-          ariaLabel: t`${outstandingMaterials} outstanding`,
-        })
-      : null
+    outstandingMaterials > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${outstandingMaterials} outstanding`}>
+        {t`${outstandingMaterials} left`}
+      </Badge>
+    ) : null
   const evidenceChip =
-    evidenceCount > 0
-      ? sectionDataChip(t`${evidenceCount}`, { ariaLabel: t`${evidenceCount} workpapers` })
-      : null
+    evidenceCount > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${evidenceCount} workpapers`}>
+        {evidenceCount}
+      </Badge>
+    ) : null
   const auditChip =
-    auditCount > 0
-      ? sectionDataChip(t`${auditCount}`, { ariaLabel: t`${auditCount} events` })
-      : null
+    auditCount > 0 ? (
+      <Badge variant="secondary" size="sm" aria-label={t`${auditCount} events`}>
+        {auditCount}
+      </Badge>
+    ) : null
   const extensionChip = extensionSaved
     ? sectionDataChip(
         <>
@@ -1965,8 +2015,18 @@ export function ObligationQueueDetailDrawer({
           top above the header — so status lives in the SAME place on both
           surfaces. The header status chip is dropped in page mode below to
           avoid stating status twice (critique: de-dupe status). */}
-      {row
-        ? (() => {
+      {/* 2026-06-23 (Yuqi alert↔deadline parity #4b): the shared
+          DetailStatusBanner ships with its own `px-6 xl:px-12` content inset
+          (it's tuned for the alert detail's roomier px-12 document margin).
+          On /deadlines the page header + crumb bar hug the left at `px-5`, so
+          the banner's "Past deadline · 42d late" text sat indented past the
+          "Deadlines" title's "D". This wrapper overrides the band's inner
+          inline padding to `px-5` so the banner left edge aligns to the
+          header content edge. (The shared component can't take a className,
+          so the override lives here on the consuming side.) */}
+      {row ? (
+        <div className="[&>div]:!px-5">
+          {(() => {
             const isDone =
               row.status === 'done' || row.status === 'completed' || row.status === 'paid'
             const isOverdue = row.daysUntilDue < 0 && !isDone
@@ -2051,8 +2111,9 @@ export function ObligationQueueDetailDrawer({
                 note={timingNote}
               />
             )
-          })()
-        : null}
+          })()}
+        </div>
+      ) : null}
       {/* Header — flipped 2026-05-23. The drawer is a per-obligation
           surface, so the obligation identity (Form 1040, Form 1120-S)
           deserves the primary slot, not the client. Earlier shape
@@ -2193,13 +2254,25 @@ export function ObligationQueueDetailDrawer({
           ) : null}
           {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
             on its own line; the standalone client kicker link was folded
-            into the household chip in the row below per the design稿. */}
+            into the household chip in the row below per the design稿.
+            2026-06-23 (Yuqi alert↔deadline hero parity #2): the form
+            REPRESENTATION ("Form 1040") reads BELOW the headline as its own
+            sub-identity line — mirroring how the alert hero stacks title →
+            dek — instead of being crammed into the headline string. The
+            human description is now the headline; the form code is a quiet
+            sub-line beneath it. The crumb leaf keeps the combined
+            "{label} — {description}" for the path read. */}
           {row
             ? (() => {
                 const meta = describeTaxCode(row.taxType)
-                const heroTitle = meta.description
-                  ? `${meta.label} — ${meta.description}`
-                  : meta.label
+                // Headline = the human description ("Individual income tax
+                // return"); fall back to the form label when no description
+                // exists. The form code renders on its own sub-line below.
+                const heroTitle = meta.description || meta.label
+                // The form representation, surfaced only when there's a
+                // distinct description above it (otherwise the headline
+                // already IS the form label, so a duplicate sub-line is noise).
+                const formSubIdentity = meta.description ? meta.label : null
                 return (
                   // Expanded state clamps at 3 lines — the same guard the
                   // alert hero carries (2026-06-11 hostile-data sweep: an
@@ -2207,17 +2280,25 @@ export function ObligationQueueDetailDrawer({
                   // content below the fold on all four tabs). Full text on
                   // the title attr. expanded (was 1.25) per
                   // the same cramped-two-line finding as the alert hero.
-                  <h2
-                    className={cn(
-                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
-                      heroCollapsed
-                        ? 'line-clamp-1 text-item-title'
-                        : 'line-clamp-3 text-surface-title',
-                    )}
-                    title={heroTitle}
-                  >
-                    {heroTitle}
-                  </h2>
+                  <>
+                    <h2
+                      className={cn(
+                        'pr-8 font-semibold tracking-display text-text-primary transition-all duration-200 ease-apple',
+                        heroCollapsed
+                          ? 'line-clamp-1 text-item-title'
+                          : 'line-clamp-3 text-surface-title',
+                      )}
+                      title={meta.description ? `${meta.label} — ${meta.description}` : meta.label}
+                    >
+                      {heroTitle}
+                    </h2>
+                    {/* Form sub-identity — a quiet 14/500 line directly under
+                        the headline (the alert hero's dek slot). Hidden once
+                        the hero collapses so the pinned header stays compact. */}
+                    {formSubIdentity && !heroCollapsed ? (
+                      <p className="text-sm font-medium text-text-tertiary">{formSubIdentity}</p>
+                    ) : null}
+                  </>
                 )
               })()
             : null}
@@ -2670,12 +2751,17 @@ export function ObligationQueueDetailDrawer({
                           {panelLayout ? (
                             // 2026-06-16 (Yuqi "header should have a light background,
                             // and a thin/low-height header — not floating titles"): a real
-                            // HEADER BAND — light tint (bg-background-subtle) + hairline
-                            // bottom border + tight py-2.5, so it reads as a low defined
-                            // strip across the card top. -mx-5 -mt-5 break it out of the
-                            // p-5 to span edge-to-edge; the card's overflow-hidden clips
-                            // the band to the rounded-xl top corners.
-                            <header className="-mx-5 -mt-5 flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                            // HEADER BAND — light tint + hairline bottom border + tight
+                            // py-2.5, so it reads as a low defined strip across the card
+                            // top. -mx-5 -mt-5 break it out of the p-5 to span
+                            // edge-to-edge; the card's overflow-hidden clips the band to
+                            // the rounded-xl top corners.
+                            // 2026-06-23 (Yuqi #2b "slightly slightly darker"): bumped the
+                            // band one step darker than gray-100 — from bg-background-subtle
+                            // to bg-background-section-burn (the canonical darker neutral
+                            // surface) — so the strip reads a touch more defined against the
+                            // white card without becoming a loud fill.
+                            <header className="-mx-5 -mt-5 flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-section-burn px-5 py-1.5">
                               <h3 className="text-base font-semibold text-text-primary">
                                 <Trans>Workflow</Trans>
                               </h3>
@@ -2718,6 +2804,17 @@ export function ObligationQueueDetailDrawer({
                             // Workflow section card, so render flat — no nested
                             // tinted block. Sheet mode keeps the tinted block.
                             flat={panelLayout}
+                            // In-flight flags so the in-card stage action shows a
+                            // spinner + disables the cluster while the matching
+                            // mutation commits (no double-fire). Mirrors the
+                            // footer/hotkey guard the same mutations already have.
+                            pending={{
+                              changeStatus: changeStatusMutation.isPending,
+                              confirmAcceptance: markAcceptedMutation.isPending,
+                              prepStage: updatePrepStageMutation.isPending,
+                              reviewStage: updateReviewStageMutation.isPending,
+                              efileState: updateEfileStateMutation.isPending,
+                            }}
                             onChangeTab={jumpToSection}
                             onChangeStatus={(nextStatus) =>
                               changeStatus(row.id, nextStatus, row.status)
@@ -3155,6 +3252,11 @@ export function ObligationQueueDetailDrawer({
                                         <DropdownMenuRadioItem
                                           key={member.assigneeId}
                                           value={member.assigneeId}
+                                          // In-flight guard — disable the radio
+                                          // items while an assign commits so a
+                                          // reassign can't double-fire inside the
+                                          // open menu.
+                                          disabled={assignMutation.isPending}
                                         >
                                           {member.name}
                                         </DropdownMenuRadioItem>
@@ -3172,6 +3274,7 @@ export function ObligationQueueDetailDrawer({
                                         onClick={() =>
                                           assignMutation.mutate({ id: row.id, assigneeId: null })
                                         }
+                                        disabled={assignMutation.isPending}
                                       >
                                         <Trans>Clear assignee</Trans>
                                       </DropdownMenuItem>
@@ -4831,6 +4934,22 @@ export function ObligationQueueDetailDrawer({
                           <Trans>No activity recorded yet.</Trans>
                         </EmptyPanel>
                       )}
+                      {/* Reverse entity→audit path: this card shows the
+                          deadline's OWN timeline; the link opens the same
+                          history in the firm-wide audit log (full filters +
+                          export), scoped to this record via ?entity=<id>. */}
+                      {detail.auditEvents.length > 0 ? (
+                        <div className="mt-3 border-t border-divider-subtle pt-3">
+                          <TextLink
+                            variant="accent"
+                            size="sm"
+                            render={<Link to={`/audit?entity=${encodeURIComponent(row.id)}`} />}
+                          >
+                            <Trans>View in full audit log</Trans>
+                            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                          </TextLink>
+                        </div>
+                      ) : null}
                     </DetailSectionCard>
                   </motion.div>
                 </section>
@@ -4964,11 +5083,19 @@ export function ObligationQueueDetailDrawer({
             // blended into the white cards above it on the gray body).
             'sticky bottom-0 mt-auto flex min-h-16 border-t px-12 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
             footerDocked ? 'border-divider-regular' : 'border-transparent',
+            // 2026-06-23 (Yuqi alert↔deadline parity #4): the footer container +
+            // rhythm now mirror AlertDetailDrawer's docking footer exactly — the
+            // gray `bg-background-section` committed-decision surface (was the
+            // white `bg-background-default`) and its `py-4` vertical rhythm (was
+            // py-3), so both detail footers read as the same closing region. The
+            // action SET is unchanged (Last updated · Request input · Copy link
+            // on the left; Assign · Snooze · Mark as filed on the right) — only
+            // the surface/spacing grammar aligns.
             panelLayout
-              ? 'items-center bg-background-default py-3'
+              ? 'items-center bg-background-section py-4'
               : 'flex-wrap items-center justify-between gap-2 pt-4 pb-6',
             // The mobile Sheet keeps the warm canvas; page + the in-client panel
-            // take the white footer surface from the panelLayout arm above.
+            // take the gray footer surface from the panelLayout arm above.
             mode === 'sheet' && 'bg-background-canvas-warm',
           )}
           style={

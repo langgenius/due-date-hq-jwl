@@ -68,6 +68,7 @@ async function runWrangler(args: readonly string[]): Promise<string> {
   let lastErr = ''
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
+      // oxlint-disable-next-line no-await-in-loop -- sequential retry; concurrent wrangler invocations would defeat backoff
       const { stdout } = await execFileAsync('npx', ['wrangler', ...args], {
         cwd: SERVER_DIR,
         maxBuffer: 64 * 1024 * 1024,
@@ -80,10 +81,12 @@ async function runWrangler(args: readonly string[]): Promise<string> {
     } catch (error) {
       // wrangler exits 1 on a transient "fetch failed", but the marker lands on
       // the child's stdout/stderr, not the thrown message — inspect all three.
+      // oxlint-disable-next-line no-unsafe-type-assertion -- node's caught error is `unknown`; downstream reads are defensive
       const e = error as { message?: string; stdout?: string; stderr?: string }
       lastErr = [e.message, e.stdout, e.stderr].filter(Boolean).join(' ')
       if (!/fetch failed|ECONN|ETIMEDOUT|network/i.test(lastErr)) throw error
     }
+    // oxlint-disable-next-line no-await-in-loop -- backoff between retry attempts
     await new Promise((r) => setTimeout(r, 8000))
   }
   throw new Error(`wrangler failed after retries: ${lastErr}`)
@@ -92,6 +95,7 @@ async function runWrangler(args: readonly string[]): Promise<string> {
 function parseD1Rows(stdout: string): Record<string, unknown>[] {
   const start = stdout.indexOf('[')
   if (start < 0) throw new Error('no JSON array in wrangler output')
+  // oxlint-disable-next-line no-unsafe-type-assertion -- wrangler d1 execute output shape; optional-chain read below tolerates surprises
   const parsed = JSON.parse(stdout.slice(start)) as { results?: Record<string, unknown>[] }[]
   return parsed[0]?.results ?? []
 }

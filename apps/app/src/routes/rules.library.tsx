@@ -103,6 +103,7 @@ import {
   stripJurisdictionPrefix,
   type EntityKey,
 } from '@/features/rules/rules-console-model'
+import { RuleCoverageMap, type RuleCoverageEntry } from '@/features/rules/RuleCoverageMap'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
@@ -814,71 +815,99 @@ function OverviewReviewBreakdown({
     label: string
     pendingReviewCount: number
     highCount: number
+    /** Pending rules that can be accepted right now (no AI-draft gate). */
+    readyCount: number
     oldest: number | null
   }>
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
-  const { t } = useLingui()
   const now = Date.now()
 
   return (
-    <section className="flex shrink-0 flex-col gap-3">
+    // `@container` so the card grid below responds to THIS column's width
+    // (the right side of the overview split), not the viewport — the app
+    // sidebar makes viewport breakpoints unreliable for inner content.
+    <section className="@container flex shrink-0 flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-region-title text-text-primary">
+        {/* h2 peer of the Coverage map title — same region-title size. */}
+        <h2 className="text-region-title text-text-primary">
           <Trans>Where to start</Trans>
-        </span>
+        </h2>
         <span className="text-sm font-medium text-text-tertiary">
           <Trans>Most urgent first</Trans>
         </span>
       </div>
-      {/* Ranked jurisdictions (longest-waiting first). Per the Pencil
-          reference nCNln the row carries the triage signal as text —
-          high-severity · days waiting — not a magnitude bar, with an
-          explicit Review button into that jurisdiction's queue. */}
-      <div className="min-w-0 overflow-hidden rounded-xl border border-divider-subtle">
-        {jurisdictions.map((g, index) => {
+      {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID. Each card
+          is a click target into that jurisdiction's review queue. 2026-06-23
+          (Yuqi): the cards used to echo the StatBand — a big `text-stat-value`
+          number per card — which CLASHED with the stat-card row directly above
+          (two KPI bands stacked) and read as terse data, not an action. So this
+          zone deliberately diverges: this is an actionable RANKED LIST, not a
+          KPI grid. No protagonist number; instead a readable SENTENCE per card
+          ("New York — 16 rules to review · 20 active") with the count inline at
+          data weight (500) inside the sentence, and the lone red high-severity
+          flag (von-Restorff) called out below as a quiet pill. Denser padding
+          (p-3.5) + smaller seal so the list reads lighter than the band. */}
+      <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
+        {jurisdictions.map((g) => {
           const days =
             g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
           return (
-            <div
+            <button
               key={g.jurisdiction}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3',
-                index > 0 && 'border-t border-divider-subtle',
-              )}
+              type="button"
+              onClick={() => onSelectJurisdiction(g.jurisdiction)}
+              className="group flex cursor-pointer items-start gap-3 rounded-xl border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
+              {/* Seal sits inline at the start of the row (a list affordance),
+                  not stacked as a card header — keeps the card shallow. */}
               <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-base font-medium text-text-primary">{g.label}</span>
-                {/* Subline carries only the row's *differentiators*: high
-                      severity (when present) + how long it's waited. The
-                      absolute "oldest {date}" lived here too, but it restates
-                      the same timestamp as "Nd waiting" and is identical on
-                      every row in single-cohort data — the StatBand owns the
-                      absolute date. "No high-severity" is dropped: absence
-                      reads as none without a label on 4-of-6 rows. */}
-                <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                  {g.highCount > 0 ? (
-                    <span className="text-text-warning">
-                      <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                    </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                {/* The sentence. Jurisdiction name at title weight (500), then a
+                    dash and the readable backlog phrase. The pending count is the
+                    only number, set at data weight (500) inline — not a giant
+                    stat-value — so the row reads as prose, distinct from the
+                    band's "label · big number · sub" grammar above. */}
+                <p className="text-sm leading-snug text-text-secondary">
+                  <span className="font-medium text-text-primary">{g.label}</span>
+                  {' — '}
+                  <Plural
+                    value={g.pendingReviewCount}
+                    one={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rule
+                        to review
+                      </Trans>
+                    }
+                    other={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rules
+                        to review
+                      </Trans>
+                    }
+                  />
+                  {g.readyCount > 0 ? (
+                    <>
+                      {' · '}
+                      <Trans>{g.readyCount} ready</Trans>
+                    </>
+                  ) : days != null ? (
+                    <>
+                      {' · '}
+                      <Trans>{days}d waiting</Trans>
+                    </>
                   ) : null}
-                  {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
-                  {days != null ? <span>{t`${days}d waiting`}</span> : null}
-                </span>
+                </p>
+                {/* High-severity is the lone color signal (von-Restorff): a quiet
+                    warning-toned pill, only when the jurisdiction carries high-risk
+                    rules. Everything else in the sentence stays neutral. */}
+                {g.highCount > 0 ? (
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-medium text-text-warning">
+                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                  </span>
+                ) : null}
               </div>
-              <span className="shrink-0 text-sm font-medium tabular-nums text-text-warning">
-                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              >
-                <Trans>Review</Trans>
-                <ChevronRightIcon data-icon="inline-end" />
-              </Button>
-            </div>
+            </button>
           )
         })}
       </div>
@@ -1117,13 +1146,16 @@ function OverviewCaughtUpCard({
     'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
   const linkArrowClass = 'size-3.5 transition-transform group-hover/link:translate-x-0.5'
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-background-subtle px-6 py-10">
+    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl border border-divider-warm bg-background-well-warm px-6 py-10">
       <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
+        {/* Palette finish: a clear review queue is a reward, so the disc wears
+            the LIME celebration highlight (matching the /today all-clear beat) —
+            dark check on lime, never a light glyph on the light fill. */}
         <span
           aria-hidden
-          className="flex size-12 items-center justify-center rounded-full bg-state-success-hover"
+          className="flex size-12 items-center justify-center rounded-full bg-highlight-celebrate"
         >
-          <CheckIcon className="size-[22px] text-state-success-solid" />
+          <CheckIcon className="size-[22px] text-text-primary" />
         </span>
         <span className="text-xl font-semibold tracking-title text-text-primary">
           <Trans>Review queue is clear</Trans>
@@ -1153,6 +1185,12 @@ function OverviewCaughtUpCard({
     </div>
   )
 }
+
+// Coverage map temporarily hidden (Yuqi, 2026-06-23) — the overview leads
+// straight into "Where to start" full-width. Flip to `true` to restore the
+// two-column map + backlog layout; the RuleCoverageMap component and its
+// `coverageByJurisdiction` wiring are kept intact for that.
+const SHOW_COVERAGE_MAP = false
 
 // ---------------------------------------------------------------------------
 // Main route
@@ -1192,6 +1230,11 @@ export function RulesLibraryRoute() {
   // The selected jurisdiction drives the right-pane flat table. URL-bound
   // so a state deep-links; null / unknown code = the All overview.
   const [jurisdictionParam, setJurisdiction] = useQueryState('jurisdiction', parseAsString)
+  // Source filter (?source=<sourceId>) — the inbound link from /rules/sources.
+  // De-isolates the Sources page: clicking a source's rule count lands here
+  // scoped to exactly the rules that cite that monitored source. Renders the
+  // flat results list (like search) plus a dismissible chip.
+  const [sourceParam, setSourceParam] = useQueryState('source', parseAsString)
   // Scope tabs above the table. URL-bound so the active scope deep-links.
   // Default is 'all'. `null` from nuqs maps back to 'all' for the
   // activeScope computation so the chip is always one of the four known
@@ -1498,46 +1541,29 @@ export function RulesLibraryRoute() {
   )
   // Overview "Where to start" + sharpened-stat data — all from already-wired
   // sources, no new fiction.
-  //   topReviewJurisdictions — backlog ranked by pending count (the drill-in).
+  //   topReviewJurisdictions — backlog ranked by pending count (the drill-in);
+  //                            defined below, after `concreteDraftByTarget`,
+  //                            since it derives the per-jurisdiction "ready to
+  //                            accept" split from that same draft gate.
   //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
-  const topReviewJurisdictions = useMemo(() => {
-    // Per-jurisdiction triage meta from the pending rules: how many are
-    // high-severity, and the oldest one's timestamp (drives "Nd waiting" +
-    // the urgency sort).
-    const meta = new Map<string, { high: number; oldest: number | null }>()
+  // Per-jurisdiction review coverage for the coverage-map tilegram: pending
+  // count (from the group) + high-severity pending (scanned from rules).
+  // (`topReviewJurisdictions` is defined further down on current main, after
+  // `concreteDraftByTarget` — left there, not re-added here.)
+  const coverageByJurisdiction = useMemo(() => {
+    const map = new Map<string, RuleCoverageEntry>()
+    for (const g of unfilteredGroups) {
+      map.set(g.jurisdiction, { pending: g.pendingReviewCount, high: 0, total: g.ruleCount })
+    }
     for (const r of rules) {
       if (r.status !== 'candidate' && r.status !== 'pending_review') continue
-      const cur = meta.get(r.jurisdiction) ?? { high: 0, oldest: null }
-      if (r.riskLevel === 'high') cur.high += 1
-      const changed = ruleChangedAt(r)
-      if (changed !== null && (cur.oldest === null || changed < cur.oldest)) cur.oldest = changed
-      meta.set(r.jurisdiction, cur)
+      if (r.riskLevel !== 'high') continue
+      const entry = map.get(r.jurisdiction)
+      if (entry) entry.high += 1
     }
-    return (
-      unfilteredGroups
-        .filter((g) => g.pendingReviewCount > 0)
-        .map((g) => {
-          const m = meta.get(g.jurisdiction)
-          return {
-            jurisdiction: g.jurisdiction,
-            label: g.label,
-            pendingReviewCount: g.pendingReviewCount,
-            highCount: m?.high ?? 0,
-            oldest: m?.oldest ?? null,
-          }
-        })
-        // Most urgent first = longest-waiting (oldest pending); ties broken by
-        // the bigger backlog, so when everything was seeded the same day the
-        // ranking still reads most-pending-first, not alphabetical.
-        .toSorted(
-          (a, b) =>
-            (a.oldest ?? Infinity) - (b.oldest ?? Infinity) ||
-            b.pendingReviewCount - a.pendingReviewCount,
-        )
-        .slice(0, 6)
-    )
+    return map
   }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
@@ -1758,6 +1784,19 @@ export function RulesLibraryRoute() {
     })
   }, [filteredRules, searchLower])
 
+  // Rules that cite the ?source= source, shown as the flat results list when a
+  // source filter is active (no search term needed). Mirrors `matchedRules`.
+  const sourceMatchedRules = useMemo(
+    () => (sourceParam ? filteredRules.filter((rule) => rule.sourceIds.includes(sourceParam)) : []),
+    [filteredRules, sourceParam],
+  )
+  // sourceId → human title for the active-source chip label.
+  const sourceTitleById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const source of sourcesQuery.data ?? []) map.set(source.id, source.title)
+    return map
+  }, [sourcesQuery.data])
+
   const selectedRule = useMemo(
     () => (ruleId ? (rules.find((r) => r.id === ruleId) ?? null) : null),
     [ruleId, rules],
@@ -1794,6 +1833,55 @@ export function RulesLibraryRoute() {
     const target = concreteDraftTargetForRule(selectedRule)
     return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
   }, [concreteDraftByTarget, selectedRule])
+
+  // "Where to start" backlog, ranked + triage meta. Lives here (not up with the
+  // other overview derivations) because `readyCount` reads the same AI-draft
+  // gate as `draftGatedPendingCount` — a pending rule is "ready to accept now"
+  // when it is NOT draft-gated (no source-defined draft requirement, OR a draft
+  // already exists). The few jurisdictions with ready rules are the instant
+  // wins; everywhere else the work starts with generating drafts.
+  const topReviewJurisdictions = useMemo(() => {
+    const meta = new Map<string, { high: number; oldest: number | null; ready: number }>()
+    for (const r of rules) {
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      const cur = meta.get(r.jurisdiction) ?? { high: 0, oldest: null, ready: 0 }
+      if (r.riskLevel === 'high') cur.high += 1
+      const changed = ruleChangedAt(r)
+      if (changed !== null && (cur.oldest === null || changed < cur.oldest)) cur.oldest = changed
+      // Ready = same gate as draftGatedPendingCount, inverted: no draft target
+      // (not source-defined) OR a concrete draft already exists.
+      const target = concreteDraftTargetForRule(r)
+      const drafted = target
+        ? Boolean(concreteDraftByTarget.get(concreteDraftTargetKey(target))?.draft)
+        : true
+      if (drafted) cur.ready += 1
+      meta.set(r.jurisdiction, cur)
+    }
+    return (
+      unfilteredGroups
+        .filter((g) => g.pendingReviewCount > 0)
+        .map((g) => {
+          const m = meta.get(g.jurisdiction)
+          return {
+            jurisdiction: g.jurisdiction,
+            label: g.label,
+            pendingReviewCount: g.pendingReviewCount,
+            highCount: m?.high ?? 0,
+            readyCount: m?.ready ?? 0,
+            oldest: m?.oldest ?? null,
+          }
+        })
+        // Most urgent first = longest-waiting (oldest pending); ties broken by
+        // the bigger backlog, so when everything was seeded the same day the
+        // ranking still reads most-pending-first, not alphabetical.
+        .toSorted(
+          (a, b) =>
+            (a.oldest ?? Infinity) - (b.oldest ?? Infinity) ||
+            b.pendingReviewCount - a.pendingReviewCount,
+        )
+        .slice(0, 6)
+    )
+  }, [unfilteredGroups, rules, concreteDraftByTarget])
 
   const handleRuleClick = useCallback(
     (rule: ObligationRule) => {
@@ -1864,6 +1952,21 @@ export function RulesLibraryRoute() {
     [rules],
   )
 
+  // High-severity slice of the review backlog — drives the StatBand
+  // High-severity column's "Review these first" action (select-and-open the
+  // bulk modal pre-scoped to the high-risk rules), the same select-then-open
+  // idiom the "Start review" header button uses.
+  const highSeverityReviewableRuleIds = useMemo(
+    () =>
+      rules
+        .filter(
+          (r) =>
+            (r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high',
+        )
+        .map((r) => r.id),
+    [rules],
+  )
+
   // How many pending rules are blocked behind an AI concrete draft — a
   // source-defined rule with no ready draft *cannot* be accepted yet (this is
   // the server's `source_defined_requires_ai_review` gate, computed here from
@@ -1897,6 +2000,7 @@ export function RulesLibraryRoute() {
     )
   }, [rules, selectedRuleIds])
 
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-bulk surface mid-build
   const _openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2051,6 +2155,7 @@ export function RulesLibraryRoute() {
   // Start the batch review queue with everything that's pending. The
   // header button is the "I just want to clear my review queue" path
   // (CPA opens the page, hits Start review, walks through 459 cards).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-all flow mid-build
   const _startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2065,6 +2170,7 @@ export function RulesLibraryRoute() {
   // shell's `actions` slot. Replaces the prior standalone PageActions
   // row (which left a ~48px dead zone between the title and the next
   // content block).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces in pending review-all UI
   const _reviewCount = allReviewableRuleIds.length
   const currentBatchReviewRuleId =
     batchReviewIndex === null ? null : (batchReviewRuleIds?.[batchReviewIndex] ?? null)
@@ -2380,6 +2486,19 @@ export function RulesLibraryRoute() {
       value: highSeverityPending,
       sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
       subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      // "action?" (Yuqi): when high-risk rules are waiting, the column is a
+      // shortcut — select all high-severity reviewable rules and open the bulk
+      // modal scoped to them (same select-then-open idiom as "Start review").
+      // No work waiting → stays a read-only column.
+      ...(highSeverityPending > 0 && highSeverityReviewableRuleIds.length > 0
+        ? {
+            onClick: () => {
+              setSelectedRuleIds(new Set(highSeverityReviewableRuleIds))
+              setBulkListOpen(true)
+            },
+            ariaLabel: t`Review ${highSeverityPending} high-severity rules`,
+          }
+        : {}),
     },
     {
       key: 'coverage',
@@ -2395,7 +2514,10 @@ export function RulesLibraryRoute() {
       key: 'total',
       label: t`Total rules`,
       value: totalRules,
-      sub: t`${totalActive} active`,
+      // The page subtitle's "N rules across M jurisdictions" was redundant with
+      // this anchor stat, so the jurisdiction count folds in here (Yuqi: "do we
+      // need this?") and the subtitle drops — one home for the catalog totals.
+      sub: t`${totalActive} active · ${jurisdictionCount} jurisdictions`,
       // Anchor/context stat — stays NEUTRAL (2026-06-18 color budget). Color in a
       // StatBand is reserved for conditionally-actionable stats (the three above
       // go amber only when there's work); an always-on accent on the vanity total
@@ -2505,23 +2627,37 @@ export function RulesLibraryRoute() {
                 }
               />
             ) : (
-              // Overview header (Pencil O0pyRO): a sentence-case "Live"
-              // status eyebrow with a green sync dot, the "Rule library"
-              // title + "N rules across M jurisdictions" subtitle, and a
-              // lean two-button action cluster (Export + Add rule). The
-              // catalog totals live in the subtitle + stats band below.
-              <PageHeader
-                title={<Trans>Rule library</Trans>}
-                description={
-                  !statsLoading ? (
-                    <Trans>
-                      {totalRules} rules across {jurisdictionCount} jurisdictions
-                    </Trans>
-                  ) : undefined
-                }
-                actions={overviewHeaderActions}
-              />
+              // Overview header (Pencil O0pyRO): the "Rule library" title and a
+              // lean two-button action cluster (Export + Add rule). The catalog
+              // totals ("N rules across M jurisdictions") used to live in a
+              // subtitle here, but it duplicated the StatBand's Total rules
+              // column below — so the subtitle drops (Yuqi: "do we need this?")
+              // and the jurisdiction count folds into that anchor stat instead.
+              <PageHeader title={<Trans>Rule library</Trans>} actions={overviewHeaderActions} />
             )}
+
+            {/* Active source filter chip — when arriving from a source's
+                "Feeds N rules" link (?source=). Names the source and clears
+                back to the full library. */}
+            {sourceParam ? (
+              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
+                <span className="text-sm text-text-secondary">
+                  <Trans>Showing rules from source</Trans>
+                </span>
+                <span className="truncate text-sm font-medium text-text-primary">
+                  {sourceTitleById.get(sourceParam) ?? sourceParam}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto h-7 shrink-0"
+                  onClick={() => void setSourceParam(null)}
+                >
+                  <Trans>Clear</Trans>
+                </Button>
+              </div>
+            ) : null}
 
             {/* Body. The Overview (no jurisdiction selected, not
               mid-search) is the clean Pencil O0pyRO dashboard — a
@@ -2555,7 +2691,7 @@ export function RulesLibraryRoute() {
                   </Button>
                 </AlertDescription>
               </Alert>
-            ) : selectedGroup || isSearching ? (
+            ) : selectedGroup || isSearching || sourceParam ? (
               <>
                 {/* KPI strip — 4-stat band (Total / Effective / Pending /
                   Deprecated) for the selected jurisdiction. */}
@@ -2667,10 +2803,18 @@ export function RulesLibraryRoute() {
                         }
                       />
                     ) : (
-                      // Active rule search → flat global results.
+                      // Active rule search → flat global results. When a
+                      // ?source= filter is active without a search term, the
+                      // same flat table lists that source's rules instead.
                       <SearchResultsTable
                         activeRuleId={ruleId}
-                        rules={matchedRules}
+                        rules={
+                          isSearching
+                            ? matchedRules
+                            : sourceParam
+                              ? sourceMatchedRules
+                              : matchedRules
+                        }
                         query={searchLower}
                         onRuleClick={handleRuleClick}
                         focusedRowId={focusedRowId}
@@ -2705,10 +2849,18 @@ export function RulesLibraryRoute() {
                     When the queue is NOT clear, tell the CPA plainly that
                     rules are waiting and give them a one-click way into the
                     bulk review (select all pending → open the review list). */}
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-state-accent-hover px-4 py-3.5">
+                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
+                  {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
+                      the middle"): the strip was a chromatic navy wash
+                      (state-accent-hover) that read as neither calm nor a
+                      purposeful prompt. Resolved toward a CALM neutral wash
+                      (background-section) — the accent now lives only in the
+                      icon chip and the Start-review CTA (containers, not the
+                      wash; per the no-colored-wash canon), so the one true
+                      action stands out instead of the whole strip glowing. */}
                   <span
                     aria-hidden
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-default text-text-accent"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover-alt text-text-accent"
                   >
                     <EyeIcon className="size-[18px]" />
                   </span>
@@ -2754,12 +2906,34 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                {/* "Where to start" — the backlog ranked + actionable. The
-                    overview's primary lower-zone module (Yuqi #1/#4). */}
-                <OverviewReviewBreakdown
-                  jurisdictions={topReviewJurisdictions}
-                  onSelectJurisdiction={selectJurisdiction}
-                />
+                {SHOW_COVERAGE_MAP ? (
+                  // Coverage map + "Where to start" as equal-weight peers in a
+                  // two-column split (left = the geographic coverage heat, right =
+                  // the ranked actionable backlog). Container query, not a viewport
+                  // breakpoint, so the app sidebar can't throw off when they go
+                  // side-by-side; below the split width they stack. Left track is
+                  // sized to the fixed tilegram; the right track flexes.
+                  <div className="@container">
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 @4xl:grid-cols-[540px_minmax(0,1fr)] @4xl:items-start">
+                      <RuleCoverageMap
+                        coverage={coverageByJurisdiction}
+                        activeJurisdiction={activeJurisdiction}
+                        onSelect={selectJurisdiction}
+                      />
+                      <OverviewReviewBreakdown
+                        jurisdictions={topReviewJurisdictions}
+                        onSelectJurisdiction={selectJurisdiction}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // Coverage map hidden for now — "Where to start" leads the
+                  // overview full-width. Flip SHOW_COVERAGE_MAP to restore the map.
+                  <OverviewReviewBreakdown
+                    jurisdictions={topReviewJurisdictions}
+                    onSelectJurisdiction={selectJurisdiction}
+                  />
+                )}
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
                 <OverviewCoverageGaps
                   jurisdictions={gappedJurisdictions}
@@ -2928,6 +3102,7 @@ type ProgressSegment = {
   text: string
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces with review-all progress
 function _RuleReviewProgressBar(
   props:
     | { loading: true; statusCounts?: never }
@@ -3184,6 +3359,7 @@ function RowNavHints() {
 // First-time empty state. Uses the canonical `EmptyState` primitive shared
 // with /deadlines + /clients + /alerts; renders inside the table-card frame
 // so the chrome stays consistent across full / empty states.
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3225,6 +3401,7 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   )
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3252,6 +3429,7 @@ function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 // Grouped rules table — the main visualization
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed grouped-table variant
 function _GroupedRulesTable({
   activeScope,
   activeRuleId,
@@ -4490,51 +4668,68 @@ function RuleDetailHeroCard({
   // Dialog close button's top-right corner clear.
   return (
     <header className="shrink-0 border-b border-divider-regular bg-background-default px-6 pt-5 pb-4">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
-        <Badge variant={isReviewable ? 'warning' : 'success'} className="gap-1 px-2 font-semibold">
-          {isReviewable ? (
-            <ClockIcon aria-hidden className="size-2.5" />
-          ) : (
-            <CircleCheckIcon aria-hidden className="size-2.5" />
-          )}
-          {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
-        </Badge>
-        {reviewTask ? (
-          <span className="text-xs font-medium text-text-tertiary">
-            <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
-          </span>
-        ) : null}
-        {reviewTask ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="text-xs font-medium text-text-tertiary">
-              <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
-            </span>
-          </>
-        ) : null}
-        {aiPct !== null ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
-              <SparklesIcon aria-hidden className="size-2.5" />
-              <Trans>AI {aiPct}%</Trans>
-            </span>
-          </>
-        ) : null}
+      <div className="flex items-start gap-4">
+        {/* Canonical jurisdiction mark — the same StateBadge seal the rail and
+            overview cards use, here as the hero's identity anchor. The header
+            was text-only ("AL · …") before, the one jurisdiction surface that
+            dropped the seal. */}
+        <StateBadge
+          code={rule.jurisdiction}
+          size="lg"
+          preview={false}
+          className="mt-0.5 shrink-0"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
+            <Badge
+              variant={isReviewable ? 'warning' : 'success'}
+              className="gap-1 px-2 font-semibold"
+            >
+              {isReviewable ? (
+                <ClockIcon aria-hidden className="size-2.5" />
+              ) : (
+                <CircleCheckIcon aria-hidden className="size-2.5" />
+              )}
+              {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
+            </Badge>
+            {reviewTask ? (
+              <span className="text-xs font-medium text-text-tertiary">
+                <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
+              </span>
+            ) : null}
+            {reviewTask ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
+                </span>
+              </>
+            ) : null}
+            {aiPct !== null ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
+                  <SparklesIcon aria-hidden className="size-2.5" />
+                  <Trans>AI {aiPct}%</Trans>
+                </span>
+              </>
+            ) : null}
+          </div>
+          <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
+            {rule.title}
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
+          </p>
+          {rule.defaultTip ? (
+            <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
+          ) : null}
+        </div>
       </div>
-      <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
-        {rule.title}
-      </h2>
-      <p className="mt-1 text-sm text-text-secondary">
-        {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
-      </p>
-      {rule.defaultTip ? (
-        <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
-      ) : null}
     </header>
   )
 }
@@ -4717,7 +4912,7 @@ function BulkReviewListModal({
   //  - draftNeedsReviewIds: has a draft but it's low-confidence / fuzzy-excerpt, so it
   //    must be reviewed individually (the server trust gate would skip it in bulk).
   const { draftSelections, draftNeedsReviewIds } = useMemo(() => {
-    const selections: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+    const drafts: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
     const needsReview = new Set<string>()
     for (const rule of included) {
       if (!isSourceDefinedRule(rule)) continue
@@ -4728,14 +4923,14 @@ function BulkReviewListModal({
       if (entry.bulkTrustIssue) {
         needsReview.add(rule.id)
       } else {
-        selections.push({
+        drafts.push({
           ruleId: rule.id,
           sourceId: entry.sourceId,
           aiOutputId: entry.draft.aiOutputId,
         })
       }
     }
-    return { draftSelections: selections, draftNeedsReviewIds: needsReview }
+    return { draftSelections: drafts, draftNeedsReviewIds: needsReview }
   }, [included, concreteDraftByTarget])
   const draftReadyIds = useMemo(
     () => new Set(draftSelections.map((s) => s.ruleId)),
@@ -4839,14 +5034,13 @@ function BulkReviewListModal({
 
   async function handleAccept() {
     if (!canAccept) return
-    const note = noteTrimmed
     try {
       const [templateResult, draftResult] = await Promise.all([
         templateSelections.length > 0
-          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: note })
+          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ accepted: [], skipped: [] }),
         draftSelections.length > 0
-          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: note })
+          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ verified: [], skipped: [] }),
       ])
       const accepted = templateResult.accepted.length + draftResult.verified.length
@@ -4874,8 +5068,10 @@ function BulkReviewListModal({
     for (const rule of included) {
       try {
         if (isSourceDefinedRule(rule)) {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectCandidateMutation.mutateAsync({ ruleId: rule.id, reason: noteTrimmed })
         } else {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectTemplateMutation.mutateAsync({
             ruleId: rule.id,
             expectedVersion: rule.version,
@@ -5606,6 +5802,12 @@ function NewRuleModal({
         // Re-fetch rules + coverage so the new rule appears in the
         // library and the gap row disappears.
         void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        // The server ACTIVATES the rule immediately, so it can generate
+        // deadlines + write an audit event — fan out to the downstream
+        // surfaces too (audit P3), matching the accept-rule mutation above.
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         track(ANALYTICS_EVENTS.customRuleCreated, {
           jurisdiction: seed.jurisdiction,
           filing_type: taxType.trim(),

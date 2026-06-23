@@ -778,7 +778,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
           items: [
             {
               title: 'Today/Dashboard',
-              body: 'The homepage answers what to inspect first: open obligations, due-this-week work, review needs, evidence gaps, and Deadline Radar.',
+              body: 'The homepage answers what to inspect first: open obligations, due-this-week work, review needs, evidence gaps, and Alerts.',
             },
             {
               title: 'Deadlines',
@@ -1161,7 +1161,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
           items: [
             {
               title: 'Today/Dashboard',
-              body: '首页适合回答今天先看什么：未结义务、本周到期、待复核、证据缺口和 Deadline Radar。',
+              body: '首页适合回答今天先看什么：未结义务、本周到期、待复核、证据缺口和 Alerts。',
             },
             {
               title: 'Deadlines',
@@ -1843,6 +1843,7 @@ export function getStateDeadlineLines(): string[] {
 
 export function getStatePages(siteCopy: LandingCopy, locale: Locale): StatePageCopy[] {
   const pages = [...siteCopy.geo.states, ...stateSpecs.map((spec) => statePage(spec, locale))]
+  // oxlint-disable-next-line no-map-spread -- copy-on-write: pages is shared input, must not mutate
   return pages.map((page) => {
     const keyDeadlines = buildStateKeyDeadlines(page.slug, page.name, locale)
     return keyDeadlines ? { ...page, keyDeadlines } : page

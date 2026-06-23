@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from 'lucide-react'
 import { forwardRef, type ComponentType, type ReactNode, type SVGProps } from 'react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -40,11 +41,20 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *     filters + saved views.
  */
 type FilterTriggerVariant = 'filter' | 'saved'
+type FilterTriggerSize = 'default' | 'sm'
 
 type FilterTriggerProps = {
   active?: boolean
   className?: string
   children: ReactNode
+  /**
+   * Pill size.
+   *   `default` — h-9 / 13px / pl-4 pr-3 — the toolbar canon.
+   *   `sm`      — h-7 / 11px / pl-2.5 pr-2 — the compact form for narrow rails
+   *     (the detail-rail Sort + Status filters). A first-class variant so the
+   *     rail stops hand-rolling the h-7 className override.
+   */
+  size?: FilterTriggerSize
   /** Hide the trailing chevron — useful for icon-only triggers in narrow rows. */
   hideChevron?: boolean
   /**
@@ -55,6 +65,26 @@ type FilterTriggerProps = {
    * as a quiet label-only trigger.
    */
   valueLabel?: ReactNode
+  /**
+   * Every possible value the `valueLabel` slot could show. When supplied, the
+   * value slot reserves width to the WIDEST option (invisible ghost copies are
+   * stacked behind the live value in a single CSS grid cell), so the pill
+   * stops resizing — and the controls beside it stop jumping — when the user
+   * selects a different option. SSR-safe (pure CSS, no JS measuring). Ignored
+   * unless `valueLabel` is also present. `SingleSelectFilter` fills this in
+   * from its option list automatically.
+   */
+  valueOptions?: ReactNode[]
+  /**
+   * Active-filter count for CONSOLIDATED "Filters" triggers (the bundle that
+   * opens a popover of facets). When `count > 0` it renders the canonical
+   * accent-solid count badge in the value slot — the one shared "N filters on"
+   * read across /deadlines, /alerts, /rules, /audit, so every Filters pill
+   * looks identical when engaged. Pair with `active={count > 0}`. Ignored when
+   * `valueLabel` is also supplied (a control is either a single-value pill or a
+   * count pill, never both).
+   */
+  count?: number
   /**
    * Leading icon. Pass any lucide component. The icon renders at size-3.5.
    * Use `leadingIconColor` to set its tint — default is `text-text-tertiary`,
@@ -83,11 +113,14 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
       active,
       className,
       children,
+      count,
       hideChevron,
       leadingIcon,
       leadingIconColor,
       noLeadingIcon,
+      size = 'default',
       valueLabel,
+      valueOptions,
       variant = 'filter',
       ...rest
     },
@@ -106,6 +139,10 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
     // scannable applied-filter value.
     const valueAccent = 'text-(--color-util-colors-blue-600)'
     const iconTone = leadingIconColor ?? (active ? valueAccent : 'text-text-tertiary')
+    // A control is either a single-value pill (`valueLabel`) or a count pill
+    // (`count`) — never both. valueLabel wins if a caller passes both.
+    const showCount = valueLabel == null && count != null && count > 0
+    const hasValue = valueLabel != null || showCount
 
     const variantBg =
       variant === 'saved'
@@ -131,7 +168,8 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // inset; the trailing chevron — which carries its own visual mass
           // plus the gap-1.5 before it — tucks tighter on the right, so the
           // pill reads balanced rather than chevron-heavy.
-          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular pl-4 pr-3 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          'inline-flex cursor-pointer items-center rounded-full border border-divider-regular font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          size === 'sm' ? 'h-7 gap-1 pl-2.5 pr-2 text-caption-xs' : 'h-9 gap-1.5 pl-4 pr-3 text-sm',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',
@@ -149,7 +187,46 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // the value is the colored, scannable part (what's applied).
           <>
             <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
-            <span className={cn('font-medium tabular-nums', valueAccent)}>{valueLabel}</span>
+            {valueOptions && valueOptions.length > 0 ? (
+              // Fixed-width value slot: invisible ghost copies of every option
+              // stack with the live value in one grid cell, so the column sizes
+              // to the widest option and the pill never jumps on selection.
+              <span className="grid shrink-0 justify-items-start">
+                {valueOptions.map((opt, i) => (
+                  <span
+                    // oxlint-disable-next-line no-array-index-key -- aria-hidden ghost spans, fixed-length width-measure stack
+                    key={i}
+                    aria-hidden
+                    className="col-start-1 row-start-1 invisible whitespace-nowrap font-medium tabular-nums"
+                  >
+                    {opt}
+                  </span>
+                ))}
+                <span
+                  className={cn(
+                    'col-start-1 row-start-1 whitespace-nowrap font-medium tabular-nums',
+                    valueAccent,
+                  )}
+                >
+                  {valueLabel}
+                </span>
+              </span>
+            ) : (
+              <span className={cn('font-medium tabular-nums', valueAccent)}>{valueLabel}</span>
+            )}
+          </>
+        ) : showCount ? (
+          // Consolidated "Filters" read: hairline divider, then the
+          // accent-solid count badge — the single canonical "N filters on"
+          // signal so every Filters pill engages the same way.
+          <>
+            <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
+            <Badge
+              variant="accent-solid"
+              className="min-w-4 px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums"
+            >
+              {count}
+            </Badge>
           </>
         ) : null}
         {hideChevron ? null : (
@@ -158,7 +235,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
               'size-3.5 shrink-0',
               // Chevron follows the value: accent when a value is applied,
               // quiet tertiary at rest.
-              valueLabel != null || active ? valueAccent : 'text-text-tertiary opacity-70',
+              hasValue || active ? valueAccent : 'text-text-tertiary opacity-70',
             )}
             aria-hidden
           />

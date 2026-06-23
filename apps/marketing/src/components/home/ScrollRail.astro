@@ -1,6 +1,9 @@
 ---
-/** Left scroll-spy rail — a "ticker" in the left margin showing which section the
- *  reader is in. Shown on wide screens only (no room in the margin below ~1500px). */
+/** Left scroll-spy rail — a quiet "section index" in the left margin. At rest it
+ *  reads as a column of short dashes; the active section grows its dash and shows
+ *  its label. Hovering the rail reveals every label (inactive ones in gray), so
+ *  the whole index is one hover away. Labels echo the real on-page section names.
+ *  Wide screens only. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -9,23 +12,23 @@ const zh = locale === 'zh-CN'
 const t = zh
   ? {
       items: [
-        { label: '循环', href: '#how' },
+        { label: '问题', href: '#villain-h' },
+        { label: '工作台', href: '#surfaces' },
         { label: '那份公告', href: '#notice' },
         { label: '来源', href: '#sources' },
-        { label: '看它运作', href: '#work' },
-        { label: '为什么可信', href: '#trust' },
-        { label: '安全', href: '#security' },
+        { label: '对比', href: '#cmp-h' },
+        { label: '为什么可信', href: '#security' },
         { label: '常见问题', href: '#faq' },
       ],
     }
   : {
       items: [
-        { label: 'The loop', href: '#how' },
-        { label: 'The document', href: '#notice' },
+        { label: 'The problem', href: '#villain-h' },
+        { label: 'The workbench', href: '#surfaces' },
+        { label: 'The notice', href: '#notice' },
         { label: 'Sources', href: '#sources' },
-        { label: 'See it work', href: '#work' },
-        { label: 'Why trust it', href: '#trust' },
-        { label: 'Security', href: '#security' },
+        { label: 'Compare', href: '#cmp-h' },
+        { label: 'Why trust it', href: '#security' },
         { label: 'Questions', href: '#faq' },
       ],
     }
@@ -36,8 +39,8 @@ const items = t.items
   {
     items.map((it) => (
       <a class="spyrail__item" href={it.href}>
-        <span class="spyrail__dot" aria-hidden="true" />
-        {it.label}
+        <span class="spyrail__dash" aria-hidden="true" />
+        <span class="spyrail__label">{it.label}</span>
       </a>
     ))
   }
@@ -51,7 +54,7 @@ const items = t.items
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 2px;
+    gap: 11px;
     /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
     opacity: 0;
     visibility: hidden;
@@ -71,68 +74,96 @@ const items = t.items
       display: flex;
     }
   }
+
   .spyrail__item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--m-faint);
-    white-space: nowrap;
-    transition: color 0.2s ease;
   }
-  .spyrail__item:hover {
-    color: var(--m-ink-2);
-  }
-  .spyrail__item:hover .spyrail__dot {
-    border-color: var(--m-muted);
-  }
-  .spyrail__dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    border: 1.5px solid var(--m-hairline);
-    background: transparent;
+  /* the marker — a small dash at rest, grown + accented when active (kept short
+     and quiet so the rail reads as a hint, not a ruler) */
+  .spyrail__dash {
+    width: 6px;
+    height: 1.5px;
     flex: none;
+    border-radius: 999px;
+    background: var(--m-faint);
     transition:
-      background 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
+      width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+      background 0.2s ease;
   }
-  .spyrail__item.is-active {
-    color: var(--m-ink);
-    font-weight: 600;
+  /* labels are collapsed by default; the active one (and any on rail-hover) opens */
+  .spyrail__label {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: var(--m-text-xs);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--m-faint);
+    transition:
+      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      margin-left 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.22s ease,
+      color 0.2s ease;
   }
-  .spyrail__item.is-active .spyrail__dot {
+
+  /* active — dash grows a little + turns accent, label opens in ink */
+  .spyrail__item.is-active .spyrail__dash {
+    width: 13px;
     background: var(--m-accent);
-    border-color: var(--m-accent);
-    transform: scale(1.15);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 16%, transparent);
   }
-  /* over a dark band — white instead of faint gray */
-  .spyrail.is-on-dark .spyrail__item {
-    color: rgba(255, 255, 255, 0.55);
+  .spyrail__item.is-active .spyrail__label,
+  .spyrail:hover .spyrail__label {
+    max-width: 200px;
+    margin-left: 12px;
+    opacity: 1;
   }
-  .spyrail.is-on-dark .spyrail__item:hover {
-    color: rgba(255, 255, 255, 0.85);
+  .spyrail__item.is-active .spyrail__label {
+    color: var(--m-ink);
   }
-  .spyrail.is-on-dark .spyrail__dot {
-    border-color: rgba(255, 255, 255, 0.35);
+  /* on hover the whole list shows; inactive labels read gray */
+  .spyrail:hover .spyrail__item:not(.is-active) .spyrail__label {
+    color: var(--m-muted);
   }
-  .spyrail.is-on-dark .spyrail__item.is-active {
+  .spyrail:hover .spyrail__item:not(.is-active):hover .spyrail__dash {
+    background: var(--m-muted);
+  }
+
+  /* ===== over a dark band (the villain) — white-out ===== */
+  .spyrail.is-on-dark .spyrail__dash {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dash {
+    background: #fff;
+  }
+  .spyrail.is-on-dark .spyrail__label {
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__label {
     color: #fff;
   }
-  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dot {
-    background: #fff;
-    border-color: #fff;
+  .spyrail.is-on-dark:hover .spyrail__item:not(.is-active) .spyrail__label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spyrail,
+    .spyrail__item,
+    .spyrail__dash,
+    .spyrail__label {
+      transition: none;
+    }
   }
 </style>
 
 <script>
-  const rail = document.getElementById('spyrail')
-  if (rail) {
+  // Section-index spy-rail. Re-inits per View-Transition navigation; window
+  // listeners drop on the next swap.
+  function initSpyRail(signal: AbortSignal) {
+    const rail = document.getElementById('spyrail')
+    if (!rail) return
     const items = Array.from(rail.querySelectorAll('.spyrail__item'))
     const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
     const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
@@ -166,8 +197,14 @@ const items = t.items
         requestAnimationFrame(update)
       }
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true, signal })
+    window.addEventListener('resize', onScroll, { passive: true, signal })
     update()
   }
+  let spyCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    spyCtl = new AbortController()
+    initSpyRail(spyCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => spyCtl?.abort())
 </script>

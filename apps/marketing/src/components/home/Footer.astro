@@ -12,7 +12,7 @@ const columns = [
   {
     title: zh ? '产品' : 'Product',
     links: [
-      { label: zh ? '工作原理' : 'How it works', href: `${base}/#how` },
+      { label: zh ? '工作原理' : 'How it works', href: `${base}/how-it-works` },
       { label: zh ? '覆盖范围' : 'Coverage', href: `${base}/state-coverage` },
       { label: zh ? '定价' : 'Pricing', href: `${base}/pricing` },
       { label: zh ? '安全' : 'Security', href: `${base}/security` },
@@ -22,7 +22,7 @@ const columns = [
     title: zh ? '资源' : 'Resources',
     links: [
       { label: zh ? '规则库' : 'Rule library', href: `${base}/rules` },
-      { label: zh ? '州覆盖' : 'State coverage', href: `${base}/state-coverage` },
+      { label: zh ? '证据支持的软件' : 'Evidence-backed software', href: `${base}/guides/evidence-backed-tax-deadline-software` },
       { label: zh ? '对比:File In Time' : 'Compare: File In Time', href: `${base}/compare/file-in-time-alternative` },
       { label: zh ? '每周分诊指南' : 'Weekly triage guide', href: `${base}/guides/weekly-cpa-deadline-triage` },
     ],
@@ -30,7 +30,6 @@ const columns = [
   {
     title: zh ? '公司' : 'Company',
     links: [
-      { label: zh ? '关于' : 'About', href: `${base}/about` },
       { label: zh ? '隐私' : 'Privacy', href: `${base}/privacy` },
       { label: zh ? '条款' : 'Terms', href: `${base}/terms` },
       { label: zh ? '状态' : 'Status', href: `${base}/status` },
@@ -60,7 +59,7 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
   <div class="footer__inner">
     <div class="footer__top">
       <div class="footer__brand">
-        <span class="footer__name">DueDateHQ</span>
+        <a href={`${base}/`} class="footer__name" aria-label={zh ? 'DueDateHQ 首页' : 'DueDateHQ home'}>DueDateHQ</a>
         <p class="footer__tag">{copy.tagline}</p>
         <p class="footer__aud">{copy.audience}</p>
       </div>
@@ -106,26 +105,32 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
     gap: clamp(28px, 4vw, 56px);
   }
   .footer__name {
+    display: inline-block;
     font-weight: 600;
-    font-size: 18px;
+    font-size: var(--m-text-xl);
     letter-spacing: -0.01em;
     color: var(--m-ink);
+    text-decoration: none;
+    transition: opacity var(--m-dur-fast) var(--m-ease);
+  }
+  .footer__name:hover {
+    opacity: 0.7;
   }
   .footer__tag {
     margin-top: 14px;
     max-width: 34ch;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink-2);
   }
   .footer__aud {
     margin-top: 14px;
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
   .footer__coltitle {
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -134,7 +139,7 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
   }
   .footer__link {
     display: block;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     color: var(--m-muted);
     padding: 6px 0;
     transition: color 0.15s ease;
@@ -152,13 +157,13 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
     gap: 12px;
   }
   .footer__legal {
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
     max-width: 70ch;
   }
   .footer__note {
     font-family: var(--m-font-mono);
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
   .footer__meta {
@@ -171,7 +176,7 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
   }
   .footer__langlink {
     color: var(--m-muted);
@@ -190,6 +195,18 @@ const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
   @media (max-width: 720px) {
     .footer__top {
       grid-template-columns: 1fr 1fr;
+    }
+    /* comfortable ~44px touch targets on phones (desktop keeps the tight rhythm) */
+    .footer__link {
+      min-height: 44px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .footer__langlink {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
     }
   }
   @media (max-width: 440px) {

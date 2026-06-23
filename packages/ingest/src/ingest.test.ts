@@ -14,9 +14,10 @@ import { createSourceFetcherRegistry } from './fetcher'
 import {
   announcementItemsFromSnapshot,
   announcementItemsFromSnapshotWithPdfLinks,
+  linkLooksTaxAnnouncementRelevant,
 } from './announcements'
 import { parseRssItems, parsedItemsFromRss } from './rss'
-import { extractLinks, pickSelector } from './selectors'
+import { extractLinks, extractLinksWithTableTitles, pickSelector } from './selectors'
 import type { IngestCtx } from './types'
 
 const cloudflareFetch = async () => new Response('cloudflare')
@@ -179,7 +180,7 @@ describe('@duedatehq/ingest', () => {
       },
       {
         fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
-        body: '<a href="/forms/estate-tax-form.pdf">Estate Tax Form</a>',
+        body: '<a href="/forms/public-records-request.pdf">Public Records Request Form</a>',
       },
       { fetch: fetchMock },
     )
@@ -253,6 +254,84 @@ describe('@duedatehq/ingest', () => {
     ])
   })
 
+  it('catches state-DOR tax-notice vocabulary without admitting bare section nav', () => {
+    // 2026-06-22 P0: widened TAX_ANNOUNCEMENT_RE from a data-driven audit of all 50
+    // state DOR announcement pages. Real notices the disaster/deadline vocabulary
+    // used to drop must now pass; bare tax-type section-nav links must still drop.
+    const real = [
+      'NOTICE State Construction-Related Transaction Tax',
+      'NOTICE Revised Privilege License Interest Rate Factor Chart',
+      'NOTICE Surety Bond Cancellation Period',
+      'NOTICE Temporary Suspension of State Sales and Use Tax on Food',
+      'Notices Regarding Combined Reporting',
+      'Nevada Tax Notes March 2026 - Issue #206',
+      'DOR releases marijuana tax and fee revenue figures for March 2026',
+      'Application period to reopen for Parental Choice Tax Credit program',
+      'Idaho Tax Commission to administer more auditorium districts taxes',
+    ]
+    for (const t of real) {
+      expect(linkLooksTaxAnnouncementRelevant(t, '/news/item')).toBe(true)
+    }
+    // Bare tax-type / generic section-nav labels were deliberately left out so the
+    // filter does not start admitting sidebar chrome on every DOR page.
+    const nav = ['Income Tax', 'Property Tax', 'Newsroom', 'Forms', 'Contact Us', 'Careers']
+    for (const t of nav) {
+      expect(linkLooksTaxAnnouncementRelevant(t, '/individuals')).toBe(false)
+    }
+  })
+
+  it('recovers the row title for table-listing links whose anchor text is a format label', () => {
+    // The IL bulletins index lays each bulletin out as
+    // <td>Title</td><td>[<a>HTML</a>]</td><td>[<a>PDF</a>]</td>. Plain extractLinks
+    // returns text "HTML"/"English"; the title cell carries the meaning. One item
+    // per row, preferring the HTML detail link over the sibling PDF.
+    const html =
+      '<table><tr>' +
+      '<td>FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program</td>' +
+      '<td>[<a href="/research/publications/bulletins/fy-2026-28.html">HTML</a>]</td>' +
+      '<td>[<a href="/research/publications/bulletins/fy-2026-28.pdf">English</a>]</td>' +
+      '</tr></table>'
+    const links = extractLinksWithTableTitles(html, 'https://tax.illinois.gov/research/')
+    const htmlLink = links.find((l) => l.href.endsWith('fy-2026-28.html'))
+    const pdfLink = links.find((l) => l.href.endsWith('fy-2026-28.pdf'))
+    expect(htmlLink?.text).toBe('FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program')
+    // The PDF sibling keeps its bare label so the bulletin yields a single item.
+    expect(pdfLink?.text).toBe('English')
+  })
+
+  it('parses an IL-style bulletins table into the amnesty item the recall eval expects', () => {
+    // Regression for the 2026-06-22 alert-recall miss il.2026.remote-retailer-amnesty
+    // (MISSED_NOT_PARSED): the source fetched fine but every bulletin row was dropped
+    // — anchor text "HTML" matched no vocabulary, and even the recovered title needed
+    // the widened tax-change words (amnesty / occupation tax / rate change).
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'il.temporary_announcements',
+        title: 'Illinois DOR News',
+        url: 'https://tax.illinois.gov/research/publications/bulletins.html',
+        jurisdiction: 'IL',
+      },
+      {
+        fetchedAt: new Date('2026-06-21T00:00:00.000Z'),
+        body:
+          '<nav><a href="/programs/electronicservices.html">Make a Payment</a></nav>' +
+          '<table>' +
+          '<tr><td>FY 2026-28, 2026 Illinois Remote Retailer Tax Amnesty Program</td>' +
+          '<td>[<a href="/research/publications/bulletins/fy-2026-28.html">HTML</a>]</td></tr>' +
+          "<tr><td>FY 2026-12, Destination-Based Retailers' Occupation Tax Changes</td>" +
+          '<td>[<a href="/research/publications/bulletins/fy-2026-12.html">HTML</a>]</td></tr>' +
+          '</table>',
+      },
+    )
+    const amnesty = items.find((item) => item.officialSourceUrl.endsWith('fy-2026-28.html'))
+    expect(amnesty?.title).toContain('Remote Retailer Tax Amnesty Program')
+    expect(amnesty?.enrichFromUrl).toBe(
+      'https://tax.illinois.gov/research/publications/bulletins/fy-2026-28.html',
+    )
+    // The occupation-tax-rate row is caught by the same widened vocabulary.
+    expect(items.some((item) => item.officialSourceUrl.endsWith('fy-2026-12.html'))).toBe(true)
+  })
+
   it('parses RSS and Atom announcement feed items into Pulse candidates', () => {
     const rssItems = parsedItemsFromRss({
       sourceId: 'az.temporary_announcements',
@@ -297,6 +376,103 @@ describe('@duedatehq/ingest', () => {
       title: 'April 15 is the tax filing deadline',
       officialSourceUrl: 'https://comptroller.texas.gov/about/media-center/news/20260408-deadline',
     })
+  })
+
+  it('parses a Zendesk Help Center JSON feed and keeps TN notices over portal how-tos', () => {
+    // TN DOR mirrors its notices on a Zendesk Help Center (revenue.support.tn.gov)
+    // because tn.gov drops datacenter fetches. The /api/v2/.../articles.json shape
+    // is parsed directly; the per-source filter keeps the legal notices and drops
+    // the TNTAP portal how-tos.
+    const body = JSON.stringify({
+      articles: [
+        {
+          title: 'FONCE-3 - Entity Types That May Qualify for the FONCE Exemption',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/360058238691-FONCE-3',
+          body: '<p>Franchise and excise tax exemption details.</p>',
+          updated_at: '2026-06-09T12:00:00Z',
+        },
+        {
+          title: 'LOT-12 - Definition of Consideration',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/1-LOT-12',
+          body: '<p>Liquor-by-the-drink tax guidance.</p>',
+          updated_at: '2026-05-01T00:00:00Z',
+        },
+        {
+          title: 'TNTAP Payments-8 – Making an Online Payment in TNTAP',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/2-tntap-pay',
+          body: '<p>How to submit a payment.</p>',
+          updated_at: '2026-05-29T00:00:00Z',
+        },
+        {
+          title: 'Logging into TNTAP',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/3-login',
+          body: '<p>Sign-in help.</p>',
+          updated_at: '2026-05-19T00:00:00Z',
+        },
+      ],
+    })
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'tn.temporary_announcements',
+        title: 'Tennessee DOR Revenue News',
+        url: 'https://revenue.support.tn.gov/hc/en-us',
+        jurisdiction: 'TN',
+      },
+      { fetchedAt: new Date('2026-06-23T00:00:00.000Z'), body },
+    )
+    const titles = items.map((item) => item.title)
+    expect(titles).toContain('FONCE-3 - Entity Types That May Qualify for the FONCE Exemption')
+    expect(titles).toContain('LOT-12 - Definition of Consideration')
+    expect(titles).not.toContain('TNTAP Payments-8 – Making an Online Payment in TNTAP')
+    expect(titles).not.toContain('Logging into TNTAP')
+    const fonce = items.find((item) => item.title.startsWith('FONCE-3'))
+    expect(fonce?.officialSourceUrl).toContain('FONCE-3')
+    // updated_at rides in the dedupe identity so a re-edited notice re-surfaces.
+    expect(fonce?.dedupeText).toContain('2026-06-09T12:00:00Z')
+  })
+
+  it('parses an agency newsroom JSON feed (Montana DOR) and resolves relative links', () => {
+    // mtrevenue.gov/news/ renders its list client-side from a flat JSON array, so
+    // a browser render only ever captured the "Loading…" shell. We fetch
+    // /news/article_source.json directly; each entry carries a site-relative link,
+    // an ISO date and a teaser.
+    const body = JSON.stringify([
+      {
+        title: 'Individual Income Tax Filing Deadline Reminder',
+        link: '/news/recent-news/individual-income-tax-deadline-2026',
+        summary: 'The April 15 individual income tax filing deadline is approaching.',
+        teaser: '',
+        author: '',
+        date: '2026-06-11T00:00:00Z',
+      },
+      {
+        title: 'Montana Sales and Use Tax Rate Update',
+        link: '/news/recent-news/sales-tax-rate-update',
+        summary: '',
+        teaser: 'New local option tax rates take effect July 1.',
+        date: '2026-05-02T00:00:00Z',
+      },
+    ])
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'mt.temporary_announcements',
+        title: 'Montana DOR News',
+        url: 'https://revenue.mt.gov/news/',
+        jurisdiction: 'MT',
+      },
+      { fetchedAt: new Date('2026-06-23T00:00:00.000Z'), body },
+    )
+    expect(items.map((item) => item.title)).toContain(
+      'Individual Income Tax Filing Deadline Reminder',
+    )
+    const first = items.find((item) => item.title.startsWith('Individual Income Tax'))
+    // A site-relative link resolves against the source origin.
+    expect(first?.officialSourceUrl).toBe(
+      'https://revenue.mt.gov/news/recent-news/individual-income-tax-deadline-2026',
+    )
+    // The ISO date becomes publishedAt and rides in the dedupe identity.
+    expect(first?.publishedAt.toISOString()).toBe('2026-06-11T00:00:00.000Z')
+    expect(first?.dedupeText).toContain('2026-06-11T00:00:00Z')
   })
 
   it('keeps item dedupeText stable across unrelated listing-page changes', () => {

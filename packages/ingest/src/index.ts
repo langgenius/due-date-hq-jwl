@@ -50,4 +50,10 @@ export {
 export { extractPdfText } from './pdf'
 export { runFixtureAdapter, snapshotFromFixture } from './fixtures'
 export { parseRssItems, parsedItemsFromRss, type RssFeedItem } from './rss'
-export { extractLinks, pickSelector, stripHtml } from './selectors'
+export {
+  extractLinks,
+  extractLinksWithTableTitles,
+  isGenericLinkLabel,
+  pickSelector,
+  stripHtml,
+} from './selectors'

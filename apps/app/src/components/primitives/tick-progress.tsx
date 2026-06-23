@@ -56,10 +56,12 @@ export function TickProgress({
         // are untouched. Empty ticks stay static. Reduced-motion is governed
         // globally by the root <MotionConfig reducedMotion="user">.
         if (!on) {
+          // oxlint-disable-next-line no-array-index-key -- fixed-length tick row; position IS the identity
           return <span key={i} aria-hidden className={tickClass} />
         }
         return (
           <motion.span
+            // oxlint-disable-next-line no-array-index-key -- fixed-length tick row; position IS the identity
             key={i}
             aria-hidden
             className={tickClass}

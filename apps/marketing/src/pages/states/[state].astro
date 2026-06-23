@@ -11,18 +11,20 @@ import { getStatePages } from '../../lib/seo-content'
 import { statePageStructuredData } from '../../lib/structured-data'
 
 export function getStaticPaths() {
-  return getStatePages(en, 'en').map((state) => ({
+  const allStates = getStatePages(en, 'en')
+  return allStates.map((state) => ({
     params: { state: state.slug },
-    props: { page: state },
+    props: { page: state, allStates },
   }))
 }
 
 interface Props {
   page: StatePageCopy
+  allStates: StatePageCopy[]
 }
 
 const t = en
-const { page } = Astro.props
+const { page, allStates } = Astro.props
 const pathname = `/states/${page.slug}`
 const ctaHref = getCtaHref()
 ---
@@ -38,6 +40,7 @@ const ctaHref = getCtaHref()
   <TopNav pageMode ctaHref={ctaHref} current="coverage" />
   <StateDetailPage
     page={page}
+    allStates={allStates}
     coverageHref="/state-coverage"
     locale="en"
     officialSources={stateOfficialSources[page.slug] ?? []}

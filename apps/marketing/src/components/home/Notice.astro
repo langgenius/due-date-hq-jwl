@@ -17,6 +17,7 @@ const t = zh
       leadHtml:
         '没有出处，就不呈现——下方每一个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>，否则宁可保留不展示，也不去猜。',
       tablistLabel: '示例变化类型',
+      switchCue: '换一个示例看看',
       sourceQuote: '来源原文',
       theChange: '变化内容',
       whosAffected: '影响到谁',
@@ -93,6 +94,7 @@ const t = zh
       leadHtml:
         "No provenance, no render — every field below carries its <b>source quote</b> and a <b>verified date</b>, or it's held back rather than guessed.",
       tablistLabel: 'Example change types',
+      switchCue: 'See another example',
       sourceQuote: 'Source quote',
       theChange: 'The change',
       whosAffected: "Who's affected",
@@ -165,33 +167,46 @@ const t = zh
 const examples = t.examples
 ---
 
-<section class="m-section" id="notice" aria-labelledby="notice-h">
+<section class="m-section" id="notice" aria-labelledby="notice-h" data-reveal>
   <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="m-h2" id="notice-h">
     {t.headingPre}<span class="ital">{t.headingItal}</span>
   </h2>
   <p class="m-lead notice__lead" set:html={t.leadHtml} />
 
-  <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
-    {
-      examples.map((e, i) => (
-        <button
-          class:list={['ntab', i === 0 && 'is-on']}
-          role="tab"
-          aria-selected={i === 0 ? 'true' : 'false'}
-          data-ntab={i}
-          type="button"
-        >
-          {e.tab}
-        </button>
-      ))
-    }
+  <div class="nswitch">
+    <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
+      {
+        examples.map((e, i) => (
+          <button
+            class:list={['ntab', i === 0 && 'is-on']}
+            id={`ntab-${i}`}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`npanel-${i}`}
+            tabindex={i === 0 ? 0 : -1}
+            data-ntab={i}
+            type="button"
+          >
+            <span class="ntab__dot" aria-hidden="true" />
+            <span class="ntab__txt">{e.tab}</span>
+          </button>
+        ))
+      }
+    </div>
   </div>
 
   <div class="npanels">
     {
       examples.map((e, i) => (
-        <div class:list={['extract', i === 0 && 'is-on']} data-npanel={i} role="tabpanel">
+        <div
+          class:list={['extract', i === 0 && 'is-on']}
+          id={`npanel-${i}`}
+          data-npanel={i}
+          role="tabpanel"
+          aria-labelledby={`ntab-${i}`}
+          tabindex="0"
+        >
           <article class="clip" aria-hidden="true">
             <header class="clip__head">
               <span class="clip__seal">
@@ -203,15 +218,16 @@ const examples = t.examples
               <div class="clip__org">
                 <div class="clip__name">{e.doc.org}</div>
                 <div class="clip__sub">{e.doc.sub}</div>
-              </div>
-              <div class="clip__posted">
-                {t.posted} <b>{e.doc.posted}</b>
-                <span class="clip__url">
-                  {e.doc.url}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M7 17 17 7M9 7h8v8" />
-                  </svg>
-                </span>
+                <div class="clip__posted">
+                  {t.posted} <b>{e.doc.posted}</b>
+                  <span class="clip__sep" aria-hidden="true">·</span>
+                  <span class="clip__url">
+                    {e.doc.url}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M9 7h8v8" />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </header>
             <div class="clip__body">
@@ -237,7 +253,13 @@ const examples = t.examples
               <span class="field__label">{t.sourceQuote}</span>
               <p class="field__quote">{e.quote}</p>
               <p class="field__verify">
-                {e.verify.url} <span class="field__ok">✓ {e.verify.date}</span>
+                {e.verify.url}{' '}
+                <span class="field__ok">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {e.verify.date}
+                </span>
               </p>
             </div>
             <div class="field">
@@ -289,54 +311,111 @@ const examples = t.examples
     font-weight: 600;
   }
 
-  /* toggle */
-  .ntabs {
+  /* ---- example switcher ----
+     A row of discrete, bordered pill buttons (each an obvious, clickable choice).
+     The selected type fills with the accent tint + accent border + a lit leading
+     dot; the rest read as quiet white buttons. */
+  .nswitch {
     margin-top: clamp(28px, 3.5vw, 40px);
+  }
+  .ntabs {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 2px;
-    padding: 4px;
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
-    border-radius: 999px;
+    gap: 8px;
   }
   .ntab {
-    padding: 7px 15px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 8px 13px;
     border-radius: 999px;
-    font-size: 13px;
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
+    font-size: var(--m-text-sm);
     font-weight: 500;
+    letter-spacing: 0;
     color: var(--m-muted);
     cursor: pointer;
     transition:
-      color 0.18s ease,
-      background 0.18s ease;
+      color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
   }
-  .ntab:hover {
-    color: var(--m-ink);
+  /* leading status dot — hollow when idle, fills navy when this type is showing */
+  .ntab__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: none;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-muted) 55%, transparent);
+    transition:
+      background var(--m-dur-fast) var(--m-ease),
+      box-shadow var(--m-dur-fast) var(--m-ease);
+  }
+  .ntab:hover:not(.is-on) {
+    color: var(--m-ink-2);
+    border-color: var(--m-faint);
+  }
+  .ntab:hover:not(.is-on) .ntab__dot {
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, var(--m-accent) 55%, transparent);
   }
   .ntab.is-on {
     color: var(--m-accent);
     background: var(--m-accent-tint);
+    border-color: var(--m-accent);
     font-weight: 600;
   }
+  .ntab.is-on .ntab__dot {
+    background: var(--m-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 18%, transparent);
+  }
+  .ntab:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
+  }
 
-  /* panels */
+  /* panels — ALL stacked in one grid cell so the container height is constant
+     (= the tallest example). Switching examples only cross-fades the content;
+     the layout never jumps. */
   .npanels {
     margin-top: clamp(24px, 3vw, 36px);
+    display: grid;
   }
   .extract {
-    display: none;
+    grid-area: 1 / 1; /* every panel occupies the same cell → no reflow on swap */
+    display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    align-items: center;
+    align-items: start;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.22s var(--m-ease),
+      visibility 0s linear 0.22s;
   }
   .extract.is-on {
-    display: grid;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 0.22s var(--m-ease),
+      visibility 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .extract {
+      transition: none;
+    }
   }
   .clip {
     grid-column: span 5;
   }
   .beam {
     grid-column: span 2;
+    align-self: center; /* arrow stays centered though columns top-align */
   }
   .extract__out {
     grid-column: span 5;
@@ -374,7 +453,7 @@ const examples = t.examples
     flex: 1;
   }
   .clip__name {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -382,26 +461,32 @@ const examples = t.examples
   }
   .clip__sub {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
+  /* posted + source now sit beneath the org name as one quiet meta line */
   .clip__posted {
-    text-align: right;
-    font-size: 12px;
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: var(--m-text-xs);
     color: var(--m-muted);
-    white-space: nowrap;
   }
   .clip__posted b {
     color: var(--m-ink-2);
     font-weight: 600;
   }
+  .clip__sep {
+    color: var(--m-faint);
+  }
   .clip__url {
-    margin-top: 3px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-accent);
   }
   .clip__url svg {
@@ -412,7 +497,7 @@ const examples = t.examples
     margin-top: 16px;
     display: grid;
     gap: 12px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.55;
     color: var(--m-ink-2);
     min-height: 78px;
@@ -464,11 +549,11 @@ const examples = t.examples
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
-    padding: 16px 18px;
+    padding: 14px 18px;
   }
   .field__label {
     display: inline-flex;
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
@@ -480,7 +565,7 @@ const examples = t.examples
     justify-content: space-between;
   }
   .field__count {
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
@@ -489,18 +574,23 @@ const examples = t.examples
   }
   .field__quote {
     margin-top: 10px;
-    font-size: 14px;
+    font-size: var(--m-text-base);
     line-height: 1.5;
     color: var(--m-ink);
   }
   .field__verify {
     margin-top: 8px;
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .field__ok {
     color: var(--m-ok);
+  }
+  .field__ok svg {
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
   }
   .field__change {
     margin-top: 10px;
@@ -509,7 +599,7 @@ const examples = t.examples
     flex-wrap: wrap;
     gap: 8px;
     font-family: var(--m-font-mono);
-    font-size: 15px;
+    font-size: var(--m-text-md);
     color: var(--m-ink);
   }
   .field__change s {
@@ -520,7 +610,7 @@ const examples = t.examples
   }
   .field__delta {
     font-family: var(--m-font-sans);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     color: var(--m-ok);
     background: color-mix(in srgb, var(--m-ok) 12%, transparent);
@@ -529,7 +619,7 @@ const examples = t.examples
   }
   .field__badge {
     font-family: var(--m-font-sans);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     font-weight: 500;
     color: var(--m-muted);
     background: var(--m-section);
@@ -558,25 +648,25 @@ const examples = t.examples
     flex: none;
     display: grid;
     place-items: center;
-    font-size: 9px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     color: var(--m-accent);
     background: var(--m-accent-tint);
   }
   .arow__name {
-    font-size: 13px;
+    font-size: var(--m-text-sm);
     color: var(--m-ink);
     white-space: nowrap;
   }
   .arow__meta {
     font-family: var(--m-font-mono);
-    font-size: 11px;
+    font-size: var(--m-text-2xs);
     color: var(--m-muted);
   }
   .arow__status {
     margin-left: auto;
     font-family: var(--m-font-mono);
-    font-size: 10px;
+    font-size: var(--m-text-3xs);
     font-weight: 600;
     letter-spacing: 0.02em;
   }
@@ -588,7 +678,7 @@ const examples = t.examples
   }
   .field__more {
     margin-top: 9px;
-    font-size: 12px;
+    font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
 
@@ -621,20 +711,37 @@ const examples = t.examples
 </style>
 
 <script>
-  // toggle between change-type examples
-  document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
-    const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
-    const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const idx = tab.dataset.ntab
-        tabs.forEach((t) => {
-          const on = t.dataset.ntab === idx
+  // Change-type examples as a WAI tablist: click + roving tabindex + arrow-key nav.
+  // Re-binds on first load + every View-Transition navigation.
+  function initNotice() {
+    document.querySelectorAll<HTMLElement>('#notice').forEach((section) => {
+      const tabs = Array.from(section.querySelectorAll<HTMLElement>('.ntab'))
+      const panels = Array.from(section.querySelectorAll<HTMLElement>('.extract'))
+      const activate = (idx: number, focus: boolean) => {
+        tabs.forEach((t, i) => {
+          const on = i === idx
           t.classList.toggle('is-on', on)
           t.setAttribute('aria-selected', String(on))
+          t.tabIndex = on ? 0 : -1
+          if (on && focus) t.focus()
         })
-        panels.forEach((p) => p.classList.toggle('is-on', p.dataset.npanel === idx))
+        panels.forEach((p, i) => p.classList.toggle('is-on', i === idx))
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => activate(i, false))
+        tab.addEventListener('keydown', (e) => {
+          let next = -1
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length
+          else if (e.key === 'Home') next = 0
+          else if (e.key === 'End') next = tabs.length - 1
+          if (next >= 0) {
+            e.preventDefault()
+            activate(next, true)
+          }
+        })
       })
     })
-  })
+  }
+  document.addEventListener('astro:page-load', initNotice)
 </script>

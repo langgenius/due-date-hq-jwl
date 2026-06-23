@@ -120,31 +120,6 @@ export function isActiveAlert(
   )
 }
 
-/**
- * The triage "Needs action" predicate — what splits the unified /alerts list
- * into the "Needs action" queue vs the "For your awareness" digest (Yuqi
- * 2026-06-21, [[project_alerts_triage_model]]).
- *
- * Broader than `isActiveAlert` on purpose: it ALSO pulls in protective claim
- * windows, which close for good on their `actionDeadline` even when no client is
- * matched yet. A missed, unrecoverable legal window is precisely the work the
- * action zone must never demote into the FYI digest — the trust guard is "err
- * toward action; hiding real work is the one failure the triage model can't
- * afford." (The bulk-dismiss flow already treats these as high-stakes via
- * `closingProtectiveWindows`.)
- */
-export function alertNeedsAction(
-  alert: Pick<
-    PulseAlertPublic,
-    'actionMode' | 'changeKind' | 'matchedCount' | 'needsReviewCount' | 'actionDeadline'
-  >,
-): boolean {
-  return (
-    isActiveAlert(alert) ||
-    (alert.changeKind === 'protective_claim_window' && alert.actionDeadline !== null)
-  )
-}
-
 export type ActionPillId = 'needs-action' | 'needs-review' | 'closed'
 export function actionPillFromAlert(
   alert: PulseAlertPublic,

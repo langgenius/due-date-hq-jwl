@@ -11,18 +11,20 @@ import { getStatePages } from '../../../lib/seo-content'
 import { statePageStructuredData } from '../../../lib/structured-data'
 
 export function getStaticPaths() {
-  return getStatePages(zhCN, 'zh-CN').map((state) => ({
+  const allStates = getStatePages(zhCN, 'zh-CN')
+  return allStates.map((state) => ({
     params: { state: state.slug },
-    props: { page: state },
+    props: { page: state, allStates },
   }))
 }
 
 interface Props {
   page: StatePageCopy
+  allStates: StatePageCopy[]
 }
 
 const t = zhCN
-const { page } = Astro.props
+const { page, allStates } = Astro.props
 const enPathname = `/states/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
 const ctaHref = getCtaHref('zh-CN')
@@ -39,6 +41,7 @@ const ctaHref = getCtaHref('zh-CN')
   <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" current="coverage" />
   <StateDetailPage
     page={page}
+    allStates={allStates}
     coverageHref="/zh-CN/state-coverage"
     locale="zh-CN"
     officialSources={stateOfficialSources[page.slug] ?? []}

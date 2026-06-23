@@ -404,7 +404,10 @@ export function JurisdictionLabel({
   return (
     <span
       className={cn(
-        'inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary',
+        // Framed chip (Yuqi 2026-06-23 "where is the frame outside this"): a
+        // hairline border + soft fill contains the seal + code + name so the
+        // jurisdiction reads as one bounded unit, like the state pills in the list.
+        'inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-subtle px-2 text-text-secondary',
         className,
       )}
     >
