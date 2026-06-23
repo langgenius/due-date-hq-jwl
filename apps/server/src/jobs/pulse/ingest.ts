@@ -739,6 +739,11 @@ export async function consumePulseIngestSource(
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
 ): Promise<IngestCounts> {
   const sourceIds = message.sourceIds?.length ? message.sourceIds : [message.sourceId]
+  // DIAG 2026-06-23: which sources + which browserless URL this consumer invocation
+  // reads (confirms whether the queue consumer runs the latest deployed version).
+  console.log(
+    JSON.stringify({ tag: 'DIAG_CONSUMER', sourceIds, url: env.PULSE_BROWSERLESS_URL ?? null }),
+  )
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
   const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
