@@ -141,7 +141,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     max-width: 20ch;
     font-family: var(--m-font-display);
     font-weight: 400;
-    font-size: clamp(31px, 4.2vw, 52px);
+    font-size: var(--m-page-title-size);
     line-height: 1.05;
     letter-spacing: -0.02em;
     color: var(--m-ink);
@@ -151,7 +151,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
      bookending the navy close. */
   .trustpg__title--display {
     max-width: 17ch;
-    font-size: clamp(38px, 5.4vw, 66px);
+    font-size: var(--m-page-title-size);
     line-height: 1.04;
     letter-spacing: -0.018em;
   }

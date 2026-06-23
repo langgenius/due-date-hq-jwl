@@ -79,6 +79,11 @@
   --m-tracking-snug: -0.015em; /* mid headings */
   --m-tracking-wide: 0.06em; /* small-caps pills / micro labels */
 
+  /* ONE size for every subpage hero title — a clear tier below the home hero
+     (clamp …76) so coverage / pricing / rules / states / trust / how-it-works
+     all read at the same size. Pages must use this, not a per-page clamp. */
+  --m-page-title-size: clamp(34px, 4.8vw, 64px);
+
   /* ---- layout (editorial, marketing-specific) ---- */
   --m-maxw: 1240px; /* one shared container width */
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
@@ -283,7 +288,7 @@ body {
        tighter leading than the sans .m-h2 it sits above. */
     font-family: var(--m-font-display);
     font-weight: 400;
-    font-size: clamp(34px, 4.6vw, 58px);
+    font-size: var(--m-page-title-size);
     line-height: 1.04;
     letter-spacing: -0.02em;
     color: var(--m-ink);
