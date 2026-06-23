@@ -445,7 +445,7 @@ function PulseAlertRow({
             checked={selected}
             onCheckedChange={(next) => onToggleSelected?.(next)}
             aria-label={t`Select alert: ${alert.title}`}
-            className="size-[18px] rounded"
+            className="size-4 rounded"
           />
         </div>
       ) : null}
@@ -1071,7 +1071,7 @@ function PulseAlertList({
                     aria-label={t`Select all alerts on ${label}`}
                     // Always visible, matching the row checkboxes (Yuqi: checkbox
                     // always showing).
-                    className="size-[18px] rounded"
+                    className="size-4 rounded"
                   />
                 ) : null}
                 <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
