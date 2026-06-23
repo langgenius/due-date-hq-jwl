@@ -207,11 +207,18 @@ const links = [
   .nav--scrolled .nav__cta:hover {
     background: var(--m-accent-tint);
   }
+  /* opaque navy pill on the dark band — we run blur-free, so a translucent fill
+     would let the villain content bleed through. A touch lighter than the band
+     so it still reads as a floating, elevated pill. */
   .nav--on-dark.nav--scrolled .nav__inner {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--m-accent) 56%, var(--m-ink));
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 8px 28px -12px rgba(0, 0, 0, 0.55);
   }
+  /* ghost CTA on the dark pill — transparent fill (NOT the white fill it would
+     otherwise inherit), white outline + white text */
   .nav--on-dark.nav--scrolled .nav__cta {
+    background: transparent;
     color: #fff;
     border-color: rgba(255, 255, 255, 0.55);
   }

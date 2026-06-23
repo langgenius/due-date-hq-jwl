@@ -105,3 +105,14 @@ Five further asks after reviewing the pass:
   /state-coverage, /pricing, /security, /compare/*, /rules + /rules/*,
   /guides/*, /states/* + zh-CN mirror; `@astrojs/sitemap` already generates
   sitemap.xml (home is noindex/excluded).
+
+### Nav-on-dark collapsed pill fix
+The collapsed pill over the villain band had two bugs (caught in a screenshot):
+the translucent fill let the villain's "How we keep you sure" eyebrow bleed
+through (we run blur-free), and a CSS specificity collision rendered the CTA as
+white-text-on-white-fill (invisible). Fixed: the on-dark collapsed `.nav__inner`
+is now an **opaque** navy (`accent 56% / ink`, a touch lighter than the band, with
+a soft elevation shadow), and `.nav--on-dark.nav--scrolled .nav__cta` explicitly
+sets `background: transparent` so it's a white-outline ghost, not the inherited
+white fill. (The expanded-on-dark pill is unreachable — the villain is always
+below the collapse threshold — so no change needed there.)
