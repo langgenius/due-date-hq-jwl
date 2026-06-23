@@ -83,7 +83,9 @@ import {
   formatRelativeTime,
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-import { PinButton } from '@/features/obligations/PinButton'
+// PinButton shelved 2026-06-23 (pin feature paused) — kept as a commented
+// import so the footer toggle is a one-line restore. See render-site note.
+// import { PinButton } from '@/features/obligations/PinButton'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
@@ -236,10 +238,10 @@ function DeadlineTopActions({
   ]
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      {/* Pin / unpin — the entry point for the /today Pinned section. Quiet
-          icon-only control, leftmost so the labeled action buttons stay the
-          row's loud cluster. */}
-      <PinButton obligationId={row.id} isPinned={row.isPinned} />
+      {/* Pin / unpin toggle SHELVED 2026-06-23 alongside the /today Pinned
+          section (Yuqi: "save pinned for the future"). Restore by re-adding
+          `<PinButton obligationId={row.id} isPinned={row.isPinned} />` here and
+          re-mounting PinnedSection on the dashboard. PinButton.tsx is kept. */}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
