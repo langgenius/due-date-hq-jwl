@@ -44,7 +44,7 @@ toggle, opposite default — a deliberate call, not drift.
 | **Clients** | Portfolio cards · urgency lanes | monogram identity; open/filed counts in footer |
 | **Deadlines** | Deadline cards · urgency lanes | form chip; settled → Filed lane; inline triage icons |
 | **Alerts** | (unchanged) live feed | a chronological stream is the right pattern; not card-ified |
-| **Rule Library** | Coverage map (US tilegram) | subtle outline tiles — RED only for high-severity (review-first), neutral for the rest; drill-in on click; paired with **Where to start** (see below) |
+| **Rule Library** | Coverage map (US tilegram) | calm neutral tiles, **no red**; a green "monitoring" dot per swept jurisdiction (success-green, consistent with MonitoringChip) + the to-review count; drill-in on click; paired with **Where to start** (see below) |
 
 ## Rule Library overview — two columns
 

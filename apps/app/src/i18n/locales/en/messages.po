@@ -9363,6 +9363,14 @@ msgstr "Monitor sources"
 msgid "Monitored"
 msgstr "Monitored"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Monitoring"
+msgstr "Monitoring"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Monitoring {label}"
+msgstr "Monitoring {label}"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 msgstr "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
@@ -13051,10 +13059,6 @@ msgstr "Review coverage by jurisdiction"
 msgid "Review coverage, sources, and pending rules."
 msgstr "Review coverage, sources, and pending rules."
 
-#: src/features/rules/RuleCoverageMap.tsx
-msgid "Review first"
-msgstr "Review first"
-
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
 msgstr "Review impact…"
@@ -15802,6 +15806,10 @@ msgstr "to generate"
 msgid "to review"
 msgstr "to review"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "To review"
+msgstr "To review"
+
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
 msgstr "today"
@@ -15852,10 +15860,6 @@ msgstr "Total rules"
 #: src/routes/obligations.tsx
 msgid "Total tracked"
 msgstr "Total tracked"
-
-#: src/features/rules/RuleCoverageMap.tsx
-msgid "Tracked"
-msgstr "Tracked"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

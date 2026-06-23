@@ -9400,6 +9400,14 @@ msgstr "监控来源"
 msgid "Monitored"
 msgstr "监测中"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Monitoring"
+msgstr "监控中"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Monitoring {label}"
+msgstr "监控 {label}"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 msgstr "正在监控 {jurisdictions} 个辖区的 {sourceCount} 个来源"
@@ -13109,10 +13117,6 @@ msgstr "按辖区查看审核覆盖"
 msgid "Review coverage, sources, and pending rules."
 msgstr "查看覆盖、来源和待审核规则。"
 
-#: src/features/rules/RuleCoverageMap.tsx
-msgid "Review first"
-msgstr "优先审核"
-
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
 msgstr "查看影响…"
@@ -15866,6 +15870,10 @@ msgstr "待生成"
 msgid "to review"
 msgstr "待审阅"
 
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "To review"
+msgstr "待审核"
+
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
 msgstr "今天"
@@ -15916,10 +15924,6 @@ msgstr "规则总数"
 #: src/routes/obligations.tsx
 msgid "Total tracked"
 msgstr "跟踪总数"
-
-#: src/features/rules/RuleCoverageMap.tsx
-msgid "Tracked"
-msgstr "已跟踪"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

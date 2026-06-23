@@ -93,23 +93,22 @@ export function RuleCoverageMap({
                   aria-label={title}
                   title={title}
                   className={cn(
-                    // Subtle: calm neutral tiles (white, gray outline). Status is
-                    // carried by the border + the already-coloured code, never a
-                    // full fill, so the map reads as outlines not blocks. RED is
-                    // reserved for the "review first" / high-severity tiles — the
-                    // only strong colour on the board (mirrors the StatBand, where
-                    // pending stays neutral and only high-severity goes red). The
-                    // bulk of pending tiles stay neutral; their COUNT shows the
-                    // work without painting the whole map red.
+                    // Calm, no alarm: every tile is a neutral white cell with a
+                    // gray outline. NO red anywhere — a board full of red borders
+                    // read as shocking, and urgency already lives in the StatBand
+                    // ("HIGH-SEVERITY · review first") + the Where-to-start cards.
+                    // The map's job here is COVERAGE: a green "monitoring" dot
+                    // (consistent with the MonitoringChip / PulsingDot success
+                    // green used across /today + /alerts) shows we're sweeping
+                    // that jurisdiction's sources daily; the COUNT shows how many
+                    // rules await review. Untracked (no rules) recedes.
                     'absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border bg-background-default transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1',
                     active
                       ? 'border-state-accent-solid bg-state-accent-hover'
-                      : tone === 'high'
-                        ? 'border-state-destructive-solid hover:border-state-accent-solid'
-                        : tone === 'untracked'
-                          ? 'cursor-not-allowed border-divider-subtle bg-background-subtle opacity-50'
-                          : 'border-border hover:border-state-accent-solid',
+                      : tone === 'untracked'
+                        ? 'cursor-not-allowed border-divider-subtle bg-background-subtle opacity-50'
+                        : 'border-border hover:border-state-accent-solid',
                   )}
                   style={{
                     left: col * cellSpan,
@@ -118,16 +117,25 @@ export function RuleCoverageMap({
                     height: US_TILE_CELL_SIZE,
                   }}
                 >
+                  {/* Monitoring dot — small green status dot in the corner for
+                      every jurisdiction we actively sweep. Mirrors the dense
+                      per-row dot pattern in the states rail (small solid status
+                      dot), in the success-green used by the MonitoringChip. */}
+                  {tracked ? (
+                    <span
+                      className="absolute right-1 top-1 size-1.5 shrink-0 rounded-full bg-state-success-solid"
+                      title={t`Monitoring ${label}`}
+                      aria-hidden
+                    />
+                  ) : null}
                   <span
                     className={cn(
                       'text-xs font-semibold leading-none tabular-nums',
                       active
                         ? 'text-text-accent'
-                        : tone === 'high'
-                          ? 'text-text-destructive'
-                          : tone === 'pending'
-                            ? 'text-text-secondary'
-                            : 'text-text-tertiary',
+                        : tone === 'untracked'
+                          ? 'text-text-tertiary'
+                          : 'text-text-secondary',
                     )}
                   >
                     {code}
@@ -148,8 +156,14 @@ export function RuleCoverageMap({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-tertiary">
-          <CoverageLegendSwatch className="border-state-destructive-solid" label={t`Review first`} />
-          <CoverageLegendSwatch className="border-border" label={t`Tracked`} />
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-state-success-solid" aria-hidden />
+            <Trans>Monitoring</Trans>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-text-secondary tabular-nums">#</span>
+            <Trans>To review</Trans>
+          </span>
           <CoverageLegendSwatch className="border-divider-subtle" label={t`No rules`} />
         </div>
       </div>

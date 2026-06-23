@@ -70,3 +70,25 @@ red/amber/green blocks; with a mostly-pending backlog the whole map read red.
 Verify: tsgo + build clean · live — only NY/CA/TX/FED (high-severity) red, the
 rest neutral with counts · 1 new i18n string ("Tracked" → 已跟踪), compile
 --strict clean.
+
+## Follow-up 2 — drop the red entirely, add a monitoring dot (same day)
+
+Yuqi: "even remove the red border — too shocking to have many. And show these
+states are monitored, like with a green dot (consistent with other places)."
+A board where many tiles carry a red border still reads as alarm.
+
+- **No red on the map at all.** Every tile is now a neutral white cell with a
+  single gray outline (`border-border`). High-severity urgency lives entirely in
+  the StatBand ("HIGH-SEVERITY · Review these first") + the Where-to-start cards.
+- **Green "monitoring" dot.** Each jurisdiction we actively sweep gets a small
+  (6px) `bg-state-success-solid` dot in the corner — the same success green as
+  the `MonitoringChip` / `PulsingDot` used on /today + /alerts, and the same
+  small-solid-dot pattern the states rail uses for its per-row marker. It signals
+  the product's core promise (daily source sweep) per state.
+- The map's role shifts from "review-pressure heat" to **"monitoring coverage +
+  review volume"**: green dot = watched, the count = N to review, faint/dim =
+  no rules. Legend → **Monitoring · # To review · No rules**.
+
+Verify: tsgo + build clean · live — 0 red borders (single neutral border colour),
+52/52 monitored tiles carry the green dot (`rgb(23,178,106)`, 6px) · 3 new i18n
+strings (Monitoring / Monitoring {label} / To review), compile --strict clean.
