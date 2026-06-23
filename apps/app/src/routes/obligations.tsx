@@ -4599,6 +4599,10 @@ export function ObligationQueueRoute() {
                 // the full-page card sizes to content and never leaves a tall
                 // empty bordered rectangle on short result sets.
                 'flex flex-col rounded-xl border border-divider-regular bg-background-default',
+                // Incoming-view fade on table ⇄ cards toggle (matches
+                // DeadlineCardGrid). Opacity-only → the measured card height is
+                // unaffected; reduced-motion disables it.
+                'animate-in fade-in duration-300 ease-out motion-reduce:animate-none',
                 // Corner clipping. Full-page mode uses `overflow-clip`: it clips
                 // the gray header's rounded top corners to the card's border
                 // WITHOUT establishing a scroll container, so the page-level

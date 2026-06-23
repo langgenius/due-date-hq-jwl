@@ -115,7 +115,11 @@ export function DeadlineCardGrid({
             : t`Filed`
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    // Incoming-view fade: when the queue toggles between table ⇄ cards the new
+    // view mounts fresh, so a calm opacity fade-in (the house entrance tempo,
+    // one step longer for a deliberate view swap) crossfades it in instead of a
+    // hard cut. Opacity-only → no layout/measurement shift. Honors reduced-motion.
+    <div className="flex min-h-0 flex-1 flex-col animate-in fade-in duration-300 ease-out motion-reduce:animate-none">
       {/* Gray well so the white cards separate from the page (border + bg
           contrast does the lift — no shadows). The well is the scroll
           region, mirroring /clients. */}
