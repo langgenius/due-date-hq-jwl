@@ -131,6 +131,7 @@ import {
   CircleOffIcon,
   CopyIcon,
   ExternalLinkIcon,
+  SquareChartGanttIcon,
   FileTextIcon,
   HistoryIcon,
   LinkIcon,
@@ -205,6 +206,10 @@ function DeadlineTopActions({
   markFiledPending: boolean
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
+  // Captured as a const so the truthy-narrowed `string` survives into the
+  // navigate closure below (a `row.assigneeName` property access wouldn't).
+  const assigneeName = row.assigneeName
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
@@ -244,6 +249,23 @@ function DeadlineTopActions({
           }
         />
         <DropdownMenuContent align="end" className="w-56">
+          {/* Read action before the reassign list: jump to this owner's other
+              deadlines (assignee filter is name-keyed). Completes the
+              who→work pattern on the deadline detail — see everything this
+              teammate is carrying, or hand this one off below. */}
+          {row.assigneeId && assigneeName ? (
+            <>
+              <DropdownMenuItem
+                onClick={() =>
+                  void navigate(`/deadlines?assignee=${encodeURIComponent(assigneeName)}`)
+                }
+              >
+                <SquareChartGanttIcon className="size-4" aria-hidden />
+                <Trans>View {assigneeName}&rsquo;s deadlines</Trans>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {assignableMembers.length > 0 ? (
             <DropdownMenuRadioGroup
               value={row.assigneeId ?? ''}
