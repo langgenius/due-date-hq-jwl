@@ -819,6 +819,50 @@ describe('createBrowserlessFetch', () => {
     expect(extraHeaders.accept).toContain('text/html')
   })
 
+  it('renders through Cloudflare Browser Rendering when the endpoint is a CF host', async () => {
+    const fetchMock = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => {
+      // CF /content wraps the rendered HTML in the standard API envelope.
+      return new Response(
+        JSON.stringify({ success: true, errors: null, result: '<main>cf body</main>' }),
+        {
+          headers: { 'content-type': 'application/json' },
+        },
+      )
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const endpoint = 'https://api.cloudflare.com/client/v4/accounts/acct/browser-rendering/content'
+    const browserlessFetch = createBrowserlessFetch({ endpoint, token: 'cf-token' })
+
+    const response = await browserlessFetch?.('https://state-tax.example/news', {
+      headers: { 'User-Agent': 'DueDateHQ-PulseBot/1.0' },
+    })
+
+    // Body is the unwrapped `result`, served as HTML.
+    expect(await response?.text()).toBe('<main>cf body</main>')
+    expect(response?.headers.get('content-type')).toContain('text/html')
+
+    const [calledUrl, init] = fetchMock.mock.calls[0]!
+    // CF carries the token in an Authorization header — never as a ?token= query param.
+    expect(calledUrl).toBe(endpoint)
+    const headers = init?.headers as Record<string, string> | undefined
+    expect(headers?.Authorization).toBe('Bearer cf-token')
+
+    const body = JSON.parse(init?.body as string) as Record<string, unknown>
+    expect(Object.keys(body).toSorted()).toEqual([
+      'gotoOptions',
+      'rejectResourceTypes',
+      'setExtraHTTPHeaders',
+      'url',
+      'userAgent',
+    ])
+    // CF's schema takes a plain-string userAgent (browserless.io flipped it to an object).
+    expect(body.userAgent).toBe('DueDateHQ-PulseBot/1.0')
+    // Wait for the network to settle so client-rendered news lists land in the HTML.
+    expect(body.gotoOptions).toEqual({ waitUntil: 'networkidle0', timeout: 25_000 })
+    expect(body.rejectResourceTypes).toEqual(['image', 'media', 'font'])
+  })
+
   it('retries without the userAgent field when the cloud schema rejects it', async () => {
     const fetchMock = vi
       .fn(
