@@ -41,6 +41,10 @@
   --background-default-dimmed: var(--state-base-hover-alt);
   --background-section: rgb(24 24 27 / 0.4);
   --background-section-burn: var(--state-base-hover);
+  /* Warm stone well — dark counterpart: an olive-tinted dark surface (warmer
+     than the cool section fill) so the onboarding/guidance wells stay warm in
+     dark mode without glowing. */
+  --background-well-warm: #232420;
   --background-soft: rgb(24 24 27 / 0.25);
   --background-subtle: #1d1d20;
   --background-neutral-subtle: #1d1d20;
@@ -64,6 +68,8 @@
   --divider-solid: #3a3a40;
   --divider-solid-alt: #747481;
   --divider-accent: rgb(200 206 218 / 0.14);
+  /* Warm stone hairline — dark: a faint olive edge for the warm wells. */
+  --divider-warm: rgb(200 208 185 / 0.14);
 
   /* ===== State ==========================================================
    * Dify neutral hovers (dark mode counterpart); explicit accent state tokens
@@ -115,6 +121,9 @@
   --effects-highlight-subtle: rgb(200 206 218 / 0.04);
   --effects-image-frame: rgba(255, 255, 255, 0.08);
   --effects-icon-border: rgb(255 255 255 / 0.15);
+  /* Lime celebration — dark: a deep olive fill (the bright lime would glare on
+     a dark canvas); the disc icon stays light over it. */
+  --highlight-celebrate: #36441b;
 
   /* ===== Components: button ============================================= */
   --components-button-primary-text: rgb(255 255 255 / 0.95);

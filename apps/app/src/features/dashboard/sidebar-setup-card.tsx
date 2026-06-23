@@ -102,7 +102,9 @@ export function SidebarSetupCard() {
     <section
       aria-label={t`Setup progress`}
       className={cn(
-        'flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-section p-2.5',
+        // Warm stone well (palette finish) — matches SetupProgressCard so the
+        // two onboarding nudges share one warm, invitational surface.
+        'flex flex-col gap-2 rounded-xl border border-divider-warm bg-background-well-warm p-2.5',
         'animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
         'group-data-[collapsed=true]/sidebar:hidden',
       )}

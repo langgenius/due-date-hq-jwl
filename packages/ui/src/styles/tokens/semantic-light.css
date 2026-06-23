@@ -58,6 +58,11 @@
   --background-default-dimmed: var(--state-base-hover-alt);
   --background-section: var(--color-util-colors-gray-50);
   --background-section-burn: var(--state-base-hover);
+  /* 2026-06-23 (palette finish): warm "stone" well — a sage-tinted recessed
+     surface for resting / contextual moments (onboarding nudges, guidance
+     wells) where the cool gray section bg reads too clinical. Used by
+     EXCEPTION, not as the default section fill. */
+  --background-well-warm: var(--color-util-colors-stone-50);
   --background-soft: var(--color-util-colors-gray-50);
   --background-subtle: var(--color-util-colors-gray-100);
   --background-neutral-subtle: var(--color-util-colors-gray-50);
@@ -86,6 +91,9 @@
   --divider-solid-alt: var(--color-util-colors-gray-400);
   /* 2026-06-23 (palette retune): navy-tinted divider → new primary-100 wash. */
   --divider-accent: var(--color-util-colors-primary-100);
+  /* 2026-06-23 (palette finish): warm stone hairline — the edge that frames a
+     `--background-well-warm` well so the warm surface holds its shape. */
+  --divider-warm: var(--color-util-colors-stone-200);
 
   /* ===== State (interaction layers) =====================================
    * Dify neutral hovers — selectable surfaces stay gray; explicit accent
@@ -142,6 +150,10 @@
   --effects-highlight-subtle: rgb(255 255 255 / 0.5);
   --effects-image-frame: #ffffff;
   --effects-icon-border: rgb(16 24 40 / 0.08);
+  /* 2026-06-23 (palette finish): lime CELEBRATION highlight — sparing, for the
+     all-clear beat and "new" delight moments only. Very light → carries DARK
+     navy/ink text on the fill, never white (mirrors brand-highlight). */
+  --highlight-celebrate: var(--color-util-colors-lime-100);
 
   /* ===== Components: button ============================================= */
   --components-button-primary-text: #ffffff;

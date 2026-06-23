@@ -434,4 +434,17 @@
   --color-brand-highlight: #3ab3e0; /* INFO solid · fills · dots · rings · the New badge */
   --color-brand-highlight-ink: #0e6e92; /* INFO ink — AA text/links on light */
   --color-brand-highlight-soft: #e6f6fc; /* INFO wash background */
+
+  /* ===== Util-colors: warm neutrals (stone) + lime =======================
+   * 2026-06-23 (palette finish — the warm half of Yuqi's reference palette).
+   * STONE is a sage-tinted warm neutral: a recessed "well" surface for
+   * resting / contextual moments (onboarding nudges, guidance wells) where
+   * the cool gray section fill (`gray-50`) reads too clinical. Used BY
+   * EXCEPTION — never the default section fill. LIME is a celebration / brand-
+   * new highlight, kept SCARCE (the all-clear beat, a "new" delight moment).
+   * Lime is very light → it CANNOT carry white text; place dark navy/ink text
+   * on the fill, never white (mirrors the brand-highlight contrast rule). */
+  --color-util-colors-stone-50: #f1f4ec; /* warm well fill (stone-wash) */
+  --color-util-colors-stone-200: #c8d0b9; /* warm hairline / chip border */
+  --color-util-colors-lime-100: #e6fba3; /* celebration / new highlight fill */
 }
