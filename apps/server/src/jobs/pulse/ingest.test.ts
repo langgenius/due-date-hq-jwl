@@ -791,12 +791,23 @@ describe('createBrowserlessFetch', () => {
     if (typeof requestBody !== 'string') throw new Error('Browserless request body must be JSON')
     const body = JSON.parse(requestBody) as Record<string, unknown>
     // Must match the browserless /content schema (additionalProperties:false):
-    // only url / userAgent / setExtraHTTPHeaders — never method/headers/body,
-    // which previously triggered HTTP 400.
-    expect(Object.keys(body).toSorted()).toEqual(['setExtraHTTPHeaders', 'url', 'userAgent'])
+    // url / userAgent / setExtraHTTPHeaders plus the networkidle render wait
+    // (gotoOptions + bestAttempt) — never method/headers/body, which previously
+    // triggered HTTP 400.
+    expect(Object.keys(body).toSorted()).toEqual([
+      'bestAttempt',
+      'gotoOptions',
+      'setExtraHTTPHeaders',
+      'url',
+      'userAgent',
+    ])
     expect(body).not.toHaveProperty('method')
     expect(body).not.toHaveProperty('headers')
     expect(body).not.toHaveProperty('body')
+    // Render after the network settles so client-rendered news lands in the HTML;
+    // bestAttempt returns what rendered if the idle wait times out.
+    expect(body.gotoOptions).toEqual({ waitUntil: 'networkidle2', timeout: 20_000 })
+    expect(body.bestAttempt).toBe(true)
     // Caller-provided User-Agent is hoisted to the top-level `userAgent` field —
     // a CDP setUserAgentOverride-shaped OBJECT (cloud schema as of 2026-06-10).
     expect(body.userAgent).toEqual({ userAgent: 'DueDateHQ-PulseBot/1.0' })

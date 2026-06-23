@@ -2496,6 +2496,7 @@ msgstr "提醒归档"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -3672,6 +3673,10 @@ msgstr "已记录"
 #: src/routes/billing.tsx
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Category"
+msgstr "类别"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
@@ -7196,10 +7201,6 @@ msgstr "申报年度结束"
 #: src/features/audit/audit-log-page.tsx
 msgid "Filings"
 msgstr "申报"
-
-#: src/routes/obligations.tsx
-msgid "Filter"
-msgstr "筛选"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Filter {jurisdictionLabel} rules"
@@ -12141,6 +12142,10 @@ msgstr "QuickBooks Online：在 Customers 中使用 Export to Excel 图标导出
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Quiet hours"
 msgstr "免打扰时段"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Range"
+msgstr "范围"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
