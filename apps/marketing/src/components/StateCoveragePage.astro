@@ -99,16 +99,31 @@ const l = zh
 // roster's "linkable" set never drifts from what actually exists.
 const publishedHref = new Map(page.states.map((s) => [s.abbreviation, s.href]))
 
-// US jurisdiction roster (alphabetical by abbreviation) — every jurisdiction is
-// watched uniformly. `live` is true for all; the link is added when a detail
-// page exists. This proves comprehensive coverage without faking depth tiers.
-const ROSTER = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL',
-  'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME',
-  'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH',
-  'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI',
-  'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
-].map((abbr) => ({ abbr, name: JURISDICTION_NAMES[abbr] ?? abbr, href: publishedHref.get(abbr) ?? null }))
+// US cartogram layout — [col, row] on a 13×8 grid, roughly mirroring the
+// continental US (AK / HI pinned bottom-left per the USPS/NPR tilegram
+// convention). Mirrors `apps/app/src/components/primitives/us-jurisdiction-tiles.ts`
+// so the marketing map can never drift away from the in-app one; data is small
+// and static, no cross-app import. NY/WI use 1.5 row positions to avoid stacking.
+const US_TILES: Record<string, [number, number]> = {
+  WA: [1, 0], ME: [11, 0],
+  OR: [1, 1], ID: [2, 1], MT: [3, 1], ND: [4, 1], MN: [5, 1], IL: [6, 1], WI: [6, 1.5], MI: [7, 1], NY: [8, 1.5], VT: [10, 1], NH: [11, 1],
+  NV: [2, 2], WY: [3, 2], SD: [4, 2], IA: [5, 2], IN: [6, 2], OH: [7, 2], PA: [8, 2], NJ: [9, 2], MA: [10, 2], RI: [11, 2],
+  CA: [1, 3], UT: [2, 3], CO: [3, 3], NE: [4, 3], MO: [5, 3], KY: [6, 3], WV: [7, 3], VA: [8, 3], MD: [9, 3], DE: [10, 3], CT: [11, 3],
+  AZ: [2, 4], NM: [3, 4], KS: [4, 4], AR: [5, 4], TN: [6, 4], NC: [7, 4], SC: [8, 4], DC: [10, 4],
+  OK: [4, 5], LA: [5, 5], MS: [6, 5], AL: [7, 5], GA: [8, 5],
+  TX: [4, 6], FL: [9, 6],
+  AK: [0, 7], HI: [1, 7],
+}
+const US_TILE_COLS = 13
+const US_TILE_ROWS = 8
+
+const ROSTER = (Object.keys(US_TILES) as string[]).map((abbr) => ({
+  abbr,
+  name: JURISDICTION_NAMES[abbr] ?? abbr,
+  href: publishedHref.get(abbr) ?? null,
+  col: US_TILES[abbr][0],
+  row: US_TILES[abbr][1],
+}))
 
 const ctaPrimaryHref = zh ? '/zh-CN' : '/'
 ---
@@ -150,49 +165,63 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
       </ul>
     </div>
 
-    <ul class="stcov-roster__grid" aria-label={l.rosterTitle}>
+    <div
+      class="stcov-roster__map"
+      role="list"
+      aria-label={l.rosterTitle}
+      style={`--us-cols:${US_TILE_COLS};--us-rows:${US_TILE_ROWS}`}
+    >
       {
-        ROSTER.map((j) =>
-          j.href ? (
-            <li>
-              <a class="stcov-tile stcov-tile--page" href={j.href} title={`${j.name} · ${l.viewCoverage}`}>
-                <span class="stcov-tile__abbr">{j.abbr}</span>
-                <svg class="stcov-tile__go" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M5 11 11 5M6 5h5v5" />
-                </svg>
-              </a>
-            </li>
+        ROSTER.map((j) => {
+          const style = `grid-column:${j.col + 1} / span 1;grid-row:${j.row + 1} / span 1`
+          return j.href ? (
+            <a
+              class="stcov-tile stcov-tile--page"
+              href={j.href}
+              role="listitem"
+              title={`${j.name} · ${l.viewCoverage}`}
+              style={style}
+            >
+              <span class="stcov-tile__abbr">{j.abbr}</span>
+              <svg class="stcov-tile__go" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 11 11 5M6 5h5v5" />
+              </svg>
+            </a>
           ) : (
-            <li>
-              <span class="stcov-tile" title={`${j.name} · ${l.rosterLegendLive}`}>
-                <span class="stcov-tile__abbr">{j.abbr}</span>
-              </span>
-            </li>
-          ),
-        )
+            <span
+              class="stcov-tile"
+              role="listitem"
+              title={`${j.name} · ${l.rosterLegendLive}`}
+              style={style}
+            >
+              <span class="stcov-tile__abbr">{j.abbr}</span>
+            </span>
+          )
+        })
       }
-    </ul>
+    </div>
   </section>
 
-  <!-- Published detail pages — the richer cards, now clearly secondary to the roster -->
+  <!-- Published detail pages — a flat directory of the deeper writeups (the
+       cartogram above already signals which states are linkable). Hairline rows
+       replace the card grid: less ink, same info, fewer boxes. -->
   <section class="m-section m-page-block">
     <p class="m-eyebrow">{page.statesHeader.eyebrow}</p>
     <h2 class="m-page-h2">{page.statesHeader.title}</h2>
-    <div class="stcov__grid">
+    <ul class="stcov__list" aria-label={page.statesHeader.title}>
       {
         page.states.map((state) => (
-          <a href={state.href} class="stcov__card">
-            <div class="stcov__top">
-              <span class="stcov__abbr">{state.abbreviation}</span>
-              <span class="stcov__status">{state.status}</span>
-            </div>
-            <h3 class="stcov__name">{state.name}</h3>
-            <p class="stcov__body">{state.body}</p>
-            <span class="stcov__view">{l.viewCoverage} <span aria-hidden="true">→</span></span>
-          </a>
+          <li>
+            <a href={state.href} class="stcov__row">
+              <span class="stcov__row-abbr">{state.abbreviation}</span>
+              <span class="stcov__row-name">{state.name}</span>
+              <span class="stcov__row-body">{state.body}</span>
+              <span class="stcov__row-view">{l.viewCoverage} <span aria-hidden="true">→</span></span>
+            </a>
+          </li>
         ))
       }
-    </div>
+    </ul>
   </section>
 
   <!-- Source model: the technical route only we run — public signal to reviewed
@@ -335,26 +364,27 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
     box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-cyan) 70%, transparent);
   }
 
-  .stcov-roster__grid {
+  /* a real US-shape tilegram (cartogram) — each tile is positioned by [col,row]
+     so the layout reads as the country, not an alphabetical grid. The shape itself
+     IS the personality: you can find your state geographically, sparse gaps in
+     the West feel like the West, NY/WI half-row offsets give the map its kink. */
+  .stcov-roster__map {
     margin-top: clamp(24px, 3vw, 32px);
     display: grid;
-    grid-template-columns: repeat(13, minmax(0, 1fr));
-    gap: clamp(7px, 0.9vw, 10px);
-    list-style: none;
-    padding: 0;
-  }
-  .stcov-roster__grid li {
-    display: flex;
+    grid-template-columns: repeat(var(--us-cols), minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: clamp(6px, 0.8vw, 9px);
+    /* lock the aspect ratio of the whole map so cells stay square */
+    aspect-ratio: calc(var(--us-cols)) / calc(var(--us-rows));
+    max-width: 880px;
   }
   /* base tile = watched live: a light navy tint. The whole grid reads as one
      calm, airy baseline — every jurisdiction monitored the same way. */
   .stcov-tile {
     position: relative;
-    flex: 1;
-    aspect-ratio: 1 / 1;
     display: grid;
     place-items: center;
-    border-radius: 8px;
+    border-radius: 6px;
     background: color-mix(in srgb, var(--m-accent) 8%, transparent);
     color: var(--m-accent);
     border: 1px solid color-mix(in srgb, var(--m-accent) 14%, transparent);
@@ -427,122 +457,86 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
       flex-direction: row;
       gap: 18px;
     }
-    .stcov-roster__grid {
-      grid-template-columns: repeat(9, minmax(0, 1fr));
-    }
   }
   @media (max-width: 560px) {
     .stcov-glance {
       grid-template-columns: 1fr;
       gap: 14px;
     }
-    .stcov-roster__grid {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+    /* the cartogram doesn't reflow gracefully below ~360px wide; let the tile
+       size shrink rather than try to lay out the country in a single column */
+    .stcov-roster__map {
+      max-width: 100%;
     }
   }
 
-  /* ---- published detail-page cards (richer; secondary to the roster) ---- */
-  .stcov__grid {
-    margin-top: 28px;
+  /* ---- published detail-page list — flat hairline rows, not cards ---- */
+  .stcov__list {
+    margin-top: clamp(20px, 2.5vw, 28px);
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--m-hairline);
+  }
+  .stcov__list li {
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .stcov__row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: clamp(12px, 1.4vw, 16px);
+    grid-template-columns: auto auto 1fr auto;
+    align-items: baseline;
+    column-gap: clamp(16px, 2vw, 28px);
+    padding: clamp(14px, 1.6vw, 18px) 4px;
+    transition: background var(--m-dur-fast) var(--m-ease);
   }
-  .stcov__card {
-    display: flex;
-    flex-direction: column;
-    padding: 18px;
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
-    border-radius: 12px;
-    transition:
-      border-color 0.18s ease,
-      background 0.18s ease,
-      box-shadow 0.18s ease;
-  }
-  .stcov__card:hover {
-    border-color: var(--m-accent);
+  .stcov__row:hover {
     background: var(--m-accent-tint);
-    box-shadow: 0 4px 12px -8px rgba(16, 24, 40, 0.4);
   }
-  .stcov__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .stcov__abbr {
+  .stcov__row-abbr {
+    align-self: center;
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     font-family: var(--m-font-mono);
-    font-size: var(--m-text-base);
+    font-size: var(--m-text-sm);
     font-weight: 600;
     color: #fff;
     background: var(--m-accent);
   }
-  .stcov__status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 8px 2px 7px;
-    border-radius: 999px;
-    font-size: var(--m-text-3xs);
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--m-ok);
-    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
-  }
-  .stcov__status::before {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 999px;
-    background: var(--m-ok);
-  }
-  .stcov__name {
-    margin-top: 16px;
+  .stcov__row-name {
     font-size: var(--m-text-md);
     font-weight: 600;
     color: var(--m-ink);
+    white-space: nowrap;
   }
-  .stcov__body {
-    margin-top: 8px;
+  .stcov__row-body {
     font-size: var(--m-text-sm);
     line-height: 1.55;
     color: var(--m-muted);
+    max-width: 70ch;
   }
-  .stcov__view {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--m-hairline-2);
+  .stcov__row-view {
     font-size: var(--m-text-xs);
     font-weight: 600;
     color: var(--m-accent);
+    white-space: nowrap;
   }
-  .stcov__view span {
+  .stcov__row-view span {
     display: inline-block;
-    transition: transform 0.18s ease;
+    transition: transform var(--m-dur-fast) var(--m-ease);
   }
-  .stcov__card:hover .stcov__view span {
+  .stcov__row:hover .stcov__row-view span {
     transform: translateX(3px);
   }
-  @media (max-width: 1100px) {
-    .stcov__grid {
-      grid-template-columns: repeat(3, 1fr);
+  @media (max-width: 760px) {
+    .stcov__row {
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto;
+      row-gap: 6px;
     }
-  }
-  @media (max-width: 700px) {
-    .stcov__grid {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-  @media (max-width: 460px) {
-    .stcov__grid {
-      grid-template-columns: 1fr;
+    .stcov__row-body {
+      grid-column: 2 / -1;
     }
   }
 
