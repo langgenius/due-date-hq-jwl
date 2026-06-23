@@ -12,7 +12,6 @@ import TopNav from '../components/home/TopNav.astro'
 import ScrollRail from '../components/home/ScrollRail.astro'
 import Hero from '../components/home/Hero.astro'
 import Villain from '../components/home/Villain.astro'
-import HowItWorks from '../components/home/HowItWorks.astro'
 import Notice from '../components/home/Notice.astro'
 import Sources from '../components/home/Sources.astro'
 import Compare from '../components/home/Compare.astro'
@@ -39,13 +38,12 @@ const t = en
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'en')}
 >
-  <TopNav ctaHref={ctaHref} signInHref={signInHref} />
+  <TopNav ctaHref={ctaHref} signInHref={signInHref} current="home" />
   <ScrollRail />
   <main>
-    <Hero ctaHref={ctaHref} workflowAnchor="#how" />
+    <Hero ctaHref={ctaHref} workflowAnchor="/how-it-works" />
     <Villain />
     <Surfaces />
-    <HowItWorks />
     <Notice />
     <Sources />
     <Compare />

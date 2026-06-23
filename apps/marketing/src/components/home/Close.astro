@@ -1,10 +1,10 @@
 ---
 /** Close — the finale CTA. A bold navy card (different from the white sections),
  *  made distinct as the page's end by bookending the Hero: the headline returns
- *  to the display serif that opens the page (the only OTHER place it appears),
- *  with a quiet cyan top-edge and a faint corner light — chroma in containers,
- *  never in text. Below the card, a full-bleed light audit "receipt" strip spans
- *  the whole section width (#13). White only on the navy; accent in the white CTA. */
+ *  to the display serif that opens the page, with a quiet cyan top-edge and a
+ *  faint corner light — chroma in containers, never in text. The card is a split:
+ *  the decision on the left, a white "audit receipt" on the right (#31) — the
+ *  honest proof of one applied change, sitting like paper on the desk. */
 interface Props {
   ctaHref: string
   locale?: 'en' | 'zh-CN'
@@ -16,13 +16,13 @@ const t = zh
       pill: '在报税旺季到来前做好准备',
       bodyLead:
         '把客户名单粘贴进来，约 30 分钟就能备好一年带来源的截止日。从此我们替你盯着每一处官方来源——日期一变动，你立刻看清它影响到谁。',
-      bodyStrong: '再也不用等客户来告诉你。',
+      bodyStrong: '再也不会是最后一个知道的。',
       ctaPrimary: '免费开始',
-      ctaGhost: '要人带着上手',
+      ctaGhost: '预约演示',
       trust: ['测试期免费', '无需信用卡', '数据留在你的事务所'],
       receiptEyebrow: '审计凭据',
-      receiptApply: 'Apply #DDH-2240',
-      receiptChangeTail: '· 8 位客户',
+      receiptId: '#DDH-2240',
+      receiptCount: '已应用到 8 位客户',
       receiptRows: [
         { glyph: 'link', text: '来源 irs.gov · 已核验' },
         { glyph: 'undo', text: '24 小时内可撤销' },
@@ -33,13 +33,13 @@ const t = zh
       pill: 'Be ready before busy season',
       bodyLead:
         'Paste your clients once — a sourced year of deadlines is ready in about 30 minutes. From there we watch every official source for you, so the moment a date moves you see exactly who it hits. ',
-      bodyStrong: 'No more finding out from your client.',
+      bodyStrong: 'Never the last to know.',
       ctaPrimary: 'Start free',
-      ctaGhost: 'Get a guided setup',
+      ctaGhost: 'Book a demo call',
       trust: ['Free during the beta', 'No card required', 'Data stays in your practice'],
       receiptEyebrow: 'Audit receipt',
-      receiptApply: 'Apply #DDH-2240',
-      receiptChangeTail: '· 8 clients',
+      receiptId: '#DDH-2240',
+      receiptCount: 'Applied to 8 clients',
       receiptRows: [
         { glyph: 'link', text: 'Sourced to irs.gov · verified' },
         { glyph: 'undo', text: 'Reversible for 24 hours' },
@@ -58,11 +58,11 @@ const receiptRows = t.receiptRows
         {
           zh ? (
             <>
-              下次截止日变动，你<span class="ital">早就知道了。</span>
+              下次截止日变动，你<span class="ital">早就知道是谁了。</span>
             </>
           ) : (
             <>
-              Next time a deadline moves, you'll already <span class="ital">know.</span>
+              Next time a deadline moves, you'll <span class="ital">know exactly who.</span>
             </>
           )
         }
@@ -91,38 +91,50 @@ const receiptRows = t.receiptRows
         }
       </div>
     </div>
-  </div>
 
-  <div class="receipt" aria-label="Sample audit receipt for one applied change">
-    <div class="receipt__head">
-      <span class="receipt__eyebrow">{t.receiptEyebrow} · {t.receiptApply}</span>
-      <p class="receipt__change"><s>Apr 15</s> → Nov 3, 2026 {t.receiptChangeTail}</p>
-    </div>
-    <div class="receipt__facts">
-      {
-        receiptRows.map((r) => (
-          <span class="receipt__fact">
-            {r.glyph === 'link' && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
-              </svg>
-            )}
-            {r.glyph === 'undo' && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M9 14 4 9l5-5" />
-                <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
-              </svg>
-            )}
-            {r.glyph === 'shield' && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-              </svg>
-            )}
-            {r.text}
-          </span>
-        ))
-      }
-    </div>
+    <!-- the proof, on the right: a white paper receipt for one applied change -->
+    <aside class="close__receipt" aria-label="Sample audit receipt for one applied change">
+      <div class="rcpt">
+        <div class="rcpt__top">
+          <span class="rcpt__eyebrow">{t.receiptEyebrow}</span>
+          <span class="rcpt__id">{t.receiptId}</span>
+        </div>
+        <div class="rcpt__change">
+          <s>Apr 15</s>
+          <span class="rcpt__arrow" aria-hidden="true">→</span>
+          <b>Nov 3, 2026</b>
+        </div>
+        <div class="rcpt__count">{t.receiptCount}</div>
+        <ul class="rcpt__rows">
+          {
+            receiptRows.map((r) => (
+              <li class="rcpt__row">
+                <span class="rcpt__ico" aria-hidden="true">
+                  {r.glyph === 'link' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8" />
+                    </svg>
+                  )}
+                  {r.glyph === 'undo' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 14 4 9l5-5" />
+                      <path d="M4 9h11a5 5 0 0 1 0 10h-1" />
+                    </svg>
+                  )}
+                  {r.glyph === 'shield' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                      <path d="M9 12l2 2 4-4" />
+                    </svg>
+                  )}
+                </span>
+                {r.text}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </aside>
   </div>
 </section>
 
@@ -132,23 +144,21 @@ const receiptRows = t.receiptRows
     margin-inline: auto;
     padding-inline: var(--m-gutter);
     padding-block: clamp(48px, 7vw, 96px);
-    /* card + full-width receipt strip stack as the finale */
-    display: flex;
-    flex-direction: column;
-    gap: clamp(14px, 1.4vw, 20px);
   }
   /* Bold navy finale — distinct as the page's END: a cyan top-edge + a faint
-     corner light give the flat navy a crafted, "this is it" lift (chroma in
-     containers, not text), and the headline returns to the page's display serif
-     to bookend the Hero. Cohesive via the same brand navy + cyan. */
+     corner light give the flat navy a crafted lift (chroma in containers, not
+     text), and the headline returns to the page's display serif to bookend the
+     Hero. A split: the decision left, the audit receipt right. */
   .close__card {
     position: relative;
     background: var(--m-accent);
     border-radius: 16px;
     overflow: hidden;
     isolation: isolate;
+    display: grid;
+    grid-template-columns: 1.25fr 0.85fr;
+    align-items: center;
   }
-  /* faint light blooming from the top-right — depth without a heavy shadow */
   .close__card::before {
     content: '';
     position: absolute;
@@ -161,9 +171,6 @@ const receiptRows = t.receiptRows
     );
     pointer-events: none;
   }
-  /* crisp cyan edge along the very top — the finale's signature, leaned harder
-     into so the close reads unmistakably brighter than the somber Villain band:
-     a taller, fuller-bleed cyan bar over a soft glow that bleeds down into the navy */
   .close__card::after {
     content: '';
     position: absolute;
@@ -181,7 +188,7 @@ const receiptRows = t.receiptRows
   }
   .close__body-wrap {
     position: relative;
-    padding: clamp(44px, 6vw, 76px) clamp(28px, 5vw, 64px) clamp(40px, 5vw, 60px);
+    padding: clamp(44px, 6vw, 76px) clamp(28px, 4vw, 56px) clamp(40px, 5vw, 60px);
   }
   .close__pill {
     display: inline-flex;
@@ -203,17 +210,14 @@ const receiptRows = t.receiptRows
     border-radius: 999px;
     background: var(--m-cyan);
   }
-  /* Bookend the Hero: the finale headline returns to the display serif — the
-     only OTHER place it appears on the page — so the close reads as a deliberate
-     "end of the story", distinct from the sans .m-h2 of every middle section. */
   .close__h {
     font-family: var(--m-font-display);
     font-weight: 400;
-    font-size: clamp(40px, 5.8vw, 74px);
-    line-height: 1.02;
+    font-size: clamp(36px, 4.6vw, 60px);
+    line-height: 1.04;
     letter-spacing: -0.02em;
     color: #fff;
-    max-width: 18ch;
+    max-width: 16ch;
     text-wrap: balance;
   }
   .close__h .ital {
@@ -222,7 +226,7 @@ const receiptRows = t.receiptRows
   }
   .close__body {
     margin-top: 22px;
-    max-width: 56ch;
+    max-width: 52ch;
     font-size: clamp(16px, 1.3vw, 18px);
     line-height: 1.55;
     color: rgba(255, 255, 255, 0.78);
@@ -244,18 +248,17 @@ const receiptRows = t.receiptRows
     gap: 8px;
     font-size: var(--m-text-base);
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: 999px;
     transition:
       background 0.18s ease,
       color 0.18s ease,
       box-shadow 0.18s ease,
       transform 0.12s ease;
   }
-  /* inverted on the navy */
   .btn--primary {
     background: #fff;
     color: var(--m-accent);
-    padding: 12px 20px;
+    padding: 12px 24px;
   }
   .btn--primary:hover {
     background: rgba(255, 255, 255, 0.9);
@@ -271,13 +274,13 @@ const receiptRows = t.receiptRows
   }
   .btn--ghost {
     color: #fff;
-    padding: 12px 4px;
+    padding: 12px 6px;
   }
   .btn--ghost:hover {
     box-shadow: inset 0 -1.5px 0 rgba(255, 255, 255, 0.7);
   }
   .close__trust {
-    margin-top: 22px;
+    margin-top: 26px;
     display: flex;
     flex-wrap: wrap;
     gap: 9px 22px;
@@ -295,59 +298,117 @@ const receiptRows = t.receiptRows
     color: var(--m-cyan);
     flex: none;
   }
-  /* Full-width light audit receipt — spans the WHOLE section (#13), grounding
-     the navy card above it with the honest evidence of one applied change. Its
-     own framed strip now that it sits outside the card: a light surface, dashed
-     "tear" hairline reading as a torn-off receipt, anchored on the brand accent. */
-  .receipt {
+
+  /* ---- the receipt, right side of the navy card (#31) ---- */
+  .close__receipt {
+    position: relative;
+    align-self: stretch;
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
+    padding: clamp(28px, 3.5vw, 48px) clamp(28px, 4vw, 56px) clamp(28px, 3.5vw, 48px) 0;
+  }
+  .rcpt {
+    position: relative;
+    width: 100%;
+    background: var(--m-surface);
+    border-radius: 12px;
+    padding: 22px 24px 20px;
+    box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.55);
+  }
+  /* a faint perforated "tear" along the top — reads as a torn-off receipt */
+  .rcpt::before {
+    content: '';
+    position: absolute;
+    inset: 0 14px auto 14px;
+    top: 0;
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--m-accent) 34%, transparent) 0 5px,
+      transparent 5px 10px
+    );
+  }
+  .rcpt__top {
+    display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px 28px;
-    padding: 16px clamp(20px, 3vw, 32px);
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
-    border-top: 1px dashed color-mix(in srgb, var(--m-accent) 32%, transparent);
-    border-radius: 12px;
+    gap: 12px;
   }
-  .receipt__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px 14px;
-  }
-  .receipt__eyebrow {
+  .rcpt__eyebrow {
     font-family: var(--m-font-mono);
     font-size: var(--m-text-3xs);
     letter-spacing: 0.07em;
     text-transform: uppercase;
     color: var(--m-faint);
   }
-  .receipt__change {
+  .rcpt__id {
     font-family: var(--m-font-mono);
-    font-size: var(--m-text-xs);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .rcpt__change {
+    margin-top: 14px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-lg);
     color: var(--m-ink);
   }
-  .receipt__change s {
+  .rcpt__change s {
     color: var(--m-faint);
   }
-  .receipt__facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 18px;
+  .rcpt__arrow {
+    color: var(--m-muted);
   }
-  .receipt__fact {
-    display: inline-flex;
+  .rcpt__count {
+    margin-top: 6px;
+    font-size: var(--m-text-xs);
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .rcpt__rows {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--m-hairline);
+    display: grid;
+    gap: 10px;
+  }
+  .rcpt__row {
+    display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 9px;
     font-size: var(--m-text-xs);
     color: var(--m-ink-2);
   }
-  .receipt__fact svg {
-    width: 13px;
-    height: 13px;
-    color: var(--m-accent);
+  .rcpt__ico {
+    display: inline-flex;
     flex: none;
+    color: var(--m-accent);
+  }
+  .rcpt__ico svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  @media (max-width: 860px) {
+    .close__card {
+      grid-template-columns: 1fr;
+    }
+    .close__receipt {
+      padding: 0 clamp(28px, 5vw, 40px) clamp(36px, 6vw, 48px);
+    }
+    .rcpt {
+      max-width: 420px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .btn--primary .arrow {
+      transition: none;
+    }
   }
 </style>

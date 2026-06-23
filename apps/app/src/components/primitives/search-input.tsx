@@ -164,7 +164,10 @@ export const SearchInput = forwardRef(function SearchInput(
             // vertical padding box. The base field's `px-3 py-1`, `bg-*`,
             // hover/focus fill, border + ring are ALL neutralised below.
             variant === 'compact'
-              ? 'h-7 border-transparent bg-transparent px-0 py-0 pl-6 pr-6 hover:bg-transparent focus-visible:border-transparent focus-visible:bg-transparent focus-visible:ring-0'
+              ? // Dimmed at rest (Yuqi 2026-06-23: an empty, unfocused rail filter
+                // shouldn't read as active) — placeholder tertiary until the group
+                // gains focus, then it brightens to secondary alongside the icon.
+                'h-7 border-transparent bg-transparent px-0 py-0 pl-6 pr-6 placeholder:text-text-tertiary group-focus-within:placeholder:text-text-secondary hover:bg-transparent focus-visible:border-transparent focus-visible:bg-transparent focus-visible:ring-0'
               : 'h-9 bg-background-default pl-9 pr-9',
           )}
         />

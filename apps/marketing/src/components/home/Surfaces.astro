@@ -22,13 +22,18 @@ const t = zh
       headingPost: '搞定一切。',
       intro: '从第一条提醒到应用变更——四个界面，一个让你安心工作的地方。',
       win: '美国税务截止日 · 实时',
-      tabs: ['联邦', '德州', '加州', '佛州'],
+      sevUrgent: '紧急',
+      sevInfo: '信息',
+      affectPre: '影响 ',
+      jurisLabel: '按辖区筛选',
+      jurisAlerts: [
+        { tab: '联邦', juris: 'FED', sev: 'urgent', title: 'IRS 推迟申报截止日', from: 'Apr 15', to: 'Nov 3', delta: '+202d', affect: '8 家客户' },
+        { tab: '德州', juris: 'TX', sev: 'info', title: '德州延长特许经营税申报', from: 'May 15', to: 'Aug 15', delta: '+92d', affect: '5 家客户' },
+        { tab: '加州', juris: 'CA', sev: 'info', title: '加州 FTB 延长第三季度预估税', from: 'Sep 15', to: 'Sep 29', delta: '+14d', affect: '12 家客户' },
+        { tab: '佛州', juris: 'FL', sev: 'urgent', title: '佛州 DOR 推迟销售税申报', from: 'Oct 20', to: 'Dec 2', delta: '+43d', affect: '6 家客户' },
+      ],
       cards: {
         alerts: {
-          sev: '紧急',
-          title: 'IRS 推迟申报截止日',
-          affectPre: '影响 ',
-          affectN: '8 家客户',
           panel: '提醒动态',
           t: '提醒',
           d: '实时动态——每条变更落地即呈现，按紧急程度排序。',
@@ -75,13 +80,18 @@ const t = zh
       headingPost: '',
       intro: 'From the first alert to the applied change — four surfaces, one calm place to work.',
       win: 'US tax deadlines · live',
-      tabs: ['Federal', 'Texas', 'California', 'Florida'],
+      sevUrgent: 'Urgent',
+      sevInfo: 'Info',
+      affectPre: 'Affects ',
+      jurisLabel: 'Filter by jurisdiction',
+      jurisAlerts: [
+        { tab: 'Federal', juris: 'FED', sev: 'urgent', title: 'IRS postpones filing deadlines', from: 'Apr 15', to: 'Nov 3', delta: '+202d', affect: '8 clients' },
+        { tab: 'Texas', juris: 'TX', sev: 'info', title: 'Texas extends franchise-tax report', from: 'May 15', to: 'Aug 15', delta: '+92d', affect: '5 clients' },
+        { tab: 'California', juris: 'CA', sev: 'info', title: 'California FTB extends Q3 estimated tax', from: 'Sep 15', to: 'Sep 29', delta: '+14d', affect: '12 clients' },
+        { tab: 'Florida', juris: 'FL', sev: 'urgent', title: 'Florida DOR postpones sales-tax filing', from: 'Oct 20', to: 'Dec 2', delta: '+43d', affect: '6 clients' },
+      ],
       cards: {
         alerts: {
-          sev: 'Urgent',
-          title: 'IRS postpones filing deadlines',
-          affectPre: 'Affects ',
-          affectN: '8 clients',
           panel: 'Alert feed',
           t: 'Alerts',
           d: 'The live feed — every change as it lands, sorted by severity.',
@@ -141,28 +151,54 @@ const surfaces = [
     </p>
   </div>
 
-  <!-- One product window: titlebar + jurisdiction tabs + four connected panels -->
-  <div class="bench" role="img" aria-label={t.headingPre + t.headingItal + t.headingPost}>
+  <!-- One product window: titlebar + jurisdiction tabs + four connected panels.
+       Auto-tours each surface (spotlight), follows hover/focus; tabs filter the
+       lead alert. -->
+  <div class="bench" data-bench>
     <div class="bench__bar">
       <span class="bench__dots" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="bench__name">{t.win}</span>
-      <span class="bench__tabs" aria-hidden="true">
-        {t.tabs.map((tab, i) => <span class:list={['bench__tab', { on: i === 0 }]}>{tab}</span>)}
+      <span class="bench__tabs" role="tablist" aria-label={t.jurisLabel}>
+        {
+          t.jurisAlerts.map((j, i) => (
+            <button
+              class:list={['bench__tab', { on: i === 0 }]}
+              type="button"
+              role="tab"
+              aria-selected={i === 0 ? 'true' : 'false'}
+              data-juris-tab={i}
+            >
+              {j.tab}
+            </button>
+          ))
+        }
       </span>
     </div>
 
     <div class="bench__grid">
-      <!-- Alerts — the lead panel -->
-      <div class="panel panel--lead">
+      <!-- Alerts — the lead panel (jurisdiction tabs swap the alert, no jump) -->
+      <div class="panel panel--lead" data-surface="alerts">
         <p class="panel__label">{t.cards.alerts.panel}</p>
         <div class="mini mini--alert">
-          <div class="mini__sevrow">
-            <span class="mini__sev">{t.cards.alerts.sev}</span>
-            <span class="mini__juris">FED</span>
+          <div class="mini__alertswap">
+            {
+              t.jurisAlerts.map((j, i) => (
+                <div class:list={['mini__variant', { 'is-on': i === 0 }]} data-juris-panel={i}>
+                  <div class="mini__sevrow">
+                    <span class:list={['mini__sev', { 'mini__sev--info': j.sev === 'info' }]}>
+                      {j.sev === 'urgent' ? t.sevUrgent : t.sevInfo}
+                    </span>
+                    <span class="mini__juris">{j.juris}</span>
+                  </div>
+                  <p class="mini__title">{j.title}</p>
+                  <div class="mini__change">
+                    <s>{j.from}</s> → <b>{j.to}</b> <span class="mini__delta">{j.delta}</span>
+                  </div>
+                  <p class="mini__affect">{t.cards.alerts.affectPre}<b>{j.affect}</b></p>
+                </div>
+              ))
+            }
           </div>
-          <p class="mini__title">{t.cards.alerts.title}</p>
-          <div class="mini__change"><s>Apr 15</s> → <b>Nov 3</b> <span class="mini__delta">+202d</span></div>
-          <p class="mini__affect">{t.cards.alerts.affectPre}<b>{t.cards.alerts.affectN}</b></p>
           <div class="mini__recent">
             {
               t.cards.alerts.recent.map((r) => (
@@ -178,7 +214,7 @@ const surfaces = [
       </div>
 
       <!-- Coverage -->
-      <div class="panel panel--coverage">
+      <div class="panel panel--coverage" data-surface="coverage">
         <p class="panel__label">{t.cards.coverage.panel}</p>
         <div class="mini mini--map" aria-hidden="true">
           {tiles.map((tile) => <span class:list={['mini__tile', tile]} />)}
@@ -186,7 +222,7 @@ const surfaces = [
       </div>
 
       <!-- Worklist -->
-      <div class="panel panel--list">
+      <div class="panel panel--list" data-surface="worklist">
         <p class="panel__label">{t.cards.worklist.panel}</p>
         <div class="mini mini--list">
           <div class="mini__row">
@@ -211,7 +247,7 @@ const surfaces = [
       </div>
 
       <!-- Apply & audit -->
-      <div class="panel panel--apply">
+      <div class="panel panel--apply" data-surface="apply">
         <p class="panel__label">{t.cards.apply.panel}</p>
         <div class="mini mini--apply">
           <span class="mini__applybtn">
@@ -235,9 +271,9 @@ const surfaces = [
   </div>
 
   <!-- Caption rail — names each surface, keeps its pitch + link -->
-  <ul class="legend">
+  <ul class="legend" data-reveal-stagger>
     {surfaces.map((s, i) => (
-      <li class:list={['legend__item', `legend__item--${s.key}`]}>
+      <li class:list={['legend__item', `legend__item--${s.key}`]} data-surface={s.key}>
         <span class="legend__n" aria-hidden="true">{'0' + (i + 1)}</span>
         <div class="legend__body">
           <h3 class="legend__t">{s.c.t}</h3>
@@ -314,16 +350,32 @@ const surfaces = [
     margin-left: auto;
   }
   .bench__tab {
+    appearance: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
     padding: 3px 9px;
     border-radius: 999px;
     font-size: var(--m-text-3xs);
     font-weight: 500;
     color: var(--m-muted);
+    background: transparent;
     white-space: nowrap;
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+  .bench__tab:hover:not(.on) {
+    color: var(--m-ink-2);
+    background: var(--m-hairline-2);
   }
   .bench__tab.on {
     color: var(--m-accent);
     background: var(--m-accent-tint);
+  }
+  .bench__tab:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 1px;
   }
   @media (max-width: 560px) {
     .bench__tab:nth-child(n + 3) {
@@ -388,6 +440,23 @@ const surfaces = [
     gap: 6px;
     margin-bottom: 8px;
   }
+  /* the lead alert swaps by jurisdiction — variants stacked in one cell so the
+     panel height is constant (= tallest variant); no jump on tab click */
+  .mini__alertswap {
+    display: grid;
+  }
+  .mini__variant {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s var(--m-ease);
+  }
+  .mini__variant.is-on {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
   .mini__sev {
     padding: 1px 6px;
     border-radius: 999px;
@@ -397,6 +466,10 @@ const surfaces = [
     text-transform: uppercase;
     color: var(--m-danger);
     background: color-mix(in srgb, var(--m-danger) 10%, transparent);
+  }
+  .mini__sev--info {
+    color: var(--m-ink-2);
+    background: var(--m-section);
   }
   .mini__juris {
     padding: 1px 5px;
@@ -717,4 +790,31 @@ const surfaces = [
       gap: 18px;
     }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .mini__variant {
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  // Surfaces workbench — jurisdiction tabs swap the lead alert (variants stacked
+  // in one cell → no jump). Listeners die with the nodes on View-Transition swap.
+  function initSurfaces() {
+    document.querySelectorAll<HTMLElement>('.surfaces').forEach((section) => {
+      const tabs = Array.from(section.querySelectorAll<HTMLButtonElement>('.bench__tab'))
+      const variants = Array.from(section.querySelectorAll<HTMLElement>('.mini__variant'))
+      if (!tabs.length) return
+      tabs.forEach((tab, idx) => {
+        tab.addEventListener('click', () => {
+          tabs.forEach((tb, i) => {
+            tb.classList.toggle('on', i === idx)
+            tb.setAttribute('aria-selected', String(i === idx))
+          })
+          variants.forEach((v, i) => v.classList.toggle('is-on', i === idx))
+        })
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initSurfaces)
+</script>

@@ -44,9 +44,16 @@ toggle, opposite default — a deliberate call, not drift.
 | **Clients** | Portfolio cards · urgency lanes | monogram identity; open/filed counts in footer |
 | **Deadlines** | Deadline cards · urgency lanes | form chip; settled → Filed lane; inline triage icons |
 | **Alerts** | (unchanged) live feed | a chronological stream is the right pattern; not card-ified |
-| **Rule Library** | Coverage map (US tilegram) | calm neutral tiles, no red borders; a corner **monitoring dot** per swept jurisdiction — green normally, **red for high-severity** ("review first") — + the to-review count; drill-in on click; paired with **Where to start** (see below) |
+| **Rule Library** | **Where to start** (ranked backlog) | the overview leads with the ranked review queue full-width. The Coverage map (US tilegram) is built but **currently hidden** — see below. |
 
-## Rule Library overview — two columns
+## Rule Library overview — Coverage map (hidden for now)
+
+> **Status (2026-06-23):** the Coverage map is **hidden behind
+> `SHOW_COVERAGE_MAP = false`** in `routes/rules.library.tsx`. Its visual
+> encoding wasn't landing, so it's shelved (not deleted) and the overview leads
+> with **Where to start** full-width. Everything below describes the two-column
+> layout that returns when the flag is flipped to `true`. The component
+> (`RuleCoverageMap`) and its data wiring are intact.
 
 The overview pairs the **Coverage map** (left) with the **Where to start** backlog
 (right) as **equal-weight peers**: same `text-region-title` heading (18px/600),

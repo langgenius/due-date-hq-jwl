@@ -434,10 +434,10 @@ function PulseAlertRow({
             // the box never shifts the row), but the box itself is hover-revealed
             // unless this row is ticked or a selection is already underway — so a
             // read-first triage list isn't led by a column of empty checkboxes.
-            'flex shrink-0 items-start pt-0.5 transition-opacity',
-            selected || selectionActive
-              ? 'opacity-100'
-              : 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100',
+            // Always visible (Yuqi 2026-06-23: "alert list should have the
+            // checkbox always showing"). The unchecked box is a quiet outline,
+            // so a persistent column stays subtle without hover-gating.
+            'flex shrink-0 items-start pt-0.5',
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -445,7 +445,7 @@ function PulseAlertRow({
             checked={selected}
             onCheckedChange={(next) => onToggleSelected?.(next)}
             aria-label={t`Select alert: ${alert.title}`}
-            className="size-[18px] rounded"
+            className="size-4 rounded"
           />
         </div>
       ) : null}
@@ -1011,13 +1011,12 @@ function PulseAlertList({
   )
 
   return (
-    // List frame — rounded-12 white surface, NO border stroke.
-    // 2026-06-12 (Yuqi /alerts #1 "hide the border"): the outer
-    // border-divider-regular is dropped; the rounded encapsulation
-    // survives via the clipped gray day-group bands at the frame's top
-    // corners and the row hairlines inside. (/today + /deadlines tables
-    // keep the bordered canonical frame — they're column tables; this is
-    // a card-list registry.)
+    // List frame — rounded-12 white surface WITH a hairline border.
+    // 2026-06-23 (Yuqi "the alert list needs left and right border"): the outer
+    // `border-divider-regular` is back — it frames the card so the full-bleed
+    // colored day bands and padded rows read as one bounded table (the same
+    // canonical frame /today + /deadlines use). (Supersedes the 2026-06-12
+    // "hide the border" pass.)
     // `overflow-clip` (not -hidden) clips the full-bleed day bands to the
     // rounded frame WITHOUT creating a scroll container — position:sticky
     // on the day bands (Yuqi #7) dies inside overflow-hidden but survives
@@ -1026,7 +1025,7 @@ function PulseAlertList({
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls.
-    <div className="flex shrink-0 flex-col overflow-clip rounded-xl bg-background-default">
+    <div className="flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default">
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
@@ -1043,14 +1042,16 @@ function PulseAlertList({
 
           return (
             <div key={dayKey} className="flex flex-col">
-              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
-                    a faint band: "MAY 20, 2026". No weekday, count, or icon —
-                    the date is the section marker. Sticky below the toolbar
-                    (top-12) so "when" stays answered while a day's rows scroll
-                    under it; requires the frame's overflow-clip. The faint
-                    `bg-background-subtle` fill (matching aUZTy) gives a clean
-                    section break without the busier label competing with rows. */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
+              {/* Day header — a quiet uppercase date eyebrow: "MAY 20, 2026". No
+                    weekday, count, or icon — the date is the section marker.
+                    Sticky below the toolbar (top-12) so "when" stays answered
+                    while a day's rows scroll under it; requires the frame's
+                    overflow-clip. A `bg-background-subtle` fill (Yuqi 2026-06-23
+                    "the date header row needs colour") gives the band a tint that
+                    reads as a section break inside the bordered frame, and stays
+                    opaque so rows mask cleanly as they scroll under it. Thin
+                    (py-1.5), padded to the row content edge (px-5). */}
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
@@ -1068,12 +1069,9 @@ function PulseAlertList({
                       for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
                     }}
                     aria-label={t`Select all alerts on ${label}`}
-                    className={cn(
-                      'size-[18px] rounded transition-opacity',
-                      selectionActive
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
-                    )}
+                    // Always visible, matching the row checkboxes (Yuqi: checkbox
+                    // always showing).
+                    className="size-4 rounded"
                   />
                 ) : null}
                 <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">

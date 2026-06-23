@@ -53,6 +53,49 @@ html {
   background: color-mix(in srgb, var(--text-tertiary) 56%, transparent);
 }
 
+/*
+ * Opt-in DESIGNED scrollbar (overrides the global hide above). Most scroll
+ * regions stay chromeless, but a few benefit from a visible affordance so the
+ * user can sense there's more to scroll — e.g. the /today Priorities list,
+ * whose bounded frame scrolls its body internally. Reuses the same flat
+ * 2px-radius, tertiary thumb as the (otherwise hidden) global style: a thin
+ * thumb floating in a transparent gutter via a transparent border + padding-box
+ * clip, so it reads as a quiet workbench detail, not a web-app default.
+ */
+.scrollbar-designed {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 32%, transparent) transparent;
+}
+.scrollbar-designed::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+.scrollbar-designed::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-designed::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  background-color: color-mix(in srgb, var(--text-tertiary) 32%, transparent);
+}
+.scrollbar-designed::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--text-tertiary) 56%, transparent);
+}
+
+/*
+ * 2026-06-23 (Yuqi): finer 1.5px Lucide icon strokes PRODUCT-WIDE. The sidenav
+ * already ran 1.5 (2026-06-09 "精致/elegant"); Lucide's 2px default everywhere
+ * else read heavier and inconsistent next to it. Scoped to `.lucide` so raw
+ * SVGs (brand marks, the StatusRing, source-logo art) keep their own widths.
+ * This is the single source of truth for icon weight — it intentionally
+ * normalizes the few per-icon `strokeWidth` overrides to one uniform weight.
+ */
+.lucide {
+  stroke-width: 1.5;
+}
+
 input,
 textarea,
 [contenteditable='true'] {

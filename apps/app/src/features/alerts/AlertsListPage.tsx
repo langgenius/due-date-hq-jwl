@@ -751,6 +751,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               {/* Toggle between List and Map. Map shows
                   `<PulseAlertsMap>` above the list. */}
               <Segmented
+                // size="sm" to match the /deadlines + /clients view-mode toggle
+                // (Yuqi 2026-06-23: "should follow the size on deadlines").
+                size="sm"
                 ariaLabel={t`View mode`}
                 value={viewMode}
                 onValueChange={setViewMode}
@@ -891,13 +894,11 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   (the page wash) + padding keep the cards reading cleanly
                   as they scroll underneath and `z-20` sits above the
                   rows. */}
-              {/* `px-5` aligns the toolbar's leading control to the card
-                  content edge below it (rows + day bands carry the same
-                  px-5). Without it the filter row sat ~20px left of the
-                  list, so "Review", the row checkboxes, and the day bands
-                  read as three staggered left edges (Yuqi 2026-06-15:
-                  "the left side is not aligned"). */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
+              {/* Flush-left, no `px-5`: the toolbar, day bands, and rows all sit
+                  on the page content column so they line up with the page header
+                  title above (Yuqi 2026-06-23: "remove the px-5"). The list is
+                  borderless, so an inset would read as a phantom card edge. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower

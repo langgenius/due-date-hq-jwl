@@ -39,15 +39,14 @@ const groups: { label: string; rows: { feature: string; marks: Mark[] }[] }[] = 
           { feature: '标出受影响客户', marks: ['no', 'no', 'no', 'yes'] },
           { feature: '一键应用新日期', marks: ['no', 'no', 'no', 'yes'] },
           { feature: '每个日期附来源', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: '免录入跟上改动', marks: ['no', 'no', 'partial', 'yes'] },
         ],
       },
       {
-        label: '管理整个事务所（我们刻意不做）',
+        label: '管理整个事务所',
         rows: [
-          { feature: '事务所与工作流管理', marks: ['no', 'partial', 'yes', 'narrow'] },
-          { feature: '开票与收款', marks: ['no', 'no', 'yes', 'narrow'] },
-          { feature: '文档存储与客户门户', marks: ['no', 'no', 'yes', 'narrow'] },
+          { feature: '事务所与工作流管理', marks: ['no', 'partial', 'yes', 'no'] },
+          { feature: '开票与收款', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: '文档存储与客户门户', marks: ['no', 'no', 'yes', 'no'] },
           { feature: '装在现有工具之上', marks: ['no', 'no', 'no', 'yes'] },
         ],
       },
@@ -62,15 +61,14 @@ const groups: { label: string; rows: { feature: string; marks: Mark[] }[] }[] = 
           { feature: 'Flags affected clients', marks: ['no', 'no', 'no', 'yes'] },
           { feature: 'One-click apply', marks: ['no', 'no', 'no', 'yes'] },
           { feature: 'Source on every date', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'Catches changes, no re-entry', marks: ['no', 'no', 'partial', 'yes'] },
         ],
       },
       {
-        label: 'Runs your whole practice (by design, not us)',
+        label: 'Runs your whole practice',
         rows: [
-          { feature: 'Practice & workflow management', marks: ['no', 'partial', 'yes', 'narrow'] },
-          { feature: 'Billing & invoicing', marks: ['no', 'no', 'yes', 'narrow'] },
-          { feature: 'Document storage & portal', marks: ['no', 'no', 'yes', 'narrow'] },
+          { feature: 'Practice & workflow management', marks: ['no', 'partial', 'yes', 'no'] },
+          { feature: 'Billing & invoicing', marks: ['no', 'no', 'yes', 'no'] },
+          { feature: 'Document storage & portal', marks: ['no', 'no', 'yes', 'no'] },
           { feature: 'Layers on what you use', marks: ['no', 'no', 'no', 'yes'] },
         ],
       },
@@ -81,8 +79,7 @@ const t = zh
       eyebrow: '横向对比',
       headingPre: '不是又一个全能套件。而是它们都缺的那一',
       headingItal: '层。',
-      leadHtml:
-        '全能套件帮你管事务所，但都默认有人盯着<b>截止日什么时候变</b>。我们就是它们都缺的那一层——<b>盯着官方来源、读懂变化、精确告诉你影响到谁</b>。',
+      leadHtml: '全能套件帮你打理事务所。我们盯着<b>截止日什么时候变</b>。',
       partial: '勉强',
       manual: '手动',
       narrow: '刻意不做',
@@ -98,7 +95,7 @@ const t = zh
       headingPre: "We're not building another all-in-one. We're the layer they're all ",
       headingItal: 'missing.',
       leadHtml:
-        'All-in-ones run your practice, but assume someone is watching <b>when the deadlines themselves move</b>. We’re the layer they miss — we <b>watch official sources, read the change, and tell you who it hits</b>.',
+        'All-in-ones run your practice. We watch <b>when the deadlines themselves move</b>.',
       partial: 'partial',
       manual: 'manual',
       narrow: 'By design',
@@ -113,9 +110,8 @@ const ariaSummary = t.ariaSummary
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
-  <p class="m-eyebrow">{t.eyebrow}</p>
-  <h2 class="m-h2 compare__h" id="cmp-h">{t.headingPre}<span class="ital">{t.headingItal}</span></h2>
-  <p class="m-lead compare__lead" set:html={t.leadHtml} />
+  <p class="m-eyebrow" id="cmp-h">{t.eyebrow}</p>
+  <p class="compare__lead" set:html={t.leadHtml} />
 
   <div class="cmp-scroll">
     <div class="cmp" role="img" aria-label={ariaSummary}>
@@ -170,16 +166,22 @@ const ariaSummary = t.ariaSummary
 </section>
 
 <style>
-  .compare__h {
-    max-width: 24ch;
-  }
+  /* the lead carries the section — a sans-serif deck statement (cleaner +
+     more professional than the display serif), emphasis by weight not italic */
   .compare__lead {
-    margin-top: 16px;
-    max-width: 56ch;
+    margin-top: 14px;
+    max-width: 30ch;
+    font-family: var(--m-font-sans);
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+    text-wrap: balance;
   }
   .compare__lead :global(b) {
-    color: var(--m-ink);
     font-weight: 600;
+    color: var(--m-ink);
   }
   .cmp-scroll {
     margin-top: clamp(28px, 3.5vw, 44px);

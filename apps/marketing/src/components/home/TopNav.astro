@@ -11,7 +11,7 @@ interface Props {
   ctaHref?: string
   signInHref?: string
   pageMode?: boolean
-  current?: 'how' | 'coverage' | 'pricing' | 'security'
+  current?: 'home' | 'how' | 'coverage' | 'pricing' | 'security'
   locale?: 'en' | 'zh-CN'
 }
 const { pageMode = false, current, locale = 'en' } = Astro.props
@@ -48,6 +48,7 @@ const links = [
     </a>
 
     <nav class="nav__pill" aria-label="Primary">
+      <span class="nav__glider" aria-hidden="true"></span>
       {
         links.map((l) => (
           <a
@@ -125,7 +126,10 @@ const links = [
     border-bottom: 1px solid var(--m-hairline);
     transition:
       background 0.25s ease,
-      padding-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      /* match the inner's height transition (0.45s) so the float-gap growth and
+         the pill-height shrink stay in lockstep — total header height holds at
+         70px through the whole collapse: no bulge, no content shift */
+      padding-top 0.45s cubic-bezier(0.32, 0.72, 0, 1);
   }
   /* .nav--page now matches the base (kept as a hook; content pages pass it) */
   .nav__inner {
@@ -158,15 +162,15 @@ const links = [
     padding-top: 14px;
   }
   .nav--scrolled .nav__inner {
-    max-width: 600px;
+    max-width: 700px;
     margin-top: 0;
-    padding: 7px 8px 7px 16px;
+    /* even inset on all four sides (#19) — the pill reads as one tidy capsule */
+    padding: 8px;
     height: 56px;
     gap: 10px;
     background: var(--m-surface);
     border-color: var(--m-hairline);
     border-radius: 999px;
-    box-shadow: 0 1px 4px rgba(16, 24, 40, 0.08);
   }
   /* collapse (width + fade) instead of vanish, so the bar converges into the
      pill rather than snapping. */
@@ -191,9 +195,33 @@ const links = [
     border: none;
     padding: 0;
   }
+  /* collapsed: the CTA joins the pill as a quiet ghost button — the filled
+     accent fill stays reserved for the hero / first paint */
+  .nav--scrolled .nav__cta {
+    background: transparent;
+    color: var(--m-accent);
+    border: 1px solid color-mix(in srgb, var(--m-accent) 32%, transparent);
+    padding: 7px 14px;
+  }
+  .nav--scrolled .nav__cta:hover {
+    background: var(--m-accent-tint);
+  }
+  /* opaque navy pill on the dark band — we run blur-free, so a translucent fill
+     would let the villain content bleed through. A touch lighter than the band
+     so it still reads as a floating, elevated pill. */
   .nav--on-dark.nav--scrolled .nav__inner {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--m-accent) 56%, var(--m-ink));
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+  /* ghost CTA on the dark pill — transparent fill (NOT the white fill it would
+     otherwise inherit), light white outline + white text */
+  .nav--on-dark.nav--scrolled .nav__cta {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.38);
+  }
+  .nav--on-dark.nav--scrolled .nav__cta:hover {
+    background: rgba(255, 255, 255, 0.14);
   }
 
   /* ===== nav over a dark band (the villain) — white text, accents in
@@ -227,6 +255,9 @@ const links = [
   .nav--on-dark .nav__link.is-active {
     color: #fff;
     background: rgba(255, 255, 255, 0.18);
+  }
+  .nav--on-dark .nav__glider {
+    background: rgba(255, 255, 255, 0.16);
   }
   .nav--on-dark .nav__signin {
     color: rgba(255, 255, 255, 0.75);
@@ -271,6 +302,7 @@ const links = [
   }
   /* clean floating pill — solid white, hairline, restrained micro-shadow */
   .nav__pill {
+    position: relative;
     flex: none;
     display: flex;
     align-items: center;
@@ -280,8 +312,31 @@ const links = [
     border-radius: 999px;
     padding: 4px;
   }
+  /* the glider — a single pill that slides under the hovered/active link, so
+     moving across the nav reads as one continuous left↔right glide. JS sizes +
+     positions it; until then (or without JS) the static .is-active bg shows. */
+  .nav__glider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-radius: 999px;
+    background: var(--m-accent-tint);
+    opacity: 0;
+    z-index: 0;
+    pointer-events: none;
+    transition:
+      transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+      width 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+      height 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.2s ease,
+      background 0.2s ease;
+  }
   .nav__link {
-    padding: 7px 11px;
+    position: relative;
+    z-index: 1;
+    padding: 8px 18px;
     border-radius: 999px;
     font-size: var(--m-text-sm);
     font-weight: 500;
@@ -299,6 +354,15 @@ const links = [
     color: var(--m-accent);
     background: var(--m-accent-tint);
     font-weight: 600;
+  }
+  /* once the glider is live it owns the moving background — drop the static ones
+     so they don't double up */
+  .nav__pill.has-glider .nav__link:hover,
+  .nav__pill.has-glider .nav__link.is-active {
+    background: transparent;
+  }
+  .nav__pill.has-glider .nav__link:hover {
+    color: var(--m-ink);
   }
   .nav__right {
     flex: 1 1 0;
@@ -354,6 +418,10 @@ const links = [
   }
   .nav__cta:hover {
     background: var(--m-accent-strong);
+  }
+  /* the trailing arrow rides quieter than the label */
+  .nav__cta span {
+    opacity: 0.6;
   }
 
   /* ===== hamburger (≤920px only) — hidden on desktop ===== */
@@ -605,6 +673,56 @@ const links = [
     initNavScroll(navScrollCtl.signal)
   })
   document.addEventListener('astro:before-swap', () => navScrollCtl?.abort())
+</script>
+
+<script>
+  // Nav glider — one pill that slides under the hovered link and rests at the
+  // active one, so moving across the nav reads as a single left↔right glide.
+  // Progressive enhancement: without JS the static .is-active background shows.
+  // Re-inits per View-Transition navigation; listeners drop on swap.
+  function initNavGlider(signal: AbortSignal) {
+    const pill = document.querySelector<HTMLElement>('.nav__pill')
+    const glider = pill?.querySelector<HTMLElement>('.nav__glider')
+    const links = pill ? Array.from(pill.querySelectorAll<HTMLElement>('.nav__link')) : []
+    if (!pill || !glider || !links.length) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    pill.classList.add('has-glider')
+
+    const active = () => pill.querySelector<HTMLElement>('.nav__link.is-active')
+    const place = (link: HTMLElement | null, animate = true) => {
+      if (!link) {
+        glider.style.opacity = '0'
+        return
+      }
+      if (!animate || reduce) glider.style.transition = 'none'
+      glider.style.width = `${link.offsetWidth}px`
+      glider.style.height = `${link.offsetHeight}px`
+      glider.style.transform = `translate(${link.offsetLeft}px, ${link.offsetTop}px)`
+      glider.style.opacity = '1'
+      if (!animate || reduce) {
+        void glider.offsetWidth // flush the no-transition placement
+        glider.style.transition = ''
+      }
+    }
+    const rest = (animate = false) => place(active(), animate)
+
+    links.forEach((l) => l.addEventListener('pointerenter', () => place(l, true), { signal }))
+    pill.addEventListener('pointerleave', () => rest(true), { signal })
+    window.addEventListener('resize', () => rest(false), { passive: true, signal })
+    // the nav collapse (pill morph) shifts link positions — re-rest when it ends
+    document
+      .querySelector('.nav__inner')
+      ?.addEventListener('transitionend', () => rest(false), { signal })
+    // initial placement (no animation), after layout — and again once fonts settle
+    requestAnimationFrame(() => rest(false))
+    document.fonts?.ready.then(() => rest(false))
+  }
+  let navGliderCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    navGliderCtl = new AbortController()
+    initNavGlider(navGliderCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => navGliderCtl?.abort())
 </script>
 
 <script>

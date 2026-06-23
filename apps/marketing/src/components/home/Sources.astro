@@ -10,8 +10,6 @@ interface Props {
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
 
-const agencies = ['IRS', 'CA FTB', 'NY DTF', 'TX Comptroller', 'FL DOR', 'WA DOR', 'MA DOR']
-
 const t = zh
   ? {
       eyebrow: '覆盖范围',
@@ -125,11 +123,6 @@ const tiles = [
       {t.headingPre}<span class="ital">{t.headingItal}</span>
     </h2>
     <p class="m-lead sources__lead" set:html={t.leadHtml} />
-
-    <ul class="sources__chips" aria-label={t.chipsLabel}>
-      {agencies.map((a) => <li class="chip">{a}</li>)}
-      <li class="chip chip--more">{t.chipMore}</li>
-    </ul>
 
     <div class="sources__grid">
       <!-- live-scanning US map — every state watched, uniformly -->
@@ -282,40 +275,19 @@ const tiles = [
     font-weight: 600;
   }
 
-  .sources__chips {
-    margin-top: clamp(24px, 3vw, 32px);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    list-style: none;
-    padding: 0;
-  }
-  .chip {
-    font-size: var(--m-text-sm);
-    font-weight: 600;
-    color: var(--m-ink-2);
-    background: var(--m-surface);
-    border: 1px solid var(--m-hairline);
-    border-radius: 999px;
-    padding: 6px 14px;
-  }
-  .chip--more {
-    font-weight: 500;
-    color: var(--m-muted);
-    border-style: dashed;
-    background: transparent;
-  }
-
   .sources__grid {
     margin-top: clamp(32px, 4vw, 52px);
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--m-col-gap);
     gap: clamp(28px, 4vw, 56px);
-    align-items: center;
+    /* both columns share the taller column's height; the map fills to match */
+    align-items: stretch;
   }
   .usmap-wrap {
     grid-column: span 7;
+    display: flex;
+    flex-direction: column;
   }
   /* right column stacks the live feed + the per-state panel in ONE grid cell, so
      clicking a state cross-fades the panel in with no layout jump (feed keeps its
@@ -442,6 +414,7 @@ const tiles = [
   /* ---- US tilegram — a calm coverage grid: light neutral tiles, every one
      carrying the same quiet "live" cue. No priority tier, no blue block. ---- */
   .usmap {
+    flex: 1 1 auto; /* fill the column height so the map matches the feed (#23) */
     display: grid;
     grid-template-columns: repeat(13, minmax(0, 1fr));
     grid-template-rows: repeat(8, minmax(34px, 1fr));
@@ -465,24 +438,25 @@ const tiles = [
     background: var(--m-section);
     border: 1px solid var(--m-hairline);
     transition:
-      background 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease;
+      background 0.16s ease,
+      border-color 0.16s ease,
+      color 0.16s ease;
   }
   .ust:hover {
     background: var(--m-surface);
     border-color: var(--m-accent);
     color: var(--m-ink);
   }
+  /* active — a calm cyan fill (no shadow, no size change) */
   .ust[aria-pressed='true'] {
-    background: var(--m-accent);
-    border-color: var(--m-accent);
-    color: #fff;
+    background: var(--m-cyan);
+    border-color: var(--m-cyan);
+    color: var(--m-ink);
   }
   .ust:focus-visible {
     outline: 2px solid var(--m-accent);
     outline-offset: 2px;
-    z-index: 2;
+    z-index: 5;
   }
   .ust__c {
     position: relative;
@@ -778,6 +752,7 @@ const tiles = [
       align-items: stretch;
     }
     .usmap-wrap,
+    .sources__rightcol,
     .feed {
       grid-column: auto;
     }

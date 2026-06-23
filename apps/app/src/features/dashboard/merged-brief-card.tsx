@@ -485,7 +485,7 @@ export function MergedBriefCard({
           // frame: it absorbs leftover height and scrolls the table body
           // INTERNALLY (overflow-y), so the dashboard page itself never scrolls.
           // Below xl it's natural-height and the page scrolls normally.
-          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
+          className="scrollbar-designed overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
         >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>
