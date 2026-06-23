@@ -12,14 +12,9 @@ import { getCtaHref } from '../lib/app-url'
 
 const t = en
 const ctaHref = getCtaHref()
-// published escape hatches — add the new product-tour page next to the home/pricing/app set
-const baseRoutes = [
-  { label: 'Homepage', href: '/' },
-  { label: 'How it works', href: '/how-it-works' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Open the workbench', href: 'app' },
-]
-const routes = baseRoutes.map((route) =>
+// published escape hatches — driven entirely by the i18n notFound.routes so the
+// list stays a single source of truth; the 'app' href sentinel resolves to ctaHref.
+const routes = t.notFound.routes.map((route) =>
   route.href === 'app' ? { label: route.label, href: ctaHref } : route,
 )
 ---

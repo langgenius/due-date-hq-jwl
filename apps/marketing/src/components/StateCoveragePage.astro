@@ -180,6 +180,7 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
               href={j.href}
               role="listitem"
               title={`${j.name} · ${l.viewCoverage}`}
+              aria-label={`${j.name} — ${l.viewCoverage}`}
               style={style}
             >
               <span class="stcov-tile__abbr">{j.abbr}</span>
@@ -192,6 +193,7 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
               class="stcov-tile"
               role="listitem"
               title={`${j.name} · ${l.rosterLegendLive}`}
+              aria-label={`${j.name} — ${l.rosterLegendLive}`}
               style={style}
             >
               <span class="stcov-tile__abbr">{j.abbr}</span>

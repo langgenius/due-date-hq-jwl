@@ -85,3 +85,29 @@ with `.m-page-title`; no `✓` literal left on home.
   name was the 2-word eyebrow. Promoted the deck lead to `<h2 class="compare__lead"
   id="cmp-h">` (visually identical under Tailwind preflight) and moved the
   `aria-labelledby` target onto it; the eyebrow is now an unlabelled kicker.
+
+## P2/P3 round (done)
+- **404 single-source routes** — `404.astro` hardcoded a `baseRoutes` list that
+  disagreed with the (dead) `notFound.routes[]` i18n. Now renders from
+  `t.notFound.routes`; added a "How it works" entry to that array in both catalogs;
+  removed the hardcode. Sentence-cased the shouty `notFound.eyebrow` source strings
+  (EN + zh) — `.m-eyebrow` uppercases visually.
+- **Sources fed/state a11y** — the Federal agency badge distinguished itself from
+  State by accent *text colour* alone; added an accent tint fill + 25%-accent border
+  so it's distinguishable without colour.
+- **Cartogram a11y** — the 51 roster tiles exposed the full jurisdiction name only
+  via `title` (hover); added `aria-label` (name + status) to every tile for
+  touch/SR users.
+- **GeoResourcePage "Next step"** — swapped the hand-rolled `.geo-next__eyebrow` /
+  `.geo-next__title` onto the shared `.m-eyebrow` / `.m-page-h2`; deleted both
+  duplicate font rules (everything was already in the primitives).
+- **24h phrasing** — fixed the one outlier ("reversible 24h" → "reversible for 24h"
+  in LoopDeep) to match Surfaces/Pricing.
+
+## Still open (bigger / lower-priority)
+- Comparison matrices (Compare/Pricing/StateCoverage) `role="img"` → real table
+  semantics (flat CSS-grid of divs; needs row grouping, non-trivial).
+- `StateDetailPage.std-kd` → extend `.m-page-dl` (key-dates module).
+- `StateDetailPage` hardcoded PUBLISHED state list parallel to StateCoveragePage.
+- `FinalCta` + `primitives/SectionEyebrow` still on legacy Tailwind tokens (legacy-only).
+- Close "Book a demo call" points at the signup URL (no demo-booking route exists).

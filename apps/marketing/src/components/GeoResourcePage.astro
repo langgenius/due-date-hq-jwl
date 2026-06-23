@@ -241,10 +241,10 @@ const t = zh
 
   <section class="m-section m-page-block geo-block">
     <div class="geo-next">
-      <p class="geo-next__eyebrow">{t.nextEyebrow}</p>
+      <p class="m-eyebrow geo-next__eyebrow">{t.nextEyebrow}</p>
       <div class="geo-next__row">
         <div class="geo-next__copy">
-          <h2 class="geo-next__title">{page.cta.title || t.nextTitle}</h2>
+          <h2 class="m-page-h2 geo-next__title">{page.cta.title || t.nextTitle}</h2>
           <p class="geo-next__body">{page.cta.body || t.nextBody}</p>
         </div>
         <div class="geo-next__btns">
@@ -590,28 +590,13 @@ const t = zh
     border: 1px solid color-mix(in srgb, var(--m-accent) 16%, transparent);
     border-radius: 12px;
   }
-  .geo-next__eyebrow {
-    font-size: var(--m-text-xs);
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-accent);
-    opacity: 0.8;
-  }
+  /* eyebrow + title inherit type from .m-eyebrow / .m-page-h2; only per-block
+     overrides remain here */
   .geo-next__row {
     margin-top: 16px;
     display: grid;
     gap: 24px;
     align-items: center;
-  }
-  .geo-next__title {
-    max-width: 24ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    font-size: clamp(22px, 2.4vw, 28px);
-    line-height: 1.22;
-    letter-spacing: -0.015em;
-    color: var(--m-ink);
   }
   .geo-next__body {
     margin-top: 12px;

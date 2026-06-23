@@ -648,9 +648,12 @@ const tiles = [
     border-radius: 4px;
     padding: 1px 6px;
   }
-  /* Federal vs State told by the darker navy text only — no blue fill */
+  /* Federal vs State: navy text PLUS a tint + tinted border so the distinction
+     survives without color (a11y — not color-of-text alone) */
   .feed-row__agency--fed {
     color: var(--m-accent);
+    background: var(--m-accent-tint);
+    border-color: color-mix(in srgb, var(--m-accent) 25%, transparent);
   }
   .feed-row__body {
     font-size: var(--m-text-xs);

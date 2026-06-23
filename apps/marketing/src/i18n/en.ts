@@ -1380,7 +1380,7 @@ const en: LandingCopy = {
         'This DueDateHQ public page is not available. Return to the homepage or review pricing.',
       ogImage: '/og/home.en.png',
     },
-    eyebrow: '404 · PUBLIC PAGE NOT FOUND',
+    eyebrow: '404 · Public page not found',
     title: 'This page is not available.',
     body: 'The public marketing site only serves published DueDateHQ pages. You can return to the homepage, review pricing, or open the app if you were trying to reach your workbench.',
     primaryCta: 'Return home',
@@ -1390,6 +1390,7 @@ const en: LandingCopy = {
     routesLabel: 'PUBLISHED PATHS',
     routes: [
       { label: 'Homepage', href: '/' },
+      { label: 'How it works', href: '/how-it-works' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Open the workbench', href: 'app' },
     ],
