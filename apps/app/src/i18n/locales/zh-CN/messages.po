@@ -1367,6 +1367,10 @@ msgstr "{rowCount, plural, other {# 个客户可导入}}"
 msgid "{rowCount, plural, one {# client} other {# clients}}"
 msgstr "{rowCount, plural, other {# 个客户}}"
 
+#: src/features/rules/sources-tab.tsx
+msgid "{ruleCount, plural, one {Feeds # rule} other {Feeds # rules}}"
+msgstr "{ruleCount, plural, other {为 # 条规则供数据}}"
+
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
 msgstr "{ruleReviewCount, plural, other {# 条规则正在排队进行到期日复核，复核通过后才能生效并生成客户截止事项。}}"
@@ -14365,6 +14369,7 @@ msgstr "显示全部警报"
 msgid "Show all deadlines"
 msgstr "显示全部截止事项"
 
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
 msgstr "显示全部事件"
@@ -14409,6 +14414,14 @@ msgstr "显示 {firstItemNumber}-{lastItemNumber}，共 {totalCount} 条"
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
 msgstr "Showing first {maxSelections} selections — refine the list to add more."
+
+#: src/routes/rules.library.tsx
+msgid "Showing rules from source"
+msgstr "仅显示该来源的规则"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Showing the full history of a single record."
+msgstr "仅显示单条记录的完整历史。"
 
 #: src/routes/accept-invite.tsx
 #: src/routes/route-summary.ts
@@ -16593,9 +16606,30 @@ msgstr "查看"
 msgid "View {0}"
 msgstr "查看 {0}"
 
+#. placeholder {0}: member.name
+#: src/features/members/members-page.tsx
+msgid "View {0}'s deadlines"
+msgstr "查看 {0} 的截止日"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "View {assigneeName}’s deadlines"
+msgstr "查看 {assigneeName} 的截止日"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View {count} open deadlines for this client"
 msgstr "查看该客户的 {count} 个未完成截止日期"
+
+#: src/features/audit/audit-event-drawer.tsx
+msgid "View {entityTypeLabel}"
+msgstr "查看{entityTypeLabel}"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "View {name}’s deadlines"
+msgstr "查看 {name} 的截止日"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View affected clients"
+msgstr "查看受影响的客户"
 
 #: src/features/rules/matched-pulse-block.tsx
 msgid "View alert"
@@ -16673,12 +16707,21 @@ msgid "View deadlines due this week"
 msgstr "查看本周到期的截止日期"
 
 #: src/features/rules/rule-detail-drawer.tsx
+msgid "View deadlines from this rule"
+msgstr "查看由该规则生成的截止日"
+
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
 msgstr "查看延期规则"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"
 msgstr "查看历史"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View in full audit log"
+msgstr "在完整审计日志中查看"
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
