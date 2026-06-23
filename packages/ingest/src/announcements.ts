@@ -67,6 +67,13 @@ export function linkLooksTaxAnnouncementRelevant(text: string, href: string): bo
 
 const WY_TAXING_ISSUES_RE = /^(\d{2})-(\d{4})\s+Taxing Issues$/i
 
+// TN DOR's legal notices (SUT-/FT-/LOT-/TOB-/FONCE-/F&E/GEN-… series) live in a
+// Zendesk Help Center alongside TNTAP portal how-tos. Keep the notices, drop the
+// portal help — a negative title filter is more robust than whitelisting every
+// notice-series prefix (their naming is inconsistent: "FONCE-3" vs "F&E
+// Apportionment-6"), and the notice titles themselves carry no tax vocabulary.
+const TN_PORTAL_HELP_RE = /\btntap\b|^\s*logging\b|password|sign[- ]?in|log[- ]?in|how (?:to|do)\b/i
+
 function defaultLinkFilterForSource(
   source: AnnouncementSourceConfig,
 ): ((link: AnnouncementLink) => boolean) | undefined {
@@ -77,10 +84,13 @@ function defaultLinkFilterForSource(
 function defaultRelevancePredicateForSource(
   source: AnnouncementSourceConfig,
 ): (text: string, href: string) => boolean {
-  if (source.id !== 'wy.temporary_announcements') {
-    return linkLooksTaxAnnouncementRelevant
+  if (source.id === 'wy.temporary_announcements') {
+    return (text) => WY_TAXING_ISSUES_RE.test(text.trim())
   }
-  return (text) => WY_TAXING_ISSUES_RE.test(text.trim())
+  if (source.id === 'tn.temporary_announcements') {
+    return (text) => !TN_PORTAL_HELP_RE.test(text)
+  }
+  return linkLooksTaxAnnouncementRelevant
 }
 
 function defaultPublishedAtForLink(
@@ -222,12 +232,80 @@ export function sourceSnapshotAnnouncementItem(
   }
 }
 
+// Zendesk Help Center JSON. Some agencies mirror their notices on a Zendesk
+// support portal that is reachable when the primary .gov host is not — e.g.
+// revenue.support.tn.gov carries TN DOR's notices while tn.gov drops datacenter
+// connections. The /api/v2/help_center/.../articles.json payload already carries
+// each article's title, body, canonical html_url and updated_at, so no detail
+// re-fetch is needed. `updated_at` rides in the dedupe identity, so a re-edited
+// notice re-surfaces.
+interface ZendeskArticle {
+  title?: string
+  html_url?: string
+  body?: string
+  updated_at?: string
+  created_at?: string
+}
+function looksLikeZendeskHelpCenter(body: string): boolean {
+  return /^\s*\{/.test(body) && body.includes('"articles"') && body.includes('"html_url"')
+}
+function zendeskArticleItems(
+  source: AnnouncementSourceConfig,
+  body: string,
+  fetchedAt: Date,
+  limit: number,
+): ParsedItem[] {
+  let parsed: { articles?: ZendeskArticle[] }
+  try {
+    parsed = JSON.parse(body) as { articles?: ZendeskArticle[] }
+  } catch {
+    return []
+  }
+  const articles = Array.isArray(parsed.articles) ? parsed.articles : []
+  return articles
+    .flatMap((article) => {
+      const title = article.title
+      const url = article.html_url
+      if (!title || !url) return []
+      const updatedAt = article.updated_at ?? article.created_at
+      const published = updatedAt ? new Date(updatedAt) : fetchedAt
+      return [
+        Object.assign(
+          {
+            sourceId: source.id,
+            externalId: stableExternalId(url),
+            title,
+            publishedAt: Number.isNaN(published.getTime()) ? fetchedAt : published,
+            officialSourceUrl: url,
+            rawText: textExcerpt([title, stripHtml(article.body ?? '')].join('\n\n')),
+            dedupeText: [normalizeSourceText(title), url, updatedAt ?? ''].join('\n'),
+          },
+          source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
+        ),
+      ]
+    })
+    .slice(0, limit)
+}
+
 export function announcementItemsFromSnapshot(
   source: AnnouncementSourceConfig,
   snapshot: Pick<RawSnapshot, 'body' | 'fetchedAt'>,
   options: AnnouncementParseOptions = {},
 ): ParsedItem[] {
   const limit = options.limit ?? 20
+  if (looksLikeZendeskHelpCenter(snapshot.body)) {
+    // Filter on the article TITLE (not the body): a Help Center mixes the legal
+    // notice series with portal how-tos, and notice bodies routinely mention
+    // "payment"/"TNTAP" etc., so a body match would both admit the how-tos and
+    // (because notice titles like "FONCE-3" lack disaster/deadline vocabulary)
+    // drop real notices. The per-source predicate decides; TN excludes the portal
+    // help (see defaultRelevancePredicateForSource).
+    const items = zendeskArticleItems(source, snapshot.body, snapshot.fetchedAt, limit).filter(
+      (item) =>
+        linkPassesOptions(source, { text: item.title, href: item.officialSourceUrl }, options),
+    )
+    if (items.length > 0) return items
+  }
   if (/<(?:rss|feed)\b/i.test(snapshot.body)) {
     const items = parsedItemsFromRss({
       sourceId: source.id,

@@ -4686,10 +4686,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'tn.temporary_announcements',
     jurisdiction: 'TN',
     title: 'Tennessee DOR Revenue News',
-    // /revenue/revenue-news.html is a hub; /content/tn/revenue/news.html is the
-    // AEM path that serves the actual reverse-chron dated news list (important
-    // notices + enforcement releases) and is the form that fetches reliably.
-    url: 'https://www.tn.gov/content/tn/revenue/news.html',
+    // 2026-06-23: tn.gov DROPS datacenter connections outright (no response, not a
+    // 403/520), so the web watch had been dead since 06-18. TN DOR mirrors its
+    // official notices (SUT-/FT-/LOT-/TOB-/FONCE-/GEN- series) on a Zendesk Help
+    // Center at revenue.support.tn.gov — Zendesk-hosted, reachable from datacenter.
+    // Fetch the Zendesk articles JSON (feedUrl); announcementItemsFromSnapshot
+    // detects the {articles:[…]} shape and parses title/body/html_url/updated_at.
+    // url stays the human page; ruleSourceFetchUrl = feedUrl ?? url.
+    url: 'https://revenue.support.tn.gov/hc/en-us',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl:
+      'https://revenue.support.tn.gov/api/v2/help_center/en-us/articles.json?sort_by=updated_at&sort_order=desc&per_page=30',
   },
   {
     id: 'tx.temporary_announcements',
