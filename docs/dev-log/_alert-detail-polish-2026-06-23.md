@@ -38,10 +38,15 @@ Page-feedback batch on the alert detail page. What shipped here:
   hero pills); easy to switch if cyan is wanted.
 - **#4 Hero** verified good on a pending alert (eyebrow + framed jurisdiction +
   correct stepper + de-whited footer).
-- **#5 Section-nav "part of the hero"** — deferred. The nav is already white +
-  sticky directly under the white hero (largely unified); literally nesting it in
-  the hero would break the scroll-spy stick. Need a quick note on what reads as
-  separated.
+- **#5 Section-nav now a full-width white masthead** (done). Yuqi clarified: the
+  nav should "occupy the full width of the right side… white background." It was
+  a child of the 880-constrained content column, so its white bg only spanned the
+  centered 880 band. Moved it OUT to a direct child of the scroll container,
+  between the hero and the content column: `sticky top-0 bg-background-default
+  px-6 xl:px-12` (full-width white) with an inner `mx-auto max-w-[880px]` tab row.
+  Now nav width == hero width (1186px live), both white → one continuous
+  masthead; tabs stay aligned to the 880 content column. Scroll-spy + the
+  shared-layout underline unchanged. Content column got `pt-6` for spacing.
 - **#6 "apply product-wide" + "audit all post-action behaviour".** The
   advance-to-next + toast pattern is now consistent within the alert drawer;
   extending + auditing it across every action button product-wide is a separate
