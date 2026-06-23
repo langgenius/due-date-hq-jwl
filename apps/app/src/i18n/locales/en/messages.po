@@ -3169,6 +3169,7 @@ msgid "Authority confirmed payment cleared"
 msgstr "Authority confirmed payment cleared"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 msgstr "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 
@@ -7223,7 +7224,6 @@ msgstr "Filing states"
 
 #. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 msgstr "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 
@@ -11431,11 +11431,11 @@ msgid "Payment"
 msgstr "Payment"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays} days overdue"
 msgstr "Payment {paymentLateDays} days overdue"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
 msgstr "Payment {paymentLateDays}d late"
 
@@ -11456,7 +11456,6 @@ msgid "Payment details stay with the processor"
 msgstr "Payment details stay with the processor"
 
 #: src/features/obligations/queue/components/panels.tsx
-#: src/routes/obligations.tsx
 msgid "Payment due"
 msgstr "Payment due"
 

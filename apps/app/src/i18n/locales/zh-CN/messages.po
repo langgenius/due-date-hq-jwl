@@ -3182,6 +3182,7 @@ msgid "Authority confirmed payment cleared"
 msgstr "税务机关确认款项已到账"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 msgstr "税务机关付款已逾期 {paymentLateDays} 天 —— 确认前将持续产生罚息。"
 
@@ -7247,7 +7248,6 @@ msgstr "报税州"
 
 #. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 msgstr "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 
@@ -11479,11 +11479,11 @@ msgid "Payment"
 msgstr "付款"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays} days overdue"
 msgstr "付款逾期 {paymentLateDays} 天"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
 msgstr "Payment {paymentLateDays}d late"
 
@@ -11504,7 +11504,6 @@ msgid "Payment details stay with the processor"
 msgstr "支付详情由支付处理方保存"
 
 #: src/features/obligations/queue/components/panels.tsx
-#: src/routes/obligations.tsx
 msgid "Payment due"
 msgstr "应付款"
 

@@ -2757,9 +2757,10 @@ export function ObligationQueueRoute() {
           if (obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed') {
             secondaryStatusLabels.push(t`Accepted`)
           }
-          if (paymentLateDays !== null) {
-            secondaryStatusLabels.push(t`Payment due`)
-          }
+          // Payment-overdue is NOT folded into the secondary line anymore — it
+          // now renders as the amber `$` glyph on the badge row (matching
+          // DeadlineCardGrid), so a text "Payment due" entry here would
+          // double-signal the same fact (one home per fact).
           return (
             // The Status cell can stack a pill + several signal badges
             // (payment-late / awaiting-signature / accepted). Bound the cell
@@ -2826,16 +2827,20 @@ export function ObligationQueueRoute() {
                     <Trans>Accepted</Trans>
                   </Badge>
                 ) : null}
+                {/* Payment-overdue signal — the quiet amber `$` glyph, matched
+                  to DeadlineCardGrid so the card + table reads identically (the
+                  same `paymentOverdueDays` predicate, `text-text-warning` tone,
+                  size-4 icon, title tooltip). Shown in BOTH the compact panel-
+                  open layout and the full table row (it was previously omitted
+                  in the table, leaving only the secondary "Payment due" line). */}
                 {paymentLateDays !== null ? (
-                  panelOpenIntent ? (
-                    <span
-                      title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
-                      aria-label={t`Payment ${paymentLateDays}d late`}
-                      className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
-                    >
-                      <CircleDollarSignIcon className="size-4" aria-hidden />
-                    </span>
-                  ) : null
+                  <span
+                    title={t`Authority payment ${paymentLateDays}d overdue — penalty interest accrues until it's confirmed.`}
+                    aria-label={t`Payment ${paymentLateDays} days overdue`}
+                    className="inline-flex size-5 shrink-0 items-center justify-center text-text-warning"
+                  >
+                    <CircleDollarSignIcon className="size-4" aria-hidden />
+                  </span>
                 ) : null}
                 {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                   <BlockedByChip
@@ -3784,12 +3789,12 @@ export function ObligationQueueRoute() {
         ) : null}
         <div
           className={cn(
-            // `gap-3` (12px, tightened 2026-06-23 per Yuqi) keeps the sticky
-            // filter bar close to the table so the controls + data read as one
-            // tight unit, not two separated bands. The bulk-action toolbar is a
-            // FloatingActionBar (fixed at viewport bottom), so this gap only
-            // affects filter→table spacing.
-            'flex min-w-0 flex-1 flex-col gap-3',
+            // `gap-2` (8px, tightened again 2026-06-23 per Yuqi: "still too
+            // much gap") keeps the sticky filter bar close to the table so the
+            // controls + data read as one tight unit, not two separated bands.
+            // The bulk-action toolbar is a FloatingActionBar (fixed at viewport
+            // bottom), so this gap only affects filter→table spacing.
+            'flex min-w-0 flex-1 flex-col gap-2',
             // Reserve clearance for the floating bulk bar while a selection
             // exists, so the last rows scroll clear of the fixed bar instead of
             // being occluded. The bar only shows in full-page mode (this column
@@ -3855,7 +3860,25 @@ export function ObligationQueueRoute() {
                     <FilterTrigger
                       leadingIcon={CircleIcon}
                       active={activeScope !== 'all'}
-                      valueLabel={activeScope === 'all' ? t`All` : statusLabels[activeScope]}
+                      // The applied value reads as the SELECTED STATUS, not a
+                      // generic scope name: its canonical StatusMark glyph (own
+                      // status tone) + the status label, so the collapsed pill
+                      // (`Status │ ◐ In progress ⌄`) carries the same status
+                      // signal the dropdown rows + table cells use. "All" stays
+                      // plain text (no status to glyph).
+                      valueLabel={
+                        activeScope === 'all' ? (
+                          t`All`
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={activeScope}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[activeScope])}
+                            />
+                            {statusLabels[activeScope]}
+                          </span>
+                        )
+                      }
                       aria-label={t`Filter by status`}
                     >
                       <span>
@@ -4301,7 +4324,10 @@ export function ObligationQueueRoute() {
                       }
                     />
                     <DropdownMenuContent align="start" className="w-64">
-                      <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                      <DropdownMenuItem
+                        disabled={bulkAssigneeMutation.isPending}
+                        onClick={() => changeSelectedAssignee(null)}
+                      >
                         <Trans>Unassigned</Trans>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -4313,6 +4339,7 @@ export function ObligationQueueRoute() {
                         assignableMembers.map((member) => (
                           <DropdownMenuItem
                             key={member.assigneeId}
+                            disabled={bulkAssigneeMutation.isPending}
                             onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
                           >
                             <span className="truncate">{member.name}</span>
