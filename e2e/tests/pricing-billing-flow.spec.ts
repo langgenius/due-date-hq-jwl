@@ -20,16 +20,16 @@ test('AC: E2E-BILLING-PRICING-DEEPLINK sends Pro CTA to protected checkout', asy
     'href',
     checkoutHrefPattern('solo'),
   )
-  await expect(page.getByRole('link', { name: 'Upgrade to Team' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Start Team' })).toHaveAttribute(
     'href',
     checkoutHrefPattern('team'),
   )
 
-  const proCta = page.getByRole('link', { name: 'Upgrade to Pro' })
+  const proCta = page.getByRole('link', { name: 'Start Pro' })
   await expect(proCta).toHaveAttribute('href', checkoutHrefPattern())
 
   await page.getByRole('button', { name: /Yearly/ }).click()
-  await expect(page.getByText('Save $192/year')).toBeVisible()
+  await expect(page.getByText('Save $192 a year')).toBeVisible()
   await expect(proCta).toHaveAttribute('href', checkoutHrefPattern('pro', undefined, 'yearly'))
 
   await proCta.click()
@@ -46,7 +46,7 @@ test('AC: E2E-BILLING-PRICING-LOCALE preserves zh-CN handoff before auth redirec
 }) => {
   await page.goto(`${marketingBaseURL}/zh-CN/pricing`)
 
-  const proCta = page.getByRole('link', { name: '升级到 Pro' })
+  const proCta = page.getByRole('link', { name: '开始 Pro' })
   await expect(proCta).toHaveAttribute('href', checkoutHrefPattern('pro', 'zh-CN'))
 
   await proCta.click()
