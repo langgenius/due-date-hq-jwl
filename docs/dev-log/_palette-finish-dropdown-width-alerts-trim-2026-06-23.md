@@ -2,9 +2,10 @@
 
 **Date:** 2026-06-23
 **Surfaces:**
+
 - `packages/ui/src/styles/tokens/{primitives,semantic-light,semantic-dark}.css`,
   `tokens/preset.css`; `apps/app/src/features/dashboard/{SetupProgressCard,
-  sidebar-setup-card,merged-brief-card}.tsx` — palette finish.
+sidebar-setup-card,merged-brief-card}.tsx` — palette finish.
 - `apps/app/src/components/patterns/{filter-trigger,single-select-filter}.tsx`,
   `features/obligations/detail/DeadlineNavigatorRail.tsx`, `routes/obligations.tsx`
   — fixed-width pills.

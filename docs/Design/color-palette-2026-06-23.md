@@ -181,14 +181,14 @@ White-on-solid is intentionally **below** AA for every status family (2.4–4.1:
 The warm half of Yuqi's reference palette. Both are **by exception**, never the
 default; navy stays the only chrome accent and the cool grays stay the workbench.
 
-| Token                      | Light     | Dark      | Use                                            |
-| -------------------------- | --------- | --------- | ---------------------------------------------- |
-| `--background-well-warm`   | `#F1F4EC` | `#232420` | a sage-tinted recessed **well** for resting / contextual surfaces |
-| `--divider-warm`           | `#C8D0B9` | warm 14%  | the hairline that frames a warm well            |
-| `--highlight-celebrate`    | `#E6FBA3` | `#36441B` | **lime** — the sanctioned celebration fill      |
+| Token                    | Light     | Dark      | Use                                                               |
+| ------------------------ | --------- | --------- | ----------------------------------------------------------------- |
+| `--background-well-warm` | `#F1F4EC` | `#232420` | a sage-tinted recessed **well** for resting / contextual surfaces |
+| `--divider-warm`         | `#C8D0B9` | warm 14%  | the hairline that frames a warm well                              |
+| `--highlight-celebrate`  | `#E6FBA3` | `#36441B` | **lime** — the sanctioned celebration fill                        |
 
 - **Stone well** — warm where the cool `--background-section` gray reads clinical:
-  the moment is *resting / invitational*, not the dense workbench. Live homes:
+  the moment is _resting / invitational_, not the dense workbench. Live homes:
   `SetupProgressCard` + `sidebar-setup-card` (first-run onboarding nudges).
 - **Lime celebration** — kept **scarce**: the `/today` all-clear beat
   (`merged-brief-card` coffee disc). Lime is very light → carries **dark navy /
@@ -201,7 +201,7 @@ default; navy stays the only chrome accent and the cool grays stay the workbench
 
 - `packages/ui/src/styles/tokens/primitives.css` — the util-colors ramps
   (primary / green / warning / red / blue-light / violet) + `--color-brand-highlight*`
-  + the warm stops `--color-util-colors-stone-50 / stone-200 / lime-100`.
+  - the warm stops `--color-util-colors-stone-50 / stone-200 / lime-100`.
 - `packages/ui/src/styles/tokens/semantic-light.css` — accent washes, status
   state tokens, `--text-*`, `--status-review*`, divider-accent, the warm tokens
   (`--background-well-warm`, `--divider-warm`, `--highlight-celebrate`), legacy aliases.
