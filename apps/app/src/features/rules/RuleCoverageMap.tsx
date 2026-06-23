@@ -14,16 +14,19 @@ import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 export type RuleCoverageEntry = { pending: number; high: number; total: number }
 
 /**
- * RuleCoverageMap — the signature visual for /rules/library: a US tilegram
- * where every jurisdiction is a tile coloured by REVIEW PRESSURE, so the
- * whole "52 jurisdictions" backlog reads at a glance and geographically.
- *   red    → has high-severity rules awaiting review (do these first)
- *   amber  → rules pending review
- *   green  → tracked + fully reviewed (caught up)
- *   dim    → no rules tracked yet
- * Clicking a tile drills into that jurisdiction (same as the rail / the
- * "Where to start" list). Reuses the shared tilegram layout the /alerts
- * map uses, so the two surfaces never drift apart geographically.
+ * RuleCoverageMap — a US tilegram for /rules/library: every jurisdiction is a
+ * calm neutral tile (white cell, gray outline — no fills), so the whole "52
+ * jurisdictions" backlog reads at a glance and geographically. Status rides two
+ * quiet signals, not a coloured block:
+ *   • a small corner MONITORING dot — green ("we sweep this jurisdiction"),
+ *     red when it has high-severity rules awaiting review ("review first");
+ *   • the to-review COUNT below the code.
+ * Untracked (no rules) recedes. Clicking a tile drills into that jurisdiction
+ * (same as the rail / the "Where to start" list). Reuses the shared tilegram
+ * layout the /alerts map uses, so the two surfaces never drift geographically.
+ *
+ * NOTE: currently hidden in the overview behind `SHOW_COVERAGE_MAP` in
+ * routes/rules.library.tsx — kept intact for when it's re-enabled.
  */
 export function RuleCoverageMap({
   coverage,
