@@ -134,7 +134,9 @@ const links = [
     top: 0;
     z-index: 50;
     background: transparent;
-    transition: background 0.25s ease;
+    transition:
+      background 0.25s ease,
+      padding-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   }
   /* content pages: solid full-width so the nav reads over content */
   .nav--page {
@@ -168,10 +170,13 @@ const links = [
   .nav--scrolled {
     background: transparent;
     border-bottom-color: transparent;
+    /* the floating gap lives here (padding on the sticky nav) — NOT as a margin
+       on the inner, which the browser absorbs the moment the nav sticks on scroll */
+    padding-top: 14px;
   }
   .nav--scrolled .nav__inner {
     max-width: 600px;
-    margin-top: 18px;
+    margin-top: 0;
     padding: 7px 8px 7px 16px;
     height: 56px;
     gap: 10px;
