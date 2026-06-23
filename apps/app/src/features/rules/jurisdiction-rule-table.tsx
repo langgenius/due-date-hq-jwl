@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
+import { CircleCheckIcon, GitPullRequestArrowIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -274,7 +274,9 @@ export function JurisdictionFilterBar({
           render={
             <FilterTrigger
               active={activeFilterCount > 0}
-              valueLabel={activeFilterCount > 0 ? String(activeFilterCount) : undefined}
+              leadingIcon={SlidersHorizontalIcon}
+              count={activeFilterCount}
+              aria-label={t`Filters`}
             >
               <Trans>Filters</Trans>
             </FilterTrigger>

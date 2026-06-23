@@ -7,10 +7,10 @@ Owner liked AgentCard's question-style CTA ("What will your AI agent buy first?"
 Reframed our hero from a statement to a question that opens the "not knowing" gap
 the Villain section already names:
 
-- **H1:** "A deadline just moved. Do you know *who* it hits?" (`who` in the display-
+- **H1:** "A deadline just moved. Do you know _who_ it hits?" (`who` in the display-
   serif italic accent)
-- **Sub:** "DueDateHQ watches the IRS, every state, and FEMA around the clock — *the
-  moment a date moves,* you see exactly which clients it affects, with the source on
+- **Sub:** "DueDateHQ watches the IRS, every state, and FEMA around the clock — _the
+  moment a date moves,_ you see exactly which clients it affects, with the source on
   every change." (keeps the question legible to a cold visitor)
 - Reassure line + points + CTAs unchanged.
 - zh: "截止日刚刚变了。你知道它影响到谁吗？" + matching sub. Added a

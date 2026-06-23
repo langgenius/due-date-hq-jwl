@@ -519,7 +519,6 @@ body {
       transform: none;
     }
   }
-
 }
 
 /* ==========================================================================
@@ -532,10 +531,10 @@ body {
    !important reliably wins over both the scoped base rules and the per-component
    data-zh overrides.
    ========================================================================== */
-html[lang='zh-CN'] :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
+html[lang='zh-CN']
+  :is(.hero__head, .pr__title, .trustpg__title--display, .how-hero__title, .close__h) {
   font-family:
-    'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC',
-    var(--m-font-sans) !important;
+    'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC', var(--m-font-sans) !important;
   line-height: 1.18 !important;
   letter-spacing: 0 !important;
 }

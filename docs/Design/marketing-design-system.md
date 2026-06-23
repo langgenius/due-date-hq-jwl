@@ -29,16 +29,16 @@ scale instead of freelancing raw px. Leading and tracking are tokenised too (`--
 Rem-based (root = 16px) so type honours the reader's browser font-size. There are **no half-pixel
 sizes** — every fixed size in the home + long-tail layers is one of these eight steps.
 
-| Token | rem | px | Role |
-|---|---|---|---|
-| `--m-text-3xs` | 0.625 | 10 | Decorative product-mockup micro-chrome only (legibility floor) |
-| `--m-text-2xs` | 0.6875 | 11 | Small pills, dense labels |
-| `--m-text-xs` | 0.75 | 12 | Eyebrows, mono meta, captions |
-| `--m-text-sm` | 0.8125 | 13 | Secondary / supporting body |
-| `--m-text-base` | 0.875 | 14 | Dense UI body |
-| `--m-text-md` | 0.9375 | 15 | Card titles, comfortable body |
-| `--m-text-lg` | 1.0 | 16 | Emphasised body / small lead |
-| `--m-text-xl` | 1.125 | 18 | Large body / sub-lead |
+| Token           | rem    | px  | Role                                                           |
+| --------------- | ------ | --- | -------------------------------------------------------------- |
+| `--m-text-3xs`  | 0.625  | 10  | Decorative product-mockup micro-chrome only (legibility floor) |
+| `--m-text-2xs`  | 0.6875 | 11  | Small pills, dense labels                                      |
+| `--m-text-xs`   | 0.75   | 12  | Eyebrows, mono meta, captions                                  |
+| `--m-text-sm`   | 0.8125 | 13  | Secondary / supporting body                                    |
+| `--m-text-base` | 0.875  | 14  | Dense UI body                                                  |
+| `--m-text-md`   | 0.9375 | 15  | Card titles, comfortable body                                  |
+| `--m-text-lg`   | 1.0    | 16  | Emphasised body / small lead                                   |
+| `--m-text-xl`   | 1.125  | 18  | Large body / sub-lead                                          |
 
 Leading: `--m-leading-tight` 1.1 · `--m-leading-snug` 1.35 · `--m-leading-normal` 1.55 ·
 `--m-leading-relaxed` 1.7. Tracking: `--m-tracking-tight` -0.02em · `--m-tracking-snug` -0.015em ·
@@ -46,20 +46,20 @@ Leading: `--m-leading-tight` 1.1 · `--m-leading-snug` 1.35 · `--m-leading-norm
 
 The shared classes below are backed by these tokens; the px column is the resolved value.
 
-| Step | Class | Family | Size (min→max) | Line-height | Tracking | Role |
-|---|---|---|---|---|---|---|
-| Display | _(scoped in `Hero.astro`)_ | display serif | 40 → 76px | 1.02 | — | Hero headline ONLY. Out of the shared layer by design. |
-| Page title | `.m-page-title` | **display serif 400** | 34 → 58px | 1.04 | -0.02em | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). Serif everywhere — every subpage opens in the **same editorial voice as the home hero**. `max-width: 20ch`. |
-| Section H2 | `.m-h2` | sans 600 | 29 → 44px | 1.08 | -0.02em | Home section headlines. Supports `.ital` (italic span). |
-| Page H2 | `.m-page-h2` | sans 600 | 22 → 30px | 1.20 | -0.015em | Long-tail block headings. `max-width: 24ch`. |
-| CTA title | `.m-page-cta__title` | sans 600 | 22 → 28px | 1.25 | -0.015em | CTA-block headline. `max-width: 22ch`. |
-| Lead | `.m-lead` | sans 400 | 17 → 20px | 1.55 | — | Home section lead paragraph. **Now capped at `--m-measure` (68ch).** |
-| Page lead | `.m-page-lead` | sans 400 | 16 → 18px | 1.60 | — | Long-tail page lead. `max-width: 60ch`. |
-| Body | `.m-page-body` | sans 400 | 15px | 1.70 | — | Long-tail flowing body. `max-width: 44ch` (narrow split column). |
-| Card title | `.m-card__t` | sans 600 | 15px | 1.40 | — | Card / FAQ / trust-item title. |
-| Card desc | `.m-card__d` | sans 400 | 13px | 1.65 | — | Card supporting copy (`--m-muted`). |
-| Eyebrow | `.m-eyebrow` | sans 600 | 12px | — | `--m-ls-eyebrow` (0.14em), uppercase | Section kicker (`--m-faint`). |
-| Note / meta | `.m-page-note`, `.m-page-reviewed` | mono | 12px | 1.50 | — | Mono meta (footnotes, "last reviewed"). |
+| Step        | Class                              | Family                | Size (min→max) | Line-height | Tracking                             | Role                                                                                                                                                                                     |
+| ----------- | ---------------------------------- | --------------------- | -------------- | ----------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Display     | _(scoped in `Hero.astro`)_         | display serif         | 40 → 76px      | 1.02        | —                                    | Hero headline ONLY. Out of the shared layer by design.                                                                                                                                   |
+| Page title  | `.m-page-title`                    | **display serif 400** | 34 → 58px      | 1.04        | -0.02em                              | Long-tail page H1 (rules · comparisons · guides · states · trust · pricing). Serif everywhere — every subpage opens in the **same editorial voice as the home hero**. `max-width: 20ch`. |
+| Section H2  | `.m-h2`                            | sans 600              | 29 → 44px      | 1.08        | -0.02em                              | Home section headlines. Supports `.ital` (italic span).                                                                                                                                  |
+| Page H2     | `.m-page-h2`                       | sans 600              | 22 → 30px      | 1.20        | -0.015em                             | Long-tail block headings. `max-width: 24ch`.                                                                                                                                             |
+| CTA title   | `.m-page-cta__title`               | sans 600              | 22 → 28px      | 1.25        | -0.015em                             | CTA-block headline. `max-width: 22ch`.                                                                                                                                                   |
+| Lead        | `.m-lead`                          | sans 400              | 17 → 20px      | 1.55        | —                                    | Home section lead paragraph. **Now capped at `--m-measure` (68ch).**                                                                                                                     |
+| Page lead   | `.m-page-lead`                     | sans 400              | 16 → 18px      | 1.60        | —                                    | Long-tail page lead. `max-width: 60ch`.                                                                                                                                                  |
+| Body        | `.m-page-body`                     | sans 400              | 15px           | 1.70        | —                                    | Long-tail flowing body. `max-width: 44ch` (narrow split column).                                                                                                                         |
+| Card title  | `.m-card__t`                       | sans 600              | 15px           | 1.40        | —                                    | Card / FAQ / trust-item title.                                                                                                                                                           |
+| Card desc   | `.m-card__d`                       | sans 400              | 13px           | 1.65        | —                                    | Card supporting copy (`--m-muted`).                                                                                                                                                      |
+| Eyebrow     | `.m-eyebrow`                       | sans 600              | 12px           | —           | `--m-ls-eyebrow` (0.14em), uppercase | Section kicker (`--m-faint`).                                                                                                                                                            |
+| Note / meta | `.m-page-note`, `.m-page-reviewed` | mono                  | 12px           | 1.50        | —                                    | Mono meta (footnotes, "last reviewed").                                                                                                                                                  |
 
 ### Scale logic / contrast
 
@@ -68,7 +68,7 @@ The shared classes below are backed by these tokens; the px column is the resolv
 - **Heading steps** land at roughly 48 / 44 / 30 / 28 at the wide bound. `.m-page-title` (48) and
   `.m-h2` (44) are close (≈1.09) **but never co-occur** — one is the long-tail H1, the other the
   home section head. The same is true of `.m-page-h2` (30) vs `.m-page-cta__title` (28). They are
-  deliberately *not* merged because their `max-width` ch caps and roles differ.
+  deliberately _not_ merged because their `max-width` ch caps and roles differ.
 - **Line-height tightens with size**: 1.02 display → 1.08 large heads → 1.20–1.25 mid heads →
   1.55–1.70 body. Larger type gets tighter leading; flowing body gets looser leading.
 - **Tracking matches**: large heads get negative tracking (-0.02 / -0.015em) to close the gaps
@@ -78,15 +78,15 @@ The shared classes below are backed by these tokens; the px column is the resolv
 
 ## 2. Spacing & rhythm
 
-| Token / value | Where | Purpose |
-|---|---|---|
-| `.m-section` `padding-block: clamp(56px, 8vw, 104px)` | every home section | the airy home vertical rhythm |
-| `.m-page-hero` `padding-block: clamp(48px,7vw,84px) clamp(32px,4vw,48px)` | long-tail hero | denser than home, asymmetric top/bottom |
-| `.m-page-block` `padding-block: clamp(40px,5vw,64px)` + top hairline | long-tail content blocks | stacked editorial rhythm, tighter than home |
-| `--m-eyebrow-gap: 16px` | `.m-eyebrow` margin-bottom | one canonical eyebrow→title gap |
-| `--m-col-gap: clamp(20px,2.4vw,32px)` | 12-col grids | grid gutter |
-| split gap `clamp(28px,4vw,48px)` | `.m-page-split` | lead↔cards gap |
-| card grid gap `clamp(14px,1.6vw,18px)` | `.m-page-cards`, `.m-page-grid-3` | card grid gutter |
+| Token / value                                                             | Where                             | Purpose                                     |
+| ------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------- |
+| `.m-section` `padding-block: clamp(56px, 8vw, 104px)`                     | every home section                | the airy home vertical rhythm               |
+| `.m-page-hero` `padding-block: clamp(48px,7vw,84px) clamp(32px,4vw,48px)` | long-tail hero                    | denser than home, asymmetric top/bottom     |
+| `.m-page-block` `padding-block: clamp(40px,5vw,64px)` + top hairline      | long-tail content blocks          | stacked editorial rhythm, tighter than home |
+| `--m-eyebrow-gap: 16px`                                                   | `.m-eyebrow` margin-bottom        | one canonical eyebrow→title gap             |
+| `--m-col-gap: clamp(20px,2.4vw,32px)`                                     | 12-col grids                      | grid gutter                                 |
+| split gap `clamp(28px,4vw,48px)`                                          | `.m-page-split`                   | lead↔cards gap                              |
+| card grid gap `clamp(14px,1.6vw,18px)`                                    | `.m-page-cards`, `.m-page-grid-3` | card grid gutter                            |
 
 The rhythm is coherent: home sections are the airiest (up to 104px), long-tail blocks one tier
 tighter (up to 64px), heroes between them. Internal margins cluster around a 14 / 16 / 18 / 20 /
@@ -111,22 +111,22 @@ Flowing copy is capped so lines never exceed a comfortable reading length on wid
 
 All `--m-*` colours resolve to shared semantic tokens, which resolve to the primitive palette.
 
-| Token | Resolves to | Purpose | Notes |
-|---|---|---|---|
-| `--m-accent` | `primary-600` (#2E368C) | brand navy — primary button, links, focus ring | brand colour, unchanged |
-| `--m-accent-strong` | `primary-700` | hover / pressed navy | |
-| `--m-accent-tint` | `primary-50` (#eef0fb) | faint navy wash | |
-| `--m-cyan` | `brand-highlight` (#14C5F6) | cyan — **delight surfaces only** | unchanged |
-| `--m-ink` | `text-primary` → gray-900 `#101828` | headings / strong text | navy-tinted near-black |
-| `--m-ink-2` | `text-secondary` → gray-700 `#354052` | body | navy-tinted |
-| `--m-muted` | `text-tertiary` → gray-500 `#676f83` | supporting | |
-| `--m-faint` | `text-quaternary` | eyebrows / meta | |
-| `--m-on-accent` | `text-inverted` | text on the navy band | |
-| `--m-canvas` | gray-100 `#f2f4f7` | cold page base | |
-| `--m-surface` | `background-default` (white) | cards | |
-| `--m-section` | `background-section` → gray-50 `#f9fafb` | gray band | |
-| `--m-hairline` / `--m-hairline-2` | `divider-regular` / `divider-subtle` | borders | rgba navy-tinted |
-| `--m-urgent` / `--m-ok` / `--m-danger` | warning / success / destructive text | risk semantics (red = risk only) | |
+| Token                                  | Resolves to                              | Purpose                                        | Notes                   |
+| -------------------------------------- | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
+| `--m-accent`                           | `primary-600` (#2E368C)                  | brand navy — primary button, links, focus ring | brand colour, unchanged |
+| `--m-accent-strong`                    | `primary-700`                            | hover / pressed navy                           |                         |
+| `--m-accent-tint`                      | `primary-50` (#eef0fb)                   | faint navy wash                                |                         |
+| `--m-cyan`                             | `brand-highlight` (#14C5F6)              | cyan — **delight surfaces only**               | unchanged               |
+| `--m-ink`                              | `text-primary` → gray-900 `#101828`      | headings / strong text                         | navy-tinted near-black  |
+| `--m-ink-2`                            | `text-secondary` → gray-700 `#354052`    | body                                           | navy-tinted             |
+| `--m-muted`                            | `text-tertiary` → gray-500 `#676f83`     | supporting                                     |                         |
+| `--m-faint`                            | `text-quaternary`                        | eyebrows / meta                                |                         |
+| `--m-on-accent`                        | `text-inverted`                          | text on the navy band                          |                         |
+| `--m-canvas`                           | gray-100 `#f2f4f7`                       | cold page base                                 |                         |
+| `--m-surface`                          | `background-default` (white)             | cards                                          |                         |
+| `--m-section`                          | `background-section` → gray-50 `#f9fafb` | gray band                                      |                         |
+| `--m-hairline` / `--m-hairline-2`      | `divider-regular` / `divider-subtle`     | borders                                        | rgba navy-tinted        |
+| `--m-urgent` / `--m-ok` / `--m-danger` | warning / success / destructive text     | risk semantics (red = risk only)               |                         |
 
 ### Tint + contrast notes
 

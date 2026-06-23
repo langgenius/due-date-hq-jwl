@@ -23,7 +23,7 @@ and Surfaces-link fixes — and caught **two real P1s my remediation agents had 
    Also `lib/seo-content.ts` named "Deadline Radar" as a product surface (EN + zh) →
    "Alerts." Grep for radar/glass-box across these three files = 0.
 
-2. **The CJK display-serif guard was a silent no-op.** It had been added *inside*
+2. **The CJK display-serif guard was a silent no-op.** It had been added _inside_
    `@layer components` in `marketing.css`; Astro's scoped component `<style>` rules are
    **unlayered** and beat any `@layer` rule regardless of specificity — so zh headlines
    still rendered the Latin Instrument Serif (no CJK glyphs) with crushing negative
@@ -34,5 +34,6 @@ and Surfaces-link fixes — and caught **two real P1s my remediation agents had 
    / -1.52px).
 
 ## Verified
+
 `pnpm --dir apps/marketing build` → 76 pages clean. With these two fixes, the v2
 report's only two ceiling issues are resolved.

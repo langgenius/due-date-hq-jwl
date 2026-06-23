@@ -28,13 +28,6 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -52,6 +45,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
@@ -1012,7 +1006,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     the pin on; this chip (plus Reset and any explicit Time
                     choice) is how it turns off. */}
                 {morningSweep?.active ? (
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-base font-medium text-text-accent">
+                  // Active-preset token — a removable sibling of the filter
+                  // pills, so it shares their spec: rounded-full, h-9, 13px/500,
+                  // border-divider-regular. The "applied" read is the accent bg
+                  // + accent text (NOT an accent border) — same active grammar
+                  // as the FilterTrigger pills. It's a span + inner X (not a
+                  // FilterTrigger) because it dismisses rather than opens a menu,
+                  // and a button-in-button would be invalid.
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-divider-regular bg-state-accent-hover pr-1.5 pl-3 text-sm font-medium text-text-accent">
                     <CoffeeIcon className="size-3.5" aria-hidden />
                     <Trans>Morning sweep · last 24h</Trans>
                     <Button
@@ -1123,59 +1124,40 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                       ) : null}
                     </AnimatePresence>
 
-                    {/* Sort by — three options matching the sortOrder
-                    enum. The current value rides the FilterTrigger's
-                    canonical `Label │ Value ⌄` slot (Stripe two-tone pill,
-                    2026-06-12) so the trigger reads "Sort by │ Newest"
-                    without opening, in the same grammar as Filters/State. */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <FilterTrigger
-                            noLeadingIcon
-                            aria-label={t`Sort alerts`}
-                            className="text-base"
-                            valueLabel={
-                              sortOrder === 'oldest' ? (
-                                <Trans>Oldest</Trans>
-                              ) : sortOrder === 'highest_impact' ? (
-                                <Trans>Impact</Trans>
-                              ) : (
-                                <Trans>Newest</Trans>
-                              )
-                            }
-                          >
-                            <span>
-                              <Trans>Sort by</Trans>
-                            </span>
-                          </FilterTrigger>
+                    {/* Sort by — the canonical SingleSelectFilter pill. The
+                        current order rides the `Label │ Value ⌄` slot ("Sort by
+                        │ Newest") in the same grammar as Filters/State, and the
+                        whole control is the shared primitive so it can't drift
+                        from /deadlines (e.g. the old `text-base` 14px override
+                        is gone). `active={false}` keeps the sort pill neutral —
+                        a non-default order names itself in the value slot rather
+                        than lighting the whole pill. */}
+                    <SingleSelectFilter
+                      label={<Trans>Sort by</Trans>}
+                      ariaLabel={t`Sort alerts`}
+                      noLeadingIcon
+                      active={false}
+                      align="end"
+                      value={sortOrder}
+                      options={[
+                        { value: 'newest', label: t`Newest first`, triggerLabel: t`Newest` },
+                        { value: 'oldest', label: t`Oldest first`, triggerLabel: t`Oldest` },
+                        {
+                          value: 'highest_impact',
+                          label: t`Highest impact`,
+                          triggerLabel: t`Impact`,
+                        },
+                      ]}
+                      onValueChange={(value) => {
+                        if (
+                          value === 'newest' ||
+                          value === 'oldest' ||
+                          value === 'highest_impact'
+                        ) {
+                          setSortOrder(value)
                         }
-                      />
-                      <DropdownMenuContent align="end" className="min-w-[200px]">
-                        <DropdownMenuRadioGroup
-                          value={sortOrder}
-                          onValueChange={(value) => {
-                            if (
-                              value === 'newest' ||
-                              value === 'oldest' ||
-                              value === 'highest_impact'
-                            ) {
-                              setSortOrder(value)
-                            }
-                          }}
-                        >
-                          <DropdownMenuRadioItem value="newest">
-                            <Trans>Newest first</Trans>
-                          </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="oldest">
-                            <Trans>Oldest first</Trans>
-                          </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="highest_impact">
-                            <Trans>Highest impact</Trans>
-                          </DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      }}
+                    />
 
                     {/* View switcher — icon-only Segmented at the far end.
                         One labeled toggle per toolbar (the queue switch);
@@ -1708,12 +1690,11 @@ function AlertFiltersPopover({
             // 2026-06-12 (Yuqi /alerts #8 "State feels like a different
             // colour to Filters"): the gray `saved` fill is dropped — every
             // trigger in the cluster shares ONE at-rest chrome, and the
-            // applied-state emphasis comes from the canonical accent
-            // `│ value` slot instead of a heavier resting fill.
+            // applied-state emphasis comes from the canonical accent count
+            // badge (`count` prop) instead of a heavier resting fill.
             leadingIcon={SlidersHorizontalIcon}
-            valueLabel={activeCount > 0 ? String(activeCount) : undefined}
+            count={activeCount}
             aria-label={t`Filters`}
-            className="text-base"
           >
             <span>
               <Trans>Filters</Trans>

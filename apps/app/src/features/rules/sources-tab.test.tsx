@@ -16,7 +16,6 @@ const rpcMocks = vi.hoisted(() => ({
   listRulesQueryFn: vi.fn(),
   sourceCoverageQueryFn: vi.fn(),
   sourceHealthQueryFn: vi.fn(),
-  catchUpStillOpenWindowsMutationFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -48,18 +47,6 @@ vi.mock('@/lib/rpc', () => ({
           queryKey: ['pulse', 'listAlertSourceCoverage'],
           queryFn: rpcMocks.sourceCoverageQueryFn,
         }),
-      },
-      catchUpStillOpenWindows: {
-        mutationOptions: (options: Record<string, unknown>) => ({
-          mutationFn: rpcMocks.catchUpStillOpenWindowsMutationFn,
-          ...options,
-        }),
-      },
-      listAlerts: {
-        key: () => ['pulse', 'listAlerts'],
-      },
-      activeCount: {
-        key: () => ['pulse', 'activeCount'],
       },
     },
   },
@@ -116,8 +103,7 @@ beforeEach(() => {
   rpcMocks.sourceCoverageQueryFn.mockReset()
   rpcMocks.sourceCoverageQueryFn.mockResolvedValue({ coverage: [] })
   rpcMocks.sourceHealthQueryFn.mockReset()
-  rpcMocks.catchUpStillOpenWindowsMutationFn.mockReset()
-  rpcMocks.catchUpStillOpenWindowsMutationFn.mockResolvedValue({ materializedCount: 0 })
+  rpcMocks.sourceHealthQueryFn.mockResolvedValue({ sources: [] })
 })
 
 afterEach(() => {
@@ -168,5 +154,30 @@ describe('SourcesTab (positive coverage only)', () => {
         button.textContent?.includes('Re-check now'),
       ),
     ).toBe(false)
+  })
+
+  it('does not query or render the internal jurisdiction coverage matrix', async () => {
+    rpcMocks.sourceCoverageQueryFn.mockResolvedValue({
+      coverage: [
+        {
+          jurisdiction: 'CA',
+          coverageLevel: 'standard',
+          requiredRoles: ['primary_web_news', 'email_signal'],
+          coveredRoles: ['primary_web_news'],
+          missingRoles: ['email_signal'],
+          missingReason: 'Email subscription not verified',
+          sourceIds: ['ca.ftb.news'],
+        },
+      ],
+    })
+
+    await render(<SourcesTab />)
+    await waitForText('Sources monitored')
+
+    expect(rpcMocks.sourceCoverageQueryFn).not.toHaveBeenCalled()
+    expect(document.body.textContent).not.toContain('Coverage by jurisdiction')
+    expect(document.body.textContent).not.toContain('Which watcher roles')
+    expect(document.body.textContent).not.toContain('Catch up still-open windows')
+    expect(document.body.textContent).not.toContain('Email subscription not verified')
   })
 })

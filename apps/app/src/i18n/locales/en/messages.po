@@ -176,11 +176,6 @@ msgstr "{0, plural, one {# event} other {# events}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# high-severity} other {# high-severity}}"
-msgstr "{0, plural, one {# high-severity} other {# high-severity}}"
-
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -346,11 +341,6 @@ msgstr "{0, plural, one {# source} other {# sources}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
-
-#. placeholder {0}: g.pendingReviewCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# to review} other {# to review}}"
-msgstr "{0, plural, one {# to review} other {# to review}}"
 
 #. placeholder {0}: counts.waitingOnClientCount
 #: src/features/dashboard/daily-brief-card.tsx
@@ -619,6 +609,11 @@ msgstr "{0} filing today — stay ahead to keep the week on track."
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} filings extended — payment is not extended"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0} high-severity"
+msgstr "{0} high-severity"
+
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -750,6 +745,11 @@ msgstr "{0} pending review"
 #: src/routes/settings.permissions.tsx
 msgid "{0} permissions are set by the product"
 msgstr "{0} permissions are set by the product"
+
+#. placeholder {0}: g.readyCount
+#: src/routes/rules.library.tsx
+msgid "{0} ready"
+msgstr "{0} ready"
 
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -2485,6 +2485,7 @@ msgstr "Alerts archive"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -3659,13 +3660,9 @@ msgstr "Captured"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
-#: src/features/rules/sources-tab.tsx
-msgid "Catch up still-open windows"
-msgstr "Catch up still-open windows"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Catching up…"
-msgstr "Catching up…"
+#: src/features/audit/audit-log-page.tsx
+msgid "Category"
+msgstr "Category"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
@@ -5043,10 +5040,6 @@ msgstr "Couldn't roll over deadlines"
 msgid "Couldn't run annual rollover preview"
 msgstr "Couldn't run annual rollover preview"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Couldn't run catch-up. Please try again."
-msgstr "Couldn't run catch-up. Please try again."
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
 msgstr "Couldn't run deadline preview"
@@ -5269,10 +5262,6 @@ msgstr "County"
 #: src/routes/rules.library.tsx
 msgid "Coverage"
 msgstr "Coverage"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Coverage by jurisdiction"
-msgstr "Coverage by jurisdiction"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
@@ -6403,10 +6392,6 @@ msgstr "Email queued"
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "Email selected clients a Form 8879 signature reminder"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Email signal"
-msgstr "Email signal"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Email unsubscribe"
 msgstr "Email unsubscribe"
@@ -7193,10 +7178,6 @@ msgstr "Filing year end"
 msgid "Filings"
 msgstr "Filings"
 
-#: src/routes/obligations.tsx
-msgid "Filter"
-msgstr "Filter"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Filter {jurisdictionLabel} rules"
 msgstr "Filter {jurisdictionLabel} rules"
@@ -7680,10 +7661,6 @@ msgstr "Gross receipts"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Guard status"
 msgstr "Guard status"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Guidance notices"
-msgstr "Guidance notices"
 
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "Handled"
@@ -9454,10 +9431,6 @@ msgstr "Moves the row to Waiting and opens the Materials tab to send the request
 msgid "Moving…"
 msgstr "Moving…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Multi-agency"
-msgstr "Multi-agency"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Multi-member LLC"
 msgstr "Multi-member LLC"
@@ -10287,10 +10260,6 @@ msgstr "No state deadlines"
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "No states"
 msgstr "No states"
-
-#: src/features/rules/sources-tab.tsx
-msgid "No still-open windows to add."
-msgstr "No still-open windows to add."
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -11973,10 +11942,6 @@ msgstr "Primary navigation"
 msgid "Primary phone"
 msgstr "Primary phone"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Primary web"
-msgstr "Primary web"
-
 #: src/features/members/members-page.tsx
 msgid "Principal authority — final review, approvals, and full sign-off."
 msgstr "Principal authority — final review, approvals, and full sign-off."
@@ -12122,6 +12087,10 @@ msgstr "QuickBooks Online: export from Customers with the Export to Excel icon, 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Quiet hours"
 msgstr "Quiet hours"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Range"
+msgstr "Range"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
@@ -12546,10 +12515,6 @@ msgstr "Rejected date is required."
 #: src/features/workload/workload-page.tsx
 msgid "Relative load"
 msgstr "Relative load"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Relief / disaster"
-msgstr "Relief / disaster"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Relief notice"
@@ -13180,10 +13145,6 @@ msgstr "Revoked"
 msgid "Revoking…"
 msgstr "Revoking…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Rights window"
-msgstr "Rights window"
-
 #: src/features/concepts/concept-help.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
@@ -13401,10 +13362,6 @@ msgstr "Rule updated"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule version"
 msgstr "Rule version"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Rule watch"
-msgstr "Rule watch"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
@@ -14878,18 +14835,6 @@ msgstr "Summarize what the authority rejected and what needs correction."
 msgid "Superseded"
 msgstr "Superseded"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
-msgstr "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced {materializedCount} still-open alerts for your firm."
-msgstr "Surfaced {materializedCount} still-open alerts for your firm."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced 1 still-open alert for your firm."
-msgstr "Surfaced 1 still-open alert for your firm."
-
 #: src/features/members/members-page.tsx
 msgid "Suspend access"
 msgstr "Suspend access"
@@ -15099,10 +15044,6 @@ msgstr "Tax year settings updated"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"
 msgstr "Tax year type"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Tax-type sources"
-msgstr "Tax-type sources"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -15745,6 +15686,10 @@ msgstr "to create"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "to generate"
+
+#: src/routes/rules.library.tsx
+msgid "to review"
+msgstr "to review"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
@@ -16789,10 +16734,6 @@ msgstr "where this came from"
 #: src/routes/rules.library.tsx
 msgid "Where to start"
 msgstr "Where to start"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
-msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 
 #: src/routes/splash.tsx
 msgid "While you were away"

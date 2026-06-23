@@ -57,12 +57,13 @@ landing. Composition: page-hero ("Product tour") → `HowItWorks` (the loop) →
 ### 404 migrated onto the new chrome
 
 The `/404` page was the last route still on the **old** chrome (`components/TopNav`
-+ `components/Footer` + old Tailwind tokens) — a jarring dead-end the moment a
-visitor hit it. Rebuilt on `home/TopNav pageMode` + `home/Footer` + the `.m-*` kit:
-eyebrow → `.m-page-title` → `.m-page-lead` → `.m-btn` CTAs, plus a bordered
-"route status" card listing the published escape hatches (Homepage · How it works ·
-Pricing · Open the workbench). Only `/legacy` remains on old chrome by design
-(archived, noindex).
+
+- `components/Footer` + old Tailwind tokens) — a jarring dead-end the moment a
+  visitor hit it. Rebuilt on `home/TopNav pageMode` + `home/Footer` + the `.m-*` kit:
+  eyebrow → `.m-page-title` → `.m-page-lead` → `.m-btn` CTAs, plus a bordered
+  "route status" card listing the published escape hatches (Homepage · How it works ·
+  Pricing · Open the workbench). Only `/legacy` remains on old chrome by design
+  (archived, noindex).
 
 ## Follow-ups
 

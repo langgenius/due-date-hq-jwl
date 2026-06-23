@@ -36,8 +36,8 @@
   (#11)
 - **Close** — distinct-yet-cohesive finale: the headline returns to the **display
   serif** that opens the Hero (the only other place it appears), with a cyan top-edge
-  + faint corner light on the navy card; the audit receipt is now a **full-width**
-  strip below the card. (#12,13)
+  - faint corner light on the navy card; the audit receipt is now a **full-width**
+    strip below the card. (#12,13)
 
 ## Nav (separate, bundled here)
 

@@ -37,12 +37,14 @@ by the main loop.
   deep-linked / short-viewport `[data-reveal]` already in view never sticks at opacity 0.
 
 ## Verified
+
 `pnpm --dir apps/marketing build` → 76 pages clean. Live: Hero panel calmer (5 chips,
 anchor + receding rows), Villain deeper navy vs Close brand navy, no horizontal overflow.
 Motion (Notice fade, reveal sweep) still wants a real-browser glance (headless can't
 advance transitions).
 
 ## State
+
 Critique baseline was 2.5/4; P0/P1 (prior commit) + this P2/P3 pass close essentially
 the whole report's fix list. Remaining deferred items are intentional (e.g. uniform
 eyebrows kept for coherence; `--m-canvas`/`--m-section` luminance left to hairlines).

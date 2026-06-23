@@ -99,34 +99,51 @@ function responseFromBrowserlessPayload(payload: unknown, response: Response): R
   if (!isRecord(payload)) return null
   const html = typeof payload.html === 'string' ? payload.html : null
   const text = typeof payload.text === 'string' ? payload.text : null
-  const body = html ?? text
+  // Cloudflare Browser Rendering /content wraps the HTML in the standard API
+  // envelope: { success, errors, result: "<html>" }.
+  const result = typeof payload.result === 'string' ? payload.result : null
+  const body = html ?? text ?? result
   if (!body) return null
   return createBrowserlessResponse(
     body,
     response,
-    html ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8',
+    text && !html && !result ? 'text/plain; charset=utf-8' : 'text/html; charset=utf-8',
   )
+}
+
+// Cloudflare Browser Rendering's /content REST endpoint is a drop-in for
+// browserless.io's /content from this fetcher's view — same "POST {url,…} → get
+// rendered HTML" shape — so the source allowlist + serialization are shared and
+// only the auth, request body and response envelope differ. Switch on the host so
+// migrating between them (and rolling back) is a config change, not a code change.
+function isCloudflareRenderEndpoint(endpoint: string): boolean {
+  try {
+    return /(?:^|\.)cloudflare\.com$/i.test(new URL(endpoint).host)
+  } catch {
+    return /browser-rendering/i.test(endpoint)
+  }
 }
 
 export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch | null {
   if (!config.endpoint) return null
-  const endpoint = browserlessEndpoint(config)
-  // Browserless renders the target page server-side (its own goto budget is
-  // ~30s), so the proxied request gets a roomier watchdog than direct fetches.
+  const cloudflare = isCloudflareRenderEndpoint(config.endpoint)
+  // CF authenticates with a Bearer header (token never in the URL); browserless.io
+  // carries the token as a ?token= query param (browserlessEndpoint).
+  const endpoint = cloudflare ? config.endpoint : browserlessEndpoint(config)
+  // Either service renders server-side (~30s goto budget), so the proxied request
+  // gets a roomier watchdog than direct fetches.
   const timedFetch = withFetchTimeout(fetch, 60_000)
 
   return async (input, init) => {
     const targetUrl = input instanceof URL ? input.toString() : input
     const userAgent = browserlessUserAgent(init?.headers)
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      ...(cloudflare && config.token ? { Authorization: `Bearer ${config.token}` } : {}),
+    }
     const post = (body: Record<string, unknown>) =>
-      timedFetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-        body: JSON.stringify(body),
-      })
+      timedFetch(endpoint, { method: 'POST', headers, body: JSON.stringify(body) })
     const baseBody = {
       url: targetUrl,
       setExtraHTTPHeaders: {
@@ -134,22 +151,52 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
         'user-agent': userAgent,
       },
     }
+    // 2026-06-23: render after the network settles ("networkidle") so
+    // client-rendered news lists (SharePoint WebParts, JS feeds) land in the
+    // captured HTML instead of just the shell.
+    const WAIT = { gotoOptions: { waitUntil: 'networkidle2', timeout: 20_000 }, bestAttempt: true }
     const render = async (): Promise<Response> => {
-      // Cloud schema as of 2026-06-10: `userAgent` is a CDP
-      // setUserAgentOverride-shaped object, not a string.
-      let body: Record<string, unknown> = { ...baseBody, userAgent: { userAgent } }
+      if (cloudflare) {
+        // CF /content: userAgent is a plain string; skip images/media/fonts to save
+        // browser time; pace a 429 (CF's rate limit). Its schema is stable, so no
+        // field-drop fallback is needed.
+        const cfBody: Record<string, unknown> = {
+          ...baseBody,
+          userAgent,
+          gotoOptions: { waitUntil: 'networkidle0', timeout: 25_000 },
+          rejectResourceTypes: ['image', 'media', 'font'],
+        }
+        let response = await post(cfBody)
+        if (response.status === 429) {
+          await delay(config.retry429DelayMs ?? 5_000)
+          response = await post(cfBody)
+        }
+        return response
+      }
+      // browserless.io path. `bestAttempt` returns whatever rendered if the idle
+      // wait times out. The cloud schema drifts (the userAgent field flipped from
+      // string to a CDP object), so on a 400 we drop the rejected field — wait
+      // options first, then userAgent — and keep the source alive, capping at two
+      // drops.
+      let body: Record<string, unknown> = { ...baseBody, ...WAIT, userAgent: { userAgent } }
       let response = await post(body)
-      if (response.status === 400) {
+      for (let attempt = 0; attempt < 2 && response.status === 400; attempt++) {
         const rejection = await response
           .clone()
           .text()
           .catch(() => '')
-        // Schema drifted again around the userAgent field — fall back to the
-        // header-level override and keep the source alive.
-        if (/userAgent/i.test(rejection)) {
-          body = baseBody
-          response = await post(body)
+        if (
+          /gotoOptions|waitUntil|networkidle|bestAttempt/i.test(rejection) &&
+          'gotoOptions' in body
+        ) {
+          delete body.gotoOptions
+          delete body.bestAttempt
+        } else if (/userAgent/i.test(rejection) && 'userAgent' in body) {
+          delete body.userAgent
+        } else {
+          break
         }
+        response = await post(body)
       }
       // A bare 429 (no x-response-code) is browserless's own concurrency
       // limiter, not the target site — pace and retry once.

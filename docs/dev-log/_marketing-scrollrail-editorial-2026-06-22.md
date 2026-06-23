@@ -6,6 +6,7 @@
 Owner reference: a deck-style vertical scroll rail (mono uppercase labels on a
 continuous spine, a glowing active dot, an "NN / TT" counter). Rebuilt our left
 scroll-spy rail to that treatment:
+
 - a continuous spine line with a dot per section (was standalone dots);
 - mono, uppercase, letter-spaced labels (was sentence-case sans);
 - the active stop is a glowing filled accent dot (scale + halo) with a bright

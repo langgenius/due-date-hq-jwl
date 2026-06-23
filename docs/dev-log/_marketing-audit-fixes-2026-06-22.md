@@ -5,6 +5,7 @@
 dimensions). All fixes use existing `--m-*` tokens (no new colours).
 
 ## Fixed
+
 - **A11y — Notice tablist** (`Notice.astro`): upgraded from a partial pattern to a
   full WAI tablist — `id` + `aria-controls` on tabs, `id` + `aria-labelledby` on
   panels, roving `tabindex` (active 0 / rest -1), and ←/→/↑/↓/Home/End keyboard
@@ -23,6 +24,7 @@ dimensions). All fixes use existing `--m-*` tokens (no new colours).
   6px rhythm.
 
 ## Kept intentionally
+
 - **Nav collapse animates layout props** (`TopNav.astro`, P2): left as-is — the
   morph is the smooth collapse the owner specifically asked for, runs once per
   scroll-threshold cross on one small sticky element, and a transform-only rewrite
@@ -31,6 +33,7 @@ dimensions). All fixes use existing `--m-*` tokens (no new colours).
   documented decisions, not defects.
 
 ## Verified
+
 Build 76 pages clean. Live: 51 navy tiles + cyan opacity-overlay scan; Notice tab0
 `aria-controls=npanel-0` / panel `aria-labelledby=ntab-0` / roving tabindex; footer
 links 44px tall at 390px; no horizontal overflow at 1440 or 390.

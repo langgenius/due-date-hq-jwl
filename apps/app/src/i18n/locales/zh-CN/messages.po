@@ -175,11 +175,6 @@ msgstr "{0, plural, one {# 个事件} other {# 个事件}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# 条已处理} other {# 条已处理}}"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# high-severity} other {# high-severity}}"
-msgstr "{0, plural, one {# 项高严重度} other {# 项高严重度}}"
-
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -347,11 +342,6 @@ msgstr "{0, plural, other {# 个来源}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
-
-#. placeholder {0}: g.pendingReviewCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# to review} other {# to review}}"
-msgstr "{0, plural, other {# 条待审}}"
 
 #. placeholder {0}: counts.waitingOnClientCount
 #: src/features/dashboard/daily-brief-card.tsx
@@ -621,6 +611,11 @@ msgstr "今日 {0} 项申报 — 提前推进，保持本周节奏。"
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} 项申报已延期 — 付款未延期"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0} high-severity"
+msgstr "{0} 项高严重度"
+
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -755,6 +750,11 @@ msgstr "{0} 项待审核"
 #: src/routes/settings.permissions.tsx
 msgid "{0} permissions are set by the product"
 msgstr "{0} 权限由产品设定"
+
+#. placeholder {0}: g.readyCount
+#: src/routes/rules.library.tsx
+msgid "{0} ready"
+msgstr "{0} 项就绪"
 
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -2496,6 +2496,7 @@ msgstr "提醒归档"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -3673,13 +3674,9 @@ msgstr "已记录"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Catch up still-open windows"
-msgstr "补齐仍开放的窗口"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Catching up…"
-msgstr "正在补齐…"
+#: src/features/audit/audit-log-page.tsx
+msgid "Category"
+msgstr "类别"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
@@ -5064,10 +5061,6 @@ msgstr "无法结转截止日期"
 msgid "Couldn't run annual rollover preview"
 msgstr "无法运行年度结转预览"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Couldn't run catch-up. Please try again."
-msgstr "无法运行补齐。请重试。"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
 msgstr "无法运行截止事项预览"
@@ -5290,10 +5283,6 @@ msgstr "县"
 #: src/routes/rules.library.tsx
 msgid "Coverage"
 msgstr "覆盖"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Coverage by jurisdiction"
-msgstr "按管辖范围的覆盖情况"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
@@ -6427,10 +6416,6 @@ msgstr "邮件已排入发送队列"
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "向所选客户发送 Form 8879 签字提醒邮件"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Email signal"
-msgstr "邮件信号"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Email unsubscribe"
 msgstr "邮件退订"
@@ -7217,10 +7202,6 @@ msgstr "申报年度结束"
 msgid "Filings"
 msgstr "申报"
 
-#: src/routes/obligations.tsx
-msgid "Filter"
-msgstr "筛选"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Filter {jurisdictionLabel} rules"
 msgstr "筛选{jurisdictionLabel}规则"
@@ -7708,10 +7689,6 @@ msgstr "总收入"
 #, fuzzy
 msgid "Guard status"
 msgstr "来源状态"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Guidance notices"
-msgstr "指引通知"
 
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "Handled"
@@ -9491,10 +9468,6 @@ msgstr "将该行移至「等待中」状态，并打开「材料」标签发送
 msgid "Moving…"
 msgstr "正在移动…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Multi-agency"
-msgstr "多机构"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Multi-member LLC"
 msgstr "多成员有限责任公司"
@@ -10326,10 +10299,6 @@ msgstr "不生成州级截止日"
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "No states"
 msgstr "没有州"
-
-#: src/features/rules/sources-tab.tsx
-msgid "No still-open windows to add."
-msgstr "没有仍开放的窗口可添加。"
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -12028,10 +11997,6 @@ msgstr "主导航"
 msgid "Primary phone"
 msgstr "主要电话"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Primary web"
-msgstr "主要网站"
-
 #: src/features/members/members-page.tsx
 msgid "Principal authority — final review, approvals, and full sign-off."
 msgstr "Principal authority — final review, approvals, and full sign-off."
@@ -12177,6 +12142,10 @@ msgstr "QuickBooks Online：在 Customers 中使用 Export to Excel 图标导出
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Quiet hours"
 msgstr "免打扰时段"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Range"
+msgstr "范围"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
@@ -12603,10 +12572,6 @@ msgstr "必须填写拒绝日期。"
 #: src/features/workload/workload-page.tsx
 msgid "Relative load"
 msgstr "相对负载"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Relief / disaster"
-msgstr "救济 / 灾害"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Relief notice"
@@ -13238,10 +13203,6 @@ msgstr "已撤销"
 msgid "Revoking…"
 msgstr "正在撤销…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Rights window"
-msgstr "权利窗口"
-
 #: src/features/concepts/concept-help.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
@@ -13459,10 +13420,6 @@ msgstr "规则已更新"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule version"
 msgstr "规则版本"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Rule watch"
-msgstr "规则监控"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
@@ -14941,18 +14898,6 @@ msgstr "概述 Authority 拒绝了什么，以及需要修正什么。"
 msgid "Superseded"
 msgstr "已被取代"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
-msgstr "显示本所可能遗漏的、仍然开放的保护性申报窗口与未过期的截止日变更。"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced {materializedCount} still-open alerts for your firm."
-msgstr "已为您的事务所呈现 {materializedCount} 条仍然有效的提醒。"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced 1 still-open alert for your firm."
-msgstr "已为您的事务所呈现 1 条仍然有效的提醒。"
-
 #: src/features/members/members-page.tsx
 msgid "Suspend access"
 msgstr "暂停访问"
@@ -15163,10 +15108,6 @@ msgstr "税务年度设置已更新"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"
 msgstr "税务年度类型"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Tax-type sources"
-msgstr "税种来源"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -15809,6 +15750,10 @@ msgstr "待创建"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "待生成"
+
+#: src/routes/rules.library.tsx
+msgid "to review"
+msgstr "待审阅"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
@@ -16858,10 +16803,6 @@ msgstr "来源出处"
 #: src/routes/rules.library.tsx
 msgid "Where to start"
 msgstr "从哪里开始"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
-msgstr "各管辖范围已配置的监控角色。存在缺口意味着可能漏掉变更。"
 
 #: src/routes/splash.tsx
 msgid "While you were away"

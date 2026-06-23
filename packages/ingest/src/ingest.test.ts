@@ -378,6 +378,103 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  it('parses a Zendesk Help Center JSON feed and keeps TN notices over portal how-tos', () => {
+    // TN DOR mirrors its notices on a Zendesk Help Center (revenue.support.tn.gov)
+    // because tn.gov drops datacenter fetches. The /api/v2/.../articles.json shape
+    // is parsed directly; the per-source filter keeps the legal notices and drops
+    // the TNTAP portal how-tos.
+    const body = JSON.stringify({
+      articles: [
+        {
+          title: 'FONCE-3 - Entity Types That May Qualify for the FONCE Exemption',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/360058238691-FONCE-3',
+          body: '<p>Franchise and excise tax exemption details.</p>',
+          updated_at: '2026-06-09T12:00:00Z',
+        },
+        {
+          title: 'LOT-12 - Definition of Consideration',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/1-LOT-12',
+          body: '<p>Liquor-by-the-drink tax guidance.</p>',
+          updated_at: '2026-05-01T00:00:00Z',
+        },
+        {
+          title: 'TNTAP Payments-8 – Making an Online Payment in TNTAP',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/2-tntap-pay',
+          body: '<p>How to submit a payment.</p>',
+          updated_at: '2026-05-29T00:00:00Z',
+        },
+        {
+          title: 'Logging into TNTAP',
+          html_url: 'https://revenue.support.tn.gov/hc/en-us/articles/3-login',
+          body: '<p>Sign-in help.</p>',
+          updated_at: '2026-05-19T00:00:00Z',
+        },
+      ],
+    })
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'tn.temporary_announcements',
+        title: 'Tennessee DOR Revenue News',
+        url: 'https://revenue.support.tn.gov/hc/en-us',
+        jurisdiction: 'TN',
+      },
+      { fetchedAt: new Date('2026-06-23T00:00:00.000Z'), body },
+    )
+    const titles = items.map((item) => item.title)
+    expect(titles).toContain('FONCE-3 - Entity Types That May Qualify for the FONCE Exemption')
+    expect(titles).toContain('LOT-12 - Definition of Consideration')
+    expect(titles).not.toContain('TNTAP Payments-8 – Making an Online Payment in TNTAP')
+    expect(titles).not.toContain('Logging into TNTAP')
+    const fonce = items.find((item) => item.title.startsWith('FONCE-3'))
+    expect(fonce?.officialSourceUrl).toContain('FONCE-3')
+    // updated_at rides in the dedupe identity so a re-edited notice re-surfaces.
+    expect(fonce?.dedupeText).toContain('2026-06-09T12:00:00Z')
+  })
+
+  it('parses an agency newsroom JSON feed (Montana DOR) and resolves relative links', () => {
+    // mtrevenue.gov/news/ renders its list client-side from a flat JSON array, so
+    // a browser render only ever captured the "Loading…" shell. We fetch
+    // /news/article_source.json directly; each entry carries a site-relative link,
+    // an ISO date and a teaser.
+    const body = JSON.stringify([
+      {
+        title: 'Individual Income Tax Filing Deadline Reminder',
+        link: '/news/recent-news/individual-income-tax-deadline-2026',
+        summary: 'The April 15 individual income tax filing deadline is approaching.',
+        teaser: '',
+        author: '',
+        date: '2026-06-11T00:00:00Z',
+      },
+      {
+        title: 'Montana Sales and Use Tax Rate Update',
+        link: '/news/recent-news/sales-tax-rate-update',
+        summary: '',
+        teaser: 'New local option tax rates take effect July 1.',
+        date: '2026-05-02T00:00:00Z',
+      },
+    ])
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'mt.temporary_announcements',
+        title: 'Montana DOR News',
+        url: 'https://revenue.mt.gov/news/',
+        jurisdiction: 'MT',
+      },
+      { fetchedAt: new Date('2026-06-23T00:00:00.000Z'), body },
+    )
+    expect(items.map((item) => item.title)).toContain(
+      'Individual Income Tax Filing Deadline Reminder',
+    )
+    const first = items.find((item) => item.title.startsWith('Individual Income Tax'))
+    // A site-relative link resolves against the source origin.
+    expect(first?.officialSourceUrl).toBe(
+      'https://revenue.mt.gov/news/recent-news/individual-income-tax-deadline-2026',
+    )
+    // The ISO date becomes publishedAt and rides in the dedupe identity.
+    expect(first?.publishedAt.toISOString()).toBe('2026-06-11T00:00:00.000Z')
+    expect(first?.dedupeText).toContain('2026-06-11T00:00:00Z')
+  })
+
   it('keeps item dedupeText stable across unrelated listing-page changes', () => {
     const source = {
       id: 'tx.temporary_announcements',

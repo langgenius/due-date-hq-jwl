@@ -5,6 +5,7 @@
 template for design-canon violations and landing inconsistencies.
 
 ## Found + fixed
+
 - **SurfaceDeep "Why it matters to a CPA" aside used a banned side-stripe**
   (`border-left: 2px solid var(--m-accent)`). The design canon bans side-stripe
   accents on cards/callouts, and the landing strictly avoids them. Swapped to a
@@ -12,8 +13,9 @@ template for design-canon violations and landing inconsistencies.
   (`home/SurfaceDeep.astro`)
 
 ## Checked, clean (no change needed)
+
 - No other `border-left/right > 1px` accents on any live component (the one in
-  `HowItWorks` is a functional dashed *connector* line, not a card stripe).
+  `HowItWorks` is a functional dashed _connector_ line, not a card stripe).
 - No gradient text anywhere. No stray hex in the subpage components.
 - No graph-paper grids or navy-wall tile fills carried into the subpages.
 - /about, /how-it-works, /pricing, /security all render strong + on-brand

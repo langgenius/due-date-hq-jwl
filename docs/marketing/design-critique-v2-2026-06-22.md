@@ -24,18 +24,19 @@ unlayered component `<style>`, so zh headlines still render the Latin Instrument
 
 ## Scorecard
 
-| Dimension | Old → New | What moved |
-|---|---|---|
-| Copy/positioning + IA/navigation | 2 → **3** | Real mobile nav sheet (P0 cleared); catalog meta/JSON-LD reconciled to v2; "Radar"/SLA purged from indexed site; CTA standardized on "Start free"; pricing tiers reconciled; footer dedup + clickable wordmark; ScrollRail first-dot + Surfaces stop fixed. Caps at top-of-3: stale positioning still in `/llms.txt` + `/llms-full.txt` + `seo-content.ts`. |
-| Localization (EN ↔ zh-CN parity) | 2 → **3** | zh meta + structured data genuinely rewritten to v2 (rendered JSON-LD carries zero stale terms); stray-English finalCta fragment fixed. Net +1 not +2: the CJK display-serif guard is a cascade no-op (layered vs unlayered) so zh heads still render Latin serif and the faux-italic kill never fires. |
-| Colour & accessibility | 3 → **4** | `--m-faint` darkened to ~4.5:1; Close CTAs get a cyan-on-navy focus ring; green/urgent pill labels use darker `-ink` tokens for AA; mobile nav is a fully accessible dialog (aria, focus trap, Esc, focus restore). Only original optional P3 edges remain. |
-| AI-slop + visual hierarchy + composition | 3 → **3** | Hero panel calmed (5-chip rail + anchor/receding rows); the two navy beats made distinct; third near-identical live-feed mock eliminated; Surfaces unified into one workbench window. Caps at strong-3: mid-page field rhythm still a long same-altitude run; recommended-plan stacks asymmetric width *on top of* the sticker rather than instead of it. |
+| Dimension                                | Old → New | What moved                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy/positioning + IA/navigation         | 2 → **3** | Real mobile nav sheet (P0 cleared); catalog meta/JSON-LD reconciled to v2; "Radar"/SLA purged from indexed site; CTA standardized on "Start free"; pricing tiers reconciled; footer dedup + clickable wordmark; ScrollRail first-dot + Surfaces stop fixed. Caps at top-of-3: stale positioning still in `/llms.txt` + `/llms-full.txt` + `seo-content.ts`. |
+| Localization (EN ↔ zh-CN parity)         | 2 → **3** | zh meta + structured data genuinely rewritten to v2 (rendered JSON-LD carries zero stale terms); stray-English finalCta fragment fixed. Net +1 not +2: the CJK display-serif guard is a cascade no-op (layered vs unlayered) so zh heads still render Latin serif and the faux-italic kill never fires.                                                     |
+| Colour & accessibility                   | 3 → **4** | `--m-faint` darkened to ~4.5:1; Close CTAs get a cyan-on-navy focus ring; green/urgent pill labels use darker `-ink` tokens for AA; mobile nav is a fully accessible dialog (aria, focus trap, Esc, focus restore). Only original optional P3 edges remain.                                                                                                 |
+| AI-slop + visual hierarchy + composition | 3 → **3** | Hero panel calmed (5-chip rail + anchor/receding rows); the two navy beats made distinct; third near-identical live-feed mock eliminated; Surfaces unified into one workbench window. Caps at strong-3: mid-page field rhythm still a long same-altitude run; recommended-plan stacks asymmetric width _on top of_ the sticker rather than instead of it.   |
 
 ## Fixes confirmed
 
 Verified against source on 2026-06-22.
 
 **IA / navigation**
+
 - **Mobile nav exists and is well-built.** `TopNav.astro` adds a hamburger (67-79) shown only
   ≤920px, opening a real `role=dialog` / `aria-modal` sheet (84-111) with the 4 links + Sign in +
   CTA, plus focus trap, Esc-close, scrim/outside-click dismiss, resize-up dismiss and
@@ -48,6 +49,7 @@ Verified against source on 2026-06-22.
   line (48).
 
 **Copy / positioning**
+
 - **Catalog meta + JSON-LD rewritten to v2.** `en.ts` meta (5-8) and `geo.structuredData`
   (698-705) read the "deadline-change monitoring … shows exactly which clients it affects" line;
   `zh-CN.ts` mirrors it; `homeStructuredData()` (`structured-data.ts:229`) pulls
@@ -67,6 +69,7 @@ Verified against source on 2026-06-22.
   (`Surfaces.astro:115`); per-card labels predict the destination (81,87,98,106).
 
 **Localization**
+
 - **zh home meta + structured data rewritten to v2.** `zh-CN.ts` meta (4-9) and
   `geo.structuredData` (678-687) read the "deadline-change monitoring" narrative; a scan of the
   rendered LD for 玻璃盒 / Migration Copilot / 工作台 / glass-box / intelligence returns zero.
@@ -76,6 +79,7 @@ Verified against source on 2026-06-22.
   exists. Only the cascade mechanism fails (see below).
 
 **Colour & accessibility**
+
 - **`--m-faint` darkened** to `rgb(16 24 40 / 0.55)` ~4.5:1 (`marketing.css:30`), was ~1.9:1.
 - **Close CTA focus ring** — 2px `--m-cyan` outline + 2px offset, scoped to the local `.btn`
   (`marketing.css:355-358`).
@@ -84,6 +88,7 @@ Verified against source on 2026-06-22.
 - **Hero dead ternary removed** — `Hero.astro:232` is now a static `row__delta--later`.
 
 **AI-slop / hierarchy / composition**
+
 - **Hero panel calmed** — filters trimmed to 5 chips; rows split into one `.row--anchor` (urgent,
   carries the status line) + receding `.row--secondary` rows (weight 400 / `--m-ink-2`).
 - **Two navy beats made distinct** — Villain band somber/recessed (ink vignette); Close brighter
@@ -106,7 +111,7 @@ appeared under more than one dimension and are listed once).
    ("a deadline-and-rule-change radar…"); `src/pages/llms-full.txt.ts:26` (same "radar" line).
    These are live published GET endpoints consumed by LLM answer engines — the exact
    machine-readable channel P0-2/P1-1 targeted, just a different file than the catalog that was
-   fixed. *Fix:* rewrite both openings to the v2 narrative used in
+   fixed. _Fix:_ rewrite both openings to the v2 narrative used in
    `en.ts.geo.structuredData`; replace "radar" with "monitoring/Alerts". Ideally source the strings
    from the same catalog so they cannot re-drift.
 
@@ -116,7 +121,7 @@ appeared under more than one dimension and are listed once).
    (`Pricing.astro` `.pr__title`, `Close.astro` `.close__h`, `Hero.astro` `.hero__head`) are
    **unlayered** and unlayered always beats `@layer` regardless of specificity. Verified live:
    `/zh-CN/pricing` `.pr__title` → `font-family: 'Instrument Serif'`, `letter-spacing: -1.52px`.
-   *Fix:* move the guard **out** of `@layer components` (a top-level `html[lang='zh-CN']` rule is
+   _Fix:_ move the guard **out** of `@layer components` (a top-level `html[lang='zh-CN']` rule is
    unlayered and then wins on specificity), or set the CJK font/line-height/letter-spacing inside
    each component's own `[lang='zh-CN']` block (the pattern Hero already uses). The code comment's
    specificity rationale is wrong about why it would win.
@@ -125,7 +130,7 @@ appeared under more than one dimension and are listed once).
    renders.** Same root cause as #2: `marketing.css:398`
    `html[lang='zh-CN'] .ital { font-style: normal }` is layered, the component `.ital` rules are
    unlayered. Verified live: `getComputedStyle('.hero__head .ital').fontStyle === 'italic'` on
-   `/zh-CN`. *Fix:* same — unlayer it (or raise specificity), then give zh emphasis via weight or
+   `/zh-CN`. _Fix:_ same — unlayer it (or raise specificity), then give zh emphasis via weight or
    colour instead of the dropped italic. **Fixes #2 and #3 in one move.**
 
 ### P2
@@ -133,26 +138,26 @@ appeared under more than one dimension and are listed once).
 4. **Mid-page field rhythm is still a long same-altitude run.** `index.astro:45-54` — Surfaces /
    HowItWorks / Notice are three consecutive plain `.m-section` on the `--m-canvas` page base, and
    Compare / Security / Faq are three more; only Villain, Sources and Close break the field. The
-   per-section internal grammar is now well varied, which softens this. *Fix to fully close P1-13:*
+   per-section internal grammar is now well varied, which softens this. _Fix to fully close P1-13:_
    give ONE section in each white run a field break — e.g. tint Compare or Security with a band like
    Sources (`background: var(--m-section)` + top hairline), or vary container width / lead-with-mock
    on Notice or Surfaces.
 
 5. **Stray English noun "practice" (= 事务所) renders 15× in zh Pricing prose.** `zh-CN.ts` pricing
    copy — e.g. "1 个 practice 工作区" (561,582), "1 个生产 practice" (605,627), "practice Owner"
-   (668). *Fix:* localize the prose noun to 事务所 (or 团队); keep only true code/format tokens and
+   (668). _Fix:_ localize the prose noun to 事务所 (or 团队); keep only true code/format tokens and
    proper names (IRS, FEMA, Drake, source_url) in English.
 
 6. **Banned "Deadline Radar" named as a product surface in long-tail SEO content (EN + zh), which
    renders on indexed resource/guide pages.** `seo-content.ts:781` ("…evidence gaps, and Deadline
-   Radar.") and `:1164` (zh "…证据缺口和 Deadline Radar。"). *Fix:* replace with "Alerts" / "the
+   Radar.") and `:1164` (zh "…证据缺口和 Deadline Radar。"). _Fix:_ replace with "Alerts" / "the
    Alerts surface" (zh: "Alerts/提醒") to match the live product vocabulary and the team's ban on
    "Radar".
 
 7. **Recommended pricing plan adds asymmetric width on top of the sticker rather than instead of
    it.** `Pricing.astro` — `.pr__card--wide` spans 3 of 9 tracks (the strong de-templatizing move),
    but `.pr__card--rec` still simultaneously carries a top ribbon, a 1.5px accent frame, a tinted
-   body and a box-shadow lift. *Fix:* the width signal now does the hierarchy work — drop the ribbon
+   body and a box-shadow lift. _Fix:_ the width signal now does the hierarchy work — drop the ribbon
    OR the accent frame so the card reads "wider and quietly marked", not template-SaaS.
 
 ### P3
@@ -160,24 +165,24 @@ appeared under more than one dimension and are listed once).
 8. **Orphaned legacy zh blocks still ship a contradictory narrative in the catalog** (dead, but a
    re-drift risk). `zh-CN.ts` hero (24-31, eyebrow "玻璃盒截止日智能"), `finalCta.pillCaption`
    (516+), footer "Migration Copilot"/"Workbench" (1380-1382) — confirmed NOT consumed by the live
-   home. *Fix:* delete the confirmed-dead hero/problem/workflow/finalCta blocks so the stale
+   home. _Fix:_ delete the confirmed-dead hero/problem/workflow/finalCta blocks so the stale
    narrative can't re-enter via a future component — this is exactly what produced the original meta
    drift. (The orphaned `en.ts` "Open the workbench" route label, `en.ts:23,1394`, belongs in the
    same sweep.)
 
 9. **Three of four Surfaces "See it" links share identical text "See in the tour" while pointing at
    three different anchors** (`/how-it-works#how`, `#work`, `/how-it-works`). `Surfaces.astro:81,98,106`.
-   All three legitimately land in the tour so the label is honest; *optional fix:* differentiate the
+   All three legitimately land in the tour so the label is honest; _optional fix:_ differentiate the
    two anchored ones ("See the alert flow" / "See the worklist"). Much improved over the prior
    four-way scatter.
 
 10. **`--m-canvas` (#f2f4f7) vs `--m-section` luminance ~1.03:1** — canvas/section boundaries are
-    delineated by hairline only. `marketing.css:33,35`. *Fix:* drop `--m-canvas` a step, or audit
+    delineated by hairline only. `marketing.css:33,35`. _Fix:_ drop `--m-canvas` a step, or audit
     that every boundary keeps its hairline.
 
 11. **Tilegram "watched" cue rides on colour + pulse; with reduce-motion the live-scan signal has no
     motion replacement.** `Sources.astro`. Not failing AA (rescued by `aria-label` + visible
-    legend). *Fix (optional):* add a static "watched" affordance (corner tick).
+    legend). _Fix (optional):_ add a static "watched" affordance (corner tick).
 
 ## Recommendation
 
