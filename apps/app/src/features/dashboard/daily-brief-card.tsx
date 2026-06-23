@@ -552,7 +552,18 @@ function FirmTodayLine({
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
         </Trans>{' '}
-        <TextLink variant="accent" size="sm" render={<Link to="/deadlines" />}>
+        {/* Carry the filter the sentence describes — overdue deadlines of this
+            form type — so the queue arrives scoped to exactly that cluster
+            (`due` + `taxType` are real /deadlines params). */}
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={
+            <Link
+              to={`/deadlines?due=overdue&taxType=${encodeURIComponent(concentration.taxType)}`}
+            />
+          }
+        >
           <Trans>View deadlines</Trans>
         </TextLink>
       </p>

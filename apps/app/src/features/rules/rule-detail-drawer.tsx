@@ -203,6 +203,18 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
           <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
         }
       />
+      {/* Reverse entity→audit path: open this rule's history in the firm-wide
+          audit log (full filters + export), scoped via ?entity=<id>. */}
+      <div className="mt-3 border-t border-divider-subtle pt-3">
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={<Link to={`/audit?entity=${encodeURIComponent(rule.id)}`} />}
+        >
+          <Trans>View in full audit log</Trans>
+          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+        </TextLink>
+      </div>
     </DetailSectionCard>
   )
 }

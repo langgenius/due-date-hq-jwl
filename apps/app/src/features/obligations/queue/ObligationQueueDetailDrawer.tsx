@@ -130,6 +130,7 @@ import {
   ChevronDownIcon,
   CircleOffIcon,
   CopyIcon,
+  ArrowUpRightIcon,
   ExternalLinkIcon,
   SquareChartGanttIcon,
   FileTextIcon,
@@ -4901,6 +4902,22 @@ export function ObligationQueueDetailDrawer({
                           <Trans>No activity recorded yet.</Trans>
                         </EmptyPanel>
                       )}
+                      {/* Reverse entity→audit path: this card shows the
+                          deadline's OWN timeline; the link opens the same
+                          history in the firm-wide audit log (full filters +
+                          export), scoped to this record via ?entity=<id>. */}
+                      {detail.auditEvents.length > 0 ? (
+                        <div className="mt-3 border-t border-divider-subtle pt-3">
+                          <TextLink
+                            variant="accent"
+                            size="sm"
+                            render={<Link to={`/audit?entity=${encodeURIComponent(row.id)}`} />}
+                          >
+                            <Trans>View in full audit log</Trans>
+                            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                          </TextLink>
+                        </div>
+                      ) : null}
                     </DetailSectionCard>
                   </motion.div>
                 </section>

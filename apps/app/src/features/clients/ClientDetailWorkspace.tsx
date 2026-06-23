@@ -1714,7 +1714,10 @@ function ClientHeaderOverflowMenu({
       <DropdownMenuContent align="end" className="min-w-[220px]">
         {canReadAudit ? (
           <DropdownMenuItem
-            onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+            // `entity=<id>` scopes the audit log to THIS client (the page now
+            // wires that param to the query's entityId). Was `entityId=`, which
+            // the page never read — so it used to show every client's events.
+            onClick={() => void navigate(`/audit?entity=${clientId}`)}
           >
             <ScrollTextIcon className="size-4" aria-hidden />
             <Trans>View audit log</Trans>
