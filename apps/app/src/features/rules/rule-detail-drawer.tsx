@@ -673,9 +673,14 @@ export function RuleDetailCompact({
           </div>
         </div>
 
-        {/* RIGHT — the decision rail (gray, scrolls independently). */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-6 py-5">
-          <CapsFieldLabel as="span" variant="group">
+        {/* RIGHT — the decision rail. Made structurally DISTINCT from the
+            read-side (Yuqi "be more different"): a deeper gray surface + a
+            firmer seam so it reads as a separate "act here" panel, not a margin
+            of the facts column; and an accent-tinted header (vs the neutral
+            "Verify the facts" eyebrow) so the eye knows which side is the
+            decision. Scrolls independently. */}
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-deep bg-background-subtle px-6 py-5">
+          <CapsFieldLabel as="span" variant="group" className="text-text-accent">
             <Trans>Your decision</Trans>
           </CapsFieldLabel>
           {impactCard}
