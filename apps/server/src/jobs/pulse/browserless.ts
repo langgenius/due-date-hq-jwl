@@ -134,22 +134,35 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
         'user-agent': userAgent,
       },
     }
+    // 2026-06-23: render after the network settles ("networkidle2") so
+    // client-rendered news lists (SharePoint WebParts, JS feeds) land in the
+    // captured HTML instead of just the shell. `bestAttempt` returns whatever
+    // rendered if the idle wait times out, so a busy page can't turn into a hard
+    // fetch failure. The cloud schema drifts (see the userAgent note below: it is
+    // a CDP setUserAgentOverride object, not a string), so on a 400 we drop the
+    // rejected field — wait options first, then userAgent — and keep the source
+    // alive, capping at two drops.
+    const WAIT = { gotoOptions: { waitUntil: 'networkidle2', timeout: 20_000 }, bestAttempt: true }
     const render = async (): Promise<Response> => {
-      // Cloud schema as of 2026-06-10: `userAgent` is a CDP
-      // setUserAgentOverride-shaped object, not a string.
-      let body: Record<string, unknown> = { ...baseBody, userAgent: { userAgent } }
+      let body: Record<string, unknown> = { ...baseBody, ...WAIT, userAgent: { userAgent } }
       let response = await post(body)
-      if (response.status === 400) {
+      for (let attempt = 0; attempt < 2 && response.status === 400; attempt++) {
         const rejection = await response
           .clone()
           .text()
           .catch(() => '')
-        // Schema drifted again around the userAgent field — fall back to the
-        // header-level override and keep the source alive.
-        if (/userAgent/i.test(rejection)) {
-          body = baseBody
-          response = await post(body)
+        if (
+          /gotoOptions|waitUntil|networkidle|bestAttempt/i.test(rejection) &&
+          'gotoOptions' in body
+        ) {
+          delete body.gotoOptions
+          delete body.bestAttempt
+        } else if (/userAgent/i.test(rejection) && 'userAgent' in body) {
+          delete body.userAgent
+        } else {
+          break
         }
+        response = await post(body)
       }
       // A bare 429 (no x-response-code) is browserless's own concurrency
       // limiter, not the target site — pace and retry once.
