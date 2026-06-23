@@ -1843,6 +1843,10 @@ msgstr "访问被拒绝"
 msgid "access revoked, history kept"
 msgstr "访问已撤销，历史已保留"
 
+#: src/features/members/members-page.tsx
+msgid "Access suspended"
+msgstr "已暂停访问"
+
 #: src/features/members/member-model.ts
 msgid "Access to elevated workflow scopes"
 msgstr "访问更高权限的工作流范围"
@@ -2625,6 +2629,10 @@ msgstr "无匹配"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "All materials are in."
 msgstr "所有材料均已齐备。"
+
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "All notifications marked read"
+msgstr "已将所有通知标记为已读"
 
 #: src/routes/obligations.tsx
 msgid "all on time"
@@ -5039,6 +5047,10 @@ msgstr "无法排队 morning digest 预览"
 msgid "Couldn't queue risk summary"
 msgstr "无法排队生成风险摘要"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't re-send invitation"
+msgstr "无法重新发送邀请"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't reactivate alert"
 msgstr "无法重新激活提醒"
@@ -5059,6 +5071,10 @@ msgstr "无法拒绝规则"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't remove document item"
 msgstr "无法移除文件项"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't remove member"
+msgstr "无法移除成员"
 
 #: src/routes/clients.tsx
 msgid "Couldn't remove sample data"
@@ -5202,6 +5218,10 @@ msgstr "无法启动导入流程"
 #: src/routes/readiness.tsx
 msgid "Couldn't submit readiness response"
 msgstr "无法提交准备状态回复"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't suspend access"
+msgstr "无法暂停访问"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Couldn't switch firm"
@@ -6907,6 +6927,10 @@ msgstr "导出 QuickBooks 客户"
 #: src/routes/obligations.tsx
 msgid "Export ready"
 msgstr "导出已就绪"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Export requested"
+msgstr "已请求导出"
 
 #: src/routes/rules.library.tsx
 msgid "Export rules as CSV"
@@ -9278,6 +9302,7 @@ msgid "Member reactivated"
 msgstr "成员已重新启用"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/members/members-page.tsx
 msgid "Member removed"
 msgstr "成员已移除"
 
@@ -10602,6 +10627,7 @@ msgstr "不是你的设备？"
 msgid "Note"
 msgstr "备注"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Note added"
 msgstr "备注已添加"
@@ -11836,6 +11862,7 @@ msgid "Practice deadlines"
 msgstr "事务所截止日期"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/practice.tsx
 msgid "Practice deleted"
 msgstr "事务所已删除"
 
@@ -16809,6 +16836,10 @@ msgstr "我们会自动匹配您的事务所"
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "我们会保存应用权限所需的计划和席位上限。"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "We're preparing the evidence package — it'll be ready to download here shortly."
+msgstr "正在准备证据包 —— 稍后即可在此处下载。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"

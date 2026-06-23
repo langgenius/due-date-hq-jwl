@@ -1835,6 +1835,10 @@ msgstr "Access denied"
 msgid "access revoked, history kept"
 msgstr "access revoked, history kept"
 
+#: src/features/members/members-page.tsx
+msgid "Access suspended"
+msgstr "Access suspended"
+
 #: src/features/members/member-model.ts
 msgid "Access to elevated workflow scopes"
 msgstr "Access to elevated workflow scopes"
@@ -2613,6 +2617,10 @@ msgstr "all matched"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "All materials are in."
 msgstr "All materials are in."
+
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "All notifications marked read"
+msgstr "All notifications marked read"
 
 #: src/routes/obligations.tsx
 msgid "all on time"
@@ -5018,6 +5026,10 @@ msgstr "Couldn't queue morning digest preview"
 msgid "Couldn't queue risk summary"
 msgstr "Couldn't queue risk summary"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't re-send invitation"
+msgstr "Couldn't re-send invitation"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't reactivate alert"
 msgstr "Couldn't reactivate alert"
@@ -5038,6 +5050,10 @@ msgstr "Couldn't reject rule"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't remove document item"
 msgstr "Couldn't remove document item"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't remove member"
+msgstr "Couldn't remove member"
 
 #: src/routes/clients.tsx
 msgid "Couldn't remove sample data"
@@ -5181,6 +5197,10 @@ msgstr "Couldn't start the import"
 #: src/routes/readiness.tsx
 msgid "Couldn't submit readiness response"
 msgstr "Couldn't submit readiness response"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't suspend access"
+msgstr "Couldn't suspend access"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Couldn't switch firm"
@@ -6883,6 +6903,10 @@ msgstr "Export QuickBooks customers"
 #: src/routes/obligations.tsx
 msgid "Export ready"
 msgstr "Export ready"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Export requested"
+msgstr "Export requested"
 
 #: src/routes/rules.library.tsx
 msgid "Export rules as CSV"
@@ -9241,6 +9265,7 @@ msgid "Member reactivated"
 msgstr "Member reactivated"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/members/members-page.tsx
 msgid "Member removed"
 msgstr "Member removed"
 
@@ -10562,6 +10587,7 @@ msgstr "Not your device?"
 msgid "Note"
 msgstr "Note"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Note added"
 msgstr "Note added"
@@ -11782,6 +11808,7 @@ msgid "Practice deadlines"
 msgstr "Practice deadlines"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/practice.tsx
 msgid "Practice deleted"
 msgstr "Practice deleted"
 
@@ -16741,6 +16768,10 @@ msgstr "we look up your firm automatically"
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "We store the plan and seat limit needed for app permissions."
+
+#: src/features/audit/audit-log-page.tsx
+msgid "We're preparing the evidence package — it'll be ready to download here shortly."
+msgstr "We're preparing the evidence package — it'll be ready to download here shortly."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"
