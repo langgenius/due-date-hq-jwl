@@ -55,8 +55,12 @@ export function ListRail({
 export function ListRailHead({ className, children }: { className?: string; children: ReactNode }) {
   return (
     <div
+      // Fixed h-[52px] (was py-3.5 → ~57px) so the rail header's bottom hairline
+      // lines up EXACTLY with the detail pane's top-bar hairline beside it — both
+      // the alert + deadline crumb bars are h-[52px] (Yuqi 2026-06-23: "the lines
+      // slightly misalign"). Content centers vertically within the fixed height.
       className={cn(
-        'flex shrink-0 items-center gap-2 border-b border-divider-subtle px-[18px] py-3.5',
+        'flex h-[52px] shrink-0 items-center gap-2 border-b border-divider-subtle px-[18px]',
         className,
       )}
     >
