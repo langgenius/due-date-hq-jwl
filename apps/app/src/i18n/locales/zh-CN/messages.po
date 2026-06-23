@@ -1158,6 +1158,10 @@ msgid "{label}, selected"
 msgstr "{label}，已选择"
 
 #: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {high} high-severity — review first"
+msgstr "{label}：{high} 条高严重度 —— 优先审核"
+
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "{label}: {pending} of {total} to review"
 msgstr "{label}：{total} 条中 {pending} 条待审核"
 
@@ -13116,6 +13120,10 @@ msgstr "按辖区查看审核覆盖"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
 msgstr "查看覆盖、来源和待审核规则。"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review first"
+msgstr "优先审核"
 
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"

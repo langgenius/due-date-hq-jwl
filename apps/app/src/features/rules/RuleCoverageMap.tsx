@@ -93,15 +93,14 @@ export function RuleCoverageMap({
                   aria-label={title}
                   title={title}
                   className={cn(
-                    // Calm, no alarm: every tile is a neutral white cell with a
-                    // gray outline. NO red anywhere — a board full of red borders
-                    // read as shocking, and urgency already lives in the StatBand
-                    // ("HIGH-SEVERITY · review first") + the Where-to-start cards.
-                    // The map's job here is COVERAGE: a green "monitoring" dot
-                    // (consistent with the MonitoringChip / PulsingDot success
-                    // green used across /today + /alerts) shows we're sweeping
-                    // that jurisdiction's sources daily; the COUNT shows how many
-                    // rules await review. Untracked (no rules) recedes.
+                    // Calm by default: every tile is a neutral white cell with a
+                    // gray outline — no red BORDERS or fills (a board full of red
+                    // outlines read as shocking). The warranted red lives in the
+                    // small corner status DOT instead: green = monitored/fine,
+                    // red = has high-severity rules to review first. So red shows
+                    // exactly where it should, restrained to the few urgent tiles.
+                    // The COUNT shows how many rules await review; untracked
+                    // (no rules) recedes.
                     'absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border bg-background-default transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1',
                     active
@@ -117,14 +116,22 @@ export function RuleCoverageMap({
                     height: US_TILE_CELL_SIZE,
                   }}
                 >
-                  {/* Monitoring dot — small green status dot in the corner for
-                      every jurisdiction we actively sweep. Mirrors the dense
-                      per-row dot pattern in the states rail (small solid status
-                      dot), in the success-green used by the MonitoringChip. */}
+                  {/* Monitoring dot — a small status dot in the corner for every
+                      jurisdiction we actively sweep. Tone follows the PulsingDot
+                      ladder: GREEN normally ("monitored, fine"), RED when the
+                      jurisdiction has high-severity rules awaiting review ("review
+                      first"). The red is warranted + restrained — only the few
+                      high-severity tiles light up, never a wall of red borders.
+                      Mirrors the states-rail per-row small-solid-dot pattern. */}
                   {tracked ? (
                     <span
-                      className="absolute right-1 top-1 size-1.5 shrink-0 rounded-full bg-state-success-solid"
-                      title={t`Monitoring ${label}`}
+                      className={cn(
+                        'absolute right-1 top-1 size-1.5 shrink-0 rounded-full',
+                        high > 0 ? 'bg-state-destructive-solid' : 'bg-state-success-solid',
+                      )}
+                      title={
+                        high > 0 ? t`${label}: ${high} high-severity — review first` : t`Monitoring ${label}`
+                      }
                       aria-hidden
                     />
                   ) : null}
@@ -159,6 +166,10 @@ export function RuleCoverageMap({
           <span className="inline-flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-state-success-solid" aria-hidden />
             <Trans>Monitoring</Trans>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-state-destructive-solid" aria-hidden />
+            <Trans>Review first</Trans>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="text-text-secondary tabular-nums">#</span>

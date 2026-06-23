@@ -1153,6 +1153,10 @@ msgid "{label}, selected"
 msgstr "{label}, selected"
 
 #: src/features/rules/RuleCoverageMap.tsx
+msgid "{label}: {high} high-severity — review first"
+msgstr "{label}: {high} high-severity — review first"
+
+#: src/features/rules/RuleCoverageMap.tsx
 msgid "{label}: {pending} of {total} to review"
 msgstr "{label}: {pending} of {total} to review"
 
@@ -13058,6 +13062,10 @@ msgstr "Review coverage by jurisdiction"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
 msgstr "Review coverage, sources, and pending rules."
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Review first"
+msgstr "Review first"
 
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"

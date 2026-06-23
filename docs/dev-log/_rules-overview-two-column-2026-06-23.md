@@ -92,3 +92,19 @@ A board where many tiles carry a red border still reads as alarm.
 Verify: tsgo + build clean · live — 0 red borders (single neutral border colour),
 52/52 monitored tiles carry the green dot (`rgb(23,178,106)`, 6px) · 3 new i18n
 strings (Monitoring / Monitoring {label} / To review), compile --strict clean.
+
+## Follow-up 3 — bring the warranted red back (same day)
+
+Yuqi: "该有的红色还是要有红色" (the red that ought to be there should still be
+there). Removing red entirely lost the high-severity signal on the map.
+
+- **The monitoring dot now tones by severity** (PulsingDot ladder): GREEN =
+  monitored/fine, **RED (`bg-state-destructive-solid`) = has high-severity rules
+  to review first.** No red borders/fills — just the small corner dot turns red.
+- So red appears **exactly where warranted and stays restrained**: only the few
+  high-severity jurisdictions (demo: NY/CA/TX/FED = 4 of 52), never a wall.
+- Legend → **● Monitoring · ● Review first (red) · # To review · No rules**.
+
+Verify: tsgo + build clean · live — 4 red dots (NY/CA/TX/FED), 48 green, 52 total
+· 2 new i18n strings (Review first / "{label}: {high} high-severity — review
+first"), compile --strict clean.
