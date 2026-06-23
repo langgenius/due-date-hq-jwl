@@ -875,8 +875,8 @@ function OverviewReviewBreakdown({
                     value={g.pendingReviewCount}
                     one={
                       <Trans>
-                        <span className="font-medium text-text-primary tabular-nums">#</span> rule to
-                        review
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rule
+                        to review
                       </Trans>
                     }
                     other={
@@ -903,11 +903,7 @@ function OverviewReviewBreakdown({
                     rules. Everything else in the sentence stays neutral. */}
                 {g.highCount > 0 ? (
                   <span className="inline-flex w-fit items-center gap-1 rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-medium text-text-warning">
-                    <Plural
-                      value={g.highCount}
-                      one="# high-severity"
-                      other="# high-severity"
-                    />
+                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
                   </span>
                 ) : null}
               </div>

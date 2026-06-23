@@ -18,13 +18,18 @@ interface PulseBackfillRequest {
   limit?: unknown
 }
 
+function isObjectLike(value: unknown): value is PulseBackfillRequest {
+  return typeof value === 'object' && value !== null
+}
+
 export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().post(
   '/pulse-backfill',
   async (c) => {
     if (!hasOpsAccess(c)) {
       return c.notFound()
     }
-    const body = (await c.req.json().catch(() => ({}))) as PulseBackfillRequest
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    const body: PulseBackfillRequest = isObjectLike(raw) ? raw : {}
     const sourceIds = Array.isArray(body.sourceIds)
       ? body.sourceIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
       : []

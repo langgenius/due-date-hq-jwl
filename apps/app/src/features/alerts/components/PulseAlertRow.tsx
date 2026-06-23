@@ -200,7 +200,7 @@ function PulseAlertRow({
   compact = false,
   selectable = false,
   selected = false,
-  selectionActive = false,
+  selectionActive: _selectionActive = false,
   onToggleSelected,
   priority,
   highImpact = false,

@@ -311,9 +311,7 @@ export function DeadlineNavigatorRail({
                 }
               >
                 <StatusMark
-                  status={
-                    effectiveStatusFilter === 'all' ? 'pending' : effectiveStatusFilter
-                  }
+                  status={effectiveStatusFilter === 'all' ? 'pending' : effectiveStatusFilter}
                   className={cn(
                     'size-3.5 shrink-0',
                     effectiveStatusFilter === 'all'
