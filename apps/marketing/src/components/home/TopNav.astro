@@ -133,18 +133,18 @@ const links = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: transparent;
-    transition:
-      background 0.25s ease,
-      padding-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-  /* content pages: solid full-width so the nav reads over content */
-  .nav--page {
+    /* ONE nav background on every page (home included) — a subtle solid bar with
+       a hairline, not a transparent float. The collapse (.nav--scrolled) and the
+       villain pass (.nav--on-dark) still override this on scroll. */
     background: color-mix(in srgb, var(--m-canvas) 92%, transparent);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--m-hairline);
+    transition:
+      background 0.25s ease,
+      padding-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   }
+  /* .nav--page now matches the base (kept as a hook; content pages pass it) */
   .nav__inner {
     max-width: var(--m-maxw);
     margin-inline: auto;
@@ -313,7 +313,7 @@ const links = [
   .nav__link {
     display: inline-flex;
     align-items: center;
-    padding: 7px 13px;
+    padding: 7px 11px;
     border-radius: 999px;
     font-size: var(--m-text-sm);
     font-weight: 500;
