@@ -11629,7 +11629,6 @@ msgstr "罚金豁免"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
-#: src/features/rules/RuleCoverageMap.tsx
 msgid "Pending"
 msgstr "待处理"
 
@@ -13252,7 +13251,6 @@ msgstr "仅供审核的来源变更。不会应用截止日覆盖。"
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStatusBadge.tsx
 #: src/features/alerts/components/AlertStatusChip.tsx
-#: src/features/rules/RuleCoverageMap.tsx
 msgid "Reviewed"
 msgstr "已审核"
 
@@ -15918,6 +15916,10 @@ msgstr "规则总数"
 #: src/routes/obligations.tsx
 msgid "Total tracked"
 msgstr "跟踪总数"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Tracked"
+msgstr "已跟踪"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

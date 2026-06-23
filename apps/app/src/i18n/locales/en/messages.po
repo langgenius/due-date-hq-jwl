@@ -11579,7 +11579,6 @@ msgstr "Penalty waiver"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
-#: src/features/rules/RuleCoverageMap.tsx
 msgid "Pending"
 msgstr "Pending"
 
@@ -13194,7 +13193,6 @@ msgstr "Review-only source change. No due-date overlay will be applied."
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStatusBadge.tsx
 #: src/features/alerts/components/AlertStatusChip.tsx
-#: src/features/rules/RuleCoverageMap.tsx
 msgid "Reviewed"
 msgstr "Reviewed"
 
@@ -15854,6 +15852,10 @@ msgstr "Total rules"
 #: src/routes/obligations.tsx
 msgid "Total tracked"
 msgstr "Total tracked"
+
+#: src/features/rules/RuleCoverageMap.tsx
+msgid "Tracked"
+msgstr "Tracked"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

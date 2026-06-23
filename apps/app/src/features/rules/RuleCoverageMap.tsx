@@ -93,17 +93,23 @@ export function RuleCoverageMap({
                   aria-label={title}
                   title={title}
                   className={cn(
-                    'absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border transition-colors',
+                    // Subtle: calm neutral tiles (white, gray outline). Status is
+                    // carried by the border + the already-coloured code, never a
+                    // full fill, so the map reads as outlines not blocks. RED is
+                    // reserved for the "review first" / high-severity tiles — the
+                    // only strong colour on the board (mirrors the StatBand, where
+                    // pending stays neutral and only high-severity goes red). The
+                    // bulk of pending tiles stay neutral; their COUNT shows the
+                    // work without painting the whole map red.
+                    'absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border bg-background-default transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1',
                     active
                       ? 'border-state-accent-solid bg-state-accent-hover'
                       : tone === 'high'
-                        ? 'border-state-destructive-border bg-components-badge-bg-red-soft hover:border-state-accent-solid'
-                        : tone === 'pending'
-                          ? 'border-transparent bg-components-badge-bg-warning-soft hover:border-state-accent-solid'
-                          : tone === 'reviewed'
-                            ? 'border-transparent bg-components-badge-bg-green-soft hover:border-state-accent-solid'
-                            : 'cursor-not-allowed border-transparent bg-background-soft opacity-40',
+                        ? 'border-state-destructive-solid hover:border-state-accent-solid'
+                        : tone === 'untracked'
+                          ? 'cursor-not-allowed border-divider-subtle bg-background-subtle opacity-50'
+                          : 'border-border hover:border-state-accent-solid',
                   )}
                   style={{
                     left: col * cellSpan,
@@ -120,10 +126,8 @@ export function RuleCoverageMap({
                         : tone === 'high'
                           ? 'text-text-destructive'
                           : tone === 'pending'
-                            ? 'text-text-warning'
-                            : tone === 'reviewed'
-                              ? 'text-text-success'
-                              : 'text-text-tertiary',
+                            ? 'text-text-secondary'
+                            : 'text-text-tertiary',
                     )}
                   >
                     {code}
@@ -138,46 +142,28 @@ export function RuleCoverageMap({
                       {pending}
                     </span>
                   ) : null}
-                  {/* High-severity marker on "review first" tiles — a small
-                      red count bubble in the corner, so the do-these-first
-                      jurisdictions carry their high-severity number (not just
-                      a red tint) and read as the priority the StatBand calls
-                      out. */}
-                  {tone === 'high' && high > 0 ? (
-                    <span
-                      className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-background-default bg-text-destructive px-1 text-[9px] font-semibold leading-none text-text-inverted tabular-nums"
-                      aria-hidden
-                    >
-                      {high}
-                    </span>
-                  ) : null}
                 </button>
               )
             })}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-tertiary">
-          <CoverageLegendSwatch
-            className="bg-components-badge-bg-red-soft"
-            label={t`Review first`}
-          />
-          <CoverageLegendSwatch
-            className="bg-components-badge-bg-warning-soft"
-            label={t`Pending`}
-          />
-          <CoverageLegendSwatch className="bg-components-badge-bg-green-soft" label={t`Reviewed`} />
-          <CoverageLegendSwatch className="bg-background-soft" label={t`No rules`} />
+          <CoverageLegendSwatch className="border-state-destructive-solid" label={t`Review first`} />
+          <CoverageLegendSwatch className="border-border" label={t`Tracked`} />
+          <CoverageLegendSwatch className="border-divider-subtle" label={t`No rules`} />
         </div>
       </div>
     </section>
   )
 }
 
+// Outline swatch — a bordered square (no fill), matching the tiles' new
+// border-carries-status treatment. `className` supplies the border colour.
 function CoverageLegendSwatch({ className, label }: { className: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span
-        className={cn('size-3 rounded-sm border border-divider-subtle', className)}
+        className={cn('size-3 rounded-sm border bg-background-default', className)}
         aria-hidden
       />
       {label}

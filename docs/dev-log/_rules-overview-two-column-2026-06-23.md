@@ -45,3 +45,28 @@ important level, hence the same title size."
 Yuqi offered "hide the coverage map" as the alternative. The two-column layout
 solves the same vertical-space problem without losing the signature view, so
 that's what shipped; a hide/collapse toggle was not added.
+
+## Follow-up — subtler coverage map (same day)
+
+Yuqi: "more subtle, just the state name in red and destructive border to show it
+needs to be reviewed, not the whole thing red." The tiles were filled with soft
+red/amber/green blocks; with a mostly-pending backlog the whole map read red.
+
+- **Status now rides the border, not a fill.** Tiles are white with a neutral
+  gray outline; no `bg-*-soft` fills anywhere.
+- **Red is reserved for "review first" (high-severity)** — those tiles get
+  `border-state-destructive-solid` + a red code. This is the only strong colour
+  on the board, so it pops (von-Restorff) — and it mirrors the StatBand, which
+  also keeps PENDING neutral and only HIGH-SEVERITY red.
+- **The bulk of pending tiles stay neutral** (`border-border` + secondary code);
+  their **count** carries "N to review" without painting the map red.
+- Removed the red high-severity count bubble (the precise count lives in the
+  tooltip + Where-to-start cards). Legend collapsed to **Review first · Tracked ·
+  No rules**.
+- Note: `state-warning-solid` resolves to a coral/red in this system (not amber),
+  and `state-success-border` isn't a defined token — both reasons the old
+  3-colour outline idea was dropped in favour of red-or-neutral.
+
+Verify: tsgo + build clean · live — only NY/CA/TX/FED (high-severity) red, the
+rest neutral with counts · 1 new i18n string ("Tracked" → 已跟踪), compile
+--strict clean.
