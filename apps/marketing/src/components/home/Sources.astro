@@ -69,6 +69,32 @@ const t = zh
         { code: 'FE', org: 'FEMA', agency: 'Federal', body: 'new disaster declaration', when: '1h ago', dot: 'new', alert: true },
       ],
     }
+// Full state names — drive the "click a state → its sources" panel. Every state
+// is watched the same way (IRS + FEMA + its state tax agency), so the panel is
+// honest without per-state specifics; the well-known agencies get a real name.
+const STATE_NAMES: Record<string, string> = {
+  AK: 'Alaska', AL: 'Alabama', AR: 'Arkansas', AZ: 'Arizona', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DC: 'District of Columbia', DE: 'Delaware',
+  FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', IA: 'Iowa', ID: 'Idaho',
+  IL: 'Illinois', IN: 'Indiana', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
+  MA: 'Massachusetts', MD: 'Maryland', ME: 'Maine', MI: 'Michigan', MN: 'Minnesota',
+  MO: 'Missouri', MS: 'Mississippi', MT: 'Montana', NC: 'North Carolina',
+  ND: 'North Dakota', NE: 'Nebraska', NH: 'New Hampshire', NJ: 'New Jersey',
+  NM: 'New Mexico', NV: 'Nevada', NY: 'New York', OH: 'Ohio', OK: 'Oklahoma',
+  OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VA: 'Virginia',
+  VT: 'Vermont', WA: 'Washington', WI: 'Wisconsin', WV: 'West Virginia', WY: 'Wyoming',
+}
+// Real agency names for the ones we name elsewhere; the rest use a clean generic.
+const STATE_AGENCY: Record<string, string> = {
+  CA: 'Franchise Tax Board', NY: 'Dept. of Taxation & Finance',
+  TX: 'Comptroller of Public Accounts', FL: 'Dept. of Revenue',
+  WA: 'Dept. of Revenue', MA: 'Dept. of Revenue',
+}
+const panel = zh
+  ? { prompt: '点选地图上的任意一州，查看我们为它监控的官方来源。', watched: '实时监控', fed: '联邦', state: '州', sIrs: 'IRS — 联邦报税', sFema: 'FEMA — 全国灾害救济', agencyGeneric: '州税务机关' }
+  : { prompt: 'Click any state on the map to see the official sources we watch for it.', watched: 'Watched live', fed: 'Federal', state: 'State', sIrs: 'IRS — federal filing', sFema: 'FEMA — disaster relief, nationwide', agencyGeneric: 'state tax agency' }
+
 // US tilegram (state, grid-row, grid-column) — every tile is watched
 const tiles = [
   { s: 'AK', r: 1, c: 1 }, { s: 'ME', r: 1, c: 11 },
@@ -108,12 +134,21 @@ const tiles = [
     <div class="sources__grid">
       <!-- live-scanning US map — every state watched, uniformly -->
       <div class="usmap-wrap">
-        <div class="usmap" role="img" aria-label={t.mapLabel}>
+        <div class="usmap" role="group" aria-label={t.mapLabel}>
           {
             tiles.map((tile) => (
-              <div class="ust" style={`grid-row:${tile.r};grid-column:${tile.c}`}>
+              <button
+                type="button"
+                class="ust"
+                data-state={tile.s}
+                data-name={STATE_NAMES[tile.s]}
+                data-agency={STATE_AGENCY[tile.s] ?? `${STATE_NAMES[tile.s]} ${panel.agencyGeneric}`}
+                aria-label={`${STATE_NAMES[tile.s]} — ${panel.watched}`}
+                aria-pressed="false"
+                style={`grid-row:${tile.r};grid-column:${tile.c}`}
+              >
                 <span class="ust__c">{tile.s}</span>
-              </div>
+              </button>
             ))
           }
         </div>
@@ -127,6 +162,7 @@ const tiles = [
         </div>
       </div>
 
+      <div class="sources__rightcol">
       <!-- source-monitoring feed — styled like the product's Alerts surface -->
       <div class="feed" aria-label={t.feedLabel}>
         <div class="feed__bar">
@@ -169,9 +205,62 @@ const tiles = [
           <span class="feed__foot-right">{t.feedCap}</span>
         </div>
       </div>
+
+      <!-- click a state on the map → its sources show here (stacked → no jump) -->
+      <div class="statepanel" data-statepanel hidden aria-live="polite">
+        <div class="statepanel__head">
+          <span class="statepanel__name" data-sp-name></span>
+          <span class="statepanel__live"><span class="statepanel__dot" aria-hidden="true" />{panel.watched}</span>
+        </div>
+        <ul class="statepanel__rows">
+          <li class="sp-row">
+            <span class="sp-row__badge">IRS</span>
+            <span class="sp-row__org">{panel.sIrs}</span>
+            <span class="sp-row__tag sp-row__tag--fed">{panel.fed}</span>
+          </li>
+          <li class="sp-row sp-row--accent">
+            <span class="sp-row__badge" data-sp-abbr></span>
+            <span class="sp-row__org" data-sp-agency></span>
+            <span class="sp-row__tag sp-row__tag--state">{panel.state}</span>
+          </li>
+          <li class="sp-row">
+            <span class="sp-row__badge">FE</span>
+            <span class="sp-row__org">{panel.sFema}</span>
+            <span class="sp-row__tag sp-row__tag--fed">{panel.fed}</span>
+          </li>
+        </ul>
+      </div>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  // Click a state tile → show that state's sources in the side panel (the live
+  // feed cross-fades out, the panel in). Stacked in one grid cell = no jump.
+  // Re-binds on first load + every View-Transition navigation.
+  function initSourcesMap() {
+    document.querySelectorAll<HTMLElement>('.sources__grid').forEach((grid) => {
+      const tiles = Array.from(grid.querySelectorAll<HTMLButtonElement>('.ust'))
+      const panel = grid.querySelector<HTMLElement>('[data-statepanel]')
+      const col = grid.querySelector<HTMLElement>('.sources__rightcol')
+      if (!panel || !col) return
+      const nameEl = panel.querySelector<HTMLElement>('[data-sp-name]')
+      const abbrEl = panel.querySelector<HTMLElement>('[data-sp-abbr]')
+      const agencyEl = panel.querySelector<HTMLElement>('[data-sp-agency]')
+      const select = (tile: HTMLButtonElement) => {
+        tiles.forEach((t) => t.setAttribute('aria-pressed', String(t === tile)))
+        if (nameEl) nameEl.textContent = tile.dataset.name ?? ''
+        if (abbrEl) abbrEl.textContent = tile.dataset.state ?? ''
+        if (agencyEl) agencyEl.textContent = tile.dataset.agency ?? ''
+        panel.hidden = false
+        col.setAttribute('data-showpanel', '')
+      }
+      tiles.forEach((tile) => tile.addEventListener('click', () => select(tile)))
+    })
+  }
+  document.addEventListener('astro:page-load', initSourcesMap)
+</script>
 
 <style>
   /* normal contained band — matches the other sections; no top/bottom border */
@@ -228,9 +317,126 @@ const tiles = [
   .usmap-wrap {
     grid-column: span 7;
   }
-  .feed {
+  /* right column stacks the live feed + the per-state panel in ONE grid cell, so
+     clicking a state cross-fades the panel in with no layout jump (feed keeps its
+     height even when faded out). */
+  .sources__rightcol {
     grid-column: span 5;
     align-self: stretch;
+    display: grid;
+  }
+  .feed,
+  .statepanel {
+    grid-area: 1 / 1;
+  }
+  .feed {
+    transition: opacity 0.25s var(--m-ease);
+  }
+  .sources__rightcol[data-showpanel] .feed {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .statepanel {
+    align-self: start;
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.25s var(--m-ease);
+  }
+  .sources__rightcol[data-showpanel] .statepanel {
+    opacity: 1;
+  }
+  .statepanel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--m-hairline);
+    background: var(--m-section);
+  }
+  .statepanel__name {
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .statepanel__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+    flex: none;
+  }
+  .statepanel__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 18%, transparent);
+  }
+  .statepanel__rows {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    display: grid;
+    gap: 4px;
+  }
+  .sp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 8px;
+  }
+  .sp-row--accent {
+    background: var(--m-accent-tint);
+  }
+  .sp-row__badge {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    min-width: 34px;
+    height: 26px;
+    padding-inline: 6px;
+    border-radius: 6px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-ink-2);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+  }
+  .sp-row__org {
+    flex: 1;
+    font-size: var(--m-text-sm);
+    color: var(--m-ink);
+  }
+  .sp-row__tag {
+    flex: none;
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .sp-row__tag--fed {
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+  .sp-row__tag--state {
+    color: var(--m-muted);
+    background: var(--m-section);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .feed,
+    .statepanel,
+    .ust {
+      transition: none;
+    }
   }
 
   /* ---- US tilegram — a calm coverage grid: light neutral tiles, every one
@@ -243,6 +449,10 @@ const tiles = [
     min-width: 520px;
   }
   .ust {
+    appearance: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
     position: relative;
     display: grid;
     place-items: center;
@@ -254,6 +464,25 @@ const tiles = [
     /* neutral surface on every state — identical, no priority tier */
     background: var(--m-section);
     border: 1px solid var(--m-hairline);
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .ust:hover {
+    background: var(--m-surface);
+    border-color: var(--m-accent);
+    color: var(--m-ink);
+  }
+  .ust[aria-pressed='true'] {
+    background: var(--m-accent);
+    border-color: var(--m-accent);
+    color: #fff;
+  }
+  .ust:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
+    z-index: 2;
   }
   .ust__c {
     position: relative;
