@@ -244,7 +244,7 @@ export function DailyBriefCard({
         // docs/Design/brief-banner-language.md.
         // The unfold: expanding from the tab plays the house animate-in recipe
         // (fade + 4px slide from the tab's position) — the paper opens.
-        className="group relative z-10 flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+        className="group relative z-10 flex flex-col gap-1 rounded-xl bg-state-accent-hover px-5 py-2.5 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
       >
         {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}
@@ -268,12 +268,12 @@ export function DailyBriefCard({
           whole card is hovered (the section owns `group`), echoing the tab's
           "pick the paper up off the mat" motion without adding any chrome. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5">
             <NewspaperIcon
-              className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+              className="size-3.5 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
               aria-hidden
             />
-            <h2 className="text-base font-semibold text-text-secondary">
+            <h2 className="text-sm font-semibold text-text-secondary">
               <Trans>Daily Brief</Trans>
             </h2>
           </span>
