@@ -3879,6 +3879,21 @@ export function ObligationQueueRoute() {
                           </span>
                         )
                       }
+                      // Reserve the value slot to the widest scope value (the
+                      // glyph + longest status label) so the pill stops resizing
+                      // when a different status scope is picked.
+                      valueOptions={[
+                        t`All`,
+                        ...visibleScopeStatuses.map((status) => (
+                          <span key={status} className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={status}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[status])}
+                            />
+                            {statusLabels[status]}
+                          </span>
+                        )),
+                      ]}
                       aria-label={t`Filter by status`}
                     >
                       <span>

@@ -66,6 +66,16 @@ type FilterTriggerProps = {
    */
   valueLabel?: ReactNode
   /**
+   * Every possible value the `valueLabel` slot could show. When supplied, the
+   * value slot reserves width to the WIDEST option (invisible ghost copies are
+   * stacked behind the live value in a single CSS grid cell), so the pill
+   * stops resizing — and the controls beside it stop jumping — when the user
+   * selects a different option. SSR-safe (pure CSS, no JS measuring). Ignored
+   * unless `valueLabel` is also present. `SingleSelectFilter` fills this in
+   * from its option list automatically.
+   */
+  valueOptions?: ReactNode[]
+  /**
    * Active-filter count for CONSOLIDATED "Filters" triggers (the bundle that
    * opens a popover of facets). When `count > 0` it renders the canonical
    * accent-solid count badge in the value slot — the one shared "N filters on"
@@ -110,6 +120,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
       noLeadingIcon,
       size = 'default',
       valueLabel,
+      valueOptions,
       variant = 'filter',
       ...rest
     },
@@ -176,7 +187,32 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // the value is the colored, scannable part (what's applied).
           <>
             <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
-            <span className={cn('font-medium tabular-nums', valueAccent)}>{valueLabel}</span>
+            {valueOptions && valueOptions.length > 0 ? (
+              // Fixed-width value slot: invisible ghost copies of every option
+              // stack with the live value in one grid cell, so the column sizes
+              // to the widest option and the pill never jumps on selection.
+              <span className="grid shrink-0 justify-items-start">
+                {valueOptions.map((opt, i) => (
+                  <span
+                    key={i}
+                    aria-hidden
+                    className="col-start-1 row-start-1 invisible whitespace-nowrap font-medium tabular-nums"
+                  >
+                    {opt}
+                  </span>
+                ))}
+                <span
+                  className={cn(
+                    'col-start-1 row-start-1 whitespace-nowrap font-medium tabular-nums',
+                    valueAccent,
+                  )}
+                >
+                  {valueLabel}
+                </span>
+              </span>
+            ) : (
+              <span className={cn('font-medium tabular-nums', valueAccent)}>{valueLabel}</span>
+            )}
           </>
         ) : showCount ? (
           // Consolidated "Filters" read: hairline divider, then the

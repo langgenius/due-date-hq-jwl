@@ -309,6 +309,13 @@ export function DeadlineNavigatorRail({
                     </span>
                   ) : undefined
                 }
+                // Reserve the value slot to the widest status label so the pill
+                // stops resizing when a different status is picked.
+                valueOptions={statusOptions.map(({ status }) => (
+                  <span key={status} className="max-w-[96px] truncate">
+                    {statusLabels[status]}
+                  </span>
+                ))}
               >
                 <StatusMark
                   status={

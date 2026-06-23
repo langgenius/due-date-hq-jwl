@@ -98,6 +98,9 @@ export function SingleSelectFilter<T extends string = string>({
   const selected = options.find((option) => option.value === value)
   const resolvedValueLabel = valueLabel ?? selected?.triggerLabel ?? selected?.label
   const resolvedActive = active ?? (options.length > 0 && value !== options[0]?.value)
+  // Reserve the value slot to the widest option so the pill — and the controls
+  // beside it — stop jumping when a different option is selected.
+  const valueOptions = options.map((option) => option.triggerLabel ?? option.label)
 
   return (
     <DropdownMenu>
@@ -108,6 +111,7 @@ export function SingleSelectFilter<T extends string = string>({
           <FilterTrigger
             active={resolvedActive}
             valueLabel={resolvedValueLabel}
+            valueOptions={valueOptions}
             size={size}
             {...(leadingIcon ? { leadingIcon } : {})}
             {...(leadingIconColor ? { leadingIconColor } : {})}
