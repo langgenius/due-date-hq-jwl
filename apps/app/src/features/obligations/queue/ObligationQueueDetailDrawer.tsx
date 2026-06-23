@@ -2248,9 +2248,7 @@ export function ObligationQueueDetailDrawer({
                           ? 'line-clamp-1 text-item-title'
                           : 'line-clamp-3 text-surface-title',
                       )}
-                      title={
-                        meta.description ? `${meta.label} — ${meta.description}` : meta.label
-                      }
+                      title={meta.description ? `${meta.label} — ${meta.description}` : meta.label}
                     >
                       {heroTitle}
                     </h2>

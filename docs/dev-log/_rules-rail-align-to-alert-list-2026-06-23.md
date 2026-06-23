@@ -53,7 +53,7 @@ system. One file edited (+ regenerated i18n catalogs).
 
 - New: `A–Z`, `Sort jurisdictions`, `{0} jurisdictions`.
 - Removed: `Showing {shownStateCount} of {0} states`, `No jurisdictions need
-  review` (the review-only empty state is gone with the filter).
+review` (the review-only empty state is gone with the filter).
 - Reused (unchanged): `{reviewRuleCount} to review`, `Needs review`,
   `Filter jurisdictions`, `Jurisdictions`.
 - zh-CN filled (catalog keeps 0 missing): `排序辖区`, `A–Z`, `{0} 个辖区`.

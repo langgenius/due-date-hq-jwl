@@ -32,7 +32,7 @@ solid/ink/wash rule, navy-only-chrome discipline) is in the Design doc above.
   `#C7BAFB` (200).
 - **Ink text tokens** (`--text-destructive/-warning/-success`,
   `--status-review-text`, `--color-brand-highlight-ink`) all land on the AA
-  inks (≥4.5:1 on white *and* on their wash). Solids are fills only — white on
+  inks (≥4.5:1 on white _and_ on their wash). Solids are fills only — white on
   any status solid fails AA by design.
 - **Dark mode mirrored.** Util ramps are theme-invariant, so dark inherits the
   new hues; dark tokens keep pointing one/two stops brighter (400/500) per the
