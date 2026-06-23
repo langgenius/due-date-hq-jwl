@@ -950,17 +950,14 @@ function RulePracticeReviewCard({
   )
   const trimmed = body.trim()
   const canSubmit = trimmed.length > 0 && !addMutation.isPending
+  // A gate indicator → the Badge primitive (was a hand-rolled red caps span).
+  // Amber `warning`, not destructive red: a required field is an attention
+  // cue, not an error — and it joins the panel's one "needs your attention"
+  // colour (the Awaiting-review pill + the locked-Accept reason).
   const requiredTag = (
-    <span
-      className={cn(
-        'ml-auto shrink-0',
-        flat
-          ? 'text-caption-xs font-semibold uppercase tracking-wide text-text-destructive'
-          : 'text-caption font-medium text-text-tertiary',
-      )}
-    >
+    <Badge variant="warning" size="sm" className="ml-auto shrink-0">
       {flat ? <Trans>Required</Trans> : <Trans>Required before Accept</Trans>}
-    </span>
+    </Badge>
   )
   const inner = (
     <>
@@ -2474,7 +2471,10 @@ function RuleEvidenceCard({
         <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
       {isPrimary ? (
-        <Badge variant="success-solid" className="shrink-0 self-start px-2.5 font-semibold">
+        // The lead source — a ROLE, not a success state. Solid emphasis (per the
+        // Badge milestone-chip convention) in the brand accent, not green:
+        // success-green falsely read as "this source is verified/good".
+        <Badge variant="accent-solid" className="shrink-0 self-start px-2.5 font-semibold">
           <Trans>Primary</Trans>
         </Badge>
       ) : (

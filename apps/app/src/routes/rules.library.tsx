@@ -4668,51 +4668,68 @@ function RuleDetailHeroCard({
   // Dialog close button's top-right corner clear.
   return (
     <header className="shrink-0 border-b border-divider-regular bg-background-default px-6 pt-5 pb-4">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
-        <Badge variant={isReviewable ? 'warning' : 'success'} className="gap-1 px-2 font-semibold">
-          {isReviewable ? (
-            <ClockIcon aria-hidden className="size-2.5" />
-          ) : (
-            <CircleCheckIcon aria-hidden className="size-2.5" />
-          )}
-          {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
-        </Badge>
-        {reviewTask ? (
-          <span className="text-xs font-medium text-text-tertiary">
-            <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
-          </span>
-        ) : null}
-        {reviewTask ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="text-xs font-medium text-text-tertiary">
-              <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
-            </span>
-          </>
-        ) : null}
-        {aiPct !== null ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
-              <SparklesIcon aria-hidden className="size-2.5" />
-              <Trans>AI {aiPct}%</Trans>
-            </span>
-          </>
-        ) : null}
+      <div className="flex items-start gap-4">
+        {/* Canonical jurisdiction mark — the same StateBadge seal the rail and
+            overview cards use, here as the hero's identity anchor. The header
+            was text-only ("AL · …") before, the one jurisdiction surface that
+            dropped the seal. */}
+        <StateBadge
+          code={rule.jurisdiction}
+          size="lg"
+          preview={false}
+          className="mt-0.5 shrink-0"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
+            <Badge
+              variant={isReviewable ? 'warning' : 'success'}
+              className="gap-1 px-2 font-semibold"
+            >
+              {isReviewable ? (
+                <ClockIcon aria-hidden className="size-2.5" />
+              ) : (
+                <CircleCheckIcon aria-hidden className="size-2.5" />
+              )}
+              {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
+            </Badge>
+            {reviewTask ? (
+              <span className="text-xs font-medium text-text-tertiary">
+                <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
+              </span>
+            ) : null}
+            {reviewTask ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
+                </span>
+              </>
+            ) : null}
+            {aiPct !== null ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
+                  <SparklesIcon aria-hidden className="size-2.5" />
+                  <Trans>AI {aiPct}%</Trans>
+                </span>
+              </>
+            ) : null}
+          </div>
+          <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
+            {rule.title}
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
+          </p>
+          {rule.defaultTip ? (
+            <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
+          ) : null}
+        </div>
       </div>
-      <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
-        {rule.title}
-      </h2>
-      <p className="mt-1 text-sm text-text-secondary">
-        {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
-      </p>
-      {rule.defaultTip ? (
-        <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
-      ) : null}
     </header>
   )
 }

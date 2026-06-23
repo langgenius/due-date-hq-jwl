@@ -45,3 +45,32 @@ Deferred:
 
 i18n: the one new string falls back to English (no interpolation); catalog
 extraction left for the next i18n batch. `tsgo` clean.
+
+## Audit pass — StateBadge / status pills / colour (same day)
+
+Strict consistency + colour audit of the panel ("ensure correct StateBadge,
+status pills, consistent visual representation"). Verified live on the correct
+dev server (app-5173) — the one I'd been screenshotting was a defunct/stale
+serverId, which is why earlier shots looked unchanged.
+
+- **StateBadge in the hero.** The detail header was the ONE jurisdiction surface
+  rendering text-only ("AL · …") instead of the canonical seal the rail +
+  overview cards use. Added a `size="lg"` `StateBadge` as the header's identity
+  anchor (seal · [status pill + title + meta] two-column).
+- **"Primary" evidence badge: green → navy.** `success-solid` (green) misread as
+  "this source is verified/good"; "Primary" is a source ROLE, not a success
+  state. Switched to `accent-solid` — solid brand emphasis per the Badge
+  milestone-chip convention, no false positivity.
+- **"Required" tag: hand-rolled red span → `Badge`.** Was a bespoke
+  `text-destructive` uppercase span; now `Badge variant="warning" size="sm"`.
+  Amber, not red — a required field is an attention cue, not an error, and it
+  now joins the panel's single "needs your attention" colour (Awaiting-review
+  pill + locked-Accept reason).
+
+Net colour story: **amber = attention** (status / required / gate) · **navy =
+primary & action** (seal, Primary source, Generate/Accept) · gray = neutral
+facts. `tsgo` clean; no console errors.
+
+Open question flagged (not changed — it's a semantics call): the practice note
+shows "Required before Accept" but `acceptDisabled` doesn't actually gate on it
+for source-defined rules — either enforce it or soften the label.
