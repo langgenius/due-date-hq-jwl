@@ -79,9 +79,10 @@ const items = t.items
     display: flex;
     align-items: center;
   }
-  /* the marker — a short dash at rest, grown + accented when active */
+  /* the marker — a small dash at rest, grown + accented when active (kept short
+     and quiet so the rail reads as a hint, not a ruler) */
   .spyrail__dash {
-    width: 12px;
+    width: 6px;
     height: 2px;
     flex: none;
     border-radius: 999px;
@@ -108,9 +109,9 @@ const items = t.items
       color 0.2s ease;
   }
 
-  /* active — dash grows + turns accent, label opens in ink */
+  /* active — dash grows a little + turns accent, label opens in ink */
   .spyrail__item.is-active .spyrail__dash {
-    width: 22px;
+    width: 13px;
     background: var(--m-accent);
   }
   .spyrail__item.is-active .spyrail__label,

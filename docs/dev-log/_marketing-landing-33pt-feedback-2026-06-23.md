@@ -80,3 +80,28 @@ page-feedback widget), worked component by component. All changes land on the
   FAQ 12-col, close 2-col card + receipt). Surfaces interactions tested live:
   jurisdiction tab swaps the alert (no jump), spotlight follows. Screenshot tool
   was unreliable this session; DOM measurement used as source of truth.
+
+## Follow-up round (same day)
+
+Five further asks after reviewing the pass:
+- **Home active** — `current` now accepts `'home'`; both home routes pass
+  `current="home"` so the Home nav link reads active (it's the current page).
+- **Nav glider** — a single pill (`.nav__glider`) slides under the hovered link
+  and rests at the active one, so moving across the nav is one continuous
+  left↔right glide. Progressive enhancement (`.has-glider` drops the static
+  active/hover backgrounds once JS runs; without JS the static bg shows).
+  Repositions on hover, pill-leave, resize, collapse `transitionend`, and
+  `fonts.ready`. Verified: rests on Home (w65@x4), slides to Coverage on hover
+  (w87@x179), returns on leave. On-dark variant for the villain band.
+- **Spyrail dash** — shortened (inactive 12→6px, active 22→13px); it was reading
+  as a ruler, now a quiet hint.
+- **Hero strengthened** — copy column reordered (CSS `order`, bullets carry no
+  focusable elements so tab order is unaffected): hook → value → **CTA** →
+  reassure → proof. The CTA rises above the bullets; the four bullets demote to
+  a compact hairline-topped proof strip; headline pushed bigger + tighter
+  (ceiling 76→84px, line-height 1, tracking -0.025em). Verified CTA(554) <
+  reassure(612) < points(688).
+- **Sitemap** — answered in chat (no code change): home, /how-it-works,
+  /state-coverage, /pricing, /security, /compare/*, /rules + /rules/*,
+  /guides/*, /states/* + zh-CN mirror; `@astrojs/sitemap` already generates
+  sitemap.xml (home is noindex/excluded).

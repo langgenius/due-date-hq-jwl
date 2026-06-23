@@ -321,6 +321,26 @@ const alerts = t.alerts
   .hero__copy {
     grid-column: span 6;
     align-self: center;
+    /* reorder for a stronger top: hook → value → action → proof. The CTA rises
+       above the proof bullets (which carry no focusable elements, so visual and
+       tab order stay aligned). */
+    display: flex;
+    flex-direction: column;
+  }
+  .hero__head {
+    order: 1;
+  }
+  .hero__sub {
+    order: 2;
+  }
+  .hero__cta {
+    order: 3;
+  }
+  .hero__reassure {
+    order: 4;
+  }
+  .hero__points {
+    order: 5;
   }
   .panel {
     grid-column: span 6;
@@ -330,12 +350,12 @@ const alerts = t.alerts
   .hero__head {
     font-family: var(--m-font-display);
     font-weight: 400;
-    /* Bigger, more confident ceiling: real impact at 1440–1920, graceful 40px floor on mobile. */
-    font-size: clamp(40px, 5.4vw, 76px);
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    /* The focal point — pushed bigger + tighter so it dominates the fold. */
+    font-size: clamp(43px, 5.9vw, 84px);
+    line-height: 1;
+    letter-spacing: -0.025em;
     color: var(--m-ink);
-    max-width: 15ch;
+    max-width: 14ch;
     text-wrap: balance;
   }
   .hero__head .ital {
@@ -379,25 +399,31 @@ const alerts = t.alerts
     line-height: 1.55;
     color: var(--m-ink-2);
   }
+  /* demoted to a quiet proof strip beneath the CTA — smaller, set off by a
+     hairline so it reads as supporting evidence, not a competing list */
   .hero__points {
-    margin-top: clamp(26px, 2.4vw, 34px);
+    margin-top: clamp(24px, 2.4vw, 32px);
+    padding-top: clamp(20px, 2vw, 26px);
+    border-top: 1px solid var(--m-hairline);
     display: grid;
     gap: 9px;
     list-style: none;
-    padding: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
   .hero__points li {
     display: flex;
     align-items: flex-start;
-    gap: 11px;
-    font-size: var(--m-text-base);
+    gap: 9px;
+    font-size: var(--m-text-sm);
+    line-height: 1.4;
     color: var(--m-muted);
   }
   .hero__points svg {
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 15px;
     flex: none;
-    margin-top: 1px;
+    margin-top: 2px;
     color: var(--m-accent);
   }
   .hero__points b {
