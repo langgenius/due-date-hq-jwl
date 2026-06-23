@@ -233,15 +233,15 @@ import { cn, formatDate, formatDatePretty } from '@/lib/utils'
 
 // /deadlines leads with the signature CARD view (urgency lanes) and demotes
 // the registry table to a toggle, mirroring /clients. The choice persists
-// per-browser; table (the list) is the default — cards is opt-in.
+// per-browser; cards is the default — the table is opt-in.
 type DeadlinesViewMode = 'cards' | 'table'
 const DEADLINES_VIEW_STORAGE_KEY = 'duedatehq.deadlines-view'
 function readStoredDeadlinesView(): DeadlinesViewMode {
-  if (typeof window === 'undefined') return 'table'
+  if (typeof window === 'undefined') return 'cards'
   try {
-    return window.localStorage.getItem(DEADLINES_VIEW_STORAGE_KEY) === 'cards' ? 'cards' : 'table'
+    return window.localStorage.getItem(DEADLINES_VIEW_STORAGE_KEY) === 'table' ? 'table' : 'cards'
   } catch {
-    return 'table'
+    return 'cards'
   }
 }
 

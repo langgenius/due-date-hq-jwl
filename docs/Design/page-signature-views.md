@@ -5,9 +5,10 @@ list/table via a one-click `Segmented` toggle (icon-only, persisted per browser)
 The signatures share one DNA so the product reads as one thing, while each page
 stays distinct.
 
-**Defaults differ per page (2026-06-23):** `/clients` defaults to **cards**;
-`/deadlines` defaults to the **table/list** (cards are the opt-in toggle). Same
-toggle, opposite default — a deliberate call, not drift.
+**Default (2026-06-23):** both `/clients` and `/deadlines` default to **cards**
+(the signature urgency-lane view); the registry table is the opt-in toggle on
+each. `readStoredDeadlinesView` returns `'cards'` unless the browser has an
+explicit stored `'table'` choice.
 
 ## The shared card + lane DNA (Clients, Deadlines)
 
