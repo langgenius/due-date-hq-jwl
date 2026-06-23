@@ -3659,14 +3659,6 @@ msgstr "Captured"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
-#: src/features/rules/sources-tab.tsx
-msgid "Catch up still-open windows"
-msgstr "Catch up still-open windows"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Catching up…"
-msgstr "Catching up…"
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -5043,10 +5035,6 @@ msgstr "Couldn't roll over deadlines"
 msgid "Couldn't run annual rollover preview"
 msgstr "Couldn't run annual rollover preview"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Couldn't run catch-up. Please try again."
-msgstr "Couldn't run catch-up. Please try again."
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
 msgstr "Couldn't run deadline preview"
@@ -5269,10 +5257,6 @@ msgstr "County"
 #: src/routes/rules.library.tsx
 msgid "Coverage"
 msgstr "Coverage"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Coverage by jurisdiction"
-msgstr "Coverage by jurisdiction"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
@@ -6402,10 +6386,6 @@ msgstr "Email queued"
 #: src/routes/obligations.tsx
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "Email selected clients a Form 8879 signature reminder"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Email signal"
-msgstr "Email signal"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Email unsubscribe"
@@ -7680,10 +7660,6 @@ msgstr "Gross receipts"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Guard status"
 msgstr "Guard status"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Guidance notices"
-msgstr "Guidance notices"
 
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "Handled"
@@ -9454,10 +9430,6 @@ msgstr "Moves the row to Waiting and opens the Materials tab to send the request
 msgid "Moving…"
 msgstr "Moving…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Multi-agency"
-msgstr "Multi-agency"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Multi-member LLC"
 msgstr "Multi-member LLC"
@@ -10287,10 +10259,6 @@ msgstr "No state deadlines"
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "No states"
 msgstr "No states"
-
-#: src/features/rules/sources-tab.tsx
-msgid "No still-open windows to add."
-msgstr "No still-open windows to add."
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -11973,10 +11941,6 @@ msgstr "Primary navigation"
 msgid "Primary phone"
 msgstr "Primary phone"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Primary web"
-msgstr "Primary web"
-
 #: src/features/members/members-page.tsx
 msgid "Principal authority — final review, approvals, and full sign-off."
 msgstr "Principal authority — final review, approvals, and full sign-off."
@@ -12546,10 +12510,6 @@ msgstr "Rejected date is required."
 #: src/features/workload/workload-page.tsx
 msgid "Relative load"
 msgstr "Relative load"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Relief / disaster"
-msgstr "Relief / disaster"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Relief notice"
@@ -13180,10 +13140,6 @@ msgstr "Revoked"
 msgid "Revoking…"
 msgstr "Revoking…"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Rights window"
-msgstr "Rights window"
-
 #: src/features/concepts/concept-help.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
@@ -13401,10 +13357,6 @@ msgstr "Rule updated"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule version"
 msgstr "Rule version"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Rule watch"
-msgstr "Rule watch"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
@@ -14878,18 +14830,6 @@ msgstr "Summarize what the authority rejected and what needs correction."
 msgid "Superseded"
 msgstr "Superseded"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
-msgstr "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced {materializedCount} still-open alerts for your firm."
-msgstr "Surfaced {materializedCount} still-open alerts for your firm."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Surfaced 1 still-open alert for your firm."
-msgstr "Surfaced 1 still-open alert for your firm."
-
 #: src/features/members/members-page.tsx
 msgid "Suspend access"
 msgstr "Suspend access"
@@ -15099,10 +15039,6 @@ msgstr "Tax year settings updated"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"
 msgstr "Tax year type"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Tax-type sources"
-msgstr "Tax-type sources"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -16793,10 +16729,6 @@ msgstr "where this came from"
 #: src/routes/rules.library.tsx
 msgid "Where to start"
 msgstr "Where to start"
-
-#: src/features/rules/sources-tab.tsx
-msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
-msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 
 #: src/routes/splash.tsx
 msgid "While you were away"
