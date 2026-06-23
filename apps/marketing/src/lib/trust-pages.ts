@@ -132,7 +132,8 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'SECURITY',
-        title: 'Two boundaries hold the product together: who can reach your data, and what stands behind every date.',
+        title:
+          'Two boundaries hold the product together: who can reach your data, and what stands behind every date.',
         description:
           'DueDateHQ keeps the public marketing site fully separate from the authenticated app, holds all client operations behind the SaaS app domain, and designs every deadline change around source evidence you can review yourself. Security here is not a badge — it is how the workflow is shaped.',
         note: 'This page summarizes our product and operational security posture in plain terms. Deeper security reviews and documentation are handled directly with the DueDateHQ team.',
@@ -260,7 +261,8 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'TERMS',
-        title: 'DueDateHQ is deadline operations software — a tool for professionals, not a decision-maker.',
+        title:
+          'DueDateHQ is deadline operations software — a tool for professionals, not a decision-maker.',
         description:
           'The product helps a practice organize source-backed deadline work, evidence review, Alerts monitoring, migration, and an audit-ready operational history. What it does not do is just as important as what it does.',
         note: 'This page is a plain-language public summary. Contractual terms are handled through the DueDateHQ legal channel.',

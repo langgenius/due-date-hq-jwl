@@ -1,9 +1,11 @@
 # Marketing — critique P2/P3 fixes + Close payoff
 
 **Date:** 2026-06-22. From the full-site critique (33/40): knocked out every P2/P3
-+ strengthened the Close to resolve the hero's question. All `--m-*` tokens.
+
+- strengthened the Close to resolve the hero's question. All `--m-*` tokens.
 
 ## Fixed
+
 - **Surfaces "wasteful" feed (P2)** — rebuilt the bench grid from a 3-row layout
   where the alert feed spanned two rows (forced tall + empty) into a clean **2×2
   quadrant** (Alert feed | Coverage; Worklist | Apply&audit). Re-drew the list seam
@@ -19,14 +21,16 @@
   coverage grid.
 - **Skip-to-content link (P3, a11y)** — added an off-screen-until-focus `.m-skip`
   link in BaseLayout (localized) + an inline script tagging `<main id="main-content"
-  tabindex="-1">` site-wide.
+tabindex="-1">` site-wide.
 
 ## Strengthened (creative)
+
 - **Close finale** — now explicitly resolves the new question hero. H2:
   "Next time a deadline moves, you'll already **know.**" (serif bookend); body lands
   the relief: "…the moment a date moves you see exactly who it hits. **No more finding
   out from your client.**" EN + zh.
 
 ## Verified
+
 Build 76 pages clean. Live: Surfaces 2×2 balanced; Close payoff renders; map dots
 gone (51 clean tiles); skip-link present + main tagged; title matches H1; no overflow.

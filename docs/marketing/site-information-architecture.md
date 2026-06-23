@@ -22,21 +22,21 @@ The core is small on purpose. The long-tail is large on purpose. They share one 
 
 **Routes** (`src/pages`), each mirrored under `zh-CN/`:
 
-| Route                         | Renders via                     | Design          | Tier                                |
-| ----------------------------- | ------------------------------- | --------------- | ----------------------------------- |
-| `/`                           | `components/home/*`             | **NEW `--m-*`** | core                                |
-| `/how-it-works`               | `home/HowItWorks+SeeItWork+Surfaces` | **NEW `--m-*`** | core (product tour)            |
-| `/legacy`                     | old `Hero/Problem/Workflow/...` | old · noindex   | — (archive)                         |
-| `/pricing`                    | `components/Pricing`            | old → new chrome | core                               |
-| `/state-coverage`             | `StateCoveragePage`             | old             | long-tail hub                       |
-| `/states/[state]`             | `StateDetailPage`               | old             | long-tail leaf                      |
-| `/rules`                      | `GeoResourcePage`               | old             | long-tail hub                       |
-| `/rules/[rule]`               | `GeoResourcePage`               | old             | long-tail leaf                      |
-| `/compare/[comparison]`       | `GeoResourcePage`               | old             | long-tail leaf                      |
-| `/guides/[guide]`             | `GeoResourcePage`               | old             | long-tail leaf                      |
-| `/[trustPage]`                | `TrustPage`                     | old             | about/security/privacy/terms/status |
-| `/llms.txt`, `/llms-full.txt` | `*.txt.ts`                      | machine         | **GEO/AEO feed**                    |
-| `/robots.txt`, `/404`         | —                               | —               | utility                             |
+| Route                         | Renders via                          | Design           | Tier                                |
+| ----------------------------- | ------------------------------------ | ---------------- | ----------------------------------- |
+| `/`                           | `components/home/*`                  | **NEW `--m-*`**  | core                                |
+| `/how-it-works`               | `home/HowItWorks+SeeItWork+Surfaces` | **NEW `--m-*`**  | core (product tour)                 |
+| `/legacy`                     | old `Hero/Problem/Workflow/...`      | old · noindex    | — (archive)                         |
+| `/pricing`                    | `components/Pricing`                 | old → new chrome | core                                |
+| `/state-coverage`             | `StateCoveragePage`                  | old              | long-tail hub                       |
+| `/states/[state]`             | `StateDetailPage`                    | old              | long-tail leaf                      |
+| `/rules`                      | `GeoResourcePage`                    | old              | long-tail hub                       |
+| `/rules/[rule]`               | `GeoResourcePage`                    | old              | long-tail leaf                      |
+| `/compare/[comparison]`       | `GeoResourcePage`                    | old              | long-tail leaf                      |
+| `/guides/[guide]`             | `GeoResourcePage`                    | old              | long-tail leaf                      |
+| `/[trustPage]`                | `TrustPage`                          | old              | about/security/privacy/terms/status |
+| `/llms.txt`, `/llms-full.txt` | `*.txt.ts`                           | machine          | **GEO/AEO feed**                    |
+| `/robots.txt`, `/404`         | —                                    | —                | utility                             |
 
 **Content sets today** (driven by `lib/seo-content.ts`, `lib/trust-pages.ts`):
 

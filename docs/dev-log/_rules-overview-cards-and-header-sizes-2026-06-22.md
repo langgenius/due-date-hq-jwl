@@ -31,9 +31,10 @@ grammar** so the two zones read as one family:
 Verified live: cards now read as a per-jurisdiction echo of the summary band.
 
 ### "Ready to accept" quick-win signal (same day)
+
 Yuqi asked what other important info the cards could carry. The card already
 answered how-much (count), how-risky (high-severity), how-old (age) — the gap
-was *how fast can I clear it*. Added a per-jurisdiction **ready-to-accept** count
+was _how fast can I clear it_. Added a per-jurisdiction **ready-to-accept** count
 (green flag, only when > 0), derived from the SAME AI-draft gate as
 `draftGatedPendingCount` (a pending rule is ready when it has no source-defined
 draft requirement, or a concrete draft already exists). No new backend — same
@@ -52,6 +53,7 @@ Held the two net-new ideas (affected-clients, deadline-proximity) — they need 
 join/query this route doesn't load, and would re-bloat the card.
 
 ### /critique action plan — number as protagonist (same day)
+
 Ran `/critique` on the card design. Detector clean (0/25 AI-slop tells); LLM
 review scored 32/40 ("strong"), flagging: the count wasn't the protagonist
 (16px, barely above the 14px name), "Most urgent first" was asserted but
@@ -60,6 +62,7 @@ invisible (six equal-weight cards), and the de-color pass had left the sub
 within, work P1→P3.
 
 Applied (typeset + clarify + distill in one pass):
+
 - **Number as protagonist** — count is now `text-stat-value` (24px/500, the
   band's KPI numeral) with "to review" demoted to a quiet 12px inline unit.
   The eye lands on the count, and since the cards descend 19 → 16 → 12 → 10,
@@ -71,6 +74,7 @@ Applied (typeset + clarify + distill in one pass):
   with hover/focus states.
 
 ### De-flash — drop the color, one quiet line (same day)
+
 Yuqi: "卡片太花里胡哨了" (too gaudy). The green ready + red high-severity stacked
 over gray waiting made NY/CA three-colored and wrapping. Removed the
 per-segment color entirely: the sub is now ONE muted line — the ready /

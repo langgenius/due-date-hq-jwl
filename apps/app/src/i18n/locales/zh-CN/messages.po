@@ -175,11 +175,6 @@ msgstr "{0, plural, one {# 个事件} other {# 个事件}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# 条已处理} other {# 条已处理}}"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# high-severity} other {# high-severity}}"
-msgstr "{0, plural, one {# 项高严重度} other {# 项高严重度}}"
-
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -347,11 +342,6 @@ msgstr "{0, plural, other {# 个来源}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
-
-#. placeholder {0}: g.pendingReviewCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# to review} other {# to review}}"
-msgstr "{0, plural, other {# 条待审}}"
 
 #. placeholder {0}: counts.waitingOnClientCount
 #: src/features/dashboard/daily-brief-card.tsx
@@ -621,6 +611,11 @@ msgstr "今日 {0} 项申报 — 提前推进，保持本周节奏。"
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} 项申报已延期 — 付款未延期"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0} high-severity"
+msgstr "{0} 项高严重度"
+
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -755,6 +750,11 @@ msgstr "{0} 项待审核"
 #: src/routes/settings.permissions.tsx
 msgid "{0} permissions are set by the product"
 msgstr "{0} 权限由产品设定"
+
+#. placeholder {0}: g.readyCount
+#: src/routes/rules.library.tsx
+msgid "{0} ready"
+msgstr "{0} 项就绪"
 
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -15809,6 +15809,10 @@ msgstr "待创建"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "待生成"
+
+#: src/routes/rules.library.tsx
+msgid "to review"
+msgstr "待审阅"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"

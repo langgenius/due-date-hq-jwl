@@ -176,11 +176,6 @@ msgstr "{0, plural, one {# event} other {# events}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# high-severity} other {# high-severity}}"
-msgstr "{0, plural, one {# high-severity} other {# high-severity}}"
-
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -346,11 +341,6 @@ msgstr "{0, plural, one {# source} other {# sources}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
-
-#. placeholder {0}: g.pendingReviewCount
-#: src/routes/rules.library.tsx
-msgid "{0, plural, one {# to review} other {# to review}}"
-msgstr "{0, plural, one {# to review} other {# to review}}"
 
 #. placeholder {0}: counts.waitingOnClientCount
 #: src/features/dashboard/daily-brief-card.tsx
@@ -619,6 +609,11 @@ msgstr "{0} filing today — stay ahead to keep the week on track."
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} filings extended — payment is not extended"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0} high-severity"
+msgstr "{0} high-severity"
+
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -750,6 +745,11 @@ msgstr "{0} pending review"
 #: src/routes/settings.permissions.tsx
 msgid "{0} permissions are set by the product"
 msgstr "{0} permissions are set by the product"
+
+#. placeholder {0}: g.readyCount
+#: src/routes/rules.library.tsx
+msgid "{0} ready"
+msgstr "{0} ready"
 
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -15745,6 +15745,10 @@ msgstr "to create"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "to generate"
+
+#: src/routes/rules.library.tsx
+msgid "to review"
+msgstr "to review"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
