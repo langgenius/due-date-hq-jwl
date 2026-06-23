@@ -1231,6 +1231,11 @@ export function RulesLibraryRoute() {
   // The selected jurisdiction drives the right-pane flat table. URL-bound
   // so a state deep-links; null / unknown code = the All overview.
   const [jurisdictionParam, setJurisdiction] = useQueryState('jurisdiction', parseAsString)
+  // Source filter (?source=<sourceId>) — the inbound link from /rules/sources.
+  // De-isolates the Sources page: clicking a source's rule count lands here
+  // scoped to exactly the rules that cite that monitored source. Renders the
+  // flat results list (like search) plus a dismissible chip.
+  const [sourceParam, setSourceParam] = useQueryState('source', parseAsString)
   // Scope tabs above the table. URL-bound so the active scope deep-links.
   // Default is 'all'. `null` from nuqs maps back to 'all' for the
   // activeScope computation so the chip is always one of the four known
@@ -1779,6 +1784,19 @@ export function RulesLibraryRoute() {
       return false
     })
   }, [filteredRules, searchLower])
+
+  // Rules that cite the ?source= source, shown as the flat results list when a
+  // source filter is active (no search term needed). Mirrors `matchedRules`.
+  const sourceMatchedRules = useMemo(
+    () => (sourceParam ? filteredRules.filter((rule) => rule.sourceIds.includes(sourceParam)) : []),
+    [filteredRules, sourceParam],
+  )
+  // sourceId → human title for the active-source chip label.
+  const sourceTitleById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const source of sourcesQuery.data ?? []) map.set(source.id, source.title)
+    return map
+  }, [sourcesQuery.data])
 
   const selectedRule = useMemo(
     () => (ruleId ? (rules.find((r) => r.id === ruleId) ?? null) : null),
@@ -2616,6 +2634,29 @@ export function RulesLibraryRoute() {
               <PageHeader title={<Trans>Rule library</Trans>} actions={overviewHeaderActions} />
             )}
 
+            {/* Active source filter chip — when arriving from a source's
+                "Feeds N rules" link (?source=). Names the source and clears
+                back to the full library. */}
+            {sourceParam ? (
+              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
+                <span className="text-sm text-text-secondary">
+                  <Trans>Showing rules from source</Trans>
+                </span>
+                <span className="truncate text-sm font-medium text-text-primary">
+                  {sourceTitleById.get(sourceParam) ?? sourceParam}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto h-7 shrink-0"
+                  onClick={() => void setSourceParam(null)}
+                >
+                  <Trans>Clear</Trans>
+                </Button>
+              </div>
+            ) : null}
+
             {/* Body. The Overview (no jurisdiction selected, not
               mid-search) is the clean Pencil O0pyRO dashboard — a
               borderless stats band + a full-width Recent changes feed,
@@ -2648,7 +2689,7 @@ export function RulesLibraryRoute() {
                   </Button>
                 </AlertDescription>
               </Alert>
-            ) : selectedGroup || isSearching ? (
+            ) : selectedGroup || isSearching || sourceParam ? (
               <>
                 {/* KPI strip — 4-stat band (Total / Effective / Pending /
                   Deprecated) for the selected jurisdiction. */}
@@ -2760,10 +2801,12 @@ export function RulesLibraryRoute() {
                         }
                       />
                     ) : (
-                      // Active rule search → flat global results.
+                      // Active rule search → flat global results. When a
+                      // ?source= filter is active without a search term, the
+                      // same flat table lists that source's rules instead.
                       <SearchResultsTable
                         activeRuleId={ruleId}
-                        rules={matchedRules}
+                        rules={isSearching ? matchedRules : sourceParam ? sourceMatchedRules : matchedRules}
                         query={searchLower}
                         onRuleClick={handleRuleClick}
                         focusedRowId={focusedRowId}

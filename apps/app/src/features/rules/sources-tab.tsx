@@ -1,13 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon } from 'lucide-react'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { ArrowUpRightIcon, ExternalLinkIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
 import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
   Table,
   TableCell,
@@ -83,6 +84,17 @@ export function SourcesTab() {
   const rulesQuery = useQuery(
     orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
   )
+
+  // sourceId → number of rules that cite it. De-isolates the Sources page:
+  // each row shows "Feeds N rules" linking into the library filtered to that
+  // source (matches the library's `?source=` filter, which is sourceIds-based).
+  const ruleCountBySourceId = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const rule of rulesQuery.data ?? []) {
+      for (const sourceId of rule.sourceIds) map.set(sourceId, (map.get(sourceId) ?? 0) + 1)
+    }
+    return map
+  }, [rulesQuery.data])
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
@@ -324,6 +336,7 @@ export function SourcesTab() {
                   source={source}
                   health={sourceHealthBySourceId.get(source.id)}
                   sourceTypeLabels={sourceTypeLabels}
+                  ruleCount={ruleCountBySourceId.get(source.id) ?? 0}
                 />
               ))}
               {visibleRows.length === 0 ? (
@@ -476,10 +489,12 @@ function SourceRow({
   source,
   health,
   sourceTypeLabels,
+  ruleCount,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
   sourceTypeLabels: SourceTypeLabelMap
+  ruleCount: number
 }) {
   const { t } = useLingui()
   // Keep every interactive affordance on this row pointed at the exact
@@ -540,6 +555,22 @@ function SourceRow({
           </span>
           <span className="block truncate font-mono text-sm text-text-tertiary">{source.id}</span>
         </a>
+        {/* Internal "Feeds N rules" link — the de-isolation path into the rule
+            library, filtered to this source (?source=). Sibling of the external
+            anchor (not nested); stopPropagation so the row's open-source handler
+            doesn't also fire. Hidden when no rule cites this source. */}
+        {ruleCount > 0 ? (
+          <TextLink
+            variant="accent"
+            size="default"
+            className="mt-1"
+            onClick={(event) => event.stopPropagation()}
+            render={<Link to={`/rules/library?source=${encodeURIComponent(source.id)}`} />}
+          >
+            <Plural value={ruleCount} one="Feeds # rule" other="Feeds # rules" />
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+        ) : null}
       </TableCell>
       <TableCell className="px-2 py-3">
         {/* Shared JurisdictionCode — the quiet gray mono chip used by the
