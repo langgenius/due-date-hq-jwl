@@ -136,9 +136,7 @@ const links = [
     /* ONE nav background on every page (home included) — a subtle solid bar with
        a hairline, not a transparent float. The collapse (.nav--scrolled) and the
        villain pass (.nav--on-dark) still override this on scroll. */
-    background: color-mix(in srgb, var(--m-canvas) 92%, transparent);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    background: var(--m-canvas);
     border-bottom: 1px solid var(--m-hairline);
     transition:
       background 0.25s ease,
@@ -180,11 +178,10 @@ const links = [
     padding: 7px 8px 7px 16px;
     height: 56px;
     gap: 10px;
-    background: color-mix(in srgb, var(--m-canvas) 80%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: var(--m-surface);
     border-color: var(--m-hairline);
     border-radius: 999px;
+    box-shadow: 0 1px 4px rgba(16, 24, 40, 0.08);
   }
   /* collapse (width + fade) instead of vanish, so the bar converges into the
      pill rather than snapping. */
