@@ -19,9 +19,9 @@ const t = zh
       headBefore: '截止日刚刚变了。你知道它影响到',
       headItal: '谁',
       headAfter: '吗？',
-      subLead: 'DueDateHQ 全天候监控 IRS、各州税务机关和 FEMA ——',
-      subEm: '日期一变动，',
-      subRest: '你立刻看到它影响到哪些客户，每条变更都附官方来源。',
+      subLead: 'DueDateHQ 全天候监控 IRS、全部 50 个州和 FEMA 灾害延期 ——',
+      subEm: '申报日期一变动，',
+      subRest: '你立刻看到它影响到哪些客户，以及背后的官方公告。',
       subStrong: '粘贴你的客户名单，约 10 分钟后第一条带来源的截止日就会出现。',
       points: [
         { strong: '我们全天候盯着 IRS、主要州税务机关和 FEMA', rest: '' },
@@ -80,9 +80,9 @@ const t = zh
       headBefore: 'A deadline just moved. Do you know',
       headItal: 'who',
       headAfter: 'it hits?',
-      subLead: 'DueDateHQ watches the IRS, every state, and FEMA around the clock —',
-      subEm: 'the moment a date moves,',
-      subRest: 'you see exactly which clients it affects, with the source on every change.',
+      subLead: 'DueDateHQ monitors the IRS, all 50 states, and FEMA disaster postponements around the clock —',
+      subEm: 'the moment a filing date moves,',
+      subRest: 'you see which clients it affects and the official notice behind it.',
       subStrong:
         'Paste your client list and your first sourced deadline shows up in about 10 minutes.',
       points: [
@@ -154,17 +154,46 @@ const alerts = t.alerts
 
       <ul class="hero__points">
         {
-          points.map((p) => (
+          points.map((p, i) => (
             <li>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
-                <path
-                  d="M8.5 12.2l2.4 2.3 4.6-4.8"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                {/* each glyph is matched to its promise: watch · clients · source · free */}
+                {i === 0 && (
+                  <>
+                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+                    <circle cx="12" cy="12" r="2.7" />
+                  </>
+                )}
+                {i === 1 && (
+                  <>
+                    <path d="M16 19v-1.2a3.6 3.6 0 0 0-3.6-3.6H6.6A3.6 3.6 0 0 0 3 17.8V19" />
+                    <circle cx="9.5" cy="8" r="3.2" />
+                    <path d="M21 19v-1.2a3.6 3.6 0 0 0-2.7-3.5M15.6 5a3.2 3.2 0 0 1 0 6" />
+                  </>
+                )}
+                {i === 2 && (
+                  <>
+                    <path d="M10 13a4.5 4.5 0 0 0 6.7.5l2.5-2.5a4.5 4.5 0 0 0-6.4-6.4l-1.4 1.4" />
+                    <path d="M14 11a4.5 4.5 0 0 0-6.7-.5L4.8 13a4.5 4.5 0 0 0 6.4 6.4l1.4-1.4" />
+                  </>
+                )}
+                {i === 3 && (
+                  <>
+                    <path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8" />
+                    <rect x="2.5" y="7.5" width="19" height="4.5" rx="1" />
+                    <path d="M12 7.5V21" />
+                    <path d="M12 7.5H8.2a2.1 2.1 0 1 1 0-4.2C11 3.3 12 7.5 12 7.5Z" />
+                    <path d="M12 7.5h3.8a2.1 2.1 0 1 0 0-4.2C13 3.3 12 7.5 12 7.5Z" />
+                  </>
+                )}
               </svg>
               <span>
                 <b>{p.strong}</b> {p.rest}
@@ -178,7 +207,23 @@ const alerts = t.alerts
         <a class="btn btn--primary" href={ctaHref} data-event="marketing.hero.cta">
           {t.ctaStart} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="btn btn--ghost" href={workflowAnchor}>{t.ctaHow}</a>
+        <a class="btn btn--ghost" href={workflowAnchor}>
+          <svg
+            class="btn__ico"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 6.5V20" />
+            <path d="M12 6.5S10.4 4.5 7 4.5 3 6 3 6v12.4s1.4-1.4 4-1.4 5 1.5 5 1.5" />
+            <path d="M12 6.5S13.6 4.5 17 4.5 21 6 21 6v12.4s-1.4-1.4-4-1.4-5 1.5-5 1.5" />
+          </svg>
+          {t.ctaHow}
+        </a>
       </div>
       <p class="hero__reassure">{t.subStrong}</p>
     </div>
@@ -373,17 +418,23 @@ const alerts = t.alerts
     gap: 8px;
     font-size: var(--m-text-md);
     font-weight: 500;
-    border-radius: 8px;
+    /* fuller pill corners + a touch less height — friendlier, matches the nav CTA */
+    border-radius: 999px;
     transition:
       background 0.18s ease,
       color 0.18s ease,
       box-shadow 0.18s ease,
       transform 0.12s ease;
   }
+  .btn__ico {
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
   .btn--primary {
     background: var(--m-accent);
     color: #fff;
-    padding: 13px 22px;
+    padding: 11px 24px;
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
   }
   .btn--primary:hover {
@@ -400,7 +451,7 @@ const alerts = t.alerts
   }
   .btn--ghost {
     color: var(--m-ink);
-    padding: 13px 4px;
+    padding: 11px 6px;
   }
   .btn--ghost:hover {
     color: var(--m-accent);

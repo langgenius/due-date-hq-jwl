@@ -518,8 +518,17 @@ body {
     transform: translateY(18px);
     will-change: opacity, transform;
   }
+  /* opt-in: a container whose direct children rise in with a stagger (a list
+     assembling with rhythm). GSAP clears them; without JS / reduced-motion they
+     stay visible. */
+  .m-js [data-reveal-stagger] > * {
+    opacity: 0;
+    transform: translateY(14px);
+    will-change: opacity, transform;
+  }
   @media (prefers-reduced-motion: reduce) {
-    .m-js [data-reveal] {
+    .m-js [data-reveal],
+    .m-js [data-reveal-stagger] > * {
       opacity: 1;
       transform: none;
     }

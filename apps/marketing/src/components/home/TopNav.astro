@@ -125,7 +125,10 @@ const links = [
     border-bottom: 1px solid var(--m-hairline);
     transition:
       background 0.25s ease,
-      padding-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      /* match the inner's height transition (0.45s) so the float-gap growth and
+         the pill-height shrink stay in lockstep — total header height holds at
+         70px through the whole collapse: no bulge, no content shift */
+      padding-top 0.45s cubic-bezier(0.32, 0.72, 0, 1);
   }
   /* .nav--page now matches the base (kept as a hook; content pages pass it) */
   .nav__inner {
@@ -158,9 +161,10 @@ const links = [
     padding-top: 14px;
   }
   .nav--scrolled .nav__inner {
-    max-width: 600px;
+    max-width: 640px;
     margin-top: 0;
-    padding: 7px 8px 7px 16px;
+    /* even inset on all four sides (#19) — the pill reads as one tidy capsule */
+    padding: 8px;
     height: 56px;
     gap: 10px;
     background: var(--m-surface);
@@ -191,9 +195,27 @@ const links = [
     border: none;
     padding: 0;
   }
+  /* collapsed: the CTA joins the pill as a quiet ghost button — the filled
+     accent fill stays reserved for the hero / first paint */
+  .nav--scrolled .nav__cta {
+    background: transparent;
+    color: var(--m-accent);
+    border: 1px solid var(--m-accent);
+    padding: 7px 14px;
+  }
+  .nav--scrolled .nav__cta:hover {
+    background: var(--m-accent-tint);
+  }
   .nav--on-dark.nav--scrolled .nav__inner {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
+  }
+  .nav--on-dark.nav--scrolled .nav__cta {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .nav--on-dark.nav--scrolled .nav__cta:hover {
+    background: rgba(255, 255, 255, 0.14);
   }
 
   /* ===== nav over a dark band (the villain) — white text, accents in
@@ -281,7 +303,7 @@ const links = [
     padding: 4px;
   }
   .nav__link {
-    padding: 7px 11px;
+    padding: 8px 14px;
     border-radius: 999px;
     font-size: var(--m-text-sm);
     font-weight: 500;
