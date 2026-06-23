@@ -162,7 +162,10 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
             footer user avatar so the top + bottom of the rail bookend as a
             matched pair. Shape stays SQUARE (org) vs the user's round
             (person). Renders in both modes. */}
-        <span className="flex shrink-0">
+        {/* pl-px nudges the 28px monogram so its center sits on the exact
+            same rail centerline as the 16px nav icons below (a 28px avatar
+            needs a 5px left inset vs a 16px icon's 11px to share one center). */}
+        <span className="flex shrink-0 pl-px">
           <AssigneeAvatar
             name={firm.name}
             title={firm.name}
@@ -231,7 +234,9 @@ function SidebarQuickFind() {
         // centers like the nav rows.
         // transform added to the transition + active:scale-[0.98] for the
         // same tactile press as the nav rows (Yuqi "delicacy").
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-[color,background-color,transform] active:scale-[0.98]',
+        // px-[11px] (was px-3) so the 16px search icon shares the exact rail
+        // centerline (x=41) with the nav-row icons below it.
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-[11px] text-left text-text-muted outline-none transition-[color,background-color,transform] active:scale-[0.98]',
         'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
