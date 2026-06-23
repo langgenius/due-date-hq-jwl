@@ -425,6 +425,9 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         // undefined props).
         track(ANALYTICS_EVENTS.auditLogExported)
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        toast.success(t`Export requested`, {
+          description: t`We're preparing the evidence package — it'll be ready to download here shortly.`,
+        })
       },
       onError: (error) => {
         // Use the app's `toast.error` so the failure message lands in the same
