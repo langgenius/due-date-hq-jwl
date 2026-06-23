@@ -54,13 +54,16 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   TriangleAlertIcon,
   ArrowUpRightIcon,
+  CalendarClockIcon,
   CircleCheckIcon,
   ChevronRightIcon,
   ClipboardListIcon,
   ClockIcon,
   ConstructionIcon,
+  DollarSignIcon,
   FileCheckIcon,
   HourglassIcon,
+  LandmarkIcon,
   LoaderIcon,
   Loader2Icon,
   MessageSquareTextIcon,
@@ -366,12 +369,20 @@ function InternalVsFilingSchematic({
 }
 
 function DeadlineDateCard({
+  icon: Icon,
   label,
   date,
   clock,
   meta,
+  metaTone = 'default',
   labelHelp,
 }: {
+  // Small leading glyph that gives each card a quiet identity so the
+  // three stop reading as one repeated date tile (Yuqi 2026-06-23 "so
+  // plain… quite flat"). Calm by design — it rides in a soft
+  // background-subtle chip with a tertiary glyph, never a coloured
+  // alarm. Lucide stroke is 1.5 globally, so don't set it here.
+  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   label: string
   date: string | null
   // The relative-time clock (e.g. "12 days overdue", "in 4 days").
@@ -385,6 +396,10 @@ function DeadlineDateCard({
   // Card-specific distinguishing line drawn from a REAL row field
   // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
   meta: string | null
+  // `money` lifts the meta one weight + to text-primary so the dollar
+  // figure on the Payment card reads as a real number, not a caption.
+  // `default` keeps the quiet tertiary buffer line on the Internal card.
+  metaTone?: 'default' | 'money'
   // Optional inline help affordance rendered after the label (e.g. the
   // RichHelpTooltip on the Internal-target card that explains the
   // internal-vs-filing distinction). null = omit (no "?" dot).
@@ -395,12 +410,20 @@ function DeadlineDateCard({
       // 2026-06-10 (Yuqi page-polish #3 "where is the frame?"): each
       // anchor-date column gets a subtle outline back — a light
       // divider-subtle border + rounded-8 corner — for definition. Kept
-      // FLAT: no filled bg-background-subtle, no shadow; the frame reads
-      // as a quiet reference card, not a heavy filled tile. Overdue state
-      // stays a text-colour cue on the icon + date.
-      className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
+      // FLAT: no shadow; the frame reads as a quiet reference card, not a
+      // heavy filled tile. 2026-06-23 (Yuqi "so plain… too wasteful of
+      // space"): tighter padding (py-2) + smaller gap so the card hugs
+      // its content, and a leading icon chip gives it intentional
+      // hierarchy without raising the volume.
+      className="flex flex-col gap-1 rounded-lg border border-divider-subtle px-3 py-2"
     >
-      <div className="flex min-h-6 items-center gap-0.5">
+      <div className="flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className="grid size-4 shrink-0 place-items-center rounded bg-background-subtle text-text-tertiary"
+        >
+          <Icon className="size-2.5" aria-hidden />
+        </span>
         <CapsFieldLabel as="span" variant="group">
           {label}
         </CapsFieldLabel>
@@ -418,7 +441,16 @@ function DeadlineDateCard({
         ) : null}
       </div>
       {meta ? (
-        <span className="text-caption-xs font-medium text-text-secondary tabular-nums">{meta}</span>
+        <span
+          className={cn(
+            'tabular-nums',
+            metaTone === 'money'
+              ? 'text-caption font-medium text-text-primary'
+              : 'text-caption-xs font-medium text-text-secondary',
+          )}
+        >
+          {meta}
+        </span>
       ) : null}
     </div>
   )
@@ -680,12 +712,17 @@ export function PrimaryDeadlineStrip({
     return (
       <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <DeadlineDateCard
+          // Landmark = the hard statutory date the IRS / state enforces —
+          // the same glyph the alert detail uses for the issuing authority.
+          icon={LandmarkIcon}
           label={t`Filing deadline`}
           date={filingIso}
           clock={filingClock.node}
           meta={null}
         />
         <DeadlineDateCard
+          // CalendarClock = the firm's earlier internal target date.
+          icon={CalendarClockIcon}
           label={t`Internal target`}
           date={internalIso}
           clock={internalClock.node}
@@ -693,10 +730,14 @@ export function PrimaryDeadlineStrip({
           labelHelp={internalHelp}
         />
         <DeadlineDateCard
+          // DollarSign = the money leg; `money` meta tone lifts the "$X
+          // owed" figure so it reads as a real number, not a caption.
+          icon={DollarSignIcon}
           label={t`Payment due`}
           date={paymentIso}
           clock={paymentClock.node}
           meta={paymentAmount}
+          metaTone="money"
         />
       </div>
     )
@@ -1045,8 +1086,13 @@ export function PathToFilingSummary({
                 <span
                   aria-hidden
                   className={cn(
-                    // Continuous solid track; entered edges fill accent up to
-                    // the active stage, the rest stays a neutral rule.
+                    // Continuous solid track. 2026-06-23 (Yuqi "avoid the
+                    // accent here in the workflow… misleading"): entered edges
+                    // are a firm NEUTRAL rule (divider-deep), not an accent
+                    // fill — the accent connector read as a coloured progress
+                    // bar that looked interactive/important. The remaining
+                    // edges stay the lighter divider-regular rule, so the
+                    // path the row has crossed is still legible by weight.
                     'h-0 flex-1 border-t transition-colors',
                     (() => {
                       if (i === 0) return 'opacity-0'
@@ -1056,7 +1102,7 @@ export function PathToFilingSummary({
                         prevIdx === currentIndex ||
                         (prevIdx < currentIndex && (prevIdx === 0 || stamps[prevIdx] !== null))
                       return thisEntered && prevEntered
-                        ? 'border-state-accent-solid'
+                        ? 'border-divider-deep'
                         : 'border-divider-regular'
                     })(),
                   )}
@@ -1084,12 +1130,23 @@ export function PathToFilingSummary({
                     // ALWAYS accent — red lives in the status banner only, so
                     // the page states overdue once instead of echoing it in
                     // every component.
+                    // 2026-06-23 (Yuqi "avoid the accent here in the
+                    // workflow… misleading and too boring"): the accent fill
+                    // is gone — it read as an important/interactive control on
+                    // a strip that's only a summary. The lifecycle now reads
+                    // by NEUTRAL contrast: the active node is a solid near-
+                    // black "you are here" chip (text-primary fill), done
+                    // stages a quiet filled neutral chip, upcoming an empty
+                    // outline ring. No chroma, but a clear weight ladder so
+                    // it's no longer boring either.
                     'grid size-5 shrink-0 place-items-center rounded-full border transition-colors',
-                    state === 'done' || state === 'active'
-                      ? 'border-transparent bg-state-accent-solid text-text-inverted'
-                      : state === 'skipped'
-                        ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
-                        : 'border-divider-regular bg-background-default text-text-tertiary/70',
+                    state === 'active'
+                      ? 'border-transparent bg-text-primary text-text-inverted'
+                      : state === 'done'
+                        ? 'border-divider-deep bg-background-section text-text-secondary'
+                        : state === 'skipped'
+                          ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
+                          : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
                   {(() => {
