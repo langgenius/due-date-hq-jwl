@@ -176,6 +176,11 @@ msgstr "{0, plural, one {# event} other {# events}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# high-severity} other {# high-severity}}"
+msgstr "{0, plural, one {# high-severity} other {# high-severity}}"
+
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -351,6 +356,11 @@ msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {#d late} other {#d late}}"
+
+#. placeholder {0}: g.pendingReviewCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {<0>#</0> rule to review} other {<1>#</1> rules to review}}"
+msgstr "{0, plural, one {<0>#</0> rule to review} other {<1>#</1> rules to review}}"
 
 #. placeholder {0}: result.appliedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
@@ -608,11 +618,6 @@ msgstr "{0} filing today — stay ahead to keep the week on track."
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} filings extended — payment is not extended"
-
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0} high-severity"
-msgstr "{0} high-severity"
 
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
@@ -1407,8 +1412,8 @@ msgid "{total} checklist items weren't individually ticked during filing."
 msgstr "{total} checklist items weren't individually ticked during filing."
 
 #: src/routes/rules.library.tsx
-msgid "{totalActive} active"
-msgstr "{totalActive} active"
+msgid "{totalActive} active · {jurisdictionCount} jurisdictions"
+msgstr "{totalActive} active · {jurisdictionCount} jurisdictions"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "{totalAffected, plural, one {# client · 1 {firstForm} return affected} other {# clients · # {firstForm} returns affected}}"
@@ -1429,10 +1434,6 @@ msgstr "{totalOpen, plural, one {View # open deadline} other {View # open deadli
 #: src/routes/rules.library.tsx
 msgid "{totalPendingReview, plural, one {# rule needs your review} other {# rules need your review}}"
 msgstr "{totalPendingReview, plural, one {# rule needs your review} other {# rules need your review}}"
-
-#: src/routes/rules.library.tsx
-msgid "{totalRules} rules across {jurisdictionCount} jurisdictions"
-msgstr "{totalRules} rules across {jurisdictionCount} jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "{totalValues, plural, one {entity type} other {entity types}}"
@@ -13028,6 +13029,10 @@ msgstr "Review {codeList} now"
 msgid "Review {count}"
 msgstr "Review {count}"
 
+#: src/routes/rules.library.tsx
+msgid "Review {highSeverityPending} high-severity rules"
+msgstr "Review {highSeverityPending} high-severity rules"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "Review →"
@@ -15800,10 +15805,6 @@ msgstr "to create"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "to generate"
-
-#: src/routes/rules.library.tsx
-msgid "to review"
-msgstr "to review"
 
 #: src/features/rules/RuleCoverageMap.tsx
 msgid "To review"

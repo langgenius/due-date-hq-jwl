@@ -821,7 +821,6 @@ function OverviewReviewBreakdown({
   }>
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
-  const { t } = useLingui()
   const now = Date.now()
 
   return (
@@ -839,14 +838,17 @@ function OverviewReviewBreakdown({
         </span>
       </div>
       {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID. Each card
-          is a click target into that jurisdiction's review queue AND a
-          per-jurisdiction echo of the StatBand above — same label · value · sub
-          grammar (identity → count → differentiators) so the two zones read as
-          one family rather than a flat band fighting a row of boxed cards.
-          Color budget mirrors the band: the count stays NEUTRAL, the lone red
-          flag is high-severity (von-Restorff — only the "review these first"
-          jurisdictions light up); the colorful state seals carry the rest. */}
-      <div className="grid min-w-0 grid-cols-1 gap-3 @lg:grid-cols-2">
+          is a click target into that jurisdiction's review queue. 2026-06-23
+          (Yuqi): the cards used to echo the StatBand — a big `text-stat-value`
+          number per card — which CLASHED with the stat-card row directly above
+          (two KPI bands stacked) and read as terse data, not an action. So this
+          zone deliberately diverges: this is an actionable RANKED LIST, not a
+          KPI grid. No protagonist number; instead a readable SENTENCE per card
+          ("New York — 16 rules to review · 20 active") with the count inline at
+          data weight (500) inside the sentence, and the lone red high-severity
+          flag (von-Restorff) called out below as a quiet pill. Denser padding
+          (p-3.5) + smaller seal so the list reads lighter than the band. */}
+      <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
         {jurisdictions.map((g) => {
           const days =
             g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
@@ -855,45 +857,60 @@ function OverviewReviewBreakdown({
               key={g.jurisdiction}
               type="button"
               onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+              className="group flex cursor-pointer items-start gap-3 rounded-xl border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
-              {/* Identity (the card's "label"): seal + jurisdiction name. The
-                  whole card is the button + has a hover/focus state, so no
-                  per-card chevron is needed — it was redundant chrome. */}
-              <div className="flex items-center gap-2.5">
-                <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-                <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
-                  {g.label}
-                </span>
+              {/* Seal sits inline at the start of the row (a list affordance),
+                  not stacked as a card header — keeps the card shallow. */}
+              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                {/* The sentence. Jurisdiction name at title weight (500), then a
+                    dash and the readable backlog phrase. The pending count is the
+                    only number, set at data weight (500) inline — not a giant
+                    stat-value — so the row reads as prose, distinct from the
+                    band's "label · big number · sub" grammar above. */}
+                <p className="text-sm leading-snug text-text-secondary">
+                  <span className="font-medium text-text-primary">{g.label}</span>
+                  {' — '}
+                  <Plural
+                    value={g.pendingReviewCount}
+                    one={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rule to
+                        review
+                      </Trans>
+                    }
+                    other={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rules
+                        to review
+                      </Trans>
+                    }
+                  />
+                  {g.readyCount > 0 ? (
+                    <>
+                      {' · '}
+                      <Trans>{g.readyCount} ready</Trans>
+                    </>
+                  ) : days != null ? (
+                    <>
+                      {' · '}
+                      <Trans>{days}d waiting</Trans>
+                    </>
+                  ) : null}
+                </p>
+                {/* High-severity is the lone color signal (von-Restorff): a quiet
+                    warning-toned pill, only when the jurisdiction carries high-risk
+                    rules. Everything else in the sentence stays neutral. */}
+                {g.highCount > 0 ? (
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-medium text-text-warning">
+                    <Plural
+                      value={g.highCount}
+                      one="# high-severity"
+                      other="# high-severity"
+                    />
+                  </span>
+                ) : null}
               </div>
-              {/* Value (protagonist): the pending count is the biggest thing on
-                  the card — "numbers as protagonists, large but quiet". "to
-                  review" demotes to a quiet inline unit so it stops repeating
-                  loudly down the grid. Neutral per the band's color budget; the
-                  counts descend (19 → 16 → 12 → 10), so the number itself
-                  carries the "most urgent first" ranking. */}
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-stat-value leading-none font-medium tracking-tight tabular-nums text-text-primary">
-                  {g.pendingReviewCount}
-                </span>
-                <span className="text-xs font-medium text-text-tertiary">
-                  <Trans>to review</Trans>
-                </span>
-              </div>
-              {/* Sub — shortened differentiators, no per-segment color, wraps
-                  rather than truncating (so NY's "8 ready · 4 high-severity"
-                  never clips at the 2-column breakpoint). Falls back to the wait
-                  age when a card carries no flags. */}
-              {(() => {
-                const facts = [
-                  g.readyCount > 0 ? t`${g.readyCount} ready` : null,
-                  g.highCount > 0 ? t`${g.highCount} high-severity` : null,
-                ].filter((f): f is string => f !== null)
-                const text =
-                  facts.length > 0 ? facts.join(' · ') : days != null ? t`${days}d waiting` : null
-                if (text == null) return null
-                return <span className="text-xs font-medium text-text-tertiary">{text}</span>
-              })()}
             </button>
           )
         })}
@@ -1918,6 +1935,21 @@ export function RulesLibraryRoute() {
     [rules],
   )
 
+  // High-severity slice of the review backlog — drives the StatBand
+  // High-severity column's "Review these first" action (select-and-open the
+  // bulk modal pre-scoped to the high-risk rules), the same select-then-open
+  // idiom the "Start review" header button uses.
+  const highSeverityReviewableRuleIds = useMemo(
+    () =>
+      rules
+        .filter(
+          (r) =>
+            (r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high',
+        )
+        .map((r) => r.id),
+    [rules],
+  )
+
   // How many pending rules are blocked behind an AI concrete draft — a
   // source-defined rule with no ready draft *cannot* be accepted yet (this is
   // the server's `source_defined_requires_ai_review` gate, computed here from
@@ -2434,6 +2466,19 @@ export function RulesLibraryRoute() {
       value: highSeverityPending,
       sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
       subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      // "action?" (Yuqi): when high-risk rules are waiting, the column is a
+      // shortcut — select all high-severity reviewable rules and open the bulk
+      // modal scoped to them (same select-then-open idiom as "Start review").
+      // No work waiting → stays a read-only column.
+      ...(highSeverityPending > 0 && highSeverityReviewableRuleIds.length > 0
+        ? {
+            onClick: () => {
+              setSelectedRuleIds(new Set(highSeverityReviewableRuleIds))
+              setBulkListOpen(true)
+            },
+            ariaLabel: t`Review ${highSeverityPending} high-severity rules`,
+          }
+        : {}),
     },
     {
       key: 'coverage',
@@ -2449,7 +2494,10 @@ export function RulesLibraryRoute() {
       key: 'total',
       label: t`Total rules`,
       value: totalRules,
-      sub: t`${totalActive} active`,
+      // The page subtitle's "N rules across M jurisdictions" was redundant with
+      // this anchor stat, so the jurisdiction count folds in here (Yuqi: "do we
+      // need this?") and the subtitle drops — one home for the catalog totals.
+      sub: t`${totalActive} active · ${jurisdictionCount} jurisdictions`,
       // Anchor/context stat — stays NEUTRAL (2026-06-18 color budget). Color in a
       // StatBand is reserved for conditionally-actionable stats (the three above
       // go amber only when there's work); an always-on accent on the vanity total
@@ -2559,22 +2607,13 @@ export function RulesLibraryRoute() {
                 }
               />
             ) : (
-              // Overview header (Pencil O0pyRO): a sentence-case "Live"
-              // status eyebrow with a green sync dot, the "Rule library"
-              // title + "N rules across M jurisdictions" subtitle, and a
-              // lean two-button action cluster (Export + Add rule). The
-              // catalog totals live in the subtitle + stats band below.
-              <PageHeader
-                title={<Trans>Rule library</Trans>}
-                description={
-                  !statsLoading ? (
-                    <Trans>
-                      {totalRules} rules across {jurisdictionCount} jurisdictions
-                    </Trans>
-                  ) : undefined
-                }
-                actions={overviewHeaderActions}
-              />
+              // Overview header (Pencil O0pyRO): the "Rule library" title and a
+              // lean two-button action cluster (Export + Add rule). The catalog
+              // totals ("N rules across M jurisdictions") used to live in a
+              // subtitle here, but it duplicated the StatBand's Total rules
+              // column below — so the subtitle drops (Yuqi: "do we need this?")
+              // and the jurisdiction count folds into that anchor stat instead.
+              <PageHeader title={<Trans>Rule library</Trans>} actions={overviewHeaderActions} />
             )}
 
             {/* Body. The Overview (no jurisdiction selected, not
@@ -2759,10 +2798,18 @@ export function RulesLibraryRoute() {
                     When the queue is NOT clear, tell the CPA plainly that
                     rules are waiting and give them a one-click way into the
                     bulk review (select all pending → open the review list). */}
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-state-accent-hover px-4 py-3.5">
+                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
+                  {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
+                      the middle"): the strip was a chromatic navy wash
+                      (state-accent-hover) that read as neither calm nor a
+                      purposeful prompt. Resolved toward a CALM neutral wash
+                      (background-section) — the accent now lives only in the
+                      icon chip and the Start-review CTA (containers, not the
+                      wash; per the no-colored-wash canon), so the one true
+                      action stands out instead of the whole strip glowing. */}
                   <span
                     aria-hidden
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-default text-text-accent"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover-alt text-text-accent"
                   >
                     <EyeIcon className="size-[18px]" />
                   </span>
