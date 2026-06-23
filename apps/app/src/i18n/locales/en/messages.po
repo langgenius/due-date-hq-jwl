@@ -16269,6 +16269,10 @@ msgstr "Unsaved changes · {reorderCount} deadlines will reorder"
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "Unsaved changes · calculate a preview to see the impact"
 
+#: src/features/obligations/timeline.tsx
+msgid "Up next"
+msgstr "Up next"
+
 #: src/routes/billing.tsx
 msgid "Up to 1,000 clients"
 msgstr "Up to 1,000 clients"

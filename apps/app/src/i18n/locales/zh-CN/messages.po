@@ -16336,6 +16336,10 @@ msgstr "未保存的更改 · {reorderCount} 个截止日期将重新排序"
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "未保存的更改 · 计算预览以查看影响"
 
+#: src/features/obligations/timeline.tsx
+msgid "Up next"
+msgstr "接下来"
+
 #: src/routes/billing.tsx
 msgid "Up to 1,000 clients"
 msgstr "最多 1,000 个客户"
