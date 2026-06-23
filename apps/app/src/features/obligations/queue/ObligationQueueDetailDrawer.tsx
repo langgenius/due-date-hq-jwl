@@ -130,7 +130,9 @@ import {
   ChevronDownIcon,
   CircleOffIcon,
   CopyIcon,
+  ArrowUpRightIcon,
   ExternalLinkIcon,
+  SquareChartGanttIcon,
   FileTextIcon,
   HistoryIcon,
   LinkIcon,
@@ -205,6 +207,10 @@ function DeadlineTopActions({
   markFiledPending: boolean
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
+  // Captured as a const so the truthy-narrowed `string` survives into the
+  // navigate closure below (a `row.assigneeName` property access wouldn't).
+  const assigneeName = row.assigneeName
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
@@ -244,6 +250,23 @@ function DeadlineTopActions({
           }
         />
         <DropdownMenuContent align="end" className="w-56">
+          {/* Read action before the reassign list: jump to this owner's other
+              deadlines (assignee filter is name-keyed). Completes the
+              who→work pattern on the deadline detail — see everything this
+              teammate is carrying, or hand this one off below. */}
+          {row.assigneeId && assigneeName ? (
+            <>
+              <DropdownMenuItem
+                onClick={() =>
+                  void navigate(`/deadlines?assignee=${encodeURIComponent(assigneeName)}`)
+                }
+              >
+                <SquareChartGanttIcon className="size-4" aria-hidden />
+                <Trans>View {assigneeName}&rsquo;s deadlines</Trans>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {assignableMembers.length > 0 ? (
             <DropdownMenuRadioGroup
               value={row.assigneeId ?? ''}
@@ -4877,6 +4900,22 @@ export function ObligationQueueDetailDrawer({
                           <Trans>No activity recorded yet.</Trans>
                         </EmptyPanel>
                       )}
+                      {/* Reverse entity→audit path: this card shows the
+                          deadline's OWN timeline; the link opens the same
+                          history in the firm-wide audit log (full filters +
+                          export), scoped to this record via ?entity=<id>. */}
+                      {detail.auditEvents.length > 0 ? (
+                        <div className="mt-3 border-t border-divider-subtle pt-3">
+                          <TextLink
+                            variant="accent"
+                            size="sm"
+                            render={<Link to={`/audit?entity=${encodeURIComponent(row.id)}`} />}
+                          >
+                            <Trans>View in full audit log</Trans>
+                            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                          </TextLink>
+                        </div>
+                      ) : null}
                     </DetailSectionCard>
                   </motion.div>
                 </section>

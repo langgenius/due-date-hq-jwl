@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   TriangleAlertIcon,
+  ArrowUpRightIcon,
   SparklesIcon,
   BanIcon,
   CheckIcon,
@@ -14,6 +16,8 @@ import {
   LockIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
+  SquareChartGanttIcon,
+  UsersIcon,
   XIcon,
 } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
@@ -199,6 +203,18 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
           <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
         }
       />
+      {/* Reverse entity→audit path: open this rule's history in the firm-wide
+          audit log (full filters + export), scoped via ?entity=<id>. */}
+      <div className="mt-3 border-t border-divider-subtle pt-3">
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={<Link to={`/audit?entity=${encodeURIComponent(rule.id)}`} />}
+        >
+          <Trans>View in full audit log</Trans>
+          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+        </TextLink>
+      </div>
     </DetailSectionCard>
   )
 }
@@ -2206,6 +2222,35 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
             : `${rule.taxYear}–${rule.applicableYear}`}
         </span>
       </div>
+      {/* The "derive" direction: applicability says WHO this rule covers —
+          these links open the actual work it generated. "Deadlines" is the
+          flat list; "Affected clients" is the same set grouped by client (the
+          rule→clients view). Only for live rules; candidates have generated
+          nothing yet, so the links would land on an empty list. */}
+      {rule.status !== 'candidate' && rule.status !== 'pending_review' ? (
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <TextLink
+            variant="accent"
+            size="sm"
+            render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}`} />}
+          >
+            <SquareChartGanttIcon className="size-3.5" aria-hidden />
+            <Trans>View deadlines from this rule</Trans>
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+          <TextLink
+            variant="accent"
+            size="sm"
+            render={
+              <Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}&group=client`} />
+            }
+          >
+            <UsersIcon className="size-3.5" aria-hidden />
+            <Trans>View affected clients</Trans>
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+        </div>
+      ) : null}
     </DetailSectionCard>
   )
 }

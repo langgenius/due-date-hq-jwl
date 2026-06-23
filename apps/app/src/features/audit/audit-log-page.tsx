@@ -618,6 +618,10 @@ export function AuditLogPage() {
   const actionFilter = sanitizeAuditFilter(query.action)
   const actorFilter = sanitizeAuditFilter(query.actor)
   const entityTypeFilter = sanitizeAuditFilter(query.entityType)
+  // Scope to a single entity's history — the reverse "trace this record" path
+  // from deadline / rule / client detail (?entity=<id>). The backend query
+  // accepts `entityId`; the param was parsed but never wired until now.
+  const entityIdFilter = sanitizeAuditFilter(query.entity)
   const firmsQuery = useQuery(orpc.firms.listMine.queryOptions({ input: undefined }))
   const currentFirm = firmsQuery.data?.find((firm) => firm.isCurrent) ?? firmsQuery.data?.[0]
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
@@ -633,7 +637,7 @@ export function AuditLogPage() {
   // Fire when the active filter set changes (skip the initial render). The
   // filter values live in the URL query params; we only signal that a filter
   // moved, not which value, so no PII can leak.
-  const filterSignature = `${query.q}|${query.category}|${query.range}|${actionFilter}|${actorFilter}|${entityTypeFilter}`
+  const filterSignature = `${query.q}|${query.category}|${query.range}|${actionFilter}|${actorFilter}|${entityTypeFilter}|${entityIdFilter}`
   const lastFilterSignature = useRef(filterSignature)
   useEffect(() => {
     if (lastFilterSignature.current === filterSignature) return
@@ -652,9 +656,18 @@ export function AuditLogPage() {
       ...(actionFilter ? { action: actionFilter } : {}),
       ...(actorFilter ? { actorId: actorFilter } : {}),
       ...(entityTypeFilter ? { entityType: entityTypeFilter } : {}),
+      ...(entityIdFilter ? { entityId: entityIdFilter } : {}),
       ...(searchTerm ? { search: searchTerm } : {}),
     }),
-    [actionFilter, actorFilter, entityTypeFilter, query.category, query.range, searchTerm],
+    [
+      actionFilter,
+      actorFilter,
+      entityTypeFilter,
+      entityIdFilter,
+      query.category,
+      query.range,
+      searchTerm,
+    ],
   )
 
   const auditQuery = useAuditEvents(queryInputWithoutCursor, canReadAudit)
@@ -748,7 +761,8 @@ export function AuditLogPage() {
     query.range !== DEFAULT_AUDIT_RANGE ||
     actionFilter !== '' ||
     actorFilter !== '' ||
-    entityTypeFilter !== ''
+    entityTypeFilter !== '' ||
+    entityIdFilter !== ''
   // Refine facets (Action / Actor / Entity type) collapse behind one
   // "Filters" trigger — mirrors /alerts. Category + Time range stay inline,
   // so they're intentionally excluded from this count.
@@ -1050,6 +1064,25 @@ export function AuditLogPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          {/* Scoped-to-one-entity banner — shown when arriving via a
+              deadline / rule / client detail's "View in audit log" link
+              (?entity=<id>). Names the scope and clears back to the full log. */}
+          {entityIdFilter ? (
+            <div className="flex items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
+              <span className="text-sm text-text-secondary">
+                <Trans>Showing the full history of a single record.</Trans>
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="ml-auto h-7 shrink-0"
+                onClick={() => void setQuery({ entity: null })}
+              >
+                <Trans>Show all events</Trans>
+              </Button>
+            </div>
+          ) : null}
           {auditQuery.isLoading ? <AuditSkeleton /> : null}
 
           {auditQuery.isError ? (
