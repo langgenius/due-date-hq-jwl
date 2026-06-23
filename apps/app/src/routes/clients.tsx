@@ -585,6 +585,7 @@ export function ClientsRoute() {
         onCreateClient={canCreateClient ? () => setCreateDialogOpen(true) : undefined}
         canCreate={canCreateClient}
         onSampleData={canCreateClient ? () => seedSampleMutation.mutate({}) : undefined}
+        sampleDataPending={seedSampleMutation.isPending}
       />
 
       {/* Controlled create dialog driven by the empty-state hero's

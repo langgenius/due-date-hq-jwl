@@ -116,6 +116,8 @@ type ClientFactsWorkspaceProps = {
   canCreate?: boolean | undefined
   // Onboarding "Load sample data" chip in the empty-state hero.
   onSampleData?: (() => void) | undefined
+  // Seed mutation in flight — disables the sample-data chip (no double-seed).
+  sampleDataPending?: boolean | undefined
 }
 
 // Column widths for the /clients table. Centralized so the live
@@ -422,6 +424,7 @@ export function ClientFactsWorkspace({
   onCreateClient,
   canCreate,
   onSampleData,
+  sampleDataPending,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -1087,6 +1090,7 @@ export function ClientFactsWorkspace({
           onCreate={onCreateClient}
           canCreate={canCreate}
           onSampleData={onSampleData}
+          sampleDataPending={sampleDataPending ?? false}
         />
       ) : viewMode === 'cards' ? (
         // Portfolio card grid — the default view. Cards render in the
