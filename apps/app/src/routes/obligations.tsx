@@ -3754,13 +3754,12 @@ export function ObligationQueueRoute() {
         ) : null}
         <div
           className={cn(
-            // `gap-4` (16px) so the sticky filter bar (status tabs + action
-            // chips + sort/columns) has a clearer breathing gap above the table
-            // card — separating the "controls" layer from the "data" layer so
-            // the two sections don't read as one dense band. The bulk-action
-            // toolbar is a FloatingActionBar (fixed at viewport bottom), so
-            // this gap only affects filter→table spacing.
-            'flex min-w-0 flex-1 flex-col gap-4',
+            // `gap-3` (12px, tightened 2026-06-23 per Yuqi) keeps the sticky
+            // filter bar close to the table so the controls + data read as one
+            // tight unit, not two separated bands. The bulk-action toolbar is a
+            // FloatingActionBar (fixed at viewport bottom), so this gap only
+            // affects filter→table spacing.
+            'flex min-w-0 flex-1 flex-col gap-3',
             // Reserve clearance for the floating bulk bar while a selection
             // exists, so the last rows scroll clear of the fixed bar instead of
             // being occluded. The bar only shows in full-page mode (this column

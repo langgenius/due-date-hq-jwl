@@ -656,13 +656,13 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               // list stands alone (route shell's natural scroll),
               // fixed-height when the panel is open (split-column owns
               // scroll inside its own bounds, no double-scroll).
-              'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+              'mx-auto flex h-full min-h-0 w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-4 md:px-8 md:pt-8 md:pb-6'
             : // List-only branch holds `max-w-[1440px]` (not 1100px) to
               // eliminate the 80px page-shift on every alert click. (Note: the
               // /alerts route mounts this `embedded`, so this branch is the
               // off-route fallback; the centered reading measure for /alerts is
               // handled on the list column itself below.)
-              'mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+              'mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-4 md:px-8 md:pt-8 md:pb-6'
       }
     >
       {!embedded ? (
