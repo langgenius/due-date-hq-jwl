@@ -74,3 +74,14 @@ facts. `tsgo` clean; no console errors.
 Open question flagged (not changed — it's a semantics call): the practice note
 shows "Required before Accept" but `acceptDisabled` doesn't actually gate on it
 for source-defined rules — either enforce it or soften the label.
+
+## "Required" → "Recommended" (resolved the open question)
+
+Yuqi chose to soften (don't block Accept on a team note). The note's tag was
+fiction: `acceptDisabled` ignores `body`, the note posts via its own
+`addRuleNote` mutation, and accept sends a hardcoded `reviewNote`. So:
+- copy "Required" / "Required before Accept" → **"Recommended"**
+- tone amber `warning` → neutral `secondary` — it now reads as encouragement,
+  freeing amber to mean only the real gate (the locked-Accept reason) + the
+  Awaiting-review status pill.
+`requiredTag` renamed `recommendedTag`. `tsgo` clean, verified live.

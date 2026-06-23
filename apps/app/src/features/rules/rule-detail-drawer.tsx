@@ -955,13 +955,14 @@ function RulePracticeReviewCard({
   )
   const trimmed = body.trim()
   const canSubmit = trimmed.length > 0 && !addMutation.isPending
-  // A gate indicator → the Badge primitive (was a hand-rolled red caps span).
-  // Amber `warning`, not destructive red: a required field is an attention
-  // cue, not an error — and it joins the panel's one "needs your attention"
-  // colour (the Awaiting-review pill + the locked-Accept reason).
-  const requiredTag = (
-    <Badge variant="warning" size="sm" className="ml-auto shrink-0">
-      {flat ? <Trans>Required</Trans> : <Trans>Required before Accept</Trans>}
+  // Honest label: Accept does NOT gate on this note (`acceptDisabled` ignores
+  // it; the note posts via its own addRuleNote mutation, and accept sends a
+  // hardcoded reviewNote). So it's "Recommended", not "Required" — and a
+  // neutral `secondary` Badge, not amber, so it reads as encouragement, not a
+  // gate competing with the real locked-Accept warning.
+  const recommendedTag = (
+    <Badge variant="secondary" size="sm" className="ml-auto shrink-0">
+      <Trans>Recommended</Trans>
     </Badge>
   )
   const inner = (
@@ -1053,7 +1054,7 @@ function RulePracticeReviewCard({
           <h3 className="text-base font-semibold text-text-primary">
             <Trans>Practice review</Trans>
           </h3>
-          {requiredTag}
+          {recommendedTag}
         </div>
         {inner}
       </section>
@@ -1066,7 +1067,7 @@ function RulePracticeReviewCard({
         <h3 className="text-base font-semibold text-text-primary">
           <Trans>Practice review</Trans>
         </h3>
-        {requiredTag}
+        {recommendedTag}
       </div>
       <div className="flex flex-col gap-2 px-5 py-4">{inner}</div>
     </section>
