@@ -10141,10 +10141,6 @@ msgstr "No items waived"
 msgid "No jurisdictions match \"{search}\""
 msgstr "No jurisdictions match \"{search}\""
 
-#: src/features/rules/states-rail.tsx
-#~ msgid "No jurisdictions need review"
-#~ msgstr "No jurisdictions need review"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
 msgstr "No matched rule"
@@ -14320,11 +14316,6 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount}+ events"
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
-
-#. placeholder {0}: states.length
-#: src/features/rules/states-rail.tsx
-#~ msgid "Showing {shownStateCount} of {0} states"
-#~ msgstr "Showing {shownStateCount} of {0} states"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
