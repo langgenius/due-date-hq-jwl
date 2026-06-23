@@ -29,8 +29,8 @@ const pad = (n: number) => String(n).padStart(2, '0')
 <main class="trustpg" data-slug={page.slug}>
   <section class="m-section m-page-hero trustpg__hero" id="hero">
     <p class="m-eyebrow">{page.hero.eyebrow}</p>
-    <h1 class={`trustpg__title${isSignature ? ' trustpg__title--display' : ''}`}>{page.hero.title}</h1>
-    <p class="trustpg__lead">{page.hero.description}</p>
+    <h1 class={`m-page-title trustpg__title${isSignature ? ' trustpg__title--display' : ''}`}>{page.hero.title}</h1>
+    <p class="m-page-lead trustpg__lead">{page.hero.description}</p>
 
     <div class="trustpg__meta">
       <p class="trustpg__note">{page.hero.note}</p>
@@ -159,22 +159,10 @@ const pad = (n: number) => String(n).padStart(2, '0')
      plain .m-eyebrow) — aligned with every other subpage */
   /* Display serif hero — one voice with every other page (home, leaves, finale).
      Calm size on the legal pages; the signature pages step up below. */
-  .trustpg__title {
-    max-width: 20ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: var(--m-page-title-size);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    color: var(--m-ink);
-    text-wrap: balance;
-  }
-  /* Signature pages (security / about) take the bigger serif — more presence,
-     bookending the navy close. */
+  /* hero title comes from the shared .m-page-title; signature pages (security /
+     about) only tighten the measure + tracking a hair for more presence. */
   .trustpg__title--display {
     max-width: 17ch;
-    font-size: var(--m-page-title-size);
-    line-height: 1.04;
     letter-spacing: -0.018em;
   }
   /* ============================================================================
@@ -193,7 +181,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     grid-template-columns: 1fr auto 1.35fr;
     align-items: stretch;
     border: 1px solid var(--m-hairline);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     background: var(--m-surface);
   }
@@ -270,7 +258,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     color: var(--m-accent);
     background: var(--m-accent-tint);
     border: 1px solid color-mix(in srgb, var(--m-accent) 18%, transparent);
-    border-radius: 6px;
+    border-radius: 4px;
     padding: 3px 8px;
   }
   .secdiag__data {
@@ -340,13 +328,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
       transform: none;
     }
   }
-  .trustpg__lead {
-    margin-top: 24px;
-    max-width: 62ch;
-    font-size: clamp(16px, 1.35vw, 19px);
-    line-height: 1.6;
-    color: var(--m-ink-2);
-  }
+  /* hero lead comes from the shared .m-page-lead (no per-page override) */
   /* meta rail — note + last-reviewed sit on one quiet, ruled line */
   .trustpg__meta {
     margin-top: clamp(28px, 3.4vw, 40px);
@@ -539,7 +521,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   .trustpg__close-card {
     position: relative;
     background: var(--m-accent);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     isolation: isolate;
   }

@@ -253,7 +253,13 @@ const examples = t.examples
               <span class="field__label">{t.sourceQuote}</span>
               <p class="field__quote">{e.quote}</p>
               <p class="field__verify">
-                {e.verify.url} <span class="field__ok">✓ {e.verify.date}</span>
+                {e.verify.url}{' '}
+                <span class="field__ok">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {e.verify.date}
+                </span>
               </p>
             </div>
             <div class="field">
@@ -580,6 +586,11 @@ const examples = t.examples
   }
   .field__ok {
     color: var(--m-ok);
+  }
+  .field__ok svg {
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
   }
   .field__change {
     margin-top: 10px;

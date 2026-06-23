@@ -35,10 +35,10 @@ const pathname = '/how-it-works'
   <main>
     <section class="m-section m-page-hero how-hero" id="hero">
       <p class="m-eyebrow">Product walkthrough</p>
-      <h1 class="how-hero__title">
-        From a deadline change to the clients it <span class="ital">touches.</span>
+      <h1 class="m-page-title how-hero__title">
+        From a deadline change to the clients it <span class="ital">affects.</span>
       </h1>
-      <p class="how-hero__lead">
+      <p class="m-page-lead how-hero__lead">
         DueDateHQ runs one loop, around the clock: it watches the official sources, reads what a
         change actually moved, ranks your week by who's most at risk, and applies the new date with
         a source on every line. Here is the whole thing, surface by surface.
@@ -117,27 +117,11 @@ const pathname = '/how-it-works'
   /* page hero — display serif at the shared subpage title size (one tier below
      the home hero, consistent with /pricing + /state-coverage). Padding comes
      from the shared .m-page-hero on the section — no per-page override. */
-  .how-hero__title {
-    margin-top: 4px;
-    max-width: 20ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: var(--m-page-title-size);
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-    color: var(--m-ink);
-    text-wrap: balance;
-  }
+  /* hero title + lead come from the shared kit (.m-page-title / .m-page-lead);
+     only the italic accent span is page-specific */
   .how-hero__title .ital {
     font-style: italic;
     letter-spacing: 0.002em;
-  }
-  .how-hero__lead {
-    margin-top: clamp(20px, 2vw, 28px);
-    max-width: 64ch;
-    font-size: clamp(16px, 1.3vw, 19px);
-    line-height: 1.6;
-    color: var(--m-ink-2);
   }
 
   /* worked-example flow — the hero's visual anchor: four numbered stages, the
@@ -146,7 +130,7 @@ const pathname = '/how-it-works'
     margin-top: clamp(28px, 3vw, 40px);
     padding: clamp(18px, 2vw, 24px);
     border: 1px solid var(--m-hairline);
-    border-radius: 16px;
+    border-radius: 12px;
     background:
       radial-gradient(130% 150% at 0% 0%, var(--m-accent-tint), transparent 60%),
       var(--m-surface);

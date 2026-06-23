@@ -23,8 +23,8 @@ const products = [
 ]
 
 // mark vocabulary, per product:
-//   yes · no · partial (technically, but…) · manual · narrow (by design — not us)
-type Mark = 'yes' | 'no' | 'partial' | 'manual' | 'narrow'
+//   yes · no · partial (technically, but…) · manual
+type Mark = 'yes' | 'no' | 'partial' | 'manual'
 
 // Two honest groups. Group 1: the change-monitoring job — our ground.
 // Group 2: full practice management — their ground, narrow by design for us.
@@ -82,10 +82,8 @@ const t = zh
       leadHtml: '全能套件帮你打理事务所。我们盯着<b>截止日什么时候变</b>。',
       partial: '勉强',
       manual: '手动',
-      narrow: '刻意不做',
       legendYes: '内建',
       legendPartial: '技术上能，但不监测变化',
-      legendNarrow: '它们的强项——我们刻意不碰',
       footnote: '套件管事务所，我们盯截止日变化——两者并不冲突。',
       ariaSummary:
         '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。只有 DueDateHQ 7×24 盯着官方来源看变化、用 AI 读懂变化、精确标出受影响客户、一键应用并为每个日期保留来源；而完整的事务所管理、开票、文档存储是套件的强项，我们刻意不做，只装在它们之上。',
@@ -98,10 +96,8 @@ const t = zh
         'All-in-ones run your practice. We watch <b>when the deadlines themselves move</b>.',
       partial: 'partial',
       manual: 'manual',
-      narrow: 'By design',
       legendYes: 'Built in',
       legendPartial: 'Technically, but no change monitoring',
-      legendNarrow: 'Their strength — we stay out of it',
       footnote: 'Your suite runs the practice; we watch the deadlines — not in competition.',
       ariaSummary:
         'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources 24/7 for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
@@ -147,11 +143,6 @@ const ariaSummary = t.ariaSummary
                       </span>
                     )}
                     {m === 'manual' && <span class="cmp__manual">{t.manual}</span>}
-                    {m === 'narrow' && (
-                      <span class="cmp__narrow" title={t.legendNarrow}>
-                        {t.narrow}
-                      </span>
-                    )}
                   </div>
                 ))}
               </>
@@ -286,18 +277,6 @@ const ariaSummary = t.ariaSummary
   .cmp__partial {
     font-size: var(--m-text-xs);
     color: var(--m-muted);
-  }
-  /* "By design" — our deliberate no. Calm, not a failure: a quiet pill, not red. */
-  .cmp__narrow {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 9px;
-    border-radius: 999px;
-    border: 1px solid var(--m-hairline);
-    font-size: var(--m-text-2xs);
-    font-weight: 500;
-    color: var(--m-muted);
-    white-space: nowrap;
   }
   .compare__foot {
     margin-top: clamp(20px, 2.4vw, 28px);
