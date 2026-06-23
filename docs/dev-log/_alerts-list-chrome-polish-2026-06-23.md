@@ -26,14 +26,21 @@ Page-feedback batch on `/alerts` (Yuqi):
   (60%) on row/band hover and only goes solid when the box itself is focused or
   a selection is active — a read-first triage list isn't fronted by checkboxes.
 
-## Deferred — icon weight (#5)
+## Icon weight — 1.5 product-wide (#5)
 
 Yuqi: "the icon line weight in sidenav is different to the rest of the product."
-Confirmed: `packages/ui/src/components/ui/sidebar.tsx` forces
-`[&_svg]:[stroke-width:1.5]` on every rail glyph (a deliberate 2026-06-09
-"精致/elegant" choice), while the rest of the product uses Lucide's default 2px.
-Either direction (coarsen nav → 2, or extend elegant 1.5 product-wide) reverses
-a deliberate decision and is app-wide, so it's held for an explicit call.
+The sidenav forced `[&_svg]:[stroke-width:1.5]` (a deliberate 2026-06-09
+"精致/elegant" choice); the rest used Lucide's default 2px. Asked which way to
+unify — Yuqi chose **1.5 everywhere (refined)**.
+
+- Added a global `.lucide { stroke-width: 1.5 }` rule (globals.css). Scoped to
+  the `.lucide` class so raw SVGs — brand marks, the `StatusRing`, source-logo
+  art — keep their own widths (verified: a non-Lucide SVG still reports its own
+  stroke; a content-area `lucide-file-pen` now reports 1.5px, matching the nav).
+- It intentionally overrides the few per-icon `strokeWidth` props (1.75 delight,
+  2 fun-icon) so the weight is uniform. The sidebar's local override is now
+  redundant but harmless (same value); left untouched to avoid editing shared
+  packages/ui.
 
 ## Verified
 
