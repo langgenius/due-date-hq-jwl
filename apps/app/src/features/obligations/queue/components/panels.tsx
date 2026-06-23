@@ -406,19 +406,17 @@ function DeadlineDateCard({
         </CapsFieldLabel>
         {labelHelp ? <span className="-my-1 shrink-0">{labelHelp}</span> : null}
       </div>
-      <span
-        // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
-        // is the primary datum in each key-date card, so it steps up to
-        // text-sm (from the earlier text-caption-xs) to read clearly. The
-        // label above and the clock/meta below stay smaller so the date
-        // owns the hierarchy.
-        className="text-sm leading-tight font-semibold tabular-nums text-text-primary"
-      >
-        {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
-      </span>
-      {clock ? (
-        <span className="text-caption-xs font-medium text-text-tertiary">{clock}</span>
-      ) : null}
+      {/* Date + relative clock share ONE baseline-aligned line (Yuqi
+          2026-06-23: "42d late in the same line as May 12, 2026") — tighter
+          and less wasteful of vertical space than stacking them. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-sm leading-tight font-semibold tabular-nums text-text-primary">
+          {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
+        </span>
+        {clock ? (
+          <span className="text-caption-xs font-medium text-text-tertiary">{clock}</span>
+        ) : null}
+      </div>
       {meta ? (
         <span className="text-caption-xs font-medium text-text-secondary tabular-nums">{meta}</span>
       ) : null}
