@@ -28,7 +28,7 @@ leaving the design system.
 - **`/clients` → portfolio cards** (default; registry table = Segmented toggle,
   persisted). Cards in **urgency swim lanes** (Overdue → Due this week → Upcoming →
   No deadlines). Each card: square monogram + name + entity/state chips + owner;
-  a **bold days-to-deadline numeral** whose colour is the card's *only* urgency
+  a **bold days-to-deadline numeral** whose colour is the card's _only_ urgency
   tone (red late / amber ≤7d / neutral); prose date + form + status. Compact
   (p-3, ~150px), white cards on a gray well for figure/ground.
 

@@ -133,7 +133,9 @@ export function RuleCoverageMap({
                         high > 0 ? 'bg-state-destructive-solid' : 'bg-state-success-solid',
                       )}
                       title={
-                        high > 0 ? t`${label}: ${high} high-severity — review first` : t`Monitoring ${label}`
+                        high > 0
+                          ? t`${label}: ${high} high-severity — review first`
+                          : t`Monitoring ${label}`
                       }
                       aria-hidden
                     />

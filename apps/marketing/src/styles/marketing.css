@@ -251,8 +251,7 @@ body {
     border-radius: 12px;
     border: 1px solid var(--m-hairline);
     background:
-      radial-gradient(125% 125% at 100% 0%, var(--m-accent-tint), transparent 58%),
-      var(--m-section);
+      radial-gradient(125% 125% at 100% 0%, var(--m-accent-tint), transparent 58%), var(--m-section);
     overflow: hidden;
   }
   .m-figure > img,
