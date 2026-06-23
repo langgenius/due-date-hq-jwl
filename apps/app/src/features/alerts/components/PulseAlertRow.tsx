@@ -434,14 +434,10 @@ function PulseAlertRow({
             // the box never shifts the row), but the box itself is hover-revealed
             // unless this row is ticked or a selection is already underway — so a
             // read-first triage list isn't led by a column of empty checkboxes.
-            // Less obvious (Yuqi 2026-06-23 #5): a read-first triage list
-            // shouldn't be fronted by checkboxes. Stays a quiet ghost on row
-            // hover (60%) and only goes solid when the box itself is focused, or
-            // once this row / a selection is active.
-            'flex shrink-0 items-start pt-0.5 transition-opacity',
-            selected || selectionActive
-              ? 'opacity-100'
-              : 'opacity-0 group-hover/row:opacity-60 hover:opacity-100 focus-within:opacity-100',
+            // Always visible (Yuqi 2026-06-23: "alert list should have the
+            // checkbox always showing"). The unchecked box is a quiet outline,
+            // so a persistent column stays subtle without hover-gating.
+            'flex shrink-0 items-start pt-0.5',
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -1073,12 +1069,9 @@ function PulseAlertList({
                       for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
                     }}
                     aria-label={t`Select all alerts on ${label}`}
-                    className={cn(
-                      'size-[18px] rounded transition-opacity',
-                      selectionActive
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover/band:opacity-60 hover:opacity-100 focus-visible:opacity-100',
-                    )}
+                    // Always visible, matching the row checkboxes (Yuqi: checkbox
+                    // always showing).
+                    className="size-[18px] rounded"
                   />
                 ) : null}
                 <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">

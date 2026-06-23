@@ -751,6 +751,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               {/* Toggle between List and Map. Map shows
                   `<PulseAlertsMap>` above the list. */}
               <Segmented
+                // size="sm" to match the /deadlines + /clients view-mode toggle
+                // (Yuqi 2026-06-23: "should follow the size on deadlines").
+                size="sm"
                 ariaLabel={t`View mode`}
                 value={viewMode}
                 onValueChange={setViewMode}

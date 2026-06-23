@@ -64,3 +64,15 @@ reversed:
   the thinner `py-1.5`.
 - The toolbar stays flush (no px-5) above the card, aligned with the frame's
   left edge + the page header.
+
+## Correction 2 — checkbox always showing + view toggle size (same day)
+
+- **Checkbox always showing.** Earlier I read "checkbox always showing but less
+  obvious" as "hover-reveal it" — wrong. Yuqi: "alert list should have the
+  checkbox always showing." Reverted the hover-reveal on both the row checkbox
+  and the day-band select-all: they're now `opacity-100` always (the unchecked
+  outline box is quiet enough that a persistent column stays subtle).
+  `selectionActive` is now an unused-but-harmless prop.
+- **View-mode Segmented `size="sm"`.** The /alerts list/map toggle had no `size`
+  (default, larger); /deadlines + /clients use `size="sm"`. Added `size="sm"` so
+  it matches ("should follow the size on deadlines").
