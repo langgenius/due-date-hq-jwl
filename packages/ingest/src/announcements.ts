@@ -287,6 +287,70 @@ function zendeskArticleItems(
     .slice(0, limit)
 }
 
+// Agency newsroom JSON. Some DORs render their news list client-side from a flat
+// JSON array the page's own JS fetches (Montana: mtrevenue.gov/news/ shells out
+// to /news/article_source.json). The HTML shell never server-renders the list
+// and a browser render captures it before that XHR settles, so we fetch the JSON
+// directly via feedUrl. Each entry carries a title, a site-relative link, an ISO
+// `date` and a teaser/summary.
+interface AgencyNewsJsonEntry {
+  title?: string
+  link?: string
+  summary?: string
+  teaser?: string
+  date?: string
+}
+function looksLikeAgencyNewsJson(body: string): boolean {
+  return (
+    /^\s*\[/.test(body) &&
+    body.includes('"link"') &&
+    body.includes('"date"') &&
+    body.includes('"teaser"')
+  )
+}
+function agencyNewsJsonItems(
+  source: AnnouncementSourceConfig,
+  body: string,
+  fetchedAt: Date,
+  limit: number,
+): ParsedItem[] {
+  let parsed: AgencyNewsJsonEntry[]
+  try {
+    parsed = JSON.parse(body) as AgencyNewsJsonEntry[]
+  } catch {
+    return []
+  }
+  if (!Array.isArray(parsed)) return []
+  return parsed
+    .flatMap((entry) => {
+      const title = entry.title?.trim()
+      if (!title || !entry.link) return []
+      let url: string
+      try {
+        url = new URL(entry.link, source.url).toString()
+      } catch {
+        return []
+      }
+      const published = entry.date ? new Date(entry.date) : fetchedAt
+      const excerpt = stripHtml(entry.summary || entry.teaser || '')
+      return [
+        Object.assign(
+          {
+            sourceId: source.id,
+            externalId: stableExternalId(url),
+            title,
+            publishedAt: Number.isNaN(published.getTime()) ? fetchedAt : published,
+            officialSourceUrl: url,
+            rawText: textExcerpt([title, excerpt].filter(Boolean).join('\n\n')),
+            dedupeText: [normalizeSourceText(title), url, entry.date ?? ''].join('\n'),
+          },
+          source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
+        ),
+      ]
+    })
+    .slice(0, limit)
+}
+
 export function announcementItemsFromSnapshot(
   source: AnnouncementSourceConfig,
   snapshot: Pick<RawSnapshot, 'body' | 'fetchedAt'>,
@@ -301,6 +365,13 @@ export function announcementItemsFromSnapshot(
     // drop real notices. The per-source predicate decides; TN excludes the portal
     // help (see defaultRelevancePredicateForSource).
     const items = zendeskArticleItems(source, snapshot.body, snapshot.fetchedAt, limit).filter(
+      (item) =>
+        linkPassesOptions(source, { text: item.title, href: item.officialSourceUrl }, options),
+    )
+    if (items.length > 0) return items
+  }
+  if (looksLikeAgencyNewsJson(snapshot.body)) {
+    const items = agencyNewsJsonItems(source, snapshot.body, snapshot.fetchedAt, limit).filter(
       (item) =>
         linkPassesOptions(source, { text: item.title, href: item.officialSourceUrl }, options),
     )

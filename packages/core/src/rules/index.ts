@@ -4455,9 +4455,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'MI',
     title: 'Michigan Treasury Taxes News',
     // 2026-06-10: metadata corrected api_watch/rss → html_watch (HTML page, not
-    // a feed). michigan.gov WAF-403s non-browser clients — fetched via
-    // browserless (PULSE_BROWSERLESS_SOURCE_IDS).
-    url: 'https://www.michigan.gov/taxes/news',
+    // a feed). michigan.gov WAF-403s non-browser clients — fetched via CF Browser
+    // Rendering (PULSE_BROWSERLESS_SOURCE_IDS).
+    // 2026-06-23: repointed /taxes/news (a frozen 2018-2021 notices archive) → the
+    // live Treasury newsroom, which carries current dated tax items ("Individual
+    // Income Tax Hits Processing Milestone", "33 Counties Eligible for Tax
+    // Extension Relief", …). Verified via CF render.
+    url: 'https://www.michigan.gov/treasury/news',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
   },
@@ -4493,7 +4497,17 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'mt.temporary_announcements',
     jurisdiction: 'MT',
     title: 'Montana DOR News',
-    url: 'https://mtrevenue.gov/news/',
+    // 2026-06-23: mtrevenue.gov/news/ shells out to a client-side JSON feed; the
+    // HTML never server-renders the list and a browser render grabs the shell
+    // before the XHR settles (it sat on PULSE_BROWSERLESS_SOURCE_IDS capturing a
+    // "Loading…" spinner). Fetch the JSON feed directly — announcements.ts
+    // auto-detects the agency-news-JSON array. url stays the human page; feedUrl
+    // is what gets fetched (ruleSourceFetchUrl = feedUrl ?? url). Removed from
+    // PULSE_BROWSERLESS_SOURCE_IDS.
+    url: 'https://revenue.mt.gov/news/',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://revenue.mt.gov/news/article_source.json',
   },
   {
     id: 'nc.temporary_announcements',
@@ -4613,9 +4627,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Ohio Department of Taxation Tax Alerts Archive',
     // 2026-06-10: repointed /taxalerts (subscription hub) → the dated alerts
     // archive content page. tax.ohio.gov WAF-404s non-browser clients (even its
-    // homepage), so this is fetched via browserless (PULSE_BROWSERLESS_SOURCE_IDS).
+    // homepage), so this is fetched via CF Browser Rendering (PULSE_BROWSERLESS_SOURCE_IDS).
     // OH's only web watch — the parallel oh.temporary_announcements is email-only.
-    url: 'https://tax.ohio.gov/professional/ohtaxalert/taxalertsarchive',
+    // 2026-06-23: CF render bypassed the WAF (un-parks this source), but the archive
+    // ROOT is just a category index; repointed to the dated Sales & Use Taxes alert
+    // list (this source = sales_tax_rate_changes). Verified: "Sales and Use Tax Rate
+    // Change effective October 1, 2025", … render as dated items.
+    url: 'https://tax.ohio.gov/professional/ohtaxalert/taxalertsarchive/salesuse',
     alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',

@@ -431,6 +431,50 @@ describe('@duedatehq/ingest', () => {
     expect(fonce?.dedupeText).toContain('2026-06-09T12:00:00Z')
   })
 
+  it('parses an agency newsroom JSON feed (Montana DOR) and resolves relative links', () => {
+    // mtrevenue.gov/news/ renders its list client-side from a flat JSON array, so
+    // a browser render only ever captured the "Loading…" shell. We fetch
+    // /news/article_source.json directly; each entry carries a site-relative link,
+    // an ISO date and a teaser.
+    const body = JSON.stringify([
+      {
+        title: 'Individual Income Tax Filing Deadline Reminder',
+        link: '/news/recent-news/individual-income-tax-deadline-2026',
+        summary: 'The April 15 individual income tax filing deadline is approaching.',
+        teaser: '',
+        author: '',
+        date: '2026-06-11T00:00:00Z',
+      },
+      {
+        title: 'Montana Sales and Use Tax Rate Update',
+        link: '/news/recent-news/sales-tax-rate-update',
+        summary: '',
+        teaser: 'New local option tax rates take effect July 1.',
+        date: '2026-05-02T00:00:00Z',
+      },
+    ])
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'mt.temporary_announcements',
+        title: 'Montana DOR News',
+        url: 'https://revenue.mt.gov/news/',
+        jurisdiction: 'MT',
+      },
+      { fetchedAt: new Date('2026-06-23T00:00:00.000Z'), body },
+    )
+    expect(items.map((item) => item.title)).toContain(
+      'Individual Income Tax Filing Deadline Reminder',
+    )
+    const first = items.find((item) => item.title.startsWith('Individual Income Tax'))
+    // A site-relative link resolves against the source origin.
+    expect(first?.officialSourceUrl).toBe(
+      'https://revenue.mt.gov/news/recent-news/individual-income-tax-deadline-2026',
+    )
+    // The ISO date becomes publishedAt and rides in the dedupe identity.
+    expect(first?.publishedAt.toISOString()).toBe('2026-06-11T00:00:00.000Z')
+    expect(first?.dedupeText).toContain('2026-06-11T00:00:00Z')
+  })
+
   it('keeps item dedupeText stable across unrelated listing-page changes', () => {
     const source = {
       id: 'tx.temporary_announcements',

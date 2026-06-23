@@ -203,7 +203,7 @@ PULSE_EMAIL_REQUIRE_AUTH = "true"
 # release-PDF list loads under networkidle0. Dropped 4 phantom ids that match no
 # source (az/ks/mi/nh.income_tax). VERIFY ar/ut via last_change_detected_at + the
 # whole fleet's source-health after deploy.
-PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.tax_calendar,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,wi.temporary_announcements,ar.temporary_announcements,ut.temporary_announcements"
+PULSE_BROWSERLESS_SOURCE_IDS = "pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.tax_calendar,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,wi.temporary_announcements,ar.temporary_announcements,ut.temporary_announcements"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings
