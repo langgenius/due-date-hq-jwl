@@ -86,6 +86,13 @@ function isOverdue(deadline: ObligationQueueRow): boolean {
   return deadline.daysUntilDue < 0 && !TERMINAL_STATUSES.has(deadline.status)
 }
 
+// stopPropagation wrapper for row-internal buttons that must not bubble to the
+// whole-row click handler. Module-scoped since it captures nothing.
+const stop = (fn: () => void) => (event: React.MouseEvent) => {
+  event.stopPropagation()
+  fn()
+}
+
 export function DeadlineRow({
   deadline,
   mode,
@@ -177,11 +184,6 @@ export function DeadlineRow({
         }
         break
     }
-  }
-
-  const stop = (fn: () => void) => (event: React.MouseEvent) => {
-    event.stopPropagation()
-    fn()
   }
 
   return (

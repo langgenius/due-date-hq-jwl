@@ -123,6 +123,7 @@ export function RichHelpTooltip({
         closeDelay={200}
         render={
           trigger ? (
+            // oxlint-disable-next-line no-unsafe-type-assertion -- Tooltip's render expects a ReactElement; trigger is the caller-supplied node and is constrained at the prop boundary above
             (trigger as React.ReactElement)
           ) : (
             <button

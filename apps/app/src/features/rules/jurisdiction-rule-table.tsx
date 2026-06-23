@@ -199,6 +199,7 @@ export function JurisdictionFilterBar({
       onFilterChange({ ...filter, sort: null })
       return
     }
+    // oxlint-disable-next-line no-unsafe-type-assertion -- value is one of the controlled options; the literal split shape is the safe interpretation
     const [field, dir] = value.split(':') as [RuleTableSort['field'], RuleTableSort['dir']]
     onFilterChange({ ...filter, sort: { field, dir } })
   }

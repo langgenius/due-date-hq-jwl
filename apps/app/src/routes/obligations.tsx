@@ -3140,7 +3140,8 @@ export function ObligationQueueRoute() {
   const scopeStatusSet = useCallback(
     (status: ObligationStatus): readonly ObligationStatus[] =>
       lifecycleV2 && status in LIFECYCLE_V2_STATUS_SETS
-        ? LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
+        ? // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by the `in` check on the line above
+          LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
         : [status],
     [lifecycleV2],
   )

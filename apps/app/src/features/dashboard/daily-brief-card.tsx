@@ -104,6 +104,7 @@ export function DailyBriefCard({
       if (typeof window === 'undefined') return null
       try {
         const raw = window.localStorage.getItem(BRIEF_COLLAPSED_STORAGE_KEY)
+        // oxlint-disable-next-line no-unsafe-type-assertion -- localStorage payload is owned by this module; caller wraps in try/catch
         return raw ? (JSON.parse(raw) as { key: string; collapsed: boolean }) : null
       } catch {
         return null
@@ -354,6 +355,7 @@ function DeterministicBriefTeaser({
       className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       {parts.map((part, i) => (
+        // oxlint-disable-next-line no-array-index-key -- separator-joined inline parts, fixed order
         <Fragment key={i}>
           {i > 0 ? ' · ' : null}
           {part}

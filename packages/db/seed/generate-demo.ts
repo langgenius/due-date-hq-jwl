@@ -799,6 +799,7 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
   // their head, so breakdown items have to be arithmetic-true, derive from
   // the client's real seeded balance, and cite the right statute for the
   // form. Never hardcode a total next to a formula that doesn't produce it.
+  // oxlint-disable-next-line consistent-function-scoping -- co-located with penalty-formula text near its only callers
   const money = (cents: number) => `$${(cents / 100).toLocaleString('en-US')}`
   const exposure = (
     items: { key: string; label: string; amountCents: number; formula: string }[],

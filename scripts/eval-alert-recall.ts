@@ -79,6 +79,7 @@ async function runWrangler(args: readonly string[]): Promise<string> {
   let lastErr = ''
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
+      // oxlint-disable-next-line no-await-in-loop -- sequential retry; concurrent wrangler invocations would defeat backoff
       const { stdout } = await execFileAsync('npx', ['wrangler', ...args], {
         cwd: SERVER_DIR,
         maxBuffer: 64 * 1024 * 1024,
@@ -92,6 +93,7 @@ async function runWrangler(args: readonly string[]): Promise<string> {
       lastErr = error instanceof Error ? error.message : String(error)
       if (!/fetch failed|ECONN|ETIMEDOUT|network/i.test(lastErr)) throw error
     }
+    // oxlint-disable-next-line no-await-in-loop -- backoff between retry attempts
     await new Promise((r) => setTimeout(r, 8000))
   }
   throw new Error(`wrangler failed after retries: ${lastErr}`)
@@ -100,6 +102,7 @@ async function runWrangler(args: readonly string[]): Promise<string> {
 function parseD1Rows(stdout: string): Record<string, unknown>[] {
   const start = stdout.indexOf('[')
   if (start < 0) throw new Error('no JSON array in wrangler output')
+  // oxlint-disable-next-line no-unsafe-type-assertion -- wrangler d1 execute output shape; optional-chain read below tolerates surprises
   const parsed = JSON.parse(stdout.slice(start)) as { results?: Record<string, unknown>[] }[]
   return parsed[0]?.results ?? []
 }
@@ -168,6 +171,7 @@ const coveringCache = new Map<string, string[]>()
 function coveringSourceIds(jurisdiction: string): string[] {
   const cached = coveringCache.get(jurisdiction)
   if (cached) return cached
+  // oxlint-disable-next-line no-unsafe-type-assertion -- jurisdiction is read from already-validated wrangler output upstream
   const own = listAlertSourceCoverage(jurisdiction as RuleJurisdiction)[0]?.sourceIds ?? []
   const covering = [...new Set([...own, ...fedSourceIds])].filter((id) =>
     pulseManagedSourceIds.has(id),
@@ -188,6 +192,7 @@ async function readGoldenAudit(): Promise<GoldenAuditSummary | null> {
     ])
     const start = out.indexOf('{')
     if (start < 0) return null
+    // oxlint-disable-next-line no-unsafe-type-assertion -- KV-stored golden audit; ranAt presence check below guards against shape drift
     const parsed = JSON.parse(out.slice(start)) as GoldenAuditSummary
     return parsed.ranAt ? parsed : null
   } catch {

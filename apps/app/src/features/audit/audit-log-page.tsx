@@ -1152,7 +1152,7 @@ export function AuditLogPage() {
                     firstItemNumber={firstItemNumber}
                     lastItemNumber={lastItemNumber}
                     loadedCount={filteredEvents.length}
-                    hasMoreOnServer={Boolean(auditQuery.hasNextPage)}
+                    hasMoreOnServer={auditQuery.hasNextPage}
                     hasPreviousPage={hasPreviousPage}
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={auditQuery.isFetchingNextPage}

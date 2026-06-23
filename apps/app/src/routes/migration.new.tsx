@@ -202,6 +202,7 @@ function OnboardingStepDots({ step, total }: { step: number; total: number }) {
       <div className="flex items-center gap-1.5">
         {Array.from({ length: total }).map((_, index) => (
           <span
+            // oxlint-disable-next-line no-array-index-key -- step-indicator dots; position IS the step identity
             key={index}
             aria-hidden
             className={cn(

@@ -257,6 +257,7 @@ function zendeskArticleItems(
 ): ParsedItem[] {
   let parsed: { articles?: ZendeskArticle[] }
   try {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- Zendesk-API shape; downstream code reads only the optional `articles` array defensively
     parsed = JSON.parse(body) as { articles?: ZendeskArticle[] }
   } catch {
     return []
@@ -316,6 +317,7 @@ function agencyNewsJsonItems(
 ): ParsedItem[] {
   let parsed: AgencyNewsJsonEntry[]
   try {
+    // oxlint-disable-next-line no-unsafe-type-assertion -- agency JSON feed; per-item parsing below tolerates missing/extra fields
     parsed = JSON.parse(body) as AgencyNewsJsonEntry[]
   } catch {
     return []
@@ -392,6 +394,7 @@ export function announcementItemsFromSnapshot(
           options,
         ),
       )
+      // oxlint-disable-next-line no-map-spread -- copy-on-write enrichment; item is shared upstream input
       .map((item) => {
         // Same item-local identity + detail enrichment as the HTML path. The
         // dedupeText switch re-hashes existing feed items exactly once; the
