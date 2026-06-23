@@ -1230,6 +1230,11 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         openAlertId={openAlertId}
                         onReview={openDrawerAndCollapseSidebar}
                         compact
+                        // Narrow (~460px) map rail: trim each row's head line
+                        // to the urgency tier + due/lateness tag and calm the
+                        // affects-N-clients meta so the title + status signal
+                        // aren't crammed into the tight column (2026-06-23).
+                        narrow
                         showAction={showSuggestedAction}
                         // The map navigator rail renders flat (no date
                         // headers).

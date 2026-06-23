@@ -206,6 +206,7 @@ function PulseAlertRow({
   highImpact = false,
   showAction = true,
   showRailDate = true,
+  narrow = false,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -264,6 +265,20 @@ function PulseAlertRow({
    * Flat (ungrouped) lists keep date + time. Default true (flat).
    */
   showRailDate?: boolean
+  /**
+   * 2026-06-23: true ONLY for the map view's narrow (~460px) navigator
+   * rail. Trims the head row to the essentials a CPA needs to triage in
+   * a tight column — the urgency tier pill + the due/lateness tag stay,
+   * but the secondary meta (High-impact chip, form code, change-kind
+   * text, low-confidence pill, source link) drops off line one so the
+   * title + status signal aren't crammed and clipped. Demote-not-delete:
+   * every trimmed fact is still one click away in the detail drawer (and
+   * the source/change-kind also live on the wide list). The wide list
+   * (`narrow=false`) is untouched. Distinct from `compact` (which is
+   * also true on the panel-open wide list, where the visible rail is
+   * AlertListRail, not this row).
+   */
+  narrow?: boolean
 }) {
   const { t } = useLingui()
   // Cache-only subscription — the date-diff / form fields fill in when the
@@ -513,38 +528,48 @@ function PulseAlertRow({
               single URGENT priority pill, so a row never wears two reds (urgency
               + reach reading as one alarm). Client reach is carried by weight + a
               quiet chip; it sits on a different axis from the urgency tier, so it
-              must look different from it too. */}
-          {highImpact ? (
+              must look different from it too.
+              Dropped on the narrow map rail (2026-06-23): the affects-N-clients
+              meta on line two carries reach there without crowding line one. */}
+          {highImpact && !narrow ? (
             <SeverityChip level="neutral">
               <Trans>High impact</Trans>
             </SeverityChip>
           ) : null}
 
           {/* STATE — shared JurisdictionChip primitive (outline reference
-              tag, no circular StateBadge seal). */}
+              tag, no circular StateBadge seal). Kept on the narrow rail: the
+              two-letter jurisdiction is the cheapest triage anchor (and the
+              map rail is filtered BY state, so it confirms the active tile). */}
           <JurisdictionChip code={alert.jurisdiction} />
 
           {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
               code chip), stock chrome so the form badge reads identically
               on every surface (per the pulse-alert-chrome contract: no
-              className override on /alerts). */}
-          {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+              className override on /alerts). Dropped on the narrow map rail —
+              the form code lives in the detail drawer's structured fields. */}
+          {formLabel && !narrow ? <TaxCodeBadge code={formLabel} /> : null}
 
           {/* CHANGE KIND — icon + sentence-case medium secondary, matching
               the detail hero exactly (2026-06-14). One treatment across
-              list + rail + detail. */}
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-            <ChangeKindIcon changeKind={alert.changeKind} />
-            {changeKindLabel(alert.changeKind)}
-          </span>
+              list + rail + detail. Dropped on the narrow map rail — the kind
+              reads in the detail hero; the title already carries the gist. */}
+          {!narrow ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+              <ChangeKindIcon changeKind={alert.changeKind} />
+              {changeKindLabel(alert.changeKind)}
+            </span>
+          ) : null}
 
           {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
               ONLY when the extraction is shaky: "Low confidence" (medium tier)
               / "Very low confidence" (low tier). High confidence shows nothing
               — the absence is the all-clear. Amber-family (never red — the row's
               one red stays on the urgent deadline). Replaces the always-on
-              "N% confidence" meter that used to sit in the bottom meta. */}
-          {showLowConfidence ? (
+              "N% confidence" meter that used to sit in the bottom meta. Dropped
+              on the narrow map rail — the detail Source card still states the
+              exact confidence tier. */}
+          {showLowConfidence && !narrow ? (
             <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Low confidence</Trans>
@@ -556,8 +581,11 @@ function PulseAlertRow({
               title and "where this came from", a long horizontal eye-sweep on
               every row. It now reads beside the change-kind — "what kind of
               change, from where" as one phrase — and shrinks/truncates so it
-              never crowds the right-side time-to-act. */}
-          <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
+              never crowds the right-side time-to-act. Dropped on the narrow map
+              rail — the source link lives on the detail's Source card. */}
+          {!narrow ? (
+            <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
+          ) : null}
 
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
@@ -780,7 +808,18 @@ function PulseAlertRow({
             so a no-impact row carries no empty shelf at rest. */}
         {impacted > 0 ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm">
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
+            {/* On the wide list the reach line answers triage question #1 in the
+                loud form (primary ink). On the narrow map rail it reads in a
+                calm secondary tone instead — it's now the line that CARRIES
+                reach (the High-impact chip dropped off line one there), and the
+                tight column wants one quiet meta, not a second bold signal
+                fighting the title + urgency tag above it. */}
+            <span
+              className={cn(
+                'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium',
+                narrow ? 'text-text-secondary' : 'text-text-primary',
+              )}
+            >
               <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
@@ -900,6 +939,7 @@ function PulseAlertList({
   onToggleSelected,
   priorityById,
   compact,
+  narrow = false,
   grouped = true,
   highImpactIds,
   showAction = true,
@@ -918,6 +958,13 @@ function PulseAlertList({
    * from `openAlertId` (a row is compact while the detail panel is up).
    */
   compact?: boolean
+  /**
+   * 2026-06-23: passthrough to every row's `narrow` — true ONLY for the
+   * map view's narrow (~460px) navigator rail. Trims each row's head line
+   * to the urgency tier + due/lateness tag and calms the affects-N-clients
+   * meta. The wide list never sets it.
+   */
+  narrow?: boolean
   /**
    * Bulk-selection wiring. When `selectable`, every row grows a leading
    * checkbox and the list renders the "Select all · N dispatches"
@@ -1003,6 +1050,7 @@ function PulseAlertList({
         priority={priorityById?.get(alert.id)}
         highImpact={highImpactIds?.has(alert.id) ?? false}
         showAction={showAction}
+        narrow={narrow}
         // Day-grouped lists: the band owns the date, rows show time only
         // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
         showRailDate={!grouped}
