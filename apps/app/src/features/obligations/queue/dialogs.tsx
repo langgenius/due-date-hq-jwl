@@ -42,7 +42,7 @@ import { Input } from '@duedatehq/ui/components/ui/input'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   TriangleAlertIcon,
   CircleCheckIcon,
@@ -1042,11 +1042,19 @@ export function PenaltyInputDialog({
   onSaved: () => void
 }) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const [draft, setDraft] = useState({ rowId: '', taxDue: '', ownerCount: '' })
   const mutation = useMutation(
     orpc.clients.updatePenaltyInputs.mutationOptions({
       onSuccess: () => {
         toast.success(t`Penalty inputs saved`)
+        // Co-locate the cache fan-out with the mutation: the penalty edit
+        // recomputes exposure on the obligation detail and both queue
+        // lists, and feeds the dashboard counts — repaint them all rather
+        // than relying on the caller's `onSaved` to remember.
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         onSaved()
         onClose()
       },

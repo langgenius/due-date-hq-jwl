@@ -225,6 +225,16 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     orpc.members.suspend.mutationOptions({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        // Suspend changes nothing the user is looking at (the menu closes),
+        // so confirm the action landed — mirror the resend/cancel toasts.
+        toast.success(t`Access suspended`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't suspend access`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
@@ -241,6 +251,16 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         setPendingRemoval(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         track(ANALYTICS_EVENTS.memberRevoked, {})
+        // Destructive action that closes the dialog silently — confirm it
+        // committed so the user isn't left guessing.
+        toast.success(t`Member removed`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't remove member`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
@@ -252,6 +272,13 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         // 2026-06-16 (audit): Resend succeeded silently — nothing on the row
         // changes, so the user got zero confirmation. Close the loop.
         toast.success(t`Invitation re-sent`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't re-send invitation`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
