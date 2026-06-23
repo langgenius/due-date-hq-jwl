@@ -273,7 +273,15 @@ function DeadlineTopActions({
               onValueChange={(value) => onAssign(value || null)}
             >
               {assignableMembers.map((member) => (
-                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                <DropdownMenuRadioItem
+                  key={member.assigneeId}
+                  value={member.assigneeId}
+                  // In-flight guard: the trigger is disabled while an
+                  // assign commits, but the radio items + Clear stay
+                  // clickable inside an already-open menu — disable them
+                  // too so a reassign can't double-fire mid-flight.
+                  disabled={assignPending}
+                >
                   {member.name}
                 </DropdownMenuRadioItem>
               ))}
@@ -286,7 +294,7 @@ function DeadlineTopActions({
           {row.assigneeId ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onAssign(null)}>
+              <DropdownMenuItem onClick={() => onAssign(null)} disabled={assignPending}>
                 <Trans>Clear assignee</Trans>
               </DropdownMenuItem>
             </>
@@ -1441,6 +1449,13 @@ export function ObligationQueueDetailDrawer({
   }
 
   function removeChecklistItem(itemId: string) {
+    // In-flight guard: the Remove control lives in a per-row overflow
+    // menu (ChecklistItemRow) that isn't disabled while the shared
+    // delete mutation runs, so a fast double-click could fire the
+    // delete twice. Drop the second call while one is already
+    // committing — the delete is shared (one at a time), so any pending
+    // delete means the click is a duplicate.
+    if (deleteChecklistItemMutation.isPending) return
     deleteChecklistItemMutation.mutate({ itemId })
   }
 
@@ -2787,6 +2802,17 @@ export function ObligationQueueDetailDrawer({
                             // Workflow section card, so render flat — no nested
                             // tinted block. Sheet mode keeps the tinted block.
                             flat={panelLayout}
+                            // In-flight flags so the in-card stage action shows a
+                            // spinner + disables the cluster while the matching
+                            // mutation commits (no double-fire). Mirrors the
+                            // footer/hotkey guard the same mutations already have.
+                            pending={{
+                              changeStatus: changeStatusMutation.isPending,
+                              confirmAcceptance: markAcceptedMutation.isPending,
+                              prepStage: updatePrepStageMutation.isPending,
+                              reviewStage: updateReviewStageMutation.isPending,
+                              efileState: updateEfileStateMutation.isPending,
+                            }}
                             onChangeTab={jumpToSection}
                             onChangeStatus={(nextStatus) =>
                               changeStatus(row.id, nextStatus, row.status)
@@ -3224,6 +3250,11 @@ export function ObligationQueueDetailDrawer({
                                         <DropdownMenuRadioItem
                                           key={member.assigneeId}
                                           value={member.assigneeId}
+                                          // In-flight guard — disable the radio
+                                          // items while an assign commits so a
+                                          // reassign can't double-fire inside the
+                                          // open menu.
+                                          disabled={assignMutation.isPending}
                                         >
                                           {member.name}
                                         </DropdownMenuRadioItem>
@@ -3241,6 +3272,7 @@ export function ObligationQueueDetailDrawer({
                                         onClick={() =>
                                           assignMutation.mutate({ id: row.id, assigneeId: null })
                                         }
+                                        disabled={assignMutation.isPending}
                                       >
                                         <Trans>Clear assignee</Trans>
                                       </DropdownMenuItem>

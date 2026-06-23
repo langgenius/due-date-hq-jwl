@@ -1465,6 +1465,7 @@ export function ActiveStageDetailCard({
   onMarkSigned,
   onRemindSignature,
   onSubmitEfile,
+  pending,
   flat = false,
 }: {
   row: ObligationQueueRow
@@ -1482,6 +1483,19 @@ export function ActiveStageDetailCard({
   onRemindSignature: () => void
   // P0: e-file the signed return (efileState → submitted).
   onSubmitEfile: () => void
+  // In-flight flags for the mutations the in-card StageActions fire,
+  // so the active stage's button can show a spinner + disable the
+  // whole cluster while a transition is committing (no double-fire).
+  // Each flag mirrors the matching `.isPending` from the drawer's
+  // mutations. Omitted in the legacy sheet/specimen paths that don't
+  // wire mutations — the cluster then renders without guards.
+  pending?: {
+    changeStatus?: boolean
+    confirmAcceptance?: boolean
+    prepStage?: boolean
+    reviewStage?: boolean
+    efileState?: boolean
+  }
   // 2026-06-16 (Yuqi NrQaI "this is in section, why are the others not"): in
   // the page/panel Status workspace this card sits INSIDE one shared white
   // bordered section card alongside the stepper, so it must render FLAT — no
@@ -2175,6 +2189,52 @@ export function ActiveStageDetailCard({
         return toast.info(t`This action isn't wired up yet.`)
     }
   }
+  // In-flight task id for StageActions. Each wired task fires exactly
+  // one of the drawer's mutations (same map as handleTaskClick); a task
+  // is "pending" when its backing mutation is in flight. Only one stage
+  // action can run at a time, so the first task in the current list
+  // whose mutation is pending is the one to show the spinner on. Tasks
+  // that open a dialog (remind-8879, unwind/record-rejection) fire no
+  // immediate mutation, so they have no spinner. Returns null when
+  // nothing is in flight (the common case) or when `pending` is omitted.
+  const pendingTaskId: string | null = useMemo(() => {
+    if (!pending) return null
+    const isTaskPending = (taskId: string): boolean => {
+      switch (taskId) {
+        // changeStatus mutation
+        case 'start':
+        case 'resume':
+        case 'unblocked':
+        case 'received':
+        case 'mark-blocked':
+        case 'request-docs':
+        case 'file':
+        case 'complete':
+        case 'complete-paid':
+          return pending.changeStatus === true
+        // markAccepted mutation
+        case 'confirm':
+        case 'confirm-default':
+        case 'confirm-resubmit':
+          return pending.confirmAcceptance === true
+        // updatePrepStage mutation
+        case 'send-review':
+          return pending.prepStage === true
+        // updateReviewStage mutation
+        case 'approve-return':
+        case 'leave-review-note':
+        case 'mark-notes-addressed':
+          return pending.reviewStage === true
+        // updateEfileState mutation
+        case 'mark-signed':
+        case 'submit':
+          return pending.efileState === true
+        default:
+          return false
+      }
+    }
+    return tasks.find((task) => isTaskPending(task.id))?.id ?? null
+  }, [pending, tasks])
   // Is this Filed (done) AND in the e-file route, vs Filed (paid)
   // AND in the payment route? Both map to the same milestone but
   // walk different sub-status pipelines.
@@ -2639,7 +2699,7 @@ export function ActiveStageDetailCard({
                       reminders collapse to one tertiary text line. */}
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
                     </div>
                   ) : null}
                 </li>
@@ -2710,7 +2770,7 @@ export function ActiveStageDetailCard({
                   </div>
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
                     </div>
                   ) : null}
                 </li>
@@ -2725,7 +2785,7 @@ export function ActiveStageDetailCard({
            inline. No "What's next" eyebrow because the button is
            self-evident as the next action. */
         <div>
-          <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+          <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
         </div>
       ) : null}
 
