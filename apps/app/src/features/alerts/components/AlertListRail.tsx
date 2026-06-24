@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, UsersIcon } from 'lucide-react'
+import { UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic, PulsePriorityLevel } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -16,6 +16,7 @@ import {
   ListRailSection,
 } from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
+import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { SearchInput } from '@/components/primitives/search-input'
 import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
@@ -125,7 +126,7 @@ export function AlertListRail({
           // stays reserved for URGENT pills + overdue countdowns. "open" (not
           // "active") because the count spans both queues.
           <CountPill tone="neutral">
-            <Plural value={activeCount} one="# open" other="# open" />
+            <Plural value={activeCount} one="1 open" other="# open" />
           </CountPill>
         ) : null}
       </ListRailHead>
@@ -395,12 +396,7 @@ function RailItem({
           {/* Confidence flag (Pencil aUZTy) — same low-only amber pill the main
               row carries, so a shaky extraction reads the same in both places.
               High confidence shows nothing. */}
-          {showLowConfidence ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
-              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-              <Trans>Low confidence</Trans>
-            </span>
-          ) : null}
+          {showLowConfidence ? <LowConfidenceBadge /> : null}
         </div>
         {/* Title is AA-readable on both states — text-primary when active,
             text-secondary otherwise (never the faint tertiary that read as

@@ -1,10 +1,12 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Link } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
+  ArrowUpRightIcon,
   CircleAlertIcon,
   CircleCheckIcon,
   CopyIcon,
@@ -235,12 +237,12 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
-        <span className="font-mono text-xl font-semibold tracking-title text-text-primary tabular-nums">
+        <span className="font-mono text-xl font-medium tracking-title text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span
           className={cn(
-            'text-sm font-semibold tabular-nums',
+            'text-sm font-medium tabular-nums',
             DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(days)],
           )}
         >
@@ -1724,9 +1726,9 @@ export function AlertDetailDrawer({
                   {detail.alert.status === 'matched' ? (
                     // mb-2 sets the eyebrow apart from the meta row + title
                     // below (Yuqi: "can be further from the rest of the header").
-                    <span className="mb-2 inline-flex w-fit items-center rounded-full bg-state-accent-hover px-2.5 py-1 text-sm font-semibold text-text-accent">
+                    <Badge variant="info" size="lg" className="mb-2">
                       <Trans>Needs your decision</Trans>
-                    </span>
+                    </Badge>
                   ) : null}
                   {/* Meta row — severity (HIGH only) + state pill +
                     change-kind + source · time + action pill. The
@@ -2231,7 +2233,7 @@ export function AlertDetailDrawer({
                             </Trans>
                           </p>
                         </div>
-                        <span className="hidden shrink-0 font-mono text-xs font-semibold text-text-secondary tabular-nums sm:inline">
+                        <span className="hidden shrink-0 font-mono text-xs font-medium text-text-secondary tabular-nums sm:inline">
                           {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                         </span>
                       </div>
@@ -2302,7 +2304,7 @@ export function AlertDetailDrawer({
                       <LandmarkIcon className="size-4" aria-hidden />
                     </span>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="text-base font-semibold text-text-primary">
+                      <span className="text-base font-medium text-text-primary">
                         {detail.alert.source}
                       </span>
                       <span className="text-sm text-text-tertiary">
@@ -2405,7 +2407,7 @@ export function AlertDetailDrawer({
                         <CapsFieldLabel as="span" variant="group">
                           <Trans>Captured</Trans>
                         </CapsFieldLabel>
-                        <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
+                        <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
                           {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
                         </span>
                       </div>
@@ -2413,7 +2415,7 @@ export function AlertDetailDrawer({
                         <CapsFieldLabel as="span" variant="group">
                           <Trans>Parse confidence</Trans>
                         </CapsFieldLabel>
-                        <span className="text-sm font-semibold text-text-primary tabular-nums">
+                        <span className="text-sm font-medium text-text-primary tabular-nums">
                           {t`${confPct}% ${confTierLabel}`}
                         </span>
                       </div>
@@ -2441,6 +2443,20 @@ export function AlertDetailDrawer({
                 {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
                   the alert. Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
                 <AlertTeamNotes alertId={detail.alert.id} />
+
+                {/* Reverse entity→audit path: open this alert's history in the
+                    firm-wide audit log (full filters + export), scoped via
+                    ?entity=<id>. Mirrors rule-detail-drawer.tsx. */}
+                <div className="border-t border-divider-subtle pt-3">
+                  <TextLink
+                    variant="accent"
+                    size="sm"
+                    render={<Link to={`/audit?entity=${encodeURIComponent(detail.alert.id)}`} />}
+                  >
+                    <Trans>View audit trail</Trans>
+                    <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                  </TextLink>
+                </div>
               </DetailSectionCard>
             </div>
           ) : null}
@@ -3139,7 +3155,7 @@ function AlertApplyVerificationDialog({
                     {originalDate}
                   </span>
                   <ArrowRightIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
-                  <span className="font-mono text-base font-semibold tabular-nums text-text-warning">
+                  <span className="font-mono text-base font-medium tabular-nums text-text-warning">
                     {newDate}
                   </span>
                 </div>

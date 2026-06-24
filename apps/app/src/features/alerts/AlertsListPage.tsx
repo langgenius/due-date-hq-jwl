@@ -707,7 +707,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   <Badge
                     variant="secondary"
                     size="lg"
-                    className="gap-1.5 font-semibold tracking-wide uppercase"
+                    className="gap-1.5 font-medium tracking-wide uppercase"
                   >
                     <PulsingDot
                       tone={isEmpty ? 'success' : 'warning'}
@@ -1521,7 +1521,7 @@ function BulkActionBar({
           <CheckIcon className="size-3.5 text-text-primary-on-surface" aria-hidden />
         </span>
         <div className="flex flex-col leading-tight">
-          <span className="text-base font-semibold">
+          <span className="text-base font-medium">
             <Plural value={selectedCount} one="# selected" other="# selected" />
           </span>
           <span className="text-sm text-text-inverted/60">

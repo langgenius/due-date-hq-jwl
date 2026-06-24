@@ -6,7 +6,6 @@ import {
   ArchiveIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CircleAlertIcon,
   Loader2Icon,
   SparklesIcon,
   UsersIcon,
@@ -24,6 +23,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { SeverityChip, type SeverityLevel } from '@/components/primitives/severity-chip'
+import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ValueDiff } from '@/components/primitives/value-diff'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -570,10 +570,7 @@ function PulseAlertRow({
               on the narrow map rail — the detail Source card still states the
               exact confidence tier. */}
           {showLowConfidence && !narrow ? (
-            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-medium whitespace-nowrap text-text-warning">
-              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-              <Trans>Low confidence</Trans>
-            </span>
+            <LowConfidenceBadge />
           ) : null}
 
           {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
@@ -667,7 +664,7 @@ function PulseAlertRow({
               }}
               aria-expanded={whyOpen}
               className={cn(
-                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-xs font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-xs font-medium text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 // Pencil `X6enpJ`: expanded = accent fill + accent
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.
@@ -788,10 +785,10 @@ function PulseAlertRow({
                   key={reason.key}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-1"
                 >
-                  <span className="text-xs font-semibold text-text-accent tabular-nums">
+                  <span className="text-xs font-medium text-text-accent tabular-nums">
                     +{reason.points}
                   </span>
-                  <span className="text-xs font-semibold text-text-secondary">{reason.label}</span>
+                  <span className="text-xs font-medium text-text-secondary">{reason.label}</span>
                 </span>
               ))}
             </div>
