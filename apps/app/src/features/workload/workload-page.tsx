@@ -1,8 +1,8 @@
 import { Link } from 'react-router'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon, UserRoundIcon } from 'lucide-react'
+import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon } from 'lucide-react'
 
 import type { WorkloadManagerInsights, WorkloadOwnerRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -32,8 +32,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
-import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { StatBand } from '@/components/patterns/stat-band'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { orpc } from '@/lib/rpc'
@@ -176,7 +176,9 @@ export function WorkloadPage() {
         ]}
       />
 
-      {data?.managerInsights ? <ManagerInsights insights={data.managerInsights} /> : null}
+      {data?.managerInsights ? (
+        <ManagerInsights insights={data.managerInsights} rows={data.rows} />
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -276,7 +278,23 @@ function WorkloadUpgradePanel() {
   )
 }
 
-function ManagerInsights({ insights }: { insights: WorkloadManagerInsights }) {
+function ManagerInsights({
+  insights,
+  rows,
+}: {
+  insights: WorkloadManagerInsights
+  rows: WorkloadOwnerRow[]
+}) {
+  const { t } = useLingui()
+  // Resolve the busiest owner's assigneeName from the owner table so
+  // AssigneeAvatar can pick the correct tint. capacityOwnerLabel is the
+  // display string; we match by ownerLabel to find the real name field.
+  const busiestRow = insights.capacityOwnerLabel
+    ? (rows.find(
+        (r) => r.kind === 'assignee' && r.ownerLabel === insights.capacityOwnerLabel,
+      ) ?? null)
+    : null
+
   return (
     <Card>
       <CardHeader>
@@ -295,45 +313,82 @@ function ManagerInsights({ insights }: { insights: WorkloadManagerInsights }) {
           </Badge>
         </CardAction>
       </CardHeader>
-      <CardContent className="grid gap-3 md:grid-cols-4">
-        <ManagerInsightMetric
-          label={<Trans>Capacity pressure</Trans>}
-          value={
-            insights.capacityOwnerLabel ? (
-              // Split into three scannable elements: who → how many open → load %.
-              // The name is the primary signal; count + load are supporting context.
-              <span className="flex flex-col gap-0.5">
-                <span className="truncate font-medium text-text-primary">
+      <CardContent className="grid gap-6">
+        {/* ── Busiest-owner hero ────────────────────────────────────────────
+            The capacity pressure signal is the primary manager read — who's
+            holding the most open work right now. Promoted from a buried
+            metric tile to a dominant card: avatar + name + open count +
+            an honest Progress bar at the real capacityLoadScore%.
+            bg-background-subtle keeps it calm (warm well, no shadow). */}
+        {insights.capacityOwnerLabel ? (
+          <div className="flex items-center gap-4 rounded-xl bg-background-subtle px-5 py-4">
+            <AssigneeAvatar
+              name={busiestRow?.assigneeName ?? insights.capacityOwnerLabel}
+              title={insights.capacityOwnerLabel}
+              size="lg"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-3">
+                <span className="truncate text-sm font-medium text-text-primary">
                   {insights.capacityOwnerLabel}
                 </span>
-                <span className="text-caption-xs text-text-secondary">
-                  {insights.capacityOpen} open · {insights.capacityLoadScore}% load
+                <span className="shrink-0 text-xs tabular-nums text-text-secondary">
+                  {insights.capacityOpen}{' '}
+                  <Trans>open</Trans>
                 </span>
-              </span>
-            ) : (
-              <Trans>No assigned work</Trans>
-            )
-          }
+              </div>
+              {/* Progress is the real capacityLoadScore — busiest-anchored
+                  share (busiest assignee = 100%), same metric as the table
+                  "Relative load" column. Label stays below to respect
+                  canvas real estate. */}
+              <div className="mt-2 flex items-center gap-3">
+                <Progress value={insights.capacityLoadScore} className="flex-1" />
+                <span className="w-10 shrink-0 text-right text-xs tabular-nums text-text-secondary">
+                  {insights.capacityLoadScore}%
+                </span>
+              </div>
+              <p className="mt-1 text-caption-xs text-text-tertiary">
+                <Trans>Highest relative load on the team</Trans>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="px-5 text-sm text-text-tertiary">
+            <Trans>No assigned work in the selected window.</Trans>
+          </p>
+        )}
+
+        {/* ── Supporting metrics (unassigned / waiting / review) ────────────
+            Three count signals that inform weekly triage. Rendered via the
+            shared StatBand so the visual grammar (CAPS eyebrow · large
+            number · optional sub) matches every other summary surface.
+            The band's border-y hairlines give clean separation inside the
+            card without adding another bordered box per metric. */}
+        <StatBand
+          ariaLabel={t`Manager triage metrics`}
+          stats={[
+            {
+              key: 'unassigned',
+              label: t`Unassigned risk`,
+              value: insights.unassignedOpen,
+              ...(insights.unassignedOpen
+                ? { sub: t`Needs an owner`, subClass: 'text-text-warning' }
+                : {}),
+            },
+            {
+              key: 'waiting',
+              label: t`Waiting`,
+              value: insights.waitingOpen,
+            },
+            {
+              key: 'review',
+              label: t`Review`,
+              value: insights.reviewOpen,
+            },
+          ]}
         />
-        <ManagerInsightMetric
-          label={<Trans>Unassigned risk</Trans>}
-          value={String(insights.unassignedOpen)}
-        />
-        <ManagerInsightMetric label={<Trans>Waiting</Trans>} value={String(insights.waitingOpen)} />
-        <ManagerInsightMetric label={<Trans>Review</Trans>} value={String(insights.reviewOpen)} />
       </CardContent>
     </Card>
-  )
-}
-
-function ManagerInsightMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
-  return (
-    <div className="rounded-lg border border-divider-regular bg-background-subtle p-4">
-      <CapsFieldLabel as="div" variant="field">
-        {label}
-      </CapsFieldLabel>
-      <p className="mt-2 truncate text-sm font-medium text-text-primary">{value}</p>
-    </div>
   )
 }
 
@@ -347,6 +402,13 @@ function WorkloadTable({
   windowDays: number
 }) {
   const { t } = useLingui()
+
+  // The server already sorts rows: assigned first (by overdue desc → due-soon
+  // desc → open desc → label asc), unassigned last. The first assigned row
+  // therefore carries loadScore=100 (the busiest anchor). We highlight it
+  // with a subtle row wash so the load spine reads top-heavy at a glance.
+  const topAssignedId = rows.find((r) => r.kind === 'assignee')?.id ?? null
+
   return (
     <Table>
       <TableHeader>
@@ -383,49 +445,73 @@ function WorkloadTable({
         </TableRow>
       </TableHeader>
       <TableBody className="[&_td]:py-3">
-        {rows.map((row) => (
-          <TableRow key={row.id}>
-            <TableCell>
-              <div className="flex min-w-0 items-center gap-2">
-                <UserRoundIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-                <span className="truncate font-medium text-text-primary">{row.ownerLabel}</span>
-                {row.kind === 'unassigned' ? (
-                  <Badge variant="outline">
-                    <Trans>Unassigned</Trans>
-                  </Badge>
-                ) : null}
-              </div>
-            </TableCell>
-            <NumericCell value={row.open} href={workloadRowHref(row)} />
-            <NumericCell
-              value={row.dueSoon}
-              href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
-            />
-            <NumericCell value={row.overdue} href={workloadRowOverdueHref(row, asOfDate)} danger />
-            <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
-            <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
-            <TableCell>
-              {/* Progress primitive (shared with members SeatStat / rules coverage). */}
-              <div className="flex items-center gap-2">
-                <Progress value={row.loadScore} className="flex-1" />
-                <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
-                  {row.kind === 'unassigned' ? t`Risk` : `${row.loadScore}%`}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <Button
-                nativeButton={false}
-                variant="outline"
-                size="sm"
-                className="text-xs"
-                render={<Link to={workloadRowHref(row)} />}
-              >
-                <Trans>Open</Trans>
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
+        {rows.map((row) => {
+          const isTop = row.id === topAssignedId && row.loadScore === 100
+          const isUnassigned = row.kind === 'unassigned'
+          return (
+            <TableRow
+              key={row.id}
+              className={cn(
+                // Top assigned row: quiet background wash so the busiest
+                // owner stands out as the load-spine anchor. No border or
+                // shadow — bg contrast does the lift.
+                isTop && 'bg-background-subtle',
+                // Unassigned row: muted tone signals it's a risk bucket,
+                // not a person's row. The "Risk" label + outline badge
+                // already distinguish it; the tone helps at a glance.
+                isUnassigned && 'opacity-75',
+              )}
+            >
+              <TableCell>
+                <div className="flex min-w-0 items-center gap-2">
+                  {/* AssigneeAvatar replaces the generic UserRoundIcon —
+                      it picks a deterministic per-name tint for human rows
+                      and renders the canonical unassigned glyph for the
+                      risk bucket. */}
+                  <AssigneeAvatar
+                    name={isUnassigned ? null : (row.assigneeName ?? row.ownerLabel)}
+                    title={row.ownerLabel}
+                    size="sm"
+                  />
+                  <span className="truncate font-medium text-text-primary">{row.ownerLabel}</span>
+                  {isUnassigned ? (
+                    <Badge variant="outline">
+                      <Trans>Unassigned</Trans>
+                    </Badge>
+                  ) : null}
+                </div>
+              </TableCell>
+              <NumericCell value={row.open} href={workloadRowHref(row)} />
+              <NumericCell
+                value={row.dueSoon}
+                href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
+              />
+              <NumericCell value={row.overdue} href={workloadRowOverdueHref(row, asOfDate)} danger />
+              <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
+              <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
+              <TableCell>
+                {/* Progress primitive (shared with members SeatStat / rules coverage). */}
+                <div className="flex items-center gap-2">
+                  <Progress value={row.loadScore} className="flex-1" />
+                  <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
+                    {isUnassigned ? t`Risk` : `${row.loadScore}%`}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  nativeButton={false}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  render={<Link to={workloadRowHref(row)} />}
+                >
+                  <Trans>Open</Trans>
+                </Button>
+              </TableCell>
+            </TableRow>
+          )
+        })}
       </TableBody>
     </Table>
   )
