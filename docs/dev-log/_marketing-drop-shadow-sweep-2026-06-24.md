@@ -6,6 +6,7 @@ restrained-shadows canon), and hover states that used a shadow now lift with a
 border-color change + a 1px translate instead.
 
 ## Removed (13 files)
+
 - **Home:** `Hero.astro` `.panel` (alerts preview), `SurfaceDeep.astro` `.frame`,
   `Close.astro` `.rcpt` (receipt), `LoopDeep.astro` `.lstep__icon` (base + hover),
   `Surfaces.astro` `.bench`.
@@ -21,6 +22,7 @@ Where the shadow was the only thing a `transition` animated, the `box-shadow`
 transition entry was dropped too.
 
 ## Kept (these are NOT drop shadows)
+
 - Focus rings (`box-shadow: 0 0 0 3px …`) — accessibility.
 - Inset borders (`inset 0 0 0 1px/1.5px`) — Notice tabs, pricing card ring.
 - The live "synced" pulse animation on `Sources.astro`.
@@ -28,6 +30,7 @@ transition entry was dropped too.
   downward drop shadow) — a deliberate single delight accent. Flagged for Yuqi.
 
 ## Verified
+
 After clearing the worktree's Vite cache (the global `marketing.css` button-shadow
 edit was briefly stale in dev — file was already correct), the live DOM computes
 `box-shadow: none` on `.panel`, `.bench`, and `.m-cta--primary`. Production build

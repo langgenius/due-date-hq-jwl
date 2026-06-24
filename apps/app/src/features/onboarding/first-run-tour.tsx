@@ -175,7 +175,12 @@ export function FirstRunTour() {
   const cardTop = Math.max(16, Math.min(rect.top - 6, window.innerHeight - 232))
 
   return (
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={t`Quick tour`}>
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t`Quick tour`}
+    >
       {/* Click-catcher — blocks the page so the tour drives navigation, not stray clicks. */}
       <div className="absolute inset-0" />
 

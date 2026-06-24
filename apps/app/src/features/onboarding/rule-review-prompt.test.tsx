@@ -69,7 +69,7 @@ describe('RuleReviewPrompt', () => {
   it('summarizes long jurisdiction lists in the review CTA', () => {
     renderPrompt([{ code: 'FED' }, { code: 'AL' }, { code: 'AK' }, { code: 'AZ' }])
 
-    expect(visibleButtonText()).toContain('Review 4 states')
+    expect(visibleButtonText()).toContain('Review 4 jurisdictions')
     expect(visibleButtonText()).not.toContain('Review FED + AL + AK + AZ now')
     expect(document.body.textContent).toContain(
       'You activated 4 rules. 4 jurisdictions publish their own filing calendars',

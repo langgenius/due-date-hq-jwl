@@ -9,7 +9,7 @@ actually granting the plan), a copy fix, and a short first-run tour on `/today`.
 ## Auth / onboarding visual polish
 
 - **Scroll-center fix (P0).** `CenteredAuthScreen` used `items-center justify-center
-  overflow-y-auto` — on a viewport shorter than the form, the centered overflow
+overflow-y-auto` — on a viewport shorter than the form, the centered overflow
   pushed the top above an unreachable scroll origin, so the onboarding page title
   ("Set up your practice") + step indicator never rendered on a laptop. Switched to
   `flex-col` + an `m-auto` inner block (centers when there's room, collapses to a
