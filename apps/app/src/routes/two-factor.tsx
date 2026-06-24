@@ -2,11 +2,11 @@ import { useState, type SyntheticEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, Loader2Icon } from 'lucide-react'
+import { ArrowRightIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { AuthCard, CenteredAuthScreen } from '@/features/auth/auth-chrome'
+import { AuthCard, AuthHeading, CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { OtpInput } from '@/features/auth/otp-input'
 import { signOut } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
@@ -63,10 +63,10 @@ export function TwoFactorRoute() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-7">
           {/* Heading */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
+            <AuthHeading>
               <Trans>Check your phone</Trans>
-            </h1>
-            <p className="text-sm font-medium leading-normal text-text-tertiary">
+            </AuthHeading>
+            <p className="text-sm font-normal leading-normal text-text-tertiary">
               <Trans>
                 Open your authenticator app and enter the 6-digit code it shows for DueDateHQ.
               </Trans>
@@ -110,6 +110,18 @@ export function TwoFactorRoute() {
                 <Trans>Lost your authenticator?</Trans>
               </a>
             </div>
+          </div>
+
+          {/* Quiet security reassurance — soft shield, calm tone */}
+          <div className="flex items-center gap-2.5 rounded-lg bg-background-well-warm px-3.5 py-2.5">
+            <ShieldCheckIcon
+              className="size-3.5 shrink-0 text-text-secondary"
+              strokeWidth={1.5}
+              aria-hidden
+            />
+            <span className="text-[11px] font-medium leading-snug text-text-tertiary">
+              <Trans>Your account is protected by two-factor authentication.</Trans>
+            </span>
           </div>
 
           {/* Primary CTA */}

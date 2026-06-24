@@ -186,6 +186,30 @@ export function CenteredAuthScreen({ children }: { children: ReactNode }) {
   )
 }
 
+// Canonical entry H1 for auth/entry surfaces (two-factor, error, etc.).
+// Text-3xl, semibold (titles-only per canon), tight leading and tracking.
+// Pass `as="h2"` for nested headings in the same auth shell.
+export function AuthHeading({
+  children,
+  className,
+  as: Tag = 'h1',
+}: {
+  children: ReactNode
+  className?: string
+  as?: 'h1' | 'h2'
+}) {
+  return (
+    <Tag
+      className={cn(
+        'text-3xl font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary',
+        className,
+      )}
+    >
+      {children}
+    </Tag>
+  )
+}
+
 // White centered card used inside CenteredAuthScreen — rounded-20, 520px wide.
 export function AuthCard({ children, className }: { children: ReactNode; className?: string }) {
   return (

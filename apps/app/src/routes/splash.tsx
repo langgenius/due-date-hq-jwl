@@ -105,6 +105,15 @@ export function SplashRoute() {
     [],
   )
 
+  // Time-of-day greeting from the real client clock — not fiction.
+  // Brackets: morning < 12, afternoon < 18, evening ≥ 18.
+  const timeOfDayGreeting = useMemo(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'morning'
+    if (hour < 18) return 'afternoon'
+    return 'evening'
+  }, [])
+
   return (
     <div className="flex h-dvh w-full flex-col bg-background-subtle dark:bg-background-section">
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
@@ -122,19 +131,35 @@ export function SplashRoute() {
                 // inline <span> (not the block <Skeleton> div) so it's valid
                 // phrasing content inside the <h1>.
                 <span className="inline-flex items-baseline gap-2">
-                  <Trans>Welcome back,</Trans>
+                  {timeOfDayGreeting === 'morning' ? (
+                    <Trans>Good morning,</Trans>
+                  ) : timeOfDayGreeting === 'afternoon' ? (
+                    <Trans>Good afternoon,</Trans>
+                  ) : (
+                    <Trans>Good evening,</Trans>
+                  )}
                   <span
                     aria-hidden
                     className="inline-block h-[0.7em] w-44 animate-pulse rounded-md bg-state-base-hover-alt align-middle"
                   />
                 </span>
               ) : data?.userName ? (
-                <Trans>Welcome back, {data.userName}</Trans>
+                timeOfDayGreeting === 'morning' ? (
+                  <Trans>Good morning, {data.userName}</Trans>
+                ) : timeOfDayGreeting === 'afternoon' ? (
+                  <Trans>Good afternoon, {data.userName}</Trans>
+                ) : (
+                  <Trans>Good evening, {data.userName}</Trans>
+                )
+              ) : timeOfDayGreeting === 'morning' ? (
+                <Trans>Good morning</Trans>
+              ) : timeOfDayGreeting === 'afternoon' ? (
+                <Trans>Good afternoon</Trans>
               ) : (
-                <Trans>Welcome back</Trans>
+                <Trans>Good evening</Trans>
               )}
             </h1>
-            <p className="text-center text-[16px] font-medium text-text-tertiary">{todayLabel}</p>
+            <p className="text-center text-[16px] font-normal text-text-tertiary">{todayLabel}</p>
           </div>
 
           {/* "While you were away" recap card */}
