@@ -68,23 +68,24 @@ function loadSdk(): void {
     })
 }
 
-/** Boot marketing analytics. Call once per page load from the base layout. */
+let booted = false
+
+/** One-time setup: defer-load the SDK and bind the delegated CTA click listener.
+ *  Self-guards, so it's safe to call on every `astro:page-load` — the SDK loads
+ *  once and the document listener binds once (it survives view-transition swaps).
+ */
 export function initMarketingAnalytics(): void {
-  if (!ENABLED) return
+  if (!ENABLED || booted) return
+  booted = true
 
   // Defer the SDK download past first paint (~1.2s, after the page is
   // interactive) so it never blocks LCP/CWV on this SEO-critical site.
   window.setTimeout(loadSdk, 1200)
 
-  const locale = document.documentElement.lang || 'en'
-  const page = location.pathname
-  track(EVENTS.pageViewed, { page, locale })
-  if (page.endsWith('/pricing')) track(EVENTS.pricingViewed, { locale })
-
   // Delegated CTA tracking: a click on any link to the app domain is signup
-  // intent. The `data-event` marker (e.g. "marketing.hero_cta.clicked") names
-  // the surface; mailto + locale-switch links have a different host and are
-  // ignored. Capture phase so it runs before the browser follows the link.
+  // intent. The `data-event` marker (e.g. "marketing.hero.cta") names the
+  // surface; mailto + locale-switch links have a different host and are ignored.
+  // Capture phase so it runs before the browser follows the link.
   document.addEventListener(
     'click',
     (event) => {
@@ -97,8 +98,19 @@ export function initMarketingAnalytics(): void {
         marker instanceof HTMLElement
           ? (marker.dataset.event?.split('.')[1] ?? 'unknown')
           : 'unknown'
-      track(EVENTS.signupCtaClicked, { location: surface, locale })
+      track(EVENTS.signupCtaClicked, { location: surface, locale: document.documentElement.lang || 'en' })
     },
     { capture: true },
   )
+}
+
+/** Fire a page-view for the current URL. Call on every `astro:page-load` so views
+ *  keep firing across client-side (view-transition) navigations — not just the
+ *  session's first page. */
+export function trackPageView(): void {
+  if (!ENABLED) return
+  const locale = document.documentElement.lang || 'en'
+  const page = location.pathname
+  track(EVENTS.pageViewed, { page, locale })
+  if (page.endsWith('/pricing')) track(EVENTS.pricingViewed, { locale })
 }

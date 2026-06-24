@@ -249,7 +249,17 @@ const tiles = [
         panel.hidden = false
         col.setAttribute('data-showpanel', '')
       }
-      tiles.forEach((tile) => tile.addEventListener('click', () => select(tile)))
+      // click the active tile again to deselect → the live feed cross-fades back
+      // in (otherwise there was no way back to the feed once a state was picked)
+      const deselect = () => {
+        tiles.forEach((t) => t.setAttribute('aria-pressed', 'false'))
+        col.removeAttribute('data-showpanel')
+      }
+      tiles.forEach((tile) =>
+        tile.addEventListener('click', () =>
+          tile.getAttribute('aria-pressed') === 'true' ? deselect() : select(tile),
+        ),
+      )
     })
   }
   document.addEventListener('astro:page-load', initSourcesMap)
@@ -373,7 +383,7 @@ const tiles = [
     min-width: 34px;
     height: 26px;
     padding-inline: 6px;
-    border-radius: 6px;
+    border-radius: var(--m-radius-md);
     font-family: var(--m-font-mono);
     font-size: var(--m-text-2xs);
     font-weight: 600;
@@ -429,7 +439,7 @@ const tiles = [
     position: relative;
     display: grid;
     place-items: center;
-    border-radius: 7px;
+    border-radius: var(--m-radius-md);
     font-size: var(--m-text-2xs);
     font-weight: 600;
     line-height: 1;

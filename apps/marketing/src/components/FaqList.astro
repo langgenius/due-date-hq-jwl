@@ -1,10 +1,10 @@
 ---
-/** FaqList — the ONE shared FAQ pattern for every subpage. Native <details>
- *  accordions, identical to the landing's home/Faq look, so /pricing,
- *  /state-coverage, the geo resource pages and the per-state pages all read the
- *  same. Renders just the eyebrow + heading + accordion (no <section> wrapper):
- *  each page slots it into its own section rhythm. Answers may contain <b>, so
- *  they render via set:html (plain strings pass through unchanged). */
+/** FaqList — the shared FAQ block for every subpage: eyebrow + heading + the
+ *  shared FaqAccordion (no <section> wrapper; each page slots it into its own
+ *  rhythm). The accordion item treatment lives in FaqAccordion so /pricing,
+ *  /state-coverage, the geo pages, the per-state pages, and the landing's home
+ *  FAQ all render one identical accordion. */
+import FaqAccordion from './FaqAccordion.astro'
 interface Props {
   eyebrow: string
   title: string
@@ -16,84 +16,12 @@ const { eyebrow, title, items } = Astro.props
 <p class="m-eyebrow">{eyebrow}</p>
 <h2 class="m-page-h2">{title}</h2>
 <div class="faqlist">
-  {
-    items.map((f) => (
-      <details class="faqlist__item">
-        <summary class="faqlist__q">
-          {f.question}
-          <span class="faqlist__sign" aria-hidden="true" />
-        </summary>
-        <div class="faqlist__a" set:html={f.answer} />
-      </details>
-    ))
-  }
+  <FaqAccordion items={items} />
 </div>
 
 <style>
   .faqlist {
     margin-top: clamp(24px, 3vw, 36px);
     max-width: 820px;
-  }
-  .faqlist__item {
-    border-top: 1px solid var(--m-hairline);
-  }
-  .faqlist__item:last-child {
-    border-bottom: 1px solid var(--m-hairline);
-  }
-  .faqlist__q {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 22px 0;
-    font-size: clamp(15px, 1.2vw, 17px);
-    font-weight: 500;
-    color: var(--m-ink);
-    cursor: pointer;
-    list-style: none;
-  }
-  .faqlist__q::-webkit-details-marker {
-    display: none;
-  }
-  .faqlist__sign {
-    position: relative;
-    width: 15px;
-    height: 15px;
-    flex: none;
-  }
-  .faqlist__sign::before,
-  .faqlist__sign::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    background: var(--m-muted);
-    transition: background var(--m-dur-fast) var(--m-ease);
-  }
-  .faqlist__sign::before {
-    width: 15px;
-    height: 1.5px;
-  }
-  .faqlist__sign::after {
-    width: 1.5px;
-    height: 15px;
-    transition: transform 0.2s var(--m-ease);
-  }
-  .faqlist__item[open] .faqlist__sign::after {
-    transform: scaleY(0);
-  }
-  .faqlist__item[open] .faqlist__sign::before {
-    background: var(--m-accent);
-  }
-  .faqlist__a {
-    padding: 0 0 24px;
-    max-width: 68ch;
-    font-size: var(--m-text-md);
-    line-height: 1.65;
-    color: var(--m-muted);
-  }
-  .faqlist__a :global(b) {
-    color: var(--m-ink);
-    font-weight: 600;
   }
 </style>

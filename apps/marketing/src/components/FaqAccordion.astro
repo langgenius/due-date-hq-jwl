@@ -1,0 +1,88 @@
+---
+/** FaqAccordion — the ONE accordion implementation (native <details>) shared by
+ *  FaqList (subpages) and home/Faq (the landing's editorial 2-col split), so the
+ *  FAQ item treatment is identical everywhere. Renders just the items; each caller
+ *  supplies its own eyebrow/heading + layout wrapper. Answers may contain <b>, so
+ *  they render via set:html (plain strings pass through unchanged). */
+interface Props {
+  items: { question: string; answer: string }[]
+}
+const { items } = Astro.props
+---
+
+{
+  items.map((f) => (
+    <details class="faqacc__item">
+      <summary class="faqacc__q">
+        {f.question}
+        <span class="faqacc__sign" aria-hidden="true" />
+      </summary>
+      <div class="faqacc__a" set:html={f.answer} />
+    </details>
+  ))
+}
+
+<style>
+  .faqacc__item {
+    border-top: 1px solid var(--m-hairline);
+  }
+  .faqacc__item:last-child {
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .faqacc__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 0;
+    font-size: clamp(15px, 1.2vw, 17px);
+    font-weight: 500;
+    color: var(--m-ink);
+    cursor: pointer;
+    list-style: none;
+  }
+  .faqacc__q::-webkit-details-marker {
+    display: none;
+  }
+  .faqacc__sign {
+    position: relative;
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+  .faqacc__sign::before,
+  .faqacc__sign::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: var(--m-muted);
+    transition: background var(--m-dur-fast) var(--m-ease);
+  }
+  .faqacc__sign::before {
+    width: 15px;
+    height: 1.5px;
+  }
+  .faqacc__sign::after {
+    width: 1.5px;
+    height: 15px;
+    transition: transform 0.2s var(--m-ease);
+  }
+  .faqacc__item[open] .faqacc__sign::after {
+    transform: scaleY(0);
+  }
+  .faqacc__item[open] .faqacc__sign::before {
+    background: var(--m-accent);
+  }
+  .faqacc__a {
+    padding: 0 0 24px;
+    max-width: 68ch;
+    font-size: var(--m-text-md);
+    line-height: 1.65;
+    color: var(--m-muted);
+  }
+  .faqacc__a :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+</style>

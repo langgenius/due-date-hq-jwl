@@ -137,9 +137,15 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     </script>
 
     <script>
-      import { initMarketingAnalytics } from '../lib/analytics'
+      import { initMarketingAnalytics, trackPageView } from '../lib/analytics'
 
-      initMarketingAnalytics()
+      // One-time setup self-guards; the page-view fires on every astro:page-load
+      // so views keep counting across view-transition navigations (not just the
+      // session's first page).
+      document.addEventListener('astro:page-load', () => {
+        initMarketingAnalytics()
+        trackPageView()
+      })
     </script>
 
     {

@@ -551,15 +551,15 @@ const en: LandingCopy = {
     navPricingHref: '/pricing',
     hero: {
       eyebrow: 'PRICING',
-      title: 'Free during the beta. Honest tiers after launch.',
+      title: 'Pricing that grows with your practice.',
       description:
-        'DueDateHQ watches IRS, all 50 states, and FEMA so your firm catches every deadline move and knows exactly which clients it hits. Every plan is free to run today; the prices below are what each tier will cost once we leave beta, so you can size the plan that fits as your client count and team grow.',
-      note: 'Free for every plan during the beta · sign in with Google · we never store card numbers',
+        'DueDateHQ watches IRS, all 50 states, and FEMA so your firm catches every deadline move and knows exactly which clients it hits. Start with 3 months of the Team plan free — no card — then size the tier that fits as your client count and team grow.',
+      note: '3 months of Team free to start · sign in with Google · we never store card numbers',
     },
     plansHeader: {
       eyebrow: 'PLANS',
       title: 'Priced by how many clients you watch.',
-      note: 'POST-BETA PRICING · FREE TO RUN TODAY · USD · BILLED TO THE PRACTICE OWNER · CANCEL ANYTIME',
+      note: 'USD · BILLED TO THE PRACTICE OWNER · CANCEL ANYTIME',
     },
     billingToggle: {
       ariaLabel: 'Billing interval',
@@ -662,9 +662,9 @@ const en: LandingCopy = {
     },
     faq: [
       {
-        question: 'What does "free during the beta" mean?',
+        question: 'Is there a free trial?',
         answer:
-          'Every plan — Solo, Pro, and Team — is free to use while DueDateHQ is in beta. You can pick the plan that fits and run your real practice on it today, with nothing to pay until we launch. The prices shown on each tier are what that plan will cost after beta, not a charge today.',
+          'Yes — your first 3 months on the Team plan are free, with no card to start. Run your real practice on it, then pick the tier that fits your client count; you can change tiers at any time.',
       },
       {
         question: 'Which plan should I start on?',

@@ -235,12 +235,15 @@ export function pricingStructuredData(
   t: LandingCopy,
   lang: Locale,
   pathname: string,
+  // While plans are "coming soon" we publish neither priced Offers nor the
+  // plan/beta FAQ — the markup must match the visible page (no rich-result
+  // mismatch). Flips with PRICING_COMING_SOON.
+  comingSoon = false,
 ): JsonLdDocument {
   return graph([
     ...baseNodes(t, lang),
     webPageNode(pathname, t.pricing.meta.title, t.pricing.meta.description, lang, 'pricing'),
-    productNode(t.pricing, pathname),
-    faqNode(t.pricing.faq),
+    ...(comingSoon ? [] : [productNode(t.pricing, pathname), faqNode(t.pricing.faq)]),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       { name: CRUMB_LABELS.pricing[lang], pathname },

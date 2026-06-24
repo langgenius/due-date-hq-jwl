@@ -10,6 +10,7 @@
 import type { StatePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON, type OfficialSourceLink } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
+import { getStartedHref } from '../lib/app-url'
 
 interface Props {
   page: StatePageCopy
@@ -50,7 +51,7 @@ const labels = zh
       ctaTitle: `看看 ${page.name} 的一次变化会如何成为你事务所的工作。`,
       ctaBody: '候选变化带着来源进入复核 —— 由你判断它是否影响你的客户，再决定是否应用。',
       ctaPrimary: '免费开始',
-      ctaNote: 'beta 期间免费 · 无需信用卡',
+      ctaNote: '开始无需信用卡',
     }
   : {
       backToHub: 'State coverage',
@@ -78,7 +79,7 @@ const labels = zh
       ctaBody:
         'Candidate changes arrive with their source and route through review — you decide whether they touch your clients, then apply.',
       ctaPrimary: 'Start free',
-      ctaNote: 'Free during the beta · no card required',
+      ctaNote: 'No card to start',
     }
 
 // Cross-link footer: the other published state pages, from the single source of
@@ -257,7 +258,7 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
         <p class="std-cta__note">{labels.ctaNote}</p>
       </div>
       <div class="m-page-cta__btns">
-        <a class="m-btn m-btn--primary" href={prefix === '' ? '/' : prefix}>{labels.ctaPrimary}</a>
+        <a class="m-btn m-btn--primary" href={getStartedHref(zh ? 'zh-CN' : undefined)}>{labels.ctaPrimary}</a>
         <a class="m-btn m-btn--secondary" href={coverageHref}>{labels.backToHub}</a>
       </div>
     </div>

@@ -10,6 +10,7 @@
 import type { StateCoverageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
+import { getStartedHref } from '../lib/app-url'
 
 interface Props {
   page: StateCoverageCopy
@@ -62,7 +63,7 @@ const l = zh
       ctaPrimary: '免费开始',
       ctaSecondary: '看它如何运作',
       ctaSecondaryHref: '/zh-CN/how-it-works',
-      ctaNote: 'beta 期间免费 · 无需信用卡',
+      ctaNote: '开始无需信用卡',
     }
   : {
       viewCoverage: 'View coverage',
@@ -90,7 +91,7 @@ const l = zh
       ctaPrimary: 'Start free',
       ctaSecondary: 'See how it works',
       ctaSecondaryHref: '/how-it-works',
-      ctaNote: 'Free during the beta · no card required',
+      ctaNote: 'No card to start',
     }
 
 // Slugs with a published detail page — derived from the live states list so the
@@ -123,7 +124,7 @@ const ROSTER = (Object.keys(US_TILES) as string[]).map((abbr) => ({
   row: US_TILES[abbr][1],
 }))
 
-const ctaPrimaryHref = zh ? '/zh-CN' : '/'
+const ctaPrimaryHref = getStartedHref(zh ? 'zh-CN' : undefined)
 ---
 
 <main>
@@ -435,7 +436,7 @@ const ctaPrimaryHref = zh ? '/zh-CN' : '/'
     place-items: center;
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: var(--m-radius-md);
     font-family: var(--m-font-mono);
     font-size: var(--m-text-sm);
     font-weight: 600;

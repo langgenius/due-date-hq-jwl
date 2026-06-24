@@ -108,6 +108,15 @@
   --m-focus-ring: var(--m-accent);
   --m-focus-width: 2px;
   --m-focus-offset: 2px;
+
+  /* ---- radius scale ---- */
+  /* the ONLY corner radii on the site. Tokenized so the scale is enforceable,
+     not a doc note: sm=compact chips/insets, md=buttons/inputs/inner cards,
+     lg=section cards/wrappers, pill=fully round. */
+  --m-radius-sm: 4px;
+  --m-radius-md: 8px;
+  --m-radius-lg: 12px;
+  --m-radius-pill: 999px;
 }
 
 /* One marketing canvas for EVERY page — the public site reads as a single

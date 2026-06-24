@@ -1,5 +1,8 @@
 ---
-/** FAQ — three short answers (native <details> accordions). */
+/** FAQ — three short answers, rendered with the shared FaqAccordion so the home
+ *  FAQ and every subpage FAQ use one identical accordion (this keeps only the
+ *  landing's editorial 2-col layout). */
+import FaqAccordion from '../FaqAccordion.astro'
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -53,17 +56,7 @@ const faqs = t.faqs
     </div>
 
     <div class="faq__grid">
-      {
-        faqs.map((f) => (
-          <details class="faq__item">
-            <summary class="faq__q">
-              {f.q}
-              <span class="faq__sign" aria-hidden="true" />
-            </summary>
-            <div class="faq__a" set:html={f.a} />
-          </details>
-        ))
-      }
+      <FaqAccordion items={faqs.map((f) => ({ question: f.q, answer: f.a }))} />
     </div>
   </div>
 </section>
@@ -88,63 +81,5 @@ const faqs = t.faqs
     .faq__grid {
       grid-column: 1 / -1;
     }
-  }
-  .faq__item {
-    border-top: 1px solid var(--m-hairline);
-  }
-  .faq__item:last-child {
-    border-bottom: 1px solid var(--m-hairline);
-  }
-  .faq__q {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 22px 0;
-    font-size: clamp(16px, 1.3vw, 18px);
-    font-weight: 500;
-    color: var(--m-ink);
-    cursor: pointer;
-    list-style: none;
-  }
-  .faq__q::-webkit-details-marker {
-    display: none;
-  }
-  .faq__sign {
-    position: relative;
-    width: 16px;
-    height: 16px;
-    flex: none;
-  }
-  .faq__sign::before,
-  .faq__sign::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    background: var(--m-muted);
-  }
-  .faq__sign::before {
-    width: 16px;
-    height: 1.5px;
-  }
-  .faq__sign::after {
-    width: 1.5px;
-    height: 16px;
-    transition: transform 0.2s ease;
-  }
-  .faq__item[open] .faq__sign::after {
-    transform: scaleY(0);
-  }
-  .faq__a {
-    padding: 0 0 24px;
-    max-width: 64ch;
-    font-size: var(--m-text-md);
-    line-height: 1.6;
-    color: var(--m-muted);
-  }
-  .faq__a :global(b) {
-    color: var(--m-ink);
-    font-weight: 600;
   }
 </style>

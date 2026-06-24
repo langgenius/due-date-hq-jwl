@@ -158,14 +158,13 @@ const surfaces = [
     <div class="bench__bar">
       <span class="bench__dots" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="bench__name">{t.win}</span>
-      <span class="bench__tabs" role="tablist" aria-label={t.jurisLabel}>
+      <span class="bench__tabs" role="group" aria-label={t.jurisLabel}>
         {
           t.jurisAlerts.map((j, i) => (
             <button
               class:list={['bench__tab', { on: i === 0 }]}
               type="button"
-              role="tab"
-              aria-selected={i === 0 ? 'true' : 'false'}
+              aria-pressed={i === 0 ? 'true' : 'false'}
               data-juris-tab={i}
             >
               {j.tab}
@@ -376,8 +375,14 @@ const surfaces = [
     outline: 2px solid var(--m-accent);
     outline-offset: 1px;
   }
+  /* small screens: scroll the jurisdiction toggles rather than hiding tabs 3–4
+     (which made their alert variants permanently unreachable) */
   @media (max-width: 560px) {
-    .bench__tab:nth-child(n + 3) {
+    .bench__tabs {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .bench__tabs::-webkit-scrollbar {
       display: none;
     }
   }
@@ -472,7 +477,7 @@ const surfaces = [
   }
   .mini__juris {
     padding: 1px 5px;
-    border-radius: 5px;
+    border-radius: var(--m-radius-sm);
     font-family: var(--m-font-mono);
     font-size: var(--m-text-3xs);
     font-weight: 600;
@@ -808,7 +813,7 @@ const surfaces = [
         tab.addEventListener('click', () => {
           tabs.forEach((tb, i) => {
             tb.classList.toggle('on', i === idx)
-            tb.setAttribute('aria-selected', String(i === idx))
+            tb.setAttribute('aria-pressed', String(i === idx))
           })
           variants.forEach((v, i) => v.classList.toggle('is-on', i === idx))
         })

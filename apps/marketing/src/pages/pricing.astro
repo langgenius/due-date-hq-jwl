@@ -6,6 +6,7 @@ import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
 import { getAppHref, getStartedHref } from '../lib/app-url'
 import { pricingStructuredData } from '../lib/structured-data'
+import { PRICING_COMING_SOON } from '../lib/pricing-state'
 
 const t = en
 const ctaHref = getStartedHref()
@@ -32,7 +33,7 @@ const pathname = '/pricing'
   title={t.pricing.meta.title}
   description={t.pricing.meta.description}
   ogImage={t.pricing.meta.ogImage}
-  structuredData={pricingStructuredData(t, 'en', pathname)}
+  structuredData={pricingStructuredData(t, 'en', pathname, PRICING_COMING_SOON)}
 >
   <TopNav pageMode ctaHref={ctaHref} current="pricing" />
   <main>

@@ -32,7 +32,7 @@ const links = [
 ]
 ---
 
-<header class:list={['nav', pageMode && 'nav--page']}>
+<header class:list={['nav', pageMode && 'nav--page']} transition:persist>
   <div class="nav__inner">
     <a class="brand" href={`${base}/`} aria-label={L.home}>
       <span class="brand__lockup">
@@ -56,6 +56,7 @@ const links = [
           <a
             class:list={['nav__link', current === l.key && 'is-active']}
             href={l.href}
+            data-key={l.key}
             aria-current={current === l.key ? 'page' : undefined}
           >
             {l.label}
@@ -100,6 +101,7 @@ const links = [
           <a
             class:list={['nav__sheet-link', current === l.key && 'is-active']}
             href={l.href}
+            data-key={l.key}
             aria-current={current === l.key ? 'page' : undefined}
           >
             {l.label}
@@ -738,10 +740,33 @@ const links = [
 </script>
 
 <script>
-  // Nav glider — one pill that slides under the hovered link and rests at the
-  // active one, so moving across the nav reads as a single left↔right glide.
-  // Progressive enhancement: without JS the static .is-active background shows.
-  // Re-inits per View-Transition navigation; listeners drop on swap.
+  // Nav glider — one pill that rests under the ACTIVE link and slides under the
+  // hovered link. The nav is transition:persist'd, so across a page swap the SAME
+  // glider slides to the new page's active link instead of the whole nav
+  // cross-fading between two positions (which read as a jump). Progressive
+  // enhancement: without JS the static .is-active background shows.
+  function activeNavKey(path: string): string | null {
+    const p = path.replace(/^\/zh-CN/, '') || '/'
+    if (p === '/' || p === '') return 'home'
+    if (p.startsWith('/how-it-works')) return 'how'
+    if (p.startsWith('/state-coverage') || p.startsWith('/states/')) return 'coverage'
+    if (p.startsWith('/pricing')) return 'pricing'
+    if (p.startsWith('/security')) return 'security'
+    return null
+  }
+  // The persisted nav keeps the previous page's active link, so re-derive it from
+  // the URL after each swap (matches the server-rendered `current` logic).
+  function syncNavActive() {
+    const key = activeNavKey(location.pathname)
+    document.querySelectorAll<HTMLElement>('.nav__link, .nav__sheet-link').forEach((l) => {
+      const on = l.dataset.key === key
+      l.classList.toggle('is-active', on)
+      if (on) l.setAttribute('aria-current', 'page')
+      else l.removeAttribute('aria-current')
+    })
+  }
+
+  let navGliderFirst = true
   function initNavGlider(signal: AbortSignal) {
     const pill = document.querySelector<HTMLElement>('.nav__pill')
     const glider = pill?.querySelector<HTMLElement>('.nav__glider')
@@ -749,6 +774,7 @@ const links = [
     if (!pill || !glider || !links.length) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     pill.classList.add('has-glider')
+    syncNavActive()
 
     const active = () => pill.querySelector<HTMLElement>('.nav__link.is-active')
     const place = (link: HTMLElement | null, animate = true) => {
@@ -775,9 +801,11 @@ const links = [
     document
       .querySelector('.nav__inner')
       ?.addEventListener('transitionend', () => rest(false), { signal })
-    // initial placement (no animation), after layout — and again once fonts settle
-    requestAnimationFrame(() => rest(false))
-    document.fonts?.ready.then(() => rest(false))
+    // first paint snaps into place; later page swaps SLIDE to the new active link
+    const animate = !navGliderFirst
+    navGliderFirst = false
+    requestAnimationFrame(() => rest(animate))
+    if (!animate) document.fonts?.ready.then(() => rest(false))
   }
   let navGliderCtl: AbortController | undefined
   document.addEventListener('astro:page-load', () => {

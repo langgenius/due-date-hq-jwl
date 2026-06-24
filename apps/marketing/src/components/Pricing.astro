@@ -3,8 +3,9 @@
  *  tiers, billing toggle, checkout hrefs, and data-* hooks are the team's live
  *  billing wiring and are preserved exactly; this pass strengthens the hierarchy
  *  (display-serif hero, a clearly-dominant recommended plan), adds a derived
- *  feature-comparison matrix and an "every plan includes" recap, and keeps the
- *  beta posture: pricing is real but DueDateHQ is free during the beta.
+ *  feature-comparison matrix and an "every plan includes" recap. Plans aren't
+ *  finalized yet, so PRICING_COMING_SOON gates the tiers + matrix + FAQ off and
+ *  shows a "coming soon" panel; the launch offer is 3 months of Team, free.
  *
  *  The comparison matrix is DERIVED from the same plan data rendered in the cards
  *  (allowances + the `Label: value` feature lines) — no new copy keys, no
@@ -17,6 +18,7 @@ import type {
 } from '../i18n/types'
 import FaqList from './FaqList.astro'
 import { getStartedHref } from '../lib/app-url'
+import { PRICING_COMING_SOON } from '../lib/pricing-state'
 
 interface Props {
   t: PricingCopy
@@ -29,6 +31,11 @@ const { t, appHref, checkoutHrefs } = Astro.props
 // pass): the zh catalog routes pricing under /zh-CN/pricing.
 const zh = t.navPricingHref.startsWith('/zh-CN')
 const startHref = getStartedHref(zh ? 'zh-CN' : undefined)
+
+// Plans aren't finalized yet — show "coming soon" instead of the priced tiers.
+// The plan data + checkout wiring below are preserved (just not rendered). The
+// flag is shared with the page wrappers so the JSON-LD matches the visible page.
+const comingSoon = PRICING_COMING_SOON
 
 function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): string {
   if (plan.hrefKind === 'checkout') return checkoutHrefs[plan.checkoutPlan ?? 'pro'][interval]
@@ -65,14 +72,19 @@ const ui = zh
   ? {
       betaTag: '上线活动',
       betaText:
-        '定价是真实的——但现在，花两分钟告诉我们一点你的情况，前 3 个月的 Team 版免费。开始无需信用卡。',
+        '今天就免费开始——前 3 个月由我们请客，无需信用卡。价格会在到期前公布。',
       betaStrong: '免费',
       betaCta: '免费领 3 个月',
+      soonTitle: '定价即将公布。',
+      soonLead: '我们正在敲定套餐方案。在此之前，先看看怎么开始。',
+      soonNote: '开始无需信用卡。',
+      soonPanelTitle: '套餐与价格即将上线。',
+      soonPanelBody: '各档套餐还在敲定中。现在就免费开始（见上方）——前三个月由我们请客——价格会在到期前公布。',
       matrixEyebrow: '逐项对比',
       matrixTitle: '四个套餐，并排看清。',
       matrixNote: '所有价格为月费；切换年付即按 8 折计费。',
-      recapEyebrow: '每个套餐都包含',
-      recapTitle: '无论选哪个套餐，核心保障都一样。',
+      recapEyebrow: '你能得到的',
+      recapTitle: '核心保障，人人一致。',
       recap: [
         { icon: 'watch', t: '7×24 监控', d: 'IRS、全部 50 个州和 FEMA 一有变化就提醒。' },
         { icon: 'source', t: '每个日期都有来源', d: '官方原文链接随每条变更附上，可逐条点开核验。' },
@@ -84,14 +96,20 @@ const ui = zh
   : {
       betaTag: 'Launch offer',
       betaText:
-        "Pricing is real — but right now, tell us a little about your practice and your first 3 months on the Team plan are free. No card to start.",
+        'Start free today — your first 3 months are on us, no card. We’ll share pricing before they’re up.',
       betaStrong: 'free',
       betaCta: 'Get 3 months free',
+      soonTitle: 'Simple pricing, coming soon.',
+      soonLead: 'We’re still finalizing our plans. Here’s how to get started in the meantime.',
+      soonNote: 'No card to start.',
+      soonPanelTitle: 'Plans and prices are on the way.',
+      soonPanelBody:
+        'We’re still settling the tiers. Start free now (above) — your first three months are on us — and we’ll share pricing well before they’re up.',
       matrixEyebrow: 'Side by side',
       matrixTitle: 'All four plans, line by line.',
       matrixNote: 'Prices shown monthly; switch to yearly to bill at 20% off.',
-      recapEyebrow: 'In every plan',
-      recapTitle: 'The core promise is the same on every plan.',
+      recapEyebrow: 'What you get',
+      recapTitle: 'The core promise, the same for everyone.',
       recap: [
         { icon: 'watch', t: 'Watches 24/7', d: 'IRS, all 50 states, and FEMA — the moment a deadline moves.' },
         { icon: 'source', t: 'A source on every date', d: 'The official text is linked to every change, ready to verify.' },
@@ -105,8 +123,8 @@ const ui = zh
 <section class="m-section m-page-hero pr" data-pricing-root data-billing-interval="monthly">
   <div class="pr__hero">
     <p class="m-eyebrow">{t.hero.eyebrow}</p>
-    <h1 class="m-page-title pr__title">{t.hero.title}</h1>
-    <p class="m-page-lead pr__lead">{t.hero.description}</p>
+    <h1 class="m-page-title pr__title">{comingSoon ? ui.soonTitle : t.hero.title}</h1>
+    <p class="m-page-lead pr__lead">{comingSoon ? ui.soonLead : t.hero.description}</p>
 
     <div class="pr__beta" role="note">
       <span class="pr__beta-tag">{ui.betaTag}</span>
@@ -115,9 +133,18 @@ const ui = zh
         {ui.betaCta} <span class="arrow" aria-hidden="true">→</span>
       </a>
     </div>
-    <p class="m-page-note pr__note">{t.hero.note}</p>
+    <p class="m-page-note pr__note">{comingSoon ? ui.soonNote : t.hero.note}</p>
   </div>
 
+  {comingSoon && (
+    <section class="pr__plans">
+      <div class="pr__soon">
+        <h2 class="pr__soon-t">{ui.soonPanelTitle}</h2>
+        <p class="pr__soon-d">{ui.soonPanelBody}</p>
+      </div>
+    </section>
+  )}
+  {!comingSoon && (
   <section class="pr__plans">
     <header class="pr__planshead">
       <div>
@@ -225,7 +252,9 @@ const ui = zh
       }
     </div>
   </section>
+  )}
 
+  {!comingSoon && (
   <section class="pr__matrix-sec" aria-labelledby="pr-matrix-h">
     <p class="m-eyebrow">{ui.matrixEyebrow}</p>
     <h2 class="m-page-h2" id="pr-matrix-h">{ui.matrixTitle}</h2>
@@ -297,6 +326,7 @@ const ui = zh
       </div>
     </div>
   </section>
+  )}
 
   <section class="pr__recap">
     <div class="pr__recap-head">
@@ -343,9 +373,11 @@ const ui = zh
     </div>
   </section>
 
-  <section class="pr__faq">
-    <FaqList eyebrow={t.faqHeader.eyebrow} title={t.faqHeader.title} items={t.faq} />
-  </section>
+  {!comingSoon && (
+    <section class="pr__faq">
+      <FaqList eyebrow={t.faqHeader.eyebrow} title={t.faqHeader.title} items={t.faq} />
+    </section>
+  )}
 </section>
 
 <style>
@@ -363,6 +395,30 @@ const ui = zh
   }
   .pr__lead {
     max-width: 62ch;
+  }
+  /* coming-soon panel — stands in for the priced tiers until plans launch */
+  .pr__soon {
+    margin-top: clamp(8px, 2vw, 20px);
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    padding: clamp(28px, 4vw, 48px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .pr__soon-t {
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1.12;
+    color: var(--m-ink);
+  }
+  .pr__soon-d {
+    max-width: 60ch;
+    font-size: var(--m-text-md);
+    line-height: 1.55;
+    color: var(--m-ink-2);
   }
   .pr__beta {
     display: flex;
@@ -831,7 +887,7 @@ const ui = zh
     height: 40px;
     align-items: center;
     justify-content: center;
-    border-radius: 11px;
+    border-radius: var(--m-radius-lg);
     color: var(--m-accent);
     background: var(--m-accent-tint);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 12%, transparent);
