@@ -13,6 +13,7 @@ import { authRoute } from './routes/auth'
 import { auditDownloadRoute } from './routes/audit-download'
 import { e2eRoute } from './routes/e2e'
 import { publicDemoRoute } from './routes/public-demo'
+import { leadsRoute } from './routes/leads'
 import { healthRoute } from './routes/health'
 import { icsRoute } from './routes/ics'
 import { notificationsRoute } from './routes/notifications'
@@ -108,6 +109,20 @@ export function createApp() {
   // session/tenant middleware runs before it.
   app.use('/api/demo', rateLimitMiddleware)
   app.route('/api/demo', publicDemoRoute)
+
+  // /api/leads — public marketing questionnaire lead capture (no credentials).
+  // Permissive CORS (the form posts from the marketing origin) + IP rate-limited.
+  app.use(
+    '/api/leads',
+    cors({
+      origin: (o) => o ?? '*',
+      allowMethods: ['POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type'],
+      maxAge: 600,
+    }),
+  )
+  app.use('/api/leads', rateLimitMiddleware)
+  app.route('/api/leads', leadsRoute)
 
   // /api/webhook/* — external callbacks. Provider signature verification is required
   // before side effects; IP allowlists are defense-in-depth when supported.

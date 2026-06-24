@@ -7,7 +7,7 @@ import { getStartedHref, getAppHref } from '../../lib/app-url'
 
 const ctaHref = getStartedHref('zh-CN')
 const signInHref = getAppHref('/login', 'zh-CN')
-const formAction = import.meta.env.PUBLIC_QUESTIONNAIRE_ACTION ?? ''
+const formAction = import.meta.env.PUBLIC_QUESTIONNAIRE_ACTION || getAppHref('/api/leads')
 ---
 
 <BaseLayout

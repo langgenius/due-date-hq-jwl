@@ -41,12 +41,33 @@ This supersedes the old locked "beta-free / nothing to pay today" stance.
   `src/pages/**` except `legacy.astro` (preserved old page keeps the app link).
   Sign-in still → app login (`getAppHref('/login')`).
 
-## ⚠️ One thing the team must do to go live
-Set **`PUBLIC_QUESTIONNAIRE_ACTION`** (in wrangler/env) to a real form endpoint:
-- Easiest: create a **Tally** or **Formspree** form, paste its POST URL. The fields
-  post as `name`, `email`, `firm`, `focus`, `tools` (multi), `pain`, `source`.
-- Or I can add a lead-capture **Worker** endpoint to `apps/server` (bigger; PII
-  handling — would want a privacy note). Until set, the form shows "opens shortly".
+## Native endpoint — `POST /api/leads` (built)
+Built the lead-capture endpoint on the product server (chosen over a 3rd-party form
+service):
+- **`packages/db`**: `marketingLead` schema (`src/schema/marketing-lead.ts`) +
+  hand-written migration **`0080_marketing_lead.sql`** (resolves via the existing
+  `./schema/*` wildcard export — no barrel change).
+- **`apps/server`**: `routes/leads.ts` — public `POST /api/leads`: null-guard →
+  honeypot (`_gotcha` non-empty → silent ok, no write) → zod validation (name 1..200,
+  email, capped optionals, tools[] ≤20×80) → Drizzle insert (id uuid + `cf-connecting-ip`
+  + UA) → `{ok:true}`; try/catch via `logServerError` → 500. Mounted in `app.ts`
+  right after `/api/demo` with permissive no-credentials CORS (POST/OPTIONS) +
+  `rateLimitMiddleware`. Test `routes/leads.test.ts` (valid insert / honeypot drop /
+  bad email → 400) passes; `@duedatehq/db` + `@duedatehq/server` typecheck clean.
+- **Marketing form**: defaults `formAction` to `getAppHref('/api/leads')` (the
+  app/server origin; `PUBLIC_QUESTIONNAIRE_ACTION` still overrides). Submit is now
+  enabled; JS fetch-POSTs JSON + swaps the form for an inline thank-you; native POST
+  is the no-JS fallback. Verified: submit intercepts (no navigation), fetch fires,
+  error state on failure, success panel on `{ok:true}`.
+
+## ⚠️ To go live (deploy steps the team owns)
+1. **Apply the migration**: `pnpm db:migrate:remote` (and `pnpm db:migrate:local`
+   for local) — table `marketing_lead` doesn't exist until applied.
+2. **Deploy `apps/server`** (the new route) and the marketing site.
+3. (Optional) override `PUBLIC_QUESTIONNAIRE_ACTION` if you'd rather post to a Tally/
+   Formspree form than the native endpoint.
+4. (Optional next) read leads — they're rows in `marketing_lead` (D1); add an admin
+   view or an email-on-new-lead later.
 
 ## Verified
 All routes 200 (incl. both new `/get-started`). Form: 14 fields, name+email required,

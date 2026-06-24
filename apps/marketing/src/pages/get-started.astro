@@ -7,10 +7,9 @@ import { getStartedHref, getAppHref } from '../lib/app-url'
 
 const ctaHref = getStartedHref()
 const signInHref = getAppHref('/login')
-// the team's form-service POST endpoint (Tally / Formspree / Getform / Worker).
-// Set PUBLIC_QUESTIONNAIRE_ACTION in wrangler/env; until then the form shows an
-// honest "opens shortly" state.
-const formAction = import.meta.env.PUBLIC_QUESTIONNAIRE_ACTION ?? ''
+// Defaults to the native lead-capture endpoint on the app server (/api/leads);
+// override with PUBLIC_QUESTIONNAIRE_ACTION to post to a form service instead.
+const formAction = import.meta.env.PUBLIC_QUESTIONNAIRE_ACTION || getAppHref('/api/leads')
 ---
 
 <BaseLayout

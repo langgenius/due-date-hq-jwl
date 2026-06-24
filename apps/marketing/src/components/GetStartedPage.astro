@@ -42,6 +42,9 @@ const t = zh
       submit: '领取 3 个月 Team 版',
       privacy: '我们用这些信息为你开通试用、了解你的工作流程——绝不出售或共享。',
       privacyLink: '查看安全说明',
+      error: '出了点问题，请重试，或给我们发邮件。',
+      successTitle: '已收到——3 个月 Team 版马上为你开通。',
+      successBody: '谢谢你告诉我们你的情况。我们会为你开通试用，并很快给你发邮件。',
       setup: '表单即将开放——很快就好。',
       sourceVal: 'marketing · get-started · zh',
     }
@@ -70,6 +73,9 @@ const t = zh
       submit: 'Claim 3 months of Team free',
       privacy: 'We use this to set up your trial and understand your workflow — never to sell or share.',
       privacyLink: 'Read the security overview',
+      error: 'Something went wrong — please try again, or email us.',
+      successTitle: "You're in — 3 months of Team is on the way.",
+      successBody: "Thanks for telling us about your practice. We'll set up your trial and email you shortly.",
       setup: 'The form opens shortly — check back soon.',
       sourceVal: 'marketing · get-started · en',
     }
@@ -110,6 +116,7 @@ const tools = t.tools
       aria-label={t.formTitle}
     >
       <input type="hidden" name="source" value={t.sourceVal} />
+      <input type="hidden" name="locale" value={zh ? 'zh-CN' : 'en'} />
       {/* honeypot — bots fill it, humans never see it */}
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="gs-hp" aria-hidden="true" />
 
@@ -167,12 +174,24 @@ const tools = t.tools
         <button class="m-cta m-cta--primary gs-submit" type="submit" disabled={!hasAction}>
           {t.submit} <span class="arrow" aria-hidden="true">→</span>
         </button>
+        <p class="gs-error" data-gs-error hidden role="alert">{t.error}</p>
         {!hasAction && <p class="gs-setup">{t.setup}</p>}
         <p class="gs-privacy">
           {t.privacy} <a href={securityHref}>{t.privacyLink} →</a>
         </p>
       </div>
     </form>
+
+    <!-- shown after a successful submit (JS swaps the form for this) -->
+    <div class="gs-success" data-gs-success hidden>
+      <span class="gs-success__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </span>
+      <h2 class="gs-success__t">{t.successTitle}</h2>
+      <p class="gs-success__d">{t.successBody}</p>
+    </div>
   </section>
 </main>
 
@@ -391,6 +410,52 @@ const tools = t.tools
       grid-template-columns: 1fr;
     }
   }
+  .gs-error {
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-danger);
+  }
+
+  /* inline thank-you — replaces the form on a successful submit */
+  .gs-success {
+    margin-top: clamp(22px, 2.6vw, 32px);
+    max-width: 560px;
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding: clamp(24px, 3vw, 34px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .gs-success__mark {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 12%, transparent);
+  }
+  .gs-success__mark svg {
+    width: 20px;
+    height: 20px;
+  }
+  .gs-success__t {
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(24px, 2.6vw, 32px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    color: var(--m-ink);
+  }
+  .gs-success__d {
+    max-width: 52ch;
+    font-size: var(--m-text-md);
+    line-height: 1.55;
+    color: var(--m-ink-2);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .gs-input,
     .gs-choice,
@@ -400,3 +465,59 @@ const tools = t.tools
     }
   }
 </style>
+
+<script>
+  // Submit the questionnaire to the lead endpoint without leaving the page, then
+  // swap the form for an inline thank-you. Native POST is the no-JS fallback.
+  // Re-binds per View-Transition navigation.
+  function initGetStarted() {
+    document.querySelectorAll<HTMLFormElement>('.gs-form').forEach((form) => {
+      const endpoint = form.getAttribute('action')
+      if (!endpoint) return
+      const sec = form.closest('.gs-formsec')
+      const ok = sec?.querySelector<HTMLElement>('[data-gs-success]')
+      const err = form.querySelector<HTMLElement>('[data-gs-error]')
+      const submit = form.querySelector<HTMLButtonElement>('.gs-submit')
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const hp = form.querySelector<HTMLInputElement>('[name="_gotcha"]')
+        if (hp && hp.value) return // bot
+        if (err) err.hidden = true
+        if (submit) submit.disabled = true
+        const data = new FormData(form)
+        const tools = data.getAll('tools').map(String)
+        const payload: Record<string, unknown> = {
+          name: data.get('name'),
+          email: data.get('email'),
+          firm: data.get('firm') || undefined,
+          focus: data.get('focus') || undefined,
+          tools: tools.length ? tools : undefined,
+          pain: data.get('pain') || undefined,
+          source: data.get('source') || undefined,
+          locale: data.get('locale') || undefined,
+        }
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          const json = (await res.json().catch(() => null)) as { ok?: boolean } | null
+          if (res.ok && json && json.ok) {
+            form.hidden = true
+            if (ok) {
+              ok.hidden = false
+              ok.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+            return
+          }
+          throw new Error('failed')
+        } catch {
+          if (err) err.hidden = false
+          if (submit) submit.disabled = false
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initGetStarted)
+</script>
