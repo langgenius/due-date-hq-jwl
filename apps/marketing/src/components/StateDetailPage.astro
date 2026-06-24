@@ -420,13 +420,10 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
-    transition:
-      border-color 0.18s ease,
-      box-shadow 0.18s ease;
+    transition: border-color 0.18s ease;
   }
   .std-src:hover {
     border-color: var(--m-accent);
-    box-shadow: 0 4px 12px -8px rgba(16, 24, 40, 0.4);
   }
   .std-src__label {
     font-size: var(--m-text-base);

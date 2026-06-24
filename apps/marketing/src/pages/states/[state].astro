@@ -5,7 +5,7 @@ import StateDetailPage from '../../components/StateDetailPage.astro'
 import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import type { StatePageCopy } from '../../i18n/types'
-import { getCtaHref } from '../../lib/app-url'
+import { getStartedHref } from '../../lib/app-url'
 import { stateOfficialSources } from '../../lib/content-metadata'
 import { getStatePages } from '../../lib/seo-content'
 import { statePageStructuredData } from '../../lib/structured-data'
@@ -26,7 +26,7 @@ interface Props {
 const t = en
 const { page, allStates } = Astro.props
 const pathname = `/states/${page.slug}`
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 ---
 
 <BaseLayout

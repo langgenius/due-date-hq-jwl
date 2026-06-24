@@ -59,6 +59,7 @@ import {
   PULSE_DISMISS_DEFAULT_AUDIT_REASON,
   PULSE_HANDLED_ALERT_STATUSES,
   PULSE_MARK_REVIEWED_DEFAULT_AUDIT_REASON,
+  PULSE_OPEN_ALERT_STATUSES,
   PulseRepoError,
   REVERT_WINDOW_MS,
   applicationStatus,
@@ -1189,7 +1190,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
-            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+            inArray(pulseFirmAlert.status, PULSE_OPEN_ALERT_STATUSES),
             // Origin split: the news stream queries 'live'; the pinned
             // "Already in effect" band queries 'catchup'. Absent = both.
             ...(opts.origin ? [eq(pulseFirmAlert.origin, opts.origin)] : []),
@@ -1312,7 +1313,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
             eq(pulse.parsedJurisdiction, input.jurisdiction),
-            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+            inArray(pulseFirmAlert.status, PULSE_OPEN_ALERT_STATUSES),
           ),
         )
         .orderBy(desc(pulse.publishedAt))
@@ -1346,14 +1347,15 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     /**
-     * Count of currently-active (matched / partially_applied) Pulse alerts
-     * for this firm. Used by the sidebar nav badge
+     * Count of currently-open Pulse alerts for this firm. Used by the sidebar nav badge
      * — the badge only needs a number, not the alert rows themselves, so
      * a dedicated COUNT(*) query avoids fetching N rows just to call
      * `.length` on the array.
      *
      * Matches the WHERE clause of `listAlerts()` exactly so the sidebar
-     * count never disagrees with what `listAlerts()` would return.
+     * count never disagrees with the Review + Active work queues. Handled
+     * history statuses, including `partially_applied`, are intentionally out
+     * of scope for this count.
      *
      * Returns the true count with no upper bound — the old `listAlerts`
      * clamp of 50 meant a firm with 73 active alerts showed "50" in the
@@ -1369,7 +1371,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
-            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+            inArray(pulseFirmAlert.status, PULSE_OPEN_ALERT_STATUSES),
             // Mirror listAlerts: the sidebar badge must not count expired windows
             // the active list hides.
             ...pulseNotExpiredConditions(now),
@@ -1608,7 +1610,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
-            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+            inArray(pulseFirmAlert.status, PULSE_OPEN_ALERT_STATUSES),
           ),
         )
         .orderBy(desc(pulseFirmAlert.updatedAt), desc(pulse.publishedAt))

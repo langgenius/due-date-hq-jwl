@@ -1987,6 +1987,7 @@ msgid "Active stage detail"
 msgstr "Active stage detail"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activity"
 msgstr "Activity"
@@ -3052,10 +3053,6 @@ msgstr "Attach the source document"
 msgid "attempt {attempt}"
 msgstr "attempt {attempt}"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Audit"
-msgstr "Audit"
-
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -3137,7 +3134,6 @@ msgid "Audit timeline"
 msgstr "Audit timeline"
 
 #: src/features/concepts/concept-help.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Audit trail"
 msgstr "Audit trail"
 
@@ -3703,7 +3699,6 @@ msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Card view"
 msgstr "Card view"
 
@@ -5329,7 +5324,6 @@ msgstr "Counts this client's deadlines that are already Filed or Completed."
 msgid "County"
 msgstr "County"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/routes/route-summary.ts
@@ -7142,6 +7136,7 @@ msgid "File type"
 msgstr "File type"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "filed"
 
@@ -11110,7 +11105,6 @@ msgstr "Opening…"
 msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 msgstr "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "Operations"
@@ -12471,6 +12465,7 @@ msgstr "Reclassification (the entity changed type, effective a tax year)"
 msgid "Reclassified"
 msgstr "Reclassified"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "Recommended"
@@ -12881,13 +12876,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "Requested {checklistCount} items from the client."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "Required"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "Required before Accept"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -13529,7 +13519,6 @@ msgstr "Rule updated"
 msgid "Rule version"
 msgstr "Rule version"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
@@ -15091,7 +15080,6 @@ msgid "System updates"
 msgstr "System updates"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Table view"
 msgstr "Table view"
 
@@ -16680,7 +16668,6 @@ msgstr "View items needing your review"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "View mode"
 

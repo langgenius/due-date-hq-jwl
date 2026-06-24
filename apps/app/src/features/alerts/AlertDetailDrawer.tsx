@@ -1862,12 +1862,16 @@ export function AlertDetailDrawer({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={(event) =>
+                    onClick={(event) => {
+                      // Move the underline to the clicked section immediately —
+                      // the scroll-spy `activeSection` otherwise only catches up
+                      // once the smooth-scroll settles, lagging the click.
+                      setActiveSection(item.id)
                       event.currentTarget
                         .closest('[class*="overflow-y-auto"]')
                         ?.querySelector(`#${item.id}`)
                         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }
+                    }}
                     className={cn(
                       'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                       sectionActive

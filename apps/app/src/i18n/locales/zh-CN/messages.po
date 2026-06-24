@@ -1996,6 +1996,7 @@ msgid "Active stage detail"
 msgstr "当前阶段详情"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activity"
 msgstr "动态"
@@ -3065,10 +3066,6 @@ msgstr "附上来源文档"
 msgid "attempt {attempt}"
 msgstr "第 {attempt} 次尝试"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Audit"
-msgstr "审计"
-
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -3150,7 +3147,6 @@ msgid "Audit timeline"
 msgstr "审计时间线"
 
 #: src/features/concepts/concept-help.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Audit trail"
 msgstr "审计轨迹"
 
@@ -3717,7 +3713,6 @@ msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Card view"
 msgstr "卡片视图"
 
@@ -5350,7 +5345,6 @@ msgstr "统计该客户已处于“已申报”或“已完成”状态的截止
 msgid "County"
 msgstr "县"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/routes/route-summary.ts
@@ -7166,6 +7160,7 @@ msgid "File type"
 msgstr "文件类型"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "已申报"
 
@@ -11154,7 +11149,6 @@ msgstr "正在打开…"
 msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 msgstr "成功生成后打开现有重复截止日期或新建截止日期。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "运营"
@@ -12526,6 +12520,7 @@ msgstr "重新分类（实体类型变更，自某税年起生效）"
 msgid "Reclassified"
 msgstr "已重新分类"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "推荐"
@@ -12938,13 +12933,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "已向客户索取 {checklistCount} 项材料。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "需要"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "接受前必填"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -13587,7 +13577,6 @@ msgstr "规则已更新"
 msgid "Rule version"
 msgstr "规则版本"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
@@ -15154,7 +15143,6 @@ msgid "System updates"
 msgstr "系统更新"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Table view"
 msgstr "表格视图"
 
@@ -16748,7 +16736,6 @@ msgstr "查看需要您审核的项目"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "查看模式"
 

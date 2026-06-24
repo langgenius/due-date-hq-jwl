@@ -21,10 +21,10 @@ import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
 import en from '../i18n/en'
-import { getCtaHref, getAppHref } from '../lib/app-url'
+import { getStartedHref, getAppHref } from '../lib/app-url'
 import { homeStructuredData } from '../lib/structured-data'
 
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 const signInHref = getAppHref('/login')
 const t = en
 ---

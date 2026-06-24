@@ -149,20 +149,32 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
           is:inline
           set:html={`
 if ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') && !location.search.includes('noagent')) {
-  (async function () {
+  // ClientRouter swaps <body> on navigation, tearing the overlay's root out and
+  // leaving it broken until a manual refresh. Cache the lib, unmount cleanly
+  // before each swap, and re-mount after every page-load (initial + post-swap)
+  // so the feedback tool survives tab switches. Dev-only; never ships to prod.
+  let lib = null
+  let root = null
+  async function mountAgentation() {
+    if (document.getElementById('agentation-root')) return
     try {
-      const React = (await import('react')).default
-      const { createRoot } = await import('react-dom/client')
-      const { Agentation } = await import('https://esm.sh/agentation@3.0.2?external=react,react-dom')
-      const mount = document.createElement('div')
-      mount.id = 'agentation-root'
-      document.body.appendChild(mount)
-      createRoot(mount).render(React.createElement(Agentation))
-      console.info('[Agentation] mounted')
+      if (!lib) {
+        const React = (await import('react')).default
+        const { createRoot } = await import('react-dom/client')
+        const { Agentation } = await import('https://esm.sh/agentation@3.0.2?external=react,react-dom')
+        lib = { React, createRoot, Agentation }
+      }
+      const el = document.createElement('div')
+      el.id = 'agentation-root'
+      document.body.appendChild(el)
+      root = lib.createRoot(el)
+      root.render(lib.React.createElement(lib.Agentation))
     } catch (e) {
       console.error('[Agentation] failed to load:', e)
     }
-  })()
+  }
+  document.addEventListener('astro:before-swap', () => { if (root) { root.unmount(); root = null } })
+  document.addEventListener('astro:page-load', mountAgentation)
 }`}
         />
       )

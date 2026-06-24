@@ -10,17 +10,19 @@ Record tab. Grounded in current code (verified 2026-06-23).
 ## Current reality (verified)
 
 **Real today** — safe to render, already wired:
+
 - E-file lifecycle timestamps + form: `obligation.efileSubmittedAt /
-  efileAcceptedAt / efileRejectedAt / efileAuthorizationForm`
+efileAcceptedAt / efileRejectedAt / efileAuthorizationForm`
   (`packages/contracts/src/obligation-instance.ts`).
 - The full audit trail (`AuditEventPublic`, `packages/contracts/src/audit.ts`).
 - Materials received-state: `ReadinessDocumentChecklistItem.{status, receivedAt,
-  receivedByUserId}` (`packages/contracts/src/readiness.ts`) — a timestamp of
+receivedByUserId}` (`packages/contracts/src/readiness.ts`) — a timestamp of
   "marked received", NOT a stored file.
 - The audit-bundle compliance export pipeline is REAL: pdf-lib + fflate + R2,
   SHA-256 sealed (`apps/server/src/jobs/audit/package.ts`).
 
 **Fiction — correctly NOT rendered** (no schema, no storage):
+
 - `obligation.attachments[]` / `workpapers[]` / `authorityResponses[]` — none
   exist in `packages/contracts`.
 - Signed 8879 PDF — no e-signature integration, no storage.
@@ -40,13 +42,13 @@ the backend build that would let the empty sections fill.**
    isolation in the key + the presign authz.
 2. **Schema** (`packages/contracts`):
    - `obligation.attachments[]: { id, kind: 'workpaper' | 'signed_8879' |
-     'authority_response' | 'other', filename, sizeBytes, contentType,
-     uploadedAt, uploadedByUserId, r2Key, downloadUrlExpiresAt }`
+'authority_response' | 'other', filename, sizeBytes, contentType,
+uploadedAt, uploadedByUserId, r2Key, downloadUrlExpiresAt }`
    - `obligationMarkFiledRejected.authorityResponseAttachmentId?: string` — link
      a rejection event to its letter PDF.
 3. **Endpoints** (oRPC, audit-writing):
    - `obligations.attachments.requestUpload(obligationId, filename, contentType,
-     kind)` → presigned URL + attachmentId
+kind)` → presigned URL + attachmentId
    - `obligations.attachments.complete(attachmentId)` → finalize + audit row
    - `obligations.attachments.list(obligationId)` → paginated read
    - `obligations.attachments.requestDownload(attachmentId)` → presigned read URL

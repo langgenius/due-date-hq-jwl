@@ -5,7 +5,7 @@ import GeoResourcePage from '../../../components/GeoResourcePage.astro'
 import Footer from '../../../components/home/Footer.astro'
 import zhCN from '../../../i18n/zh-CN'
 import type { GuidePageCopy } from '../../../i18n/types'
-import { getCtaHref } from '../../../lib/app-url'
+import { getStartedHref } from '../../../lib/app-url'
 import { getGuidePages, getResourceCtaHrefs } from '../../../lib/seo-content'
 import { resourceStructuredData } from '../../../lib/structured-data'
 
@@ -24,7 +24,7 @@ const t = zhCN
 const { page } = Astro.props
 const enPathname = `/guides/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'zh-CN')
 ---
 

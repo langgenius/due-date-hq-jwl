@@ -52,6 +52,14 @@ export class ObligationQueuePage {
   async goto(path = '/deadlines') {
     await this.page.goto(path)
     await this.heading.waitFor({ state: 'visible', timeout: 15_000 })
+    await this.waitForTable()
+  }
+
+  async waitForTable() {
+    // 2026-06-24: /deadlines is table-only. The old Table/Card segmented
+    // view toggle was removed, so the stable readiness signal is the sortable
+    // table header itself.
+    await this.dueSortButton.waitFor({ state: 'visible', timeout: 15_000 })
   }
 
   async search(query: string) {
@@ -159,6 +167,7 @@ export class ObligationQueuePage {
       .or(this.page.getByRole('row', { name: new RegExp(escapedName) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Deadline detail: ${escapedName}`) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Open deadlines: ${escapedName}`) }))
+      .or(this.page.getByRole('button', { name: new RegExp(`^Open ${escapedName} .* deadline$`) }))
   }
 
   async openDetailFor(clientName: string) {

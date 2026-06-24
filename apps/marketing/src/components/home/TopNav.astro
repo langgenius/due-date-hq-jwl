@@ -1,10 +1,10 @@
 ---
-/** TopNav — centered floating-pill nav, shared site-wide (EN + zh-CN).
- *  - On the homepage (default): transparent, "How it works" is an in-page anchor.
- *  - On content pages (`pageMode`): solid bg + hairline, anchors return to home,
- *    and `current` marks the active destination.
- *  Labels are an inline EN/zh map (chrome copy, not page content); hrefs are
- *  locale-prefixed. Glider + nav-on-dark JS land in the interactions pass. */
+/** TopNav — a centered nav bar that collapses into a floating pill on scroll,
+ *  shared site-wide (EN + zh-CN). One solid bg + hairline on every page; the
+ *  collapse (.nav--scrolled) and the villain pass (.nav--on-dark) override it.
+ *  `current` marks the active destination on every page (orientation) and the
+ *  links always point to real section pages. Labels are an inline EN/zh map
+ *  (chrome copy, not page content); hrefs are locale-prefixed. */
 import { getCtaHref, getAppHref } from '../../lib/app-url'
 
 interface Props {
@@ -20,8 +20,8 @@ const base = zh ? '/zh-CN' : ''
 const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
 const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
 const L = zh
-  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '免费开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
-  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Start free', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
+  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '立即开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
+  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Get started', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
 
 const links = [
   { key: 'home', label: L.homeNav, href: `${base}/` },
@@ -35,16 +35,18 @@ const links = [
 <header class:list={['nav', pageMode && 'nav--page']}>
   <div class="nav__inner">
     <a class="brand" href={`${base}/`} aria-label={L.home}>
-      <span class="brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22">
-          <rect x="2" y="13" width="4" height="9" rx="1" fill="var(--m-accent)" />
-          <rect x="8" y="8" width="4" height="14" rx="1" fill="var(--m-accent)" />
-          <rect x="14" y="3" width="4" height="19" rx="1" fill="var(--m-ink)" />
-          <rect x="20" y="9" width="2.4" height="13" rx="1" fill="var(--m-accent)" />
-        </svg>
+      <span class="brand__lockup">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22">
+            <rect x="2" y="13" width="4" height="9" rx="1" fill="var(--m-accent)" />
+            <rect x="8" y="8" width="4" height="14" rx="1" fill="var(--m-accent)" />
+            <rect x="14" y="3" width="4" height="19" rx="1" fill="var(--m-ink)" />
+            <rect x="20" y="9" width="2.4" height="13" rx="1" fill="var(--m-accent)" />
+          </svg>
+        </span>
+        <span class="brand__name">DueDateHQ</span>
+        <span class="brand__beta">Beta</span>
       </span>
-      <span class="brand__name">DueDateHQ</span>
-      <span class="brand__beta">Beta</span>
     </a>
 
     <nav class="nav__pill" aria-label="Primary">
@@ -182,12 +184,31 @@ const links = [
     padding-right: 0;
     margin: 0;
     opacity: 0;
+    /* take the collapsed Sign-in out of the tab order too — not just out of
+       reach — so keyboard users never land on an invisible control. Delay the
+       flip until the fade finishes (the base rule restores it instantly on
+       expand, so it can still fade back in). */
+    visibility: hidden;
     pointer-events: none;
+    transition:
+      max-width 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      padding 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      margin 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.3s ease,
+      color 0.18s ease,
+      visibility 0s linear 0.45s;
   }
   /* side groups stop growing → logo + pill + CTA pack toward the centre */
-  .nav--scrolled .brand,
+  .nav--scrolled .brand {
+    flex-grow: 0;
+  }
   .nav--scrolled .nav__right {
     flex-grow: 0;
+    gap: 0;
+  }
+  /* drop the lockup's inter-item gap so the lone mark carries no phantom
+     trailing space once the wordmark + beta collapse to zero width */
+  .nav--scrolled .brand__lockup {
     gap: 0;
   }
   .nav--scrolled .nav__pill {
@@ -277,14 +298,21 @@ const links = [
     justify-content: flex-start;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
     font-weight: 600;
     font-size: var(--m-text-xl);
     letter-spacing: -0.01em;
     color: var(--m-ink);
-    transition:
-      flex-grow 0.45s cubic-bezier(0.32, 0.72, 0, 1),
-      gap 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: flex-grow 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  /* the logo lockup shrink-wraps the mark + wordmark so the keyboard focus ring
+     hugs the logo — not the full-width flex column the <a> grows into to centre
+     the pill. The collapse animates this lockup's gap, not the <a>'s. */
+  .brand__lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 8px;
+    transition: gap 0.45s cubic-bezier(0.32, 0.72, 0, 1);
   }
   .brand__mark {
     display: inline-flex;
@@ -400,7 +428,10 @@ const links = [
       padding 0.45s cubic-bezier(0.32, 0.72, 0, 1),
       margin 0.45s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.3s ease,
-      color 0.18s ease;
+      color 0.18s ease,
+      /* restore visibility immediately on expand; the collapsed rule delays the
+         hide so the fade-out still plays */
+      visibility 0s;
   }
   .nav__cta {
     flex: none;
@@ -422,6 +453,37 @@ const links = [
   /* the trailing arrow rides quieter than the label */
   .nav__cta span {
     opacity: 0.6;
+  }
+
+  /* ===== keyboard focus — the nav sits OUTSIDE .m-section, so the global
+     focus-visible rule never reaches it. One ring for every nav control;
+     :focus-visible only (mouse/touch never see it); each outline follows its
+     control's own radius. Flips to the cyan delight accent on the dark band,
+     where a navy ring would vanish. ===== */
+  .nav__link:focus-visible,
+  .nav__signin:focus-visible,
+  .nav__cta:focus-visible,
+  .nav__burger:focus-visible,
+  .nav__sheet-link:focus-visible,
+  .nav__sheet-signin:focus-visible,
+  .nav__sheet-cta:focus-visible {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: var(--m-focus-offset);
+  }
+  /* the brand <a> grows to fill its flex column, so ring the inner lockup */
+  .brand:focus-visible {
+    outline: none;
+  }
+  .brand:focus-visible .brand__lockup {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: 3px;
+  }
+  .nav--on-dark .nav__link:focus-visible,
+  .nav--on-dark .nav__signin:focus-visible,
+  .nav--on-dark .nav__cta:focus-visible,
+  .nav--on-dark .nav__burger:focus-visible,
+  .nav--on-dark .brand:focus-visible .brand__lockup {
+    outline-color: var(--m-cyan);
   }
 
   /* ===== hamburger (≤920px only) — hidden on desktop ===== */
@@ -508,7 +570,6 @@ const links = [
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
-    box-shadow: 0 4px 24px color-mix(in srgb, var(--m-ink) 12%, transparent);
     transform: translateY(-8px);
     opacity: 0;
     transition:
@@ -615,6 +676,7 @@ const links = [
     .nav,
     .nav__inner,
     .brand,
+    .brand__lockup,
     .nav__right,
     .brand__name,
     .brand__beta,
@@ -726,8 +788,8 @@ const links = [
 </script>
 
 <script>
-  // Mobile sheet (≤920px): hamburger toggles an accessible dialog with the four
-  // nav links + Sign in + CTA. Esc closes, focus moves into the sheet and is
+  // Mobile sheet (≤920px): hamburger toggles an accessible dialog with the nav
+  // links + Sign in + CTA. Esc closes, focus moves into the sheet and is
   // restored on close, outside-click + link-click + resize-up all dismiss it.
   // Re-inits per View-Transition navigation; every listener drops on the swap.
   function initMobileSheet(signal: AbortSignal) {

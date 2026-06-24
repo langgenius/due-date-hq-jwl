@@ -245,8 +245,13 @@ export function ClientSummaryStrip({
               style={{ width: `${Math.round((filedCount / totalObligations) * 100)}%` }}
             />
           </div>
-          <span className="shrink-0 text-caption-xs font-medium text-text-tertiary tabular-nums">
-            {filedCount}/{totalObligations}
+          <span className="shrink-0 text-caption-xs font-medium text-text-tertiary">
+            {/* "filed" label so the bare fraction isn't an orphaned "0/4" — it
+                names what the green bar measures (filed of total filings). */}
+            <span className="tabular-nums">
+              {filedCount}/{totalObligations}
+            </span>{' '}
+            {t`filed`}
           </span>
         </div>
       ) : null}

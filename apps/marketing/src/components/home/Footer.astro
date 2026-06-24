@@ -1,4 +1,6 @@
 ---
+import { buildLocaleHrefPair } from '../../lib/locale-paths'
+
 /** Footer — wordmark + link columns (EN + zh-CN). The Resources column is the
  *  internal-link on-ramp into the long-tail SEO/AEO/GEO pages. Labels are an
  *  inline EN/zh map (chrome copy); hrefs are locale-prefixed. */
@@ -49,10 +51,7 @@ const copy = zh
       legal: 'DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. © 2026 DueDateHQ Inc.',
       note: 'Your data stays in your practice',
     }
-// language switcher — cross-locale href for the current page
-const localeFree = Astro.url.pathname.replace(/^\/zh-CN(?=\/|$)/, '') || '/'
-const enHref = localeFree
-const zhHref = localeFree === '/' ? '/zh-CN' : `/zh-CN${localeFree}`
+const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
 ---
 
 <footer class="footer">

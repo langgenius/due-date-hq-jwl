@@ -2699,7 +2699,11 @@ export function ActiveStageDetailCard({
                       reminders collapse to one tertiary text line. */}
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
+                      <StageActions
+                        tasks={tasks}
+                        onTaskClick={handleTaskClick}
+                        pendingTaskId={pendingTaskId}
+                      />
                     </div>
                   ) : null}
                 </li>
@@ -2770,7 +2774,11 @@ export function ActiveStageDetailCard({
                   </div>
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
-                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} pendingTaskId={pendingTaskId} />
+                      <StageActions
+                        tasks={tasks}
+                        onTaskClick={handleTaskClick}
+                        pendingTaskId={pendingTaskId}
+                      />
                     </div>
                   ) : null}
                 </li>

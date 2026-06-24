@@ -4,11 +4,11 @@ import TopNav from '../components/home/TopNav.astro'
 import Pricing from '../components/Pricing.astro'
 import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
-import { getAppHref, getCtaHref } from '../lib/app-url'
+import { getAppHref, getStartedHref } from '../lib/app-url'
 import { pricingStructuredData } from '../lib/structured-data'
 
 const t = en
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 const checkoutHrefs = {
   solo: {
     monthly: getAppHref('/billing/checkout?plan=solo&interval=monthly'),

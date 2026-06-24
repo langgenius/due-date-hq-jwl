@@ -13,10 +13,10 @@ import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getCtaHref } from '../../lib/app-url'
+import { getStartedHref } from '../../lib/app-url'
 
 const t = zhCN
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 const pathname = '/zh-CN/how-it-works'
 ---
 
@@ -182,13 +182,11 @@ const pathname = '/zh-CN/how-it-works'
     border-radius: 12px;
     transition:
       transform var(--m-dur-fast) var(--m-ease),
-      box-shadow var(--m-dur-fast) var(--m-ease),
       border-color var(--m-dur-fast) var(--m-ease);
   }
   .fstage:hover {
     transform: translateY(-3px);
     border-color: color-mix(in srgb, var(--m-accent) 30%, transparent);
-    box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--m-accent) 70%, transparent);
   }
   .fstage__top {
     display: flex;

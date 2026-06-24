@@ -306,7 +306,6 @@ const t = zh
     border-radius: 12px;
     border: 1px solid var(--m-hairline);
     background: var(--m-surface);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     overflow: hidden;
   }
   .geo-peek__bar {
@@ -569,15 +568,12 @@ const t = zh
     background: var(--m-accent);
     opacity: 0.5;
   }
-  /* cards — quiet lift, clearer hover so a 3-up reads as scannable, not filler */
+  /* cards — clearer hover border so a 3-up reads as scannable, not filler */
   .geo-card {
-    transition:
-      border-color 0.16s ease,
-      box-shadow 0.16s ease;
+    transition: border-color 0.16s ease;
   }
   .geo-card:hover {
     border-color: var(--m-faint);
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
   }
   .geo-card .m-card__t {
     letter-spacing: -0.01em;

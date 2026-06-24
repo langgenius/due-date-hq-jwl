@@ -78,10 +78,10 @@ export function AlertListRail({
 
   const [search, setSearch] = useState('')
 
-  // "N active" head count uses the SAME authoritative source as the sidebar
-  // badge and the page-header pill (`pulse.activeCount` = matched +
-  // partially_applied, approved, not expired) — NOT a count of the rows handed
-  // to this rail (which are capped at the list limit).
+  // "N open" head count uses the SAME authoritative source as the sidebar
+  // badge and the page-header pill (`pulse.activeCount` = approved, not
+  // expired, matched-only open rows) — NOT a count of the rows handed to this
+  // rail (which are capped at the list limit), and not Alert History.
   const activeCount = useActiveAlertCount()
 
   // The rail has no All/Unresolved segmented — every alert in the active

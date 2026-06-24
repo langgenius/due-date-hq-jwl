@@ -6,6 +6,7 @@ findings fixed. Lens baseline = the `--m-*` token tier + the shared `.m-page-*`
 subpage kit + `home/TopNav`/`home/Footer` chrome.
 
 ## What the audit found (high level)
+
 - **Token discipline is genuinely held** — zero raw hex / zero ad-hoc px font-sizes
   across the live components (only sanctioned `#fff`/`rgba(255,…)` white-on-navy).
 - **The long-tail family is real reuse** — rules / compare / guides are ~48-line
@@ -15,24 +16,27 @@ subpage kit + `home/TopNav`/`home/Footer` chrome.
 ## Fixes applied this pass
 
 ### Structural / component reuse
+
 - **Deleted 3 orphaned components** — `home/HowItWorks.astro`, `home/SeeItWork.astro`,
   `home/Trust.astro`: zero imports, superseded by LoopDeep / SurfaceDeep / Close, and
   each carried stale `id="how"`/`id="work"` anchors that would silently break the
   home scroll-spy if ever re-imported.
 - **Unified three hand-rolled heroes onto the shared kit** — `/how-it-works`,
   `Pricing`, and `TrustPage` each re-declared the display-serif title + lead font
-  block (and Pricing's H1 *omitted* `.m-page-title` entirely). All three now use
+  block (and Pricing's H1 _omitted_ `.m-page-title` entirely). All three now use
   `.m-page-title` + `.m-page-lead`; only genuine per-page overrides remain (Pricing
   18ch/tight leading, Trust signature-page 17ch, the how-hero `.ital` accent).
   Output is unchanged (they already pulled `--m-page-title-size`); ~50 lines of
   duplicated CSS removed and there's now one source of truth for the subpage hero.
 
 ### Radius canon (snap freelanced values to 12/8/999/4/0)
+
 - 16px wrappers → 12px: `how-hero__ex`, `geo-peek`, `secdiag__access`,
   `trustpg__close-card`, `pr__recap-panel`, `stcov-route`.
 - 6px → 4px (compact): `secdiag__mw li`, `stcov-tile`. 10px → 12px: `pr__toggle`.
 
 ### Dead / duplicate code
+
 - `StateCoveragePage` — removed a verbatim-duplicated `.stcov-cta__note` rule.
 - `Compare` — removed the fully-dead `narrow` mark (Mark union member, render
   branch, `.cmp__narrow` CSS, `narrow`/`legendNarrow` strings EN+zh); no row used it
@@ -40,6 +44,7 @@ subpage kit + `home/TopNav`/`home/Footer` chrome.
 - `index.astro` — replaced a stale "sections land in later phases" frontmatter note.
 
 ### Copy consistency (EN + zh parity)
+
 - `Notice` — the verified-date check was a literal `✓`; now the same stroked SVG
   check used in Compare/Close.
 - `Faq` (home) — EN eyebrow "Questions" → "Common questions" (matches the
@@ -49,11 +54,13 @@ subpage kit + `home/TopNav`/`home/Footer` chrome.
 - `/how-it-works` H1 verb aligned to the `<title>` meta: "touches" → "affects".
 
 ## Verified
+
 All routes compile 200 (/, /how-it-works, /pricing, /state-coverage, /security,
 /rules, /zh-CN, /zh-CN/pricing; /404 → 404 as designed). Heroes confirmed rendering
 with `.m-page-title`; no `✓` literal left on home.
 
 ## Deferred (logged, not done this pass — lower value or bigger refactor)
+
 - Buttons: Hero / Close / TopNav / TrustPage each hand-roll pill/on-dark button
   variants. They genuinely differ from the 8px-radius `.m-btn`; worth extracting one
   shared on-dark/pill button partial later.
@@ -72,6 +79,7 @@ with `.m-page-title`; no `✓` literal left on home.
   — pick one canonical wording.
 
 ## P1 follow-up (done)
+
 - **Shared pill-button primitive** — added `.m-cta` / `.m-cta--primary` /
   `.m-cta--ghost` to marketing.css, with an `.m-cta-dark` on-navy context that
   inverts the fills (primary→white pill, ghost→white text; chroma stays in the
@@ -83,17 +91,18 @@ with `.m-page-title`; no `✓` literal left on home.
   pill; converting either would be a visible change, logged for later.)
 - **Compare a11y** — the section had an eyebrow but no heading, so its accessible
   name was the 2-word eyebrow. Promoted the deck lead to `<h2 class="compare__lead"
-  id="cmp-h">` (visually identical under Tailwind preflight) and moved the
+id="cmp-h">` (visually identical under Tailwind preflight) and moved the
   `aria-labelledby` target onto it; the eyebrow is now an unlabelled kicker.
 
 ## P2/P3 round (done)
+
 - **404 single-source routes** — `404.astro` hardcoded a `baseRoutes` list that
   disagreed with the (dead) `notFound.routes[]` i18n. Now renders from
   `t.notFound.routes`; added a "How it works" entry to that array in both catalogs;
   removed the hardcode. Sentence-cased the shouty `notFound.eyebrow` source strings
   (EN + zh) — `.m-eyebrow` uppercases visually.
 - **Sources fed/state a11y** — the Federal agency badge distinguished itself from
-  State by accent *text colour* alone; added an accent tint fill + 25%-accent border
+  State by accent _text colour_ alone; added an accent tint fill + 25%-accent border
   so it's distinguishable without colour.
 - **Cartogram a11y** — the 51 roster tiles exposed the full jurisdiction name only
   via `title` (hover); added `aria-label` (name + status) to every tile for
@@ -105,12 +114,14 @@ with `.m-page-title`; no `✓` literal left on home.
   in LoopDeep) to match Surfaces/Pricing.
 
 ## Matrix a11y (focused pass — done)
+
 The two comparison matrices (home **Compare** + **Pricing**) were `role="img"` with a
 hand-maintained text summary — the cell data was invisible to screen readers.
 Converted both to **real ARIA tables** without any visual regression:
+
 - The trick that avoids the `display:contents` footgun (which strips table
   semantics in several browsers): instead of one big grid of flat cells, make
-  **each row its own grid** with the *same fractional* `grid-template-columns`.
+  **each row its own grid** with the _same fractional_ `grid-template-columns`.
   Because the columns are `fr` units (not content-sized), per-row grids produce
   pixel-identical widths — verified col head/body `left` + `width` match exactly,
   and the DueDateHQ / recommended-plan column tint is intact.
@@ -124,6 +135,7 @@ Converted both to **real ARIA tables** without any visual regression:
   already given per-tile `aria-label`s in the P2 round).
 
 ## State-pages dedup (done)
+
 - **Single source for "which states are live"** — `StateDetailPage` hardcoded a
   15-state `PUBLISHED` array parallel to seo-content. Removed it; the cross-link
   footer now derives `neighbors` from an `allStates` prop the route passes from the
@@ -139,6 +151,7 @@ Converted both to **real ARIA tables** without any visual regression:
   `rosterLegendPage` i18n keys.
 
 ## Still open (lowest-value, deliberately deferred)
+
 - `StateDetailPage.std-kd` → `.m-page-dl`? CHECKED — NOT a real duplicate (side-by-
   side prominent layout vs stacked quiet list); left as-is (correct).
 - `FinalCta` + `primitives/SectionEyebrow` still on legacy Tailwind tokens — but

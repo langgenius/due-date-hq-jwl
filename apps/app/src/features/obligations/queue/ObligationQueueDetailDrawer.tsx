@@ -1800,7 +1800,10 @@ export function ObligationQueueDetailDrawer({
       chip: evidenceChip,
     },
     audit: {
-      label: <Trans>Audit</Trans>,
+      // Labeled "Activity" (not "Audit") to disambiguate from the firm-wide
+      // /audit "Audit log" in the sidebar — this section is THIS deadline's
+      // history. Matches the analytics taxonomy ('audit' tab key → 'activity').
+      label: <Trans>Activity</Trans>,
       icon: <HistoryIcon className="size-3.5" aria-hidden />,
       chip: auditChip,
     },
@@ -1834,6 +1837,12 @@ export function ObligationQueueDetailDrawer({
   const jumpToSection = useCallback(
     (tab: ObligationQueueDetailTab) => {
       onTabChange(tab)
+      // Move the active marker to the CLICKED section immediately — the
+      // underline is driven by `activeSection` (scroll-spy), which otherwise
+      // only updates once the smooth-scroll settles, so the marker lagged a
+      // beat behind the click. Seed it now; the onScroll handler refines it as
+      // the user scrolls.
+      setActiveSection(`deadline-section-${tab}`)
       // Map the drawer's internal tab keys onto the analytics taxonomy
       // ('audit' → 'activity'); emit only for tabs in the taxonomy.
       const analyticsTab =
@@ -4917,7 +4926,10 @@ export function ObligationQueueDetailDrawer({
                     <DetailSectionCard
                       variant="flat"
                       tone="reference"
-                      title={<Trans>Audit trail</Trans>}
+                      // "Activity" (this deadline's history) — distinct from the
+                      // firm-wide /audit "Audit log"; the "View in full audit
+                      // log" link below bridges to the compliance record.
+                      title={<Trans>Activity</Trans>}
                       // 2026-06-16 (scroll-spy NrQaI): the event-count data-chip,
                       // the SAME node the section nav renders.
                       headerRight={auditChip ?? undefined}
