@@ -33,6 +33,14 @@ import {
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@duedatehq/ui/components/ui/card'
+import { Field, FieldLabel } from '@duedatehq/ui/components/ui/field'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -251,10 +259,12 @@ export function SettingsProfileRoute() {
         />
 
         {/* Personal info */}
-        <SettingsCard
-          title={t`Personal info`}
-          subtitle={t`How your name and details appear across the app`}
-        >
+        <Card>
+          <CardHeader>
+            <CardTitle>{t`Personal info`}</CardTitle>
+            <CardDescription>{t`How your name and details appear across the app`}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <AssigneeAvatar
               name={displayName || email}
@@ -264,7 +274,7 @@ export function SettingsProfileRoute() {
               className="shrink-0"
             />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <p className="text-base font-semibold text-text-primary">
+              <p className="text-base font-medium text-text-primary">
                 <Trans>Account initials</Trans>
               </p>
               <p className="text-xs text-text-secondary">
@@ -280,10 +290,12 @@ export function SettingsProfileRoute() {
                   input-shaped boxes a CPA would click expecting to type —
                   the re-critique flagged the old white-bordered treatment as
                   a fake field. The lock glyph + caption below say why. */}
-              <Field label={t`Full name`}>
+              <Field>
+                <FieldLabel>{t`Full name`}</FieldLabel>
                 <ReadonlyValue value={displayName || t`Not set`} locked />
               </Field>
-              <Field label={t`Email`}>
+              <Field>
+                <FieldLabel>{t`Email`}</FieldLabel>
                 <ReadonlyValue value={email || t`Not set`} locked muted />
               </Field>
             </div>
@@ -293,10 +305,16 @@ export function SettingsProfileRoute() {
               </Trans>
             </p>
           </div>
-        </SettingsCard>
+          </CardContent>
+        </Card>
 
         {/* Security */}
-        <SettingsCard title={t`Security`} subtitle={t`Keep your account safe with strong sign-in`}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t`Security`}</CardTitle>
+            <CardDescription>{t`Keep your account safe with strong sign-in`}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
           {statusQuery.isLoading ? (
             <Skeleton className="h-40 rounded-lg" />
           ) : statusQuery.isError ? (
@@ -466,19 +484,27 @@ export function SettingsProfileRoute() {
               </div>
             </>
           ) : null}
-        </SettingsCard>
+          </CardContent>
+        </Card>
 
         {/* Preferences */}
-        <SettingsCard title={t`Preferences`} subtitle={t`Language, date, and time formats`}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t`Preferences`}</CardTitle>
+            <CardDescription>{t`Language, date, and time formats`}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t`Language`} htmlFor="settings-language-trigger">
+            <Field>
+              <FieldLabel htmlFor="settings-language-trigger">{t`Language`}</FieldLabel>
               <LanguageSelect
                 id="settings-language-trigger"
                 value={locale}
                 onValueChange={switchLocale}
               />
             </Field>
-            <Field label={t`Date format`} htmlFor="settings-date-format-trigger">
+            <Field>
+              <FieldLabel htmlFor="settings-date-format-trigger">{t`Date format`}</FieldLabel>
               <DateFormatSelect
                 id="settings-date-format-trigger"
                 value={displayPreferences.dateFormat}
@@ -497,14 +523,16 @@ export function SettingsProfileRoute() {
               onValueChange={switchTimeFormatPreference}
             />
           </div>
-        </SettingsCard>
+          </CardContent>
+        </Card>
 
         {/* Danger zone */}
-        <SettingsCard
-          title={t`Danger zone`}
-          subtitle={t`Permanent actions on your account data`}
-          tone="danger"
-        >
+        <Card className="border-state-destructive-hover-alt">
+          <CardHeader className="border-b border-state-destructive-hover-alt">
+            <CardTitle>{t`Danger zone`}</CardTitle>
+            <CardDescription>{t`Permanent actions on your account data`}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-base font-medium text-text-primary">
@@ -531,7 +559,7 @@ export function SettingsProfileRoute() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-base font-semibold text-text-destructive">
+              <span className="text-base font-medium text-text-destructive">
                 <Trans>Delete account</Trans>
               </span>
               <span className="text-xs text-text-secondary">
@@ -557,7 +585,8 @@ export function SettingsProfileRoute() {
               </span>
             </div>
           </div>
-        </SettingsCard>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Confirmation dialogs (reused security wiring) */}
@@ -687,69 +716,6 @@ export function SettingsProfileRoute() {
         </AlertDialogContent>
       </AlertDialog>
     </SettingsShell>
-  )
-}
-
-function SettingsCard({
-  title,
-  subtitle,
-  tone = 'default',
-  children,
-}: {
-  title: string
-  subtitle: string
-  tone?: 'default' | 'danger'
-  children: ReactNode
-}) {
-  return (
-    <section
-      className={cn(
-        'overflow-hidden rounded-xl border bg-background-default',
-        tone === 'danger' ? 'border-state-destructive-hover-alt' : 'border-divider-regular',
-      )}
-    >
-      <div
-        className={cn(
-          'flex flex-col gap-0.5 border-b px-6 py-4',
-          tone === 'danger' ? 'border-state-destructive-hover-alt' : 'border-divider-regular',
-        )}
-      >
-        <h2 className="text-item-title text-text-primary">{title}</h2>
-        <p className="text-xs text-text-secondary">{subtitle}</p>
-      </div>
-      <div className="flex flex-col gap-5 px-6 py-5">{children}</div>
-    </section>
-  )
-}
-
-function Field({
-  label,
-  action,
-  htmlFor,
-  children,
-}: {
-  label: string
-  action?: ReactNode
-  // When set, the label renders as a real <label htmlFor> so it programmatically
-  // names the control (e.g. a SelectTrigger carrying the matching `id`). Without
-  // it the label stays a plain caption (used for non-focusable readonly rows).
-  htmlFor?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        {htmlFor ? (
-          <label htmlFor={htmlFor} className="text-xs font-medium text-text-secondary">
-            {label}
-          </label>
-        ) : (
-          <span className="text-xs font-medium text-text-secondary">{label}</span>
-        )}
-        {action}
-      </div>
-      {children}
-    </div>
   )
 }
 

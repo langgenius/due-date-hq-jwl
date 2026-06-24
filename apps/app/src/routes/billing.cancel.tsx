@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowLeftIcon, CreditCardIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 
@@ -14,10 +14,12 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { billingSearchParamsParsers, serializeBillingQuery } from '@/features/billing/model'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 export function BillingCancelRoute() {
+  const { t } = useLingui()
   const [{ plan, interval }] = useQueryStates(billingSearchParamsParsers)
   useEffect(() => {
     track(ANALYTICS_EVENTS.checkoutCanceled)
@@ -35,6 +37,10 @@ export function BillingCancelRoute() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
+      <PageHeader
+        breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Checkout canceled` }]}
+        title={<Trans>Checkout canceled</Trans>}
+      />
       <Card className="max-w-3xl">
         <CardHeader>
           <CardTitle role="heading" aria-level={1}>

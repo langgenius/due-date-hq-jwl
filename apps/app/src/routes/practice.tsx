@@ -712,7 +712,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                             {priorityFactorHints[key]}
                           </span>
                         </div>
-                        <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                        <span className="shrink-0 text-sm font-medium tabular-nums text-text-primary">
                           {priorityProfile.weights[key]}
                         </span>
                       </div>
@@ -790,7 +790,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     onClick={resetPriorityProfile}
                     disabled={priorityUpdateMutation.isPending}
                   >
-                    <RotateCcwIcon className="size-4" aria-hidden />
+                    <RotateCcwIcon data-icon="inline-start" />
                     <Trans>Reset to default</Trans>
                   </Button>
                   <Tooltip>
@@ -808,9 +808,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                             }
                           >
                             {previewMutation.isPending ? (
-                              <Loader2Icon className="size-4 animate-spin" aria-hidden />
+                              <Loader2Icon data-icon="inline-start" className="animate-spin" />
                             ) : (
-                              <CalculatorIcon className="size-4" aria-hidden />
+                              <CalculatorIcon data-icon="inline-start" />
                             )}
                             {previewMutation.isPending ? (
                               <Trans>Calculating…</Trans>

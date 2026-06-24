@@ -27,6 +27,13 @@ import type {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@duedatehq/ui/components/ui/card'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -269,12 +276,13 @@ function ChannelsCard({
   const sessionUser = session.data?.user
   return (
     <Card>
-      <CardHead
-        title={<Trans>Channels</Trans>}
-        subtitle={
+      <CardHeader>
+        <CardTitle><Trans>Channels</Trans></CardTitle>
+        <CardDescription>
           <Trans>How you get notified. Per-type rules below override these channels.</Trans>
-        }
-      />
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border border-divider-regular">
         <ChannelRow
           icon={MailIcon}
@@ -313,6 +321,7 @@ function ChannelsCard({
       <p className="text-xs text-text-tertiary">
         <Trans>Push and Slack channels are planned — email and in-app are live today.</Trans>
       </p>
+      </CardContent>
     </Card>
   )
 }
@@ -346,13 +355,13 @@ function ChannelRow({
         <Icon className="size-[18px]" aria-hidden />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-sm font-semibold text-text-primary">{name}</span>
+        <span className="text-sm font-medium text-text-primary">{name}</span>
         <span className="text-xs text-text-secondary">{sub}</span>
       </div>
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            'text-xs font-semibold tracking-wide uppercase',
+            'text-xs font-medium tracking-wide uppercase',
             checked ? 'text-text-success' : 'text-text-tertiary',
           )}
         >
@@ -464,10 +473,11 @@ function TypesMatrixCard({
 
   return (
     <Card>
-      <CardHead
-        title={<Trans>Notification types</Trans>}
-        subtitle={<Trans>Fine-tune which events reach you and how.</Trans>}
-      />
+      <CardHeader>
+        <CardTitle><Trans>Notification types</Trans></CardTitle>
+        <CardDescription><Trans>Fine-tune which events reach you and how.</Trans></CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
       <div className="overflow-x-auto">
         <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
           {/* Header */}
@@ -505,7 +515,7 @@ function TypesMatrixCard({
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span
                       id={`notif-type-${row.id}`}
-                      className="text-base font-semibold text-text-primary"
+                      className="text-base font-medium text-text-primary"
                     >
                       {row.name}
                     </span>
@@ -538,6 +548,7 @@ function TypesMatrixCard({
           })}
         </div>
       </div>
+      </CardContent>
     </Card>
   )
 }
@@ -605,14 +616,15 @@ function QuietHoursCard() {
   // instead of rendering editable-looking controls that don't save.
   return (
     <Card>
-      <CardHead
-        title={<Trans>Quiet hours</Trans>}
-        subtitle={
+      <CardHeader>
+        <CardTitle><Trans>Quiet hours</Trans></CardTitle>
+        <CardDescription>
           <Trans>
             During quiet hours, non-urgent notifications wait until your next active period.
           </Trans>
-        }
-      />
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
       <p className="text-sm text-text-primary">
         <Trans>
           Non-urgent notifications hold from 7:00 PM to 7:30 AM (America/New_York), Monday through
@@ -624,6 +636,7 @@ function QuietHoursCard() {
           This schedule is fixed for now — per-user quiet hours aren't configurable yet.
         </Trans>
       </p>
+      </CardContent>
     </Card>
   )
 }
@@ -659,6 +672,7 @@ function MorningDigestCard({
 
   return (
     <Card>
+      <CardContent className="flex flex-col gap-4">
       <div className="flex items-start gap-3.5">
         <div className="flex flex-1 flex-col gap-1">
           <span className="inline-flex items-center gap-2 text-item-title text-text-primary">
@@ -773,27 +787,7 @@ function MorningDigestCard({
           </ul>
         )}
       </div>
+      </CardContent>
     </Card>
-  )
-}
-
-/* ----------------------------------------------------------------------- */
-/* Shared card chrome                                                        */
-/* ----------------------------------------------------------------------- */
-
-function Card({ children }: { children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-4 rounded-xl border border-divider-regular bg-background-default p-[22px_26px]">
-      {children}
-    </section>
-  )
-}
-
-function CardHead({ title, subtitle }: { title: ReactNode; subtitle: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-item-title text-text-primary">{title}</span>
-      <span className="text-xs text-text-secondary">{subtitle}</span>
-    </div>
   )
 }

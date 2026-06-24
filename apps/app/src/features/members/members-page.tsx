@@ -54,6 +54,11 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@duedatehq/ui/components/ui/tooltip'
+import {
   Table,
   TableBody,
   TableCell,
@@ -66,6 +71,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand } from '@/components/patterns/stat-band'
+import { CountPill } from '@/components/primitives/count-pill'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
@@ -323,19 +329,25 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             <Button variant="outline" size="sm" nativeButton={false} render={<Link to="/audit" />}>
               <Trans>View audit log</Trans>
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setInviteOpen(true)}
-              aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
-              aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
-            >
-              <PlusIcon className="size-3.5" aria-hidden />
-              <Trans>Invite member</Trans>
-              <span className="ml-1 font-mono text-caption-xs opacity-70">
-                {inviteShortcutLabel}
-              </span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span className="inline-flex">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setInviteOpen(true)}
+                      aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
+                      aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
+                    >
+                      <PlusIcon data-icon="inline-start" />
+                      <Trans>Invite member</Trans>
+                    </Button>
+                  </span>
+                }
+              />
+              <TooltipContent>{inviteShortcutLabel}</TooltipContent>
+            </Tooltip>
           </>
         }
       />
@@ -781,11 +793,7 @@ function MembersSectionHeader({
     // for the right-side metadata that follows (count chip + descriptor).
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
       <h2 className="text-sm font-medium text-text-secondary">{title}</h2>
-      {/* Count chip — Badge primitive matching the tab-count / provenance chip
-          recipe. */}
-      <Badge variant="outline" shape="square" size="sm" className="tabular-nums">
-        {count}
-      </Badge>
+      <CountPill tone="neutral">{count}</CountPill>
       <span>{note}</span>
       {action ? <span className="ml-auto hidden md:inline">{action}</span> : null}
     </div>

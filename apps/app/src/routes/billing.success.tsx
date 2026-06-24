@@ -11,7 +11,6 @@ import {
 import { useQueryStates } from 'nuqs'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Card,
@@ -76,15 +75,6 @@ export function BillingSuccessRoute() {
         : expectedPlan === 'pro'
           ? t`Pro`
           : t`Solo`
-  const activePlanName =
-    activeSubscription?.plan === 'firm'
-      ? t`Enterprise`
-      : activeSubscription?.plan === 'team'
-        ? t`Team`
-        : activeSubscription?.plan === 'pro'
-          ? t`Pro`
-          : activeSubscription?.plan
-
   return (
     // Uses the canonical `<PageHeader>`. The billing family uses PageHeader
     // on `/billing`; the post-checkout confirmation pages match it for shared
@@ -183,15 +173,8 @@ export function BillingSuccessRoute() {
               </AlertDescription>
             </Alert>
           )}
-          {activeSubscription ? (
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{activeSubscription.status}</Badge>
-              <Badge variant="outline">{activePlanName}</Badge>
-              {activeSubscription.billingInterval ? (
-                <Badge variant="outline">{activeSubscription.billingInterval}</Badge>
-              ) : null}
-            </div>
-          ) : null}
+          {/* Raw enum badges removed — the Alert above already states the
+              plan and confirmation in prose. */}
         </CardContent>
         <CardFooter className="gap-2 border-t border-divider-regular">
           {/* The post-checkout user wants to get back to work, not verify the

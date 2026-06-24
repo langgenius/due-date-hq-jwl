@@ -408,12 +408,12 @@ export function BillingRoute() {
                     <p className="text-sm text-text-tertiary">
                       <Trans>Active practice</Trans>
                     </p>
-                    <p className="mt-1 truncate text-xl font-semibold text-text-primary">
+                    <p className="mt-1 truncate text-xl font-medium text-text-primary">
                       {currentFirm?.name ?? '—'}
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="text-2xl font-semibold tabular-nums text-text-primary">
+                    <p className="text-2xl font-medium tabular-nums text-text-primary">
                       {currentPlanName}
                     </p>
                     <p className="mt-1 text-sm text-text-secondary">
