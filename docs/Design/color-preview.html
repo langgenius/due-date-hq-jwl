@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DueDateHQ — color system</title>
+<style>
+  :root{
+    --page:#ffffff; --fg:#101828; --muted:#676f83; --faint:#98a2b2;
+    --card:#ffffff; --edge:rgba(16,24,40,.08); --edge-soft:rgba(16,24,40,.05);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  html[data-theme="dark"]{
+    --page:#1d1d20; --fg:#fbfbfc; --muted:#98a2b2; --faint:#676f83;
+    --card:#222225; --edge:rgba(200,206,218,.14); --edge-soft:rgba(200,206,218,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--fg);font-family:var(--sans);
+    line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 28px 80px}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+  h1{font-size:24px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:14px;margin:6px 0 0;max-width:62ch}
+  .toggle{appearance:none;cursor:pointer;border:1px solid var(--edge);background:var(--card);
+    color:var(--fg);font:inherit;font-size:13px;padding:8px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+  .toggle:hover{border-color:var(--muted)}
+  .grp{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);
+    margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--edge-soft)}
+  .fam{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;padding:14px 0}
+  .fam + .fam{border-top:1px solid var(--edge-soft)}
+  .fn{font-size:15px;font-weight:600;margin:0}
+  .fd{font-size:12px;color:var(--muted);margin:3px 0 0}
+  .sws{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .sw .c{height:54px;border-radius:8px;border:1px solid var(--edge)}
+  .sw .r{margin-top:7px;font-size:12px;color:var(--fg)}
+  .sw .h{font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase}
+  .sw .d{font-size:11px;font-family:var(--mono);color:var(--faint)}
+  .ramp{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px}
+  .ramp .c{height:60px;border-radius:6px;border:1px solid var(--edge);display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;font:500 11px var(--mono)}
+  .ramp .lbl{margin-top:5px;font:11px var(--mono);color:var(--muted);text-align:center}
+  .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:4px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px}
+  .row .chip{width:26px;height:26px;border-radius:6px;border:1px solid var(--edge);flex:none}
+  .row .k{color:var(--fg)}
+  .row .v{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--edge-soft);color:var(--muted);font-size:12px;line-height:1.7}
+  @media(max-width:640px){.fam{grid-template-columns:1fr;gap:10px}.sws{grid-template-columns:repeat(2,1fr)}.ramp{grid-template-columns:repeat(6,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>DueDateHQ — color system</h1>
+      <p class="sub">Navy is the only chrome accent (buttons · links · selection · focus). Every status family is a <b>solid · ink · wash · border</b> triad — solids are fills, inks are the colored text (AA ≥ 4.5:1), washes are tinted backgrounds. Warm + aurora are by exception. Light-mode values; toggle to preview against dark.</p>
+    </div>
+    <button class="toggle" id="t" aria-label="Toggle dark preview">◐ Dark preview</button>
+  </header>
+
+  <div class="grp">Neutrals — the cool-gray workbench base</div>
+  <div class="ramp" id="ramp"></div>
+  <div class="map" id="neutral-map" style="margin-top:16px"></div>
+
+  <div class="grp">Accent — the only decorative color</div>
+  <div id="accent"></div>
+
+  <div class="grp">Status triads — color appears only on status</div>
+  <div id="status"></div>
+
+  <div class="grp">Warm surfaces — by exception, never the default</div>
+  <div id="warm"></div>
+
+  <div class="grp">Aurora — decorative, behind the AI “generating” glow</div>
+  <div id="aurora"></div>
+
+  <footer>
+    Inks verified AA on white and on their own wash (navy 8.85 · success 5.34 · warning 6.81 · destructive 5.95 · info 5.73 · review 9.34). White-on-solid is intentionally below AA for status (solids are fills, not text beds); navy is the chrome exception. Dark mode derives one stop brighter — accent #5F80B8 · success #54B67E · destructive #DB6E58 · review #9275F3 (warning & info hold). Source of truth: <code>packages/ui/src/styles/tokens/*.css</code> · canon <code>docs/Design/color-palette-2026-06-23.md</code> · live <code>/preview#tokens</code>.
+  </footer>
+</div>
+
+<script>
+const GRAY = [["25","#fcfcfd"],["50","#f9fafb"],["100","#f2f4f7"],["200","#e9ebf0"],["300","#d0d5dc"],["400","#98a2b2"],["500","#676f83"],["600","#495464"],["700","#354052"],["800","#18222f"],["900","#101828"]];
+const NEUTRAL_MAP = [
+  ["text-primary","gray-900","#101828"],["text-secondary","gray-700","#354052"],["text-tertiary","gray-500","#676f83"],
+  ["background-default","white","#ffffff"],["background-section","gray-50","#f9fafb"],["background-subtle","gray-100","#f2f4f7"],
+];
+const ACCENT = {name:"Accent",desc:"navy · buttons, links, focus",sw:[["solid","#22488C","dark #5F80B8"],["deep","#15315F",""],["wash","#EAEFF7",""],["border","#9DB2DA",""]]};
+const STATUS = [
+  {name:"Success",desc:"green · filed",sw:[["solid","#3FA86A","dark #54B67E"],["ink","#1E7A47",""],["wash","#E8F5EC",""],["border","#9CD3B0",""]]},
+  {name:"Warning",desc:"gold · caution",sw:[["solid","#C0883A",""],["ink","#7A5320",""],["wash","#F4ECDE",""],["border","#E2C690",""]]},
+  {name:"Destructive",desc:"brick · overdue",sw:[["solid","#D2553F","dark #DB6E58"],["ink","#B23A28",""],["wash","#FBE9E4",""],["border","#EBA99B",""]]},
+  {name:"Info / live",desc:"sky · monitoring, New",sw:[["solid","#3AB3E0",""],["ink","#0E6E92",""],["wash","#E6F6FC",""],["border","#A9DCF0",""]]},
+  {name:"Review",desc:"violet · in review",sw:[["solid","#7A5AF0","dark #9275F3"],["ink","#4B3596",""],["wash","#EEEBFD",""],["border","#C7BAFB",""]]},
+];
+const WARM = {name:"Warm",desc:"stone well + lime celebration",sw:[["stone well","#F1F4EC","dark #232420"],["stone edge","#C8D0B9",""],["lime / celebrate","#E6FBA3","dark #36441B"]]};
+const AURORA = {name:"Aurora",desc:"decorative · AI glow",sw:[["violet","#A78BFA",""],["warm","#F0A35E",""]]};
+
+function swatchHTML(s){
+  return `<div class="sw"><div class="c" style="background:${s[1]}"></div><div class="r">${s[0]}</div><div class="h">${s[1]}</div>${s[2]?`<div class="d">${s[2]}</div>`:""}</div>`;
+}
+function famHTML(f){
+  return `<div class="fam"><div><p class="fn">${f.name}</p><p class="fd">${f.desc}</p></div><div class="sws">${f.sw.map(swatchHTML).join("")}</div></div>`;
+}
+document.getElementById("ramp").innerHTML = GRAY.map(([n,h])=>{
+  const dark = ["500","600","700","800","900"].includes(n);
+  return `<div><div class="c" style="background:${h};color:${dark?"#fff":"#101828"}">${n}</div><div class="lbl">${h}</div></div>`;
+}).join("");
+document.getElementById("neutral-map").innerHTML = NEUTRAL_MAP.map(([k,token,h])=>
+  `<div class="row"><span class="chip" style="background:${h}"></span><span class="k">${k}</span><span class="v">${token} · ${h}</span></div>`).join("");
+document.getElementById("accent").innerHTML = famHTML(ACCENT);
+document.getElementById("status").innerHTML = STATUS.map(famHTML).join("");
+document.getElementById("warm").innerHTML = famHTML(WARM);
+document.getElementById("aurora").innerHTML = famHTML(AURORA);
+
+const root = document.documentElement, btn = document.getElementById("t");
+btn.addEventListener("click", ()=>{
+  const dark = root.getAttribute("data-theme")==="dark";
+  root.setAttribute("data-theme", dark?"light":"dark");
+  btn.textContent = dark ? "◐ Dark preview" : "◑ Light preview";
+});
+</script>
+</body>
+</html>

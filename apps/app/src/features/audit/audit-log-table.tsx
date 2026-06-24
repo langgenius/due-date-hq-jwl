@@ -6,6 +6,7 @@ import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { DeltaMark, highlightCitations } from '@/components/primitives/legal-typography'
 import { formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import {
   useLifecycleV2StatusLabels,
@@ -294,7 +295,15 @@ function AuditTimelineRow({
         </div>
 
         <p className="text-sm leading-snug text-text-primary">
-          {changeHeadline || `${actionLabel} · ${entityDisplay.primary}`}
+          {/* Amendment / revert / unfile rows wear a leading Δ — the
+              regulatory-diff convention for "this is a change". The icon
+              tile already signals the category; Δ adds the semantic mark
+              at the prose level so the row reads as "Δ <what changed>"
+              at scan speed. `highlightCitations` re-renders any inline
+              `§ XXXX` reference (e.g. "§ 6651(a)(2)") in the canonical
+              Citation typography. */}
+          {type === 'amendment' ? <DeltaMark className="mr-1" /> : null}
+          {highlightCitations(changeHeadline) || `${actionLabel} · ${entityDisplay.primary}`}
         </p>
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5">
@@ -304,7 +313,10 @@ function AuditTimelineRow({
                 <span className="size-1 rounded-full bg-text-tertiary/50" aria-hidden />
               ) : null}
               <span className="font-mono text-caption-xs text-text-tertiary" title={chip.title}>
-                {chip.text}
+                {/* Reason text on meta chips routinely contains "§ 6651"
+                    style citations (the penalty/justification register).
+                    Same Citation chrome applied here for consistency. */}
+                {highlightCitations(chip.text)}
               </span>
             </span>
           ))}

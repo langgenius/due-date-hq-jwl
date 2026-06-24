@@ -9,6 +9,7 @@ import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { DeltaMark, highlightCitations } from '@/components/primitives/legal-typography'
 
 import { LIFECYCLE_V2_STATUSES, isObligationStatus, type ObligationStatus } from './status-control'
 
@@ -208,10 +209,19 @@ function MilestoneNode({
                     {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
                   </span>
                 </div>
+                {/* Each event inside a milestone IS a status transition,
+                    so the row earns a leading Δ. The reason text routinely
+                    carries citations like "§ 6651(a)(2)" (penalty justification,
+                    extension reason) — `highlightCitations` renders them in
+                    Citation chrome inline. */}
                 {event.reason ? (
-                  <p className="mt-1 text-sm text-text-primary">{event.reason}</p>
+                  <p className="mt-1 text-sm text-text-primary">
+                    <DeltaMark className="mr-1" />
+                    {highlightCitations(event.reason)}
+                  </p>
                 ) : (
                   <p className="mt-1 text-xs text-text-tertiary">
+                    <DeltaMark className="mr-1" />
                     <Trans>Status set to {label.toLowerCase()}.</Trans>
                   </p>
                 )}
@@ -252,7 +262,7 @@ function OtherActivity({
             </div>
             <p className="mt-1 text-xs text-text-tertiary">
               {event.actorLabel ?? t`System`}
-              {event.reason ? <> · {event.reason}</> : null}
+              {event.reason ? <> · {highlightCitations(event.reason)}</> : null}
             </p>
           </li>
         ))}

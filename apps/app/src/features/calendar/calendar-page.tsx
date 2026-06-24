@@ -55,6 +55,7 @@ import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
+import { AppleGlyph, GoogleGlyph, OutlookGlyph } from '@/components/primitives/provider-glyphs'
 import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -697,43 +698,17 @@ function IntegrationKeyValueRow({ label, value }: { label: string; value: string
   )
 }
 
-// Provider glyph marks — distinct, recognisable treatments per provider using
-// only canonical bg/text tokens. No raw hex. Google = colour-quadrant dots,
-// Apple = monochrome apple-shape initial mark, Outlook = angular O mark.
+// Provider mark — the real Google / Apple / Outlook brand glyph centred in a
+// calm neutral tile (the canonical icon-tile chrome). Brand logos carry their
+// official colours; see provider-glyphs.tsx for the tokens-only exception.
 function ProviderMark({ icon }: { icon: 'google' | 'apple' | 'outlook' }) {
-  if (icon === 'google') {
-    // Four-quadrant coloured dots — evokes Google's brand colour palette
-    // without lifting an SVG asset.
-    return (
-      <span
-        aria-hidden
-        className="grid size-8 grid-cols-2 place-items-center gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle p-1.5"
-      >
-        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-blue-500)_90%,transparent)]" />
-        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-warning-500)_90%,transparent)]" />
-        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-green-500)_90%,transparent)]" />
-        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-red-500)_90%,transparent)]" />
-      </span>
-    )
-  }
-  if (icon === 'apple') {
-    return (
-      <span
-        aria-hidden
-        className="grid size-8 place-items-center rounded-lg border border-divider-subtle bg-background-subtle"
-      >
-        {/* Apple-flavour: solid circle with a bitten corner clip via clip-path */}
-        <span className="size-4 rounded-full bg-text-secondary [clip-path:polygon(0_0,100%_0,100%_75%,75%_100%,0_100%)]" />
-      </span>
-    )
-  }
-  // Outlook: angular O lettermark in brand-accent colour
+  const Glyph = icon === 'google' ? GoogleGlyph : icon === 'apple' ? AppleGlyph : OutlookGlyph
   return (
     <span
       aria-hidden
       className="grid size-8 place-items-center rounded-lg border border-divider-subtle bg-background-subtle"
     >
-      <span className="text-sm font-semibold leading-none text-text-accent">O</span>
+      <Glyph className="size-5" />
     </span>
   )
 }

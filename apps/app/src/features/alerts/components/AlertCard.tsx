@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { highlightCitations } from '@/components/primitives/legal-typography'
 import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
@@ -297,7 +298,11 @@ export function AlertCard({
                   className="line-clamp-1 min-w-0 text-xl leading-tight font-semibold tracking-title text-text-primary"
                   title={alert.title}
                 >
-                  {alert.title}
+                  {/* Alert titles occasionally carry inline citations (e.g.
+                      "IRS modifies § 199A QBI deduction limits"). When
+                      present, the § XXXX matches render in Citation
+                      typography; otherwise the title passes through. */}
+                  {highlightCitations(alert.title)}
                 </h3>
                 <span className="shrink-0 text-base leading-tight font-medium text-text-tertiary">
                   {openLabel}
@@ -314,7 +319,7 @@ export function AlertCard({
                     className="mr-1 inline size-3 shrink-0 align-[-1px] text-text-tertiary"
                     aria-label={t`AI-generated summary`}
                   />
-                  {alert.summary}
+                  {highlightCitations(alert.summary)}
                 </p>
               ) : null}
 

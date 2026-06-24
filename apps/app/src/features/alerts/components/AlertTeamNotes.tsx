@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Loader2Icon } from 'lucide-react'
+import { Loader2Icon, MessageSquareIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -67,7 +67,13 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
 
   return (
     <section className="flex flex-col gap-3">
-      <header className="flex items-baseline gap-2">
+      <header className="flex items-center gap-2">
+        {/* MessageSquareIcon = the canonical "internal discussion / notes"
+            mark across the app (alongside the AlertDetailDrawer notes pill).
+            Adds a quiet glyph so the team-notes section reads as a thread
+            at a glance — matching the icon→semantic table in
+            docs/Design/icon-vocabulary.md. */}
+        <MessageSquareIcon className="size-3.5 text-text-tertiary" aria-hidden />
         <span className="text-sm font-semibold text-text-secondary">
           <Trans>Team notes</Trans>
         </span>

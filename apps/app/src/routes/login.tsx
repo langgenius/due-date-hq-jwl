@@ -23,6 +23,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 import { Kbd } from '@/components/patterns/kbd'
 import {
+  GoogleGlyph as GoogleIcon,
+  MicrosoftGlyph as MicrosoftIcon,
+} from '@/components/primitives/provider-glyphs'
+import {
   displayNameFromEmail,
   sendEmailSignInCode,
   signInWithEmailCode,
@@ -43,46 +47,6 @@ import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
 // border-divider-*, the primary Button) rather than raw hex. The left column is a STATIC
 // marketing proof — illustrative sample deadlines, not the visitor's live data
 // (they are logged out), so it does not violate the no-fiction-on-canvas rule.
-
-const GoogleIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 48 48"
-    aria-hidden="true"
-    className={cn('size-[18px]', className)}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      fill="#FFC107"
-      d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 3l5.7-5.7C33.6 6.1 29 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5Z"
-    />
-    <path
-      fill="#FF3D00"
-      d="m6.3 14.7 6.6 4.8C14.7 16 19 13 24 13c3 0 5.7 1.1 7.8 3l5.7-5.7C33.6 6.1 29 4 24 4 16.3 4 9.7 8.3 6.3 14.7Z"
-    />
-    <path
-      fill="#4CAF50"
-      d="M24 44c4.9 0 9.4-1.9 12.8-5l-5.9-5c-2 1.4-4.5 2.2-7 2.2-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.1 44 24 44Z"
-    />
-    <path
-      fill="#1976D2"
-      d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l5.9 5c-.4.4 6.4-4.7 6.4-14.5 0-1.3-.1-2.4-.4-3.5Z"
-    />
-  </svg>
-)
-
-const MicrosoftIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 23 23"
-    aria-hidden="true"
-    className={cn('size-[18px]', className)}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path fill="#f25022" d="M1 1h10v10H1z" />
-    <path fill="#7fba00" d="M12 1h10v10H12z" />
-    <path fill="#00a4ef" d="M1 12h10v10H1z" />
-    <path fill="#ffb900" d="M12 12h10v10H12z" />
-  </svg>
-)
 
 const USER_CANCELED = /cancel|popup|closed/i
 
