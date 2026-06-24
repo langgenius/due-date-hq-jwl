@@ -38,8 +38,6 @@ import {
   CalendarClockIcon,
   CheckIcon,
   LayersIcon,
-  LayoutGridIcon,
-  ListIcon,
   ListChecksIcon,
   BookmarkIcon,
   RotateCcwIcon,
@@ -94,7 +92,6 @@ import {
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
@@ -219,7 +216,6 @@ import {
   DETAIL_PANEL_CONTENT_ENTER_ANIM,
   DETAIL_PANEL_CONTENT_EXIT_ANIM,
 } from '@/features/obligations/queue/constants'
-import { DeadlineCardGrid } from '@/features/obligations/queue/DeadlineCardGrid'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -231,19 +227,9 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn, formatDate, formatDatePretty } from '@/lib/utils'
 
-// /deadlines leads with the signature CARD view (urgency lanes) and demotes
-// the registry table to a toggle, mirroring /clients. The choice persists
-// per-browser; cards is the default — the table is opt-in.
-type DeadlinesViewMode = 'cards' | 'table'
-const DEADLINES_VIEW_STORAGE_KEY = 'duedatehq.deadlines-view'
-function readStoredDeadlinesView(): DeadlinesViewMode {
-  if (typeof window === 'undefined') return 'cards'
-  try {
-    return window.localStorage.getItem(DEADLINES_VIEW_STORAGE_KEY) === 'table' ? 'table' : 'cards'
-  } catch {
-    return 'cards'
-  }
-}
+// /deadlines is the registry TABLE (row view) only — the signature card view +
+// its toggle were removed 2026-06-24 (Yuqi). DeadlineCardGrid.tsx remains in the
+// tree, unused, so the card view can be restored if wanted.
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -1113,18 +1099,6 @@ export function ObligationQueueRoute() {
   // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
   // impossible without "is this mine."
   const currentUserName = useCurrentUserName()
-  // Card (signature, default) vs table (registry) view, persisted per-browser.
-  const [deadlinesViewMode, setDeadlinesViewModeState] =
-    useState<DeadlinesViewMode>(readStoredDeadlinesView)
-  const setDeadlinesViewMode = useCallback((next: DeadlinesViewMode) => {
-    setDeadlinesViewModeState(next)
-    try {
-      window.localStorage.setItem(DEADLINES_VIEW_STORAGE_KEY, next)
-    } catch {
-      // Storage can be unavailable (private mode / sandbox); in-memory state
-      // still drives the current session.
-    }
-  }, [])
   // Hover-revealed peek affordance on the Client cell — same pattern as
   // `/clients` row peek (see ClientFactsWorkspace.tsx). Lets you glance into
   // the client without leaving the queue or swapping the obligation drawer's
@@ -4000,25 +3974,8 @@ export function ObligationQueueRoute() {
                   column-visibility menu, icon-only per the design. */}
               {panelOpenIntent ? null : (
                 <div className="ml-auto flex items-center gap-1">
-                  {/* Card ↔ table view switch — icon-only Segmented. The
-                      signature urgency-lane card grid is the default; the
-                      registry table is one toggle away. Mirrors /clients. */}
-                  <Segmented
-                    size="sm"
-                    className="mr-1 shrink-0"
-                    ariaLabel={t`View mode`}
-                    value={deadlinesViewMode}
-                    onValueChange={setDeadlinesViewMode}
-                    options={[
-                      {
-                        value: 'cards',
-                        label: null,
-                        icon: LayoutGridIcon,
-                        ariaLabel: t`Card view`,
-                      },
-                      { value: 'table', label: null, icon: ListIcon, ariaLabel: t`Table view` },
-                    ]}
-                  />
+                  {/* Card ↔ table view switch removed 2026-06-24 — /deadlines is
+                      the row (table) view only now. */}
                   {/* 2026-06-15 (Yuqi "deadlines — sort by clients, main page is
                       missing sortby"): a visible Sort-by control. The list
                       already supports clustering by client/filing/urgency (the
@@ -4560,16 +4517,11 @@ export function ObligationQueueRoute() {
                 </Button>
               </AlertDescription>
             </Alert>
-          ) : deadlinesViewMode === 'cards' ? (
-            // Signature card view — urgency lanes (Overdue → Filed), the
-            // default. Reuses the same filtered/sorted `orderedRows` as the
-            // table; the registry table is the toggle below.
-            <DeadlineCardGrid
-              rows={orderedRows}
-              isLoading={listQuery.isLoading}
-              onOpen={(obligationId) => openQueueDetail(obligationId)}
-            />
           ) : (
+            // The deadline queue is the registry TABLE (row view) — the card
+            // view + its toggle were removed 2026-06-24 (Yuqi: "remove the card
+            // view from deadlines, just keep the row view"). DeadlineCardGrid.tsx
+            // is kept in the tree but no longer rendered.
             // Table + Pagination wrapped in a single bordered card
             // (`tableCardRef`). The card:
             //   • Owns the rounded-lg border (Table + Pagination both
@@ -4600,10 +4552,6 @@ export function ObligationQueueRoute() {
                 // the full-page card sizes to content and never leaves a tall
                 // empty bordered rectangle on short result sets.
                 'flex flex-col rounded-xl border border-divider-regular bg-background-default',
-                // Incoming-view fade on table ⇄ cards toggle (matches
-                // DeadlineCardGrid). Opacity-only → the measured card height is
-                // unaffected; reduced-motion disables it.
-                'animate-in fade-in duration-300 ease-out motion-reduce:animate-none',
                 // Corner clipping. Full-page mode uses `overflow-clip`: it clips
                 // the gray header's rounded top corners to the card's border
                 // WITHOUT establishing a scroll container, so the page-level
