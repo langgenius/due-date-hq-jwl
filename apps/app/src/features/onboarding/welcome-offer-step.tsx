@@ -191,7 +191,8 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           </TextLink>
           <p className="text-center text-caption leading-relaxed text-text-tertiary">
             <Trans>
-              We use this to set up your trial and understand your workflow — never to sell or share.
+              We use this to set up your trial and understand your workflow — never to sell or
+              share.
             </Trans>
           </p>
         </div>

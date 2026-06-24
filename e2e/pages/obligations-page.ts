@@ -23,7 +23,7 @@ export class ObligationQueuePage {
     // placeholder as its accessible name.
     // 2026-06-11: the toolbar adopted the canonical <SearchInput> primitive,
     // which renders <input type="text"> (role=textbox), not a type=search box.
-    this.searchInput = page.getByRole('textbox', { name: 'Filter client, form, or assignee' })
+    this.searchInput = page.getByRole('textbox', { name: 'Filter by client, form, or assignee' })
     // The sortable header renders a button with aria-label `Sort ${columnLabel}`
     // (ObligationQueueSortableHeader). The active /deadlines queue (obligations
     // .tsx) labels the internal-due column t`Internal due` — verified against
