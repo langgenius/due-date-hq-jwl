@@ -273,7 +273,7 @@ const surfaces = t.surfaces
                     <tr><th>Risk</th><th>Client</th><th class="wlhide">Due</th><th>Status</th></tr>
                   </thead>
                   <tbody>
-                    {s.rows.map((r, i) => (
+                    {(s.rows ?? []).map((r, i) => (
                       <tr>
                         <td>
                           <span class="wlrisk">

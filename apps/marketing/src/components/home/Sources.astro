@@ -182,7 +182,7 @@ const tiles = [
                 <span class="feed-row__meta">
                   <span class={`feed-row__status feed-row__status--${r.dot}`}>
                     <span class="feed-row__status-dot" aria-hidden="true" />
-                    {t.statusLabels[r.dot]}
+                    {t.statusLabels[r.dot as keyof typeof t.statusLabels]}
                   </span>
                   <span class="feed-row__when">{r.when}</span>
                 </span>

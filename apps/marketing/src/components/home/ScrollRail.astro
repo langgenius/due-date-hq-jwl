@@ -165,7 +165,7 @@ const items = t.items
     const rail = document.getElementById('spyrail')
     if (!rail) return
     const items = Array.from(rail.querySelectorAll('.spyrail__item'))
-    const secs = items.map((it) => document.getElementById(it.getAttribute('href').slice(1)))
+    const secs = items.map((it) => document.getElementById(it.getAttribute('href')!.slice(1)))
     const darkSections = Array.from(document.querySelectorAll('[data-nav-dark]'))
     let ticking = false
     const update = () => {
@@ -174,7 +174,8 @@ const items = t.items
       const line = window.innerHeight * 0.4
       let idx = -1
       for (let i = 0; i < secs.length; i++) {
-        if (secs[i] && secs[i].getBoundingClientRect().top <= line) idx = i
+        const s = secs[i]
+        if (s && s.getBoundingClientRect().top <= line) idx = i
       }
       items.forEach((it, i) => it.classList.toggle('is-active', i === idx))
       // reveal only once scrolled past the hero
