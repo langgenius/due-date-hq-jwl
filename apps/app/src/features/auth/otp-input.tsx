@@ -65,6 +65,7 @@ export function OtpInput({
     <div className="flex gap-2.5">
       {Array.from({ length }).map((_, index) => (
         <input
+          // oxlint-disable-next-line no-array-index-key -- OTP digit slots; index IS the field identity
           key={index}
           ref={(el) => {
             refs.current[index] = el

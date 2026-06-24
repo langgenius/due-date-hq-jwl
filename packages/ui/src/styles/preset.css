@@ -175,6 +175,7 @@
   --color-background-canvas-warm: var(--background-canvas-warm);
   --color-background-section: var(--background-section);
   --color-background-section-burn: var(--background-section-burn);
+  --color-background-well-warm: var(--background-well-warm);
   --color-background-soft: var(--background-soft);
   --color-background-subtle: var(--background-subtle);
   --color-background-neutral-subtle: var(--background-neutral-subtle);
@@ -196,6 +197,7 @@
   --color-divider-solid: var(--divider-solid);
   --color-divider-solid-alt: var(--divider-solid-alt);
   --color-divider-accent: var(--divider-accent);
+  --color-divider-warm: var(--divider-warm);
 
   /* State (interaction layers) */
   --color-state-base-hover: var(--state-base-hover);
@@ -238,6 +240,7 @@
   /* Effects */
   --color-effects-highlight: var(--effects-highlight);
   --color-effects-highlight-subtle: var(--effects-highlight-subtle);
+  --color-highlight-celebrate: var(--highlight-celebrate);
   --color-effects-image-frame: var(--effects-image-frame);
   --color-effects-icon-border: var(--effects-icon-border);
 

@@ -5,7 +5,7 @@ import GeoResourcePage from '../../components/GeoResourcePage.astro'
 import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import type { GuidePageCopy } from '../../i18n/types'
-import { getCtaHref } from '../../lib/app-url'
+import { getStartedHref } from '../../lib/app-url'
 import { getComparisonPages, getResourceCtaHrefs } from '../../lib/seo-content'
 import { resourceStructuredData } from '../../lib/structured-data'
 
@@ -23,7 +23,7 @@ interface Props {
 const t = en
 const { page } = Astro.props
 const pathname = `/compare/${page.slug}`
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'en')
 ---
 

@@ -1355,7 +1355,7 @@ const zhCN: LandingCopy = {
       description: '这个 DueDateHQ 公开页面暂不可用。你可以返回首页或查看价格页。',
       ogImage: '/og/home.zh-CN.png',
     },
-    eyebrow: '404 · PUBLIC PAGE NOT FOUND',
+    eyebrow: '404 · Public page not found',
     title: '这个页面暂不可用。',
     body: '公开 marketing 站只提供已经发布的 DueDateHQ 页面。你可以返回首页、查看价格页，或直接打开工作台。',
     primaryCta: '返回首页',
@@ -1365,6 +1365,7 @@ const zhCN: LandingCopy = {
     routesLabel: 'PUBLISHED PATHS',
     routes: [
       { label: '首页', href: '/zh-CN' },
+      { label: '工作原理', href: '/zh-CN/how-it-works' },
       { label: '价格', href: '/zh-CN/pricing' },
       { label: '打开工作台', href: 'app' },
     ],
@@ -1403,7 +1404,6 @@ const zhCN: LandingCopy = {
       {
         title: 'COMPANY',
         links: [
-          { label: '关于', href: '/zh-CN/about' },
           { label: '安全', href: '/zh-CN/security' },
           { label: '隐私', href: '/zh-CN/privacy' },
           { label: '条款', href: '/zh-CN/terms' },

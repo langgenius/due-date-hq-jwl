@@ -1935,6 +1935,22 @@ export function PreviewRoute() {
                   }
                   className="w-full"
                 />
+                <EmptyState
+                  variant="prominent"
+                  iconTone="celebrate"
+                  icon={CircleCheckIcon}
+                  title="You're all caught up"
+                  description="Lime celebration tone (iconTone=celebrate) — a dark glyph on the lime disc, reserved for genuine 'you cleared it' moments (queue clear / all done), never a quiet 'nothing yet' state."
+                  className="w-full"
+                />
+                <EmptyState
+                  variant="prominent"
+                  tone="plain"
+                  icon={CalendarClockIcon}
+                  title="Plain prominent empty (opt-out)"
+                  description="tone=plain keeps the white card for the rare context where the warm stone well (the prominent default) would clash."
+                  className="w-full"
+                />
               </div>
             </Row>
             <Row label="EmptyCellMark" mono="patterns/empty-cell-mark">

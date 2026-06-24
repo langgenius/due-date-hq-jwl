@@ -5,9 +5,10 @@ list/table via a one-click `Segmented` toggle (icon-only, persisted per browser)
 The signatures share one DNA so the product reads as one thing, while each page
 stays distinct.
 
-**Defaults differ per page (2026-06-23):** `/clients` defaults to **cards**;
-`/deadlines` defaults to the **table/list** (cards are the opt-in toggle). Same
-toggle, opposite default — a deliberate call, not drift.
+**Default (2026-06-23):** both `/clients` and `/deadlines` default to **cards**
+(the signature urgency-lane view); the registry table is the opt-in toggle on
+each. `readStoredDeadlinesView` returns `'cards'` unless the browser has an
+explicit stored `'table'` choice.
 
 ## The shared card + lane DNA (Clients, Deadlines)
 
@@ -20,10 +21,10 @@ toggle, opposite default — a deliberate call, not drift.
   Its **colour is the card's only urgency tone**: red late · amber ≤7d · neutral
   comfortable. Settled rows never go red.
 - **Compact recipe.** `rounded-xl border border-divider-regular bg-background-default
-  p-3`, `gap-2` zones, `size="md"` monogram, `text-sm` medium name, single-row
+p-3`, `gap-2` zones, `size="md"` monogram, `text-sm` medium name, single-row
   footer pinned with `mt-auto`. ~150px tall.
 - **Figure/ground.** White cards sit in a gray **well** (`rounded-xl
-  bg-background-section p-4`) so they separate via border + bg contrast — no card
+bg-background-section p-4`) so they separate via border + bg contrast — no card
   shadows (per restrained-shadows).
 - **Prose dates** (`formatDatePretty`), never raw ISO.
 
@@ -39,11 +40,11 @@ toggle, opposite default — a deliberate call, not drift.
 
 ## Per-page signatures
 
-| Page | Default signature | Notes |
-|---|---|---|
-| **Clients** | Portfolio cards · urgency lanes | monogram identity; open/filed counts in footer |
-| **Deadlines** | Deadline cards · urgency lanes | form chip; settled → Filed lane; inline triage icons |
-| **Alerts** | (unchanged) live feed | a chronological stream is the right pattern; not card-ified |
+| Page             | Default signature                   | Notes                                                                                                                                     |
+| ---------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Clients**      | Portfolio cards · urgency lanes     | monogram identity; open/filed counts in footer                                                                                            |
+| **Deadlines**    | Deadline cards · urgency lanes      | form chip; settled → Filed lane; inline triage icons                                                                                      |
+| **Alerts**       | (unchanged) live feed               | a chronological stream is the right pattern; not card-ified                                                                               |
 | **Rule Library** | **Where to start** (ranked backlog) | the overview leads with the ranked review queue full-width. The Coverage map (US tilegram) is built but **currently hidden** — see below. |
 
 ## Rule Library overview — Coverage map (hidden for now)

@@ -8,15 +8,19 @@
 ---
 
 <script>
-  import gsap from 'gsap'
+  import { gsap } from 'gsap'
   import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
   const reveals = () => Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
-  const showAll = () =>
-    reveals().forEach((el) => {
-      el.style.opacity = '1'
-      el.style.transform = 'none'
-    })
+  const staggers = () => Array.from(document.querySelectorAll<HTMLElement>('[data-reveal-stagger]'))
+  const clear = (el: HTMLElement) => {
+    el.style.opacity = '1'
+    el.style.transform = 'none'
+  }
+  const showAll = () => {
+    reveals().forEach(clear)
+    staggers().forEach((c) => Array.from(c.children).forEach((ch) => clear(ch as HTMLElement)))
+  }
 
   function setup() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -38,6 +42,18 @@
         })
       })
 
+      // Opt-in lists assemble with a stagger — children rise in one after another.
+      staggers().forEach((container) => {
+        gsap.to(Array.from(container.children), {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power2.out',
+          stagger: 0.08,
+          scrollTrigger: { trigger: container, start: 'top 85%', once: true },
+        })
+      })
+
       // Post-load sweep: a deep-linked or short-viewport section whose top is
       // already at/above the start line on load would otherwise stay at
       // opacity:0 until the user scrolls up then back down. Force-reveal any
@@ -47,6 +63,11 @@
         reveals().forEach((el) => {
           if (el.getBoundingClientRect().top <= line) {
             gsap.set(el, { opacity: 1, y: 0 })
+          }
+        })
+        staggers().forEach((c) => {
+          if (c.getBoundingClientRect().top <= line) {
+            gsap.set(Array.from(c.children), { opacity: 1, y: 0 })
           }
         })
       }

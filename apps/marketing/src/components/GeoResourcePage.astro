@@ -12,6 +12,7 @@
  *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import FaqList from './FaqList.astro'
 
 interface Props {
   page: ResourcePageCopy | GuidePageCopy
@@ -34,9 +35,6 @@ const t = zh
   ? {
       lastReviewed: '最近复核',
       sourced: '每个日期都附官方来源',
-      answersLabel: '常见问答',
-      qPrefix: '问',
-      aPrefix: '答',
       nextEyebrow: '下一步',
       nextTitle: '把这条规则接到你真实的客户名单上',
       nextBody: '阅读是一回事。真正的价值，是当这条日期变动时，你立刻知道它影响到你的哪些客户。',
@@ -50,10 +48,7 @@ const t = zh
     }
   : {
       lastReviewed: 'Last reviewed',
-      sourced: 'Sourced on every date',
-      answersLabel: 'Common questions',
-      qPrefix: 'Q',
-      aPrefix: 'A',
+      sourced: 'A source on every date',
       nextEyebrow: 'Next step',
       nextTitle: 'Put this rule against your actual client list',
       nextBody:
@@ -241,31 +236,15 @@ const t = zh
   }
 
   <section class="m-section m-page-block geo-block geo-faq" id="faq">
-    <p class="m-eyebrow">{page.faqHeader.eyebrow}</p>
-    <h2 class="m-page-h2">{page.faqHeader.title}</h2>
-    <div class="m-page-grid-3 geo-faq__grid">
-      {
-        page.faq.map((item) => (
-          <section class="m-card geo-qa">
-            <h3 class="m-card__t geo-qa__q">
-              <span class="geo-qa__mark" aria-hidden="true">
-                {t.qPrefix}
-              </span>
-              <span>{item.question}</span>
-            </h3>
-            <p class="m-card__d geo-qa__a">{item.answer}</p>
-          </section>
-        ))
-      }
-    </div>
+    <FaqList eyebrow={page.faqHeader.eyebrow} title={page.faqHeader.title} items={page.faq} />
   </section>
 
   <section class="m-section m-page-block geo-block">
     <div class="geo-next">
-      <p class="geo-next__eyebrow">{t.nextEyebrow}</p>
+      <p class="m-eyebrow geo-next__eyebrow">{t.nextEyebrow}</p>
       <div class="geo-next__row">
         <div class="geo-next__copy">
-          <h2 class="geo-next__title">{page.cta.title || t.nextTitle}</h2>
+          <h2 class="m-page-h2 geo-next__title">{page.cta.title || t.nextTitle}</h2>
           <p class="geo-next__body">{page.cta.body || t.nextBody}</p>
         </div>
         <div class="geo-next__btns">
@@ -324,10 +303,9 @@ const t = zh
   }
   /* product peek — a compact in-product card echoing the home alert feed */
   .geo-peek {
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid var(--m-hairline);
     background: var(--m-surface);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     overflow: hidden;
   }
   .geo-peek__bar {
@@ -590,48 +568,15 @@ const t = zh
     background: var(--m-accent);
     opacity: 0.5;
   }
-  /* cards — quiet lift, clearer hover so a 3-up reads as scannable, not filler */
+  /* cards — clearer hover border so a 3-up reads as scannable, not filler */
   .geo-card {
-    transition:
-      border-color 0.16s ease,
-      box-shadow 0.16s ease;
+    transition: border-color 0.16s ease;
   }
   .geo-card:hover {
     border-color: var(--m-faint);
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
   }
   .geo-card .m-card__t {
     letter-spacing: -0.01em;
-  }
-
-  /* ---- FAQ — Q→A pairs (AEO-friendly) ---- */
-  .geo-qa {
-    display: flex;
-    flex-direction: column;
-  }
-  .geo-qa__q {
-    display: flex;
-    align-items: flex-start;
-    gap: 11px;
-  }
-  .geo-qa__mark {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    margin-top: 1px;
-    border-radius: 999px;
-    background: var(--m-accent-tint);
-    border: 1px solid color-mix(in srgb, var(--m-accent) 14%, transparent);
-    font-family: var(--m-font-mono);
-    font-size: var(--m-text-2xs);
-    font-weight: 600;
-    color: var(--m-accent);
-  }
-  .geo-qa__a {
-    /* align the answer under the question text, past the Q marker */
-    margin-left: 33px;
   }
 
   /* ---- next step — a confident link back into the funnel above the CTA ---- */
@@ -641,28 +586,13 @@ const t = zh
     border: 1px solid color-mix(in srgb, var(--m-accent) 16%, transparent);
     border-radius: 12px;
   }
-  .geo-next__eyebrow {
-    font-size: var(--m-text-xs);
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-accent);
-    opacity: 0.8;
-  }
+  /* eyebrow + title inherit type from .m-eyebrow / .m-page-h2; only per-block
+     overrides remain here */
   .geo-next__row {
     margin-top: 16px;
     display: grid;
     gap: 24px;
     align-items: center;
-  }
-  .geo-next__title {
-    max-width: 24ch;
-    font-family: var(--m-font-sans);
-    font-weight: 600;
-    font-size: clamp(22px, 2.4vw, 28px);
-    line-height: 1.22;
-    letter-spacing: -0.015em;
-    color: var(--m-ink);
   }
   .geo-next__body {
     margin-top: 12px;

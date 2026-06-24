@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowDownUpIcon, CheckIcon, ListFilterIcon } from 'lucide-react'
+import { ArrowDownUpIcon, CheckIcon } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -283,16 +284,17 @@ export function DeadlineNavigatorRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Filter deadlines`}
+          placeholder={t`Filter by client or form`}
           className="min-w-0 flex-1"
         />
-        {/* Optional status filter. Trigger surfaces the active status label so
-            it's clear the rail is filtered; "All statuses" clears it. */}
-        {/* Compact FilterTrigger (size="sm") — replaces the old hand-rolled
-            button so the rail status filter speaks the pill vocabulary too. It
-            collapses to icon-only at rest (no children) and names the active
-            status when filtered; a FilterTrigger (not SingleSelectFilter)
-            because the trigger has no static label slot — it's icon → value. */}
+        {/* Status filter (Yuqi: "a better representation needed, to show it is
+            about status"). The compact FilterTrigger always names what it
+            filters — a steady "Status" label — and LEADS with a status glyph:
+            a quiet generic mark at rest, the SELECTED status's `StatusMark` (in
+            its canonical tone) once a stage is picked, so the trigger reads as
+            its own status pill. The picked stage then shows behind the hairline
+            in the accent value slot ("Status │ In review ⌄"). Mirrors the
+            main /deadlines status picker's glyph-per-option vocabulary. */}
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -300,19 +302,37 @@ export function DeadlineNavigatorRail({
                 size="sm"
                 className="shrink-0"
                 aria-label={t`Filter by status`}
-                leadingIcon={ListFilterIcon}
                 active={effectiveStatusFilter !== 'all'}
-              >
-                {effectiveStatusFilter !== 'all' ? (
-                  <span className="max-w-[110px] truncate">
-                    {statusLabels[effectiveStatusFilter]}
+                valueLabel={
+                  effectiveStatusFilter !== 'all' ? (
+                    <span className="max-w-[96px] truncate">
+                      {statusLabels[effectiveStatusFilter]}
+                    </span>
+                  ) : undefined
+                }
+                // Reserve the value slot to the widest status label so the pill
+                // stops resizing when a different status is picked.
+                valueOptions={statusOptions.map(({ status }) => (
+                  <span key={status} className="max-w-[96px] truncate">
+                    {statusLabels[status]}
                   </span>
-                ) : null}
+                ))}
+              >
+                <StatusMark
+                  status={effectiveStatusFilter === 'all' ? 'pending' : effectiveStatusFilter}
+                  className={cn(
+                    'size-3.5 shrink-0',
+                    effectiveStatusFilter === 'all'
+                      ? 'text-text-tertiary'
+                      : STATUS_ICON_COLOR[effectiveStatusFilter],
+                  )}
+                />
+                <Trans>Status</Trans>
               </FilterTrigger>
             }
           />
           <DropdownMenuContent align="end" className="min-w-[200px]">
-            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+            <DropdownMenuItem className="gap-2" onClick={() => setStatusFilter('all')}>
               <span className="flex-1">
                 <Trans>All statuses</Trans>
               </span>
@@ -322,7 +342,18 @@ export function DeadlineNavigatorRail({
               ) : null}
             </DropdownMenuItem>
             {statusOptions.map(({ status, count }) => (
-              <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)}>
+              <DropdownMenuItem
+                key={status}
+                className="gap-2"
+                onClick={() => setStatusFilter(status)}
+              >
+                {/* Status glyph leads each option, matching the main-list
+                    status picker so the menu reads as a colour-coded
+                    status chooser, not a flat label list. */}
+                <StatusMark
+                  status={status}
+                  className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[status])}
+                />
                 <span className="flex-1 truncate">{statusLabels[status]}</span>
                 <span className="tabular-nums text-text-tertiary">{count}</span>
                 {effectiveStatusFilter === status ? (
@@ -337,9 +368,24 @@ export function DeadlineNavigatorRail({
       {/* ListBody */}
       <ListRailBody>
         {sortedRows.length === 0 ? (
-          <p className="px-[18px] py-6 text-sm text-text-tertiary">
-            <Trans>No deadlines match.</Trans>
-          </p>
+          // Zero-results is a recovery moment, not a dead-end: offer a one-click
+          // way back to the full list (matches the page-level empties + the
+          // sibling ObligationListRail / AlertListRail treatment).
+          <div className="px-[18px] py-10 text-center">
+            <p className="text-base text-text-tertiary">
+              <Trans>No deadlines match.</Trans>
+            </p>
+            {search.trim().length > 0 ? (
+              <TextLink
+                variant="accent"
+                size="sm"
+                onClick={() => setSearch('')}
+                className="mt-2 inline-block"
+              >
+                <Trans>Clear filter</Trans>
+              </TextLink>
+            ) : null}
+          </div>
         ) : (
           sortedRows.map((row, index) => {
             // When sorted by client, lead each client's cluster with a client
@@ -434,9 +480,10 @@ function DeadlineNavigatorRow({
         {showRelative ? (
           <span
             className={cn(
-              // caption-xs to match the alert rail's relative-time line. 500,
-              // not 600 — color alone carries the tone (never double-highlight).
-              'text-caption-xs font-medium tabular-nums',
+              // caption-xs + tracking-title to match the alert rail's
+              // relative-time line exactly. 500, not 600 — color alone carries
+              // the tone (never double-highlight).
+              'text-caption-xs font-medium tracking-title tabular-nums',
               relative.tone === 'late'
                 ? 'text-text-destructive'
                 : relative.tone === 'soon'
@@ -449,11 +496,15 @@ function DeadlineNavigatorRow({
         ) : null}
       </div>
 
-      {/* Content (rzzww `NIkyc`) */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      {/* Content (rzzww `NIkyc`) — gap-2 between badge row / title / client
+          line, matching the alert rail's content column rhythm so the two
+          detail navigators breathe identically. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        {/* Badge row — dims on unselected items so the selected row's chip
+            carries the colour, mirroring the alert rail's gap-1.5 chip row. */}
         <div
           className={cn(
-            'flex items-center gap-2 pb-0.5 transition-opacity',
+            'flex items-center gap-1.5 transition-opacity',
             !active && 'opacity-55 group-hover/rail:opacity-100',
           )}
         >
@@ -483,7 +534,10 @@ function DeadlineNavigatorRow({
             ) : null}
           </span>
         </div>
-        <span className="truncate text-xs text-text-tertiary">{row.clientName}</span>
+        {/* Client line — the alert rail's bottom-meta slot, sized text-sm for
+            density parity. Tertiary tone (not the alert's secondary): the
+            client is quiet identity context here, not the row's headline. */}
+        <span className="truncate text-sm text-text-tertiary">{row.clientName}</span>
       </div>
     </Link>
   )

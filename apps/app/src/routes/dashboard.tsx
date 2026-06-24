@@ -30,7 +30,9 @@ import { FirstRunTour } from '@/features/onboarding/first-run-tour'
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
-import { PinnedSection } from '@/features/dashboard/pinned-section'
+// PinnedSection shelved 2026-06-23 — see the render-site note below. Kept as a
+// commented import so restoring is a one-line uncomment.
+// import { PinnedSection } from '@/features/dashboard/pinned-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -527,13 +529,12 @@ export function DashboardRoute() {
           on the brief. The section self-filters to client-affecting alerts. */}
           <NeedsAttentionSection />
 
-          {/* Pinned deadlines — the CPA's hand-starred shortlist. Sits just under
-          Alerts (their personal focus, above the time-bucketed queue) and renders
-          ONLY when something is pinned, so it never claims space it hasn't earned. */}
-          <PinnedSection
-            asOfDate={data?.asOfDate ?? null}
-            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-          />
+          {/* Pinned deadlines — SHELVED 2026-06-23 (Yuqi: "save pinned for the
+          future, remove from today for now"). The feature is intact and
+          resurrectable — `PinnedSection` (features/dashboard/pinned-section.tsx)
+          + `PinButton` + the `obligations.setPinned` mutation all remain; only
+          the two render sites (here + the deadline-detail footer toggle) are
+          pulled. Re-mount this block (and the footer PinButton) to bring it back. */}
 
           {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
           (the page-tab pattern, Yuqi feedback #4) lives INSIDE the card now:

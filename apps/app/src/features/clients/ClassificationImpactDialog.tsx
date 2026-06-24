@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CircleAlertIcon, CircleCheckIcon, Loader2Icon, MinusCircleIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -103,6 +103,7 @@ export function ClassificationImpactDialog({
   onApplied: (result: { client: ClientPublic; addedCount: number; supersededCount: number }) => void
 }) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const workflowFlagLabel = useWorkflowFlagLabel()
   // Confirmed deadline ids start empty every time the dialog opens — the
   // CPA must explicitly opt in before removing current-tax-year deadlines.
@@ -164,6 +165,20 @@ export function ClassificationImpactDialog({
         toast.success(isCorrection ? t`Entity type updated` : t`Reclassified`, {
           description: t`${result.addedCount} added, ${result.supersededCount} removed`,
         })
+        // Co-locate the cache fan-out with the mutation that owns the
+        // change so freshness never depends on a caller remembering to
+        // wire `onApplied`. Mirrors the invalidation set the other
+        // client-edit mutations use: the client record, the directory
+        // list, the dashboard counts, both obligation lists, the risk
+        // summary, and the audit log all repaint with the recomputed
+        // deadlines.
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.getRiskSummary.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         onApplied({
           client: result.client,
           addedCount: result.addedCount,

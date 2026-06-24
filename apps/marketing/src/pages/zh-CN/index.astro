@@ -9,7 +9,6 @@ import TopNav from '../../components/home/TopNav.astro'
 import ScrollRail from '../../components/home/ScrollRail.astro'
 import Hero from '../../components/home/Hero.astro'
 import Villain from '../../components/home/Villain.astro'
-import HowItWorks from '../../components/home/HowItWorks.astro'
 import Notice from '../../components/home/Notice.astro'
 import Sources from '../../components/home/Sources.astro'
 import Compare from '../../components/home/Compare.astro'
@@ -20,10 +19,10 @@ import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getCtaHref, getAppHref } from '../../lib/app-url'
+import { getStartedHref, getAppHref } from '../../lib/app-url'
 import { homeStructuredData } from '../../lib/structured-data'
 
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 const signInHref = getAppHref('/login', 'zh-CN')
 const t = zhCN
 ---
@@ -36,13 +35,12 @@ const t = zhCN
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'zh-CN')}
 >
-  <TopNav ctaHref={ctaHref} signInHref={signInHref} locale="zh-CN" />
+  <TopNav ctaHref={ctaHref} signInHref={signInHref} current="home" locale="zh-CN" />
   <ScrollRail locale="zh-CN" />
   <main>
-    <Hero ctaHref={ctaHref} workflowAnchor="#how" locale="zh-CN" />
+    <Hero ctaHref={ctaHref} workflowAnchor="/zh-CN/how-it-works" locale="zh-CN" />
     <Villain locale="zh-CN" />
     <Surfaces locale="zh-CN" />
-    <HowItWorks locale="zh-CN" />
     <Notice locale="zh-CN" />
     <Sources locale="zh-CN" />
     <Compare locale="zh-CN" />

@@ -4,7 +4,7 @@ import TopNav from '../../components/home/TopNav.astro'
 import TrustPage from '../../components/TrustPage.astro'
 import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getCtaHref } from '../../lib/app-url'
+import { getStartedHref } from '../../lib/app-url'
 import { trustPageStructuredData } from '../../lib/structured-data'
 import { trustPages, type TrustPageCopy } from '../../lib/trust-pages'
 
@@ -23,7 +23,7 @@ const t = zhCN
 const { page } = Astro.props
 const enPathname = `/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 ---
 
 <BaseLayout

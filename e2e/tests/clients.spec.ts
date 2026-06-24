@@ -88,9 +88,7 @@ test.describe('seeded client facts', () => {
     await expect(authenticatedPage).toHaveURL(/q=Arbor/)
     await expect(clientsPage.filteredEmptyState).toBeVisible()
     await expect(
-      authenticatedPage.getByText(
-        'Clear search or filters to return to the full practice directory.',
-      ),
+      authenticatedPage.getByRole('main').getByRole('button', { name: 'Clear filters' }).last(),
     ).toBeVisible()
   })
 

@@ -24,10 +24,9 @@ export function AlertsRoute() {
   const { t } = useLingui()
   const { open: panelOpen } = useAlertDrawer()
   // The header count chip reads the SAME authoritative count as the sidebar nav
-  // badge and the detail rail head — `pulse.activeCount` (matched +
-  // partially_applied, approved, not expired). Earlier this filtered
-  // `status === 'matched'` on listAlerts(50), which undercounted (missed
-  // partially_applied / expiry scoping) and disagreed with the sidebar's 8.
+  // badge and the detail rail head — `pulse.activeCount` (approved, not
+  // expired, matched-only open rows). It intentionally mirrors Review + Active
+  // work queues and excludes Alert History statuses such as `partially_applied`.
   const alertCount = useActiveAlertCount()
   // The Sources selector chip carries a live health dot so the CPA can SEE
   // monitoring is healthy at a glance. Same `listSourceHealth` query the
@@ -82,7 +81,7 @@ export function AlertsRoute() {
           header uses.
           The active-count chip is the shared soft `CountPill` (the same
           dot-pill the rail head uses), not a solid destructive Badge that
-          read as a tappable button. Same metric ("N active" = matched)
+          read as a tappable button. Same metric ("N open" = matched)
           and same look in both the page header and the detail rail head. */}
       {alertCount > 0 ? (
         // 2026-06-12 (critique #2 — red restraint): a STANDING count isn't an

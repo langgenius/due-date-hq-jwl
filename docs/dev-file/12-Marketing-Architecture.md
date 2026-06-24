@@ -471,6 +471,11 @@ App 文案、server 邮件文案、marketing 文案的生命周期不同：
 - `hreflang="zh-CN"`
 - `hreflang="x-default"`
 
+Footer 的语言切换链接必须同样输出 canonical public paths，而不是 Astro 静态构建时的
+`/index.html`、`/zh-CN.html` 或 `/*.html` 文件路径。`apps/marketing/src/lib/locale-paths.ts`
+负责把这些 build-time pathnames 规范化后再生成 en ↔ zh-CN href，避免中文首页的
+English 链接回到 `/zh-CN.html`。
+
 CTA 跳转 app 时带上 locale handoff 参数：
 
 ```text

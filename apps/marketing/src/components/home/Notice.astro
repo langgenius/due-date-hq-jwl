@@ -175,12 +175,6 @@ const examples = t.examples
   <p class="m-lead notice__lead" set:html={t.leadHtml} />
 
   <div class="nswitch">
-    <span class="nswitch__cue" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 8h13l-3-3M21 16H8l3 3" />
-      </svg>
-      {t.switchCue}
-    </span>
     <div class="ntabs" role="tablist" aria-label={t.tablistLabel}>
       {
         examples.map((e, i) => (
@@ -224,15 +218,16 @@ const examples = t.examples
               <div class="clip__org">
                 <div class="clip__name">{e.doc.org}</div>
                 <div class="clip__sub">{e.doc.sub}</div>
-              </div>
-              <div class="clip__posted">
-                {t.posted} <b>{e.doc.posted}</b>
-                <span class="clip__url">
-                  {e.doc.url}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M7 17 17 7M9 7h8v8" />
-                  </svg>
-                </span>
+                <div class="clip__posted">
+                  {t.posted} <b>{e.doc.posted}</b>
+                  <span class="clip__sep" aria-hidden="true">·</span>
+                  <span class="clip__url">
+                    {e.doc.url}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M9 7h8v8" />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </header>
             <div class="clip__body">
@@ -258,7 +253,13 @@ const examples = t.examples
               <span class="field__label">{t.sourceQuote}</span>
               <p class="field__quote">{e.quote}</p>
               <p class="field__verify">
-                {e.verify.url} <span class="field__ok">✓ {e.verify.date}</span>
+                {e.verify.url}{' '}
+                <span class="field__ok">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {e.verify.date}
+                </span>
               </p>
             </div>
             <div class="field">
@@ -311,42 +312,16 @@ const examples = t.examples
   }
 
   /* ---- example switcher ----
-     A labelled segmented control: a small "see another example" cue makes the
-     interaction unmistakable, then a recessed track where the selected type
-     rises onto a clean white pill (navy label + a lit leading dot), so it
-     reads as an obvious switch, not decoration. */
+     A row of discrete, bordered pill buttons (each an obvious, clickable choice).
+     The selected type fills with the accent tint + accent border + a lit leading
+     dot; the rest read as quiet white buttons. */
   .nswitch {
     margin-top: clamp(28px, 3.5vw, 40px);
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px 16px;
   }
-  .nswitch__cue {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--m-text-2xs);
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-faint);
-  }
-  .nswitch__cue svg {
-    width: 14px;
-    height: 14px;
-    color: var(--m-accent);
-  }
-
   .ntabs {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 2px;
-    padding: 4px;
-    background: var(--m-section);
-    border: 1px solid var(--m-hairline-2);
-    border-radius: 999px;
-    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--m-ink) 5%, transparent);
+    gap: 8px;
   }
   .ntab {
     position: relative;
@@ -355,6 +330,8 @@ const examples = t.examples
     gap: 8px;
     padding: 8px 16px 8px 13px;
     border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
     font-size: var(--m-text-sm);
     font-weight: 500;
     letter-spacing: 0;
@@ -363,7 +340,7 @@ const examples = t.examples
     transition:
       color var(--m-dur-fast) var(--m-ease),
       background var(--m-dur-fast) var(--m-ease),
-      box-shadow var(--m-dur-fast) var(--m-ease);
+      border-color var(--m-dur-fast) var(--m-ease);
   }
   /* leading status dot — hollow when idle, fills navy when this type is showing */
   .ntab__dot {
@@ -380,7 +357,7 @@ const examples = t.examples
   }
   .ntab:hover:not(.is-on) {
     color: var(--m-ink-2);
-    background: color-mix(in srgb, var(--m-surface) 70%, transparent);
+    border-color: var(--m-faint);
   }
   .ntab:hover:not(.is-on) .ntab__dot {
     box-shadow: inset 0 0 0 1.5px
@@ -388,15 +365,13 @@ const examples = t.examples
   }
   .ntab.is-on {
     color: var(--m-accent);
-    background: var(--m-surface);
+    background: var(--m-accent-tint);
+    border-color: var(--m-accent);
     font-weight: 600;
-    box-shadow:
-      0 1px 2px color-mix(in srgb, var(--m-ink) 8%, transparent),
-      0 0 0 1px var(--m-hairline-2);
   }
   .ntab.is-on .ntab__dot {
     background: var(--m-accent);
-    box-shadow: 0 0 0 3px var(--m-accent-tint);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 18%, transparent);
   }
   .ntab:focus-visible {
     outline: 2px solid var(--m-accent);
@@ -414,7 +389,7 @@ const examples = t.examples
     grid-area: 1 / 1; /* every panel occupies the same cell → no reflow on swap */
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    align-items: center;
+    align-items: start;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -440,6 +415,7 @@ const examples = t.examples
   }
   .beam {
     grid-column: span 2;
+    align-self: center; /* arrow stays centered though columns top-align */
   }
   .extract__out {
     grid-column: span 5;
@@ -488,18 +464,24 @@ const examples = t.examples
     font-size: var(--m-text-xs);
     color: var(--m-muted);
   }
+  /* posted + source now sit beneath the org name as one quiet meta line */
   .clip__posted {
-    text-align: right;
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
     font-size: var(--m-text-xs);
     color: var(--m-muted);
-    white-space: nowrap;
   }
   .clip__posted b {
     color: var(--m-ink-2);
     font-weight: 600;
   }
+  .clip__sep {
+    color: var(--m-faint);
+  }
   .clip__url {
-    margin-top: 3px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -567,7 +549,7 @@ const examples = t.examples
     background: var(--m-surface);
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
-    padding: 16px 18px;
+    padding: 14px 18px;
   }
   .field__label {
     display: inline-flex;
@@ -604,6 +586,11 @@ const examples = t.examples
   }
   .field__ok {
     color: var(--m-ok);
+  }
+  .field__ok svg {
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
   }
   .field__change {
     margin-top: 10px;

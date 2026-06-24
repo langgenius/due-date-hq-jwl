@@ -84,6 +84,18 @@ html {
   background-color: color-mix(in srgb, var(--text-tertiary) 56%, transparent);
 }
 
+/*
+ * 2026-06-23 (Yuqi): finer 1.5px Lucide icon strokes PRODUCT-WIDE. The sidenav
+ * already ran 1.5 (2026-06-09 "精致/elegant"); Lucide's 2px default everywhere
+ * else read heavier and inconsistent next to it. Scoped to `.lucide` so raw
+ * SVGs (brand marks, the StatusRing, source-logo art) keep their own widths.
+ * This is the single source of truth for icon weight — it intentionally
+ * normalizes the few per-icon `strokeWidth` overrides to one uniform weight.
+ */
+.lucide {
+  stroke-width: 1.5;
+}
+
 input,
 textarea,
 [contenteditable='true'] {

@@ -610,10 +610,11 @@ export const pulseContract = oc.router({
    * Count-only variant of `listAlerts` for the sidebar nav badge.
    *
    * The list endpoint clamps to a 50-row max, so a firm with more
-   * than 50 active alerts saw "50" in the sidebar badge even though
+   * than 50 open alerts saw "50" in the sidebar badge even though
    * the real count was higher. This endpoint runs a true COUNT(*)
    * against the same WHERE clause `listAlerts` uses, so the badge
-   * always shows the true number with no upper bound.
+   * always shows the true Review + Active number with no upper bound.
+   * Alert History rows are handled scope and are excluded.
    */
   activeCount: oc.input(z.undefined()).output(z.object({ count: z.number().int().min(0) })),
   listHistory: oc.input(PulseListHistoryInputSchema).output(

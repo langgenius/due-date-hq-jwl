@@ -47,7 +47,7 @@ export function railListInputFromSearch(
   const params = loadQueueSearch(search)
 
   const statusQuery = [...params.status]
-  const search_ = params.q.trim().slice(0, OBLIGATION_QUEUE_SEARCH_MAX_LENGTH)
+  const searchQuery = params.q.trim().slice(0, OBLIGATION_QUEUE_SEARCH_MAX_LENGTH)
   const obligationQuery = cleanEntityIdFilters(params.obligation ? [params.obligation] : [])
   const clientQuery = cleanEntityIdFilters(params.client)
   const ruleQuery = cleanEntityIdFilters(params.rule)
@@ -65,7 +65,7 @@ export function railListInputFromSearch(
 
   return {
     ...(statusQuery.length > 0 ? { status: statusQuery } : {}),
-    ...(search_ ? { search: search_ } : {}),
+    ...(searchQuery ? { search: searchQuery } : {}),
     ...(obligationQuery.length > 0 ? { obligationIds: obligationQuery } : {}),
     ...(clientQuery.length > 0 ? { clientIds: clientQuery } : {}),
     ...(ruleQuery.length > 0 ? { ruleIds: ruleQuery } : {}),

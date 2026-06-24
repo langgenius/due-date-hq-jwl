@@ -1843,6 +1843,7 @@ export function getStateDeadlineLines(): string[] {
 
 export function getStatePages(siteCopy: LandingCopy, locale: Locale): StatePageCopy[] {
   const pages = [...siteCopy.geo.states, ...stateSpecs.map((spec) => statePage(spec, locale))]
+  // oxlint-disable-next-line no-map-spread -- copy-on-write: pages is shared input, must not mutate
   return pages.map((page) => {
     const keyDeadlines = buildStateKeyDeadlines(page.slug, page.name, locale)
     return keyDeadlines ? { ...page, keyDeadlines } : page

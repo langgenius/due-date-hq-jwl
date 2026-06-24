@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
 import { CheckIcon, ShieldAlertIcon } from 'lucide-react'
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
 import { orpc } from '@/lib/rpc'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
@@ -77,7 +79,19 @@ export function ReverifyRulesSection({
             key={rule.id}
             className="flex items-center justify-between gap-3 rounded-lg border border-divider-regular bg-background-default px-3 py-2"
           >
-            <span className="min-w-0 truncate text-sm">{rule.title}</span>
+            {/* Title links to the rule's full page in the library (the
+                cross-page "see this rule in context" path). Quiet variant so
+                it reads as the rule name until hover — the Re-verify button
+                stays the primary, in-context action. */}
+            <TextLink
+              size="sm"
+              variant="quiet"
+              className="min-w-0"
+              title={rule.title}
+              render={<Link to={`/rules/library?rule=${encodeURIComponent(rule.id)}`} />}
+            >
+              <span className="min-w-0 truncate">{rule.title}</span>
+            </TextLink>
             {ruleNeedsReview(rule) ? (
               <Button
                 type="button"

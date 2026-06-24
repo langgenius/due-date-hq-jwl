@@ -50,7 +50,7 @@ const t = zh
           desc: '覆盖视图把全部 50 个州 + DC 摊在一张图上，每个辖区一视同仁地实时监控。哪里刚出现变化、哪里平静无事，一眼可见——没有「重点州」和「普通州」之分。',
           why: '你能立刻判断这一波变化是集中在某个州，还是全国性的，从而决定先看哪里。',
           bullets: [
-            '全部 51 个辖区，7×24 同等监控',
+            '全部 50 个州 + DC，7×24 同等监控',
             '有变化的辖区即时高亮',
             'FEMA 灾害声明覆盖全国',
           ],
@@ -104,7 +104,7 @@ const t = zh
           why: 'No more refreshing a dozen state sites and press releases, hoping you did not miss one.',
           bullets: [
             'A source link and exact quote on every alert',
-            'Filter to Federal / any state / FEMA in one tap',
+            'Filter to Federal / any state / FEMA in one click',
             'Urgent rises to the top; informational settles below',
           ],
         },
@@ -116,7 +116,7 @@ const t = zh
           desc: 'Coverage lays all 50 states + DC on a single map, every jurisdiction watched live and the same way. You can see at a glance where a change just appeared and where it is quiet — no "priority" states, no afterthoughts.',
           why: 'You can tell instantly whether this wave is one state or a national shift, and decide where to look first.',
           bullets: [
-            'All 51 jurisdictions, watched 24/7 and equally',
+            'All 50 states + DC, watched 24/7 and equally',
             'Jurisdictions with a fresh change highlight live',
             'FEMA disaster declarations covered nationwide',
           ],
@@ -176,7 +176,13 @@ const surfaces = t.surfaces
             <p class="sd__title">{s.title}</p>
             <p class="sd__desc">{s.desc}</p>
             <p class="sd__why">
-              <span class="sd__why-label">{t.seeLabel}</span>
+              <span class="sd__why-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="3.4" />
+                  <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                </svg>
+                {t.seeLabel}
+              </span>
               {s.why}
             </p>
             <ul class="sd__bullets">
@@ -446,14 +452,22 @@ const surfaces = t.surfaces
     color: var(--m-muted);
     max-width: 48ch;
   }
+  /* a distinct callout label — NOT another uppercase eyebrow like .sd__name:
+     sentence case, icon-led, so it reads as the human payoff, not a section tag */
   .sd__why-label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: var(--m-text-2xs);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: var(--m-text-sm);
     font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: -0.01em;
     color: var(--m-accent);
+  }
+  .sd__why-label svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
   }
   .sd__bullets {
     margin-top: 20px;
@@ -484,7 +498,6 @@ const surfaces = t.surfaces
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 22px 56px -44px rgba(16, 24, 40, 0.4);
   }
   .frame__bar {
     display: flex;

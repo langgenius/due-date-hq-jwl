@@ -38,8 +38,6 @@ import {
   CalendarClockIcon,
   CheckIcon,
   LayersIcon,
-  LayoutGridIcon,
-  ListIcon,
   ListChecksIcon,
   BookmarkIcon,
   RotateCcwIcon,
@@ -94,7 +92,6 @@ import {
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
@@ -219,7 +216,6 @@ import {
   DETAIL_PANEL_CONTENT_ENTER_ANIM,
   DETAIL_PANEL_CONTENT_EXIT_ANIM,
 } from '@/features/obligations/queue/constants'
-import { DeadlineCardGrid } from '@/features/obligations/queue/DeadlineCardGrid'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -231,19 +227,9 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn, formatDate, formatDatePretty } from '@/lib/utils'
 
-// /deadlines leads with the signature CARD view (urgency lanes) and demotes
-// the registry table to a toggle, mirroring /clients. The choice persists
-// per-browser; table (the list) is the default — cards is opt-in.
-type DeadlinesViewMode = 'cards' | 'table'
-const DEADLINES_VIEW_STORAGE_KEY = 'duedatehq.deadlines-view'
-function readStoredDeadlinesView(): DeadlinesViewMode {
-  if (typeof window === 'undefined') return 'table'
-  try {
-    return window.localStorage.getItem(DEADLINES_VIEW_STORAGE_KEY) === 'cards' ? 'cards' : 'table'
-  } catch {
-    return 'table'
-  }
-}
+// /deadlines is the registry TABLE (row view) only — the signature card view +
+// its toggle were removed 2026-06-24 (Yuqi). DeadlineCardGrid.tsx remains in the
+// tree, unused, so the card view can be restored if wanted.
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -1113,18 +1099,6 @@ export function ObligationQueueRoute() {
   // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
   // impossible without "is this mine."
   const currentUserName = useCurrentUserName()
-  // Card (signature, default) vs table (registry) view, persisted per-browser.
-  const [deadlinesViewMode, setDeadlinesViewModeState] =
-    useState<DeadlinesViewMode>(readStoredDeadlinesView)
-  const setDeadlinesViewMode = useCallback((next: DeadlinesViewMode) => {
-    setDeadlinesViewModeState(next)
-    try {
-      window.localStorage.setItem(DEADLINES_VIEW_STORAGE_KEY, next)
-    } catch {
-      // Storage can be unavailable (private mode / sandbox); in-memory state
-      // still drives the current session.
-    }
-  }, [])
   // Hover-revealed peek affordance on the Client cell — same pattern as
   // `/clients` row peek (see ClientFactsWorkspace.tsx). Lets you glance into
   // the client without leaving the queue or swapping the obligation drawer's
@@ -2757,9 +2731,10 @@ export function ObligationQueueRoute() {
           if (obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed') {
             secondaryStatusLabels.push(t`Accepted`)
           }
-          if (paymentLateDays !== null) {
-            secondaryStatusLabels.push(t`Payment due`)
-          }
+          // Payment-overdue is NOT folded into the secondary line anymore — it
+          // now renders as the amber `$` glyph on the badge row (matching
+          // DeadlineCardGrid), so a text "Payment due" entry here would
+          // double-signal the same fact (one home per fact).
           return (
             // The Status cell can stack a pill + several signal badges
             // (payment-late / awaiting-signature / accepted). Bound the cell
@@ -2826,16 +2801,20 @@ export function ObligationQueueRoute() {
                     <Trans>Accepted</Trans>
                   </Badge>
                 ) : null}
+                {/* Payment-overdue signal — the quiet amber `$` glyph, matched
+                  to DeadlineCardGrid so the card + table reads identically (the
+                  same `paymentOverdueDays` predicate, `text-text-warning` tone,
+                  size-4 icon, title tooltip). Shown in BOTH the compact panel-
+                  open layout and the full table row (it was previously omitted
+                  in the table, leaving only the secondary "Payment due" line). */}
                 {paymentLateDays !== null ? (
-                  panelOpenIntent ? (
-                    <span
-                      title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
-                      aria-label={t`Payment ${paymentLateDays}d late`}
-                      className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
-                    >
-                      <CircleDollarSignIcon className="size-4" aria-hidden />
-                    </span>
-                  ) : null
+                  <span
+                    title={t`Authority payment ${paymentLateDays}d overdue — penalty interest accrues until it's confirmed.`}
+                    aria-label={t`Payment ${paymentLateDays} days overdue`}
+                    className="inline-flex size-5 shrink-0 items-center justify-center text-text-warning"
+                  >
+                    <CircleDollarSignIcon className="size-4" aria-hidden />
+                  </span>
                 ) : null}
                 {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                   <BlockedByChip
@@ -3135,7 +3114,8 @@ export function ObligationQueueRoute() {
   const scopeStatusSet = useCallback(
     (status: ObligationStatus): readonly ObligationStatus[] =>
       lifecycleV2 && status in LIFECYCLE_V2_STATUS_SETS
-        ? LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
+        ? // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by the `in` check on the line above
+          LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
         : [status],
     [lifecycleV2],
   )
@@ -3784,12 +3764,12 @@ export function ObligationQueueRoute() {
         ) : null}
         <div
           className={cn(
-            // `gap-3` (12px, tightened 2026-06-23 per Yuqi) keeps the sticky
-            // filter bar close to the table so the controls + data read as one
-            // tight unit, not two separated bands. The bulk-action toolbar is a
-            // FloatingActionBar (fixed at viewport bottom), so this gap only
-            // affects filter→table spacing.
-            'flex min-w-0 flex-1 flex-col gap-3',
+            // `gap-2` (8px, tightened again 2026-06-23 per Yuqi: "still too
+            // much gap") keeps the sticky filter bar close to the table so the
+            // controls + data read as one tight unit, not two separated bands.
+            // The bulk-action toolbar is a FloatingActionBar (fixed at viewport
+            // bottom), so this gap only affects filter→table spacing.
+            'flex min-w-0 flex-1 flex-col gap-2',
             // Reserve clearance for the floating bulk bar while a selection
             // exists, so the last rows scroll clear of the fixed bar instead of
             // being occluded. The bar only shows in full-page mode (this column
@@ -3855,7 +3835,40 @@ export function ObligationQueueRoute() {
                     <FilterTrigger
                       leadingIcon={CircleIcon}
                       active={activeScope !== 'all'}
-                      valueLabel={activeScope === 'all' ? t`All` : statusLabels[activeScope]}
+                      // The applied value reads as the SELECTED STATUS, not a
+                      // generic scope name: its canonical StatusMark glyph (own
+                      // status tone) + the status label, so the collapsed pill
+                      // (`Status │ ◐ In progress ⌄`) carries the same status
+                      // signal the dropdown rows + table cells use. "All" stays
+                      // plain text (no status to glyph).
+                      valueLabel={
+                        activeScope === 'all' ? (
+                          t`All`
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={activeScope}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[activeScope])}
+                            />
+                            {statusLabels[activeScope]}
+                          </span>
+                        )
+                      }
+                      // Reserve the value slot to the widest scope value (the
+                      // glyph + longest status label) so the pill stops resizing
+                      // when a different status scope is picked.
+                      valueOptions={[
+                        t`All`,
+                        ...visibleScopeStatuses.map((status) => (
+                          <span key={status} className="inline-flex items-center gap-1">
+                            <StatusMark
+                              status={status}
+                              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[status])}
+                            />
+                            {statusLabels[status]}
+                          </span>
+                        )),
+                      ]}
                       aria-label={t`Filter by status`}
                     >
                       <span>
@@ -3928,7 +3941,7 @@ export function ObligationQueueRoute() {
                       : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
                   )
                 }}
-                placeholder={t`Filter client, form, or assignee`}
+                placeholder={t`Filter by client, form, or assignee`}
                 className="w-full min-w-0 shrink sm:w-[320px]"
               />
               {/* Filter sheet — one button (with an active-count badge) opens a
@@ -3961,25 +3974,8 @@ export function ObligationQueueRoute() {
                   column-visibility menu, icon-only per the design. */}
               {panelOpenIntent ? null : (
                 <div className="ml-auto flex items-center gap-1">
-                  {/* Card ↔ table view switch — icon-only Segmented. The
-                      signature urgency-lane card grid is the default; the
-                      registry table is one toggle away. Mirrors /clients. */}
-                  <Segmented
-                    size="sm"
-                    className="mr-1 shrink-0"
-                    ariaLabel={t`View mode`}
-                    value={deadlinesViewMode}
-                    onValueChange={setDeadlinesViewMode}
-                    options={[
-                      {
-                        value: 'cards',
-                        label: null,
-                        icon: LayoutGridIcon,
-                        ariaLabel: t`Card view`,
-                      },
-                      { value: 'table', label: null, icon: ListIcon, ariaLabel: t`Table view` },
-                    ]}
-                  />
+                  {/* Card ↔ table view switch removed 2026-06-24 — /deadlines is
+                      the row (table) view only now. */}
                   {/* 2026-06-15 (Yuqi "deadlines — sort by clients, main page is
                       missing sortby"): a visible Sort-by control. The list
                       already supports clustering by client/filing/urgency (the
@@ -4301,7 +4297,10 @@ export function ObligationQueueRoute() {
                       }
                     />
                     <DropdownMenuContent align="start" className="w-64">
-                      <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                      <DropdownMenuItem
+                        disabled={bulkAssigneeMutation.isPending}
+                        onClick={() => changeSelectedAssignee(null)}
+                      >
                         <Trans>Unassigned</Trans>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -4313,6 +4312,7 @@ export function ObligationQueueRoute() {
                         assignableMembers.map((member) => (
                           <DropdownMenuItem
                             key={member.assigneeId}
+                            disabled={bulkAssigneeMutation.isPending}
                             onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
                           >
                             <span className="truncate">{member.name}</span>
@@ -4517,16 +4517,11 @@ export function ObligationQueueRoute() {
                 </Button>
               </AlertDescription>
             </Alert>
-          ) : deadlinesViewMode === 'cards' ? (
-            // Signature card view — urgency lanes (Overdue → Filed), the
-            // default. Reuses the same filtered/sorted `orderedRows` as the
-            // table; the registry table is the toggle below.
-            <DeadlineCardGrid
-              rows={orderedRows}
-              isLoading={listQuery.isLoading}
-              onOpen={(obligationId) => openQueueDetail(obligationId)}
-            />
           ) : (
+            // The deadline queue is the registry TABLE (row view) — the card
+            // view + its toggle were removed 2026-06-24 (Yuqi: "remove the card
+            // view from deadlines, just keep the row view"). DeadlineCardGrid.tsx
+            // is kept in the tree but no longer rendered.
             // Table + Pagination wrapped in a single bordered card
             // (`tableCardRef`). The card:
             //   • Owns the rounded-lg border (Table + Pagination both

@@ -4,15 +4,13 @@
  * --m-* marketing token tier. The previous homepage is preserved verbatim at
  * /legacy (apps/marketing/src/pages/legacy.astro), noindex.
  *
- * English inline copy for now; i18n (中文) wrapping + the remaining depth sections
- * (See-it-work, Surfaces, Trust, Security, FAQ) land in later phases.
+ * All home sections ship in components/home/*; EN + zh-CN kept in parity.
  */
 import BaseLayout from '../layouts/BaseLayout.astro'
 import TopNav from '../components/home/TopNav.astro'
 import ScrollRail from '../components/home/ScrollRail.astro'
 import Hero from '../components/home/Hero.astro'
 import Villain from '../components/home/Villain.astro'
-import HowItWorks from '../components/home/HowItWorks.astro'
 import Notice from '../components/home/Notice.astro'
 import Sources from '../components/home/Sources.astro'
 import Compare from '../components/home/Compare.astro'
@@ -23,10 +21,10 @@ import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
 import en from '../i18n/en'
-import { getCtaHref, getAppHref } from '../lib/app-url'
+import { getStartedHref, getAppHref } from '../lib/app-url'
 import { homeStructuredData } from '../lib/structured-data'
 
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 const signInHref = getAppHref('/login')
 const t = en
 ---
@@ -39,13 +37,12 @@ const t = en
   ogImage={t.meta.ogImage}
   structuredData={homeStructuredData(t, 'en')}
 >
-  <TopNav ctaHref={ctaHref} signInHref={signInHref} />
+  <TopNav ctaHref={ctaHref} signInHref={signInHref} current="home" />
   <ScrollRail />
   <main>
-    <Hero ctaHref={ctaHref} workflowAnchor="#how" />
+    <Hero ctaHref={ctaHref} workflowAnchor="/how-it-works" />
     <Villain />
     <Surfaces />
-    <HowItWorks />
     <Notice />
     <Sources />
     <Compare />

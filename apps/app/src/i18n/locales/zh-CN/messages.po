@@ -176,6 +176,11 @@ msgstr "{0, plural, one {# 个事件} other {# 个事件}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# 条已处理} other {# 条已处理}}"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# high-severity} other {# high-severity}}"
+msgstr "{0, plural, one {# 项高严重度} other {# 项高严重度}}"
+
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -353,6 +358,11 @@ msgstr "{0, plural, one {# 项等待客户} other {# 项等待客户}}"
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {逾期 # 天} other {逾期 # 天}}"
+
+#. placeholder {0}: g.pendingReviewCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {<0>#</0> rule to review} other {<1>#</1> rules to review}}"
+msgstr "{0, plural, one {<0>#</0> 条规则待审阅} other {<1>#</1> 条规则待审阅}}"
 
 #. placeholder {0}: result.appliedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
@@ -612,11 +622,6 @@ msgstr "今日 {0} 项申报 — 提前推进，保持本周节奏。"
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} 项申报已延期 — 付款未延期"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0} high-severity"
-msgstr "{0} 项高严重度"
-
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -655,6 +660,11 @@ msgstr "{0} 项"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
+
+#. placeholder {0}: items.length
+#: src/features/rules/states-rail.tsx
+msgid "{0} jurisdictions"
+msgstr "{0} 个辖区"
 
 #. placeholder {0}: memberCounts[role] ?? 0
 #: src/routes/settings.permissions.tsx
@@ -922,10 +932,6 @@ msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "本次申报已附 {attached}/{total} 份预期来源文件"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{auditCount}"
-msgstr "{auditCount}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{auditCount} events"
 msgstr "{auditCount} 个事件"
 
@@ -1083,10 +1089,6 @@ msgstr "{equity} 位权益所有人"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
 msgstr "{estimatedObligations, plural, other {将为当前客户生成约 # 个截止事项。}}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{evidenceCount}"
-msgstr "{evidenceCount}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{evidenceCount} workpapers"
@@ -1366,6 +1368,10 @@ msgstr "{rowCount, plural, other {# 个客户可导入}}"
 msgid "{rowCount, plural, one {# client} other {# clients}}"
 msgstr "{rowCount, plural, other {# 个客户}}"
 
+#: src/features/rules/sources-tab.tsx
+msgid "{ruleCount, plural, one {Feeds # rule} other {Feeds # rules}}"
+msgstr "{ruleCount, plural, other {为 # 条规则供数据}}"
+
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
 msgstr "{ruleReviewCount, plural, other {# 条规则正在排队进行到期日复核，复核通过后才能生效并生成客户截止事项。}}"
@@ -1421,8 +1427,8 @@ msgid "{total} checklist items weren't individually ticked during filing."
 msgstr "归档时有 {total} 个检查清单项未单独勾选。"
 
 #: src/routes/rules.library.tsx
-msgid "{totalActive} active"
-msgstr "{totalActive} 个活跃"
+msgid "{totalActive} active · {jurisdictionCount} jurisdictions"
+msgstr "{totalActive} 个活跃 · {jurisdictionCount} 个辖区"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "{totalAffected, plural, one {# client · 1 {firstForm} return affected} other {# clients · # {firstForm} returns affected}}"
@@ -1443,10 +1449,6 @@ msgstr "{totalOpen, plural, other {查看 # 个进行中的截止事项}}"
 #: src/routes/rules.library.tsx
 msgid "{totalPendingReview, plural, one {# rule needs your review} other {# rules need your review}}"
 msgstr "{totalPendingReview, plural, other {# 条规则待您复核}}"
-
-#: src/routes/rules.library.tsx
-msgid "{totalRules} rules across {jurisdictionCount} jurisdictions"
-msgstr "{jurisdictionCount} 个辖区共 {totalRules} 条规则"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "{totalValues, plural, one {entity type} other {entity types}}"
@@ -1769,6 +1771,10 @@ msgstr "针对单个截止日的简短说明，只基于已生效规则上下文
 msgid "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 msgstr "由客户事实和当前事务所已生效规则生成的具体合规截止日，比普通任务更结构化。"
 
+#: src/features/rules/states-rail.tsx
+msgid "A–Z"
+msgstr "A–Z"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "About 5 minutes of focused work"
 msgstr "约 5 分钟的专注操作"
@@ -1853,6 +1859,10 @@ msgstr "访问被拒绝"
 #: src/features/members/members-page.tsx
 msgid "access revoked, history kept"
 msgstr "访问已撤销，历史已保留"
+
+#: src/features/members/members-page.tsx
+msgid "Access suspended"
+msgstr "已暂停访问"
 
 #: src/features/members/member-model.ts
 msgid "Access to elevated workflow scopes"
@@ -1999,6 +2009,7 @@ msgid "Active stage detail"
 msgstr "当前阶段详情"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activity"
 msgstr "动态"
@@ -2638,6 +2649,10 @@ msgstr "无匹配"
 msgid "All materials are in."
 msgstr "所有材料均已齐备。"
 
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "All notifications marked read"
+msgstr "已将所有通知标记为已读"
+
 #: src/routes/obligations.tsx
 msgid "all on time"
 msgstr "全部按时"
@@ -3065,10 +3080,6 @@ msgstr "附上来源文档"
 msgid "attempt {attempt}"
 msgstr "第 {attempt} 次尝试"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Audit"
-msgstr "审计"
-
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -3150,7 +3161,6 @@ msgid "Audit timeline"
 msgstr "审计时间线"
 
 #: src/features/concepts/concept-help.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Audit trail"
 msgstr "审计轨迹"
 
@@ -3204,6 +3214,7 @@ msgid "Authority confirmed payment cleared"
 msgstr "税务机关确认款项已到账"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 msgstr "税务机关付款已逾期 {paymentLateDays} 天 —— 确认前将持续产生罚息。"
 
@@ -3729,7 +3740,6 @@ msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Card view"
 msgstr "卡片视图"
 
@@ -3982,6 +3992,13 @@ msgstr "清空全部州"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Clear assignee"
 msgstr "清除经办人"
+
+#: src/features/alerts/AlertHistoryView.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Clear filter"
+msgstr "清除筛选"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -4816,6 +4833,10 @@ msgstr "无法复制链接"
 msgid "Couldn't copy link — your browser blocked clipboard access."
 msgstr "无法复制链接 — 浏览器阻止了剪贴板访问。"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't copy recap"
+msgstr "无法复制摘要"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy source excerpt"
 msgstr "无法复制原文摘录"
@@ -5067,6 +5088,10 @@ msgstr "无法排队 morning digest 预览"
 msgid "Couldn't queue risk summary"
 msgstr "无法排队生成风险摘要"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't re-send invitation"
+msgstr "无法重新发送邀请"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't reactivate alert"
 msgstr "无法重新激活提醒"
@@ -5087,6 +5112,10 @@ msgstr "无法拒绝规则"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't remove document item"
 msgstr "无法移除文件项"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't remove member"
+msgstr "无法移除成员"
 
 #: src/routes/clients.tsx
 msgid "Couldn't remove sample data"
@@ -5231,6 +5260,10 @@ msgstr "无法启动导入流程"
 msgid "Couldn't submit readiness response"
 msgstr "无法提交准备状态回复"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't suspend access"
+msgstr "无法暂停访问"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Couldn't switch firm"
 msgstr "无法切换事务所"
@@ -5343,7 +5376,6 @@ msgstr "统计该客户已处于“已申报”或“已完成”状态的截止
 msgid "County"
 msgstr "县"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/routes/route-summary.ts
@@ -6958,6 +6990,10 @@ msgstr "导出 QuickBooks 客户"
 msgid "Export ready"
 msgstr "导出已就绪"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "Export requested"
+msgstr "已请求导出"
+
 #: src/routes/rules.library.tsx
 msgid "Export rules as CSV"
 msgstr "将规则导出为 CSV"
@@ -7181,6 +7217,7 @@ msgid "File type"
 msgstr "文件类型"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "已申报"
 
@@ -7312,7 +7349,6 @@ msgstr "报税州"
 
 #. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 msgstr "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 
@@ -7338,9 +7374,17 @@ msgid "Filter {jurisdictionLabel} rules"
 msgstr "筛选{jurisdictionLabel}规则"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "筛选提醒"
+
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter by client or form"
+msgstr "按客户或表单筛选"
+
+#: src/routes/obligations.tsx
+msgid "Filter by client, form, or assignee"
+msgstr "按客户、表单或经办人筛选"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #, fuzzy
@@ -7366,22 +7410,18 @@ msgstr "按州筛选"
 msgid "Filter by status"
 msgstr "按状态筛选"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Filter by title or source"
+msgstr "按标题或来源筛选"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "按类型筛选"
 
-#: src/routes/obligations.tsx
-msgid "Filter client, form, or assignee"
-msgstr "筛选客户、表单或负责人"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
 msgstr "筛选客户"
-
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Filter deadlines"
-msgstr "筛选截止事项"
 
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
@@ -7407,10 +7447,6 @@ msgstr "按时间范围筛选优先事项"
 #: src/routes/rules.library.tsx
 msgid "Filter rules"
 msgstr "筛选规则"
-
-#: src/routes/rules.library.tsx
-msgid "Filter rules…"
-msgstr "筛选规则…"
 
 #: src/routes/rules.library.tsx
 msgid "Filter the rule table by entity"
@@ -7731,6 +7767,10 @@ msgstr "生成文件清单"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generate draft"
 msgstr "生成草稿"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Generate the AI draft above to unlock Accept."
+msgstr "先生成上方的 AI 草稿以解锁“接受”。"
 
 #: src/components/primitives/ai-provenance-badge.tsx
 #, fuzzy
@@ -9345,6 +9385,7 @@ msgid "Member reactivated"
 msgstr "成员已重新启用"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/members/members-page.tsx
 msgid "Member removed"
 msgstr "成员已移除"
 
@@ -9778,6 +9819,7 @@ msgstr "需要协助"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "需复核"
@@ -10250,10 +10292,6 @@ msgstr "无豁免项"
 msgid "No jurisdictions match \"{search}\""
 msgstr "没有匹配 \"{search}\" 的辖区"
 
-#: src/features/rules/states-rail.tsx
-msgid "No jurisdictions need review"
-msgstr "没有辖区需要审阅"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
 msgstr "没有匹配规则"
@@ -10677,6 +10715,7 @@ msgstr "不是你的设备？"
 msgid "Note"
 msgstr "备注"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Note added"
 msgstr "备注已添加"
@@ -11184,7 +11223,6 @@ msgstr "正在打开…"
 msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 msgstr "成功生成后打开现有重复截止日期或新建截止日期。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "运营"
@@ -11561,11 +11599,11 @@ msgid "Payment"
 msgstr "付款"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays} days overdue"
 msgstr "付款逾期 {paymentLateDays} 天"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
 msgstr "Payment {paymentLateDays}d late"
 
@@ -11586,7 +11624,6 @@ msgid "Payment details stay with the processor"
 msgstr "支付详情由支付处理方保存"
 
 #: src/features/obligations/queue/components/panels.tsx
-#: src/routes/obligations.tsx
 msgid "Payment due"
 msgstr "应付款"
 
@@ -11912,6 +11949,7 @@ msgid "Practice deadlines"
 msgstr "事务所截止日期"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/practice.tsx
 msgid "Practice deleted"
 msgstr "事务所已删除"
 
@@ -12564,6 +12602,7 @@ msgstr "重新分类（实体类型变更，自某税年起生效）"
 msgid "Reclassified"
 msgstr "已重新分类"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "推荐"
@@ -12976,13 +13015,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "已向客户索取 {checklistCount} 项材料。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "需要"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "接受前必填"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -13176,6 +13210,10 @@ msgstr "立即审核 {codeList}"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "审核 {count} 项"
+
+#: src/routes/rules.library.tsx
+msgid "Review {highSeverityPending} high-severity rules"
+msgstr "审阅 {highSeverityPending} 项高严重度规则"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -13622,7 +13660,6 @@ msgstr "规则已更新"
 msgid "Rule version"
 msgstr "规则版本"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
@@ -14411,7 +14448,6 @@ msgstr "股东数量"
 msgid "Show"
 msgstr "显示"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "全部显示"
@@ -14424,6 +14460,7 @@ msgstr "显示全部警报"
 msgid "Show all deadlines"
 msgstr "显示全部截止事项"
 
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
 msgstr "显示全部事件"
@@ -14465,14 +14502,17 @@ msgstr "显示第 {firstItemNumber}-{lastItemNumber} 条，共 {loadedCount}+ �
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "显示 {firstItemNumber}-{lastItemNumber}，共 {totalCount} 条"
 
-#. placeholder {0}: states.length
-#: src/features/rules/states-rail.tsx
-msgid "Showing {shownStateCount} of {0} states"
-msgstr "显示 {shownStateCount} / {0} 个州"
-
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
 msgstr "Showing first {maxSelections} selections — refine the list to add more."
+
+#: src/routes/rules.library.tsx
+msgid "Showing rules from source"
+msgstr "仅显示该来源的规则"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Showing the full history of a single record."
+msgstr "仅显示单条记录的完整历史。"
 
 #: src/routes/accept-invite.tsx
 #: src/routes/route-summary.ts
@@ -14736,6 +14776,10 @@ msgstr "排序方式"
 #: src/routes/obligations.tsx
 msgid "Sort deadlines"
 msgstr "排序截止日"
+
+#: src/features/rules/states-rail.tsx
+msgid "Sort jurisdictions"
+msgstr "排序辖区"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -15192,7 +15236,6 @@ msgid "System updates"
 msgstr "系统更新"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Table view"
 msgstr "表格视图"
 
@@ -15979,10 +16022,6 @@ msgstr "待创建"
 msgid "to generate"
 msgstr "待生成"
 
-#: src/routes/rules.library.tsx
-msgid "to review"
-msgstr "待审阅"
-
 #: src/features/rules/RuleCoverageMap.tsx
 msgid "To review"
 msgstr "待审核"
@@ -16405,6 +16444,10 @@ msgstr "未保存的更改 · {reorderCount} 个截止日期将重新排序"
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "未保存的更改 · 计算预览以查看影响"
 
+#: src/features/obligations/timeline.tsx
+msgid "Up next"
+msgstr "接下来"
+
 #: src/routes/billing.tsx
 msgid "Up to 1,000 clients"
 msgstr "最多 1,000 个客户"
@@ -16675,9 +16718,30 @@ msgstr "查看"
 msgid "View {0}"
 msgstr "查看 {0}"
 
+#. placeholder {0}: member.name
+#: src/features/members/members-page.tsx
+msgid "View {0}'s deadlines"
+msgstr "查看 {0} 的截止日"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "View {assigneeName}’s deadlines"
+msgstr "查看 {assigneeName} 的截止日"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View {count} open deadlines for this client"
 msgstr "查看该客户的 {count} 个未完成截止日期"
+
+#: src/features/audit/audit-event-drawer.tsx
+msgid "View {entityTypeLabel}"
+msgstr "查看{entityTypeLabel}"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "View {name}’s deadlines"
+msgstr "查看 {name} 的截止日"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View affected clients"
+msgstr "查看受影响的客户"
 
 #: src/features/rules/matched-pulse-block.tsx
 msgid "View alert"
@@ -16755,6 +16819,10 @@ msgid "View deadlines due this week"
 msgstr "查看本周到期的截止日期"
 
 #: src/features/rules/rule-detail-drawer.tsx
+msgid "View deadlines from this rule"
+msgstr "查看由该规则生成的截止日"
+
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
 msgstr "查看延期规则"
 
@@ -16762,13 +16830,17 @@ msgstr "查看延期规则"
 msgid "View history"
 msgstr "查看历史"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View in full audit log"
+msgstr "在完整审计日志中查看"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
 msgstr "查看需要您审核的项目"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "查看模式"
 
@@ -16926,6 +16998,10 @@ msgstr ""
 #: src/features/onboarding/first-run-tour.tsx
 msgid "We watch the agencies' sources 24/7. When a rule or date changes, it lands here — with who's affected."
 msgstr ""
+
+#: src/features/audit/audit-log-page.tsx
+msgid "We're preparing the evidence package — it'll be ready to download here shortly."
+msgstr "正在准备证据包 —— 稍后即可在此处下载。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"

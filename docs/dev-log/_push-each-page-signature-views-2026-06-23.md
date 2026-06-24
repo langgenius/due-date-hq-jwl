@@ -17,23 +17,23 @@ leaving the design system.
 > **Restore note (2026-06-23, later same day):** this whole feature was dropped
 > from `main` by a parallel session's history rewrite and re-applied here (the
 > three new files + the wiring came back cleanly via `git cherry-pick -x`, no
-> conflicts; catalog strings re-merged from the dropped i18n commit). Per Yuqi's
-> call on restore, the **per-page defaults differ**: `/clients` keeps **cards as
-> the default** (registry table = toggle), but **`/deadlines` now defaults to the
-> table/list** with cards as the opt-in toggle. `readStoredDeadlinesView` returns
-> `'table'` unless the browser has an explicit stored `'cards'` choice.
+> conflicts; catalog strings re-merged from the dropped i18n commit). On restore
+> `/deadlines` was briefly defaulted to the table; **Yuqi then re-pushed cards as
+> the default** (2026-06-23), so both `/clients` and `/deadlines` default to
+> **cards** again (registry table = opt-in toggle). `readStoredDeadlinesView`
+> returns `'cards'` unless the browser has an explicit stored `'table'` choice.
 
 ## What shipped
 
 - **`/clients` → portfolio cards** (default; registry table = Segmented toggle,
   persisted). Cards in **urgency swim lanes** (Overdue → Due this week → Upcoming →
   No deadlines). Each card: square monogram + name + entity/state chips + owner;
-  a **bold days-to-deadline numeral** whose colour is the card's *only* urgency
+  a **bold days-to-deadline numeral** whose colour is the card's _only_ urgency
   tone (red late / amber ≤7d / neutral); prose date + form + status. Compact
   (p-3, ~150px), white cards on a gray well for figure/ground.
 
-- **`/deadlines` → deadline cards** (opt-in toggle; **table is the default** — see
-  restore note). Same DNA: urgency
+- **`/deadlines` → deadline cards** (default; registry table = Segmented toggle).
+  Same DNA: urgency
   lanes (settled rows parked in a calm **Filed** lane, not scattered red through
   the urgent lanes), countdown hero, gray well. Triage signals the status pill
   can't carry render as **quiet inline icons** (e-file rejected · payment overdue

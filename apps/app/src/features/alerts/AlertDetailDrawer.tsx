@@ -1244,8 +1244,12 @@ export function AlertDetailDrawer({
             impact_level: alertImpactLevel(detail.alert),
           })
         }
-        toast.success(t`Alert dismissed`)
-        onClose()
+        // Dismiss resolves the alert → advance to the next in the rail (same
+        // triage flow as Mark reviewed), or close back to the list when it was
+        // the last one. The toast names where it went.
+        toast.success(t`Alert dismissed`, { description: t`Moved to Alert history.` })
+        if (onNext) onNext()
+        else onClose()
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
@@ -1840,6 +1844,59 @@ export function AlertDetailDrawer({
           ) : null}
         </SheetHeader>
 
+        {/* Section nav — a FULL-WIDTH white bar directly under the hero (Yuqi
+            2026-06-23: "occupy the full width of the right side … white
+            background"), so the nav + hero read as one masthead. Sticky at the
+            scroll top; the tabs center to the same 880 column as the hero + the
+            cards. Lives OUTSIDE the 880-constrained content column below so the
+            white spans edge-to-edge. */}
+        {detail ? (
+          <nav
+            aria-label={t`Alert sections`}
+            className="sticky top-0 z-10 shrink-0 bg-background-default px-6 pt-3 xl:px-12"
+          >
+            <div className="mx-auto flex w-full max-w-[880px] items-center gap-5 border-b border-divider-subtle pb-2">
+              {sectionNavItems.map((item) => {
+                const sectionActive = item.id === activeSection
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={(event) => {
+                      // Move the underline to the clicked section immediately —
+                      // the scroll-spy `activeSection` otherwise only catches up
+                      // once the smooth-scroll settles, lagging the click.
+                      setActiveSection(item.id)
+                      event.currentTarget
+                        .closest('[class*="overflow-y-auto"]')
+                        ?.querySelector(`#${item.id}`)
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }}
+                    className={cn(
+                      'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      sectionActive
+                        ? 'text-text-accent'
+                        : 'text-text-tertiary hover:text-text-secondary',
+                    )}
+                  >
+                    {item.label}
+                    {sectionActive ? (
+                      // Shared-layout underline — slides between scroll-spy
+                      // sections instead of blinking. Reduced-motion handled globally.
+                      <motion.span
+                        layoutId="alert-detail-section-underline"
+                        aria-hidden
+                        className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                        transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                      />
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          </nav>
+        ) : null}
+
         {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
           row never hides behind it.
@@ -1847,58 +1904,7 @@ export function AlertDetailDrawer({
           is very-light-gray (bg-background-subtle) so the white bordered
           DetailSectionCards read AS cards. The sticky section-nav below keeps
           its own white backing so cards scroll cleanly underneath it. */}
-        <div className="flex flex-1 flex-col gap-6 bg-background-section px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
-          {/* Scroll-spy section nav (deadline-tab orientation on one long
-            document). Sticky at the scroll viewport top; lighter than the
-            deadline pill tabs (text + underline) so it reads as a table of
-            contents, not behaviour-switching tabs. */}
-          {detail ? (
-            <nav
-              aria-label={t`Alert sections`}
-              className="sticky top-0 z-10 shrink-0 bg-background-default py-3"
-            >
-              <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
-                {sectionNavItems.map((item) => {
-                  const sectionActive = item.id === activeSection
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={(event) =>
-                        event.currentTarget
-                          .closest('[class*="overflow-y-auto"]')
-                          ?.querySelector(`#${item.id}`)
-                          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                      }
-                      className={cn(
-                        'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                        sectionActive
-                          ? 'text-text-accent'
-                          : 'text-text-tertiary hover:text-text-secondary',
-                      )}
-                    >
-                      {item.label}
-                      {sectionActive ? (
-                        // Shared-layout underline — slides between scroll-spy
-                        // sections instead of blinking (same pattern as the
-                        // client-detail tabs). Reduced-motion handled globally.
-                        <motion.span
-                          layoutId="alert-detail-section-underline"
-                          aria-hidden
-                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
-                          transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-                        />
-                      ) : null}
-                    </button>
-                  )
-                })}
-                {/* 2026-06-15 critique #10: dropped the "Scroll to read all N
-                    sections" caption — a tutorial line that went stale the
-                    instant you scrolled. The scroll-spy underline + the content
-                    cut off below the fold already say "there's more". */}
-              </div>
-            </nav>
-          ) : null}
+        <div className="flex flex-1 flex-col gap-6 bg-background-section px-6 pt-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Body order leads with the decision banner + key change + facts
             + affected clients, and keeps the verbatim SOURCE EXTRACT quote
             as a supporting anchor near the bottom (just before
@@ -2451,7 +2457,11 @@ export function AlertDetailDrawer({
           {detail ? (
             <div
               className={cn(
-                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+                // bg matches the document body (bg-background-section), not white
+                // (Yuqi 2026-06-23 "remove white background") — still opaque so it
+                // masks the document scrolling under it, but no longer reads as a
+                // distinct white bar against the gray body.
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-section py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
                 decisionDocked ? 'border-transparent' : 'border-divider-subtle',
               )}
               // Float elevation as an inline style — an arbitrary

@@ -427,8 +427,11 @@ export function MergedBriefCard({
           </svg>
           <span
             // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
-            // fade — a small "you're clear" beat. Calm, not confetti.
-            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
+            // fade — a small "you're clear" beat. Calm, not confetti. Palette
+            // finish: the disc wears the LIME celebration highlight (the one
+            // sanctioned home for the all-clear beat) — navy glyph on lime for
+            // a warm, legible pop, never white text on the light fill.
+            className="flex size-14 items-center justify-center rounded-full bg-highlight-celebrate animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
             <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />

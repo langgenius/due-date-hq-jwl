@@ -221,10 +221,10 @@ export function resolveOverdueConcentration(
 ): { taxType: string; count: number; overdueTotal: number } | null {
   let top: { taxType: string; count: number } | null = null
   let overdueTotal = 0
-  for (const [taxType, count] of overdueByTaxType) {
-    overdueTotal += count
-    if (!top || count > top.count || (count === top.count && taxType < top.taxType)) {
-      top = { taxType, count }
+  for (const [taxType, taxTypeCount] of overdueByTaxType) {
+    overdueTotal += taxTypeCount
+    if (!top || taxTypeCount > top.count || (taxTypeCount === top.count && taxType < top.taxType)) {
+      top = { taxType, count: taxTypeCount }
     }
   }
   return top ? { ...top, overdueTotal } : null

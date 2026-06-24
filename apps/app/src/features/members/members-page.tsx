@@ -225,6 +225,16 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     orpc.members.suspend.mutationOptions({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        // Suspend changes nothing the user is looking at (the menu closes),
+        // so confirm the action landed — mirror the resend/cancel toasts.
+        toast.success(t`Access suspended`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't suspend access`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
@@ -241,6 +251,16 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         setPendingRemoval(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         track(ANALYTICS_EVENTS.memberRevoked, {})
+        // Destructive action that closes the dialog silently — confirm it
+        // committed so the user isn't left guessing.
+        toast.success(t`Member removed`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't remove member`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
@@ -252,6 +272,13 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         // 2026-06-16 (audit): Resend succeeded silently — nothing on the row
         // changes, so the user got zero confirmation. Close the loop.
         toast.success(t`Invitation re-sent`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't re-send invitation`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )
@@ -977,6 +1004,7 @@ function PendingInvitationsTable({
 }
 
 function MemberIdentity({ member }: { member: MemberPublic }) {
+  const { t } = useLingui()
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       {/* AssigneeAvatar primitive at size-6 ('sm'). The shared
@@ -985,14 +1013,20 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
           tooltip; aria metadata lives on the avatar so the sibling text-name
           reads naturally and the avatar stays decorative. */}
       <AssigneeAvatar name={member.name} image={member.image} size="sm" title={member.name} />
-      <span
+      {/* The name links to this teammate's deadlines (assignee filter is keyed
+          by name — see /deadlines `assignees` param). Turns the roster into a
+          jump-off to "what is this person working on", the team↔work link the
+          members page was missing. */}
+      <Link
+        to={`/deadlines?assignee=${encodeURIComponent(member.name)}`}
+        title={t`View ${member.name}'s deadlines`}
         className={cn(
-          'truncate text-xs font-medium',
+          'truncate rounded-sm text-xs font-medium underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           member.status === 'suspended' ? 'text-text-muted' : 'text-text-primary',
         )}
       >
         {member.name}
-      </span>
+      </Link>
       {member.isCurrentUser ? (
         <Badge variant="secondary" className="h-4 rounded-sm px-1.5 font-mono text-caption-xs">
           <Trans>You</Trans>

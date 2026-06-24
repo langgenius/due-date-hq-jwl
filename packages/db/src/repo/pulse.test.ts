@@ -463,6 +463,34 @@ describe('makePulseRepo', () => {
     expect(alerts[2]?.duplicateSourceSnapshotCount).toBe(1)
   })
 
+  it('keeps partially-applied history out of the active alert list query', async () => {
+    const { db } = fakeDb([[ALERT]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.listAlerts({ limit: 50 })
+
+    const select = (db as unknown as { select: ReturnType<typeof vi.fn> }).select
+    const chain = select.mock.results[0]?.value as { where: ReturnType<typeof vi.fn> }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
+    const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
+    expect(query.params).toContain('matched')
+    expect(query.params).not.toContain('partially_applied')
+  })
+
+  it('counts only open review plus active alerts, not alert history', async () => {
+    const { db } = fakeDb([[{ value: 2 }]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(repo.countActiveAlerts()).resolves.toBe(2)
+
+    const select = (db as unknown as { select: ReturnType<typeof vi.fn> }).select
+    const chain = select.mock.results[0]?.value as { where: ReturnType<typeof vi.fn> }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
+    const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
+    expect(query.params).toContain('matched')
+    expect(query.params).not.toContain('partially_applied')
+  })
+
   it('surfaces expired matched alerts in history alongside handled ones', async () => {
     // A 'matched' alert that aged out of the active queue (deadline passed) is
     // neither active nor handled; listHistory's SQL re-includes it via

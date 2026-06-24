@@ -821,7 +821,6 @@ function OverviewReviewBreakdown({
   }>
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
-  const { t } = useLingui()
   const now = Date.now()
 
   return (
@@ -839,14 +838,17 @@ function OverviewReviewBreakdown({
         </span>
       </div>
       {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID. Each card
-          is a click target into that jurisdiction's review queue AND a
-          per-jurisdiction echo of the StatBand above — same label · value · sub
-          grammar (identity → count → differentiators) so the two zones read as
-          one family rather than a flat band fighting a row of boxed cards.
-          Color budget mirrors the band: the count stays NEUTRAL, the lone red
-          flag is high-severity (von-Restorff — only the "review these first"
-          jurisdictions light up); the colorful state seals carry the rest. */}
-      <div className="grid min-w-0 grid-cols-1 gap-3 @lg:grid-cols-2">
+          is a click target into that jurisdiction's review queue. 2026-06-23
+          (Yuqi): the cards used to echo the StatBand — a big `text-stat-value`
+          number per card — which CLASHED with the stat-card row directly above
+          (two KPI bands stacked) and read as terse data, not an action. So this
+          zone deliberately diverges: this is an actionable RANKED LIST, not a
+          KPI grid. No protagonist number; instead a readable SENTENCE per card
+          ("New York — 16 rules to review · 20 active") with the count inline at
+          data weight (500) inside the sentence, and the lone red high-severity
+          flag (von-Restorff) called out below as a quiet pill. Denser padding
+          (p-3.5) + smaller seal so the list reads lighter than the band. */}
+      <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
         {jurisdictions.map((g) => {
           const days =
             g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
@@ -855,45 +857,56 @@ function OverviewReviewBreakdown({
               key={g.jurisdiction}
               type="button"
               onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+              className="group flex cursor-pointer items-start gap-3 rounded-xl border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
             >
-              {/* Identity (the card's "label"): seal + jurisdiction name. The
-                  whole card is the button + has a hover/focus state, so no
-                  per-card chevron is needed — it was redundant chrome. */}
-              <div className="flex items-center gap-2.5">
-                <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-                <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
-                  {g.label}
-                </span>
+              {/* Seal sits inline at the start of the row (a list affordance),
+                  not stacked as a card header — keeps the card shallow. */}
+              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                {/* The sentence. Jurisdiction name at title weight (500), then a
+                    dash and the readable backlog phrase. The pending count is the
+                    only number, set at data weight (500) inline — not a giant
+                    stat-value — so the row reads as prose, distinct from the
+                    band's "label · big number · sub" grammar above. */}
+                <p className="text-sm leading-snug text-text-secondary">
+                  <span className="font-medium text-text-primary">{g.label}</span>
+                  {' — '}
+                  <Plural
+                    value={g.pendingReviewCount}
+                    one={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rule
+                        to review
+                      </Trans>
+                    }
+                    other={
+                      <Trans>
+                        <span className="font-medium text-text-primary tabular-nums">#</span> rules
+                        to review
+                      </Trans>
+                    }
+                  />
+                  {g.readyCount > 0 ? (
+                    <>
+                      {' · '}
+                      <Trans>{g.readyCount} ready</Trans>
+                    </>
+                  ) : days != null ? (
+                    <>
+                      {' · '}
+                      <Trans>{days}d waiting</Trans>
+                    </>
+                  ) : null}
+                </p>
+                {/* High-severity is the lone color signal (von-Restorff): a quiet
+                    warning-toned pill, only when the jurisdiction carries high-risk
+                    rules. Everything else in the sentence stays neutral. */}
+                {g.highCount > 0 ? (
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-medium text-text-warning">
+                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                  </span>
+                ) : null}
               </div>
-              {/* Value (protagonist): the pending count is the biggest thing on
-                  the card — "numbers as protagonists, large but quiet". "to
-                  review" demotes to a quiet inline unit so it stops repeating
-                  loudly down the grid. Neutral per the band's color budget; the
-                  counts descend (19 → 16 → 12 → 10), so the number itself
-                  carries the "most urgent first" ranking. */}
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-stat-value leading-none font-medium tracking-tight tabular-nums text-text-primary">
-                  {g.pendingReviewCount}
-                </span>
-                <span className="text-xs font-medium text-text-tertiary">
-                  <Trans>to review</Trans>
-                </span>
-              </div>
-              {/* Sub — shortened differentiators, no per-segment color, wraps
-                  rather than truncating (so NY's "8 ready · 4 high-severity"
-                  never clips at the 2-column breakpoint). Falls back to the wait
-                  age when a card carries no flags. */}
-              {(() => {
-                const facts = [
-                  g.readyCount > 0 ? t`${g.readyCount} ready` : null,
-                  g.highCount > 0 ? t`${g.highCount} high-severity` : null,
-                ].filter((f): f is string => f !== null)
-                const text =
-                  facts.length > 0 ? facts.join(' · ') : days != null ? t`${days}d waiting` : null
-                if (text == null) return null
-                return <span className="text-xs font-medium text-text-tertiary">{text}</span>
-              })()}
             </button>
           )
         })}
@@ -1133,13 +1146,16 @@ function OverviewCaughtUpCard({
     'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
   const linkArrowClass = 'size-3.5 transition-transform group-hover/link:translate-x-0.5'
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-background-subtle px-6 py-10">
+    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl border border-divider-warm bg-background-well-warm px-6 py-10">
       <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
+        {/* Palette finish: a clear review queue is a reward, so the disc wears
+            the LIME celebration highlight (matching the /today all-clear beat) —
+            dark check on lime, never a light glyph on the light fill. */}
         <span
           aria-hidden
-          className="flex size-12 items-center justify-center rounded-full bg-state-success-hover"
+          className="flex size-12 items-center justify-center rounded-full bg-highlight-celebrate"
         >
-          <CheckIcon className="size-[22px] text-state-success-solid" />
+          <CheckIcon className="size-[22px] text-text-primary" />
         </span>
         <span className="text-xl font-semibold tracking-title text-text-primary">
           <Trans>Review queue is clear</Trans>
@@ -1214,6 +1230,11 @@ export function RulesLibraryRoute() {
   // The selected jurisdiction drives the right-pane flat table. URL-bound
   // so a state deep-links; null / unknown code = the All overview.
   const [jurisdictionParam, setJurisdiction] = useQueryState('jurisdiction', parseAsString)
+  // Source filter (?source=<sourceId>) — the inbound link from /rules/sources.
+  // De-isolates the Sources page: clicking a source's rule count lands here
+  // scoped to exactly the rules that cite that monitored source. Renders the
+  // flat results list (like search) plus a dismissible chip.
+  const [sourceParam, setSourceParam] = useQueryState('source', parseAsString)
   // Scope tabs above the table. URL-bound so the active scope deep-links.
   // Default is 'all'. `null` from nuqs maps back to 'all' for the
   // activeScope computation so the chip is always one of the four known
@@ -1763,6 +1784,19 @@ export function RulesLibraryRoute() {
     })
   }, [filteredRules, searchLower])
 
+  // Rules that cite the ?source= source, shown as the flat results list when a
+  // source filter is active (no search term needed). Mirrors `matchedRules`.
+  const sourceMatchedRules = useMemo(
+    () => (sourceParam ? filteredRules.filter((rule) => rule.sourceIds.includes(sourceParam)) : []),
+    [filteredRules, sourceParam],
+  )
+  // sourceId → human title for the active-source chip label.
+  const sourceTitleById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const source of sourcesQuery.data ?? []) map.set(source.id, source.title)
+    return map
+  }, [sourcesQuery.data])
+
   const selectedRule = useMemo(
     () => (ruleId ? (rules.find((r) => r.id === ruleId) ?? null) : null),
     [ruleId, rules],
@@ -1918,6 +1952,21 @@ export function RulesLibraryRoute() {
     [rules],
   )
 
+  // High-severity slice of the review backlog — drives the StatBand
+  // High-severity column's "Review these first" action (select-and-open the
+  // bulk modal pre-scoped to the high-risk rules), the same select-then-open
+  // idiom the "Start review" header button uses.
+  const highSeverityReviewableRuleIds = useMemo(
+    () =>
+      rules
+        .filter(
+          (r) =>
+            (r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high',
+        )
+        .map((r) => r.id),
+    [rules],
+  )
+
   // How many pending rules are blocked behind an AI concrete draft — a
   // source-defined rule with no ready draft *cannot* be accepted yet (this is
   // the server's `source_defined_requires_ai_review` gate, computed here from
@@ -1951,6 +2000,7 @@ export function RulesLibraryRoute() {
     )
   }, [rules, selectedRuleIds])
 
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-bulk surface mid-build
   const _openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2105,6 +2155,7 @@ export function RulesLibraryRoute() {
   // Start the batch review queue with everything that's pending. The
   // header button is the "I just want to clear my review queue" path
   // (CPA opens the page, hits Start review, walks through 459 cards).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; wired into review-all flow mid-build
   const _startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
@@ -2119,6 +2170,7 @@ export function RulesLibraryRoute() {
   // shell's `actions` slot. Replaces the prior standalone PageActions
   // row (which left a ~48px dead zone between the title and the next
   // content block).
+  // eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces in pending review-all UI
   const _reviewCount = allReviewableRuleIds.length
   const currentBatchReviewRuleId =
     batchReviewIndex === null ? null : (batchReviewRuleIds?.[batchReviewIndex] ?? null)
@@ -2434,6 +2486,19 @@ export function RulesLibraryRoute() {
       value: highSeverityPending,
       sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
       subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      // "action?" (Yuqi): when high-risk rules are waiting, the column is a
+      // shortcut — select all high-severity reviewable rules and open the bulk
+      // modal scoped to them (same select-then-open idiom as "Start review").
+      // No work waiting → stays a read-only column.
+      ...(highSeverityPending > 0 && highSeverityReviewableRuleIds.length > 0
+        ? {
+            onClick: () => {
+              setSelectedRuleIds(new Set(highSeverityReviewableRuleIds))
+              setBulkListOpen(true)
+            },
+            ariaLabel: t`Review ${highSeverityPending} high-severity rules`,
+          }
+        : {}),
     },
     {
       key: 'coverage',
@@ -2449,7 +2514,10 @@ export function RulesLibraryRoute() {
       key: 'total',
       label: t`Total rules`,
       value: totalRules,
-      sub: t`${totalActive} active`,
+      // The page subtitle's "N rules across M jurisdictions" was redundant with
+      // this anchor stat, so the jurisdiction count folds in here (Yuqi: "do we
+      // need this?") and the subtitle drops — one home for the catalog totals.
+      sub: t`${totalActive} active · ${jurisdictionCount} jurisdictions`,
       // Anchor/context stat — stays NEUTRAL (2026-06-18 color budget). Color in a
       // StatBand is reserved for conditionally-actionable stats (the three above
       // go amber only when there's work); an always-on accent on the vanity total
@@ -2559,23 +2627,37 @@ export function RulesLibraryRoute() {
                 }
               />
             ) : (
-              // Overview header (Pencil O0pyRO): a sentence-case "Live"
-              // status eyebrow with a green sync dot, the "Rule library"
-              // title + "N rules across M jurisdictions" subtitle, and a
-              // lean two-button action cluster (Export + Add rule). The
-              // catalog totals live in the subtitle + stats band below.
-              <PageHeader
-                title={<Trans>Rule library</Trans>}
-                description={
-                  !statsLoading ? (
-                    <Trans>
-                      {totalRules} rules across {jurisdictionCount} jurisdictions
-                    </Trans>
-                  ) : undefined
-                }
-                actions={overviewHeaderActions}
-              />
+              // Overview header (Pencil O0pyRO): the "Rule library" title and a
+              // lean two-button action cluster (Export + Add rule). The catalog
+              // totals ("N rules across M jurisdictions") used to live in a
+              // subtitle here, but it duplicated the StatBand's Total rules
+              // column below — so the subtitle drops (Yuqi: "do we need this?")
+              // and the jurisdiction count folds into that anchor stat instead.
+              <PageHeader title={<Trans>Rule library</Trans>} actions={overviewHeaderActions} />
             )}
+
+            {/* Active source filter chip — when arriving from a source's
+                "Feeds N rules" link (?source=). Names the source and clears
+                back to the full library. */}
+            {sourceParam ? (
+              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
+                <span className="text-sm text-text-secondary">
+                  <Trans>Showing rules from source</Trans>
+                </span>
+                <span className="truncate text-sm font-medium text-text-primary">
+                  {sourceTitleById.get(sourceParam) ?? sourceParam}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto h-7 shrink-0"
+                  onClick={() => void setSourceParam(null)}
+                >
+                  <Trans>Clear</Trans>
+                </Button>
+              </div>
+            ) : null}
 
             {/* Body. The Overview (no jurisdiction selected, not
               mid-search) is the clean Pencil O0pyRO dashboard — a
@@ -2609,7 +2691,7 @@ export function RulesLibraryRoute() {
                   </Button>
                 </AlertDescription>
               </Alert>
-            ) : selectedGroup || isSearching ? (
+            ) : selectedGroup || isSearching || sourceParam ? (
               <>
                 {/* KPI strip — 4-stat band (Total / Effective / Pending /
                   Deprecated) for the selected jurisdiction. */}
@@ -2681,7 +2763,7 @@ export function RulesLibraryRoute() {
                       <CollapsibleSearch
                         value={search ?? ''}
                         onChange={(next) => void setSearch(next || null)}
-                        placeholder={t`Filter rules…`}
+                        placeholder={t`Filter rules`}
                         ariaLabel={t`Filter rules`}
                         collapsedLabel={t`Filter rules`}
                         hotkey="/"
@@ -2721,10 +2803,18 @@ export function RulesLibraryRoute() {
                         }
                       />
                     ) : (
-                      // Active rule search → flat global results.
+                      // Active rule search → flat global results. When a
+                      // ?source= filter is active without a search term, the
+                      // same flat table lists that source's rules instead.
                       <SearchResultsTable
                         activeRuleId={ruleId}
-                        rules={matchedRules}
+                        rules={
+                          isSearching
+                            ? matchedRules
+                            : sourceParam
+                              ? sourceMatchedRules
+                              : matchedRules
+                        }
                         query={searchLower}
                         onRuleClick={handleRuleClick}
                         focusedRowId={focusedRowId}
@@ -2759,10 +2849,18 @@ export function RulesLibraryRoute() {
                     When the queue is NOT clear, tell the CPA plainly that
                     rules are waiting and give them a one-click way into the
                     bulk review (select all pending → open the review list). */}
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-state-accent-hover px-4 py-3.5">
+                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
+                  {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
+                      the middle"): the strip was a chromatic navy wash
+                      (state-accent-hover) that read as neither calm nor a
+                      purposeful prompt. Resolved toward a CALM neutral wash
+                      (background-section) — the accent now lives only in the
+                      icon chip and the Start-review CTA (containers, not the
+                      wash; per the no-colored-wash canon), so the one true
+                      action stands out instead of the whole strip glowing. */}
                   <span
                     aria-hidden
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-default text-text-accent"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover-alt text-text-accent"
                   >
                     <EyeIcon className="size-[18px]" />
                   </span>
@@ -3004,6 +3102,7 @@ type ProgressSegment = {
   text: string
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed; surfaces with review-all progress
 function _RuleReviewProgressBar(
   props:
     | { loading: true; statusCounts?: never }
@@ -3260,6 +3359,7 @@ function RowNavHints() {
 // First-time empty state. Uses the canonical `EmptyState` primitive shared
 // with /deadlines + /clients + /alerts; renders inside the table-card frame
 // so the chrome stays consistent across full / empty states.
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3301,6 +3401,7 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   )
 }
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed empty-state component
 function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -3328,6 +3429,7 @@ function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 // Grouped rules table — the main visualization
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line no-underscore-dangle -- intentionally stashed grouped-table variant
 function _GroupedRulesTable({
   activeScope,
   activeRuleId,
@@ -4566,51 +4668,68 @@ function RuleDetailHeroCard({
   // Dialog close button's top-right corner clear.
   return (
     <header className="shrink-0 border-b border-divider-regular bg-background-default px-6 pt-5 pb-4">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
-        <Badge variant={isReviewable ? 'warning' : 'success'} className="gap-1 px-2 font-semibold">
-          {isReviewable ? (
-            <ClockIcon aria-hidden className="size-2.5" />
-          ) : (
-            <CircleCheckIcon aria-hidden className="size-2.5" />
-          )}
-          {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
-        </Badge>
-        {reviewTask ? (
-          <span className="text-xs font-medium text-text-tertiary">
-            <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
-          </span>
-        ) : null}
-        {reviewTask ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="text-xs font-medium text-text-tertiary">
-              <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
-            </span>
-          </>
-        ) : null}
-        {aiPct !== null ? (
-          <>
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
-              <SparklesIcon aria-hidden className="size-2.5" />
-              <Trans>AI {aiPct}%</Trans>
-            </span>
-          </>
-        ) : null}
+      <div className="flex items-start gap-4">
+        {/* Canonical jurisdiction mark — the same StateBadge seal the rail and
+            overview cards use, here as the hero's identity anchor. The header
+            was text-only ("AL · …") before, the one jurisdiction surface that
+            dropped the seal. */}
+        <StateBadge
+          code={rule.jurisdiction}
+          size="lg"
+          preview={false}
+          className="mt-0.5 shrink-0"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
+            <Badge
+              variant={isReviewable ? 'warning' : 'success'}
+              className="gap-1 px-2 font-semibold"
+            >
+              {isReviewable ? (
+                <ClockIcon aria-hidden className="size-2.5" />
+              ) : (
+                <CircleCheckIcon aria-hidden className="size-2.5" />
+              )}
+              {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
+            </Badge>
+            {reviewTask ? (
+              <span className="text-xs font-medium text-text-tertiary">
+                <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
+              </span>
+            ) : null}
+            {reviewTask ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
+                </span>
+              </>
+            ) : null}
+            {aiPct !== null ? (
+              <>
+                <span aria-hidden className="text-text-muted">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
+                  <SparklesIcon aria-hidden className="size-2.5" />
+                  <Trans>AI {aiPct}%</Trans>
+                </span>
+              </>
+            ) : null}
+          </div>
+          <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
+            {rule.title}
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
+          </p>
+          {rule.defaultTip ? (
+            <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
+          ) : null}
+        </div>
       </div>
-      <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
-        {rule.title}
-      </h2>
-      <p className="mt-1 text-sm text-text-secondary">
-        {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
-      </p>
-      {rule.defaultTip ? (
-        <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
-      ) : null}
     </header>
   )
 }
@@ -4793,7 +4912,7 @@ function BulkReviewListModal({
   //  - draftNeedsReviewIds: has a draft but it's low-confidence / fuzzy-excerpt, so it
   //    must be reviewed individually (the server trust gate would skip it in bulk).
   const { draftSelections, draftNeedsReviewIds } = useMemo(() => {
-    const selections: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+    const drafts: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
     const needsReview = new Set<string>()
     for (const rule of included) {
       if (!isSourceDefinedRule(rule)) continue
@@ -4804,14 +4923,14 @@ function BulkReviewListModal({
       if (entry.bulkTrustIssue) {
         needsReview.add(rule.id)
       } else {
-        selections.push({
+        drafts.push({
           ruleId: rule.id,
           sourceId: entry.sourceId,
           aiOutputId: entry.draft.aiOutputId,
         })
       }
     }
-    return { draftSelections: selections, draftNeedsReviewIds: needsReview }
+    return { draftSelections: drafts, draftNeedsReviewIds: needsReview }
   }, [included, concreteDraftByTarget])
   const draftReadyIds = useMemo(
     () => new Set(draftSelections.map((s) => s.ruleId)),
@@ -4915,14 +5034,13 @@ function BulkReviewListModal({
 
   async function handleAccept() {
     if (!canAccept) return
-    const note = noteTrimmed
     try {
       const [templateResult, draftResult] = await Promise.all([
         templateSelections.length > 0
-          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: note })
+          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ accepted: [], skipped: [] }),
         draftSelections.length > 0
-          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: note })
+          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: noteTrimmed })
           : Promise.resolve({ verified: [], skipped: [] }),
       ])
       const accepted = templateResult.accepted.length + draftResult.verified.length
@@ -4950,8 +5068,10 @@ function BulkReviewListModal({
     for (const rule of included) {
       try {
         if (isSourceDefinedRule(rule)) {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectCandidateMutation.mutateAsync({ ruleId: rule.id, reason: noteTrimmed })
         } else {
+          // oxlint-disable-next-line no-await-in-loop -- sequential rejection keeps the audit-log ordering and limits concurrent server load
           await rejectTemplateMutation.mutateAsync({
             ruleId: rule.id,
             expectedVersion: rule.version,
@@ -5682,6 +5802,12 @@ function NewRuleModal({
         // Re-fetch rules + coverage so the new rule appears in the
         // library and the gap row disappears.
         void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        // The server ACTIVATES the rule immediately, so it can generate
+        // deadlines + write an audit event — fan out to the downstream
+        // surfaces too (audit P3), matching the accept-rule mutation above.
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         track(ANALYTICS_EVENTS.customRuleCreated, {
           jurisdiction: seed.jurisdiction,
           filing_type: taxType.trim(),

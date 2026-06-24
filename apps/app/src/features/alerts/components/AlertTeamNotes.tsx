@@ -37,6 +37,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
       onSuccess: () => {
         setDraft('')
         invalidateNotes()
+        toast.success(t`Note added`)
       },
       onError: (err) => {
         toast.error(t`Couldn't add note`, {

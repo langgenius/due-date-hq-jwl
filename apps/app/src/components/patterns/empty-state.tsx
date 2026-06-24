@@ -40,6 +40,7 @@ export function EmptyState({
   density = 'default',
   variant = 'default',
   iconTone = 'accent',
+  tone = 'warm',
   visual = 'icon',
   duotoneTone = 'accent',
   fill = false,
@@ -61,10 +62,18 @@ export function EmptyState({
   // drops the card chrome for table-cell / drawer embeds.
   variant?: 'default' | 'prominent'
   // Prominent icon-circle tone.
-  // `accent` is the blue tint (Pencil active /alerts empty — 88px #eff4ff circle,
-  // #155aef icon); `neutral` is the quieter gray tint (Pencil /alerts/history
-  // empty — 72px #f9fafb circle, #98a2b2 icon). Ignored outside `prominent`.
-  iconTone?: 'accent' | 'neutral'
+  // `accent` is the navy tint (88px wash circle, accent icon); `neutral` is the
+  // quieter gray tint (72px gray circle, muted icon); `celebrate` is the LIME
+  // reward tint (88px `--highlight-celebrate` circle, dark glyph) — reserved for
+  // genuine "you cleared it" moments (queue clear, all done), never for a quiet
+  // "nothing yet" state. Ignored outside `prominent`.
+  iconTone?: 'accent' | 'neutral' | 'celebrate'
+  // Card warmth (palette finish). `warm` (default) gives the PROMINENT card a
+  // soft stone well (`--background-well-warm` + warm hairline) — full-surface
+  // empties are resting / invitational moments where the warm half of the
+  // palette belongs. `plain` keeps the white card for the rare context where
+  // warm would clash. No effect on `default`/`compact` (dense inline) empties.
+  tone?: 'warm' | 'plain'
   // Prominent visual: `icon` (default) = the tinted icon-circle above; `ghost-cards`
   // = a restrained fanned deck of placeholder cards (img-055), for a list surface
   // that fills with cards/rows ("your alerts will stack here"). Implies content
@@ -97,8 +106,14 @@ export function EmptyState({
         !isCompact &&
           !isProminent &&
           'gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
+        isProminent && 'gap-6 rounded-xl border px-10 py-20',
+        // Palette finish: a full-surface empty is a resting/invitational
+        // moment, so the prominent card wears the warm stone well by default.
+        // `tone="plain"` opts back to the white card.
         isProminent &&
-          'gap-6 rounded-xl border border-divider-regular bg-background-default px-10 py-20',
+          (tone === 'warm'
+            ? 'border-divider-warm bg-background-well-warm'
+            : 'border-divider-regular bg-background-default'),
         // `fill` makes the prominent card own the whole content
         // area (canvas cards are 600px tall, vertically centered). `min-h`
         // keeps the design height as a floor; `justify-center` centers the
@@ -135,12 +150,20 @@ export function EmptyState({
               'flex items-center justify-center rounded-full',
               iconTone === 'neutral'
                 ? 'size-[72px] bg-background-section'
-                : 'size-[88px] bg-state-accent-hover',
+                : iconTone === 'celebrate'
+                  ? 'size-[88px] bg-highlight-celebrate'
+                  : 'size-[88px] bg-state-accent-hover',
             )}
           >
             <Icon
               className={cn(
-                iconTone === 'neutral' ? 'size-8 text-text-muted' : 'size-9 text-text-accent',
+                iconTone === 'neutral'
+                  ? 'size-8 text-text-muted'
+                  : iconTone === 'celebrate'
+                    ? // Dark glyph on the light lime fill (lime can't carry a
+                      // light icon) — the reward "you cleared it" beat.
+                      'size-9 text-text-primary'
+                    : 'size-9 text-text-accent',
               )}
               aria-hidden
             />

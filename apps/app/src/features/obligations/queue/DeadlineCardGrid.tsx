@@ -115,7 +115,11 @@ export function DeadlineCardGrid({
             : t`Filed`
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    // Incoming-view fade: when the queue toggles between table ⇄ cards the new
+    // view mounts fresh, so a calm opacity fade-in (the house entrance tempo,
+    // one step longer for a deliberate view swap) crossfades it in instead of a
+    // hard cut. Opacity-only → no layout/measurement shift. Honors reduced-motion.
+    <div className="flex min-h-0 flex-1 flex-col animate-in fade-in duration-300 ease-out motion-reduce:animate-none">
       {/* Gray well so the white cards separate from the page (border + bg
           contrast does the lift — no shadows). The well is the scroll
           region, mirroring /clients. */}
@@ -134,7 +138,11 @@ export function DeadlineCardGrid({
                   <CapsFieldLabel as="h3" variant="group">
                     {laneLabel(lane.key)}
                   </CapsFieldLabel>
-                  <CountPill tone="neutral">{lane.rows.length}</CountPill>
+                  {/* text-caption-xs (11px) so the count matches the lane label's
+                      size (Yuqi 2026-06-23: "same text size as OVERDUE"). */}
+                  <CountPill tone="neutral" className="text-caption-xs">
+                    {lane.rows.length}
+                  </CountPill>
                 </div>
                 <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
                   {lane.rows.map((row) => (
@@ -208,9 +216,12 @@ function DeadlineCard({
         onOpen(row.id)
       }}
       className={cn(
+        // Hover = a quiet accent WASH only (Yuqi 2026-06-23: "hate the border" on
+        // hover) — the base border stays put, no darkening; matches the app's
+        // interactive-row hover motif (accent tint + the name underline below).
         'group/card flex cursor-pointer flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-3 outline-none transition-colors',
-        'hover:border-divider-deep hover:bg-state-base-hover',
-        'focus-visible:border-state-accent-solid focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'hover:bg-state-accent-hover',
+        'focus-visible:border-state-accent-solid focus-visible:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
     >
       {/* Identity: client monogram · name + form/jurisdiction/entity · owner */}

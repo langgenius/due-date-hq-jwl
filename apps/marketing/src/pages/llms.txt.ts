@@ -123,7 +123,6 @@ const statePages = [
 ] as const
 
 const trustPages = [
-  ['About', '/about'],
   ['Security', '/security'],
   ['Privacy', '/privacy'],
   ['Terms', '/terms'],

@@ -80,6 +80,11 @@ function ObligationTimeline({
   }, [events])
 
   const currentMilestone = milestoneFor(currentStatus)
+  // The milestone immediately after the current one — marked "Up next" so the
+  // future (untouched) tail reads as a journey-ahead, not a stack of empty rows.
+  // findIndex (not indexOf) — currentMilestone is the wider ObligationStatus
+  // type; the comparison narrows safely and yields -1 when there's no match.
+  const currentIndex = LIFECYCLE_V2_STATUSES.findIndex((m) => m === currentMilestone)
 
   return (
     <div className="grid gap-0">
@@ -87,6 +92,7 @@ function ObligationTimeline({
         const milestoneEvents = grouped.map.get(milestone) ?? []
         const isCurrent = milestone === currentMilestone
         const isTouched = milestoneEvents.length > 0 || isCurrent
+        const isNext = index === currentIndex + 1
         const isLast = index === LIFECYCLE_V2_STATUSES.length - 1
         return (
           <MilestoneNode
@@ -94,6 +100,7 @@ function ObligationTimeline({
             label={labels[milestone]}
             isCurrent={isCurrent}
             isTouched={isTouched}
+            isNext={isNext}
             isLast={isLast}
             events={milestoneEvents}
             practiceTimezone={practiceTimezone}
@@ -111,6 +118,7 @@ function MilestoneNode({
   label,
   isCurrent,
   isTouched,
+  isNext,
   isLast,
   events,
   practiceTimezone,
@@ -118,6 +126,7 @@ function MilestoneNode({
   label: string
   isCurrent: boolean
   isTouched: boolean
+  isNext: boolean
   isLast: boolean
   events: AuditEventPublic[]
   practiceTimezone: string
@@ -145,8 +154,12 @@ function MilestoneNode({
           />
         ) : null}
       </div>
-      <div className={cn('pb-4', isLast && 'pb-0')}>
-        <div className="flex items-center gap-2">
+      {/* Untouched future rows get tighter spacing so the journey-ahead tail
+          reads as a compact list, not a stack of empty rows. */}
+      <div className={cn(isTouched ? 'pb-4' : 'pb-2.5', isLast && 'pb-0')}>
+        {/* justify-between so the right edge carries a marker (Current / Up
+            next) instead of leaving every row's right side empty. */}
+        <div className="flex items-center justify-between gap-2">
           <span
             className={cn(
               'text-sm font-medium',
@@ -172,6 +185,12 @@ function MilestoneNode({
             >
               {t`Current`}
             </Badge>
+          ) : isNext ? (
+            // The immediate next milestone — a quiet forward marker so the
+            // ghosted tail reads as "the road ahead", not empty placeholder rows.
+            <span className="text-caption-xs font-medium tracking-wide text-text-tertiary uppercase">
+              {t`Up next`}
+            </span>
           ) : null}
         </div>
         {events.length > 0 ? (

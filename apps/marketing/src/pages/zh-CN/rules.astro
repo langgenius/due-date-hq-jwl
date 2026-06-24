@@ -4,13 +4,13 @@ import TopNav from '../../components/home/TopNav.astro'
 import GeoResourcePage from '../../components/GeoResourcePage.astro'
 import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getCtaHref } from '../../lib/app-url'
+import { getStartedHref } from '../../lib/app-url'
 import { resourceStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
 const page = t.geo.rules
 const pathname = '/zh-CN/rules'
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 ---
 
 <BaseLayout

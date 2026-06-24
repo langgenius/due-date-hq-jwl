@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   TriangleAlertIcon,
+  ArrowUpRightIcon,
   SparklesIcon,
   BanIcon,
   CheckIcon,
@@ -14,6 +16,8 @@ import {
   LockIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
+  SquareChartGanttIcon,
+  UsersIcon,
   XIcon,
 } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
@@ -76,11 +80,6 @@ const ACCEPT_RULE_SUCCESS_TOAST_STYLE: CSSProperties = {
   background: 'var(--state-success-hover)',
   borderColor: 'var(--state-success-hover-alt)',
   color: 'var(--text-success)',
-}
-const _ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
-  background: 'var(--state-destructive-hover)',
-  borderColor: 'var(--state-destructive-hover-alt)',
-  color: 'var(--text-destructive)',
 }
 const ENTITY_APPLICABILITY_LABELS: Record<string, string> = {
   any_business: 'business clients',
@@ -199,6 +198,18 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
           <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
         }
       />
+      {/* Reverse entity→audit path: open this rule's history in the firm-wide
+          audit log (full filters + export), scoped via ?entity=<id>. */}
+      <div className="mt-3 border-t border-divider-subtle pt-3">
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={<Link to={`/audit?entity=${encodeURIComponent(rule.id)}`} />}
+        >
+          <Trans>View in full audit log</Trans>
+          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+        </TextLink>
+      </div>
     </DetailSectionCard>
   )
 }
@@ -638,26 +649,38 @@ export function RuleDetailCompact({
             bordered card (whitespace alone blended them together). */}
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {header}
-          <div className="flex min-w-0 flex-col px-6 pt-5">
-            <CapsFieldLabel as="span" variant="group" className="pb-1">
+          {/* Reference facts — dense + quiet. This column is read-to-verify, not
+              acted on, so it stays calm; tighter section padding (py-4) packs the
+              facts so the whole rule reads without much scrolling, ceding the
+              visual weight to the decision rail. */}
+          <div className="flex min-w-0 flex-col px-6 pt-4">
+            <CapsFieldLabel as="span" variant="group" className="pb-0.5">
               <Trans>Verify the facts</Trans>
             </CapsFieldLabel>
-            <div className="flex min-w-0 flex-col divide-y divide-divider-subtle [&>*]:py-5 [&>*:first-child]:pt-3">
+            <div className="flex min-w-0 flex-col divide-y divide-divider-subtle [&>*]:py-4 [&>*:first-child]:pt-2.5">
               {applicabilityCard}
               {dueDateCard}
               {evidenceCard}
               {verificationCard}
             </div>
           </div>
-          {/* Informational footer — version + full history, no actions. One
-              hairline marks it off from the facts above (the only divider
-              left in this column). */}
-          <div className="mt-auto border-t border-divider-subtle px-6 py-5">{activityCard}</div>
+          {/* Activity — the least-important content here (version + history, no
+              decision). Demoted onto a muted strip pinned to the column foot so
+              it reads as secondary metadata, clearly set apart from the facts
+              above and the decision rail beside it. */}
+          <div className="mt-auto border-t border-divider-subtle bg-background-section/60 px-6 py-3.5">
+            {activityCard}
+          </div>
         </div>
 
-        {/* RIGHT — the decision rail (gray, scrolls independently). */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-6 py-5">
-          <CapsFieldLabel as="span" variant="group">
+        {/* RIGHT — the decision rail. Made structurally DISTINCT from the
+            read-side (Yuqi "be more different"): a deeper gray surface + a
+            firmer seam so it reads as a separate "act here" panel, not a margin
+            of the facts column; and an accent-tinted header (vs the neutral
+            "Verify the facts" eyebrow) so the eye knows which side is the
+            decision. Scrolls independently. */}
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-deep bg-background-subtle px-6 py-5">
+          <CapsFieldLabel as="span" variant="group" className="text-text-accent">
             <Trans>Your decision</Trans>
           </CapsFieldLabel>
           {impactCard}
@@ -932,17 +955,15 @@ function RulePracticeReviewCard({
   )
   const trimmed = body.trim()
   const canSubmit = trimmed.length > 0 && !addMutation.isPending
-  const requiredTag = (
-    <span
-      className={cn(
-        'ml-auto shrink-0',
-        flat
-          ? 'text-caption-xs font-semibold uppercase tracking-wide text-text-destructive'
-          : 'text-caption font-medium text-text-tertiary',
-      )}
-    >
-      {flat ? <Trans>Required</Trans> : <Trans>Required before Accept</Trans>}
-    </span>
+  // Honest label: Accept does NOT gate on this note (`acceptDisabled` ignores
+  // it; the note posts via its own addRuleNote mutation, and accept sends a
+  // hardcoded reviewNote). So it's "Recommended", not "Required" — and a
+  // neutral `secondary` Badge, not amber, so it reads as encouragement, not a
+  // gate competing with the real locked-Accept warning.
+  const recommendedTag = (
+    <Badge variant="secondary" size="sm" className="ml-auto shrink-0">
+      <Trans>Recommended</Trans>
+    </Badge>
   )
   const inner = (
     <>
@@ -956,13 +977,16 @@ function RulePracticeReviewCard({
         // rail (gray-on-gray otherwise) — matches the bulk modal's note field.
         className="min-h-16 bg-background-default text-sm"
       />
+      {/* Meta row — one text size across the three elements (link · count ·
+          button label). They previously mixed text-base + text-caption, so a
+          single row read at two scales. */}
       <div className="flex items-center gap-3">
         {notes.length > 0 ? (
           <TextLink
             variant="accent"
             onClick={() => setShowNotes((value) => !value)}
             aria-expanded={showNotes}
-            className="text-base"
+            className="text-xs"
           >
             <Plural value={notes.length} one="View # team note" other="View # team notes" />
             <ChevronDownIcon
@@ -971,11 +995,11 @@ function RulePracticeReviewCard({
             />
           </TextLink>
         ) : (
-          <span className="text-base text-text-tertiary">
+          <span className="text-xs text-text-tertiary">
             <Trans>No team notes yet</Trans>
           </span>
         )}
-        <span className="ml-auto text-caption font-medium text-text-tertiary tabular-nums">
+        <span className="ml-auto text-xs font-medium text-text-tertiary tabular-nums">
           {body.length} / 2000
         </span>
         {trimmed.length > 0 ? (
@@ -1007,10 +1031,8 @@ function RulePracticeReviewCard({
                 className="flex flex-col gap-0.5"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="text-base font-semibold text-text-primary">
-                    {note.authorName}
-                  </span>
-                  <span className="text-caption text-text-tertiary">
+                  <span className="text-sm font-semibold text-text-primary">{note.authorName}</span>
+                  <span className="text-xs text-text-tertiary">
                     {formatRelativeTime(note.createdAt)}
                   </span>
                 </div>
@@ -1030,7 +1052,7 @@ function RulePracticeReviewCard({
           <h3 className="text-base font-semibold text-text-primary">
             <Trans>Practice review</Trans>
           </h3>
-          {requiredTag}
+          {recommendedTag}
         </div>
         {inner}
       </section>
@@ -1043,7 +1065,7 @@ function RulePracticeReviewCard({
         <h3 className="text-base font-semibold text-text-primary">
           <Trans>Practice review</Trans>
         </h3>
-        {requiredTag}
+        {recommendedTag}
       </div>
       <div className="flex flex-col gap-2 px-5 py-4">{inner}</div>
     </section>
@@ -1370,7 +1392,12 @@ function CandidateReviewForm({
       : null
   const draftPanelMessage =
     draftUnavailableMessage ??
-    (sourceDefined && !draft && !concreteDraftLoading ? t`AI concrete draft is not ready.` : null)
+    // Actionable, not just a status: this rule's due date comes from its source,
+    // so Accept stays locked until the AI draft exists — and the way to make it
+    // exist is the "Generate draft" button in the gate just above. Say so.
+    (sourceDefined && !draft && !concreteDraftLoading
+      ? t`Generate the AI draft above to unlock Accept.`
+      : null)
   const acceptDisabledReason = sourceDefined
     ? reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
@@ -1381,7 +1408,7 @@ function CandidateReviewForm({
           : draftPanelMessage && !draft
             ? draftPanelMessage
             : !draft
-              ? t`AI concrete draft is not ready.`
+              ? t`Generate the AI draft above to unlock Accept.`
               : null
     : null
   const acceptDisabled =
@@ -1439,11 +1466,16 @@ function CandidateReviewForm({
           carries the audit-log assurance (the canvas's "signed by {name}" is
           dropped — there's no signer until the decision is recorded).
           Reject never depends on a draft being ready; Accept does. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-divider-subtle pt-3">
+      {/* The commit — the climax of the rail, so it's given weight: a stronger
+          top rule sets it off, the gate status/reason gets its own full-width
+          line (so the actionable lock reason reads in full, never truncated),
+          and the two decisions sit below as full-height (default-size) buttons
+          with Accept stretched to dominate as the primary action. */}
+      <div className="flex flex-col gap-2.5 border-t border-divider-regular pt-4">
         {acceptDisabledReason ? (
-          <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-text-warning">
-            <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />
-            <span className="min-w-0 truncate">{acceptDisabledReason}</span>
+          <span className="inline-flex min-w-0 items-start gap-1.5 text-xs font-medium text-text-warning">
+            <TriangleAlertIcon aria-hidden className="mt-px size-3.5 shrink-0" />
+            <span className="min-w-0">{acceptDisabledReason}</span>
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 text-xs text-text-tertiary">
@@ -1451,10 +1483,9 @@ function CandidateReviewForm({
             <Trans>Your decision is recorded in the audit log.</Trans>
           </span>
         )}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button
             type="button"
-            size="sm"
             variant="outline"
             onClick={() => setRejectOpen(true)}
             disabled={reviewDisabled}
@@ -1464,7 +1495,7 @@ function CandidateReviewForm({
           </Button>
           <Button
             type="button"
-            size="sm"
+            className="flex-1"
             onClick={confirmImpact ? () => setConfirmOpen(true) : submitAccept}
             disabled={acceptDisabled}
             data-rule-action="accept"
@@ -2206,6 +2237,33 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
             : `${rule.taxYear}–${rule.applicableYear}`}
         </span>
       </div>
+      {/* The "derive" direction: applicability says WHO this rule covers —
+          these links open the actual work it generated. "Deadlines" is the
+          flat list; "Affected clients" is the same set grouped by client (the
+          rule→clients view). Only for live rules; candidates have generated
+          nothing yet, so the links would land on an empty list. */}
+      {rule.status !== 'candidate' && rule.status !== 'pending_review' ? (
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <TextLink
+            variant="accent"
+            size="sm"
+            render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}`} />}
+          >
+            <SquareChartGanttIcon className="size-3.5" aria-hidden />
+            <Trans>View deadlines from this rule</Trans>
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+          <TextLink
+            variant="accent"
+            size="sm"
+            render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}&group=client`} />}
+          >
+            <UsersIcon className="size-3.5" aria-hidden />
+            <Trans>View affected clients</Trans>
+            <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          </TextLink>
+        </div>
+      ) : null}
     </DetailSectionCard>
   )
 }
@@ -2417,7 +2475,10 @@ function RuleEvidenceCard({
         <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
       {isPrimary ? (
-        <Badge variant="success-solid" className="shrink-0 self-start px-2.5 font-semibold">
+        // The lead source — a ROLE, not a success state. Solid emphasis (per the
+        // Badge milestone-chip convention) in the brand accent, not green:
+        // success-green falsely read as "this source is verified/good".
+        <Badge variant="accent-solid" className="shrink-0 self-start px-2.5 font-semibold">
           <Trans>Primary</Trans>
         </Badge>
       ) : (

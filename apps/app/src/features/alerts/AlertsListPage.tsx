@@ -751,6 +751,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
               {/* Toggle between List and Map. Map shows
                   `<PulseAlertsMap>` above the list. */}
               <Segmented
+                // size="sm" to match the /deadlines + /clients view-mode toggle
+                // (Yuqi 2026-06-23: "should follow the size on deadlines").
+                size="sm"
                 ariaLabel={t`View mode`}
                 value={viewMode}
                 onValueChange={setViewMode}
@@ -891,13 +894,11 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   (the page wash) + padding keep the cards reading cleanly
                   as they scroll underneath and `z-20` sits above the
                   rows. */}
-              {/* `px-5` aligns the toolbar's leading control to the card
-                  content edge below it (rows + day bands carry the same
-                  px-5). Without it the filter row sat ~20px left of the
-                  list, so "Review", the row checkboxes, and the day bands
-                  read as three staggered left edges (Yuqi 2026-06-15:
-                  "the left side is not aligned"). */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
+              {/* Flush-left, no `px-5`: the toolbar, day bands, and rows all sit
+                  on the page content column so they line up with the page header
+                  title above (Yuqi 2026-06-23: "remove the px-5"). The list is
+                  borderless, so an inset would read as a phantom card edge. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower
@@ -988,16 +989,28 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
 
                 {/* Canonical collapsing toolbar search — ghost magnifier that
                     expands on hover/click and retains focus + query. Same
-                    control as /clients · /rules/library. (No `/` hotkey here:
-                    /alerts never registered one and there's no alerts shortcut
-                    category to file it under.) */}
+                    control as /clients · /rules/library, including the `/`
+                    hotkey (2026-06-21 search-UX audit: /alerts was the only
+                    primary list page missing it; the `alerts` shortcut category
+                    was added so it registers in the help dialog like the rest).
+                    Placeholder names the matched fields (title + source);
+                    aria-label + help-dialog name stay the plain "Filter alerts"
+                    so the `/` rows read consistently across surfaces. */}
                 <CollapsibleSearch
                   value={searchQuery}
                   onChange={setSearchQuery}
-                  placeholder={t`Filter alerts`}
+                  placeholder={t`Filter by title or source`}
                   ariaLabel={t`Filter alerts`}
                   size="icon"
                   expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
+                  hotkey="/"
+                  hotkeyMeta={{
+                    id: 'alerts.focus-search',
+                    name: 'Filter alerts',
+                    description: 'Focus the Alerts filter input.',
+                    category: 'alerts',
+                    scope: 'route',
+                  }}
                 />
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the
@@ -1196,7 +1209,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 // vertically — the fixed rail left the map ~500px at 1024
                 // (alerts responsive contract). Map on top, compact list
                 // below.
-                <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row">
+                <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row animate-in fade-in duration-300 ease-out motion-reduce:animate-none">
                   {/* TOP/LEFT: map grid in gray-50 panel */}
                   <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-background-section p-6">
                     <PulseAlertsMap
@@ -1229,6 +1242,11 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         openAlertId={openAlertId}
                         onReview={openDrawerAndCollapseSidebar}
                         compact
+                        // Narrow (~460px) map rail: trim each row's head line
+                        // to the urgency tier + due/lateness tag and calm the
+                        // affects-N-clients meta so the title + status signal
+                        // aren't crammed into the tight column (2026-06-23).
+                        narrow
                         showAction={showSuggestedAction}
                         // The map navigator rail renders flat (no date
                         // headers).
@@ -1263,6 +1281,9 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                   openAlertId={openAlertId}
                   onReview={openDrawerAndCollapseSidebar}
                   showAction={showSuggestedAction}
+                  // Crossfade the list in on the map→list view toggle
+                  // (opacity-only, layout-safe; matches /deadlines).
+                  className="animate-in fade-in duration-300 ease-out motion-reduce:animate-none"
                   // Day-group headers only make sense chronologically, so
                   // drop them when the list is ordered by impact (a flat
                   // ranked list); every other sort keeps the day bands.

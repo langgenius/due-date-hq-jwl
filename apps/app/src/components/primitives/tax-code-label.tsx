@@ -1,3 +1,5 @@
+import type { Key } from 'react'
+
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -46,7 +48,20 @@ function TaxCodeLabel({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={asChild ? (props) => <span {...props}>{meta.label}</span> : undefined}
+        render={
+          asChild
+            ? (props) => {
+                // Lift Base UI's injected `key` out of the spread (see
+                // TaxCodeBadge) so it doesn't trip React 19's key-spread warning.
+                const { key, ...rest } = props as typeof props & { key?: Key }
+                return (
+                  <span key={key} {...rest}>
+                    {meta.label}
+                  </span>
+                )
+              }
+            : undefined
+        }
         className={asChild ? cn('cursor-help', className) : 'cursor-help'}
       >
         {asChild ? null : inner}
@@ -110,26 +125,33 @@ function TaxCodeBadge({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={(props) => (
-          <Badge
-            variant="outline"
-            // `font-medium` (500), not bold: the mono face + the
-            // tight tracking already give the code chip enough
-            // identity; bold made it shout next to the row's
-            // body text.
-            className={cn(
-              'min-w-0 cursor-help border-divider-subtle bg-background-subtle font-mono font-medium tracking-tight rounded-sm',
-              size === 'compact' ? 'px-1.5 py-0.5 text-caption-xs' : 'px-3 py-1',
-              className,
-            )}
-            {...props}
-          >
-            {/* Inner truncate span: the Badge is inline-flex, so text-overflow
-                only ellipsizes via a block child. Caps long codes when a parent
-                constrains the width (e.g. the 104px filing-row slot). */}
-            <span className="truncate">{chipText}</span>
-          </Badge>
-        )}
+        render={(props) => {
+          // Base UI hands a `key` inside the render props. Spreading it
+          // (`<Badge {...props}>`) trips React 19's "key prop is being spread
+          // into JSX" warning, so lift it out and pass it as a real JSX key.
+          const { key, ...rest } = props as typeof props & { key?: Key }
+          return (
+            <Badge
+              key={key}
+              variant="outline"
+              // `font-medium` (500), not bold: the mono face + the
+              // tight tracking already give the code chip enough
+              // identity; bold made it shout next to the row's
+              // body text.
+              className={cn(
+                'min-w-0 cursor-help border-divider-subtle bg-background-subtle font-mono font-medium tracking-tight rounded-sm',
+                size === 'compact' ? 'px-1.5 py-0.5 text-caption-xs' : 'px-3 py-1',
+                className,
+              )}
+              {...rest}
+            >
+              {/* Inner truncate span: the Badge is inline-flex, so text-overflow
+                  only ellipsizes via a block child. Caps long codes when a parent
+                  constrains the width (e.g. the 104px filing-row slot). */}
+              <span className="truncate">{chipText}</span>
+            </Badge>
+          )
+        }}
       />
       <TooltipContent>
         <TaxCodeTooltipBody

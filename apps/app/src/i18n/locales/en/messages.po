@@ -177,6 +177,11 @@ msgstr "{0, plural, one {# event} other {# events}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
 
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# high-severity} other {# high-severity}}"
+msgstr "{0, plural, one {# high-severity} other {# high-severity}}"
+
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "{0, plural, one {# internal} other {# internal}}"
@@ -352,6 +357,11 @@ msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {#d late} other {#d late}}"
 msgstr "{0, plural, one {#d late} other {#d late}}"
+
+#. placeholder {0}: g.pendingReviewCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {<0>#</0> rule to review} other {<1>#</1> rules to review}}"
+msgstr "{0, plural, one {<0>#</0> rule to review} other {<1>#</1> rules to review}}"
 
 #. placeholder {0}: result.appliedCount
 #: src/features/alerts/AlertDetailDrawer.tsx
@@ -610,11 +620,6 @@ msgstr "{0} filing today — stay ahead to keep the week on track."
 msgid "{0} filings extended — payment is not extended"
 msgstr "{0} filings extended — payment is not extended"
 
-#. placeholder {0}: g.highCount
-#: src/routes/rules.library.tsx
-msgid "{0} high-severity"
-msgstr "{0} high-severity"
-
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -653,6 +658,11 @@ msgstr "{0} items"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "{0} items recorded"
 msgstr "{0} items recorded"
+
+#. placeholder {0}: items.length
+#: src/features/rules/states-rail.tsx
+msgid "{0} jurisdictions"
+msgstr "{0} jurisdictions"
 
 #. placeholder {0}: memberCounts[role] ?? 0
 #: src/routes/settings.permissions.tsx
@@ -917,10 +927,6 @@ msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "{attached} of {total} expected source documents attached for this filing"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{auditCount}"
-msgstr "{auditCount}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{auditCount} events"
 msgstr "{auditCount} events"
 
@@ -1078,10 +1084,6 @@ msgstr "{equity} equity owners"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
 msgstr "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "{evidenceCount}"
-msgstr "{evidenceCount}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{evidenceCount} workpapers"
@@ -1361,6 +1363,10 @@ msgstr "{rowCount, plural, one {# client ready to import} other {# clients ready
 msgid "{rowCount, plural, one {# client} other {# clients}}"
 msgstr "{rowCount, plural, one {# client} other {# clients}}"
 
+#: src/features/rules/sources-tab.tsx
+msgid "{ruleCount, plural, one {Feeds # rule} other {Feeds # rules}}"
+msgstr "{ruleCount, plural, one {Feeds # rule} other {Feeds # rules}}"
+
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
 msgstr "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
@@ -1416,8 +1422,8 @@ msgid "{total} checklist items weren't individually ticked during filing."
 msgstr "{total} checklist items weren't individually ticked during filing."
 
 #: src/routes/rules.library.tsx
-msgid "{totalActive} active"
-msgstr "{totalActive} active"
+msgid "{totalActive} active · {jurisdictionCount} jurisdictions"
+msgstr "{totalActive} active · {jurisdictionCount} jurisdictions"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "{totalAffected, plural, one {# client · 1 {firstForm} return affected} other {# clients · # {firstForm} returns affected}}"
@@ -1438,10 +1444,6 @@ msgstr "{totalOpen, plural, one {View # open deadline} other {View # open deadli
 #: src/routes/rules.library.tsx
 msgid "{totalPendingReview, plural, one {# rule needs your review} other {# rules need your review}}"
 msgstr "{totalPendingReview, plural, one {# rule needs your review} other {# rules need your review}}"
-
-#: src/routes/rules.library.tsx
-msgid "{totalRules} rules across {jurisdictionCount} jurisdictions"
-msgstr "{totalRules} rules across {jurisdictionCount} jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "{totalValues, plural, one {entity type} other {entity types}}"
@@ -1761,6 +1763,10 @@ msgstr "A short explanation for one deadline, generated only from active rule co
 msgid "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 msgstr "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 
+#: src/features/rules/states-rail.tsx
+msgid "A–Z"
+msgstr "A–Z"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "About 5 minutes of focused work"
 msgstr "About 5 minutes of focused work"
@@ -1845,6 +1851,10 @@ msgstr "Access denied"
 #: src/features/members/members-page.tsx
 msgid "access revoked, history kept"
 msgstr "access revoked, history kept"
+
+#: src/features/members/members-page.tsx
+msgid "Access suspended"
+msgstr "Access suspended"
 
 #: src/features/members/member-model.ts
 msgid "Access to elevated workflow scopes"
@@ -1990,6 +2000,7 @@ msgid "Active stage detail"
 msgstr "Active stage detail"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activity"
 msgstr "Activity"
@@ -2626,6 +2637,10 @@ msgstr "all matched"
 msgid "All materials are in."
 msgstr "All materials are in."
 
+#: src/components/patterns/alerts-notifications-bell.tsx
+msgid "All notifications marked read"
+msgstr "All notifications marked read"
+
 #: src/routes/obligations.tsx
 msgid "all on time"
 msgstr "all on time"
@@ -3052,10 +3067,6 @@ msgstr "Attach the source document"
 msgid "attempt {attempt}"
 msgstr "attempt {attempt}"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Audit"
-msgstr "Audit"
-
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -3137,7 +3148,6 @@ msgid "Audit timeline"
 msgstr "Audit timeline"
 
 #: src/features/concepts/concept-help.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Audit trail"
 msgstr "Audit trail"
 
@@ -3191,6 +3201,7 @@ msgid "Authority confirmed payment cleared"
 msgstr "Authority confirmed payment cleared"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 msgstr "Authority payment {paymentLateDays}d overdue — penalty interest accrues until it's confirmed."
 
@@ -3715,7 +3726,6 @@ msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Card view"
 msgstr "Card view"
 
@@ -3966,6 +3976,13 @@ msgstr "Clear all states"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Clear assignee"
 msgstr "Clear assignee"
+
+#: src/features/alerts/AlertHistoryView.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Clear filter"
+msgstr "Clear filter"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -4795,6 +4812,10 @@ msgstr "Couldn't copy link"
 msgid "Couldn't copy link — your browser blocked clipboard access."
 msgstr "Couldn't copy link — your browser blocked clipboard access."
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't copy recap"
+msgstr "Couldn't copy recap"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't copy source excerpt"
 msgstr "Couldn't copy source excerpt"
@@ -5046,6 +5067,10 @@ msgstr "Couldn't queue morning digest preview"
 msgid "Couldn't queue risk summary"
 msgstr "Couldn't queue risk summary"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't re-send invitation"
+msgstr "Couldn't re-send invitation"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't reactivate alert"
 msgstr "Couldn't reactivate alert"
@@ -5066,6 +5091,10 @@ msgstr "Couldn't reject rule"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't remove document item"
 msgstr "Couldn't remove document item"
+
+#: src/features/members/members-page.tsx
+msgid "Couldn't remove member"
+msgstr "Couldn't remove member"
 
 #: src/routes/clients.tsx
 msgid "Couldn't remove sample data"
@@ -5210,6 +5239,10 @@ msgstr "Couldn't start the import"
 msgid "Couldn't submit readiness response"
 msgstr "Couldn't submit readiness response"
 
+#: src/features/members/members-page.tsx
+msgid "Couldn't suspend access"
+msgstr "Couldn't suspend access"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Couldn't switch firm"
 msgstr "Couldn't switch firm"
@@ -5322,7 +5355,6 @@ msgstr "Counts this client's deadlines that are already Filed or Completed."
 msgid "County"
 msgstr "County"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/routes/route-summary.ts
@@ -6934,6 +6966,10 @@ msgstr "Export QuickBooks customers"
 msgid "Export ready"
 msgstr "Export ready"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "Export requested"
+msgstr "Export requested"
+
 #: src/routes/rules.library.tsx
 msgid "Export rules as CSV"
 msgstr "Export rules as CSV"
@@ -7157,6 +7193,7 @@ msgid "File type"
 msgstr "File type"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "filed"
 
@@ -7288,7 +7325,6 @@ msgstr "Filing states"
 
 #. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 msgstr "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 
@@ -7314,9 +7350,17 @@ msgid "Filter {jurisdictionLabel} rules"
 msgstr "Filter {jurisdictionLabel} rules"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "Filter alerts"
+
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter by client or form"
+msgstr "Filter by client or form"
+
+#: src/routes/obligations.tsx
+msgid "Filter by client, form, or assignee"
+msgstr "Filter by client, form, or assignee"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter by name or EIN"
@@ -7341,22 +7385,18 @@ msgstr "Filter by state"
 msgid "Filter by status"
 msgstr "Filter by status"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Filter by title or source"
+msgstr "Filter by title or source"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "Filter by type"
 
-#: src/routes/obligations.tsx
-msgid "Filter client, form, or assignee"
-msgstr "Filter client, form, or assignee"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
 msgstr "Filter clients"
-
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Filter deadlines"
-msgstr "Filter deadlines"
 
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
@@ -7382,10 +7422,6 @@ msgstr "Filter priorities by window"
 #: src/routes/rules.library.tsx
 msgid "Filter rules"
 msgstr "Filter rules"
-
-#: src/routes/rules.library.tsx
-msgid "Filter rules…"
-msgstr "Filter rules…"
 
 #: src/routes/rules.library.tsx
 msgid "Filter the rule table by entity"
@@ -7705,6 +7741,10 @@ msgstr "Generate document list"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generate draft"
 msgstr "Generate draft"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Generate the AI draft above to unlock Accept."
+msgstr "Generate the AI draft above to unlock Accept."
 
 #: src/components/primitives/ai-provenance-badge.tsx
 msgid "Generated by AI"
@@ -9308,6 +9348,7 @@ msgid "Member reactivated"
 msgstr "Member reactivated"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/members/members-page.tsx
 msgid "Member removed"
 msgstr "Member removed"
 
@@ -9740,6 +9781,7 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/components/DeadlineRow.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/practice.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -10212,10 +10254,6 @@ msgstr "No items waived"
 msgid "No jurisdictions match \"{search}\""
 msgstr "No jurisdictions match \"{search}\""
 
-#: src/features/rules/states-rail.tsx
-msgid "No jurisdictions need review"
-msgstr "No jurisdictions need review"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
 msgstr "No matched rule"
@@ -10637,6 +10675,7 @@ msgstr "Not your device?"
 msgid "Note"
 msgstr "Note"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Note added"
 msgstr "Note added"
@@ -11140,7 +11179,6 @@ msgstr "Opening…"
 msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 msgstr "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "Operations"
@@ -11513,11 +11551,11 @@ msgid "Payment"
 msgstr "Payment"
 
 #: src/features/obligations/queue/DeadlineCardGrid.tsx
+#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays} days overdue"
 msgstr "Payment {paymentLateDays} days overdue"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Payment {paymentLateDays}d late"
 msgstr "Payment {paymentLateDays}d late"
 
@@ -11538,7 +11576,6 @@ msgid "Payment details stay with the processor"
 msgstr "Payment details stay with the processor"
 
 #: src/features/obligations/queue/components/panels.tsx
-#: src/routes/obligations.tsx
 msgid "Payment due"
 msgstr "Payment due"
 
@@ -11858,6 +11895,7 @@ msgid "Practice deadlines"
 msgstr "Practice deadlines"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/practice.tsx
 msgid "Practice deleted"
 msgstr "Practice deleted"
 
@@ -12509,6 +12547,7 @@ msgstr "Reclassification (the entity changed type, effective a tax year)"
 msgid "Reclassified"
 msgstr "Reclassified"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "Recommended"
@@ -12919,13 +12958,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "Requested {checklistCount} items from the client."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "Required"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "Required before Accept"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -13118,6 +13152,10 @@ msgstr "Review {codeList} now"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "Review {count}"
+
+#: src/routes/rules.library.tsx
+msgid "Review {highSeverityPending} high-severity rules"
+msgstr "Review {highSeverityPending} high-severity rules"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -13564,7 +13602,6 @@ msgstr "Rule updated"
 msgid "Rule version"
 msgstr "Rule version"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
@@ -14349,7 +14386,6 @@ msgstr "Shareholder count"
 msgid "Show"
 msgstr "Show"
 
-#: src/features/rules/states-rail.tsx
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"
@@ -14362,6 +14398,7 @@ msgstr "Show all alerts"
 msgid "Show all deadlines"
 msgstr "Show all deadlines"
 
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
 msgstr "Show all events"
@@ -14403,14 +14440,17 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount}+ events"
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 
-#. placeholder {0}: states.length
-#: src/features/rules/states-rail.tsx
-msgid "Showing {shownStateCount} of {0} states"
-msgstr "Showing {shownStateCount} of {0} states"
-
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
 msgstr "Showing first {maxSelections} selections — refine the list to add more."
+
+#: src/routes/rules.library.tsx
+msgid "Showing rules from source"
+msgstr "Showing rules from source"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Showing the full history of a single record."
+msgstr "Showing the full history of a single record."
 
 #: src/routes/accept-invite.tsx
 #: src/routes/route-summary.ts
@@ -14674,6 +14714,10 @@ msgstr "Sort by"
 #: src/routes/obligations.tsx
 msgid "Sort deadlines"
 msgstr "Sort deadlines"
+
+#: src/features/rules/states-rail.tsx
+msgid "Sort jurisdictions"
+msgstr "Sort jurisdictions"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -15129,7 +15173,6 @@ msgid "System updates"
 msgstr "System updates"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "Table view"
 msgstr "Table view"
 
@@ -15915,10 +15958,6 @@ msgstr "to create"
 msgid "to generate"
 msgstr "to generate"
 
-#: src/routes/rules.library.tsx
-msgid "to review"
-msgstr "to review"
-
 #: src/features/rules/RuleCoverageMap.tsx
 msgid "To review"
 msgstr "To review"
@@ -16338,6 +16377,10 @@ msgstr "Unsaved changes · {reorderCount} deadlines will reorder"
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "Unsaved changes · calculate a preview to see the impact"
 
+#: src/features/obligations/timeline.tsx
+msgid "Up next"
+msgstr "Up next"
+
 #: src/routes/billing.tsx
 msgid "Up to 1,000 clients"
 msgstr "Up to 1,000 clients"
@@ -16607,9 +16650,30 @@ msgstr "View"
 msgid "View {0}"
 msgstr "View {0}"
 
+#. placeholder {0}: member.name
+#: src/features/members/members-page.tsx
+msgid "View {0}'s deadlines"
+msgstr "View {0}'s deadlines"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "View {assigneeName}’s deadlines"
+msgstr "View {assigneeName}’s deadlines"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View {count} open deadlines for this client"
 msgstr "View {count} open deadlines for this client"
+
+#: src/features/audit/audit-event-drawer.tsx
+msgid "View {entityTypeLabel}"
+msgstr "View {entityTypeLabel}"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "View {name}’s deadlines"
+msgstr "View {name}’s deadlines"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View affected clients"
+msgstr "View affected clients"
 
 #: src/features/rules/matched-pulse-block.tsx
 msgid "View alert"
@@ -16687,6 +16751,10 @@ msgid "View deadlines due this week"
 msgstr "View deadlines due this week"
 
 #: src/features/rules/rule-detail-drawer.tsx
+msgid "View deadlines from this rule"
+msgstr "View deadlines from this rule"
+
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
 msgstr "View extension rules"
 
@@ -16694,13 +16762,17 @@ msgstr "View extension rules"
 msgid "View history"
 msgstr "View history"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View in full audit log"
+msgstr "View in full audit log"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
 msgstr "View items needing your review"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/obligations.tsx
 msgid "View mode"
 msgstr "View mode"
 
@@ -16858,6 +16930,10 @@ msgstr "We use this to set up your trial and understand your workflow — never 
 #: src/features/onboarding/first-run-tour.tsx
 msgid "We watch the agencies' sources 24/7. When a rule or date changes, it lands here — with who's affected."
 msgstr "We watch the agencies' sources 24/7. When a rule or date changes, it lands here — with who's affected."
+
+#: src/features/audit/audit-log-page.tsx
+msgid "We're preparing the evidence package — it'll be ready to download here shortly."
+msgstr "We're preparing the evidence package — it'll be ready to download here shortly."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"

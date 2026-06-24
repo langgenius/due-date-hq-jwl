@@ -1,7 +1,9 @@
 ---
-/** Left scroll-spy rail — a quiet "section index" in the left margin: a plain
- *  list of section labels, with one calm active treatment (bright label + a small
- *  filled dot). Shown on wide screens only. */
+/** Left scroll-spy rail — a quiet "section index" in the left margin. At rest it
+ *  reads as a column of short dashes; the active section grows its dash and shows
+ *  its label. Hovering the rail reveals every label (inactive ones in gray), so
+ *  the whole index is one hover away. Labels echo the real on-page section names.
+ *  Wide screens only. */
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
@@ -11,10 +13,10 @@ const t = zh
   ? {
       items: [
         { label: '问题', href: '#villain-h' },
-        { label: '产品', href: '#surfaces' },
-        { label: '循环', href: '#how' },
+        { label: '工作台', href: '#surfaces' },
         { label: '那份公告', href: '#notice' },
         { label: '来源', href: '#sources' },
+        { label: '对比', href: '#cmp-h' },
         { label: '为什么可信', href: '#security' },
         { label: '常见问题', href: '#faq' },
       ],
@@ -22,10 +24,10 @@ const t = zh
   : {
       items: [
         { label: 'The problem', href: '#villain-h' },
-        { label: 'Surfaces', href: '#surfaces' },
-        { label: 'The loop', href: '#how' },
-        { label: 'The document', href: '#notice' },
+        { label: 'The workbench', href: '#surfaces' },
+        { label: 'The notice', href: '#notice' },
         { label: 'Sources', href: '#sources' },
+        { label: 'Compare', href: '#cmp-h' },
         { label: 'Why trust it', href: '#security' },
         { label: 'Questions', href: '#faq' },
       ],
@@ -37,7 +39,7 @@ const items = t.items
   {
     items.map((it) => (
       <a class="spyrail__item" href={it.href}>
-        <span class="spyrail__dot" aria-hidden="true" />
+        <span class="spyrail__dash" aria-hidden="true" />
         <span class="spyrail__label">{it.label}</span>
       </a>
     ))
@@ -52,7 +54,7 @@ const items = t.items
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
     /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
     opacity: 0;
     visibility: hidden;
@@ -76,57 +78,80 @@ const items = t.items
   .spyrail__item {
     display: flex;
     align-items: center;
-    gap: 12px;
   }
-  /* a small marker dot; visible only on the active item, so inactive rows read
-     as a quiet flush list */
-  .spyrail__dot {
-    width: 5px;
-    height: 5px;
+  /* the marker — a small dash at rest, grown + accented when active (kept short
+     and quiet so the rail reads as a hint, not a ruler) */
+  .spyrail__dash {
+    width: 6px;
+    height: 1.5px;
     flex: none;
     border-radius: 999px;
-    background: var(--m-accent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    background: var(--m-faint);
+    transition:
+      width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+      background 0.2s ease;
   }
+  /* labels are collapsed by default; the active one (and any on rail-hover) opens */
   .spyrail__label {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
     font-size: var(--m-text-xs);
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--m-faint);
-    white-space: nowrap;
-    transition: color 0.2s ease;
-  }
-  .spyrail__item:hover .spyrail__label {
-    color: var(--m-muted);
+    transition:
+      max-width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      margin-left 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.22s ease,
+      color 0.2s ease;
   }
 
-  /* active — one calm treatment: ink label + the small filled dot appears */
+  /* active — dash grows a little + turns accent, label opens in ink */
+  .spyrail__item.is-active .spyrail__dash {
+    width: 13px;
+    background: var(--m-accent);
+  }
+  .spyrail__item.is-active .spyrail__label,
+  .spyrail:hover .spyrail__label {
+    max-width: 200px;
+    margin-left: 12px;
+    opacity: 1;
+  }
   .spyrail__item.is-active .spyrail__label {
     color: var(--m-ink);
   }
-  .spyrail__item.is-active .spyrail__dot {
-    opacity: 1;
+  /* on hover the whole list shows; inactive labels read gray */
+  .spyrail:hover .spyrail__item:not(.is-active) .spyrail__label {
+    color: var(--m-muted);
+  }
+  .spyrail:hover .spyrail__item:not(.is-active):hover .spyrail__dash {
+    background: var(--m-muted);
   }
 
   /* ===== over a dark band (the villain) — white-out ===== */
-  .spyrail.is-on-dark .spyrail__dot {
+  .spyrail.is-on-dark .spyrail__dash {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .spyrail.is-on-dark .spyrail__item.is-active .spyrail__dash {
     background: #fff;
   }
   .spyrail.is-on-dark .spyrail__label {
-    color: rgba(255, 255, 255, 0.5);
-  }
-  .spyrail.is-on-dark .spyrail__item:hover .spyrail__label {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.45);
   }
   .spyrail.is-on-dark .spyrail__item.is-active .spyrail__label {
     color: #fff;
+  }
+  .spyrail.is-on-dark:hover .spyrail__item:not(.is-active) .spyrail__label {
+    color: rgba(255, 255, 255, 0.7);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .spyrail,
     .spyrail__item,
-    .spyrail__dot,
+    .spyrail__dash,
     .spyrail__label {
       transition: none;
     }

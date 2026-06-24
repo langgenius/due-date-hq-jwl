@@ -24,3 +24,10 @@ export function getAppHref(path = '/', locale?: string): string {
   if (locale) url.searchParams.set('lng', locale)
   return url.toString()
 }
+
+// The "Get started" CTA target. Goes STRAIGHT to the app's passwordless sign-in
+// (enter work email → open the emailed link → onboarding) — no marketing
+// interstitial. The launch offer + questionnaire now live in the app's onboarding.
+export function getStartedHref(locale?: string): string {
+  return getAppHref('/login', locale)
+}

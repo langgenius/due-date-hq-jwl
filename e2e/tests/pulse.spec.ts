@@ -81,20 +81,21 @@ test.describe('seeded Pulse alerts', () => {
     await appShellPage.goto('/?asOfDate=2026-05-03')
     await expect(authenticatedPage.getByRole('region', { name: 'Priorities' })).toBeVisible()
 
-    // The Alerts page is `/alerts` now (previously `/rules/pulse`, `/rules?tab=pulse`).
-    await appShellPage.goto('/alerts')
-    await revealSeededAlert(authenticatedPage)
-    const appliedAlert = authenticatedPage.getByRole('button', {
+    // Applied alerts leave the Review/Active queues and move to the handled
+    // archive; undo is still available from the history detail drawer.
+    await appShellPage.goto('/alerts/history')
+    const appliedAlert = authenticatedPage.getByRole('row', {
       name: /Alert: IRS CA storm relief/,
     })
+    await expect(appliedAlert).toBeVisible()
     await appliedAlert.click()
-    const appliedDrawer = pulseDetailDrawer(authenticatedPage)
-    await expect(
-      appliedDrawer.getByRole('heading', {
-        name: 'IRS CA storm relief extends selected filing deadlines for Los Angeles County.',
-      }),
-    ).toBeVisible()
-    await appliedDrawer.getByRole('button', { name: 'Undo (24h)' }).click()
+    const appliedDrawer = authenticatedPage.getByRole('dialog', {
+      name: /IRS CA storm relief/,
+    })
+    await expect(appliedDrawer).toBeVisible()
+    const undoButton = appliedDrawer.getByRole('button', { name: 'Undo (24h)' })
+    await expect(undoButton).toBeVisible()
+    await undoButton.click()
     await expect(
       authenticatedPage.locator('[data-title]').filter({ hasText: /^Reverted 1 client$/ }),
     ).toBeVisible()

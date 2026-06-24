@@ -116,6 +116,8 @@ type ClientFactsWorkspaceProps = {
   canCreate?: boolean | undefined
   // Onboarding "Load sample data" chip in the empty-state hero.
   onSampleData?: (() => void) | undefined
+  // Seed mutation in flight — disables the sample-data chip (no double-seed).
+  sampleDataPending?: boolean | undefined
 }
 
 // Column widths for the /clients table. Centralized so the live
@@ -422,6 +424,7 @@ export function ClientFactsWorkspace({
   onCreateClient,
   canCreate,
   onSampleData,
+  sampleDataPending,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -1087,6 +1090,7 @@ export function ClientFactsWorkspace({
           onCreate={onCreateClient}
           canCreate={canCreate}
           onSampleData={onSampleData}
+          sampleDataPending={sampleDataPending ?? false}
         />
       ) : viewMode === 'cards' ? (
         // Portfolio card grid — the default view. Cards render in the
@@ -1119,7 +1123,7 @@ export function ClientFactsWorkspace({
         <div
           // Outer card border is `divider-regular` (8% alpha) — the
           // visible-but-quiet canonical tone.
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-divider-regular"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-divider-regular animate-in fade-in duration-300 ease-out motion-reduce:animate-none"
         >
           {/* Single continuous scroll region (no pagination): the full
               filtered directory scrolls here, with the table header pinned
@@ -1572,7 +1576,7 @@ function ClientPortfolioGrid({
   )
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col animate-in fade-in duration-300 ease-out motion-reduce:animate-none">
       {/* The lanes sit in a subtle gray WELL so the white cards separate
           from the page (white-on-white otherwise reads as one flat field —
           "border + bg contrast does the lift", no shadows). The well is the
