@@ -25,8 +25,9 @@ export function getAppHref(path = '/', locale?: string): string {
   return url.toString()
 }
 
-// The questionnaire-promo landing ("get 3 months of Team free") — a page on the
-// marketing site itself, NOT the app. Primary "start" CTAs point here.
+// The "Get started" CTA target. Goes STRAIGHT to the app's passwordless sign-in
+// (enter work email → open the emailed link → onboarding) — no marketing
+// interstitial. The launch offer + questionnaire now live in the app's onboarding.
 export function getStartedHref(locale?: string): string {
-  return locale === 'zh-CN' ? '/zh-CN/get-started' : '/get-started'
+  return getAppHref('/login', locale)
 }
