@@ -358,6 +358,18 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
                     <Trans>No handled alerts match this view.</Trans>
+                    {/* Recovery affordance when the empty is caused by the
+                        free-text filter (matches the alerts/audit/notifications
+                        page-level empties). Filter-state empties keep the plain
+                        sentence — the entry pills above are the way back. */}
+                    {search.trim().length > 0 ? (
+                      <>
+                        {' '}
+                        <TextLink variant="accent" size="sm" onClick={() => setSearch('')}>
+                          <Trans>Clear filter</Trans>
+                        </TextLink>
+                      </>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ) : (

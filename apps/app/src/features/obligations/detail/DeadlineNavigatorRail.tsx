@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -283,7 +284,7 @@ export function DeadlineNavigatorRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Filter deadlines`}
+          placeholder={t`Filter by client or form`}
           className="min-w-0 flex-1"
         />
         {/* Status filter (Yuqi: "a better representation needed, to show it is
@@ -367,9 +368,24 @@ export function DeadlineNavigatorRail({
       {/* ListBody */}
       <ListRailBody>
         {sortedRows.length === 0 ? (
-          <p className="px-[18px] py-6 text-sm text-text-tertiary">
-            <Trans>No deadlines match.</Trans>
-          </p>
+          // Zero-results is a recovery moment, not a dead-end: offer a one-click
+          // way back to the full list (matches the page-level empties + the
+          // sibling ObligationListRail / AlertListRail treatment).
+          <div className="px-[18px] py-10 text-center">
+            <p className="text-base text-text-tertiary">
+              <Trans>No deadlines match.</Trans>
+            </p>
+            {search.trim().length > 0 ? (
+              <TextLink
+                variant="accent"
+                size="sm"
+                onClick={() => setSearch('')}
+                className="mt-2 inline-block"
+              >
+                <Trans>Clear filter</Trans>
+              </TextLink>
+            ) : null}
+          </div>
         ) : (
           sortedRows.map((row, index) => {
             // When sorted by client, lead each client's cluster with a client

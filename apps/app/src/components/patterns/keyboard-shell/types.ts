@@ -2,7 +2,10 @@
 // can register in the keyboard help dialog under its own surface header
 // (it routes through `useAppHotkey`, which requires a matching category
 // value here). `clients` slots between `practice` and `obligations` in
-// `CATEGORY_ORDER` to match the sidebar reading order.
+// `CATEGORY_ORDER` to match the sidebar reading order. `alerts` exists for
+// the same reason — the /alerts route's `/` filter-search hotkey needs a
+// surface header to register under (added 2026-06-21 search-UX audit so `/`
+// works on /alerts identically to /clients, /deadlines, and /rules).
 export type ShortcutCategory =
   | 'global'
   | 'navigate'

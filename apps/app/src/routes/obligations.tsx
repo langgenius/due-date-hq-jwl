@@ -3941,7 +3941,7 @@ export function ObligationQueueRoute() {
                       : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
                   )
                 }}
-                placeholder={t`Filter client, form, or assignee`}
+                placeholder={t`Filter by client, form, or assignee`}
                 className="w-full min-w-0 shrink sm:w-[320px]"
               />
               {/* Filter sheet — one button (with an active-count badge) opens a

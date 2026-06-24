@@ -3962,6 +3962,13 @@ msgstr "清空全部州"
 msgid "Clear assignee"
 msgstr "清除经办人"
 
+#: src/features/alerts/AlertHistoryView.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Clear filter"
+msgstr "清除筛选"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -7310,9 +7317,17 @@ msgid "Filter {jurisdictionLabel} rules"
 msgstr "筛选{jurisdictionLabel}规则"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "筛选提醒"
+
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter by client or form"
+msgstr "按客户或表单筛选"
+
+#: src/routes/obligations.tsx
+msgid "Filter by client, form, or assignee"
+msgstr "按客户、表单或经办人筛选"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #, fuzzy
@@ -7338,22 +7353,18 @@ msgstr "按州筛选"
 msgid "Filter by status"
 msgstr "按状态筛选"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Filter by title or source"
+msgstr "按标题或来源筛选"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "按类型筛选"
 
-#: src/routes/obligations.tsx
-msgid "Filter client, form, or assignee"
-msgstr "筛选客户、表单或负责人"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
 msgstr "筛选客户"
-
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Filter deadlines"
-msgstr "筛选截止事项"
 
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
@@ -7379,10 +7390,6 @@ msgstr "按时间范围筛选优先事项"
 #: src/routes/rules.library.tsx
 msgid "Filter rules"
 msgstr "筛选规则"
-
-#: src/routes/rules.library.tsx
-msgid "Filter rules…"
-msgstr "筛选规则…"
 
 #: src/routes/rules.library.tsx
 msgid "Filter the rule table by entity"

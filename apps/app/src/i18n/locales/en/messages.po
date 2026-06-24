@@ -3946,6 +3946,13 @@ msgstr "Clear all states"
 msgid "Clear assignee"
 msgstr "Clear assignee"
 
+#: src/features/alerts/AlertHistoryView.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Clear filter"
+msgstr "Clear filter"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -7286,9 +7293,17 @@ msgid "Filter {jurisdictionLabel} rules"
 msgstr "Filter {jurisdictionLabel} rules"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "Filter alerts"
+
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter by client or form"
+msgstr "Filter by client or form"
+
+#: src/routes/obligations.tsx
+msgid "Filter by client, form, or assignee"
+msgstr "Filter by client, form, or assignee"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter by name or EIN"
@@ -7313,22 +7328,18 @@ msgstr "Filter by state"
 msgid "Filter by status"
 msgstr "Filter by status"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Filter by title or source"
+msgstr "Filter by title or source"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "Filter by type"
 
-#: src/routes/obligations.tsx
-msgid "Filter client, form, or assignee"
-msgstr "Filter client, form, or assignee"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
 msgstr "Filter clients"
-
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Filter deadlines"
-msgstr "Filter deadlines"
 
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
@@ -7354,10 +7365,6 @@ msgstr "Filter priorities by window"
 #: src/routes/rules.library.tsx
 msgid "Filter rules"
 msgstr "Filter rules"
-
-#: src/routes/rules.library.tsx
-msgid "Filter rules…"
-msgstr "Filter rules…"
 
 #: src/routes/rules.library.tsx
 msgid "Filter the rule table by entity"
