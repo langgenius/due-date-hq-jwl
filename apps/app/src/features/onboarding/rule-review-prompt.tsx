@@ -71,9 +71,11 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
         <p className="text-[11px] font-medium leading-relaxed text-text-tertiary">
           {item.detail ?? (
             // Plain gloss, not the internal term "source-defined calendar"
-            // (2026-06-12 critique) — matches the state-selector's phrasing.
+            // (2026-06-12 critique). "Jurisdiction" not "state" — the review set
+            // includes Federal, which is not a state.
             <Trans>
-              This state publishes its own filing calendar — confirm it before deadlines generate.
+              This jurisdiction publishes its own filing calendar — confirm it before deadlines
+              generate.
             </Trans>
           )}
         </p>
@@ -97,7 +99,7 @@ export function RuleReviewPrompt({
   const codeList = jurisdictions.map((item) => item.code).join(' + ')
   const summarizeJurisdictions = reviewCount > 3
   const reviewButtonLabel = summarizeJurisdictions ? (
-    <Plural value={reviewCount} one="Review # state" other="Review # states" />
+    <Plural value={reviewCount} one="Review # jurisdiction" other="Review # jurisdictions" />
   ) : (
     <Trans>Review {codeList} now</Trans>
   )
