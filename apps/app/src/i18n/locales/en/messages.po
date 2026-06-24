@@ -440,16 +440,6 @@ msgstr "{0, plural, one {You have # deadline due this week} other {You have # de
 msgid "{0} · {1} rows · started {2}"
 msgstr "{0} · {1} rows · started {2}"
 
-#. placeholder {0}: cell.name
-#: src/features/alerts/components/PulseAlertsMap.tsx
-msgid "{0} · {count} alerts"
-msgstr "{0} · {count} alerts"
-
-#. placeholder {0}: cell.name
-#: src/features/alerts/components/PulseAlertsMap.tsx
-msgid "{0} · 1 alert"
-msgstr "{0} · 1 alert"
-
 #. placeholder {0}: tableRow.original.clientName
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -830,16 +820,6 @@ msgstr "{0} with gaps"
 msgid "{0}, today"
 msgstr "{0}, today"
 
-#. placeholder {0}: cell.name
-#: src/features/alerts/components/PulseAlertsMap.tsx
-msgid "{0}: {count} alerts"
-msgstr "{0}: {count} alerts"
-
-#. placeholder {0}: cell.name
-#: src/features/alerts/components/PulseAlertsMap.tsx
-msgid "{0}: 1 alert"
-msgstr "{0}: 1 alert"
-
 #. placeholder {0}: note.length
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{0}/500 characters"
@@ -1064,6 +1044,22 @@ msgstr "{days}d waiting"
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "{daysAgo} days ago"
 msgstr "{daysAgo} days ago"
+
+#: src/features/alerts/components/PulseAlertsMap.tsx
+msgid "{displayLabel} · {count} alerts"
+msgstr "{displayLabel} · {count} alerts"
+
+#: src/features/alerts/components/PulseAlertsMap.tsx
+msgid "{displayLabel} · 1 alert"
+msgstr "{displayLabel} · 1 alert"
+
+#: src/features/alerts/components/PulseAlertsMap.tsx
+msgid "{displayLabel}: {count} alerts"
+msgstr "{displayLabel}: {count} alerts"
+
+#: src/features/alerts/components/PulseAlertsMap.tsx
+msgid "{displayLabel}: 1 alert"
+msgstr "{displayLabel}: 1 alert"
 
 #: src/routes/rules.library.tsx
 msgid "{draftGatedPendingCount, plural, one {# needs an AI draft before it can be accepted} other {# need an AI draft before they can be accepted}}"
@@ -1939,7 +1935,6 @@ msgstr "active"
 #: src/features/alerts/components/ActiveQueueChip.tsx
 #: src/features/alerts/components/AlertListRail.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
@@ -2097,6 +2092,10 @@ msgstr "Add an internal note for your team…"
 #: src/routes/obligations.tsx
 msgid "Add an optional memo to record why on the audit trail."
 msgstr "Add an optional memo to record why on the audit trail."
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Add calendar → Subscribe from web"
+msgstr "Add calendar → Subscribe from web"
 
 #: src/features/dashboard/add-menu.tsx
 msgid "Add client"
@@ -2835,6 +2834,10 @@ msgstr "API access by contract"
 #: src/features/calendar/calendar-page.tsx
 msgid "Apple Calendar"
 msgstr "Apple Calendar"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Apple Calendar opens automatically"
+msgstr "Apple Calendar opens automatically"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Apple Calendar requires HTTPS"
@@ -3701,10 +3704,6 @@ msgstr "candidate"
 msgid "Canopy"
 msgstr "Canopy"
 
-#: src/features/workload/workload-page.tsx
-msgid "Capacity pressure"
-msgstr "Capacity pressure"
-
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Capped at the earliest extended filing deadline: {cap}"
@@ -4046,6 +4045,14 @@ msgstr "Cleared from {before}"
 #: src/features/rules/RuleCoverageMap.tsx
 msgid "Click a jurisdiction to review its rules"
 msgstr "Click a jurisdiction to review its rules"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Click Subscribe to confirm"
+msgstr "Click Subscribe to confirm"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Click the Apple Calendar link above"
+msgstr "Click the Apple Calendar link above"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Click to open Sources."
@@ -4572,6 +4579,10 @@ msgstr "Confirming subscription"
 msgid "Conflicts with firm policy"
 msgstr "Conflicts with firm policy"
 
+#: src/features/calendar/calendar-page.tsx
+msgid "Connected"
+msgstr "Connected"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Contact details"
 msgstr "Contact details"
@@ -4693,6 +4704,10 @@ msgstr "Copy recap"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Copy source excerpt"
 msgstr "Copy source excerpt"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Copy the HTTPS URL above, then follow the steps for your calendar app. Changes made in your calendar will not affect DueDateHQ."
+msgstr "Copy the HTTPS URL above, then follow the steps for your calendar app. Changes made in your calendar will not affect DueDateHQ."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Copy URI"
@@ -7112,6 +7127,10 @@ msgstr "Extracted change details · {confPct}% confidence"
 msgid "Factor weights"
 msgstr "Factor weights"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "failed"
+msgstr "failed"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
@@ -7789,18 +7808,58 @@ msgstr "Go to Dashboard > Applications > Utilities > Create client list for Port
 #: src/features/migration/SuccessModal.tsx
 #: src/routes/accept-invite.tsx
 #: src/routes/billing.success.tsx
+#: src/routes/error.tsx
 #: src/routes/not-found.tsx
 #: src/routes/splash.tsx
 msgid "Go to Today"
 msgstr "Go to Today"
 
+#: src/routes/splash.tsx
+msgid "Good afternoon"
+msgstr "Good afternoon"
+
+#: src/routes/splash.tsx
+msgid "Good afternoon,"
+msgstr "Good afternoon,"
+
+#. placeholder {0}: data.userName
+#: src/routes/splash.tsx
+msgid "Good afternoon, {0}"
+msgstr "Good afternoon, {0}"
+
 #: src/routes/dashboard.tsx
 msgid "Good afternoon, {firstName}"
 msgstr "Good afternoon, {firstName}"
 
+#: src/routes/splash.tsx
+msgid "Good evening"
+msgstr "Good evening"
+
+#: src/routes/splash.tsx
+msgid "Good evening,"
+msgstr "Good evening,"
+
+#. placeholder {0}: data.userName
+#: src/routes/splash.tsx
+msgid "Good evening, {0}"
+msgstr "Good evening, {0}"
+
 #: src/routes/dashboard.tsx
 msgid "Good evening, {firstName}"
 msgstr "Good evening, {firstName}"
+
+#: src/routes/splash.tsx
+msgid "Good morning"
+msgstr "Good morning"
+
+#: src/routes/splash.tsx
+msgid "Good morning,"
+msgstr "Good morning,"
+
+#. placeholder {0}: data.userName
+#: src/routes/splash.tsx
+msgid "Good morning, {0}"
+msgstr "Good morning, {0}"
 
 #: src/routes/dashboard.tsx
 msgid "Good morning, {firstName}"
@@ -7817,10 +7876,6 @@ msgstr "Google Authenticator, 1Password, Authy, or similar."
 #: src/features/calendar/calendar-page.tsx
 msgid "Google Calendar"
 msgstr "Google Calendar"
-
-#: src/features/calendar/calendar-page.tsx
-msgid "Google Calendar uses the copied HTTPS URL from its web app. Apple Calendar can open the webcal link directly."
-msgstr "Google Calendar uses the copied HTTPS URL from its web app. Apple Calendar can open the webcal link directly."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Gross receipts"
@@ -7885,6 +7940,10 @@ msgstr "High-severity"
 msgid "Highest impact"
 msgstr "Highest impact"
 
+#: src/features/workload/workload-page.tsx
+msgid "Highest relative load on the team"
+msgstr "Highest relative load on the team"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "History"
 msgstr "History"
@@ -7920,6 +7979,10 @@ msgstr "How much client info is already gathered"
 #: src/features/migration/Step4Preview.tsx
 msgid "How to handle duplicate clients"
 msgstr "How to handle duplicate clients"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "How to subscribe"
+msgstr "How to subscribe"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "How you get notified. Per-type rules below override these channels."
@@ -8582,6 +8645,10 @@ msgstr "Language"
 msgid "Language, date, and time formats"
 msgstr "Language, date, and time formats"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "Last 20 reminders"
+msgstr "Last 20 reminders"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "last 24 hours"
 msgstr "last 24 hours"
@@ -9017,6 +9084,10 @@ msgstr "Manager review"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Manager review saved"
 msgstr "Manager review saved"
+
+#: src/features/workload/workload-page.tsx
+msgid "Manager triage metrics"
+msgstr "Manager triage metrics"
 
 #: src/lib/required-roles-label.ts
 msgid "managers"
@@ -10019,8 +10090,8 @@ msgid "No assignable teammates"
 msgstr "No assignable teammates"
 
 #: src/features/workload/workload-page.tsx
-msgid "No assigned work"
-msgstr "No assigned work"
+msgid "No assigned work in the selected window."
+msgstr "No assigned work in the selected window."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No assignees"
@@ -10212,6 +10283,10 @@ msgstr "No evidence recorded."
 #: src/features/audit/audit-log-page.tsx
 msgid "No export packages yet."
 msgstr "No export packages yet."
+
+#: src/features/reminders/reminders-page.tsx
+msgid "no failures"
+msgstr "no failures"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
@@ -10903,6 +10978,7 @@ msgstr "Only the practice owner can start or change a subscription."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/workload/workload-page.tsx
 msgid "open"
 msgstr "open"
 
@@ -11036,6 +11112,10 @@ msgstr "Open full Inbox"
 msgid "Open full page"
 msgstr "Open full page"
 
+#: src/features/calendar/calendar-page.tsx
+msgid "Open Google Calendar on the web"
+msgstr "Open Google Calendar on the web"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Open HomeBase View and make sure you are not inside a client return."
 msgstr "Open HomeBase View and make sure you are not inside a client return."
@@ -11067,6 +11147,10 @@ msgstr "Open official source: {0}"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Open original"
 msgstr "Open original"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Open Outlook Calendar on the web"
+msgstr "Open Outlook Calendar on the web"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Open portal"
@@ -11109,10 +11193,6 @@ msgstr "Open source"
 #: src/routes/rules.library.tsx
 msgid "Open the Annual rollover preview →"
 msgstr "Open the Annual rollover preview →"
-
-#: src/features/calendar/calendar-page.tsx
-msgid "Open the Apple Calendar link"
-msgstr "Open the Apple Calendar link"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the deadline blocking this row: {label}."
@@ -11519,6 +11599,14 @@ msgstr "Paste client rows"
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste or upload to continue."
 msgstr "Paste or upload to continue."
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Paste the copied HTTPS URL"
+msgstr "Paste the copied HTTPS URL"
+
+#: src/features/calendar/calendar-page.tsx
+msgid "Paste the copied URL"
+msgstr "Paste the copied URL"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste your client list — any format. Include column names if you have them."
@@ -13065,10 +13153,6 @@ msgstr "Retry now"
 msgid "Return"
 msgstr "Return"
 
-#: src/routes/error.tsx
-msgid "Return home"
-msgstr "Return home"
-
 #: src/features/permissions/permission-gate.tsx
 msgid "Return to Today"
 msgstr "Return to Today"
@@ -14207,6 +14291,10 @@ msgstr "Sending to {eligibleCount} clients · {0} not awaiting signature · {1} 
 msgid "Sending…"
 msgstr "Sending…"
 
+#: src/features/reminders/reminders-page.tsx
+msgid "sent"
+msgstr "sent"
+
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Sent"
@@ -14662,13 +14750,13 @@ msgstr "Some state deadlines need rule review"
 msgid "Something else"
 msgstr "Something else"
 
-#: src/routes/error.tsx
-msgid "Something went wrong"
-msgstr "Something went wrong"
-
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Something went wrong fetching your notification settings."
 msgstr "Something went wrong fetching your notification settings."
+
+#: src/routes/error.tsx
+msgid "Something went wrong on our end"
+msgstr "Something went wrong on our end"
 
 #: src/lib/i18n-error.ts
 msgid "Something went wrong on our side. Please try again shortly."
@@ -15021,17 +15109,9 @@ msgstr "Submitting…"
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't change DueDateHQ."
 msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't change DueDateHQ."
 
-#: src/features/calendar/calendar-page.tsx
-msgid "Subscribe from web calendar URL"
-msgstr "Subscribe from web calendar URL"
-
 #: src/routes/billing.success.tsx
 msgid "Subscription active"
 msgstr "Subscription active"
-
-#: src/features/calendar/calendar-page.tsx
-msgid "Subscription notes"
-msgstr "Subscription notes"
 
 #: src/routes/billing.tsx
 msgid "Subscription overview"
@@ -16468,6 +16548,10 @@ msgstr "Urgency"
 msgid "Urgency window"
 msgstr "Urgency window"
 
+#: src/features/alerts/components/PulseAlertsMap.tsx
+msgid "US jurisdiction alert map"
+msgstr "US jurisdiction alert map"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "US state code · 2 letters"
 msgstr "US state code · 2 letters"
@@ -16868,23 +16952,16 @@ msgid "We couldn't find a header row. Make sure the first line lists your column
 msgstr "We couldn't find a header row. Make sure the first line lists your column names."
 
 #: src/lib/i18n-error.ts
-#: src/routes/error.tsx
 msgid "We couldn't find what you were looking for."
 msgstr "We couldn't find what you were looking for."
+
+#: src/routes/error.tsx
+msgid "We couldn't find what you were looking for. Head home and we'll get you back on track."
+msgstr "We couldn't find what you were looking for. Head home and we'll get you back on track."
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "We couldn't generate today's brief — we'll retry shortly."
 msgstr "We couldn't generate today's brief — we'll retry shortly."
-
-#: src/routes/error.tsx
-msgid "We couldn't load this page. Try again, or head back home."
-msgstr "We couldn't load this page. Try again, or head back home."
-
-#. placeholder {0}: error.status
-#. placeholder {1}: translated ?? error.statusText
-#: src/routes/error.tsx
-msgid "We couldn't load this page. Try again, or head back home. ({0} {1})"
-msgstr "We couldn't load this page. Try again, or head back home. ({0} {1})"
 
 #: src/features/members/members-page.tsx
 msgid "We couldn't load your team. Retry."
@@ -16909,6 +16986,16 @@ msgstr "We couldn't refresh billing status yet. This page will keep checking."
 #: src/features/migration/Step1Intake.tsx
 msgid "We found column names but no clients. Add at least one client to continue."
 msgstr "We found column names but no clients. Add at least one client to continue."
+
+#: src/routes/error.tsx
+msgid "We hit a snag loading this page — it's on us, not you. Try again or head home."
+msgstr "We hit a snag loading this page — it's on us, not you. Try again or head home."
+
+#. placeholder {0}: error.status
+#. placeholder {1}: translated ?? error.statusText
+#: src/routes/error.tsx
+msgid "We hit a snag loading this page — it's on us, not you. Try again or head home. ({0} {1})"
+msgstr "We hit a snag loading this page — it's on us, not you. Try again or head home. ({0} {1})"
 
 #: src/routes/login.tsx
 msgid "we look up your firm automatically"
@@ -16939,18 +17026,8 @@ msgid "Weekly digest"
 msgstr "Weekly digest"
 
 #: src/routes/route-summary.ts
-#: src/routes/splash.tsx
 msgid "Welcome back"
 msgstr "Welcome back"
-
-#: src/routes/splash.tsx
-msgid "Welcome back,"
-msgstr "Welcome back,"
-
-#. placeholder {0}: data.userName
-#: src/routes/splash.tsx
-msgid "Welcome back, {0}"
-msgstr "Welcome back, {0}"
 
 #: src/routes/obligations.tsx
 msgid "What"
@@ -17344,6 +17421,10 @@ msgstr "you@firm.com"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
+
+#: src/routes/two-factor.tsx
+msgid "Your account is protected by two-factor authentication."
+msgstr "Your account is protected by two-factor authentication."
 
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
