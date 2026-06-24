@@ -91,6 +91,9 @@ export function FirstRunTour() {
 
   // Start once, shortly after mount, if unseen and the first target is anchorable.
   useEffect(() => {
+    // Never auto-run in an automated browser (Playwright e2e): the overlay would
+    // intercept the test's clicks on /today.
+    if (typeof navigator !== 'undefined' && navigator.webdriver) return
     if (startedRef.current || hasSeenTour()) return
     const firstHref = steps[0]?.href
     const timer = window.setTimeout(() => {
