@@ -891,8 +891,8 @@ msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, one {# alert} other {# alerts}}"
 
 #: src/features/alerts/components/AlertListRail.tsx
-msgid "{activeCount, plural, one {# open} other {# open}}"
-msgstr "{activeCount, plural, one {# open} other {# open}}"
+msgid "{activeCount, plural, one {1 open} other {# open}}"
+msgstr "{activeCount, plural, one {1 open} other {# open}}"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{activeCount} Active"
@@ -3388,6 +3388,7 @@ msgstr "Billed yearly · Save $96/year"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
+#: src/routes/billing.cancel.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -5222,10 +5223,6 @@ msgstr "Couldn't snooze deadline"
 msgid "Couldn't start authenticator setup"
 msgstr "Couldn't start authenticator setup"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Couldn't start deadline tip refresh"
-msgstr "Couldn't start deadline tip refresh"
-
 #: src/routes/accept-invite.tsx
 msgid "Couldn't start sign-in"
 msgstr "Couldn't start sign-in"
@@ -5769,10 +5766,6 @@ msgstr "Deadline tax year changed"
 #: src/features/concepts/concept-help.tsx
 msgid "Deadline Tip"
 msgstr "Deadline Tip"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Deadline tip refresh started"
-msgstr "Deadline tip refresh started"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Deadline types"
@@ -8960,8 +8953,6 @@ msgid "Low AI confidence — verify the parsed fields against the source before 
 msgstr "Low AI confidence — verify the parsed fields against the source before marking reviewed."
 
 #: src/components/primitives/low-confidence-badge.tsx
-#: src/features/alerts/components/AlertListRail.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
 
@@ -13903,10 +13894,6 @@ msgstr "Search assignees…"
 msgid "Search audit events"
 msgstr "Search audit events"
 
-#: src/features/audit/audit-log-page.tsx
-msgid "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
-msgstr "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
-
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "Search clients"
 msgstr "Search clients"
@@ -16729,6 +16716,10 @@ msgstr "View audit log"
 msgid "View audit log entry"
 msgstr "View audit log entry"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "View audit trail"
+msgstr "View audit trail"
+
 #: src/routes/billing.checkout.tsx
 msgid "View billing"
 msgstr "View billing"
@@ -16757,6 +16748,10 @@ msgstr "View deadlines from this rule"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
 msgstr "View extension rules"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "View filed deadlines"
+msgstr "View filed deadlines"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"

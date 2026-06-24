@@ -1,0 +1,2613 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DueDateHQ — Catch every tax-deadline change across all 50 states</title>
+    <meta
+      name="description"
+      content="DueDateHQ watches the IRS and all 50 states around the clock. The moment a deadline moves, you know exactly which of your clients it affects — and fix them in one click. Sourced and reversible."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* ---- palette · light only ---- */
+        --bg: #ffffff;
+        --surface: #f7f8fa;
+        --surface-2: #fbfcfd;
+        --ink: #0b1220;
+        --ink-2: #3a4658;
+        --muted: #6b7689;
+        --faint: #9aa4b5;
+        --line: #e6e9ef;
+        --line-2: #eef1f6;
+        --blue: #2d6bff;
+        --blue-700: #1f50d6;
+        --blue-50: #edf3ff;
+        --blue-ring: #c9d6f5;
+        --green: #12b886;
+        --green-700: #0e8c68;
+        --green-50: #e7f8f1;
+        --amber: #d9890b;
+        --amber-50: #fdf3e2;
+
+        --radius: 12px;
+        --radius-md: 10px;
+        --radius-sm: 8px;
+        --radius-xs: 6px;
+        --maxw: 1180px;
+        --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        --shadow-card: 0 1px 2px rgba(11, 18, 32, 0.04);
+        --shadow-hover: 0 6px 18px -10px rgba(11, 18, 32, 0.16);
+        --shadow-hero: 0 1px 2px rgba(11, 18, 32, 0.05), 0 24px 60px -32px rgba(11, 18, 32, 0.22);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--bg);
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0;
+        letter-spacing: -0.03em;
+        line-height: 1.08;
+        font-weight: 800;
+      }
+      p {
+        margin: 0;
+      }
+      .mono {
+        font-family: var(--mono);
+        font-feature-settings:
+          'tnum' 1,
+          'zero' 1;
+        font-variant-numeric: tabular-nums slashed-zero;
+      }
+      .wrap {
+        max-width: var(--maxw);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      /* ---- eyebrow (mono terminal-label) ---- */
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .eyebrow.blue {
+        color: var(--blue);
+      }
+      .eyebrow .dash {
+        width: 16px;
+        height: 1.5px;
+        background: currentColor;
+        opacity: 0.55;
+        display: inline-block;
+      }
+      .eyebrow .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+
+      /* ---- buttons ---- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 12px 20px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          background 0.15s ease,
+          border-color 0.15s ease;
+        line-height: 1;
+        white-space: nowrap;
+        font-family: var(--sans);
+      }
+      .btn-primary {
+        background: var(--blue);
+        color: #fff;
+        box-shadow:
+          0 1px 2px rgba(45, 107, 255, 0.35),
+          0 10px 22px -12px rgba(45, 107, 255, 0.55);
+      }
+      .btn-primary:hover {
+        background: var(--blue-700);
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        background: #fff;
+        color: var(--ink);
+        border-color: var(--line);
+      }
+      .btn-ghost:hover {
+        border-color: var(--blue-ring);
+        background: var(--surface);
+      }
+      .btn-sm {
+        padding: 9px 15px;
+        font-size: 14px;
+      }
+      .btn-lg {
+        padding: 14px 24px;
+        font-size: 16px;
+      }
+
+      /* ---- nav ---- */
+      header.nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: saturate(150%) blur(12px);
+        -webkit-backdrop-filter: saturate(150%) blur(12px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-row {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        height: 64px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 17px;
+        letter-spacing: -0.03em;
+      }
+      .logo-mark {
+        width: 26px;
+        height: 26px;
+        flex: none;
+      }
+      .nav-tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        padding: 3px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.02em;
+        background: var(--surface);
+      }
+      .nav-links {
+        display: flex;
+        gap: 24px;
+        margin-left: 6px;
+      }
+      .nav-links a {
+        font-size: 14.5px;
+        color: var(--ink-2);
+        font-weight: 500;
+      }
+      .nav-links a:hover {
+        color: var(--blue);
+      }
+      .nav-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .nav-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-2);
+        background: var(--green-50);
+        border: 1px solid #bbebd9;
+        padding: 5px 11px;
+        border-radius: 999px;
+      }
+      .pulse-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        position: relative;
+        flex: none;
+      }
+      .pulse-dot::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1.5px solid var(--green);
+        opacity: 0.5;
+        animation: ping 2.2s ease-out infinite;
+      }
+      .pulse-dot.blue {
+        background: var(--blue);
+      }
+      .pulse-dot.blue::after {
+        border-color: var(--blue);
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1.9);
+          opacity: 0;
+        }
+      }
+
+      /* ---- hero ---- */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 72px 0 84px;
+        border-bottom: 1px solid var(--line);
+      }
+      .hero-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(820px 380px at 84% -6%, rgba(45, 107, 255, 0.07), transparent 62%),
+          radial-gradient(640px 360px at 4% 4%, rgba(18, 184, 134, 0.055), transparent 58%);
+      }
+      .hero-grid-lines {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+        background-image:
+          linear-gradient(var(--line-2) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line-2) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(180deg, #000, transparent 66%);
+        -webkit-mask-image: linear-gradient(180deg, #000, transparent 66%);
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+        gap: 52px;
+        align-items: center;
+      }
+      .hero-h1 {
+        font-size: clamp(34px, 4.5vw, 54px);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        margin: 18px 0 0;
+        line-height: 1.04;
+      }
+      .hero-h1 .hl {
+        color: var(--blue);
+      }
+      .hero-sub {
+        margin-top: 20px;
+        font-size: 17px;
+        color: var(--ink-2);
+        max-width: 560px;
+        line-height: 1.62;
+      }
+      .hero-cta {
+        margin-top: 26px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .hero-micro {
+        margin-top: 16px;
+        font-size: 13.5px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .hero-micro .g {
+        display: inline-flex;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        background: #fff;
+        border: 1px solid var(--line);
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 11px;
+        color: #4285f4;
+      }
+      .chips {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        color: var(--ink-2);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        padding: 6px 11px;
+        border-radius: 999px;
+      }
+      .chip svg {
+        color: var(--green);
+      }
+
+      /* ---- dashboard preview card (signature) ---- */
+      .preview {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-hero);
+        overflow: hidden;
+      }
+      .pv-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface-2);
+      }
+      .pv-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .pv-dots i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--line);
+        display: block;
+      }
+      .pv-dots i:first-child {
+        background: #ff6058;
+      }
+      .pv-dots i:nth-child(2) {
+        background: #ffbd2e;
+      }
+      .pv-dots i:nth-child(3) {
+        background: #28c840;
+      }
+      .pv-url {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--muted);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xs);
+        padding: 4px 10px;
+        margin-left: 4px;
+        flex: 1;
+        max-width: 280px;
+      }
+      .pv-live {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--faint);
+        letter-spacing: 0.03em;
+      }
+      .pv-body {
+        padding: 16px;
+      }
+      .pv-statrow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 12px 13px;
+        background: var(--surface);
+      }
+      .stat .lbl {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+      .stat .num {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--ink);
+        margin-top: 5px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .stat .num.blue {
+        color: var(--blue);
+      }
+      .stat .sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 5px;
+        font-family: var(--mono);
+      }
+      .stat .sub.up {
+        color: var(--green);
+      }
+      .pv-feedhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 4px 2px 8px;
+      }
+      .pv-feedhead span {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .pv-feedhead .cnt {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .alert {
+        display: flex;
+        gap: 11px;
+        align-items: flex-start;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        margin-bottom: 8px;
+        background: #fff;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .alert:hover {
+        border-color: var(--blue-ring);
+        box-shadow: var(--shadow-hover);
+      }
+      .alert:last-child {
+        margin-bottom: 0;
+      }
+      .sev {
+        flex: none;
+        margin-top: 3px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .sev.urgent {
+        background: var(--amber);
+        box-shadow: 0 0 0 3px var(--amber-50);
+      }
+      .sev.fyi {
+        background: var(--faint);
+        box-shadow: 0 0 0 3px var(--surface);
+      }
+      .a-main {
+        flex: 1;
+        min-width: 0;
+      }
+      .a-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.35;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+      .a-meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .a-meta .src {
+        color: var(--blue);
+      }
+      .a-meta .dot {
+        color: var(--faint);
+      }
+      .a-affected {
+        margin-top: 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: var(--blue-50);
+        border: 1px solid #d5e2fe;
+        border-radius: var(--radius-xs);
+        padding: 3px 8px;
+        font-family: var(--mono);
+      }
+      .a-affected .n {
+        font-weight: 700;
+        color: var(--blue);
+      }
+      .a-apply {
+        flex: none;
+        align-self: center;
+      }
+      .mini-btn {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #fff;
+        background: var(--blue);
+        border: none;
+        border-radius: var(--radius-xs);
+        padding: 7px 11px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-family: var(--sans);
+      }
+      .mini-btn:hover {
+        background: var(--blue-700);
+      }
+      .mini-btn.done {
+        background: var(--green-50);
+        color: var(--green-700);
+        border: 1px solid #b6ebd4;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .new-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--blue);
+        display: inline-block;
+        flex: none;
+        align-self: center;
+      }
+
+      /* ---- sources / live band (light-gray) ---- */
+      .sources {
+        padding: 30px 0;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .sources-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .promise {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        text-align: center;
+        margin: 0 auto;
+        color: var(--ink);
+      }
+      .promise .hl {
+        color: var(--blue);
+      }
+      .sources-lbl {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .src-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .src-pill .d {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        position: relative;
+      }
+      .src-sep {
+        color: var(--line);
+        font-size: 13px;
+      }
+
+      /* ---- section scaffolding ---- */
+      section {
+        padding: 88px 0;
+      }
+      .sec-head {
+        max-width: 700px;
+        margin-bottom: 44px;
+      }
+      .sec-title {
+        font-size: clamp(26px, 3vw, 38px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-top: 14px;
+        line-height: 1.1;
+      }
+      .sec-intro {
+        margin-top: 16px;
+        font-size: 17px;
+        color: var(--ink-2);
+        line-height: 1.62;
+      }
+      .center {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .band-gray {
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      /* ---- villain beat (LIGHT) ---- */
+      .villain .villain-title {
+        font-size: clamp(26px, 3.4vw, 40px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        max-width: 880px;
+        margin-top: 14px;
+        line-height: 1.12;
+        color: var(--ink);
+      }
+      .villain-body {
+        margin-top: 22px;
+        font-size: 18px;
+        color: var(--ink-2);
+        max-width: 740px;
+        line-height: 1.65;
+      }
+      .villain-body .em {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .villain-tags {
+        margin-top: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .vtag {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: var(--radius-sm);
+        padding: 8px 12px;
+      }
+      .vtag s {
+        color: var(--faint);
+        text-decoration-color: var(--faint);
+      }
+
+      /* ---- how it works ---- */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .step {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 24px 22px;
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .step:hover {
+        border-color: var(--blue-ring);
+        box-shadow: var(--shadow-hover);
+      }
+      .step::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 3px;
+        width: 100%;
+        background: linear-gradient(90deg, var(--blue), #7aa2ff);
+      }
+      .step-num {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--blue);
+        background: var(--blue-50);
+        border: 1px solid #d5e2fe;
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .step-kicker {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 14px 0 8px;
+      }
+      .step-h {
+        font-size: 18.5px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .step-b {
+        margin-top: 10px;
+        font-size: 14.5px;
+        color: var(--ink-2);
+        line-height: 1.58;
+      }
+      .step-keys {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .step-keys .lbl {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .kbd {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-2);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 3px 7px;
+      }
+      .flow-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+      .flow-arrow b {
+        color: var(--blue);
+        font-weight: 600;
+      }
+      .flow-arrow .ar {
+        color: var(--faint);
+      }
+
+      /* ---- document-intelligence visual ---- */
+      .docint {
+        margin-top: 46px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+        gap: 24px;
+        align-items: stretch;
+      }
+      .doc-paper {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 22px 24px;
+        box-shadow: var(--shadow-card);
+        position: relative;
+        overflow: hidden;
+      }
+      .doc-masthead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .doc-seal {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1.5px solid var(--ink-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink-2);
+        flex: none;
+      }
+      .doc-org {
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .doc-org .sub {
+        display: block;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--muted);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        margin-top: 2px;
+      }
+      .doc-lines {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .doc-lines i {
+        height: 7px;
+        border-radius: 3px;
+        background: var(--line-2);
+        display: block;
+      }
+      .doc-lines i.w90 {
+        width: 90%;
+      }
+      .doc-lines i.w75 {
+        width: 75%;
+      }
+      .doc-lines i.w60 {
+        width: 60%;
+      }
+      .doc-lines i.w82 {
+        width: 82%;
+      }
+      .doc-key {
+        margin-top: 14px;
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--ink);
+        background: var(--blue-50);
+        border: 1px solid #d5e2fe;
+        border-left: 3px solid var(--blue);
+        border-radius: var(--radius-xs);
+        padding: 10px 12px;
+      }
+      .doc-key b {
+        color: var(--blue);
+      }
+      .doc-foot {
+        margin-top: 14px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--faint);
+      }
+      .doc-extract {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: center;
+      }
+      .ex-eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ex-eyebrow .ar {
+        color: var(--blue);
+      }
+      .ex-field {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        padding: 11px 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .ex-field:hover {
+        border-color: var(--blue-ring);
+        box-shadow: var(--shadow-hover);
+      }
+      .ex-field .fl {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .ex-field .fv {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        text-align: right;
+      }
+      .ex-field .fv.blue {
+        color: var(--blue);
+      }
+      .ex-field .fv.green {
+        color: var(--green-700);
+      }
+      .ex-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--green-700);
+        background: var(--green-50);
+        border: 1px solid #b6ebd4;
+        border-radius: var(--radius-xs);
+        padding: 6px 10px;
+        align-self: flex-start;
+        margin-top: 2px;
+      }
+
+      /* ---- trust ---- */
+      .trust-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 48px;
+        align-items: start;
+      }
+      .glassbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--blue);
+        background: #fff;
+        border: 1px solid #d5e2fe;
+        border-radius: 999px;
+        padding: 6px 13px;
+        letter-spacing: 0.02em;
+        margin-top: 22px;
+      }
+      .trust-p {
+        margin-top: 20px;
+        font-size: 16.5px;
+        color: var(--ink-2);
+        line-height: 1.62;
+      }
+      .trust-p .em {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .boundary {
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--blue);
+        border-radius: var(--radius-sm);
+        padding: 16px 18px;
+        font-size: 14px;
+        color: var(--ink-2);
+        line-height: 1.58;
+      }
+      .boundary b {
+        color: var(--ink);
+      }
+      .tstats {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .tstat {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 20px;
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        box-shadow: var(--shadow-card);
+      }
+      .tstat .big {
+        font-family: var(--mono);
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 0.9;
+        flex: none;
+        min-width: 96px;
+      }
+      .tstat .big.blue {
+        color: var(--blue);
+      }
+      .tstat .big.green {
+        color: var(--green);
+      }
+      .tstat .big.ink {
+        color: var(--ink);
+        font-size: 28px;
+      }
+      .tstat .tcap {
+        font-size: 13.5px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+      .tstat .tcap b {
+        color: var(--ink);
+      }
+      .trust-line {
+        grid-column: 1 / -1;
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--muted);
+        text-align: center;
+        border-top: 1px dashed var(--line);
+        padding-top: 22px;
+      }
+
+      /* ---- features ---- */
+      .feat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .feat {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px;
+        background: #fff;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease,
+          transform 0.15s ease;
+      }
+      .feat:hover {
+        border-color: var(--blue-ring);
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px);
+      }
+      .feat.span2 {
+        grid-column: span 2;
+      }
+      .feat-ico {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        background: var(--blue-50);
+        border: 1px solid #d5e2fe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--blue);
+        margin-bottom: 14px;
+      }
+      .feat-h {
+        font-size: 16.5px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .feat-b {
+        margin-top: 9px;
+        font-size: 14px;
+        color: var(--ink-2);
+        line-height: 1.55;
+      }
+      .feat-support {
+        margin-top: 22px;
+        font-size: 14px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      /* ---- comparison (signature · LIGHT) ---- */
+      .ctable-wrap {
+        margin-top: 42px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+        box-shadow: var(--shadow-card);
+      }
+      table.ctable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14.5px;
+      }
+      .ctable th,
+      .ctable td {
+        padding: 16px 18px;
+        text-align: center;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      .ctable thead th {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+        vertical-align: bottom;
+        background: var(--surface);
+      }
+      .ctable thead th.rowlbl {
+        text-align: left;
+      }
+      .ctable td.rowlbl {
+        text-align: left;
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .ctable tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .ctable tbody tr:hover td {
+        background: var(--surface-2);
+      }
+      /* highlighted product column — electric-blue header + tint wash */
+      .col-us {
+        position: relative;
+      }
+      th.col-us {
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        background: var(--blue);
+      }
+      .ctable td.col-us {
+        background: var(--blue-50);
+      }
+      .ctable tbody tr:hover td.col-us {
+        background: #e4edff;
+      }
+      .us-badge {
+        display: block;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .us-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        justify-content: center;
+        color: #fff;
+      }
+      .us-brand svg {
+        width: 18px;
+        height: 18px;
+      }
+      /* cells */
+      .v-yes,
+      .v-no,
+      .v-partial,
+      .v-text {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-family: var(--mono);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .v-yes {
+        color: var(--green-700);
+      }
+      .v-yes svg {
+        width: 17px;
+        height: 17px;
+        color: var(--green);
+      }
+      .v-no {
+        color: var(--faint);
+      }
+      .v-no svg {
+        width: 15px;
+        height: 15px;
+      }
+      .v-partial {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .v-text {
+        color: var(--muted);
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+      .col-us .v-yes {
+        color: var(--green-700);
+      }
+      .col-us .v-yes svg {
+        color: var(--green);
+      }
+      .v-emph {
+        color: var(--blue);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        display: block;
+        margin-top: 3px;
+        letter-spacing: 0.02em;
+      }
+      .compare-line {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 17px;
+        color: var(--ink-2);
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.55;
+      }
+      .compare-line b {
+        color: var(--ink);
+      }
+
+      /* ---- closing ---- */
+      .close {
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+        background: radial-gradient(
+          820px 360px at 50% -10%,
+          rgba(45, 107, 255, 0.08),
+          transparent 62%
+        );
+      }
+      .close .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--blue);
+        background: var(--blue-50);
+        border: 1px solid #d5e2fe;
+        border-radius: 999px;
+        padding: 7px 14px;
+        letter-spacing: 0.02em;
+      }
+      .close-title {
+        font-size: clamp(28px, 3.6vw, 44px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-top: 20px;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.08;
+      }
+      .close-body {
+        margin-top: 18px;
+        font-size: 17px;
+        color: var(--ink-2);
+        max-width: 660px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+      }
+      .close-cta {
+        margin-top: 28px;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .close-reassure {
+        margin-top: 16px;
+        font-size: 13.5px;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+
+      /* ---- faq ---- */
+      .faq-list {
+        max-width: 780px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+      }
+      .faq-item {
+        border-bottom: 1px solid var(--line);
+      }
+      .faq-item:last-child {
+        border-bottom: none;
+      }
+      .faq-q {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 20px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink);
+        font-family: var(--sans);
+      }
+      .faq-q:hover {
+        background: var(--surface);
+      }
+      .faq-q .ic {
+        margin-left: auto;
+        flex: none;
+        transition: transform 0.2s ease;
+        color: var(--muted);
+      }
+      .faq-item[open] .faq-q .ic {
+        transform: rotate(45deg);
+        color: var(--blue);
+      }
+      .faq-a {
+        padding: 0 22px 22px;
+        font-size: 15px;
+        color: var(--ink-2);
+        line-height: 1.62;
+        max-width: 680px;
+      }
+      details > summary {
+        list-style: none;
+      }
+      details > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      /* ---- footer (LIGHT) ---- */
+      footer {
+        background: var(--surface);
+        color: var(--ink-2);
+        padding: 56px 0 30px;
+        border-top: 1px solid var(--line);
+      }
+      .foot-top {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr 1fr 1fr;
+        gap: 36px;
+      }
+      .foot-brand .brand {
+        color: var(--ink);
+      }
+      .foot-tag {
+        margin-top: 14px;
+        font-size: 14px;
+        color: var(--muted);
+        max-width: 300px;
+        line-height: 1.55;
+      }
+      .foot-aud {
+        margin-top: 14px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--faint);
+        letter-spacing: 0.02em;
+      }
+      .foot-col h4 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-weight: 600;
+        font-family: var(--mono);
+        margin-bottom: 14px;
+      }
+      .foot-col a {
+        display: block;
+        font-size: 14px;
+        color: var(--ink-2);
+        padding: 5px 0;
+      }
+      .foot-col a:hover {
+        color: var(--blue);
+      }
+      .foot-bottom {
+        margin-top: 40px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .foot-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+      }
+
+      /* ---- responsive ---- */
+      @media (max-width: 980px) {
+        .hero-inner {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+        .trust-grid {
+          grid-template-columns: 1fr;
+          gap: 34px;
+        }
+        .steps,
+        .feat-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .feat.span2 {
+          grid-column: span 1;
+        }
+        .docint {
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+        .foot-top {
+          grid-template-columns: 1fr 1fr;
+          gap: 30px;
+        }
+        .foot-brand {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 680px) {
+        section {
+          padding: 60px 0;
+        }
+        .nav-links,
+        .nav-tag,
+        .nav-right .nav-status {
+          display: none;
+        }
+        .steps,
+        .feat-grid {
+          grid-template-columns: 1fr;
+        }
+        .pv-statrow {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hero {
+          padding: 48px 0 56px;
+        }
+        .hero-cta {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .hero-cta .btn {
+          justify-content: center;
+        }
+        .foot-top {
+          grid-template-columns: 1fr;
+        }
+        .ctable-wrap {
+          overflow-x: auto;
+        }
+        table.ctable {
+          min-width: 640px;
+        }
+        .a-apply {
+          display: none;
+        }
+        .flow-arrow {
+          flex-wrap: wrap;
+        }
+        .tstat {
+          flex-direction: column;
+          gap: 8px;
+        }
+        .tstat .big {
+          min-width: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ NAV ============ -->
+    <header class="nav">
+      <div class="wrap nav-row">
+        <a class="brand" href="#top" aria-label="DueDateHQ home">
+          <svg
+            class="logo-mark"
+            viewBox="0 0 28 28"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect x="2" y="14" width="5" height="11" rx="1.5" fill="#2D6BFF" />
+            <rect x="9.5" y="8" width="5" height="17" rx="1.5" fill="#2D6BFF" />
+            <rect x="17" y="3" width="5" height="22" rx="1.5" fill="#12B886" />
+          </svg>
+          DueDateHQ
+        </a>
+        <span class="nav-tag">For US CPA practices</span>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#how">How it works</a>
+          <a href="#trust">Why trust it</a>
+          <a href="#inside">What's inside</a>
+          <a href="#compare">Compare</a>
+        </nav>
+        <div class="nav-right">
+          <span class="nav-status" title="Early access — federal plus 50 states and DC"
+            ><span class="pulse-dot"></span>Early access · FED + 50 states + DC</span
+          >
+          <a class="btn btn-primary btn-sm" href="#close">Open the workbench</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ============ HERO ============ -->
+      <section class="hero" aria-labelledby="hero-h">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-grid-lines" aria-hidden="true"></div>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow blue"
+              ><span class="dot"></span>Never miss a deadline change · FED + 50 states + DC</span
+            >
+            <h1 class="hero-h1" id="hero-h">
+              Catch every tax-deadline change —
+              <span class="hl">and see exactly who it affects.</span>
+            </h1>
+            <p class="hero-sub">
+              It watches the IRS and all 50 states around the clock, flags the exact clients each
+              change hits, and drafts the reminders you'd otherwise write by hand. Every date links
+              back to its official source. Not another calendar to maintain — the one that maintains
+              itself.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary btn-lg" href="#close">Open the workbench</a>
+              <a class="btn btn-ghost btn-lg" href="#how">Try it live ↓</a>
+            </div>
+            <p class="hero-micro">
+              <span class="g" aria-hidden="true">G</span> Start free with Google — your whole book
+              of clients, watched, in about 30 minutes.
+            </p>
+            <div class="chips" role="list" aria-label="What you can count on">
+              <span class="chip" role="listitem"
+                ><svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" /></svg
+                >Sourced every date</span
+              >
+              <span class="chip" role="listitem"
+                ><svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" /></svg
+                >You approve every change</span
+              >
+              <span class="chip" role="listitem"
+                ><svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" /></svg
+                >Undo within 24h</span
+              >
+              <span class="chip" role="listitem"
+                ><svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" /></svg
+                >No black box</span
+              >
+            </div>
+          </div>
+
+          <!-- dashboard preview (signature) -->
+          <div
+            class="preview"
+            role="img"
+            aria-label="Product preview: the DueDateHQ workbench showing live monitoring stats — 14 changes caught this week, 38 clients flagged, 50 states plus DC watched — and a recent-alerts feed for Texas, the IRS, and Washington."
+          >
+            <div class="pv-bar" aria-hidden="true">
+              <div class="pv-dots"><i></i><i></i><i></i></div>
+              <span class="pv-url">app.duedatehq.com / workbench</span>
+              <span class="pv-live">live preview · not your data</span>
+            </div>
+            <div class="pv-body" aria-hidden="true">
+              <div class="pv-statrow">
+                <div class="stat">
+                  <div class="lbl">Changes caught · this week</div>
+                  <div class="num blue">14</div>
+                  <div class="sub up">▲ 6 vs last week</div>
+                </div>
+                <div class="stat">
+                  <div class="lbl">Clients flagged</div>
+                  <div class="num">38</div>
+                  <div class="sub">across 9 alerts</div>
+                </div>
+                <div class="stat">
+                  <div class="lbl">States watched</div>
+                  <div class="num">
+                    50<span style="font-size: 14px; color: var(--muted)">+DC</span>
+                  </div>
+                  <div class="sub">+ IRS · FEMA</div>
+                </div>
+              </div>
+
+              <div class="pv-feedhead">
+                <span>Recent alerts</span><span class="cnt">9 open · newest first</span>
+              </div>
+
+              <div class="alert">
+                <span class="sev urgent" aria-hidden="true"></span>
+                <div class="a-main">
+                  <div class="a-title">
+                    <span class="new-dot"></span> Texas raises the franchise-tax no-tax-due
+                    threshold
+                  </div>
+                  <div class="a-meta">
+                    <span class="src">comptroller.texas.gov</span><span class="dot">·</span
+                    ><span>Jan 30</span><span class="dot">·</span><span>threshold advisory</span>
+                  </div>
+                  <span class="a-affected"
+                    ><span class="n">12</span> clients · 9 eligible · 3 review</span
+                  >
+                </div>
+                <div class="a-apply">
+                  <button class="mini-btn" type="button">Apply to 12</button>
+                </div>
+              </div>
+
+              <div class="alert">
+                <span class="sev urgent" aria-hidden="true"></span>
+                <div class="a-main">
+                  <div class="a-title">
+                    IRS postpones 2025 returns &amp; payments to Nov 3 for FEMA disaster areas
+                  </div>
+                  <div class="a-meta">
+                    <span class="src">irs.gov</span><span class="dot">·</span><span>Apr 2</span
+                    ><span class="dot">·</span><span>deadline shift</span>
+                  </div>
+                  <span class="a-affected"
+                    ><span class="n">5</span> clients · 3 eligible · 2 review</span
+                  >
+                </div>
+                <div class="a-apply"><button class="mini-btn" type="button">Review</button></div>
+              </div>
+
+              <div class="alert">
+                <span class="sev fyi" aria-hidden="true"></span>
+                <div class="a-main">
+                  <div class="a-title">Washington updates B&amp;O tax filing instructions</div>
+                  <div class="a-meta">
+                    <span class="src">dor.wa.gov</span><span class="dot">·</span><span>Jan 22</span
+                    ><span class="dot">·</span><span>form instruction</span>
+                  </div>
+                  <span
+                    class="a-affected"
+                    style="
+                      background: var(--surface);
+                      border-color: var(--line);
+                      color: var(--muted);
+                    "
+                    ><span class="n" style="color: var(--ink-2)">0</span> client impact</span
+                  >
+                </div>
+                <div class="a-apply">
+                  <button class="mini-btn done" type="button">
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      aria-hidden="true"
+                    >
+                      <polyline points="20 6 9 17 4 12" /></svg
+                    >Reviewed
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PROMISE / SOURCES (light-gray band) ============ -->
+      <div class="sources" aria-label="Sources we watch">
+        <div class="wrap">
+          <div class="sources-row" style="margin-bottom: 18px">
+            <p class="promise">
+              Every deadline. Every change. Every client. <span class="hl">Handled.</span>
+            </p>
+          </div>
+          <div class="sources-row">
+            <span class="sources-lbl">Sources we watch</span>
+            <span class="src-pill"><span class="d"></span>IRS</span><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>CA FTB</span
+            ><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>NY DTF</span
+            ><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>TX Comptroller</span
+            ><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>FL DOR</span
+            ><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>WA DOR</span
+            ><span class="src-sep">·</span>
+            <span class="src-pill"><span class="d"></span>FEMA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ VILLAIN BEAT (LIGHT) ============ -->
+      <section class="villain" aria-labelledby="villain-h">
+        <div class="wrap">
+          <span class="eyebrow"><span class="dash"></span>Sound familiar?</span>
+          <h2 class="villain-title" id="villain-h">
+            It's not missing a deadline that keeps you up. It's not knowing if you did.
+          </h2>
+          <p class="villain-body">
+            Fifty state websites. An inbox you can't keep up with. A spreadsheet only you
+            understand. Somewhere in there, a rule changed back in March — and you won't hear about
+            it until your client gets the notice. So you check again. And again.
+            <span class="em">The work was never the hard part; the not-knowing is.</span> That's the
+            part DueDateHQ takes off your desk.
+          </p>
+          <div class="villain-tags">
+            <span class="vtag"><s>50 browser tabs open</s></span>
+            <span class="vtag"><s>"did that rule change?"</s></span>
+            <span class="vtag"><s>a spreadsheet only you understand</s></span>
+            <span class="vtag"><s>refresh. refresh. refresh.</s></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HOW IT WORKS ============ -->
+      <section id="how" class="band-gray" aria-labelledby="how-h">
+        <div class="wrap">
+          <div class="sec-head">
+            <span class="eyebrow blue"><span class="dash"></span>How it works</span>
+            <h2 class="sec-title" id="how-h">It runs the long tail. You make the calls.</h2>
+            <p class="sec-intro">
+              A CPA's deadline work is a thousand small things — watching every state, knowing who's
+              affected, sending the reminders, chasing the missing docs. DueDateHQ runs that long
+              tail for you and stops at the one step only you should make.
+            </p>
+          </div>
+
+          <div class="steps">
+            <article class="step">
+              <div class="step-num mono">01</div>
+              <div class="step-kicker">Watch · around the clock</div>
+              <h3 class="step-h">We watch the sources, so you don't.</h3>
+              <p class="step-b">
+                DueDateHQ watches the IRS, the major state tax agencies, and FEMA disaster
+                declarations around the clock. It reads each change, classifies it — a moved
+                deadline, a relief postponement, a new filing requirement — and only surfaces it
+                when the new dates are grounded in the official text. No invented deadlines.
+              </p>
+              <div class="step-keys">
+                <span class="kbd">A</span><span class="lbl">Alerts</span><span class="kbd">E</span
+                ><span class="lbl">Evidence</span>
+              </div>
+            </article>
+
+            <article class="step">
+              <div class="step-num mono">02</div>
+              <div class="step-kicker">Match · who's affected</div>
+              <h3 class="step-h">See exactly who it hits.</h3>
+              <p class="step-b">
+                Every change is matched to your clients by jurisdiction, form, and entity type, with
+                a "needs review" flag where it's unsure. The affected-client list is computed before
+                you even open the alert — "Texas raised the franchise-tax threshold; 12 clients may
+                be affected."
+              </p>
+              <div class="step-keys">
+                <span class="kbd">J / K</span><span class="lbl">Move</span><span class="kbd">↵</span
+                ><span class="lbl">Open</span>
+              </div>
+            </article>
+
+            <article class="step">
+              <div class="step-num mono">03</div>
+              <div class="step-kicker">Apply · one click</div>
+              <h3 class="step-h">One click. The follow-up's already done.</h3>
+              <p class="step-b">
+                Push the change across every affected client in a single click — up to a hundred at
+                once, sourced, audited, undo within 24h. The client email's drafted, the reminders
+                are set, your worklist's re-ranked. Nothing's applied without your approval.
+              </p>
+              <div class="step-keys">
+                <span class="kbd">⌘↵</span><span class="lbl">Apply</span><span class="kbd">⌘Z</span
+                ><span class="lbl">Undo</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true">
+            <b>WATCH</b><span class="ar">→</span><b>READ</b><span class="ar">→</span><b>MATCH</b
+            ><span class="ar">→</span><b>APPLY</b><span class="ar">→</span><b>AUDIT / UNDO</b>
+          </div>
+
+          <!-- document-intelligence visual -->
+          <div class="docint">
+            <div
+              class="doc-paper"
+              role="img"
+              aria-label="An official Texas Comptroller notice with the key sentence highlighted, beside the change extracted into labeled fields: form 05-163, new due date November 3 2025, source comptroller.texas.gov, verified."
+            >
+              <div class="doc-masthead">
+                <span class="doc-seal" aria-hidden="true"
+                  ><svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                  >
+                    <path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" /></svg
+                ></span>
+                <span class="doc-org"
+                  >Texas Comptroller of Public Accounts<span class="sub"
+                    >Official notice · Franchise Tax</span
+                  ></span
+                >
+              </div>
+              <div class="doc-lines" aria-hidden="true">
+                <i class="w90"></i><i class="w82"></i><i class="w60"></i>
+              </div>
+              <div class="doc-key">
+                For report year 2025, the <b>no-tax-due threshold</b> is revised and the report is
+                <b>due November 3, 2025</b> for affected filers.
+              </div>
+              <div class="doc-lines" aria-hidden="true" style="margin-top: 12px">
+                <i class="w75"></i><i class="w90"></i>
+              </div>
+              <p class="doc-foot">comptroller.texas.gov · Notice 98-806 · retrieved Jan 30</p>
+            </div>
+
+            <div class="doc-extract">
+              <span class="ex-eyebrow"
+                >Extracted by DueDateHQ <span class="ar" aria-hidden="true">▸</span></span
+              >
+              <div class="ex-field">
+                <span class="fl">Change type</span><span class="fv">threshold advisory</span>
+              </div>
+              <div class="ex-field"><span class="fl">Form</span><span class="fv">05-163</span></div>
+              <div class="ex-field">
+                <span class="fl">New due date</span><span class="fv blue">Nov 3, 2025</span>
+              </div>
+              <div class="ex-field">
+                <span class="fl">Source</span><span class="fv">comptroller.texas.gov</span>
+              </div>
+              <div class="ex-field">
+                <span class="fl">Clients affected</span><span class="fv">12 · 9 eligible</span>
+              </div>
+              <span class="ex-verified"
+                ><svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" /></svg
+                >verified · link · exact quote</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TRUST ============ -->
+      <section class="trust" id="trust" aria-labelledby="trust-h">
+        <div class="wrap">
+          <div class="trust-grid">
+            <div>
+              <span class="eyebrow blue"><span class="dash"></span>Why you can trust it</span>
+              <h2 class="sec-title" id="trust-h">
+                Every number on the screen clicks back to its source.
+              </h2>
+              <p class="trust-p">
+                We call it <span class="em">glass-box</span>. The software can summarize, flag, and
+                draft — but it never shows you a date without its source: a link, the exact quote,
+                and a verified date. When the source is missing, DueDateHQ asks you to verify it
+                instead of guessing. You stay the professional in the loop; it just makes the source
+                impossible to lose.
+              </p>
+              <span class="glassbox">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                glass-box · nothing hidden
+              </span>
+              <div class="boundary">
+                <b>Not tax advice.</b> DueDateHQ supports evidence-backed review. It is not tax
+                advice, not a filing system, and not a replacement for a CPA, EA, attorney, or other
+                qualified professional. It tells you where to look and why; you make the call.
+              </div>
+            </div>
+
+            <div class="tstats">
+              <div class="tstat">
+                <div class="big blue mono">100%</div>
+                <div class="tcap">
+                  <b>Sourced.</b> Every figure and citation carries a source link, an exact quote,
+                  and a verified date — or it's suppressed.
+                </div>
+              </div>
+              <div class="tstat">
+                <div class="big green mono">0</div>
+                <div class="tcap">
+                  <b>Auto-applied changes.</b> Nothing touches a client's deadline on its own —
+                  apply is always your call.
+                </div>
+              </div>
+              <div class="tstat">
+                <div class="big ink mono">Audited</div>
+                <div class="tcap">
+                  <b>Every apply, undo, and revert</b> is recorded and inspectable.
+                </div>
+              </div>
+            </div>
+
+            <p class="trust-line">
+              Your clients' data stays in your own isolated practice on Cloudflare — never pooled
+              across firms — and it's email-first, so there's no portal to configure or vault to
+              migrate.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ WHAT'S INSIDE ============ -->
+      <section id="inside" class="band-gray" aria-labelledby="inside-h">
+        <div class="wrap">
+          <div class="sec-head center">
+            <span class="eyebrow" style="justify-content: center"
+              ><span class="dash"></span>The workbench</span
+            >
+            <h2 class="sec-title">Everything you'd otherwise track by hand.</h2>
+          </div>
+
+          <div class="feat-grid">
+            <article class="feat span2">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10 21a2 2 0 0 0 4 0" />
+                </svg>
+              </div>
+              <h3 class="feat-h">Alerts</h3>
+              <p class="feat-b">
+                The instant a rule changes, it's flagged with the exact clients it hits — fix them
+                all in one click, sourced and reversible. The watch-and-apply loop is the whole
+                product: monitor → read → match → apply → audit.
+              </p>
+            </article>
+
+            <article class="feat">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <line x1="4" y1="20" x2="4" y2="10" />
+                  <line x1="10" y1="20" x2="10" y2="4" />
+                  <line x1="16" y1="20" x2="16" y2="14" />
+                </svg>
+              </div>
+              <h3 class="feat-h">Risk-ranked worklist</h3>
+              <p class="feat-b">
+                Your week ranked by who's most at risk — the clients that matter rise to the top
+                before your first call.
+              </p>
+            </article>
+
+            <article class="feat">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                </svg>
+              </div>
+              <h3 class="feat-h">Know who you're waiting on</h3>
+              <p class="feat-b">
+                Every client marked Ready, Waiting, or Needs review — so nothing stalls because a
+                follow-up slipped.
+              </p>
+            </article>
+
+            <article class="feat">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M4 4h16v12H5.17L4 17.17V4z" />
+                  <line x1="8" y1="9" x2="16" y2="9" />
+                  <line x1="8" y1="12" x2="13" y2="12" />
+                </svg>
+              </div>
+              <h3 class="feat-h">Reminders &amp; client emails, drafted</h3>
+              <p class="feat-b">
+                30/7/1-day reminders and client notices drafted for you — the emails you'd otherwise
+                write by hand.
+              </p>
+            </article>
+
+            <article class="feat">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+              </div>
+              <h3 class="feat-h">One-paste import</h3>
+              <p class="feat-b">
+                A CSV or File In Time export → a full sourced year of deadlines in about 30 minutes.
+              </p>
+            </article>
+
+            <article class="feat">
+              <div class="feat-ico">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M9 12l2 2 4-4" />
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                  <path d="M3 5c0 1.66 4 3 9 3s9-1.34 9-3-4-3-9-3-9 1.34-9 3" />
+                </svg>
+              </div>
+              <h3 class="feat-h">Evidence on every date</h3>
+              <p class="feat-b">
+                Open any deadline to its official source — the link, the exact quote, who verified
+                it and when.
+              </p>
+            </article>
+          </div>
+
+          <p class="feat-support">
+            Plus saved views, bulk status updates, a calendar feed, a morning digest, and shared
+            team workload — for the practices that run as a team.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ SIGNATURE: COMPARISON (LIGHT) ============ -->
+      <section id="compare" aria-labelledby="compare-h">
+        <div class="wrap">
+          <div class="sec-head center">
+            <span class="eyebrow blue" style="justify-content: center"
+              ><span class="dash"></span>The difference</span
+            >
+            <h2 class="sec-title" id="compare-h">
+              Other tools store the dates you type in.<br />We watch the law for you.
+            </h2>
+            <p class="sec-intro center" style="max-width: 660px">
+              Every other CPA deadline tool is a filing cabinet for dates you enter. DueDateHQ is
+              active, not passive — it watches the regulatory sources and turns a change into
+              applied, sourced work.
+            </p>
+          </div>
+
+          <div class="ctable-wrap">
+            <table class="ctable">
+              <caption class="sr">
+                Feature comparison of Excel plus Outlook, File In Time, TaxDome, and DueDateHQ
+                across five capabilities.
+              </caption>
+              <thead>
+                <tr>
+                  <th class="rowlbl" scope="col">Capability</th>
+                  <th scope="col">Excel + Outlook</th>
+                  <th scope="col">File In Time</th>
+                  <th scope="col">TaxDome</th>
+                  <th class="col-us" scope="col">
+                    <span class="us-badge">Built for this</span>
+                    <span class="us-brand">
+                      <svg viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                        <rect x="2" y="14" width="5" height="11" rx="1.5" fill="#fff" />
+                        <rect x="9.5" y="8" width="5" height="17" rx="1.5" fill="#fff" />
+                        <rect x="17" y="3" width="5" height="22" rx="1.5" fill="#A7F3D8" />
+                      </svg>
+                      DueDateHQ
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="rowlbl">Tracks deadlines</td>
+                  <td><span class="v-text">Manual</span></td>
+                  <td>
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg
+                    ></span>
+                  </td>
+                  <td class="col-us">
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg
+                      >Yes</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td class="rowlbl">Watches official sources for changes</td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td class="col-us">
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg></span
+                    ><span class="v-emph">24/7 · 14 sources</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="rowlbl">Flags which clients are affected</td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td class="col-us">
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg></span
+                    ><span class="v-emph">by jurisdiction · form · entity</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="rowlbl">One-click fix across clients</td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td><span class="v-partial">Manual override</span></td>
+                  <td class="col-us">
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg></span
+                    ><span class="v-emph">+ 24h undo</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="rowlbl">Source on every date</td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td>
+                    <span class="v-no"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" /></svg
+                    ></span>
+                  </td>
+                  <td class="col-us">
+                    <span class="v-yes"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12" /></svg></span
+                    ><span class="v-emph">link · quote · verified date</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="compare-line">
+            They tell you a date.
+            <b
+              >We tell you when the date changed, who it hits, and fix it in one click — with the
+              IRS notice attached.</b
+            >
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ FAQ ============ -->
+      <section class="faq band-gray" aria-labelledby="faq-h">
+        <div class="wrap">
+          <div class="sec-head center">
+            <span class="eyebrow" style="justify-content: center"
+              ><span class="dash"></span>Questions</span
+            >
+            <h2 class="sec-title" id="faq-h">The straight answers.</h2>
+          </div>
+          <div class="faq-list">
+            <details class="faq-item" open>
+              <summary class="faq-q">
+                How is this different from File In Time?<svg
+                  class="ic"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </summary>
+              <div class="faq-a">
+                File In Time records and rolls forward the deadlines you enter. DueDateHQ watches
+                them for changes — and the moment the IRS or a state moves one, it shows you exactly
+                which clients it affects, with the official source attached. It's deadline-change
+                monitoring, not a deadline table.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-q">
+                Do I have to leave TaxDome / Karbon / Canopy?<svg
+                  class="ic"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </summary>
+              <div class="faq-a">
+                No. DueDateHQ is deliberately narrow — the weekly deadline-triage layer, not a
+                practice-management platform. It's email-first with no portal to configure, so it
+                sits alongside whatever you already run.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-q">
+                How do I know the dates are right?<svg
+                  class="ic"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </summary>
+              <div class="faq-a">
+                Because nothing is the source of truth except the official source. Every date keeps
+                its IRS or state source link, an exact quote, and a verified date, plus a human
+                review state — and anything that can't be grounded in the source is held back, not
+                shown. The software turns the official notice into something you can act on; it
+                never invents a date or changes a rule on its own.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-q">
+                Where does my client data live?<svg
+                  class="ic"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </summary>
+              <div class="faq-a">
+                In your own isolated practice workspace on Cloudflare — never pooled across firms.
+                Imports, rule changes, status changes, and billing events are all recorded in an
+                audit log you can inspect, and you can export or delete your data.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CLOSE ============ -->
+      <section class="close" id="close" aria-labelledby="close-h">
+        <div class="wrap">
+          <span class="pill"><span class="pulse-dot blue"></span>Be ready before busy season</span>
+          <h2 class="close-title" id="close-h">Walk into next busy season already ahead.</h2>
+          <p class="close-body">
+            Open the workbench, paste your clients, and a sourced year of deadlines is ready in
+            about 30 minutes. From there, DueDateHQ watches every change for you — so the next time
+            a state moves a deadline, you'll already know exactly who it affects. We onboard solo
+            and small practices in small groups, so if you'd like a hand moving off Excel or File In
+            Time, we'll set it up with you.
+          </p>
+          <div class="close-cta">
+            <a class="btn btn-primary btn-lg" href="#top">Open the workbench</a>
+            <a class="btn btn-ghost btn-lg" href="#top">Get a guided setup</a>
+          </div>
+          <p class="close-reassure">Start free · no card · your data stays in your own practice.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ FOOTER (LIGHT) ============ -->
+    <footer>
+      <div class="wrap">
+        <div class="foot-top">
+          <div class="foot-brand">
+            <a class="brand" href="#top" aria-label="DueDateHQ home">
+              <svg class="logo-mark" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                <rect x="2" y="14" width="5" height="11" rx="1.5" fill="#2D6BFF" />
+                <rect x="9.5" y="8" width="5" height="17" rx="1.5" fill="#2D6BFF" />
+                <rect x="17" y="3" width="5" height="22" rx="1.5" fill="#12B886" />
+              </svg>
+              DueDateHQ
+            </a>
+            <p class="foot-tag">
+              Deadline-change monitoring for US CPA practices — with a source on every date.
+            </p>
+            <p class="foot-aud">For US CPA practices · evidence-backed · FED + 50 states + DC</p>
+          </div>
+          <nav class="foot-col" aria-label="Product">
+            <h4>Product</h4>
+            <a href="#how">Workbench</a>
+            <a href="#how">Source monitoring</a>
+            <a href="#inside">One-paste import</a>
+            <a href="#trust">Evidence view</a>
+          </nav>
+          <nav class="foot-col" aria-label="Resources">
+            <h4>Resources</h4>
+            <a href="#">Rule library</a>
+            <a href="#">State coverage</a>
+            <a href="#">CPA deadline-risk guide</a>
+            <a href="#compare">Compare File In Time</a>
+            <a href="#">Status</a>
+          </nav>
+          <nav class="foot-col" aria-label="Company">
+            <h4>Company</h4>
+            <a href="#">About</a>
+            <a href="#">Security</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </nav>
+        </div>
+        <div class="foot-bottom">
+          <p>
+            DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. ©
+            2026 DueDateHQ Inc.
+          </p>
+          <span class="foot-status"><span class="pulse-dot"></span>All sources operational</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      /* FAQ accordion: keep one open at a time (progressive enhancement; <details> works without JS) */
+      ;(function () {
+        var items = document.querySelectorAll('.faq-item')
+        items.forEach(function (d) {
+          d.addEventListener('toggle', function () {
+            if (d.open) {
+              items.forEach(function (o) {
+                if (o !== d) o.open = false
+              })
+            }
+          })
+        })
+      })()
+    </script>
+  </body>
+</html>

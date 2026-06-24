@@ -230,7 +230,7 @@ export function DailyBriefCard({
       {isPending ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute -inset-1 rounded-2xl bg-[linear-gradient(115deg,var(--color-brand-highlight),#a78bfa,#f0a35e,var(--color-brand-highlight))] bg-[length:300%_300%] opacity-55 blur-lg animate-[ddhq-aurora-drift_4.5s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-40"
+          className="pointer-events-none absolute -inset-1 rounded-2xl bg-[linear-gradient(115deg,var(--color-brand-highlight),var(--color-aurora-violet),var(--color-aurora-warm),var(--color-brand-highlight))] bg-[length:300%_300%] opacity-55 blur-lg animate-[ddhq-aurora-drift_4.5s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-40"
         />
       ) : null}
       <section

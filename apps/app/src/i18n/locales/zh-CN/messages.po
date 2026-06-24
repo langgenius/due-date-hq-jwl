@@ -896,8 +896,8 @@ msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, other {# 条提醒}}"
 
 #: src/features/alerts/components/AlertListRail.tsx
-msgid "{activeCount, plural, one {# open} other {# open}}"
-msgstr "{activeCount, plural, one {# 条待处理} other {# 条待处理}}"
+msgid "{activeCount, plural, one {1 open} other {# open}}"
+msgstr "{activeCount, plural, one {1 条待处理} other {# 条待处理}}"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{activeCount} Active"
@@ -3401,6 +3401,7 @@ msgstr "按年支付 · 每年省 $96"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
+#: src/routes/billing.cancel.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -5243,10 +5244,6 @@ msgstr "无法暂缓截止日期"
 msgid "Couldn't start authenticator setup"
 msgstr "无法开始身份验证器设置"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Couldn't start deadline tip refresh"
-msgstr "无法开始刷新截止日提示"
-
 #: src/routes/accept-invite.tsx
 msgid "Couldn't start sign-in"
 msgstr "无法启动登录"
@@ -5791,10 +5788,6 @@ msgstr "截止日税年已更改"
 #: src/features/concepts/concept-help.tsx
 msgid "Deadline Tip"
 msgstr "截止日提示"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Deadline tip refresh started"
-msgstr "已开始刷新截止日提示"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Deadline types"
@@ -8992,8 +8985,6 @@ msgid "Low AI confidence — verify the parsed fields against the source before 
 msgstr "AI 置信度较低 — 标记为已复核前请对照来源核实已解析的字段。"
 
 #: src/components/primitives/low-confidence-badge.tsx
-#: src/features/alerts/components/AlertListRail.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "低置信度"
 
@@ -13963,10 +13954,6 @@ msgstr "搜索负责人…"
 msgid "Search audit events"
 msgstr "搜索审计事件"
 
-#: src/features/audit/audit-log-page.tsx
-msgid "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
-msgstr "按操作者、实体、操作或原因搜索——或按时间范围、操作类别、操作者或实体类型缩小范围。"
-
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "Search clients"
 msgstr "搜索客户"
@@ -16797,6 +16784,10 @@ msgstr "查看审计日志"
 msgid "View audit log entry"
 msgstr "查看审计日志条目"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "View audit trail"
+msgstr "查看审计轨迹"
+
 #: src/routes/billing.checkout.tsx
 msgid "View billing"
 msgstr "查看账单"
@@ -16825,6 +16816,10 @@ msgstr "查看由该规则生成的截止日"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
 msgstr "查看延期规则"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "View filed deadlines"
+msgstr "查看已申报的截止事项"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"

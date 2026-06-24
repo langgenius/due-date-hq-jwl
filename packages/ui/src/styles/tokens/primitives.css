@@ -435,6 +435,13 @@
   --color-brand-highlight-ink: #0e6e92; /* INFO ink — AA text/links on light */
   --color-brand-highlight-soft: #e6f6fc; /* INFO wash background */
 
+  /* Aurora "generating" glow — decorative drift stops for the DailyBriefCard
+   * AI-writing halo: a soft violet → warm-peach handoff between two
+   * brand-highlight stops. Decorative-only (blurred behind the card, never
+   * carries text), so these live outside the semantic ramps. */
+  --color-aurora-violet: #a78bfa;
+  --color-aurora-warm: #f0a35e;
+
   /* ===== Util-colors: warm neutrals (stone) + lime =======================
    * 2026-06-23 (palette finish — the warm half of Yuqi's reference palette).
    * STONE is a sage-tinted warm neutral: a recessed "well" surface for
