@@ -7,7 +7,6 @@ import type { I18n } from '@lingui/core'
 import {
   BookOpenIcon,
   CalendarIcon,
-  MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
   ScrollTextIcon,
@@ -43,7 +42,6 @@ import {
   formatShortcutForDisplay,
 } from '@/components/patterns/keyboard-shell/display'
 import { aggregateRuleLibraryPendingCount } from '@/components/patterns/app-shell-nav-model'
-import { useNavV2 } from '@/components/patterns/use-nav-v2'
 import { useKeyboardShell } from '@/components/patterns/keyboard-shell/hooks'
 
 type NavItem = {
@@ -74,25 +72,19 @@ type NavItem = {
 }
 
 type NavConfig = {
-  // v2-only: standalone item(s) above the first labelled group.
-  // Dashboard sits here as the "home" surface — visually separate
-  // from OPERATIONS (which is the daily-work group).
+  // Standalone item(s) above the first labelled group. Today / Alerts /
+  // Deadlines sit here as the CPA's morning-routine destinations —
+  // visually separate from the labelled RULE group below.
   primary: NavItem[]
-  // Primary daily / weekly destinations, split into small labeled groups so
-  // the eye can scan by "what kind of work am I doing?". Each group is
-  // 1–3 items — labels are muted (uppercase 11px tracking) so they read
-  // as orientation hints rather than chrome.
-  operations: NavItem[]
-  clients: NavItem[]
+  // The Rule group (Rule library + Sources) — alert-monitoring
+  // destinations, labelled so the eye can scan by "what kind of work
+  // am I doing?". Labels are muted (uppercase 11px tracking) so they
+  // read as orientation hints rather than chrome.
   rules: NavItem[]
-  // v2-only: a "Practice" group consolidates workspace management
-  // destinations (Team, Workload, Billing, Audit log, Practice
-  // profile) that today are scattered between Clients group and
-  // Settings sub-pages. Empty in legacy mode.
+  // The "Practice" group consolidates the daily client-facing
+  // destination(s). Team / Workload / Billing / Audit log / Practice
+  // profile live inside Settings sub-pages, not here.
   practice: NavItem[]
-  // v2-only: Coverage replaces the legacy Rules group label. The
-  // legacy `rules` array stays populated in v1 mode for back-compat.
-  coverage: NavItem[]
   // Bottom of the sidebar. Holds the Settings hub for workspace
   // configuration (Practice profile, Members, Billing, Audit, automation
   // settings — see `apps/app/src/routes/settings.tsx`). Personal account
@@ -410,7 +402,7 @@ function useClientsCount(): number {
   return query.data?.length ?? 0
 }
 
-function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
+function useNavItems(firm: FirmPublic): NavConfig {
   const { t } = useLingui()
   // useActiveAlertCount is alert-source only (not notifications.unreadCount,
   // which mixes @-mentions and system notifications into the count). Sidebar
@@ -431,130 +423,47 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const obligationsBadge =
     firm.openObligationCount > 0 ? String(firm.openObligationCount) : undefined
   return useMemo<NavConfig>(() => {
-    if (navV2) {
-      // v2 IA. Alerts is a top-level
-      // primary item (mirrored by the dashboard's NEEDS ATTENTION
-      // surface). Coverage / Library consolidate under their own
-      // group. Practice management gathers Team, Workload, Billing,
-      // Audit log, Practice profile into one group instead of
-      // scattering them across Clients group + Settings sub-pages.
-      // Contacts and Payments aren't built yet — deferred until
-      // those routes exist.
-      return {
-        // Three standalone items above the RULE
-        // group — no "Operations" label. Order reads as the CPA's
-        // morning routine: glance Today → triage Deadlines. The
-        // Inbox lives behind the bell icon in the top-right utility
-        // strip (AlertsNotificationsBell) — clicking it opens a
-        // popover; the expand icon there promotes to the full-page
-        // Inbox at /notifications. Surfacing Inbox in the sidebar
-        // too created two top-level destinations for the same thing.
-        // Sidebar icon set:
-        //   Today        → Calendar (plain calendar grid, not the
-        //                   Calendar1 day-marker variant — the open
-        //                   grid reads cleaner at sidebar scale)
-        //   Alerts       → Megaphone (a literal announcement vector,
-        //                   matches the alert concept of "the system
-        //                   is broadcasting at you")
-        //   Deadlines    → SquareChartGantt (Gantt = scheduling /
-        //                   timeline view, matches the Deadlines
-        //                   table's row-per-deadline cadence)
-        //   Rule library → BookOpen (literal "reference manual",
-        //                   replaces the more abstract Library icon)
-        primary: [
-          { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
-          {
-            href: '/alerts',
-            label: t`Alerts`,
-            icon: MegaphoneIcon,
-            end: false,
-            ...(alertBadge !== undefined
-              ? { badge: alertBadge, badgeTooltip: t`${alertCount} open alerts` }
-              : {}),
-          },
-          {
-            href: '/deadlines',
-            label: t`Deadlines`,
-            icon: SquareChartGanttIcon,
-            end: false,
-            ...(obligationsBadge !== undefined
-              ? {
-                  badge: obligationsBadge,
-                  badgeTone: 'inventory' as const,
-                  badgeTooltip: t`${firm.openObligationCount} open deadlines`,
-                }
-              : {}),
-          },
-        ],
-        operations: [],
-        clients: [],
-        rules: [
-          {
-            href: '/rules/library',
-            label: t`Rule library`,
-            icon: BookOpenIcon,
-            end: false,
-            ...(ruleReviewBadge !== undefined
-              ? { badge: ruleReviewBadge, badgeTooltip: t`${ruleReviewCount} rules pending review` }
-              : {}),
-          },
-          // The monitored-source health page (/rules/sources) is
-          // surfaced in the rail next to Rule library — both belong
-          // to alert monitoring
-          // (the system watches these sources and raises alerts when a
-          // rule drifts). SatelliteDishIcon matches the Alerts feature's
-          // existing Sources iconography (AlertsListPage, PulseToneIcon).
-          {
-            href: '/rules/sources',
-            label: t`Sources`,
-            icon: SatelliteDishIcon,
-            end: false,
-          },
-        ],
-        coverage: [],
-        // Team / Workload / Practice profile / Billing / Audit log live
-        // inside `/settings` (the workspace-config hub). Surfacing them
-        // here too would be duplicate chrome — sidebar keeps only the
-        // daily client-facing destinations.
-        practice: [
-          {
-            href: '/clients',
-            label: t`Clients`,
-            icon: UsersIcon,
-            end: false,
-            ...(clientsBadge !== undefined
-              ? {
-                  badge: clientsBadge,
-                  badgeTone: 'inventory' as const,
-                  badgeTooltip: t`${clientsCount} active clients`,
-                }
-              : {}),
-          },
-        ],
-        footer: [
-          // "Alerts archive" is not in the sidebar footer — it's a
-          // sub-page of /alerts (review what already happened on the
-          // same surface), not a peer of Audit log / Settings. It
-          // lives as an "Archive" button inside the /alerts page
-          // header instead. See features/alerts/AlertsListPage.tsx.
-          { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
-          {
-            href: '/settings',
-            label: t`Settings`,
-            icon: SettingsIcon,
-            end: false,
-            activeMatch: matchesSettingsRow,
-          },
-        ],
-      }
-    }
-    // Legacy (default) sidebar.
+    // v2 IA. Alerts is a top-level
+    // primary item (mirrored by the dashboard's NEEDS ATTENTION
+    // surface). Coverage / Library consolidate under their own
+    // group. Practice management gathers Team, Workload, Billing,
+    // Audit log, Practice profile into one group instead of
+    // scattering them across Clients group + Settings sub-pages.
+    // Contacts and Payments aren't built yet — deferred until
+    // those routes exist.
     return {
-      primary: [],
-      // Same four-icon set as the navV2 branch above. Legacy nav stays in
-      // sync so the iconography reads identically regardless of flag.
-      operations: [
+      // Three standalone items above the RULE
+      // group — no "Operations" label. Order reads as the CPA's
+      // morning routine: glance Today → triage Deadlines. The
+      // Inbox lives behind the bell icon in the sidebar footer
+      // (AlertsNotificationsBell, next to Audit log / Settings) —
+      // clicking it opens a popover; the expand icon there promotes
+      // to the full-page Inbox at /notifications. Surfacing Inbox in
+      // the sidebar nav too created two top-level destinations for
+      // the same thing.
+      // Sidebar icon set:
+      //   Today        → Calendar (plain calendar grid, not the
+      //                   Calendar1 day-marker variant — the open
+      //                   grid reads cleaner at sidebar scale)
+      //   Alerts       → Megaphone (a literal announcement vector,
+      //                   matches the alert concept of "the system
+      //                   is broadcasting at you")
+      //   Deadlines    → SquareChartGantt (Gantt = scheduling /
+      //                   timeline view, matches the Deadlines
+      //                   table's row-per-deadline cadence)
+      //   Rule library → BookOpen (literal "reference manual",
+      //                   replaces the more abstract Library icon)
+      primary: [
         { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
+        {
+          href: '/alerts',
+          label: t`Alerts`,
+          icon: MegaphoneIcon,
+          end: false,
+          ...(alertBadge !== undefined
+            ? { badge: alertBadge, badgeTooltip: t`${alertCount} open alerts` }
+            : {}),
+        },
         {
           href: '/deadlines',
           label: t`Deadlines`,
@@ -568,17 +477,35 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
               }
             : {}),
         },
+      ],
+      rules: [
         {
-          href: '/alerts',
-          label: t`Alerts`,
-          icon: MegaphoneIcon,
+          href: '/rules/library',
+          label: t`Rule library`,
+          icon: BookOpenIcon,
           end: false,
-          ...(alertBadge !== undefined
-            ? { badge: alertBadge, badgeTooltip: t`${alertCount} open alerts` }
+          ...(ruleReviewBadge !== undefined
+            ? { badge: ruleReviewBadge, badgeTooltip: t`${ruleReviewCount} rules pending review` }
             : {}),
         },
+        // The monitored-source health page (/rules/sources) is
+        // surfaced in the rail next to Rule library — both belong
+        // to alert monitoring
+        // (the system watches these sources and raises alerts when a
+        // rule drifts). SatelliteDishIcon matches the Alerts feature's
+        // existing Sources iconography (AlertsListPage, PulseToneIcon).
+        {
+          href: '/rules/sources',
+          label: t`Sources`,
+          icon: SatelliteDishIcon,
+          end: false,
+        },
       ],
-      clients: [
+      // Team / Workload / Practice profile / Billing / Audit log live
+      // inside `/settings` (the workspace-config hub). Surfacing them
+      // here too would be duplicate chrome — sidebar keeps only the
+      // daily client-facing destinations.
+      practice: [
         {
           href: '/clients',
           label: t`Clients`,
@@ -593,28 +520,13 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             : {}),
         },
       ],
-      // Preview-integration adjustment: surface Coverage alongside
-      // Rule library in the legacy nav so the Coverage rebuild is
-      // reachable without the navV2 flag. (Their original v1 rules
-      // group treated Coverage as a section inside Library; the
-      // merged tree wants both as first-class destinations.)
-      rules: [
-        {
-          href: '/rules/coverage',
-          label: t`Coverage`,
-          icon: MapIcon,
-          end: false,
-        },
-        {
-          href: '/rules/library',
-          label: t`Rule library`,
-          icon: BookOpenIcon,
-          end: false,
-        },
-      ],
-      coverage: [],
-      practice: [],
       footer: [
+        // "Alerts archive" is not in the sidebar footer — it's a
+        // sub-page of /alerts (review what already happened on the
+        // same surface), not a peer of Audit log / Settings. It
+        // lives as an "Archive" button inside the /alerts page
+        // header instead. See features/alerts/AlertsListPage.tsx.
+        { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
         {
           href: '/settings',
           label: t`Settings`,
@@ -634,89 +546,54 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     clientsCount,
     obligationsBadge,
     firm.openObligationCount,
-    navV2,
   ])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
   const { t } = useLingui()
-  const navV2 = useNavV2()
-  const items = useNavItems(firm, navV2)
-  if (navV2) {
-    return (
-      <nav aria-label={t`Primary navigation`} className="contents">
-        {/* Today sits as a standalone item above OPERATIONS — no
-          group label so the eye reads it as "home", separate from
-          the daily-work group below. */}
-        {items.primary.length > 0 ? (
-          <NavGroupSection>
-            {items.primary.map((item) => (
-              <NavMenuItem key={item.href} item={item} />
-            ))}
-          </NavGroupSection>
-        ) : null}
-        {items.operations.length > 0 ? (
-          <NavGroupSection label={t`Operations`}>
-            {items.operations.map((item) => (
-              <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
-            ))}
-          </NavGroupSection>
-        ) : null}
-        {items.rules.length > 0 ? (
-          <NavGroupSection label={t`Rule`}>
-            {items.rules.map((item) => (
-              <NavMenuItem key={item.href} item={item} />
-            ))}
-          </NavGroupSection>
-        ) : null}
-        {/* The CLIENTS eyebrow both labels the group and separates Clients
-            from the RULE group above (Rule library + Sources) — Clients is
-            its own destination, not a rule. The label's own top padding
-            provides the break. */}
-        <NavGroupSection label={t`Clients`}>
-          {items.practice.map((item) => (
-            <NavMenuItem key={item.href} item={item} />
-          ))}
-        </NavGroupSection>
-        {/* Footer slot stacks the gentle setup nudge ABOVE the ambient system-
-            status caption: the card is the only one that ever asks for an
-            action (and self-hides the moment both signals go true), so it reads
-            as the brief "finish setup" prompt sitting over the passive
-            "what we're watching" line. Both step aside in the collapsed rail. */}
-        <NavGroupSection
-          muted
-          footerSlot={
-            <div className="flex flex-col gap-2">
-              <SidebarSetupCard />
-              <SidebarSystemStatus />
-            </div>
-          }
-        >
-          {items.footer.map((item) => (
-            <NavMenuItem key={item.href} item={item} />
-          ))}
-        </NavGroupSection>
-      </nav>
-    )
-  }
+  const items = useNavItems(firm)
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
-      <NavGroupSection label={t`Operations`}>
-        {items.operations.map((item) => (
-          <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
-        ))}
-      </NavGroupSection>
+      {/* Today / Alerts / Deadlines sit as standalone items at the top —
+          no group label so the eye reads them as the daily-work "home",
+          separate from the labelled RULE group below. */}
+      {items.primary.length > 0 ? (
+        <NavGroupSection>
+          {items.primary.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+      ) : null}
+      {items.rules.length > 0 ? (
+        <NavGroupSection label={t`Rule`}>
+          {items.rules.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+      ) : null}
+      {/* The CLIENTS eyebrow both labels the group and separates Clients
+          from the RULE group above (Rule library + Sources) — Clients is
+          its own destination, not a rule. The label's own top padding
+          provides the break. */}
       <NavGroupSection label={t`Clients`}>
-        {items.clients.map((item) => (
+        {items.practice.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
       </NavGroupSection>
-      <NavGroupSection label={t`Rules`}>
-        {items.rules.map((item) => (
-          <NavMenuItem key={item.href} item={item} />
-        ))}
-      </NavGroupSection>
-      <NavGroupSection muted footerSlot={<SidebarSystemStatus />}>
+      {/* Footer slot stacks the gentle setup nudge ABOVE the ambient system-
+          status caption: the card is the only one that ever asks for an
+          action (and self-hides the moment both signals go true), so it reads
+          as the brief "finish setup" prompt sitting over the passive
+          "what we're watching" line. Both step aside in the collapsed rail. */}
+      <NavGroupSection
+        muted
+        footerSlot={
+          <div className="flex flex-col gap-2">
+            <SidebarSetupCard />
+            <SidebarSystemStatus />
+          </div>
+        }
+      >
         {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
