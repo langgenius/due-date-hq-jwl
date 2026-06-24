@@ -2,6 +2,7 @@
 
 **Date:** 2026-06-23
 **Surfaces:**
+
 - `apps/app/src/features/obligations/StageActions.tsx`,
   `apps/app/src/features/obligations/queue/components/panels.tsx`,
   `apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx`
@@ -21,7 +22,7 @@ path already had, so a double-click could double-fire.
   `Loader2Icon` spinner + `aria-busy`; **all** action buttons disable while any
   task is pending. The drawer passes each stage mutation's `isPending` down as a
   flags object (`changeStatus / confirmAcceptance / prepStage / reviewStage /
-  efileState`); `ActiveStageDetailCard` maps it back to the pending task via the
+efileState`); `ActiveStageDetailCard` maps it back to the pending task via the
   same task-id→mutation map as `handleTaskClick` (derive-from-`isPending`, no new
   state). Dialog-opening tasks (remind-8879, unwind) intentionally get no spinner.
 - **Checklist remove.** `removeChecklistItem` early-returns while

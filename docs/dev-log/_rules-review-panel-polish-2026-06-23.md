@@ -9,24 +9,24 @@ Done (5 of 6 items):
 
 1. **Left facts — denser, quieter.** The facts column is read-to-verify, not
    acted on, so it cedes weight to the decision rail: section padding `py-5 →
-   py-4`, header `pt-5 → pt-4` / `pb-1 → pb-0.5`, first-child `pt-3 → pt-2.5`.
+py-4`, header `pt-5 → pt-4` / `pb-1 → pb-0.5`, first-child `pt-3 → pt-2.5`.
 
 2. **Activity footer — demoted.** It's the least-important content (version +
    history, no decision). Moved onto a muted strip (`bg-background-section/60`,
    `py-3.5`) pinned to the column foot, so it reads as secondary metadata set
    apart from the facts above and the rail beside it.
 
-4. **Practice-review type sizes — unified.** The meta row mixed `text-base`
+3. **Practice-review type sizes — unified.** The meta row mixed `text-base`
    (link / "No team notes yet") with `text-caption` (char count) — one row at
    two scales. Harmonized the row to `text-xs`, and the note-thread author/time
    to `text-sm`/`text-xs` (was `text-base`/`text-caption`).
 
-5. **Locked-Accept reason — actionable.** "AI concrete draft is not ready." (a
+4. **Locked-Accept reason — actionable.** "AI concrete draft is not ready." (a
    status with no next step → "why?") became "Generate the AI draft above to
    unlock Accept." — names the gate AND points at the Generate-draft button in
    the rail just above. (Two call sites in `CandidateReviewForm`.)
 
-6. **Commit — bigger + more prominent.** The Accept/Reject bar was a wrapping
+5. **Commit — bigger + more prominent.** The Accept/Reject bar was a wrapping
    `justify-between` row with `size="sm"` buttons and the gate reason crammed
    beside them (truncated). Restructured into an anchored commit zone: stronger
    top rule (`border-divider-regular`, `pt-4`), the gate status/reason on its
@@ -80,8 +80,9 @@ for source-defined rules — either enforce it or soften the label.
 Yuqi chose to soften (don't block Accept on a team note). The note's tag was
 fiction: `acceptDisabled` ignores `body`, the note posts via its own
 `addRuleNote` mutation, and accept sends a hardcoded `reviewNote`. So:
+
 - copy "Required" / "Required before Accept" → **"Recommended"**
 - tone amber `warning` → neutral `secondary` — it now reads as encouragement,
   freeing amber to mean only the real gate (the locked-Accept reason) + the
   Awaiting-review status pill.
-`requiredTag` renamed `recommendedTag`. `tsgo` clean, verified live.
+  `requiredTag` renamed `recommendedTag`. `tsgo` clean, verified live.

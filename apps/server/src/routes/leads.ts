@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import * as z from 'zod'
-import { createDb } from '@duedatehq/db'
-import { marketingLead } from '@duedatehq/db/schema/marketing-lead'
+import { createDb, createMarketingLead } from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { logServerError } from '../middleware/logger'
 
@@ -25,15 +24,20 @@ const LeadInputSchema = z.object({
 
 export const leadsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 leadsRoute.post('/', async (c) => {
-  const body = await c.req.json().catch(() => null)
-  if (body === null || typeof body !== 'object') {
+  const body: unknown = await c.req.json().catch(() => null)
+  if (!isRecord(body)) {
     return c.json({ ok: false, error: 'invalid' }, 400)
   }
 
   // Honeypot: a real visitor never fills the hidden `_gotcha` field. Pretend
   // success so bots don't learn the field is being checked.
-  if (typeof body._gotcha === 'string' && body._gotcha.length > 0) {
+  const honeypotValue = body['_gotcha']
+  if (typeof honeypotValue === 'string' && honeypotValue.length > 0) {
     return c.json({ ok: true })
   }
 
@@ -44,21 +48,18 @@ leadsRoute.post('/', async (c) => {
   const { name, email, firm, focus, tools, pain, source, locale } = parsed.data
 
   try {
-    await createDb(c.env.DB)
-      .insert(marketingLead)
-      .values({
-        id: crypto.randomUUID(),
-        name,
-        email,
-        firm: firm ?? null,
-        focus: focus ?? null,
-        tools: tools ?? null,
-        pain: pain ?? null,
-        source: source ?? null,
-        locale: locale ?? null,
-        ipAddress: c.req.header('cf-connecting-ip') ?? null,
-        userAgent: c.req.header('user-agent') ?? null,
-      })
+    await createMarketingLead(createDb(c.env.DB), {
+      name,
+      email,
+      firm: firm ?? null,
+      focus: focus ?? null,
+      tools: tools ?? null,
+      pain: pain ?? null,
+      source: source ?? null,
+      locale: locale ?? null,
+      ipAddress: c.req.header('cf-connecting-ip') ?? null,
+      userAgent: c.req.header('user-agent') ?? null,
+    })
     return c.json({ ok: true })
   } catch (error) {
     logServerError({

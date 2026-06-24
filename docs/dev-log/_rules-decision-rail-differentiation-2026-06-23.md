@@ -20,6 +20,7 @@ the act-here side didn't announce itself.
 
 The rail now reads as a distinct "act here" panel without flattening the
 left's eyebrow→title hierarchy:
+
 - **Deeper surface** — `bg-background-section` → `bg-background-subtle` (gray-50 →
   gray-100), so the rail is a clearly separate plane from the white facts column
   and the inner white "Before you accept" card / textarea pop more.

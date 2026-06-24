@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const dbMocks = vi.hoisted(() => {
-  const values = vi.fn(async () => undefined)
-  const insert = vi.fn(() => ({ values }))
-  const createDb = vi.fn(() => ({ insert }))
-  return { createDb, insert, values }
+  const db = {}
+  const createDb = vi.fn(() => db)
+  const createMarketingLead = vi.fn(async () => 'lead-1')
+  return { createDb, createMarketingLead, db }
 })
 
 vi.mock('@duedatehq/db', async (importOriginal) => {
@@ -12,6 +12,7 @@ vi.mock('@duedatehq/db', async (importOriginal) => {
   return {
     ...actual,
     createDb: dbMocks.createDb,
+    createMarketingLead: dbMocks.createMarketingLead,
   }
 })
 
@@ -47,9 +48,10 @@ describe('leads route', () => {
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ ok: true })
-    expect(dbMocks.insert).toHaveBeenCalledTimes(1)
-    expect(dbMocks.values).toHaveBeenCalledTimes(1)
-    expect(dbMocks.values).toHaveBeenCalledWith(
+    expect(dbMocks.createDb).toHaveBeenCalledTimes(1)
+    expect(dbMocks.createMarketingLead).toHaveBeenCalledTimes(1)
+    expect(dbMocks.createMarketingLead).toHaveBeenCalledWith(
+      dbMocks.db,
       expect.objectContaining({
         name: 'Dana Cohen',
         email: 'dana@example.com',
@@ -69,7 +71,7 @@ describe('leads route', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ ok: true })
     expect(dbMocks.createDb).not.toHaveBeenCalled()
-    expect(dbMocks.insert).not.toHaveBeenCalled()
+    expect(dbMocks.createMarketingLead).not.toHaveBeenCalled()
   })
 
   it('rejects an invalid email with 400', async () => {
@@ -77,6 +79,6 @@ describe('leads route', () => {
 
     expect(response.status).toBe(400)
     expect(await response.json()).toEqual({ ok: false, error: 'invalid' })
-    expect(dbMocks.insert).not.toHaveBeenCalled()
+    expect(dbMocks.createMarketingLead).not.toHaveBeenCalled()
   })
 })

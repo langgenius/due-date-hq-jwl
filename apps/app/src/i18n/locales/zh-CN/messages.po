@@ -12519,6 +12519,7 @@ msgstr "重新分类（实体类型变更，自某税年起生效）"
 msgid "Reclassified"
 msgstr "已重新分类"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "推荐"
@@ -12931,13 +12932,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "已向客户索取 {checklistCount} 项材料。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "需要"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "接受前必填"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"

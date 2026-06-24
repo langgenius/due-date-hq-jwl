@@ -12464,6 +12464,7 @@ msgstr "Reclassification (the entity changed type, effective a tax year)"
 msgid "Reclassified"
 msgstr "Reclassified"
 
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/billing.tsx
 msgid "Recommended"
 msgstr "Recommended"
@@ -12874,13 +12875,8 @@ msgid "Requested {checklistCount} items from the client."
 msgstr "Requested {checklistCount} items from the client."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Required"
 msgstr "Required"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Required before Accept"
-msgstr "Required before Accept"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"

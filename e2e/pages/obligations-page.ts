@@ -10,6 +10,7 @@ export class ObligationQueuePage {
   // still exists and is reachable via ⌘K → "Calendar sync".
   readonly calendarSyncButton: Locator
   readonly viewMenuButton: Locator
+  readonly tableViewButton: Locator
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
@@ -38,6 +39,7 @@ export class ObligationQueuePage {
     // columns shown"). Match the stable prefix so the helper follows the
     // current UI without coupling to the count.
     this.viewMenuButton = page.getByRole('button', { name: /^View options\b/ })
+    this.tableViewButton = page.getByRole('button', { name: 'Table view' })
   }
 
   // 2026-06-16 (queue toolbar): the status scope is now a collapsed dropdown
@@ -52,6 +54,15 @@ export class ObligationQueuePage {
   async goto(path = '/deadlines') {
     await this.page.goto(path)
     await this.heading.waitFor({ state: 'visible', timeout: 15_000 })
+    await this.useTableView()
+  }
+
+  async useTableView() {
+    await this.tableViewButton.waitFor({ state: 'visible', timeout: 15_000 })
+    if ((await this.tableViewButton.getAttribute('aria-pressed')) !== 'true') {
+      await this.tableViewButton.click()
+    }
+    await this.dueSortButton.waitFor({ state: 'visible', timeout: 15_000 })
   }
 
   async search(query: string) {
@@ -159,6 +170,7 @@ export class ObligationQueuePage {
       .or(this.page.getByRole('row', { name: new RegExp(escapedName) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Deadline detail: ${escapedName}`) }))
       .or(this.page.getByRole('button', { name: new RegExp(`Open deadlines: ${escapedName}`) }))
+      .or(this.page.getByRole('button', { name: new RegExp(`^Open ${escapedName} .* deadline$`) }))
   }
 
   async openDetailFor(clientName: string) {

@@ -1031,9 +1031,7 @@ function RulePracticeReviewCard({
                 className="flex flex-col gap-0.5"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-text-primary">
-                    {note.authorName}
-                  </span>
+                  <span className="text-sm font-semibold text-text-primary">{note.authorName}</span>
                   <span className="text-xs text-text-tertiary">
                     {formatRelativeTime(note.createdAt)}
                   </span>

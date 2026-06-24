@@ -2,6 +2,7 @@
 
 **Date:** 2026-06-23
 **Surfaces:**
+
 - `apps/app/src/components/patterns/empty-state.tsx` — the primitive.
 - `apps/app/src/routes/rules.library.tsx` — `OverviewCaughtUpCard`.
 - `apps/app/src/routes/preview.tsx` — gallery specimens.
@@ -25,8 +26,8 @@ edit, so it lands everywhere consistently instead of per-callsite.
   reserved for genuine "you cleared it" reward states — never a quiet "nothing
   yet" state, so lime stays scarce.
 - **`/rules` "Review queue is clear" card** (`OverviewCaughtUpCard`) → warm well
-  + lime disc (dark check), matching the /today all-clear beat so the two
-  "all clear" rewards read as one language.
+  - lime disc (dark check), matching the /today all-clear beat so the two
+    "all clear" rewards read as one language.
 - **`/preview`** gains warm (default), `celebrate`, and `plain` EmptyState
   specimens so the tones are discoverable + visually documented.
 
