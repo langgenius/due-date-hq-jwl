@@ -479,16 +479,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
   .trustpg__h2 {
     text-wrap: balance;
   }
-  /* cards lift on hover — a quiet, restrained micro-shadow only (blur ≤ 4) */
+  /* cards lift on hover via a border + a 1px translate — no drop shadow */
   .trustpg__card {
     transition:
       border-color 0.18s ease,
-      box-shadow 0.18s ease,
       transform 0.18s ease;
   }
   .trustpg__card:hover {
     border-color: var(--m-hairline);
-    box-shadow: 0 1px 3px color-mix(in srgb, var(--m-ink) 7%, transparent);
     transform: translateY(-1px);
   }
   .trustpg__card-t {

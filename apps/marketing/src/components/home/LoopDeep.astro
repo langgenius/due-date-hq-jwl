@@ -221,14 +221,10 @@ const steps = t.steps
     place-items: center;
     color: #fff;
     background: var(--m-accent);
-    box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--m-accent) 60%, transparent);
-    transition:
-      transform var(--m-dur) var(--m-ease),
-      box-shadow var(--m-dur) var(--m-ease);
+    transition: transform var(--m-dur) var(--m-ease);
   }
   .lstep:hover .lstep__icon {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 9px 20px -8px color-mix(in srgb, var(--m-accent) 70%, transparent);
   }
   .lstep__icon svg {
     width: 19px;
