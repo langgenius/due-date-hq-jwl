@@ -79,6 +79,7 @@ msgid "(no longer on team)"
 msgstr "(no longer on team)"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
+#: src/features/onboarding/welcome-offer-step.tsx
 msgid "(optional)"
 msgstr "(optional)"
 
@@ -1324,8 +1325,8 @@ msgid "{reviewCount, plural, one {# rule to review} other {# rules to review}}"
 msgstr "{reviewCount, plural, one {# rule to review} other {# rules to review}}"
 
 #: src/features/onboarding/rule-review-prompt.tsx
-msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
-msgstr "{reviewCount, plural, one {Review # state} other {Review # states}}"
+msgid "{reviewCount, plural, one {Review # jurisdiction} other {Review # jurisdictions}}"
+msgstr "{reviewCount, plural, one {Review # jurisdiction} other {Review # jurisdictions}}"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{reviewCount} Requires review"
@@ -1632,6 +1633,10 @@ msgstr "1099 vendors"
 msgid "2-3"
 msgstr "2-3"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "3 months of Team — our full plan, free"
+msgstr "3 months of Team — our full plan, free"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "3 seats included"
@@ -1694,6 +1699,10 @@ msgstr "A high-permission practice role. In client tax inputs, owner count separ
 #: src/features/obligations/queue/dialogs.tsx
 msgid "A materials link will be created only."
 msgstr "A materials link will be created only."
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "A mix of everything"
+msgstr "A mix of everything"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
@@ -1763,6 +1772,10 @@ msgstr "About Priorities"
 #: src/features/dashboard/actions-list.tsx
 msgid "About Priority Actions"
 msgstr "About Priority Actions"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "About two minutes — it tailors your setup. Every field is optional."
+msgstr "About two minutes — it tailors your setup. Every field is optional."
 
 #: src/routes/rules.library.tsx
 msgid "Accept"
@@ -2483,6 +2496,7 @@ msgstr "Alert: priority alert review"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/features/onboarding/first-run-tour.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
@@ -3286,6 +3300,7 @@ msgid "Awaiting your decision"
 msgstr "Awaiting your decision"
 
 #: src/features/migration/WizardShell.tsx
+#: src/features/onboarding/first-run-tour.tsx
 #: src/features/onboarding/rule-review-prompt.tsx
 #: src/routes/migration.new.tsx
 msgid "Back"
@@ -3435,6 +3450,10 @@ msgstr "Blocking"
 msgid "Body"
 msgstr "Body"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Bookkeeping & advisory"
+msgstr "Bookkeeping & advisory"
+
 #: src/components/patterns/breadcrumb.tsx
 msgid "Breadcrumb"
 msgstr "Breadcrumb"
@@ -3484,6 +3503,10 @@ msgstr "Bulk review actions"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Business income"
 msgstr "Business income"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Business tax"
+msgstr "Business tax"
 
 #. placeholder {0}: rule.reviewedByName
 #: src/routes/rules.library.tsx
@@ -3661,6 +3684,10 @@ msgstr "Cancels at period end"
 #: src/routes/rules.library.tsx
 msgid "candidate"
 msgstr "candidate"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Canopy"
+msgstr "Canopy"
 
 #: src/features/workload/workload-page.tsx
 msgid "Capacity pressure"
@@ -3904,6 +3931,10 @@ msgstr "Citation {n} — open deadline"
 #: src/features/migration/mapping-target-labels.ts
 msgid "City"
 msgstr "City"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Claim 3 months of Team free"
+msgstr "Claim 3 months of Team free"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
@@ -5748,6 +5779,7 @@ msgstr "deadlines"
 #: src/features/obligations/detail/DeadlineCrumbBar.tsx
 #: src/features/obligations/detail/DeadlineNavigatorRail.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/onboarding/first-run-tour.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/migration.new.tsx
@@ -6105,6 +6137,7 @@ msgstr "Dollars and cents."
 msgid "Don't see your client? Create one"
 msgstr "Don't see your client? Create one"
 
+#: src/features/onboarding/first-run-tour.tsx
 #: src/routes/rules.library.tsx
 msgid "Done"
 msgstr "Done"
@@ -6156,6 +6189,10 @@ msgstr "Drafting in progress with everything the client provided."
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Drafting started without all client materials in hand."
 msgstr "Drafting started without all client materials in hand."
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Drake / Lacerte / ProConnect"
+msgstr "Drake / Lacerte / ProConnect"
 
 #: src/routes/practice.tsx
 msgid "Driver"
@@ -6229,6 +6266,10 @@ msgstr "DueDateHQ field"
 #: src/routes/practice.tsx
 msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
 msgstr "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "DueDateHQ pricing is real — but right now, tell us a little about your practice and your first three months on the Team plan are on us."
+msgstr "DueDateHQ pricing is real — but right now, tell us a little about your practice and your first three months on the Team plan are on us."
 
 #: src/routes/readiness.tsx
 msgid "DueDateHQ readiness portal"
@@ -6315,6 +6356,10 @@ msgstr "e.g. Form 41-ES"
 #: src/routes/rules.library.tsx
 msgid "e.g. Quarterly estimated tax for trusts"
 msgstr "e.g. Quarterly estimated tax for trusts"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "e.g. refreshing fifty state sites by hand, or finding out a date moved when a client asks…"
+msgstr "e.g. refreshing fifty state sites by hand, or finding out a date moved when a client asks…"
 
 #: src/routes/onboarding.tsx
 msgid "e.g. Smith & Associates CPA"
@@ -6689,6 +6734,10 @@ msgstr "Every device subscribed to the current URL will silently stop syncing. Y
 msgid "Every event is written to the immutable audit ledger."
 msgstr "Every event is written to the immutable audit ledger."
 
+#: src/features/onboarding/first-run-tour.tsx
+msgid "Every filing across the firm, in one place, ranked by urgency."
+msgstr "Every filing across the firm, in one place, ranked by urgency."
+
 #: src/features/dashboard/merged-brief-card.tsx
 msgid "Every overdue deadline is waiting on source documents."
 msgstr "Every overdue deadline is waiting on source documents."
@@ -6731,6 +6780,10 @@ msgstr "Evidence to close out filing"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Evidence to gather"
 msgstr "Evidence to gather"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Excel + Outlook"
+msgstr "Excel + Outlook"
 
 #: src/routes/rules.library.tsx
 msgid "Exception"
@@ -7082,6 +7135,10 @@ msgstr "File"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "File extension"
 msgstr "File extension"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "File In Time"
+msgstr "File In Time"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "File is larger than 5 MB. Trim or split the export, then re-upload."
@@ -7666,6 +7723,10 @@ msgstr "Generating deadlines…"
 msgid "Generating…"
 msgstr "Generating…"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Get 3 months of Team, free."
+msgstr "Get 3 months of Team, free."
+
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/routes/billing.tsx
 #: src/routes/dashboard.tsx
@@ -8157,6 +8218,10 @@ msgstr "Individual"
 msgid "Individual income"
 msgstr "Individual income"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Individual tax"
+msgstr "Individual tax"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Information"
 msgstr "Information"
@@ -8425,6 +8490,10 @@ msgstr "Jurisdictions awaiting calendar review"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "K-1 activity"
 msgstr "K-1 activity"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Karbon"
+msgstr "Karbon"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Keep editing"
@@ -9798,6 +9867,7 @@ msgstr "Newsroom or article — cross-verify before applying."
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientCycleArrows.tsx
+#: src/features/onboarding/first-run-tour.tsx
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Next"
 msgstr "Next"
@@ -10002,6 +10072,10 @@ msgstr "No closed source-year deadlines matched this rollover preview."
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "No contacts yet"
 msgstr "No contacts yet"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "No credit card to start"
+msgstr "No credit card to start"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "No current client impact"
@@ -12186,6 +12260,10 @@ msgstr "Quick find"
 msgid "Quick find…"
 msgstr "Quick find…"
 
+#: src/features/onboarding/first-run-tour.tsx
+msgid "Quick tour"
+msgstr "Quick tour"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List."
 msgstr "QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List."
@@ -12353,6 +12431,10 @@ msgstr "Ready to import"
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 msgid "Ready to work"
 msgstr "Ready to work"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Real pricing only after the three months"
+msgstr "Real pricing only after the three months"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/clients/ClientFactPanels.tsx
@@ -13413,6 +13495,7 @@ msgstr "Rule issue reported"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/onboarding/first-run-tour.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
 #: src/routes/rules.preview.tsx
@@ -13504,6 +13587,10 @@ msgstr "Rules accepted in bulk"
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Rules are watching but no deadlines yet"
 msgstr "Rules are watching but no deadlines yet"
+
+#: src/features/onboarding/first-run-tour.tsx
+msgid "Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself."
+msgstr "Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself."
 
 #: src/routes/rules.library.tsx
 msgid "Rules awaiting review"
@@ -14404,6 +14491,7 @@ msgstr "Signing out…"
 msgid "Single-member LLC"
 msgstr "Single-member LLC"
 
+#: src/features/onboarding/first-run-tour.tsx
 #: src/routes/rules.library.tsx
 msgid "Skip"
 msgstr "Skip"
@@ -14417,6 +14505,7 @@ msgid "Skip duplicates"
 msgstr "Skip duplicates"
 
 #: src/features/migration/OnboardingSkipModal.tsx
+#: src/features/onboarding/welcome-offer-step.tsx
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
 msgstr "Skip for now"
@@ -14541,6 +14630,10 @@ msgstr "Some sources need attention"
 #: src/features/migration/Step4Preview.tsx
 msgid "Some state deadlines need rule review"
 msgstr "Some state deadlines need rule review"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Something else"
+msgstr "Something else"
 
 #: src/routes/error.tsx
 msgid "Something went wrong"
@@ -14842,8 +14935,8 @@ msgstr "Stay and import"
 msgid "Step {current} of {STEP_COUNT}"
 msgstr "Step {current} of {STEP_COUNT}"
 
+#: src/features/onboarding/step-dots.tsx
 #: src/routes/migration.new.tsx
-#: src/routes/onboarding.tsx
 msgid "Step {step} of {total}"
 msgstr "Step {step} of {total}"
 
@@ -15168,6 +15261,10 @@ msgstr "Tax year settings updated"
 msgid "Tax year type"
 msgstr "Tax year type"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "TaxDome"
+msgstr "TaxDome"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -15220,6 +15317,10 @@ msgstr "Team+"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "teammate"
 msgstr "teammate"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Tell us a little about your practice"
+msgstr "Tell us a little about your practice"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Template"
@@ -15602,6 +15703,14 @@ msgstr "This is the 30-day client countdown email. Variables: client_name, tax_t
 msgid "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 msgstr "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 
+#: src/features/onboarding/first-run-tour.tsx
+msgid "This is Today"
+msgstr "This is Today"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "This jurisdiction publishes its own filing calendar — confirm it before deadlines generate."
+msgstr "This jurisdiction publishes its own filing calendar — confirm it before deadlines generate."
+
 #. placeholder {0}: formatDate(portal.expiresAt)
 #: src/routes/readiness.tsx
 msgid "This link expires {0}."
@@ -15754,10 +15863,6 @@ msgstr "This stage hasn't been reached yet. We only project the Filed date (usin
 #: src/features/obligations/queue/components/panels.tsx
 msgid "This stage was skipped — no date applies."
 msgstr "This stage was skipped — no date applies."
-
-#: src/features/onboarding/rule-review-prompt.tsx
-msgid "This state publishes its own filing calendar — confirm it before deadlines generate."
-msgstr "This state publishes its own filing calendar — confirm it before deadlines generate."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
@@ -16746,6 +16851,14 @@ msgstr "we look up your firm automatically"
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "We store the plan and seat limit needed for app permissions."
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "We use this to set up your trial and understand your workflow — never to sell or share."
+msgstr "We use this to set up your trial and understand your workflow — never to sell or share."
+
+#: src/features/onboarding/first-run-tour.tsx
+msgid "We watch the agencies' sources 24/7. When a rule or date changes, it lands here — with who's affected."
+msgstr "We watch the agencies' sources 24/7. When a rule or date changes, it lands here — with who's affected."
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"
 msgstr "Weekend → next business day"
@@ -16788,6 +16901,10 @@ msgstr "what changed and what to verify"
 #: src/routes/billing.checkout.tsx
 msgid "What changes"
 msgstr "What changes"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "What does your practice focus on?"
+msgstr "What does your practice focus on?"
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "What is the internal target?"
@@ -16859,6 +16976,10 @@ msgstr "when reminders send"
 msgid "When something gets at-risk — a stalled document request, a rejected filing, a client gone quiet — Smart Priority will surface it here. Right now everything is on track."
 msgstr "When something gets at-risk — a stalled document request, a rejected filing, a client gone quiet — Smart Priority will surface it here. Right now everything is on track."
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Where do deadlines cost you the most time?"
+msgstr "Where do deadlines cost you the most time?"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "where this came from"
 msgstr "where this came from"
@@ -16866,6 +16987,10 @@ msgstr "where this came from"
 #: src/routes/rules.library.tsx
 msgid "Where to start"
 msgstr "Where to start"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Which tools do you use today?"
+msgstr "Which tools do you use today?"
 
 #: src/routes/splash.tsx
 msgid "While you were away"
@@ -17197,6 +17322,10 @@ msgstr "Your decision is recorded in the audit log."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Your draft is preserved — retry, or come back to it later."
 msgstr "Your draft is preserved — retry, or come back to it later."
+
+#: src/features/onboarding/first-run-tour.tsx
+msgid "Your morning read — what's due, what changed overnight, and who needs you."
+msgstr "Your morning read — what's due, what changed overnight, and who needs you."
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Your name, contact details, and display preferences."

@@ -104,3 +104,25 @@ reuses the already-designed `ClientsEmptyState` content/CTAs, so it's not net-ne
 design fiction. It needs the `clientCount === 0` signal wired into the `/today`
 loader and a first-run branch on the dashboard. Pending the design owner's call
 on exactly what the brand-new dashboard should say.
+
+## Update — 2026-06-24 (welcome offer · trial grant · first-run tour)
+
+The funnel now opens with a **welcome step** (the marketing "3 months of Team free"
+questionnaire, moved in-app): `features/onboarding/welcome-offer-step.tsx`, an
+onboarding `phase` ahead of practice setup. Only the qualitative questions remain
+(name/email come from sign-in); built on `CenteredAuthScreen` + `ToggleChip` so it's
+cohesive. **The survey gates the trial** — claiming grants the firm the Team plan for
+3 months (`firms.create` → `FirmsRepo.grantTeamTrial`); skipping forgoes it.
+
+A short **first-run tour** now orients new users on `/today`
+(`features/onboarding/first-run-tour.tsx`): a once-only 4-step spotlight over the
+sidebar nav (Today → Alerts → Deadlines → Rule library), localStorage-gated,
+self-skips when it can't anchor. **Decision: one orientation tour on `/today` only,
+not per-page tours** — each page should teach through its own design / empty states
+(see gap #6), which is permanent and helps every visit, not just the first.
+
+Auth chrome polish in the same pass: the `CenteredAuthScreen` scroll-center fix (the
+onboarding title was clipped off short viewports), the onboarding hero hierarchy, the
+login brand-navy showcase panel, and the rule-review "state"→"jurisdiction" copy fix
+(the review set includes Federal). See
+`docs/dev-log/2026-06-24-auth-onboarding-welcome-tour.md`.
