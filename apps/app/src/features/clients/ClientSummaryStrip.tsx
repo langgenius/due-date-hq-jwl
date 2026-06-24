@@ -158,6 +158,15 @@ export function ClientSummaryStrip({
       key: 'filed',
       label: t`Filed`,
       value: num(filedCount),
+      ...(filedCount > 0
+        ? {
+            onClick: () =>
+              void navigate(
+                `/deadlines?client=${client.id}&status=done,completed,paid`,
+              ),
+            ariaLabel: t`View filed deadlines`,
+          }
+        : {}),
     },
     {
       key: 'next-due',

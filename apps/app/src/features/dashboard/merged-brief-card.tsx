@@ -314,7 +314,7 @@ export function MergedBriefCard({
               />
               <TooltipContent>
                 <div className="flex max-w-[280px] flex-col gap-1 text-left">
-                  <span className="font-semibold">
+                  <span className="font-medium">
                     <Trans>Curated by Smart Priority</Trans>
                   </span>
                   <span>
@@ -434,7 +434,7 @@ export function MergedBriefCard({
             className="flex size-14 items-center justify-center rounded-full bg-highlight-celebrate animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
-            <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />
+            <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.5} />
           </span>
           <div className="flex max-w-md flex-col gap-1">
             <p className="text-base font-medium text-text-primary">

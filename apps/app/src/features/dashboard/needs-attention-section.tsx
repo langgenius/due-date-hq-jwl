@@ -13,6 +13,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+import { EmptyState } from '@/components/patterns/empty-state'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
@@ -190,27 +191,17 @@ function NeedsAttentionSection() {
     const exampleB = watchedSources[1]?.label
 
     return (
-      <section
-        aria-label={t`Alerts`}
-        className="flex flex-col items-center justify-center gap-5 px-6 py-14 text-center"
-      >
-        {/* Megaphone in a light-accent disc — the alerts mark. Accent lives in
-            the container + icon, not the text (no coloured text on calm bg). */}
-        <span
-          className="flex size-16 items-center justify-center rounded-full bg-state-accent-hover"
-          aria-hidden
-        >
-          <MegaphoneIcon className="size-7 text-text-accent" strokeWidth={1.75} />
-        </span>
-        <div className="flex max-w-md flex-col gap-2">
-          <h2 className="text-lg font-semibold text-text-primary">
-            {noSources ? (
-              <Trans>No sources monitored yet</Trans>
-            ) : (
-              <Trans>No alerts right now</Trans>
-            )}
-          </h2>
-          <p className="text-sm leading-relaxed text-text-secondary">
+      <EmptyState
+        icon={MegaphoneIcon}
+        title={
+          noSources ? (
+            <Trans>No sources monitored yet</Trans>
+          ) : (
+            <Trans>No alerts right now</Trans>
+          )
+        }
+        description={
+          <>
             {noSources ? (
               <Trans>Turn on a monitored source and policy changes will show up here.</Trans>
             ) : exampleA && exampleB ? (
@@ -231,18 +222,20 @@ function NeedsAttentionSection() {
                 <Trans>Last checked {lastCheckedLabel}.</Trans>
               </span>
             ) : null}
-          </p>
-        </div>
-        <TextLink
-          variant="accent"
-          size="sm"
-          render={<Link to="/rules/sources" />}
-          className="gap-1.5"
-        >
-          <SlidersHorizontalIcon className="size-4" aria-hidden />
-          <Trans>Configure sources</Trans>
-        </TextLink>
-      </section>
+          </>
+        }
+        cta={
+          <TextLink
+            variant="accent"
+            size="sm"
+            render={<Link to="/rules/sources" />}
+            className="gap-1.5"
+          >
+            <SlidersHorizontalIcon className="size-4" aria-hidden />
+            <Trans>Configure sources</Trans>
+          </TextLink>
+        }
+      />
     )
   }
 

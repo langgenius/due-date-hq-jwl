@@ -60,7 +60,7 @@ function LifecycleStripCell({
       <Icon className={cn('size-3.5 shrink-0', iconToneClass)} aria-hidden />
       {/* Value at text-xl (20px) so the strip reads as a compact
           summary, not a hero metric. */}
-      <span className="text-xl leading-none font-semibold tabular-nums tracking-tight text-text-primary">
+      <span className="text-xl leading-none font-medium tabular-nums tracking-tight text-text-primary">
         {value}
       </span>
       <span className="text-xs font-medium text-text-tertiary">{label}</span>

@@ -72,6 +72,7 @@ import { fadeMotion } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { CountPill } from '@/components/primitives/count-pill'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
@@ -914,12 +915,9 @@ export function ClientDetailWorkspace({
                         obligation panel is open — no icon-only compaction. */}
                         <Trans>Filing plan</Trans>
                         {obligations.length > 0 ? (
-                          <Badge
-                            variant="secondary"
-                            className="px-1.5 text-caption-xs font-semibold tabular-nums"
-                          >
+                          <CountPill tone="neutral">
                             {obligations.length}
-                          </Badge>
+                          </CountPill>
                         ) : null}
                       </span>
                     </ClientDetailTabTrigger>
@@ -1053,7 +1051,7 @@ export function ClientDetailWorkspace({
                       title={t`Tax classification`}
                       summary={t`Changing this recomputes which forms this client owes`}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
+                      <div className="rounded-xl border border-divider-regular bg-background-default px-5 py-4">
                         <ClientClassificationPanel
                           key={`${client.id}:classification`}
                           client={client}
@@ -1069,7 +1067,7 @@ export function ClientDetailWorkspace({
                       <div
                         id="client-filing-jurisdictions"
                         className={cn(
-                          'scroll-mt-20 rounded-lg border bg-background-default px-5 py-4',
+                          'scroll-mt-20 rounded-xl border bg-background-default px-5 py-4',
                           missingFilingState
                             ? 'border-state-warning-active'
                             : 'border-divider-regular',
@@ -1089,7 +1087,7 @@ export function ClientDetailWorkspace({
                       titleAccessory={<RiskProfileSmartPriorityHelp />}
                       summary={t`Importance and late-filing history`}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
+                      <div className="rounded-xl border border-divider-regular bg-background-default px-5 py-4">
                         <ClientRiskInputsPanel
                           key={`${client.id}:risk`}
                           client={client}
@@ -1103,7 +1101,7 @@ export function ClientDetailWorkspace({
                       title={showSourceFields ? t`Import source` : t`Contact details`}
                       summary={formatImportSourceSummary(client)}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
+                      <div className="rounded-xl border border-divider-regular bg-background-default px-5 py-4">
                         <ClientSourceDetailsPanel
                           key={`${client.id}:source-details`}
                           client={client}
@@ -1190,9 +1188,9 @@ export function ClientDetailWorkspace({
                       sub={t`Audit trail of every change`}
                       actions={
                         auditQuery.data && auditQuery.data.events.length > 0 ? (
-                          <span className="rounded-full bg-background-default px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                          <CountPill tone="neutral">
                             {auditQuery.data.events.length}
-                          </span>
+                          </CountPill>
                         ) : null
                       }
                       // Flush body: ClientActivityPanel is frameless and its rows /
@@ -1408,7 +1406,7 @@ function ClientDetailRail({
       <section className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
         {/* 2026-06-16 (Yuqi "band EVERY section"): banded rail header. */}
         <header className="flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-          <h3 className="text-base font-semibold text-text-primary">
+          <h3 className="text-base font-medium text-text-primary">
             <Trans>Contacts</Trans>
           </h3>
         </header>
@@ -1525,7 +1523,7 @@ function ClientDetailTabTrigger({
         // inset padding that would otherwise leave the seam below the triggers.
         'relative -mb-px !h-auto !flex-none shrink-0 items-center gap-2 !rounded-none !border-0 !bg-transparent px-0 py-3 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
-          ? 'font-semibold text-text-primary'
+          ? 'font-medium text-text-primary'
           : 'cursor-pointer text-text-secondary hover:text-text-primary',
         // When compact, the label inside the trigger is wrapped in a
         // span with `[data-tab-label]` and we hide it via this attribute

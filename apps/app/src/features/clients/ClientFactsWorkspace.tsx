@@ -1410,14 +1410,14 @@ function ClientPortfolioCard({
             <>
               <div className="flex items-baseline gap-1.5">
                 {dueDays === 0 ? (
-                  <span className={cn('text-lg font-semibold tracking-tight', heroTone)}>
+                  <span className={cn('text-lg font-medium tracking-tight', heroTone)}>
                     <Trans>Due today</Trans>
                   </span>
                 ) : (
                   <>
                     <span
                       className={cn(
-                        'text-stat-value font-semibold leading-none tracking-tight tabular-nums',
+                        'text-stat-value font-medium leading-none tracking-tight tabular-nums',
                         heroTone,
                       )}
                     >
