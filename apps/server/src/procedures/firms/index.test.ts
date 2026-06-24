@@ -71,6 +71,7 @@ function createContext(row = firmRow()) {
   const firms = {
     listOwnedActive: vi.fn(async () => []),
     updateProfile: vi.fn(async () => undefined),
+    grantTeamTrial: vi.fn(async () => undefined),
     setActiveSession: vi.fn(async () => undefined),
     findActiveForUser: vi.fn(async () => row),
     writeAudit: vi.fn(async () => ({ id: 'audit_1' })),
@@ -145,6 +146,18 @@ describe('firm public smart priority visibility', () => {
         'user_coordinator',
       ),
     ).toBe(false)
+  })
+})
+
+describe('firm create launch offer', () => {
+  it('grants the Team trial when the welcome offer is claimed', async () => {
+    const { firms } = await createFirm({ grantTeamTrialMonths: 3 })
+    expect(firms.grantTeamTrial).toHaveBeenCalledWith('firm_new', 3)
+  })
+
+  it('does not grant a trial when the questionnaire is skipped', async () => {
+    const { firms } = await createFirm({})
+    expect(firms.grantTeamTrial).not.toHaveBeenCalled()
   })
 })
 

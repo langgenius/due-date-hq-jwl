@@ -1,0 +1,201 @@
+import { useState } from 'react'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { ArrowRightIcon, CheckIcon } from 'lucide-react'
+
+import { Button } from '@duedatehq/ui/components/ui/button'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
+
+import { ToggleChip } from '@/components/primitives/toggle-chip'
+import { StepDots } from './step-dots'
+
+// Welcome / launch-offer step — the questionnaire from the marketing
+// /get-started page, moved into the post-login funnel as step 1. Name + email
+// already come from sign-in and the firm name is captured in practice setup, so
+// only the three qualitative questions remain. Completing it ("Claim …") is the
+// gate to the 3-months-of-Team offer; the quiet skip forgoes it. Styled with the
+// same onboarding chrome (StepDots hero + flat card + Button/Textarea/ToggleChip
+// primitives) so it reads as the natural first beat of onboarding, not a port.
+
+export interface WelcomeOfferAnswers {
+  /** Single practice focus, if chosen. */
+  focus?: string | undefined
+  /** Tools the firm uses today (multi-select). */
+  tools: string[]
+  /** Freeform "where deadlines cost the most time". */
+  pain?: string | undefined
+}
+
+interface WelcomeOfferStepProps {
+  step: number
+  total: number
+  /** Accept the offer + continue into practice setup, carrying the answers. */
+  onClaim: (answers: WelcomeOfferAnswers) => void
+  /** Continue without claiming the offer. */
+  onSkip: () => void
+}
+
+export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferStepProps) {
+  const { t } = useLingui()
+  const [focus, setFocus] = useState<string | null>(null)
+  const [tools, setTools] = useState<string[]>([])
+  const [pain, setPain] = useState('')
+
+  const perks = [
+    t`3 months of Team — our full plan, free`,
+    t`No credit card to start`,
+    t`Real pricing only after the three months`,
+  ]
+  const focusOptions = [
+    t`Individual tax`,
+    t`Business tax`,
+    t`Bookkeeping & advisory`,
+    t`A mix of everything`,
+  ]
+  const toolOptions = [
+    t`Excel + Outlook`,
+    t`File In Time`,
+    t`TaxDome`,
+    t`Karbon`,
+    t`Canopy`,
+    t`Drake / Lacerte / ProConnect`,
+    t`Something else`,
+  ]
+
+  function toggleTool(value: string) {
+    setTools((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
+  }
+
+  function handleClaim() {
+    onClaim({ focus: focus ?? undefined, tools, pain: pain.trim() || undefined })
+  }
+
+  return (
+    <div className="flex w-full max-w-[560px] flex-col gap-6">
+      {/* Offer hero — step eyebrow, the campaign promise, then what's included. */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
+          <StepDots step={step} total={total} />
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
+              <Trans>Get 3 months of Team, free.</Trans>
+            </h1>
+            <p className="text-base leading-normal text-text-tertiary">
+              <Trans>
+                DueDateHQ pricing is real — but right now, tell us a little about your practice and
+                your first three months on the Team plan are on us.
+              </Trans>
+            </p>
+          </div>
+        </div>
+        <ul className="flex flex-col gap-1.5">
+          {perks.map((perk) => (
+            <li key={perk} className="flex items-start gap-2 text-sm text-text-secondary">
+              <CheckIcon className="mt-0.5 size-4 shrink-0 text-state-success-solid" aria-hidden />
+              {perk}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Questions — same flat card chrome as the practice-setup step. */}
+      <div className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-8 duration-300 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none lg:px-10 lg:py-10">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold text-text-primary">
+            <Trans>Tell us a little about your practice</Trans>
+          </h2>
+          <p className="text-sm leading-normal text-text-tertiary">
+            <Trans>About two minutes — it tailors your setup. Every field is optional.</Trans>
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {/* Focus — single select */}
+          <div className="flex flex-col gap-2.5">
+            <p className="text-sm font-medium leading-none text-text-primary">
+              <Trans>What does your practice focus on?</Trans>{' '}
+              <span className="font-normal text-text-tertiary">
+                <Trans>(optional)</Trans>
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {focusOptions.map((option) => (
+                <ToggleChip
+                  key={option}
+                  size="md"
+                  selected={focus === option}
+                  onClick={() => setFocus(focus === option ? null : option)}
+                >
+                  {option}
+                </ToggleChip>
+              ))}
+            </div>
+          </div>
+
+          {/* Tools — multi select */}
+          <div className="flex flex-col gap-2.5">
+            <p className="text-sm font-medium leading-none text-text-primary">
+              <Trans>Which tools do you use today?</Trans>{' '}
+              <span className="font-normal text-text-tertiary">
+                <Trans>(optional)</Trans>
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {toolOptions.map((option) => (
+                <ToggleChip
+                  key={option}
+                  size="md"
+                  selected={tools.includes(option)}
+                  onClick={() => toggleTool(option)}
+                >
+                  {option}
+                </ToggleChip>
+              ))}
+            </div>
+          </div>
+
+          {/* Pain — freeform */}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="welcome-pain"
+              className="text-sm font-medium leading-none text-text-primary"
+            >
+              <Trans>Where do deadlines cost you the most time?</Trans>{' '}
+              <span className="font-normal text-text-tertiary">
+                <Trans>(optional)</Trans>
+              </span>
+            </label>
+            <Textarea
+              id="welcome-pain"
+              value={pain}
+              onChange={(event) => setPain(event.target.value)}
+              rows={3}
+              placeholder={t`e.g. refreshing fifty state sites by hand, or finding out a date moved when a client asks…`}
+            />
+          </div>
+        </div>
+
+        {/* Claim → continue into practice setup. The quiet skip forgoes the offer. */}
+        <div className="flex flex-col items-center gap-3">
+          <Button
+            type="button"
+            size="lg"
+            onClick={handleClaim}
+            className="w-full justify-center gap-2 rounded-lg font-semibold"
+          >
+            <Trans>Claim 3 months of Team free</Trans>
+            <ArrowRightIcon className="size-4" aria-hidden />
+          </Button>
+          <TextLink variant="muted" onClick={onSkip} className="text-sm">
+            <Trans>Skip for now</Trans>
+          </TextLink>
+          <p className="text-center text-caption leading-relaxed text-text-tertiary">
+            <Trans>
+              We use this to set up your trial and understand your workflow — never to sell or share.
+            </Trans>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}

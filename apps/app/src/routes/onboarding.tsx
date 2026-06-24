@@ -16,9 +16,13 @@ import {
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { RuleReviewPrompt } from '@/features/onboarding/rule-review-prompt'
+import { StepDots } from '@/features/onboarding/step-dots'
+import {
+  WelcomeOfferStep,
+  type WelcomeOfferAnswers,
+} from '@/features/onboarding/welcome-offer-step'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timezone-select'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
@@ -31,6 +35,9 @@ import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboardi
 const MIN_NAME_LENGTH = 2
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 const ONBOARDING_STEP_COUNT = 3
+// Launch offer: claiming the welcome questionnaire grants this many months of the
+// Team plan ("Get 3 months of Team, free"). Skipping it grants nothing.
+const TEAM_TRIAL_MONTHS = 3
 
 // Field rows rise in a quick top-down stagger on mount so the form reads as
 // settling into place rather than appearing all at once. Reduced-motion is
@@ -68,33 +75,6 @@ function todayInTimezone(timezone: string, date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
-// Step dots — matches the E76U6Q "STEP 1 OF 3" affordance. Steps 2 and 3 are the
-// migration importer at /migration/new (chained from handleSubmit), so this is a
-// real progress indicator, not decoration.
-function StepDots({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="flex items-center gap-3.5">
-      <span className="text-[11px] font-semibold tracking-[1.4px] text-text-tertiary uppercase">
-        <Trans>
-          Step {step} of {total}
-        </Trans>
-      </span>
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: total }, (_, index) => index + 1).map((stepNumber) => (
-          <span
-            key={stepNumber}
-            aria-hidden
-            className={cn(
-              'size-1.5 rounded-full transition-colors',
-              stepNumber === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function FieldHeaderRow({
   label,
   hint,
@@ -110,7 +90,7 @@ function FieldHeaderRow({
         {label}
       </FieldLabel>
       <span aria-hidden className="h-px flex-1" />
-      <span className="shrink-0 text-[11px] font-medium italic text-text-tertiary">{hint}</span>
+      <span className="shrink-0 text-caption italic text-text-tertiary">{hint}</span>
     </div>
   )
 }
@@ -123,6 +103,10 @@ export function OnboardingRoute() {
   const [params] = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Funnel starts on the welcome / launch-offer step; advancing (claim or skip)
+  // moves to practice setup. The offer answers ride along to firm creation.
+  const [phase, setPhase] = useState<'welcome' | 'practice'>('welcome')
+  const [offerAnswers, setOfferAnswers] = useState<WelcomeOfferAnswers | null>(null)
   const switchMutation = useMutation(orpc.firms.switchActive.mutationOptions())
   const createMutation = useMutation(orpc.firms.create.mutationOptions())
   const activateRulesMutation = useMutation(
@@ -158,7 +142,7 @@ export function OnboardingRoute() {
   // (the app shell consumes it → "Signed In" for returning users; exactly one
   // wins). Fires once per mount.
   useEffect(() => {
-    track(ANALYTICS_EVENTS.onboardingViewed, { step: 'practice' })
+    track(ANALYTICS_EVENTS.onboardingViewed, { step: 'welcome' })
     const marker = consumeSignInMarker()
     if (marker) {
       track(ANALYTICS_EVENTS.signedUp, { method: marker.method, is_invited: false })
@@ -202,6 +186,9 @@ export function OnboardingRoute() {
         activateOnboardingJurisdictions: (input) => activateRulesMutation.mutateAsync(input),
       },
       selectedRuleStates,
+      // Survey gates the trial: only grant Team when the welcome offer was claimed
+      // (offerAnswers set). Skipping the questionnaire leaves it null → no grant.
+      ...(offerAnswers ? { grantTeamTrialMonths: TEAM_TRIAL_MONTHS } : {}),
     })
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
@@ -214,6 +201,10 @@ export function OnboardingRoute() {
           internal_deadline_offset_days: internalDeadlineOffsetDays,
           selected_state_count: selectedRuleStates.length,
           includes_fed: selectedRuleStates.length > 0,
+          offer_claimed: offerAnswers !== null,
+          offer_focus: offerAnswers?.focus,
+          offer_tool_count: offerAnswers?.tools.length ?? 0,
+          offer_has_pain: Boolean(offerAnswers?.pain),
         })
         // If activation flagged jurisdictions for source-defined-calendar
         // review, pause on step 2 (the rule-review prompt) before the importer.
@@ -249,6 +240,25 @@ export function OnboardingRoute() {
       .finally(() => setIsSubmitting(false))
   }
 
+  // Step 1 — welcome / launch offer. Confirm the 3-months-of-Team offer and
+  // capture the short practice questionnaire, then advance to practice setup.
+  // Claiming carries the answers forward; the quiet skip forgoes the offer.
+  if (phase === 'welcome') {
+    return (
+      <CenteredAuthScreen>
+        <WelcomeOfferStep
+          step={1}
+          total={ONBOARDING_STEP_COUNT}
+          onClaim={(answers) => {
+            setOfferAnswers(answers)
+            setPhase('practice')
+          }}
+          onSkip={() => setPhase('practice')}
+        />
+      </CenteredAuthScreen>
+    )
+  }
+
   // Step 2 — rule review (only when activation flagged jurisdictions). The firm
   // is already created at this point, so there's no "back"; both actions move
   // forward (review the rules now, or skip to the client importer).
@@ -273,27 +283,30 @@ export function OnboardingRoute() {
 
   return (
     <CenteredAuthScreen>
-      <div className="flex w-full max-w-[560px] flex-col items-center gap-7">
-        <StepDots step={1} total={ONBOARDING_STEP_COUNT} />
-
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-10 lg:px-14 lg:py-12"
-        >
-          {/* Heading */}
+      <div className="flex w-full max-w-[560px] flex-col gap-6">
+        {/* Hero — step 2 eyebrow, title, and value line live at page level above
+            the form card, so the primary anchor is the first thing read (and is
+            always reachable now that the shell scroll-centers). */}
+        <div className="flex flex-col gap-3">
+          <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
           <div className="flex flex-col gap-2">
-            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.6px] text-text-primary">
+            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
               <Trans>Set up your practice</Trans>
             </h1>
-            <p className="text-sm font-medium leading-normal text-text-tertiary">
+            <p className="text-base leading-normal text-text-tertiary">
               <Trans>
                 A few details so DueDateHQ can schedule your deadlines. You can change any of this
                 later in Settings.
               </Trans>
             </p>
           </div>
+        </div>
 
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-8 lg:px-10 lg:py-10"
+        >
           {/* Fields — rows stagger in top-down on mount. */}
           <motion.div
             className="flex flex-col gap-5"
@@ -425,7 +438,7 @@ export function OnboardingRoute() {
                 </>
               )}
             </Button>
-            <p className="text-center text-[11px] font-medium leading-relaxed text-text-tertiary">
+            <p className="text-center text-caption leading-relaxed text-text-tertiary">
               <Trans>
                 DueDateHQ schedules filing plans from the first applicable deadline on or after your
                 monitoring start date. By continuing you agree to the Terms and Privacy Policy.

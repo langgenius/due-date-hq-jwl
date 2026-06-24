@@ -35,6 +35,8 @@ export async function activateOrCreateOnboardingFirm(input: {
   internalDeadlineOffsetDays?: number
   monitoringStartDate?: string
   selectedRuleStates?: RuleGenerationState[]
+  /** Months of Team to grant at creation — set when the welcome offer is claimed. */
+  grantTeamTrialMonths?: number
 }): Promise<OnboardingFirmActivationResult> {
   const firms = await input.gateway.listMine()
   const existing = firms[0]
@@ -50,6 +52,7 @@ export async function activateOrCreateOnboardingFirm(input: {
     internalDeadlineOffsetDays:
       input.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
     ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
+    ...(input.grantTeamTrialMonths ? { grantTeamTrialMonths: input.grantTeamTrialMonths } : {}),
   })
   const selectedRuleStates = input.selectedRuleStates ?? []
   const ruleActivation =

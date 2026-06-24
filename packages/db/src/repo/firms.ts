@@ -323,6 +323,44 @@ export function makeFirmsRepo(db: Db) {
       ])
     },
 
+    // Launch offer ("3 months of Team free"). The Team tier IS the
+    // `firm_profile.plan` column (what gates features) plus its seat allotment —
+    // mirroring how demo Team firms are seeded, so no Stripe call is needed. The
+    // `subscription` row records the trial window (status `trialing`, no Stripe
+    // IDs) so billing can show the remaining time and a future downgrade job has
+    // the end date to act on.
+    async grantTeamTrial(firmId: string, months: number): Promise<void> {
+      const TEAM_SEAT_LIMIT = 10
+      const now = new Date()
+      const trialEnd = new Date(now)
+      trialEnd.setMonth(trialEnd.getMonth() + months)
+      await db
+        .update(firmProfile)
+        .set({ plan: 'team', seatLimit: TEAM_SEAT_LIMIT, updatedAt: now })
+        .where(eq(firmProfile.id, firmId))
+      await db.insert(subscription).values({
+        id: `trial_${crypto.randomUUID().replaceAll('-', '')}`,
+        plan: 'team',
+        referenceId: firmId,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        status: 'trialing',
+        periodStart: now,
+        periodEnd: trialEnd,
+        seats: TEAM_SEAT_LIMIT,
+        billingInterval: null,
+        trialStart: now,
+        trialEnd,
+        cancelAtPeriodEnd: false,
+        cancelAt: null,
+        canceledAt: null,
+        endedAt: null,
+        stripeScheduleId: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+    },
+
     async applyInternalDeadlineOffset(firmId: string, offsetDays: number): Promise<number> {
       const [countRow] = await db
         .select({ value: count() })
