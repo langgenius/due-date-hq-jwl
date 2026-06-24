@@ -1226,13 +1226,6 @@ export function ClientDetailWorkspace({
             </div>
           </section>
         </div>
-        {/* Obligation page panel — replaces the modal Sheet on this
-            route. Width is fixed 600px on xl+, full-width stacked
-            below the entire client surface at narrower viewports.
-            Now a sibling of the left column wrapper (was nested
-            inside the body) so opening an obligation pushes the
-            PageHeader, summary strip, alerts, AND the filing plan
-            all left at once. */}
         {/* CSS-only slide-in. AnimatePresence + motion.div animating
             width 0→600 settled at stuck intermediate widths under React
             19's concurrent renders inside this flex-row + items-stretch
