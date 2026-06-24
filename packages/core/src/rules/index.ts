@@ -5816,7 +5816,13 @@ export const RULE_SOURCES = hydrateRuleSources([
     lastReviewedOn: VERIFIED_AT,
     inboundEmail: {
       localParts: ['pulse-ingest+fl-tax-publications'],
-      senderDomains: ['floridarevenue.com', 'www.floridarevenue.com'],
+      // 2026-06-23: FL DOR sends TIPs via Constant Contact (envelope From is
+      // @in.constantcontact.com), so the official-domain-only allowlist rejected
+      // legit mail as sender_domain_mismatch. Constant Contact is a shared ESP, so
+      // adding it trusts "delivered to our pulse-ingest+fl-tax-publications
+      // subscription address AND a passing DKIM/SPF verdict (PULSE_EMAIL_REQUIRE_AUTH)"
+      // rather than the official domain — an acceptable trade for this low-risk source.
+      senderDomains: ['floridarevenue.com', 'www.floridarevenue.com', 'in.constantcontact.com'],
       listIdPatterns: ['florida department of revenue', 'tax information publications'],
       canonicalUrlHosts: ['floridarevenue.com', 'www.floridarevenue.com'],
       verificationStatus: 'verified_official',
