@@ -815,7 +815,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
   }, [disabled, notifySidebarNavigation])
 
   return (
-    <SidebarMenuItem data-has-badge={item.badge ? 'true' : 'false'}>
+    <SidebarMenuItem data-has-badge={item.badge ? 'true' : 'false'} data-tour-href={item.href}>
       <Tooltip disabled={tooltipDisabled}>
         <TooltipTrigger
           render={

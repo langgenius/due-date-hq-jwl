@@ -25,6 +25,7 @@ import { CreateChoiceCards } from '@/features/dashboard/create-choice-cards'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
+import { FirstRunTour } from '@/features/onboarding/first-run-tour'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
@@ -602,6 +603,7 @@ export function DashboardRoute() {
           />
         </>
       )}
+      <FirstRunTour />
     </div>
   )
 }
