@@ -389,7 +389,10 @@ const examples = t.examples
     grid-area: 1 / 1; /* every panel occupies the same cell → no reflow on swap */
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    align-items: start;
+    /* centre the (shorter) document against the taller extract stack so the
+       connector runs between their middles — not stranded below a top-aligned
+       clip with dead space beneath it */
+    align-items: center;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
