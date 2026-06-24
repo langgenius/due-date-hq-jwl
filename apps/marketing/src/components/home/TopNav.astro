@@ -20,8 +20,8 @@ const base = zh ? '/zh-CN' : ''
 const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
 const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
 const L = zh
-  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '立即开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单' }
-  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Get started', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu' }
+  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '立即开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单', badge: '抢先体验' }
+  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Get started', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu', badge: 'Early access' }
 
 const links = [
   { key: 'home', label: L.homeNav, href: `${base}/` },
@@ -45,7 +45,7 @@ const links = [
           </svg>
         </span>
         <span class="brand__name">DueDateHQ</span>
-        <span class="brand__beta">Beta</span>
+        <span class="brand__beta">{L.badge}</span>
       </span>
     </a>
 
