@@ -96,7 +96,7 @@ export function AlertsHistoryRoute() {
       title={
         <span className="inline-flex flex-wrap items-baseline gap-2">
           <Trans>Alert history</Trans>
-          <span className="text-base font-medium text-text-tertiary">· {rangeLabel}</span>
+          <span className="text-sm font-medium text-text-tertiary">· {rangeLabel}</span>
         </span>
       }
       description={

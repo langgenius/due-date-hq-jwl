@@ -314,10 +314,23 @@ function AuditKpiStrip({
 }
 
 function AuditSkeleton() {
+  // The real AuditLogTable wraps all rows in a single `overflow-hidden
+  // rounded-xl border` container with NO per-row radius — skeleton rows
+  // match that shape (rounded container, flat rows separated by dividers).
   return (
-    <div className="grid gap-3">
+    <div className="overflow-hidden rounded-xl border border-divider-subtle">
       {Array.from({ length: 8 }, (_, index) => (
-        <Skeleton key={index} className="h-12 w-full rounded-lg" />
+        <div
+          key={index}
+          className="flex items-center gap-3 border-b border-divider-subtle px-5 py-3 last:border-b-0"
+        >
+          <Skeleton className="size-8 shrink-0 rounded-lg" />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-3/5" />
+            <Skeleton className="h-3 w-2/5" />
+          </div>
+          <Skeleton className="h-3 w-16 shrink-0" />
+        </div>
       ))}
     </div>
   )
@@ -972,7 +985,7 @@ export function AuditLogPage() {
                   </FilterTrigger>
                 }
               />
-              <PopoverContent align="start" className="w-[300px] p-3">
+              <PopoverContent align="start" className="w-80 p-3">
                 <div className="flex flex-col gap-3.5">
                   <AuditFilterSelect
                     label={t`Action`}
