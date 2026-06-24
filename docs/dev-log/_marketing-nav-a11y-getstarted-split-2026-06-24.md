@@ -3,6 +3,7 @@
 Three marketing-chrome refinements, all verified live against the dev server.
 
 ## 1. Nav — keyboard focus + collapsed-pill focus order (navigation-patterns pass)
+
 Audited `components/home/TopNav.astro` against the navigation-patterns brief. The
 nav was already strong (top bar · 5 destinations · `current` active-state wired on
 every page incl. state-detail · `aria-current` · accessible mobile sheet with focus
@@ -26,12 +27,13 @@ Verified (transitions killed for deterministic reads): collapse intact —
 collapsed Sign-in `visibility:hidden` → `visible` on expand; header holds ~70px.
 Also corrected two stale comments (header doc; "four nav links" → five).
 
-*Caveat:* the focus ring's live rendering couldn't be screenshotted — the headless
+_Caveat:_ the focus ring's live rendering couldn't be screenshotted — the headless
 preview never holds window focus (`document.hasFocus() === false`), so browsers
 won't paint `:focus-visible` there. Rules are present/correct and mirror the proven
 site-wide `.m-section` pattern.
 
 ## 2. /get-started — left↔right split
+
 `components/GetStartedPage.astro` went from two stacked sections to a conversion
 split: **left** = the offer (back-link, `LAUNCH OFFER`, serif title, lede, the three
 checks) — **sticky** on desktop so it holds while a long form scrolls; **right** =
@@ -43,6 +45,7 @@ Verified: desktop two-col (475 / 565), mobile stacks, selection `:has(:checked)`
 tint intact (accent border `#22488c` + tint `#eaeff7`), no console errors, EN + zh.
 
 ## 3. Agentation dev overlay — survives view-transition nav (dev-only)
+
 `layouts/BaseLayout.astro`. The feedback devtool's runtime-injected root was torn
 out when `<ClientRouter />` swaps `<body>` on a tab switch and never re-mounted
 (its bootstrap ran once) — so it looked broken until a manual refresh. Now caches

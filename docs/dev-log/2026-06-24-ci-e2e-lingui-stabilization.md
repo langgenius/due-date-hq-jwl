@@ -1,28 +1,44 @@
-# 2026-06-24 CI, E2E, and Lingui stabilization
+# CI / E2E / Lingui stabilization
 
-- Replayed the failing GitHub runs on `main`: CI failed in `vp check` because
-  nine files needed formatting, Lingui failed on catalog drift from the
-  rule-detail required/recommended label update, and E2E failed because the
-  `/deadlines` page now defaults to card view while the affected tests exercise
-  table workflows.
-- Ran the app Lingui extract/compile flow and kept the generated English and
-  Simplified Chinese catalog output with the rule-detail label change.
-- Updated the obligations E2E page object to explicitly select table view before
-  table-oriented interactions, while still recognizing the card-view deadline
-  buttons for deep-link assertions.
-- Updated the clients filtered-empty assertion to the current `Clear filters`
-  action instead of the removed helper copy.
-- Moved public marketing lead persistence behind the `@duedatehq/db` repo
-  boundary so `apps/server/src/routes/leads.ts` no longer imports schema
-  directly, and tightened the honeypot body check to avoid unsafe assertions.
+**Date:** 2026-06-24 · **Surface:** CI checks, app E2E harness, Lingui catalogs
 
-Validation:
+## Findings
+
+- Lingui extraction and strict compile are clean: `@duedatehq/app` reports 3,937
+  messages and `zh-CN` has 0 missing translations.
+- `pnpm check` failed on Markdown formatting drift in several 2026-06-24 dev-log
+  notes. `pnpm check:fix` normalized those files.
+- Playwright failed six Deadlines-dependent specs because the shared
+  `ObligationQueuePage.goto()` helper waited for the removed `Table view` toggle.
+  `/deadlines` is now table-only, so the helper should treat the sortable table
+  header as the stable ready signal.
+- The first targeted rerun then exposed two stale assertions: the deadline detail
+  section nav now labels the audit trail as `Activity`, and applied Pulse alerts
+  move out of the Review/Active queues into `/alerts/history`.
+- The history view renders alert detail as a sheet dialog, while the active
+  `/alerts` workspace renders the same detail as an inline complementary panel.
+
+## Changes
+
+- Updated `e2e/pages/obligations-page.ts` to stop looking for the removed
+  Table/Card segmented control and wait for `Sort Internal due` instead.
+- Kept the column visibility `View options` helper unchanged; that control still
+  exists and is unrelated to the removed view-mode toggle.
+- Updated the Deadlines detail test to assert the current `Activity` section.
+- Updated the Pulse apply/undo test to reopen the applied alert from Alert
+  history before undoing it.
+- Scoped the Pulse history assertion to the dialog surface instead of the active
+  workspace's inline detail panel helper.
+
+## Validation
 
 - `pnpm --filter @duedatehq/app i18n:extract`
 - `pnpm --filter @duedatehq/app i18n:compile`
-- `pnpm format`
+- `pnpm check:fix`
 - `pnpm check`
-- `pnpm --filter @duedatehq/server test -- src/routes/leads.test.ts`
 - `pnpm test`
 - `pnpm build`
-- `CI=true E2E_WORKER_PORT=8788 E2E_MARKETING_BASE_URL=http://127.0.0.1:4322 ./node_modules/.bin/playwright test e2e/tests/audit-log.spec.ts e2e/tests/clients.spec.ts e2e/tests/obligations.spec.ts e2e/tests/pulse.spec.ts e2e/tests/workload.spec.ts --workers=1 --retries=0 --reporter=list`
+- `E2E_WORKER_PORT=8788 E2E_MARKETING_BASE_URL=http://127.0.0.1:4322 pnpm exec playwright test e2e/tests/audit-log.spec.ts e2e/tests/obligations.spec.ts e2e/tests/pulse.spec.ts --workers=1 --reporter=list`
+  passed with 12 specs.
+- `E2E_WORKER_PORT=8788 E2E_MARKETING_BASE_URL=http://127.0.0.1:4322 pnpm exec playwright test --workers=1 --reporter=list`
+  passed with 68 specs.

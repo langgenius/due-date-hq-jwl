@@ -8,6 +8,7 @@ grid, the default; table = the registry rows). Now /deadlines is the **table
 only**.
 
 ## Removed
+
 - The card/table view-mode `Segmented` toggle (icon-only, in the toolbar's right
   cluster — the "View 7/11" **column**-visibility control next to it is unrelated
   and stays).
@@ -21,11 +22,13 @@ only**.
 - Dead imports: `DeadlineCardGrid`, `Segmented`, `LayoutGridIcon`, `ListIcon`.
 
 ## Kept (reversible)
+
 `features/obligations/queue/DeadlineCardGrid.tsx` stays in the tree, unused, so
 the card view can be restored. A comment at each former touch-point notes the
 removal date + that the component is preserved.
 
 ## Verify
+
 `tsgo` app clean; `vp run @duedatehq/app#build` clean; no leftover
 `deadlinesViewMode` refs. Verified live on /deadlines: table renders directly,
 no view toggle, urgency-lane grouping + status + lateness intact.

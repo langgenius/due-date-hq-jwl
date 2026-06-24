@@ -10,6 +10,7 @@ This supersedes today's earlier `/get-started` work (the questionnaire page and 
 left↔right split): that page is now removed.
 
 ## What changed
+
 - **One repoint drives the whole site:** `lib/app-url.ts` — `getStartedHref()` now
   returns `getAppHref('/login', locale)` (the app's passwordless sign-in) instead of
   the marketing `/get-started` path. Every "Get started" CTA flows through this
@@ -26,12 +27,14 @@ link → onboarding. The launch offer ("3 months of Team free") still lives on t
 home hero + the Pricing promo box, so the promise isn't lost.
 
 ## Not marketing's anymore
+
 The questionnaire fields (focus / tools / pain) and `/api/leads` are no longer
 touched by marketing — the in-app onboarding (other session) owns capturing them,
 ideally attributed to the account rather than the anonymous `marketing_lead` table.
 `PUBLIC_QUESTIONNAIRE_ACTION` is no longer referenced anywhere in marketing.
 
 ## Verified
+
 - Nav / hero / Pricing CTAs resolve to `http://localhost:5173/login` (dev origin).
 - `/get-started` returns 404; absent from `dist` and the sitemap.
 - Production build clean — 74 pages (was 76). `locale-paths` test 10/10.

@@ -111,7 +111,7 @@ test.describe('seeded obligations', () => {
     await expect(sectionNav.getByRole('button', { name: 'Status' })).toBeVisible()
     await expect(sectionNav.getByRole('button', { name: /^Materials\b/ })).toBeVisible()
     await expect(sectionNav.getByRole('button', { name: /^Record\b/ })).toBeVisible()
-    await expect(sectionNav.getByRole('button', { name: /^Audit\b/ })).toBeVisible()
+    await expect(sectionNav.getByRole('button', { name: /^Activity\b/ })).toBeVisible()
 
     await sectionNav.getByRole('button', { name: /^Materials\b/ }).click()
     const checklistItems = deadlineDrawer.getByRole('checkbox', {

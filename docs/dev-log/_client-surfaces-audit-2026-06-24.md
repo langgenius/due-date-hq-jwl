@@ -20,7 +20,7 @@ decisions, so changing them would degrade or reverse them:
 
 - **"At risk" emphasis (/clients stat band).** Already follows the StatBand
   **von-Restorff color budget** (`stat-band.tsx` doctrine): the value stays
-  neutral, the amber `need attention` sub *is* the signal. Coloring the value
+  neutral, the amber `need attention` sub _is_ the signal. Coloring the value
   would violate the budget — not changed.
 - **Registry table width (/clients).** The full-width `table-fixed` layout is a
   deliberate **cross-table consistency** choice ("follow Deadline's table" — it
