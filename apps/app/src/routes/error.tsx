@@ -4,6 +4,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 import { translateServerErrorCode } from '@/lib/i18n-error'
 import { formatDocumentTitle } from '@/routes/route-summary'
 
@@ -46,8 +47,9 @@ export function RouteErrorBoundary() {
   return (
     <>
       <title>{formatDocumentTitle(title)}</title>
-      <div className="flex min-h-screen items-center justify-center bg-bg-canvas p-6">
-        <div className="flex w-full max-w-[560px] flex-col gap-4">
+      <div className="flex min-h-screen items-center justify-center bg-background-subtle p-6">
+        <div className="flex w-full max-w-[560px] flex-col gap-6">
+          <AuthBrandAnchor tagline={false} />
           <Alert variant="destructive">
             <TriangleAlertIcon />
             <AlertTitle>{title}</AlertTitle>

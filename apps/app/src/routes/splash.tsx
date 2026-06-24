@@ -106,7 +106,7 @@ export function SplashRoute() {
   )
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background-subtle dark:bg-background-section">
+    <div className="flex h-dvh w-full flex-col bg-background-subtle dark:bg-background-section">
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
           {/* Brand lockup — frameless bars mark + serif wordmark (no navy square here). */}
@@ -192,7 +192,7 @@ export function SplashRoute() {
 
           {/* Warning strip — real due-this-week count (only when > 0) */}
           {data && data.dueThisWeekCount > 0 ? (
-            <div className="flex w-full items-center gap-2.5 rounded-xl bg-state-warning-hover px-3.5 py-2.5">
+            <div className="flex w-full items-center gap-2.5 rounded-lg bg-state-warning-hover px-3.5 py-2.5">
               <span aria-hidden className="block size-2 rounded-full bg-state-warning-solid" />
               {/* 2026-06-16 (audit): was font-semibold + warning color = the
                   banned red+bold double-highlight. The peach chip bg + dot
@@ -213,8 +213,8 @@ export function SplashRoute() {
               action itself lives on /today (the get-started hero), reached via
               the button below — splash just points there. */}
           {needsClients ? (
-            <div className="flex w-full items-center gap-2.5 rounded-xl bg-state-accent-hover px-3.5 py-2.5">
-              <span aria-hidden className="block size-2 rounded-full bg-accent-default" />
+            <div className="flex w-full items-center gap-2.5 rounded-lg bg-state-accent-hover px-3.5 py-2.5">
+              <span aria-hidden className="block size-2 rounded-full bg-state-accent-solid" />
               <span className="text-sm font-medium text-text-accent">
                 <Trans>Next: import your clients to start tracking deadlines</Trans>
               </span>
@@ -224,7 +224,7 @@ export function SplashRoute() {
           {/* Primary CTA */}
           <Button
             size="lg"
-            className="h-12 w-full max-w-[260px]"
+            className="w-full max-w-[260px]"
             onClick={openDashboard}
             disabled={recordVisit.isPending}
           >

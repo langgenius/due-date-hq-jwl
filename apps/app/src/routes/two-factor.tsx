@@ -63,7 +63,7 @@ export function TwoFactorRoute() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-7">
           {/* Heading */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-[28px] sm:text-[30px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
+            <h1 className="text-3xl font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>Check your phone</Trans>
             </h1>
             <p className="text-sm font-medium leading-normal text-text-tertiary">
@@ -78,7 +78,7 @@ export function TwoFactorRoute() {
             <div className="flex items-center gap-2">
               <label
                 htmlFor="two-factor-code"
-                className="text-xs font-semibold text-text-secondary"
+                className="text-xs font-medium text-text-secondary"
               >
                 <Trans>Verification code</Trans>
               </label>
@@ -115,7 +115,8 @@ export function TwoFactorRoute() {
           {/* Primary CTA */}
           <Button
             type="submit"
-            className="h-12 w-full justify-center gap-2 rounded-lg font-semibold"
+            size="lg"
+            className="w-full justify-center gap-2 rounded-lg"
             disabled={verifyMutation.isPending || code.trim().length < 6}
             aria-busy={verifyMutation.isPending || undefined}
           >

@@ -31,7 +31,7 @@ export function EntryShell() {
   const isReadinessPortal = location.pathname.startsWith('/readiness/')
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg-canvas text-text-primary">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary">
       {/* Skip-to-content anchor for every entry-shell surface (login, OTP,
           accept-invite, onboarding, 2FA, migration, readiness portal) so
           keyboard users don't have to tab through brand mark + locale switcher
@@ -63,7 +63,7 @@ export function EntryShell() {
 
 function EntryShellHeader() {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border-default px-6 lg:px-10">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-divider-subtle px-6 lg:px-10">
       <div className="flex items-center gap-2 text-description">
         <img
           src={brandMarkLight}
@@ -103,7 +103,7 @@ function EntryShellHeader() {
 
 function EntryShellFooter() {
   return (
-    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border-default px-6 font-mono text-caption text-text-tertiary lg:px-10">
+    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-divider-subtle px-6 text-xs font-medium text-text-tertiary lg:px-10">
       <span className="tabular-nums">
         <Trans>© {new Date().getFullYear()} DueDateHQ Inc.</Trans>
       </span>

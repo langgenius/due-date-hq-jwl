@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -21,7 +20,8 @@ import {
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
-import { BrandMark } from '@/components/primitives/brand-mark'
+import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
+import { Kbd } from '@/components/patterns/kbd'
 import {
   displayNameFromEmail,
   sendEmailSignInCode,
@@ -31,7 +31,6 @@ import {
   startGoogleOneTap,
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
-import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
 
 // /login is a full-bleed two-column split — a product-story column (left)
@@ -198,7 +197,7 @@ export function LoginRoute() {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary dark:bg-bg-canvas">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary">
       <a
         href="#sign-in"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
@@ -219,14 +218,7 @@ export function LoginRoute() {
               {/* The mark settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
-              <motion.span
-                className="inline-flex"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-              >
-                <BrandMark className="size-11" />
-              </motion.span>
+              <AuthBrandAnchor tagline={false} animated />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in to DueDateHQ</Trans>
@@ -265,7 +257,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="w-full gap-2.5 rounded-xl"
+                  className="w-full gap-2.5"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -284,7 +276,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="w-full gap-2.5 rounded-xl"
+                    className="w-full gap-2.5"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -316,7 +308,7 @@ export function LoginRoute() {
                 <TextLink
                   variant="accent"
                   onClick={() => document.getElementById('login-email')?.focus()}
-                  className="font-semibold"
+                  className="font-medium"
                 >
                   <Trans>Open it now →</Trans>
                 </TextLink>
@@ -415,7 +407,7 @@ function ProductStory() {
       </p>
 
       {/* Product window — bleeds off the right + bottom edge. */}
-      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-2xl border border-divider-subtle bg-background-default shadow-overlay">
+      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-xl border border-divider-subtle bg-background-default shadow-overlay">
         <div className="flex h-full w-[880px]">
           {/* Sidebar */}
           <aside className="flex w-[212px] shrink-0 flex-col gap-3 border-r border-divider-subtle bg-bg-subtle/50 p-3">
@@ -423,7 +415,7 @@ function ProductStory() {
               <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-caption-xs font-bold text-text-primary-on-surface">
                 D
               </span>
-              <span className="truncate text-sm font-semibold text-text-primary">Whitmore CPA</span>
+              <span className="truncate text-sm font-medium text-text-primary">Whitmore CPA</span>
               <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-text-accent">
                 PRO
               </span>
@@ -446,7 +438,7 @@ function ProductStory() {
                   {item.count ? (
                     <span
                       className={cn(
-                        'text-caption-xs font-semibold tabular-nums',
+                        'text-caption-xs font-medium tabular-nums',
                         item.active ? 'text-text-accent' : 'text-text-muted',
                       )}
                     >
@@ -456,8 +448,8 @@ function ProductStory() {
                 </span>
               ))}
             </nav>
-            <div className="mt-auto rounded-xl bg-text-primary px-3.5 py-3 text-text-primary-on-surface">
-              <p className="text-xs font-semibold">Busy-season ready</p>
+            <div className="mt-auto rounded-lg bg-text-primary px-3.5 py-3 text-text-primary-on-surface">
+              <p className="text-xs font-medium">Busy-season ready</p>
               <p className="mt-0.5 text-[11px] leading-snug text-text-secondary-on-surface">
                 142 rules active across FED + 6 states.
               </p>
@@ -469,7 +461,7 @@ function ProductStory() {
             {/* Header */}
             <div className="flex shrink-0 items-center gap-2.5 px-5 py-4">
               <span className="text-base font-semibold text-text-primary">Deadlines</span>
-              <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+              <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-caption-xs font-medium text-text-tertiary tabular-nums">
                 28
               </span>
               <span className="flex-1" />
@@ -493,7 +485,7 @@ function ProductStory() {
                 key={row.client}
                 className="flex items-center gap-4 border-b border-divider-subtle px-5 py-3.5"
               >
-                <span className="w-16 rounded-md bg-bg-subtle px-2 py-1 text-center font-mono text-caption-xs font-semibold text-text-secondary">
+                <span className="w-16 rounded bg-bg-subtle px-2 py-1 text-center font-mono text-caption-xs font-medium text-text-secondary">
                   {row.form}
                 </span>
                 <span className="flex-1 text-sm font-medium text-text-primary">{row.client}</span>
@@ -703,7 +695,7 @@ function LoginEmailForm({
         noValidate
         className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
       >
-        <div className="flex items-center justify-between gap-3 rounded-xl bg-bg-subtle px-3.5 py-2.5">
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-bg-subtle px-3.5 py-2.5">
           <div className="min-w-0">
             <p className="text-xs font-medium text-text-tertiary">
               <Trans>Code sent to</Trans>
@@ -764,7 +756,7 @@ function LoginEmailForm({
           <Button
             type="submit"
             size="lg"
-            className="justify-center gap-2 rounded-xl font-semibold"
+            className="justify-center gap-2"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -777,7 +769,7 @@ function LoginEmailForm({
             type="button"
             variant="outline"
             size="lg"
-            className="rounded-xl px-4"
+            className="px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -797,7 +789,7 @@ function LoginEmailForm({
     <form onSubmit={handleSendSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <label htmlFor="login-email" className="text-xs font-semibold text-text-secondary">
+          <label htmlFor="login-email" className="text-xs font-medium text-text-secondary">
             <Trans>Work email</Trans>
           </label>
           <span className="flex-1" />
@@ -826,9 +818,7 @@ function LoginEmailForm({
             }}
             className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
           />
-          <span className="shrink-0 rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
-            Return ↵
-          </span>
+          <Kbd>Return ↵</Kbd>
         </FieldShell>
         {error ? (
           <p
@@ -844,7 +834,7 @@ function LoginEmailForm({
       <Button
         type="submit"
         size="lg"
-        className="w-full justify-center gap-2 rounded-xl font-semibold"
+        className="w-full justify-center gap-2"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >
@@ -864,7 +854,7 @@ function FieldShell({ children, error }: { children: ReactNode; error: string | 
   return (
     <div
       className={cn(
-        'flex h-11 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-11 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',

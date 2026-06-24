@@ -9,9 +9,17 @@
 // title placeholder here either.
 
 export function EntryRouteHydrateFallback() {
-  return <div aria-hidden className="h-[240px] w-full max-w-[400px]" />
+  return (
+    <div role="status" className="h-[240px] w-full max-w-[400px]">
+      <span className="sr-only">Loading</span>
+    </div>
+  )
 }
 
 export function RouteHydrateFallback() {
-  return <div aria-hidden className="flex flex-col gap-6 p-4 md:p-6" data-route-fallback />
+  return (
+    <div role="status" className="flex flex-col gap-6 p-4 md:p-6" data-route-fallback>
+      <span className="sr-only">Loading</span>
+    </div>
+  )
 }

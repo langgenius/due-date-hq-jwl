@@ -4,6 +4,7 @@ import { CheckIcon } from 'lucide-react'
 
 import { RuleGenerationStateValues, type RuleGenerationState } from '@duedatehq/contracts'
 import { listObligationRules } from '@duedatehq/core/rules'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
@@ -124,16 +125,18 @@ export function StateRuleActivationSelector({
         </p>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={toggleAllStates}
           aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
           aria-pressed={allStatesSelected}
-          className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="gap-1.5"
         >
           <CheckIcon className="size-3.5" aria-hidden />
           <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
-        </button>
+        </Button>
         <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-caption text-text-secondary tabular-nums">
           {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
         </span>
