@@ -173,8 +173,12 @@ export function CenteredAuthScreen({ children }: { children: ReactNode }) {
         <span className="flex-1" />
         <AuthStatusPill />
       </header>
-      <main className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-4">
-        {children}
+      {/* Scroll-center: `m-auto` on the inner block centers content while there's
+          room, but collapses to the top when the form is taller than the viewport
+          — unlike `items-center`, which clips the top above an unreachable scroll
+          origin (the page title would vanish on short viewports). */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-8">
+        <div className="m-auto flex w-full flex-col items-center">{children}</div>
       </main>
       <AuthTrustLine className="shrink-0 px-6 pb-4 pt-2 lg:px-10" />
       <AuthFooter />

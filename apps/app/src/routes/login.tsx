@@ -21,6 +21,7 @@ import {
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { BrandMark } from '@/components/primitives/brand-mark'
 import {
   displayNameFromEmail,
   sendEmailSignInCode,
@@ -219,15 +220,15 @@ export function LoginRoute() {
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
               <motion.span
-                className="flex size-11 items-center justify-center rounded-2xl bg-text-primary text-base font-bold text-text-primary-on-surface"
+                className="inline-flex"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               >
-                D
+                <BrandMark className="size-11" />
               </motion.span>
               <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-semibold tracking-[-0.4px] text-text-primary">
+                <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in to DueDateHQ</Trans>
                 </h1>
                 <p className="text-sm leading-normal text-text-tertiary">
@@ -362,8 +363,8 @@ const PREVIEW_TEXT: Record<PreviewTone, string> = {
 }
 
 // Illustrative product preview — a static marketing mock of the Deadlines view,
-// not the visitor's live data (they're logged out). Bleeds off the panel's right
-// + bottom edge behind a soft gradient, mirroring the reference style.
+// not the visitor's live data (they're logged out). A light app window floating
+// off the right + bottom edge of the solid brand-navy panel.
 const PREVIEW_ROWS: {
   form: string
   client: string
@@ -404,15 +405,9 @@ const PREVIEW_NAV: {
 
 function ProductStory() {
   return (
-    <section className="relative hidden min-w-0 flex-1 overflow-hidden border-l border-divider-subtle bg-gradient-to-br from-background-subtle via-background-default to-state-accent-hover lg:block">
-      {/* Ambient accent glow behind the window for depth. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 -right-20 size-[460px] rounded-full bg-state-accent-hover opacity-70 blur-[120px]"
-      />
-
-      {/* One-line promise, top-left of the panel. */}
-      <p className="absolute top-14 left-14 z-10 max-w-[340px] text-lg leading-snug font-medium text-pretty text-text-secondary">
+    <section className="relative hidden min-w-0 flex-1 overflow-hidden border-l border-divider-subtle bg-brand-ink lg:block">
+      {/* One-line promise, top-left of the panel — white on the brand navy. */}
+      <p className="absolute top-14 left-14 z-10 max-w-[340px] text-lg leading-snug font-medium text-pretty text-text-primary-on-surface">
         <Trans>
           Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on
           schedule.
@@ -420,7 +415,7 @@ function ProductStory() {
       </p>
 
       {/* Product window — bleeds off the right + bottom edge. */}
-      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-2xl border border-divider-subtle bg-background-default shadow-[0_30px_80px_-28px_rgba(16,24,40,0.32)] ring-1 ring-black/[0.03]">
+      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-2xl border border-divider-subtle bg-background-default shadow-overlay">
         <div className="flex h-full w-[880px]">
           {/* Sidebar */}
           <aside className="flex w-[212px] shrink-0 flex-col gap-3 border-r border-divider-subtle bg-bg-subtle/50 p-3">

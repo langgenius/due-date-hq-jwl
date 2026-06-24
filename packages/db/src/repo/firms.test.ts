@@ -157,4 +157,43 @@ describe('makeFirmsRepo', () => {
       'blocked',
     ])
   })
+
+  it('grants the Team plan and records a trialing subscription window', async () => {
+    const calls: { kind: 'update' | 'insert'; payload: Record<string, unknown> }[] = []
+    const set = vi.fn((payload: Record<string, unknown>) => {
+      calls.push({ kind: 'update', payload })
+      return { where: vi.fn(async () => undefined) }
+    })
+    const values = vi.fn(async (payload: Record<string, unknown>) => {
+      calls.push({ kind: 'insert', payload })
+    })
+    const db = {
+      update: vi.fn(() => ({ set })),
+      insert: vi.fn(() => ({ values })),
+    } as unknown as Db
+    const repo = makeFirmsRepo(db)
+
+    await repo.grantTeamTrial('firm_a', 3)
+
+    // The Team tier is the firm_profile.plan column + its seat allotment.
+    const update = calls.find((c) => c.kind === 'update')
+    expect(update?.payload).toMatchObject({ plan: 'team', seatLimit: 10 })
+
+    // The subscription row records the trial window with no Stripe linkage.
+    const insert = calls.find((c) => c.kind === 'insert')
+    expect(insert?.payload).toMatchObject({
+      plan: 'team',
+      referenceId: 'firm_a',
+      status: 'trialing',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      seats: 10,
+    })
+    const { trialStart, trialEnd } = insert!.payload as { trialStart: Date; trialEnd: Date }
+    expect(trialStart).toBeInstanceOf(Date)
+    expect(trialEnd).toBeInstanceOf(Date)
+    const days = (trialEnd.getTime() - trialStart.getTime()) / (24 * 60 * 60 * 1000)
+    expect(days).toBeGreaterThan(85)
+    expect(days).toBeLessThan(95)
+  })
 })

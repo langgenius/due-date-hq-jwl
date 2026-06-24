@@ -209,6 +209,11 @@ const create = os.firms.create.handler(async ({ input, context }) => {
     internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
     monitoringStartDate,
   })
+  // Launch offer: the welcome step's "Claim 3 months of Team free" sets this, so
+  // grant the Team plan + trial window before the firm is loaded back.
+  if (input.grantTeamTrialMonths) {
+    await firms.grantTeamTrial(firmId, input.grantTeamTrialMonths)
+  }
   await firms.setActiveSession(session.id, userId, firmId)
 
   const row = await firms.findActiveForUser(userId, firmId)
@@ -226,6 +231,7 @@ const create = os.firms.create.handler(async ({ input, context }) => {
     action: 'firm.created',
     after: {
       name: row.name,
+      plan: row.plan,
       timezone: row.timezone,
       internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
       monitoringStartDate: row.monitoringStartDate,

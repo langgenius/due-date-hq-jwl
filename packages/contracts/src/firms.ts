@@ -130,6 +130,10 @@ export const FirmCreateInputSchema = z.object({
     DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   ),
   monitoringStartDate: z.iso.date().optional(),
+  // Launch offer: set when the new user claims "3 months of Team free" in the
+  // welcome step. Grants the Team plan for this many months at firm creation;
+  // omitted (no grant) when they skip the questionnaire.
+  grantTeamTrialMonths: z.number().int().min(1).max(12).optional(),
 })
 
 export const FirmUpdateInputSchema = z.object({

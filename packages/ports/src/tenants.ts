@@ -133,6 +133,8 @@ export interface FirmsRepo {
   findActiveForUser(userId: string, firmId: string): Promise<FirmMembershipRow | undefined>
   applyInternalDeadlineOffset(firmId: string, offsetDays: number): Promise<number>
   updateProfile(firmId: string, input: FirmUpdateInput): Promise<void>
+  /** Grant the Team plan + a trial window of `months` (launch-offer claim). */
+  grantTeamTrial(firmId: string, months: number): Promise<void>
   previewSmartPriorityProfile(
     firmId: string,
     input: FirmSmartPriorityPreviewInput,
