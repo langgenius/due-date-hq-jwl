@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useState, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon } from 'lucide-react'
+import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon, UserRoundIcon } from 'lucide-react'
 
 import type { WorkloadManagerInsights, WorkloadOwnerRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -300,8 +300,16 @@ function ManagerInsights({ insights }: { insights: WorkloadManagerInsights }) {
           label={<Trans>Capacity pressure</Trans>}
           value={
             insights.capacityOwnerLabel ? (
-              // Surface the 0–100 load score alongside the busiest owner.
-              `${insights.capacityOwnerLabel} · ${insights.capacityOpen} · ${insights.capacityLoadScore}% load`
+              // Split into three scannable elements: who → how many open → load %.
+              // The name is the primary signal; count + load are supporting context.
+              <span className="flex flex-col gap-0.5">
+                <span className="truncate font-medium text-text-primary">
+                  {insights.capacityOwnerLabel}
+                </span>
+                <span className="text-caption-xs text-text-secondary">
+                  {insights.capacityOpen} open · {insights.capacityLoadScore}% load
+                </span>
+              </span>
             ) : (
               <Trans>No assigned work</Trans>
             )
@@ -324,7 +332,7 @@ function ManagerInsightMetric({ label, value }: { label: ReactNode; value: React
       <CapsFieldLabel as="div" variant="field">
         {label}
       </CapsFieldLabel>
-      <p className="mt-2 truncate text-sm font-semibold text-text-primary">{value}</p>
+      <p className="mt-2 truncate text-sm font-medium text-text-primary">{value}</p>
     </div>
   )
 }
@@ -379,7 +387,7 @@ function WorkloadTable({
           <TableRow key={row.id}>
             <TableCell>
               <div className="flex min-w-0 items-center gap-2">
-                <ClipboardListIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+                <UserRoundIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
                 <span className="truncate font-medium text-text-primary">{row.ownerLabel}</span>
                 {row.kind === 'unassigned' ? (
                   <Badge variant="outline">

@@ -19,8 +19,6 @@ import {
   PaymentStillDueCallout,
 } from './components/primitives'
 import {
-  DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS,
-  DEADLINE_TIP_REFRESH_TIMEOUT_MS,
   EMPTY_DOCUMENT_CHECKLIST,
 } from './constants'
 import {
@@ -489,12 +487,6 @@ export function ObligationQueueDetailDrawer({
     nextStep: 'correct_resubmit',
   })
   const [authorityRejectionReasonError, setAuthorityRejectionReasonError] = useState(false)
-  const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
-    obligationId: string
-    startedAt: number
-  } | null>(null)
-  const activeDeadlineTipRefresh =
-    obligationId && deadlineTipRefresh?.obligationId === obligationId ? deadlineTipRefresh : null
   const detailQuery = useQuery({
     ...orpc.obligations.getDetail.queryOptions({
       input: { obligationId: obligationId ?? '' },
@@ -523,28 +515,6 @@ export function ObligationQueueDetailDrawer({
     enabled: obligationId !== null,
   })
   const assignableMembers = assignableMembersQuery.data ?? []
-  const requestDeadlineTipMutation = useMutation(
-    orpc.obligations.requestDeadlineTipRefresh.mutationOptions({
-      onMutate: (variables) => {
-        setDeadlineTipRefresh({ obligationId: variables.obligationId, startedAt: Date.now() })
-      },
-      onSuccess: (result, variables) => {
-        const queryOptions = orpc.obligations.getDeadlineTip.queryOptions({
-          input: { obligationId: variables.obligationId },
-        })
-        queryClient.setQueryData(queryOptions.queryKey, result.insight)
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
-        toast.success(t`Deadline tip refresh started`)
-      },
-      onError: (err) => {
-        setDeadlineTipRefresh(null)
-        toast.error(t`Couldn't start deadline tip refresh`, {
-          description:
-            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
-        })
-      },
-    }),
-  )
   const requestInputMutation = useMutation(
     orpc.obligations.requestInput.mutationOptions({
       onSuccess: (_result, variables) => {
@@ -567,24 +537,6 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
-  const deadlineTipQuery = useQuery({
-    ...orpc.obligations.getDeadlineTip.queryOptions({
-      input: { obligationId: obligationId ?? '' },
-    }),
-    enabled: obligationId !== null,
-    refetchInterval: (query) => {
-      const insight = query.state.data
-      if (!activeDeadlineTipRefresh) return insight?.status === 'pending' ? 5_000 : false
-
-      const ageMs = Date.now() - activeDeadlineTipRefresh.startedAt
-      if (ageMs >= DEADLINE_TIP_REFRESH_TIMEOUT_MS) return false
-
-      const generatedAtMs = insight?.generatedAt ? Date.parse(insight.generatedAt) : 0
-      const latestRefreshSettled =
-        insight?.status !== 'pending' && generatedAtMs >= activeDeadlineTipRefresh.startedAt
-      return latestRefreshSettled ? false : DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS
-    },
-  })
   const detail = detailQuery.data
   const row = detail?.row ?? null
   // Open event — fire once per obligation once its detail has loaded. `mode`
@@ -652,30 +604,6 @@ export function ObligationQueueDetailDrawer({
   if (tabFallback && tabFallback !== activeTab) {
     onTabChange(tabFallback)
   }
-  const deadlineTipInsight = deadlineTipQuery.data ?? null
-  const deadlineTipGeneratedAtMs = deadlineTipInsight?.generatedAt
-    ? Date.parse(deadlineTipInsight.generatedAt)
-    : 0
-  const deadlineTipLatestRefreshSettled = Boolean(
-    activeDeadlineTipRefresh &&
-    deadlineTipInsight?.status !== 'pending' &&
-    deadlineTipGeneratedAtMs >= activeDeadlineTipRefresh.startedAt,
-  )
-  const deadlineTipRefreshTimedOut = Boolean(
-    activeDeadlineTipRefresh &&
-    !deadlineTipLatestRefreshSettled &&
-    Date.now() - activeDeadlineTipRefresh.startedAt >= DEADLINE_TIP_REFRESH_TIMEOUT_MS,
-  )
-  const deadlineTipPreparing = Boolean(
-    requestDeadlineTipMutation.isPending ||
-    (activeDeadlineTipRefresh && !deadlineTipLatestRefreshSettled && !deadlineTipRefreshTimedOut),
-  )
-  // `deadlineTipPreparing` is currently unconsumed (Risk tab owned the
-  // visual surface). Kept declared because the mutation/query
-  // pipeline it summarizes is still wired; a follow-up should either
-  // restore a deadline-tip surface elsewhere or rip the whole
-  // pipeline. Tracked in TODO below.
-  void deadlineTipPreparing
   const latestRequest = detail?.readinessRequests[0] ?? null
   const storedChecklist = detail?.readinessChecklist ?? EMPTY_DOCUMENT_CHECKLIST
   // Extension policy from the matched rule (drives the extended-deadline math).
@@ -774,8 +702,10 @@ export function ObligationQueueDetailDrawer({
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-    void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+    // Keep /clients at-risk flag + client detail in sync after obligation status changes.
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
   }
 
   const generateChecklistMutation = useMutation(
@@ -1807,6 +1737,8 @@ export function ObligationQueueDetailDrawer({
       icon: <HistoryIcon className="size-3.5" aria-hidden />,
       chip: auditChip,
     },
+    // risk was filtered out (tab !== 'risk') — kept here only to satisfy the
+    // Record<ObligationQueueDetailTab, …> exhaustiveness check. Stub never renders.
     risk: { label: <Trans>Risk</Trans> },
   }
   const sectionNavItems = visibleTabsList
@@ -1979,7 +1911,7 @@ export function ObligationQueueDetailDrawer({
           the header (not duplicated here). Path: Deadlines / {clientName} /
           {formName}. */}
       {mode === 'panel' ? (
-        <div className="flex h-[44px] shrink-0 items-center border-b border-divider-subtle px-5">
+        <div className="flex h-11 shrink-0 items-center border-b border-divider-subtle px-5">
           <nav className="flex min-w-0 items-center gap-1.5 text-sm">
             <Link
               to="/deadlines"
@@ -4576,7 +4508,7 @@ export function ObligationQueueDetailDrawer({
                                 index > 0 && 'border-t border-divider-subtle',
                               )}
                             >
-                              <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
+                              <span className="font-mono text-sm font-medium tabular-nums text-text-primary">
                                 {entry.year}
                               </span>
                               <span className="text-xs font-medium text-text-secondary">
@@ -4606,7 +4538,7 @@ export function ObligationQueueDetailDrawer({
                                 />
                                 <span
                                   className={cn(
-                                    'text-xs font-semibold',
+                                    'text-xs font-medium',
                                     entry.tone === 'success'
                                       ? 'text-text-success'
                                       : 'text-text-secondary',
@@ -4708,7 +4640,7 @@ export function ObligationQueueDetailDrawer({
                             tone="action"
                             title={<Trans>Evidence to close out filing</Trans>}
                             headerRight={
-                              <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
+                              <span className="font-mono text-sm font-medium tabular-nums text-text-secondary">
                                 {complete} / {cells.length}
                               </span>
                             }

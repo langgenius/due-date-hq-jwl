@@ -328,11 +328,11 @@ function InternalVsFilingSchematic({
   if (bufferLabel === null) {
     return (
       <div className="flex w-full items-center justify-center">
-        <div className="rounded-md bg-white/15 px-2.5 py-1.5 text-center">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/55">
+        <div className="rounded-lg bg-white/15 px-2.5 py-1.5 text-center">
+          <div className="text-caption-xs font-semibold uppercase tracking-wide text-text-inverted/55">
             <Trans>Same date</Trans>
           </div>
-          <div className="text-xs font-semibold tabular-nums text-white">{filingLabel}</div>
+          <div className="text-xs font-semibold tabular-nums text-text-inverted">{filingLabel}</div>
         </div>
       </div>
     )
@@ -342,28 +342,28 @@ function InternalVsFilingSchematic({
       <div className="flex items-stretch gap-1.5">
         {/* Internal chip — brand-tinted container (chroma in the box, not
             the text) marks the firm's earlier internal goal. */}
-        <div className="flex-1 rounded-md bg-[color-mix(in_srgb,var(--color-brand-highlight)_30%,transparent)] px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/60">
+        <div className="flex-1 rounded-lg bg-[color-mix(in_srgb,var(--color-brand-highlight)_30%,transparent)] px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
+          <div className="text-caption-xs font-semibold uppercase tracking-wide text-text-inverted/60">
             <Trans>Internal</Trans>
           </div>
-          <div className="text-xs font-semibold tabular-nums text-white">{internalLabel}</div>
+          <div className="text-xs font-semibold tabular-nums text-text-inverted">{internalLabel}</div>
         </div>
         {/* Arrow connector — internal points AT the filing deadline. */}
         <div className="flex w-4 shrink-0 items-center justify-center">
-          <ChevronRightIcon className="size-4 text-white/45" aria-hidden />
+          <ChevronRightIcon className="size-4 text-text-inverted/45" aria-hidden />
         </div>
         {/* Filing chip — neutral white wash marks the hard statutory date
             the IRS / state enforces. */}
-        <div className="flex-1 rounded-md bg-white/15 px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/60">
+        <div className="flex-1 rounded-lg bg-white/15 px-2 py-1.5 text-center ring-1 ring-inset ring-white/15">
+          <div className="text-caption-xs font-semibold uppercase tracking-wide text-text-inverted/60">
             <Trans>Filing</Trans>
           </div>
-          <div className="text-xs font-semibold tabular-nums text-white">{filingLabel}</div>
+          <div className="text-xs font-semibold tabular-nums text-text-inverted">{filingLabel}</div>
         </div>
       </div>
       {/* Buffer annotation, centred under the connector — the REAL lead
           time between the two dates. */}
-      <div className="text-center text-[10px] font-medium text-white/55">{bufferLabel}</div>
+      <div className="text-center text-caption-xs font-medium text-text-inverted/55">{bufferLabel}</div>
     </div>
   )
 }
