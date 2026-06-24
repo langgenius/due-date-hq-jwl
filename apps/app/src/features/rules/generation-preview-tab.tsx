@@ -798,7 +798,7 @@ function RolloverMetric({
         <span className="truncate">{label}</span>
         <RolloverHelpPopover label={label} description={description} />
       </CapsFieldLabel>
-      <div className="font-mono text-lg font-semibold tabular-nums text-text-primary">{value}</div>
+      <div className="font-mono text-lg font-medium tabular-nums text-text-primary">{value}</div>
     </div>
   )
 }
@@ -1212,7 +1212,7 @@ function PreviewResultRow({
       <div className="flex flex-col gap-1">
         <span
           className={cn(
-            'font-mono text-base leading-none font-semibold tabular-nums',
+            'font-mono text-base leading-none font-medium tabular-nums',
             row.reminderReady ? 'text-text-primary' : 'text-text-disabled',
           )}
         >

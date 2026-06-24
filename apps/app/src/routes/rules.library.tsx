@@ -360,14 +360,22 @@ function EntityStateCell({
 }) {
   if (state === 'not_applicable') {
     // Entity doesn't apply to this jurisdiction at all.
-    return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+    return (
+      <>
+        <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+        <span className="sr-only">Not applicable</span>
+      </>
+    )
   }
   if (count === 0) {
     // No rules defined for this entity in this state — em-dash.
     return (
-      <span aria-hidden className="text-sm font-medium text-text-tertiary">
-        –
-      </span>
+      <>
+        <span aria-hidden className="text-sm font-medium text-text-tertiary">
+          –
+        </span>
+        <span className="sr-only">No rules</span>
+      </>
     )
   }
   if (pendingReviewCount > 0) {
@@ -381,13 +389,21 @@ function EntityStateCell({
       <span
         className="inline-flex items-baseline gap-0.5 text-sm font-medium tabular-nums"
         title={`${pendingReviewCount} of ${count} need review`}
+        aria-label={`${pendingReviewCount} of ${count} pending review`}
       >
         <span className={REVIEW_TEXT_CLS}>{pendingReviewCount}</span>
         <span className="text-text-tertiary">/{count}</span>
       </span>
     )
   }
-  return <span className="text-sm font-medium tabular-nums text-text-primary">{count}</span>
+  return (
+    <span
+      className="text-sm font-medium tabular-nums text-text-primary"
+      aria-label={`${count} applicable`}
+    >
+      {count}
+    </span>
+  )
 }
 
 // EntityApplicabilityCell — per-rule per-entity affordance.
@@ -400,7 +416,12 @@ function EntityStateCell({
 // Both at 14px (`size-3.5`). Destructive / muted tones keep the dot.
 function EntityApplicabilityCell({ applies, status }: { applies: boolean; status: RuleStatus }) {
   if (!applies) {
-    return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+    return (
+      <>
+        <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+        <span className="sr-only">Not applicable</span>
+      </>
+    )
   }
   const tone = STATUS_TONE[status]
   if (tone === 'success') {
@@ -409,24 +430,35 @@ function EntityApplicabilityCell({ applies, status }: { applies: boolean; status
     // hover treatment. The whole row's "active" identity reads as one
     // motion — bullet greens + every applicable-entity tick greens together.
     return (
-      <CheckIcon
-        aria-hidden
-        className="mx-auto size-3.5 text-text-tertiary transition-colors group-hover/row:text-state-success-solid"
-      />
+      <>
+        <CheckIcon
+          aria-hidden
+          className="mx-auto size-3.5 text-text-tertiary transition-colors group-hover/row:text-state-success-solid"
+        />
+        <span className="sr-only">Applicable</span>
+      </>
     )
   }
   if (tone === 'review') {
-    return <CircleIcon aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
+    return (
+      <>
+        <CircleIcon aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
+        <span className="sr-only">Pending review</span>
+      </>
+    )
   }
   return (
-    <span
-      aria-hidden
-      className={cn(
-        'mx-auto block size-1.5 rounded-full',
-        tone === 'destructive' && 'bg-state-destructive-solid',
-        tone === 'muted' && 'bg-text-muted',
-      )}
-    />
+    <>
+      <span
+        aria-hidden
+        className={cn(
+          'mx-auto block size-1.5 rounded-full',
+          tone === 'destructive' && 'bg-state-destructive-solid',
+          tone === 'muted' && 'bg-text-muted',
+        )}
+      />
+      <span className="sr-only">Applicable</span>
+    </>
   )
 }
 
@@ -902,9 +934,9 @@ function OverviewReviewBreakdown({
                     warning-toned pill, only when the jurisdiction carries high-risk
                     rules. Everything else in the sentence stays neutral. */}
                 {g.highCount > 0 ? (
-                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-medium text-text-warning">
+                  <Badge variant="warning" className="w-fit">
                     <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                  </span>
+                  </Badge>
                 ) : null}
               </div>
             </button>
@@ -946,16 +978,17 @@ function OverviewCoverageGaps({
       </div>
       <div className="flex flex-wrap gap-2">
         {jurisdictions.map((g) => (
-          <button
+          <Button
             key={g.jurisdiction}
-            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => onSelectJurisdiction(g.jurisdiction)}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-state-base-hover"
+            className="gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-state-base-hover"
           >
             <StateBadge code={g.jurisdiction} size="xs" preview={false} />
             {g.label}
             <span className="tabular-nums text-text-tertiary">{g.gapEntities.length}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </section>
@@ -1083,7 +1116,7 @@ function OverviewRecentChangesCard({
               >
                 <span
                   className={cn(
-                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-semibold',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-medium',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
@@ -1101,7 +1134,7 @@ function OverviewRecentChangesCard({
                 </span>
                 <span
                   className={cn(
-                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-semibold tracking-wider uppercase',
+                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-medium tracking-wider uppercase',
                     RECENT_CHANGE_PILL_CLASS[kind],
                   )}
                 >
@@ -1142,9 +1175,6 @@ function OverviewCaughtUpCard({
   onViewDecisions: () => void
   onMonitorSources: () => void
 }) {
-  const linkClass =
-    'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
-  const linkArrowClass = 'size-3.5 transition-transform group-hover/link:translate-x-0.5'
   return (
     <div className="flex shrink-0 flex-col items-center justify-center rounded-xl border border-divider-warm bg-background-well-warm px-6 py-10">
       <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
@@ -1172,25 +1202,19 @@ function OverviewCaughtUpCard({
           </span>
         ) : null}
         <div className="flex items-center gap-4 pt-1.5">
-          <button type="button" onClick={onViewDecisions} className={linkClass}>
+          <TextLink variant="accent" size="sm" onClick={onViewDecisions}>
             <Trans>View past decisions</Trans>
-            <ArrowRightIcon aria-hidden className={linkArrowClass} />
-          </button>
-          <button type="button" onClick={onMonitorSources} className={linkClass}>
+            <ArrowRightIcon aria-hidden className="size-3.5 transition-transform group-hover/link:translate-x-0.5" />
+          </TextLink>
+          <TextLink variant="accent" size="sm" onClick={onMonitorSources}>
             <Trans>Monitor sources</Trans>
-            <ArrowRightIcon aria-hidden className={linkArrowClass} />
-          </button>
+            <ArrowRightIcon aria-hidden className="size-3.5 transition-transform group-hover/link:translate-x-0.5" />
+          </TextLink>
         </div>
       </div>
     </div>
   )
 }
-
-// Coverage map temporarily hidden (Yuqi, 2026-06-23) — the overview leads
-// straight into "Where to start" full-width. Flip to `true` to restore the
-// two-column map + backlog layout; the RuleCoverageMap component and its
-// `coverageByJurisdiction` wiring are kept intact for that.
-const SHOW_COVERAGE_MAP = false
 
 // ---------------------------------------------------------------------------
 // Main route
@@ -2906,34 +2930,10 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                {SHOW_COVERAGE_MAP ? (
-                  // Coverage map + "Where to start" as equal-weight peers in a
-                  // two-column split (left = the geographic coverage heat, right =
-                  // the ranked actionable backlog). Container query, not a viewport
-                  // breakpoint, so the app sidebar can't throw off when they go
-                  // side-by-side; below the split width they stack. Left track is
-                  // sized to the fixed tilegram; the right track flexes.
-                  <div className="@container">
-                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 @4xl:grid-cols-[540px_minmax(0,1fr)] @4xl:items-start">
-                      <RuleCoverageMap
-                        coverage={coverageByJurisdiction}
-                        activeJurisdiction={activeJurisdiction}
-                        onSelect={selectJurisdiction}
-                      />
-                      <OverviewReviewBreakdown
-                        jurisdictions={topReviewJurisdictions}
-                        onSelectJurisdiction={selectJurisdiction}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  // Coverage map hidden for now — "Where to start" leads the
-                  // overview full-width. Flip SHOW_COVERAGE_MAP to restore the map.
-                  <OverviewReviewBreakdown
-                    jurisdictions={topReviewJurisdictions}
-                    onSelectJurisdiction={selectJurisdiction}
-                  />
-                )}
+                <OverviewReviewBreakdown
+                  jurisdictions={topReviewJurisdictions}
+                  onSelectJurisdiction={selectJurisdiction}
+                />
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
                 <OverviewCoverageGaps
                   jurisdictions={gappedJurisdictions}
@@ -3261,7 +3261,7 @@ function EntityChipRow({
               <span>{ENTITY_LABELS[entity]}</span>
               <span
                 className={cn(
-                  'font-semibold tabular-nums',
+                  'font-medium tabular-nums',
                   isActive ? 'text-text-accent' : 'text-text-primary',
                 )}
               >
@@ -4328,7 +4328,7 @@ function StatusSectionHeaderRow({
           </CapsFieldLabel>
           <span
             className={cn(
-              'text-xs font-semibold tabular-nums',
+              'text-xs font-medium tabular-nums',
               statusKey === 'needs_review' && REVIEW_TEXT_CLS,
               statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
@@ -4683,7 +4683,7 @@ function RuleDetailHeroCard({
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
             <Badge
               variant={isReviewable ? 'warning' : 'success'}
-              className="gap-1 px-2 font-semibold"
+              className="gap-1 px-2 font-medium"
             >
               {isReviewable ? (
                 <ClockIcon aria-hidden className="size-2.5" />
@@ -4850,7 +4850,7 @@ function BulkMetric({
     <div className="flex flex-col gap-0.5">
       <span
         className={cn(
-          'text-xl font-semibold tabular-nums',
+          'text-xl font-medium tabular-nums',
           tone === 'warning'
             ? 'text-text-warning'
             : tone === 'muted'
@@ -5269,7 +5269,7 @@ function BulkReviewListModal({
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
+                      <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-medium text-text-tertiary">
                         {rule.jurisdiction}
                       </span>
                       <span className="min-w-0 truncate text-sm font-semibold text-text-primary">
@@ -5287,23 +5287,23 @@ function BulkReviewListModal({
                     draftReadyIds.has(rule.id) ? (
                       <Badge
                         variant="success"
-                        className="shrink-0 gap-1 text-caption-xs font-semibold"
+                        className="shrink-0 gap-1 text-caption-xs font-medium"
                       >
                         <CheckIcon className="size-2.5" aria-hidden />
                         <Trans>AI draft ready</Trans>
                       </Badge>
                     ) : draftNeedsReviewIds.has(rule.id) ? (
-                      <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">
+                      <Badge variant="warning" className="shrink-0 text-caption-xs font-medium">
                         <Trans>Review individually</Trans>
                       </Badge>
                     ) : reason ? (
-                      <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">
+                      <Badge variant="warning" className="shrink-0 text-caption-xs font-medium">
                         {skipReasonLabel[reason]}
                       </Badge>
                     ) : preview ? (
                       <Badge
                         variant="success"
-                        className="shrink-0 gap-1 text-caption-xs font-semibold"
+                        className="shrink-0 gap-1 text-caption-xs font-medium"
                       >
                         <CheckIcon className="size-2.5" aria-hidden />
                         <Trans>Ready</Trans>

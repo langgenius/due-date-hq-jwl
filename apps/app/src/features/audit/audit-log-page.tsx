@@ -62,6 +62,7 @@ import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
+import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 
 import { AuditEventDrawer } from './audit-event-drawer'
@@ -894,16 +895,8 @@ export function AuditLogPage() {
           <CardTitle>
             <Trans>Audit filters</Trans>
           </CardTitle>
-          <CardDescription>
-            <Trans>
-              Search by actor, entity, action, or reason — or narrow by time range, action category,
-              actor, or entity type.
-            </Trans>
-          </CardDescription>
           <CardAction>
-            <Badge variant="outline" className="tabular-nums">
-              {filteredEvents.length}
-            </Badge>
+            <CountPill tone="neutral">{filteredEvents.length}</CountPill>
           </CardAction>
         </CardHeader>
         <CardContent className="grid gap-3">

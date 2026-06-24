@@ -55,6 +55,11 @@ function auditEntityHref(entityType: string, entityId: string): string | null {
       return `/rules/library?rule=${encodeURIComponent(entityId)}`
     case 'rule_source':
       return '/rules/sources'
+    case 'pulse_alert':
+    case 'pulse_firm_alert':
+    case 'pulse_application':
+      // Alert audit rows link to the alerts page filtered to the entity.
+      return `/alerts?alert=${encodeURIComponent(entityId)}`
     default:
       return null
   }

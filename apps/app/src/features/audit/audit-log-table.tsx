@@ -1,4 +1,4 @@
-import { type KeyboardEvent, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { SparklesIcon } from 'lucide-react'
 
@@ -205,15 +205,7 @@ function AuditTimelineRow({
   const showActor = !(type === 'system' && actorIsSystemFallback)
 
   const handleClick = useCallback(() => onOpenEvent(event.id), [event.id, onOpenEvent])
-  const handleKeyDown = useCallback(
-    (keyboardEvent: KeyboardEvent<HTMLDivElement>) => {
-      if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
-        keyboardEvent.preventDefault()
-        onOpenEvent(event.id)
-      }
-    },
-    [event.id, onOpenEvent],
-  )
+  // Native <button> handles Enter/Space natively — no explicit keyboard handler needed.
 
   // Meta chips: entity type + the entity's human name when the change
   // snapshot carries one ("client Hudson River Imports"), plus reason when
@@ -232,14 +224,12 @@ function AuditTimelineRow({
   ]
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       aria-label={t`View audit detail`}
       data-audit-action={event.action}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      className="flex cursor-pointer gap-4 border-b border-divider-subtle px-5 py-3.5 outline-none transition last:border-b-0 hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset active:scale-[0.99] motion-reduce:active:scale-100"
+      className="flex w-full cursor-pointer gap-4 border-b border-divider-subtle px-5 py-3.5 text-left outline-none transition last:border-b-0 hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset active:scale-[0.99] motion-reduce:active:scale-100"
     >
       {/* Left time rail */}
       <div className="grid w-16 shrink-0 gap-0.5 pt-0.5 sm:w-[88px]">
@@ -320,6 +310,6 @@ function AuditTimelineRow({
           ))}
         </div>
       </div>
-    </div>
+    </button>
   )
 }

@@ -142,7 +142,7 @@ export function RuleCoverageMap({
                   ) : null}
                   <span
                     className={cn(
-                      'text-xs font-semibold leading-none tabular-nums',
+                      'text-xs font-medium leading-none tabular-nums',
                       active
                         ? 'text-text-accent'
                         : tone === 'untracked'

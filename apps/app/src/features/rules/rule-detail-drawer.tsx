@@ -494,7 +494,7 @@ export function RuleDetailCompact({
         rule.dueDateLogic.kind === 'fixed_date' ? (
           // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
           <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
-            <span className="font-mono text-lg font-semibold text-text-primary">
+            <span className="font-mono text-lg font-medium text-text-primary">
               <Trans>
                 Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
               </Trans>
@@ -809,7 +809,7 @@ function RuleImpactCard({ rule, flat = false }: { rule: ObligationRule; flat?: b
                 key={row.key}
                 label={isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}
               >
-                <span className="font-semibold tabular-nums">{row.count}</span>
+                <span className="font-medium tabular-nums">{row.count}</span>
               </FactRow>
             ))}
           </dl>
@@ -1031,7 +1031,7 @@ function RulePracticeReviewCard({
                 className="flex flex-col gap-0.5"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-text-primary">{note.authorName}</span>
+                  <span className="text-sm font-medium text-text-primary">{note.authorName}</span>
                   <span className="text-xs text-text-tertiary">
                     {formatRelativeTime(note.createdAt)}
                   </span>
@@ -1672,7 +1672,7 @@ export function RuleAcceptErrorDialog({
           </div>
           {showCode ? (
             <div className="flex items-center rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5">
-              <span className="font-mono text-xs font-semibold text-text-destructive">
+              <span className="font-mono text-xs font-medium text-text-destructive">
                 {error.code}
               </span>
             </div>
@@ -1774,7 +1774,7 @@ function ConfirmImpactDialog({
         {/* Honest aggregate stats — only the numbers the API provides. */}
         <div className="flex items-center gap-5 border-b border-divider-subtle bg-background-subtle px-5 py-4">
           <div className="flex flex-col gap-0.5">
-            <span className="text-lg font-semibold text-text-primary tabular-nums">
+            <span className="text-lg font-medium text-text-primary tabular-nums">
               {loading ? '—' : errored ? '—' : deadlines}
             </span>
             <span className="text-xs font-medium text-text-tertiary">
@@ -1783,7 +1783,7 @@ function ConfirmImpactDialog({
           </div>
           <span className="h-8 w-px shrink-0 bg-divider-subtle" aria-hidden />
           <div className="flex flex-col gap-0.5">
-            <span className="text-lg font-semibold text-text-primary tabular-nums">
+            <span className="text-lg font-medium text-text-primary tabular-nums">
               {rule.entityApplicability.length}
             </span>
             <span className="text-xs font-medium text-text-tertiary">
@@ -1822,7 +1822,7 @@ function ConfirmImpactDialog({
                     <span className="text-sm text-text-secondary">
                       {isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}
                     </span>
-                    <span className="text-sm font-semibold text-text-primary tabular-nums">
+                    <span className="text-sm font-medium text-text-primary tabular-nums">
                       {row.count}
                     </span>
                   </li>
@@ -2478,7 +2478,7 @@ function RuleEvidenceCard({
         // The lead source — a ROLE, not a success state. Solid emphasis (per the
         // Badge milestone-chip convention) in the brand accent, not green:
         // success-green falsely read as "this source is verified/good".
-        <Badge variant="accent-solid" className="shrink-0 self-start px-2.5 font-semibold">
+        <Badge variant="accent-solid" className="shrink-0 self-start px-2.5 font-medium">
           <Trans>Primary</Trans>
         </Badge>
       ) : (
