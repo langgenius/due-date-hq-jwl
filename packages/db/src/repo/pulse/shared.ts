@@ -45,6 +45,9 @@ export const PULSE_HANDLED_ALERT_STATUSES = [
   'reverted',
   'reviewed',
 ] as const satisfies ReadonlyArray<PulseFirmAlertStatus>
+export const PULSE_OPEN_ALERT_STATUSES = [
+  'matched',
+] as const satisfies ReadonlyArray<PulseFirmAlertStatus>
 
 export type PulseAffectedClientStatus = 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
 export type PulseReviewOnlyChangeKind = Exclude<PulseChangeKind, 'deadline_shift'>

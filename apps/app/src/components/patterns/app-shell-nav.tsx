@@ -367,15 +367,15 @@ function SidebarSystemStatus() {
 // things.
 //
 // The badge uses the dedicated `pulse.activeCount` endpoint — a true
-// `COUNT(*)` against the same WHERE clause `listAlerts` uses. Fetching
-// up to 50 rows and calling `.length` would silently truncate to "50"
-// for any firm with more than 50 active alerts; the count endpoint has
-// no upper bound. Today's section still uses `listAlerts(50)` because it
-// needs the row contents to render the alert cards.
+// `COUNT(*)` against the same open-alert WHERE clause `listAlerts` uses.
+// Fetching up to 50 rows and calling `.length` would silently truncate to
+// "50" for any firm with more than 50 open alerts; the count endpoint has no
+// upper bound. Today's section still uses `listAlerts(50)` because it needs
+// the row contents to render the alert cards.
 //
-// Keep this badge scoped to the active queue. Alert history is CPA-handled
-// alerts and can include applied / dismissed rows that should not inflate
-// the sidebar's needs-attention count.
+// Keep this badge scoped to the Review + Active work queues. Alert history is
+// CPA-handled alerts and can include applied / partially-applied / dismissed
+// rows that should not inflate the sidebar's needs-attention count.
 //
 // `useActiveAlertCount` lives in `features/alerts/api` and is shared by the
 // sidebar badge, the /alerts header pill, and the detail rail head — one
