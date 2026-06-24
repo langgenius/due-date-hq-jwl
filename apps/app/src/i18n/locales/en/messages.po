@@ -7129,6 +7129,7 @@ msgid "File type"
 msgstr "File type"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "filed"
 

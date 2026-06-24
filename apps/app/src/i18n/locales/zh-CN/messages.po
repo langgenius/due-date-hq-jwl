@@ -7153,6 +7153,7 @@ msgid "File type"
 msgstr "文件类型"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "filed"
 msgstr "已申报"
 
