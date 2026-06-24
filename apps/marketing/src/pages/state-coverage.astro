@@ -4,14 +4,14 @@ import TopNav from '../components/home/TopNav.astro'
 import StateCoveragePage from '../components/StateCoveragePage.astro'
 import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
-import { getCtaHref } from '../lib/app-url'
+import { getStartedHref } from '../lib/app-url'
 import { getStateCoveragePage } from '../lib/seo-content'
 import { stateCoverageStructuredData } from '../lib/structured-data'
 
 const t = en
 const page = getStateCoveragePage(t, 'en')
 const pathname = '/state-coverage'
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 ---
 
 <BaseLayout

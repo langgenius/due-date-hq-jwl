@@ -24,3 +24,9 @@ export function getAppHref(path = '/', locale?: string): string {
   if (locale) url.searchParams.set('lng', locale)
   return url.toString()
 }
+
+// The questionnaire-promo landing ("get 3 months of Team free") — a page on the
+// marketing site itself, NOT the app. Primary "start" CTAs point here.
+export function getStartedHref(locale?: string): string {
+  return locale === 'zh-CN' ? '/zh-CN/get-started' : '/get-started'
+}

@@ -4,11 +4,11 @@ import TopNav from '../../components/home/TopNav.astro'
 import Pricing from '../../components/Pricing.astro'
 import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getAppHref, getCtaHref } from '../../lib/app-url'
+import { getAppHref, getStartedHref } from '../../lib/app-url'
 import { pricingStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 const checkoutHrefs = {
   solo: {
     monthly: getAppHref('/billing/checkout?plan=solo&interval=monthly', 'zh-CN'),

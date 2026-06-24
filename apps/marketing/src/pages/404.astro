@@ -8,10 +8,10 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 import TopNav from '../components/home/TopNav.astro'
 import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
-import { getCtaHref } from '../lib/app-url'
+import { getStartedHref } from '../lib/app-url'
 
 const t = en
-const ctaHref = getCtaHref()
+const ctaHref = getStartedHref()
 // published escape hatches — driven entirely by the i18n notFound.routes so the
 // list stays a single source of truth; the 'app' href sentinel resolves to ctaHref.
 const routes = t.notFound.routes.map((route) =>

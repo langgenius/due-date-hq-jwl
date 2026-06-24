@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import GetStartedPage from '../components/GetStartedPage.astro'
+import Footer from '../components/home/Footer.astro'
+import { getStartedHref, getAppHref } from '../lib/app-url'
+
+const ctaHref = getStartedHref()
+const signInHref = getAppHref('/login')
+// the team's form-service POST endpoint (Tally / Formspree / Getform / Worker).
+// Set PUBLIC_QUESTIONNAIRE_ACTION in wrangler/env; until then the form shows an
+// honest "opens shortly" state.
+const formAction = import.meta.env.PUBLIC_QUESTIONNAIRE_ACTION ?? ''
+---
+
+<BaseLayout
+  lang="en"
+  pathname="/get-started"
+  title="Get 3 months of Team free — DueDateHQ"
+  description="Tell us a little about your practice and your first three months on the DueDateHQ Team plan are on us. Two minutes, no card."
+  ogImage="/og/home.en.png"
+>
+  <TopNav pageMode ctaHref={ctaHref} signInHref={signInHref} />
+  <GetStartedPage locale="en" formAction={formAction} securityHref="/security" pricingHref="/pricing" />
+  <Footer />
+</BaseLayout>

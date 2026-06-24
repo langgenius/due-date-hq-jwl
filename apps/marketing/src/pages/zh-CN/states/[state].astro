@@ -5,7 +5,7 @@ import StateDetailPage from '../../../components/StateDetailPage.astro'
 import Footer from '../../../components/home/Footer.astro'
 import zhCN from '../../../i18n/zh-CN'
 import type { StatePageCopy } from '../../../i18n/types'
-import { getCtaHref } from '../../../lib/app-url'
+import { getStartedHref } from '../../../lib/app-url'
 import { stateOfficialSources } from '../../../lib/content-metadata'
 import { getStatePages } from '../../../lib/seo-content'
 import { statePageStructuredData } from '../../../lib/structured-data'
@@ -27,7 +27,7 @@ const t = zhCN
 const { page, allStates } = Astro.props
 const enPathname = `/states/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
-const ctaHref = getCtaHref('zh-CN')
+const ctaHref = getStartedHref('zh-CN')
 ---
 
 <BaseLayout

@@ -16,6 +16,7 @@ import type {
   PricingPlanCopy,
 } from '../i18n/types'
 import FaqList from './FaqList.astro'
+import { getStartedHref } from '../lib/app-url'
 
 interface Props {
   t: PricingCopy
@@ -27,6 +28,7 @@ const { t, appHref, checkoutHrefs } = Astro.props
 // locale is derived from the i18n payload (no extra prop the page wrappers must
 // pass): the zh catalog routes pricing under /zh-CN/pricing.
 const zh = t.navPricingHref.startsWith('/zh-CN')
+const startHref = getStartedHref(zh ? 'zh-CN' : undefined)
 
 function hrefFor(plan: PricingPlanCopy, interval: PricingBillingInterval): string {
   if (plan.hrefKind === 'checkout') return checkoutHrefs[plan.checkoutPlan ?? 'pro'][interval]
@@ -61,9 +63,11 @@ const featureRows = featureLabels.map((label, rowIdx) => ({
 // ---- Page-specific copy (template-owned, not in the shared i18n object) ----
 const ui = zh
   ? {
-      betaTag: '测试期',
-      betaText: '所有套餐在测试期内免费 —— 今天无需付费。下面是正式发布后的计费方式。',
+      betaTag: '上线活动',
+      betaText:
+        '定价是真实的——但现在，花两分钟告诉我们一点你的情况，前 3 个月的 Team 版免费。开始无需信用卡。',
       betaStrong: '免费',
+      betaCta: '免费领 3 个月',
       matrixEyebrow: '逐项对比',
       matrixTitle: '四个套餐，并排看清。',
       matrixNote: '所有价格为月费；切换年付即按 8 折计费。',
@@ -78,10 +82,11 @@ const ui = zh
       yes: '包含',
     }
   : {
-      betaTag: 'Beta',
+      betaTag: 'Launch offer',
       betaText:
-        "Every plan is free while we're in beta — nothing to pay today. Here's how billing will work once we launch.",
+        "Pricing is real — but right now, tell us a little about your practice and your first 3 months on the Team plan are free. No card to start.",
       betaStrong: 'free',
+      betaCta: 'Get 3 months free',
       matrixEyebrow: 'Side by side',
       matrixTitle: 'All four plans, line by line.',
       matrixNote: 'Prices shown monthly; switch to yearly to bill at 20% off.',
@@ -106,6 +111,9 @@ const ui = zh
     <div class="pr__beta" role="note">
       <span class="pr__beta-tag">{ui.betaTag}</span>
       <p class="pr__beta-text">{ui.betaText}</p>
+      <a class="m-cta m-cta--primary pr__beta-cta" href={startHref}>
+        {ui.betaCta} <span class="arrow" aria-hidden="true">→</span>
+      </a>
     </div>
     <p class="m-page-note pr__note">{t.hero.note}</p>
   </div>
@@ -359,13 +367,21 @@ const ui = zh
   .pr__beta {
     display: flex;
     align-items: center;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 12px 16px;
     margin-top: 28px;
-    padding: 14px 18px;
+    padding: 14px 16px 14px 18px;
     background: var(--m-accent-tint);
     border: 1px solid color-mix(in srgb, var(--m-accent) 18%, transparent);
     border-radius: 12px;
-    max-width: 64ch;
+    max-width: 820px;
+  }
+  .pr__beta-text {
+    flex: 1 1 320px;
+  }
+  .pr__beta-cta {
+    flex: none;
+    margin-left: auto;
   }
   .pr__beta-tag {
     flex: none;
