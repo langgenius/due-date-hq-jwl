@@ -6,6 +6,7 @@ import {
   CircleAlertIcon,
   ArrowLeftIcon,
   CalendarDaysIcon,
+  CheckCircle2Icon,
   CopyIcon,
   ExternalLinkIcon,
   LinkIcon,
@@ -404,19 +405,31 @@ export function CalendarPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            <Trans>Subscription notes</Trans>
+            <Trans>How to subscribe</Trans>
           </CardTitle>
           <CardDescription>
             <Trans>
-              Google Calendar uses the copied HTTPS URL from its web app. Apple Calendar can open
-              the webcal link directly.
+              Copy the HTTPS URL above, then follow the steps for your calendar app. Changes made in
+              your calendar will not affect DueDateHQ.
             </Trans>
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 text-sm text-text-secondary md:grid-cols-3">
-          <IntegrationNote title={t`Google Calendar`} body={t`Other calendars → From URL`} />
-          <IntegrationNote title={t`Apple Calendar`} body={t`Open the Apple Calendar link`} />
-          <IntegrationNote title={t`Outlook`} body={t`Subscribe from web calendar URL`} />
+        <CardContent className="grid gap-3 text-sm md:grid-cols-3">
+          <IntegrationNote
+            icon="google"
+            title={t`Google Calendar`}
+            steps={[t`Open Google Calendar on the web`, t`Other calendars → From URL`, t`Paste the copied HTTPS URL`]}
+          />
+          <IntegrationNote
+            icon="apple"
+            title={t`Apple Calendar`}
+            steps={[t`Click the Apple Calendar link above`, t`Apple Calendar opens automatically`, t`Click Subscribe to confirm`]}
+          />
+          <IntegrationNote
+            icon="outlook"
+            title={t`Outlook`}
+            steps={[t`Open Outlook Calendar on the web`, t`Add calendar → Subscribe from web`, t`Paste the copied URL`]}
+          />
         </CardContent>
       </Card>
     </section>
@@ -468,9 +481,16 @@ function CalendarSubscriptionCard({
         </CardTitle>
         <CardDescription>{config.description}</CardDescription>
         <CardAction>
-          <Badge variant={feedUrl ? 'default' : 'outline'}>
-            {feedUrl ? <Trans>Active</Trans> : <Trans>Not enabled</Trans>}
-          </Badge>
+          {feedUrl ? (
+            <Badge variant="success">
+              <CheckCircle2Icon data-icon="inline-start" />
+              <Trans>Connected</Trans>
+            </Badge>
+          ) : (
+            <Badge variant="outline">
+              <Trans>Not enabled</Trans>
+            </Badge>
+          )}
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -672,20 +692,77 @@ function IntegrationKeyValueRow({ label, value }: { label: string; value: string
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="text-text-tertiary">{label}</span>
-      <span className="truncate text-right font-mono text-xs text-text-secondary">{value}</span>
+      <span className="truncate text-right text-text-secondary">{value}</span>
     </div>
   )
 }
 
-function IntegrationNote({ title, body }: { title: string; body: string }) {
+// Provider glyph marks — distinct, recognisable treatments per provider using
+// only canonical bg/text tokens. No raw hex. Google = colour-quadrant dots,
+// Apple = monochrome apple-shape initial mark, Outlook = angular O mark.
+function ProviderMark({ icon }: { icon: 'google' | 'apple' | 'outlook' }) {
+  if (icon === 'google') {
+    // Four-quadrant coloured dots — evokes Google's brand colour palette
+    // without lifting an SVG asset.
+    return (
+      <span
+        aria-hidden
+        className="grid size-8 grid-cols-2 place-items-center gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle p-1.5"
+      >
+        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-blue-500)_90%,transparent)]" />
+        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-warning-500)_90%,transparent)]" />
+        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-green-500)_90%,transparent)]" />
+        <span className="size-2 rounded-full bg-[color-mix(in_oklab,var(--color-red-500)_90%,transparent)]" />
+      </span>
+    )
+  }
+  if (icon === 'apple') {
+    return (
+      <span
+        aria-hidden
+        className="grid size-8 place-items-center rounded-lg border border-divider-subtle bg-background-subtle"
+      >
+        {/* Apple-flavour: solid circle with a bitten corner clip via clip-path */}
+        <span className="size-4 rounded-full bg-text-secondary [clip-path:polygon(0_0,100%_0,100%_75%,75%_100%,0_100%)]" />
+      </span>
+    )
+  }
+  // Outlook: angular O lettermark in brand-accent colour
   return (
-    <div className="grid gap-2">
-      <div className="flex items-center gap-2 font-medium text-text-primary">
-        <CalendarDaysIcon className="size-4 text-text-tertiary" aria-hidden />
-        {title}
+    <span
+      aria-hidden
+      className="grid size-8 place-items-center rounded-lg border border-divider-subtle bg-background-subtle"
+    >
+      <span className="text-sm font-semibold leading-none text-text-accent">O</span>
+    </span>
+  )
+}
+
+function IntegrationNote({
+  icon,
+  title,
+  steps,
+}: {
+  icon: 'google' | 'apple' | 'outlook'
+  title: string
+  steps: string[]
+}) {
+  return (
+    <div className="grid gap-3 rounded-lg border border-divider-subtle p-3">
+      <div className="flex items-center gap-2">
+        <ProviderMark icon={icon} />
+        <span className="font-medium text-text-primary">{title}</span>
       </div>
       <Separator />
-      <p>{body}</p>
+      <ol className="grid gap-1.5">
+        {steps.map((step, i) => (
+          // Step list: numbered counter, calm tertiary text
+          <li key={i} className="flex items-start gap-2 text-xs text-text-secondary">
+            <span className="mt-px shrink-0 tabular-nums text-text-tertiary">{i + 1}.</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

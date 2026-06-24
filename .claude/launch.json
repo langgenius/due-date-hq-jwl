@@ -28,7 +28,7 @@
     {
       "name": "app-5189",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5189", "--strictPort"],
+      "runtimeArgs": ["--dir", "/Users/yuqi/dev/due-date-hq-jwl/.claude/worktrees/agent-a4c0d97a0e66301d9/apps/app", "exec", "vite", "--port", "5189", "--strictPort"],
       "port": 5189
     },
     {

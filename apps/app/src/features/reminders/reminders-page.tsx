@@ -2,7 +2,15 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, PencilIcon, Loader2Icon, PauseCircleIcon, SendIcon } from 'lucide-react'
+import {
+  CircleAlertIcon,
+  PencilIcon,
+  Loader2Icon,
+  PauseCircleIcon,
+  SendIcon,
+  CheckCircle2Icon,
+  XCircleIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -295,10 +303,12 @@ function TemplatesPanel({
                   <TableCell>
                     {template.active ? (
                       <Badge variant="success">
+                        <BadgeStatusDot tone="success" />
                         <Trans>Active</Trans>
                       </Badge>
                     ) : (
                       <Badge variant="secondary">
+                        <BadgeStatusDot tone="disabled" />
                         <Trans>Paused</Trans>
                       </Badge>
                     )}
@@ -319,6 +329,57 @@ function TemplatesPanel({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+// DeliverySummaryBand — answers the CPA's real triage question: "did reminders
+// land?" Counts are derived entirely from the loaded reminders array — no
+// fabricated totals, no external data shape.
+//
+// sentCount  — items where deliveryStatus === 'sent'
+// failedCount — items where deliveryStatus === 'failed'
+//
+// Only renders when there is at least one reminder (the empty state renders
+// instead of a "0 sent · 0 failed" band). The "last N" qualifier is honest:
+// this is the most recent slice from the API (limit: 20), not a total-ever.
+function DeliverySummaryBand({
+  reminders,
+}: {
+  reminders: ReminderRecentSend[]
+}) {
+  const { t } = useLingui()
+  const sentCount = reminders.filter((r) => r.deliveryStatus === 'sent').length
+  const failedCount = reminders.filter((r) => r.deliveryStatus === 'failed').length
+
+  return (
+    <div className="mb-4 flex items-center gap-4 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3 text-sm">
+      <span className="flex items-center gap-1.5 text-text-secondary">
+        <CheckCircle2Icon
+          className="size-4 text-text-success"
+          aria-hidden
+        />
+        <span className="tabular-nums font-medium text-text-primary">{sentCount}</span>
+        <span>{t`sent`}</span>
+      </span>
+      <span className="text-divider-regular" aria-hidden>
+        ·
+      </span>
+      {failedCount > 0 ? (
+        <span className="flex items-center gap-1.5 text-text-secondary">
+          <XCircleIcon
+            className="size-4 text-text-destructive"
+            aria-hidden
+          />
+          <span className="tabular-nums font-medium text-text-destructive">{failedCount}</span>
+          <span>{t`failed`}</span>
+        </span>
+      ) : (
+        <span className="text-text-tertiary">{t`no failures`}</span>
+      )}
+      <span className="ml-auto text-xs text-text-tertiary">
+        <Trans>Last 20 reminders</Trans>
+      </span>
+    </div>
   )
 }
 
@@ -351,10 +412,12 @@ function RecentSendsPanel({
             onRetry={onRetry}
           />
         ) : loading ? (
+          // Skeleton rows shaped to the actual 4-column table: name+subtext,
+          // recipient, status badge, date — so the layout doesn't reflow on paint.
           <div className="grid gap-2" aria-busy="true">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-[52px] w-full" />
+            <Skeleton className="h-[52px] w-full" />
+            <Skeleton className="h-[52px] w-full" />
           </div>
         ) : reminders.length === 0 ? (
           // Canonical EmptyState — same as the sibling Upcoming reminders
@@ -365,57 +428,61 @@ function RecentSendsPanel({
             description={<Trans>Sent reminder emails will appear here as they go out.</Trans>}
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Trans>Reminder</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Recipient</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Status</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Created</Trans>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="[&_td]:py-3">
-              {reminders.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div className="grid gap-1 whitespace-normal">
-                      <span className="font-medium text-text-primary">{item.clientName}</span>
-                      <span className="text-xs text-text-tertiary">
-                        <TaxCodeLabel code={item.taxType} />
-                      </span>
-                      {item.failureReason ? (
-                        <span className="text-xs text-text-destructive">{item.failureReason}</span>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="grid gap-1 whitespace-normal">
-                      <span>{recipientLabel(item.recipientKind)}</span>
-                      <span className="text-xs text-text-tertiary">{item.recipientEmail}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                  {/* Same RelativeTime treatment as the suppression card and
-                      the Inbox / Members table. */}
-                  <TableCell>
-                    <RelativeTime
-                      value={item.createdAt}
-                      timeZone={timezone}
-                      className="text-text-secondary"
-                    />
-                  </TableCell>
+          <>
+            {/* Delivery summary — honest counts from loaded data only. */}
+            <DeliverySummaryBand reminders={reminders} />
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Trans>Reminder</Trans>
+                  </TableHead>
+                  <TableHead>
+                    <Trans>Recipient</Trans>
+                  </TableHead>
+                  <TableHead>
+                    <Trans>Status</Trans>
+                  </TableHead>
+                  <TableHead>
+                    <Trans>Created</Trans>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody className="[&_td]:py-3">
+                {reminders.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <div className="grid gap-1 whitespace-normal">
+                        <span className="font-medium text-text-primary">{item.clientName}</span>
+                        <span className="text-xs text-text-tertiary">
+                          <TaxCodeLabel code={item.taxType} />
+                        </span>
+                        {item.failureReason ? (
+                          <span className="text-xs text-text-destructive">{item.failureReason}</span>
+                        ) : null}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="grid gap-1 whitespace-normal">
+                        <span>{recipientLabel(item.recipientKind)}</span>
+                        <span className="text-xs text-text-tertiary">{item.recipientEmail}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
+                    {/* Same RelativeTime treatment as the suppression card and
+                        the Inbox / Members table. */}
+                    <TableCell>
+                      <RelativeTime
+                        value={item.createdAt}
+                        timeZone={timezone}
+                        className="text-text-secondary"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
         )}
       </CardContent>
     </Card>
@@ -468,24 +535,29 @@ function TemplateDialog({
             updateTemplate.mutate({ templateKey: template.templateKey, subject, bodyText, active })
           }}
         >
-          <label className="grid gap-2 text-sm">
-            <span className="font-medium text-text-primary">
+          <Field className="grid gap-2">
+            <FieldLabel htmlFor="reminder-template-subject">
               <Trans>Subject</Trans>
-            </span>
-            <Input value={subject} onChange={(event) => setSubject(event.target.value)} />
-          </label>
-          <label className="grid gap-2 text-sm">
-            <span className="font-medium text-text-primary">
+            </FieldLabel>
+            <Input
+              id="reminder-template-subject"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+            />
+          </Field>
+          <Field className="grid gap-2">
+            <FieldLabel htmlFor="reminder-template-body">
               <Trans>Body</Trans>
-            </span>
+            </FieldLabel>
             {/* No font-mono on the reminder email body — email-template copy
                 is human prose, not code. */}
             <Textarea
+              id="reminder-template-body"
               value={bodyText}
               onChange={(event) => setBodyText(event.target.value)}
               className="min-h-40"
             />
-          </label>
+          </Field>
           {/* Field horizontal + FieldLabel + trailing Switch. The Field
               primitive owns the gap, label↔control wiring, and click target;
               the status-dot / pause-icon glyph stays inline. */}
