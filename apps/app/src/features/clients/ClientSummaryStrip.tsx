@@ -161,9 +161,7 @@ export function ClientSummaryStrip({
       ...(filedCount > 0
         ? {
             onClick: () =>
-              void navigate(
-                `/deadlines?client=${client.id}&status=done,completed,paid`,
-              ),
+              void navigate(`/deadlines?client=${client.id}&status=done,completed,paid`),
             ariaLabel: t`View filed deadlines`,
           }
         : {}),

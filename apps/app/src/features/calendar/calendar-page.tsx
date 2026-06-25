@@ -419,17 +419,29 @@ export function CalendarPage() {
           <IntegrationNote
             icon="google"
             title={t`Google Calendar`}
-            steps={[t`Open Google Calendar on the web`, t`Other calendars → From URL`, t`Paste the copied HTTPS URL`]}
+            steps={[
+              t`Open Google Calendar on the web`,
+              t`Other calendars → From URL`,
+              t`Paste the copied HTTPS URL`,
+            ]}
           />
           <IntegrationNote
             icon="apple"
             title={t`Apple Calendar`}
-            steps={[t`Click the Apple Calendar link above`, t`Apple Calendar opens automatically`, t`Click Subscribe to confirm`]}
+            steps={[
+              t`Click the Apple Calendar link above`,
+              t`Apple Calendar opens automatically`,
+              t`Click Subscribe to confirm`,
+            ]}
           />
           <IntegrationNote
             icon="outlook"
             title={t`Outlook`}
-            steps={[t`Open Outlook Calendar on the web`, t`Add calendar → Subscribe from web`, t`Paste the copied URL`]}
+            steps={[
+              t`Open Outlook Calendar on the web`,
+              t`Add calendar → Subscribe from web`,
+              t`Paste the copied URL`,
+            ]}
           />
         </CardContent>
       </Card>

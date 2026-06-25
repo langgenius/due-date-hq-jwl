@@ -76,10 +76,7 @@ export function TwoFactorRoute() {
           {/* Code field */}
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center gap-2">
-              <label
-                htmlFor="two-factor-code"
-                className="text-xs font-medium text-text-secondary"
-              >
+              <label htmlFor="two-factor-code" className="text-xs font-medium text-text-secondary">
                 <Trans>Verification code</Trans>
               </label>
               <span className="flex-1" />

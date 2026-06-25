@@ -915,9 +915,7 @@ export function ClientDetailWorkspace({
                         obligation panel is open — no icon-only compaction. */}
                         <Trans>Filing plan</Trans>
                         {obligations.length > 0 ? (
-                          <CountPill tone="neutral">
-                            {obligations.length}
-                          </CountPill>
+                          <CountPill tone="neutral">{obligations.length}</CountPill>
                         ) : null}
                       </span>
                     </ClientDetailTabTrigger>
@@ -1188,9 +1186,7 @@ export function ClientDetailWorkspace({
                       sub={t`Audit trail of every change`}
                       actions={
                         auditQuery.data && auditQuery.data.events.length > 0 ? (
-                          <CountPill tone="neutral">
-                            {auditQuery.data.events.length}
-                          </CountPill>
+                          <CountPill tone="neutral">{auditQuery.data.events.length}</CountPill>
                         ) : null
                       }
                       // Flush body: ClientActivityPanel is frameless and its rows /

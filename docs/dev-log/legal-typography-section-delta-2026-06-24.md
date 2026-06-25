@@ -49,8 +49,12 @@ Verified live in browser:
 The amendment / revert / unfile row gets a leading Δ via `<DeltaMark />`. The category icon tile (PenLineIcon for amendments) already signals the kind; Δ adds the semantic mark at the prose level so the row reads as "Δ <what changed>" at scan speed:
 
 ```tsx
-{type === 'amendment' ? <DeltaMark className="mr-1" /> : null}
-{highlightCitations(changeHeadline) || `${actionLabel} · ${entityDisplay.primary}`}
+{
+  type === 'amendment' ? <DeltaMark className="mr-1" /> : null
+}
+{
+  highlightCitations(changeHeadline) || `${actionLabel} · ${entityDisplay.primary}`
+}
 ```
 
 Meta-chip reason text (line ~306) also runs through `highlightCitations` — reason strings routinely carry `§ 6651`-style citations (penalty justification, extension reason).

@@ -277,50 +277,52 @@ function ChannelsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle><Trans>Channels</Trans></CardTitle>
+        <CardTitle>
+          <Trans>Channels</Trans>
+        </CardTitle>
         <CardDescription>
           <Trans>How you get notified. Per-type rules below override these channels.</Trans>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-xl border border-divider-regular">
-        <ChannelRow
-          icon={MailIcon}
-          label={t`Email`}
-          name={<Trans>Email</Trans>}
-          sub={
-            sessionUser ? (
-              <span className="flex flex-wrap items-center gap-1.5">
-                <span className="text-text-secondary">
-                  <Trans>Email ·</Trans>
+        <div className="overflow-hidden rounded-xl border border-divider-regular">
+          <ChannelRow
+            icon={MailIcon}
+            label={t`Email`}
+            name={<Trans>Email</Trans>}
+            sub={
+              sessionUser ? (
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-text-secondary">
+                    <Trans>Email ·</Trans>
+                  </span>
+                  <span className="font-mono text-xs text-text-secondary">{sessionUser.email}</span>
+                  {sessionUser.emailVerified ? (
+                    <Badge variant="info" className="text-caption-xs font-semibold">
+                      <Trans>Verified</Trans>
+                    </Badge>
+                  ) : null}
                 </span>
-                <span className="font-mono text-xs text-text-secondary">{sessionUser.email}</span>
-                {sessionUser.emailVerified ? (
-                  <Badge variant="info" className="text-caption-xs font-semibold">
-                    <Trans>Verified</Trans>
-                  </Badge>
-                ) : null}
-              </span>
-            ) : (
-              <Trans>Sent to your account email</Trans>
-            )
-          }
-          checked={preferences.emailEnabled}
-          onCheckedChange={(checked) => onUpdate({ emailEnabled: checked })}
-        />
-        <ChannelRow
-          icon={AppWindowIcon}
-          label={t`In-app`}
-          name={<Trans>In-app</Trans>}
-          sub={<Trans>Inbox bell badge + notification center</Trans>}
-          checked={preferences.inAppEnabled}
-          onCheckedChange={(checked) => onUpdate({ inAppEnabled: checked })}
-          last
-        />
-      </div>
-      <p className="text-xs text-text-tertiary">
-        <Trans>Push and Slack channels are planned — email and in-app are live today.</Trans>
-      </p>
+              ) : (
+                <Trans>Sent to your account email</Trans>
+              )
+            }
+            checked={preferences.emailEnabled}
+            onCheckedChange={(checked) => onUpdate({ emailEnabled: checked })}
+          />
+          <ChannelRow
+            icon={AppWindowIcon}
+            label={t`In-app`}
+            name={<Trans>In-app</Trans>}
+            sub={<Trans>Inbox bell badge + notification center</Trans>}
+            checked={preferences.inAppEnabled}
+            onCheckedChange={(checked) => onUpdate({ inAppEnabled: checked })}
+            last
+          />
+        </div>
+        <p className="text-xs text-text-tertiary">
+          <Trans>Push and Slack channels are planned — email and in-app are live today.</Trans>
+        </p>
       </CardContent>
     </Card>
   )
@@ -474,80 +476,84 @@ function TypesMatrixCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle><Trans>Notification types</Trans></CardTitle>
-        <CardDescription><Trans>Fine-tune which events reach you and how.</Trans></CardDescription>
+        <CardTitle>
+          <Trans>Notification types</Trans>
+        </CardTitle>
+        <CardDescription>
+          <Trans>Fine-tune which events reach you and how.</Trans>
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-      <div className="overflow-x-auto">
-        <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
-          {/* Header */}
-          <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
-            <CapsFieldLabel as="span" variant="group" className="flex-1 text-text-secondary">
-              <Trans>Type</Trans>
-            </CapsFieldLabel>
-            <MatrixColHead id="notif-col-email">
-              <Trans>Email</Trans>
-            </MatrixColHead>
-            <MatrixColHead id="notif-col-inapp">
-              <Trans>In-app</Trans>
-            </MatrixColHead>
-            <CapsFieldLabel as="span" variant="group" className="w-[150px] text-text-secondary">
-              <Trans>Cadence</Trans>
-            </CapsFieldLabel>
-          </div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
+            {/* Header */}
+            <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
+              <CapsFieldLabel as="span" variant="group" className="flex-1 text-text-secondary">
+                <Trans>Type</Trans>
+              </CapsFieldLabel>
+              <MatrixColHead id="notif-col-email">
+                <Trans>Email</Trans>
+              </MatrixColHead>
+              <MatrixColHead id="notif-col-inapp">
+                <Trans>In-app</Trans>
+              </MatrixColHead>
+              <CapsFieldLabel as="span" variant="group" className="w-[150px] text-text-secondary">
+                <Trans>Cadence</Trans>
+              </CapsFieldLabel>
+            </div>
 
-          {rows.map((row, index) => {
-            const flag = row.flag
-            const typeOn = flag ? preferences[flag] : true
-            const toggle = flag ? () => onUpdate({ [flag]: !typeOn }) : undefined
-            return (
-              <div
-                key={row.id}
-                className={cn(
-                  'flex items-center gap-3.5 bg-background-default px-5 py-3.5',
-                  index === rows.length - 1 ? null : 'border-b border-divider-regular',
-                )}
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-secondary">
-                    <row.icon className="size-3.5" aria-hidden />
-                  </span>
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span
-                      id={`notif-type-${row.id}`}
-                      className="text-base font-medium text-text-primary"
-                    >
-                      {row.name}
+            {rows.map((row, index) => {
+              const flag = row.flag
+              const typeOn = flag ? preferences[flag] : true
+              const toggle = flag ? () => onUpdate({ [flag]: !typeOn }) : undefined
+              return (
+                <div
+                  key={row.id}
+                  className={cn(
+                    'flex items-center gap-3.5 bg-background-default px-5 py-3.5',
+                    index === rows.length - 1 ? null : 'border-b border-divider-regular',
+                  )}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-secondary">
+                      <row.icon className="size-3.5" aria-hidden />
                     </span>
-                    <span className="truncate text-xs text-text-secondary">{row.detail}</span>
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span
+                        id={`notif-type-${row.id}`}
+                        className="text-base font-medium text-text-primary"
+                      >
+                        {row.name}
+                      </span>
+                      <span className="truncate text-xs text-text-secondary">{row.detail}</span>
+                    </div>
                   </div>
-                </div>
-                {/* Email + In-app cells reflect the row's type flag AND the
+                  {/* Email + In-app cells reflect the row's type flag AND the
                     global channel toggle; toggling here updates the type flag
                     when one is wired, otherwise it's a read-only indicator. */}
-                <MatrixCell
-                  on={typeOn && preferences.emailEnabled}
-                  interactive={Boolean(flag)}
-                  onToggle={toggle}
-                  labelledBy={`notif-col-email notif-type-${row.id}`}
-                />
-                <MatrixCell
-                  on={typeOn && preferences.inAppEnabled}
-                  interactive={Boolean(flag)}
-                  onToggle={toggle}
-                  labelledBy={`notif-col-inapp notif-type-${row.id}`}
-                />
-                <span className="w-[150px]">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
-                    <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
-                    {row.cadence}
+                  <MatrixCell
+                    on={typeOn && preferences.emailEnabled}
+                    interactive={Boolean(flag)}
+                    onToggle={toggle}
+                    labelledBy={`notif-col-email notif-type-${row.id}`}
+                  />
+                  <MatrixCell
+                    on={typeOn && preferences.inAppEnabled}
+                    interactive={Boolean(flag)}
+                    onToggle={toggle}
+                    labelledBy={`notif-col-inapp notif-type-${row.id}`}
+                  />
+                  <span className="w-[150px]">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
+                      <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
+                      {row.cadence}
+                    </span>
                   </span>
-                </span>
-              </div>
-            )
-          })}
+                </div>
+              )
+            })}
+          </div>
         </div>
-      </div>
       </CardContent>
     </Card>
   )
@@ -617,7 +623,9 @@ function QuietHoursCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle><Trans>Quiet hours</Trans></CardTitle>
+        <CardTitle>
+          <Trans>Quiet hours</Trans>
+        </CardTitle>
         <CardDescription>
           <Trans>
             During quiet hours, non-urgent notifications wait until your next active period.
@@ -625,17 +633,17 @@ function QuietHoursCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-      <p className="text-sm text-text-primary">
-        <Trans>
-          Non-urgent notifications hold from 7:00 PM to 7:30 AM (America/New_York), Monday through
-          Friday. High-impact alerts and same-day deadlines always come through.
-        </Trans>
-      </p>
-      <p className="text-xs text-text-tertiary">
-        <Trans>
-          This schedule is fixed for now — per-user quiet hours aren't configurable yet.
-        </Trans>
-      </p>
+        <p className="text-sm text-text-primary">
+          <Trans>
+            Non-urgent notifications hold from 7:00 PM to 7:30 AM (America/New_York), Monday through
+            Friday. High-impact alerts and same-day deadlines always come through.
+          </Trans>
+        </p>
+        <p className="text-xs text-text-tertiary">
+          <Trans>
+            This schedule is fixed for now — per-user quiet hours aren't configurable yet.
+          </Trans>
+        </p>
       </CardContent>
     </Card>
   )
@@ -673,120 +681,128 @@ function MorningDigestCard({
   return (
     <Card>
       <CardContent className="flex flex-col gap-4">
-      <div className="flex items-start gap-3.5">
-        <div className="flex flex-1 flex-col gap-1">
-          <span className="inline-flex items-center gap-2 text-item-title text-text-primary">
-            <CalendarClockIcon className="size-4 text-text-tertiary" aria-hidden />
-            <Trans>Morning digest</Trans>
-          </span>
-          <span className="text-xs text-text-secondary">
-            <Trans>
-              Only sends when deadlines, regulatory alerts, or delivery failures need attention.
-            </Trans>
-          </span>
-        </div>
-        <Switch
-          checked={preferences.morningDigestEnabled}
-          onCheckedChange={(checked) => onUpdate({ morningDigestEnabled: checked })}
-          aria-label="Send a morning digest"
-        />
-      </div>
-
-      {preferences.morningDigestEnabled ? (
-        <div className="flex flex-wrap gap-6">
-          <div className="flex flex-col gap-2.5">
-            <CapsFieldLabel as="span" variant="group" className="text-text-secondary">
-              <Trans>Send hour</Trans>
-            </CapsFieldLabel>
-            <Select
-              value={String(preferences.morningDigestHour)}
-              onValueChange={(value) => {
-                if (typeof value !== 'string') return
-                onUpdate({ morningDigestHour: Number(value) })
-              }}
-            >
-              <SelectTrigger className="min-w-34">
-                <SelectValue>{formatHour(preferences.morningDigestHour)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 24 }, (_, hour) => (
-                  <SelectItem key={hour} value={String(hour)}>
-                    {formatHour(hour)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex items-start gap-3.5">
+          <div className="flex flex-1 flex-col gap-1">
+            <span className="inline-flex items-center gap-2 text-item-title text-text-primary">
+              <CalendarClockIcon className="size-4 text-text-tertiary" aria-hidden />
+              <Trans>Morning digest</Trans>
+            </span>
+            <span className="text-xs text-text-secondary">
+              <Trans>
+                Only sends when deadlines, regulatory alerts, or delivery failures need attention.
+              </Trans>
+            </span>
           </div>
+          <Switch
+            checked={preferences.morningDigestEnabled}
+            onCheckedChange={(checked) => onUpdate({ morningDigestEnabled: checked })}
+            aria-label="Send a morning digest"
+          />
+        </div>
 
-          <div className="flex flex-col gap-2.5">
-            <CapsFieldLabel as="span" variant="group" className="text-text-secondary">
-              <Trans>Days</Trans>
-            </CapsFieldLabel>
-            <div className="flex flex-wrap gap-2">
-              {DIGEST_DAYS.map((day) => (
-                <ToggleChip
-                  key={day.key}
-                  selected={preferences.morningDigestDays.includes(day.key)}
-                  onClick={() => toggleDay(day.key)}
-                  aria-label={day.label}
-                  disabled={saving && !preferences.morningDigestDays.includes(day.key)}
-                  size="md"
-                  className="w-[54px] justify-center"
-                >
-                  {day.label}
-                </ToggleChip>
-              ))}
+        {preferences.morningDigestEnabled ? (
+          <div className="flex flex-wrap gap-6">
+            <div className="flex flex-col gap-2.5">
+              <CapsFieldLabel as="span" variant="group" className="text-text-secondary">
+                <Trans>Send hour</Trans>
+              </CapsFieldLabel>
+              <Select
+                value={String(preferences.morningDigestHour)}
+                onValueChange={(value) => {
+                  if (typeof value !== 'string') return
+                  onUpdate({ morningDigestHour: Number(value) })
+                }}
+              >
+                <SelectTrigger className="min-w-34">
+                  <SelectValue>{formatHour(preferences.morningDigestHour)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <SelectItem key={hour} value={String(hour)}>
+                      {formatHour(hour)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <CapsFieldLabel as="span" variant="group" className="text-text-secondary">
+                <Trans>Days</Trans>
+              </CapsFieldLabel>
+              <div className="flex flex-wrap gap-2">
+                {DIGEST_DAYS.map((day) => (
+                  <ToggleChip
+                    key={day.key}
+                    selected={preferences.morningDigestDays.includes(day.key)}
+                    onClick={() => toggleDay(day.key)}
+                    aria-label={day.label}
+                    disabled={saving && !preferences.morningDigestDays.includes(day.key)}
+                    size="md"
+                    className="w-[54px] justify-center"
+                  >
+                    {day.label}
+                  </ToggleChip>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <Button type="button" variant="secondary" size="sm" disabled={previewing} onClick={onPreview}>
-        <SendIcon data-icon="inline-start" />
-        <Trans>Send preview now</Trans>
-      </Button>
-
-      <div className="flex flex-col gap-2 border-t border-divider-regular pt-4">
-        <CapsFieldLabel
-          as="span"
-          variant="group"
-          className="flex items-center gap-2 text-text-secondary"
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={previewing}
+          onClick={onPreview}
         >
-          <ClipboardListIcon className="size-3 text-text-tertiary" aria-hidden />
-          <Trans>Recent digest runs</Trans>
-        </CapsFieldLabel>
-        {loadingRuns ? (
-          <div className="grid gap-2" aria-busy="true">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
-          </div>
-        ) : runs.length === 0 ? (
-          <EmptyState title={<Trans>No morning digests have run yet.</Trans>} />
-        ) : (
-          <ul className="grid gap-2">
-            {runs.slice(0, 7).map((run) => (
-              <li
-                key={run.id}
-                className="grid gap-1 rounded-lg border border-divider-regular px-3 py-2.5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs tabular-nums text-text-secondary">{run.localDate}</span>
-                  {digestStatusBadge(run.status)}
-                </div>
-                <p className="text-xs text-text-tertiary">
-                  <Trans>
-                    {run.urgentCount} urgent · {run.pulseCount} Alerts · {run.failedReminderCount}{' '}
-                    failed reminders · {run.unassignedCount} unassigned
-                  </Trans>
-                </p>
-                {run.failureReason ? (
-                  <p className="truncate text-xs text-text-destructive">{run.failureReason}</p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          <SendIcon data-icon="inline-start" />
+          <Trans>Send preview now</Trans>
+        </Button>
+
+        <div className="flex flex-col gap-2 border-t border-divider-regular pt-4">
+          <CapsFieldLabel
+            as="span"
+            variant="group"
+            className="flex items-center gap-2 text-text-secondary"
+          >
+            <ClipboardListIcon className="size-3 text-text-tertiary" aria-hidden />
+            <Trans>Recent digest runs</Trans>
+          </CapsFieldLabel>
+          {loadingRuns ? (
+            <div className="grid gap-2" aria-busy="true">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+          ) : runs.length === 0 ? (
+            <EmptyState title={<Trans>No morning digests have run yet.</Trans>} />
+          ) : (
+            <ul className="grid gap-2">
+              {runs.slice(0, 7).map((run) => (
+                <li
+                  key={run.id}
+                  className="grid gap-1 rounded-lg border border-divider-regular px-3 py-2.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs tabular-nums text-text-secondary">
+                      {run.localDate}
+                    </span>
+                    {digestStatusBadge(run.status)}
+                  </div>
+                  <p className="text-xs text-text-tertiary">
+                    <Trans>
+                      {run.urgentCount} urgent · {run.pulseCount} Alerts · {run.failedReminderCount}{' '}
+                      failed reminders · {run.unassignedCount} unassigned
+                    </Trans>
+                  </p>
+                  {run.failureReason ? (
+                    <p className="truncate text-xs text-text-destructive">{run.failureReason}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

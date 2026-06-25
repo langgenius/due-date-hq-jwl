@@ -100,13 +100,9 @@ function PulseAlertsMap({
             const isSelected = selectedJurisdiction === code
             const displayLabel = JURISDICTION_DISPLAY[code] ?? code
             const ariaLabel =
-              count === 1
-                ? t`${displayLabel}: 1 alert`
-                : t`${displayLabel}: ${count} alerts`
+              count === 1 ? t`${displayLabel}: 1 alert` : t`${displayLabel}: ${count} alerts`
             const titleLabel =
-              count === 1
-                ? t`${displayLabel} · 1 alert`
-                : t`${displayLabel} · ${count} alerts`
+              count === 1 ? t`${displayLabel} · 1 alert` : t`${displayLabel} · ${count} alerts`
 
             return (
               <button

@@ -25,6 +25,7 @@ vi.mock('@/lib/auth', () => ({
     useSession: () => ({ data: null }),
   },
   displayNameFromEmail: (email: string) => email,
+  initialsFromName: (value: string | null | undefined) => (value ?? '').slice(0, 2).toUpperCase(),
   sendEmailSignInCode: authMocks.sendEmailSignInCode,
   signInWithEmailCode: authMocks.signInWithEmailCode,
   signInWithGoogle: authMocks.signInWithGoogle,

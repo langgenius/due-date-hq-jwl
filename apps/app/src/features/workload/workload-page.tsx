@@ -290,9 +290,8 @@ function ManagerInsights({
   // AssigneeAvatar can pick the correct tint. capacityOwnerLabel is the
   // display string; we match by ownerLabel to find the real name field.
   const busiestRow = insights.capacityOwnerLabel
-    ? (rows.find(
-        (r) => r.kind === 'assignee' && r.ownerLabel === insights.capacityOwnerLabel,
-      ) ?? null)
+    ? (rows.find((r) => r.kind === 'assignee' && r.ownerLabel === insights.capacityOwnerLabel) ??
+      null)
     : null
 
   return (
@@ -333,8 +332,7 @@ function ManagerInsights({
                   {insights.capacityOwnerLabel}
                 </span>
                 <span className="shrink-0 text-xs tabular-nums text-text-secondary">
-                  {insights.capacityOpen}{' '}
-                  <Trans>open</Trans>
+                  {insights.capacityOpen} <Trans>open</Trans>
                 </span>
               </div>
               {/* Progress is the real capacityLoadScore — busiest-anchored
@@ -486,7 +484,11 @@ function WorkloadTable({
                 value={row.dueSoon}
                 href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
               />
-              <NumericCell value={row.overdue} href={workloadRowOverdueHref(row, asOfDate)} danger />
+              <NumericCell
+                value={row.overdue}
+                href={workloadRowOverdueHref(row, asOfDate)}
+                danger
+              />
               <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
               <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
               <TableCell>

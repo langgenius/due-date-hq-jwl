@@ -23,12 +23,14 @@
    "Needs attention" StatBand, AssigneeAvatar rows, load spine.)
 
 ## Noted (pre-existing, out of scope — flagged separately)
+
 - A React key-spread warning fires on `/calendar` (and likely elsewhere): a Base UI
   render-prop spreads the injected `key` into a `<span>`. My diff adds no render-props/spreads
   — it's a shared-component leak (the documented Base UI pattern; fix = lift `key` out). Spun
   off as its own task.
 
 ## Verify
+
 `tsgo` app clean; `vp run @duedatehq/app#build` clean (✓ built); `i18n:extract` 0-missing
 (component swaps, no new copy). Calendar provider glyphs verified live (Google #FFC107/#1976D2,
 Apple silhouette path, Outlook #0F6CBD).

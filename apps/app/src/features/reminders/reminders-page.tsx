@@ -342,11 +342,7 @@ function TemplatesPanel({
 // Only renders when there is at least one reminder (the empty state renders
 // instead of a "0 sent · 0 failed" band). The "last N" qualifier is honest:
 // this is the most recent slice from the API (limit: 20), not a total-ever.
-function DeliverySummaryBand({
-  reminders,
-}: {
-  reminders: ReminderRecentSend[]
-}) {
+function DeliverySummaryBand({ reminders }: { reminders: ReminderRecentSend[] }) {
   const { t } = useLingui()
   const sentCount = reminders.filter((r) => r.deliveryStatus === 'sent').length
   const failedCount = reminders.filter((r) => r.deliveryStatus === 'failed').length
@@ -354,10 +350,7 @@ function DeliverySummaryBand({
   return (
     <div className="mb-4 flex items-center gap-4 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3 text-sm">
       <span className="flex items-center gap-1.5 text-text-secondary">
-        <CheckCircle2Icon
-          className="size-4 text-text-success"
-          aria-hidden
-        />
+        <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
         <span className="tabular-nums font-medium text-text-primary">{sentCount}</span>
         <span>{t`sent`}</span>
       </span>
@@ -366,10 +359,7 @@ function DeliverySummaryBand({
       </span>
       {failedCount > 0 ? (
         <span className="flex items-center gap-1.5 text-text-secondary">
-          <XCircleIcon
-            className="size-4 text-text-destructive"
-            aria-hidden
-          />
+          <XCircleIcon className="size-4 text-text-destructive" aria-hidden />
           <span className="tabular-nums font-medium text-text-destructive">{failedCount}</span>
           <span>{t`failed`}</span>
         </span>
@@ -458,7 +448,9 @@ function RecentSendsPanel({
                           <TaxCodeLabel code={item.taxType} />
                         </span>
                         {item.failureReason ? (
-                          <span className="text-xs text-text-destructive">{item.failureReason}</span>
+                          <span className="text-xs text-text-destructive">
+                            {item.failureReason}
+                          </span>
                         ) : null}
                       </div>
                     </TableCell>

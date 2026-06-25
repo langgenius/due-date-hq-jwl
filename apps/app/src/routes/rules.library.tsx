@@ -103,7 +103,6 @@ import {
   stripJurisdictionPrefix,
   type EntityKey,
 } from '@/features/rules/rules-console-model'
-import { RuleCoverageMap, type RuleCoverageEntry } from '@/features/rules/RuleCoverageMap'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
@@ -1204,11 +1203,17 @@ function OverviewCaughtUpCard({
         <div className="flex items-center gap-4 pt-1.5">
           <TextLink variant="accent" size="sm" onClick={onViewDecisions}>
             <Trans>View past decisions</Trans>
-            <ArrowRightIcon aria-hidden className="size-3.5 transition-transform group-hover/link:translate-x-0.5" />
+            <ArrowRightIcon
+              aria-hidden
+              className="size-3.5 transition-transform group-hover/link:translate-x-0.5"
+            />
           </TextLink>
           <TextLink variant="accent" size="sm" onClick={onMonitorSources}>
             <Trans>Monitor sources</Trans>
-            <ArrowRightIcon aria-hidden className="size-3.5 transition-transform group-hover/link:translate-x-0.5" />
+            <ArrowRightIcon
+              aria-hidden
+              className="size-3.5 transition-transform group-hover/link:translate-x-0.5"
+            />
           </TextLink>
         </div>
       </div>
@@ -1572,23 +1577,6 @@ export function RulesLibraryRoute() {
   //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
-  // Per-jurisdiction review coverage for the coverage-map tilegram: pending
-  // count (from the group) + high-severity pending (scanned from rules).
-  // (`topReviewJurisdictions` is defined further down on current main, after
-  // `concreteDraftByTarget` — left there, not re-added here.)
-  const coverageByJurisdiction = useMemo(() => {
-    const map = new Map<string, RuleCoverageEntry>()
-    for (const g of unfilteredGroups) {
-      map.set(g.jurisdiction, { pending: g.pendingReviewCount, high: 0, total: g.ruleCount })
-    }
-    for (const r of rules) {
-      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
-      if (r.riskLevel !== 'high') continue
-      const entry = map.get(r.jurisdiction)
-      if (entry) entry.high += 1
-    }
-    return map
-  }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],

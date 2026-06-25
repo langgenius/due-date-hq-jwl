@@ -18,9 +18,7 @@ import {
   MaterialsProgressLegend,
   PaymentStillDueCallout,
 } from './components/primitives'
-import {
-  EMPTY_DOCUMENT_CHECKLIST,
-} from './constants'
+import { EMPTY_DOCUMENT_CHECKLIST } from './constants'
 import {
   AuthorityRejectionDialog,
   DeadlineInputRequestDialog,

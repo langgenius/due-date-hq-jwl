@@ -346,7 +346,9 @@ function InternalVsFilingSchematic({
           <div className="text-caption-xs font-semibold uppercase tracking-wide text-text-inverted/60">
             <Trans>Internal</Trans>
           </div>
-          <div className="text-xs font-semibold tabular-nums text-text-inverted">{internalLabel}</div>
+          <div className="text-xs font-semibold tabular-nums text-text-inverted">
+            {internalLabel}
+          </div>
         </div>
         {/* Arrow connector — internal points AT the filing deadline. */}
         <div className="flex w-4 shrink-0 items-center justify-center">
@@ -363,7 +365,9 @@ function InternalVsFilingSchematic({
       </div>
       {/* Buffer annotation, centred under the connector — the REAL lead
           time between the two dates. */}
-      <div className="text-center text-caption-xs font-medium text-text-inverted/55">{bufferLabel}</div>
+      <div className="text-center text-caption-xs font-medium text-text-inverted/55">
+        {bufferLabel}
+      </div>
     </div>
   )
 }

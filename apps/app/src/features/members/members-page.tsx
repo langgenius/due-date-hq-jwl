@@ -53,11 +53,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@duedatehq/ui/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
   Table,
   TableBody,

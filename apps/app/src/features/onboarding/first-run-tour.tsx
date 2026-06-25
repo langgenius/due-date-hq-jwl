@@ -93,8 +93,8 @@ export function FirstRunTour() {
   useEffect(() => {
     // Never auto-run in an automated browser (Playwright e2e): the overlay would
     // intercept the test's clicks on /today.
-    if (typeof navigator !== 'undefined' && navigator.webdriver) return
-    if (startedRef.current || hasSeenTour()) return
+    if (typeof navigator !== 'undefined' && navigator.webdriver) return undefined
+    if (startedRef.current || hasSeenTour()) return undefined
     const firstHref = steps[0]?.href
     const timer = window.setTimeout(() => {
       if (firstHref && measure(firstHref)) {
@@ -112,7 +112,7 @@ export function FirstRunTour() {
 
   // Track the active target's position; re-measure on resize + scroll.
   useLayoutEffect(() => {
-    if (!active || !step) return
+    if (!active || !step) return undefined
     const update = () => setRect(measure(step.href))
     update()
     window.addEventListener('resize', update)
@@ -143,7 +143,7 @@ export function FirstRunTour() {
   }, [])
 
   useEffect(() => {
-    if (!active) return
+    if (!active) return undefined
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()

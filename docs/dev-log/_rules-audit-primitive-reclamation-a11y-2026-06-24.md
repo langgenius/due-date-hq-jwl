@@ -22,6 +22,7 @@
 ### rules.library.tsx — a11y (entity coverage matrix)
 
 `EntityStateCell` and `EntityApplicabilityCell` rendered `aria-hidden` dots/dashes/icons with no text alternative. Added `<span className="sr-only">` labels in every branch:
+
 - not_applicable → "Not applicable"
 - count=0 → "No rules"
 - pendingReviewCount>0 → `aria-label="{N} of {total} pending review"` on the wrapping span
@@ -37,6 +38,7 @@
 ### rules.library.tsx — font-weight sweep (semibold→medium on non-titles)
 
 Demoted to `font-medium`:
+
 - Jurisdiction code chip in recent-changes list row (data)
 - UPDATED/NEW/EFFECTIVE status pill text (data label)
 - Entity filter tab count
@@ -46,6 +48,7 @@ Demoted to `font-medium`:
 - Jurisdiction code chip in bulk-accept rule list
 
 Kept `font-semibold` (titles):
+
 - "# jurisdiction has a coverage gap" section callout
 - Rule title in recent-changes row (`tracking-title`)
 - "Review queue is clear" page heading (`tracking-title`)

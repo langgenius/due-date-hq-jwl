@@ -52,11 +52,11 @@ in the typeface, not SVG icons. Render them inline via `<Citation>` / `<DeltaMar
 (`apps/app/src/components/primitives/legal-typography.tsx`) so the typography
 register (mono · tabular-nums · text-tertiary) is consistent across surfaces.
 
-| Concept                           | Glyph    | How                                                            |
-| --------------------------------- | -------- | -------------------------------------------------------------- |
-| Legal / regulation reference      | **`§`**  | `<Citation>§ 6651(a)(2)</Citation>` (parsed by `highlightCitations`) |
-| Paragraph reference within a code | **`¶`**  | same chrome — `<Citation>§ 199A · ¶ 14</Citation>`             |
-| Change / amendment / version bump | **`Δ`**  | `<DeltaMark />` as a row prefix                                |
+| Concept                           | Glyph   | How                                                                  |
+| --------------------------------- | ------- | -------------------------------------------------------------------- |
+| Legal / regulation reference      | **`§`** | `<Citation>§ 6651(a)(2)</Citation>` (parsed by `highlightCitations`) |
+| Paragraph reference within a code | **`¶`** | same chrome — `<Citation>§ 199A · ¶ 14</Citation>`                   |
+| Change / amendment / version bump | **`Δ`** | `<DeltaMark />` as a row prefix                                      |
 
 `highlightCitations(text)` parses any free-text string (audit reason, alert
 summary, evidence excerpt) and wraps inline `§ XXXX` / `¶ N` matches in

@@ -265,46 +265,46 @@ export function SettingsProfileRoute() {
             <CardDescription>{t`How your name and details appear across the app`}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <AssigneeAvatar
-              name={displayName || email}
-              title={displayName || email}
-              size="xl"
-              isMine
-              className="shrink-0"
-            />
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <p className="text-base font-medium text-text-primary">
-                <Trans>Account initials</Trans>
-              </p>
-              <p className="text-xs text-text-secondary">
-                <Trans>Used to identify your account across the workspace</Trans>
-              </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <AssigneeAvatar
+                name={displayName || email}
+                title={displayName || email}
+                size="xl"
+                isMine
+                className="shrink-0"
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <p className="text-base font-medium text-text-primary">
+                  <Trans>Account initials</Trans>
+                </p>
+                <p className="text-xs text-text-secondary">
+                  <Trans>Used to identify your account across the workspace</Trans>
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-3">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Name + email are owned by the sign-in provider (no
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Name + email are owned by the sign-in provider (no
                   user.updateProfile RPC). Rendered as locked facts, NOT as
                   input-shaped boxes a CPA would click expecting to type —
                   the re-critique flagged the old white-bordered treatment as
                   a fake field. The lock glyph + caption below say why. */}
-              <Field>
-                <FieldLabel>{t`Full name`}</FieldLabel>
-                <ReadonlyValue value={displayName || t`Not set`} locked />
-              </Field>
-              <Field>
-                <FieldLabel>{t`Email`}</FieldLabel>
-                <ReadonlyValue value={email || t`Not set`} locked muted />
-              </Field>
+                <Field>
+                  <FieldLabel>{t`Full name`}</FieldLabel>
+                  <ReadonlyValue value={displayName || t`Not set`} locked />
+                </Field>
+                <Field>
+                  <FieldLabel>{t`Email`}</FieldLabel>
+                  <ReadonlyValue value={email || t`Not set`} locked muted />
+                </Field>
+              </div>
+              <p className="text-caption text-text-tertiary">
+                <Trans>
+                  Name and email come from your sign-in provider and can't be edited here.
+                </Trans>
+              </p>
             </div>
-            <p className="text-caption text-text-tertiary">
-              <Trans>
-                Name and email come from your sign-in provider and can't be edited here.
-              </Trans>
-            </p>
-          </div>
           </CardContent>
         </Card>
 
@@ -315,175 +315,175 @@ export function SettingsProfileRoute() {
             <CardDescription>{t`Keep your account safe with strong sign-in`}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-          {statusQuery.isLoading ? (
-            <Skeleton className="h-40 rounded-lg" />
-          ) : statusQuery.isError ? (
-            <p className="text-sm text-text-destructive">
-              <Trans>Security settings couldn't load.</Trans>
-            </p>
-          ) : status ? (
-            <>
-              {/* Two-factor */}
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-base font-medium text-text-primary">
-                      <Trans>Two-factor authentication</Trans>
-                    </span>
-                    {status.twoFactorEnabled ? (
-                      <Badge variant="success" className="gap-1.5 font-semibold">
-                        <span aria-hidden className="size-1.5 rounded-full bg-current" />
-                        <Trans>Enabled</Trans>
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="gap-1.5 font-semibold">
-                        <Trans>Off</Trans>
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-text-secondary">
-                    {status.twoFactorEnabled ? (
-                      <Trans>Authenticator app is active on this account.</Trans>
-                    ) : (
-                      <Trans>Owners need MFA to change rules and firm settings.</Trans>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {status.twoFactorEnabled ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-text-destructive hover:text-text-destructive"
-                      onClick={() => setConfirmDisableMfa(true)}
-                      disabled={disableMutation.isPending}
-                    >
-                      <Trans>Disable</Trans>
-                    </Button>
-                  ) : pendingSetup ? null : (
-                    <Button
-                      size="sm"
-                      onClick={() => enableMutation.mutate(undefined)}
-                      disabled={enableMutation.isPending}
-                    >
-                      {enableMutation.isPending ? (
-                        <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            {statusQuery.isLoading ? (
+              <Skeleton className="h-40 rounded-lg" />
+            ) : statusQuery.isError ? (
+              <p className="text-sm text-text-destructive">
+                <Trans>Security settings couldn't load.</Trans>
+              </p>
+            ) : status ? (
+              <>
+                {/* Two-factor */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base font-medium text-text-primary">
+                        <Trans>Two-factor authentication</Trans>
+                      </span>
+                      {status.twoFactorEnabled ? (
+                        <Badge variant="success" className="gap-1.5 font-semibold">
+                          <span aria-hidden className="size-1.5 rounded-full bg-current" />
+                          <Trans>Enabled</Trans>
+                        </Badge>
                       ) : (
-                        <ShieldIcon data-icon="inline-start" />
+                        <Badge variant="secondary" className="gap-1.5 font-semibold">
+                          <Trans>Off</Trans>
+                        </Badge>
                       )}
-                      <Trans>Set up authenticator</Trans>
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {pendingSetup ? (
-                <TwoFactorSetupPanel
-                  code={code}
-                  pendingSetup={pendingSetup}
-                  verifyPending={verifyMutation.isPending}
-                  onCodeChange={handleCodeChange}
-                  onCopyBackupCodes={() =>
-                    pendingSetup &&
-                    void copyText(pendingSetup.backupCodes.join('\n'), t`Backup codes copied`)
-                  }
-                  onCopySetupUri={() =>
-                    pendingSetup && void copyText(pendingSetup.totpURI, t`Setup URI copied`)
-                  }
-                  onMissingRecoveryCodeAcknowledgement={() =>
-                    toast.error(
-                      t`Save the recovery codes and check the confirmation above before enabling MFA.`,
-                    )
-                  }
-                  onVerify={handleVerify}
-                />
-              ) : null}
-
-              <div className="h-px w-full bg-divider-regular" />
-
-              {/* Sessions */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base font-medium text-text-primary">
-                    <Trans>Active sessions</Trans>
-                  </span>
-                  <span className="text-xs text-text-secondary">
-                    <Trans>You're signed in on these devices</Trans>
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setConfirmSignOutOthers(true)}
-                  disabled={revokeOtherSessionsMutation.isPending || status.sessions.length <= 1}
-                >
-                  <Trans>Sign out everywhere</Trans>
-                </Button>
-              </div>
-
-              <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-section">
-                {status.sessions.map((s, idx) => (
-                  <div
-                    key={s.id}
-                    className={cn(
-                      'flex items-center gap-3.5 px-4 py-3',
-                      idx < status.sessions.length - 1 && 'border-b border-divider-subtle',
-                    )}
-                  >
-                    <span
-                      aria-hidden
-                      className="grid size-8 shrink-0 place-items-center rounded-lg border border-divider-regular bg-background-default text-text-secondary"
-                    >
-                      <DeviceIcon userAgent={s.userAgent} />
-                    </span>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-base font-medium text-text-primary">
-                          {s.userAgent || <Trans>Unknown browser</Trans>}
-                        </span>
-                        {s.isCurrent ? (
-                          <Badge variant="info" className="px-1.5 py-px">
-                            <Trans>This device</Trans>
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <span className="truncate font-mono text-xs text-text-tertiary">
-                        {s.ipAddress || '—'} ·{' '}
-                        {formatDateTimeWithDisplayPreferences(
-                          s.createdAt,
-                          practiceTimezone,
-                          displayPreferences,
-                        )}
-                      </span>
                     </div>
-                    {s.isCurrent ? (
-                      <span aria-hidden className="text-base text-text-muted">
-                        —
-                      </span>
-                    ) : (
+                    <p className="text-xs text-text-secondary">
+                      {status.twoFactorEnabled ? (
+                        <Trans>Authenticator app is active on this account.</Trans>
+                      ) : (
+                        <Trans>Owners need MFA to change rules and firm settings.</Trans>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {status.twoFactorEnabled ? (
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-text-destructive hover:text-text-destructive"
-                        disabled={revokeSessionMutation.isPending}
-                        onClick={() =>
-                          setPendingSessionRevoke({
-                            sessionId: s.id,
-                            userAgent: s.userAgent ?? '',
-                            ipAddress: s.ipAddress ?? '',
-                            createdAt: s.createdAt,
-                            isCurrent: s.isCurrent,
-                          })
-                        }
+                        onClick={() => setConfirmDisableMfa(true)}
+                        disabled={disableMutation.isPending}
                       >
-                        <Trans>Revoke</Trans>
+                        <Trans>Disable</Trans>
+                      </Button>
+                    ) : pendingSetup ? null : (
+                      <Button
+                        size="sm"
+                        onClick={() => enableMutation.mutate(undefined)}
+                        disabled={enableMutation.isPending}
+                      >
+                        {enableMutation.isPending ? (
+                          <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                        ) : (
+                          <ShieldIcon data-icon="inline-start" />
+                        )}
+                        <Trans>Set up authenticator</Trans>
                       </Button>
                     )}
                   </div>
-                ))}
-              </div>
-            </>
-          ) : null}
+                </div>
+
+                {pendingSetup ? (
+                  <TwoFactorSetupPanel
+                    code={code}
+                    pendingSetup={pendingSetup}
+                    verifyPending={verifyMutation.isPending}
+                    onCodeChange={handleCodeChange}
+                    onCopyBackupCodes={() =>
+                      pendingSetup &&
+                      void copyText(pendingSetup.backupCodes.join('\n'), t`Backup codes copied`)
+                    }
+                    onCopySetupUri={() =>
+                      pendingSetup && void copyText(pendingSetup.totpURI, t`Setup URI copied`)
+                    }
+                    onMissingRecoveryCodeAcknowledgement={() =>
+                      toast.error(
+                        t`Save the recovery codes and check the confirmation above before enabling MFA.`,
+                      )
+                    }
+                    onVerify={handleVerify}
+                  />
+                ) : null}
+
+                <div className="h-px w-full bg-divider-regular" />
+
+                {/* Sessions */}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-base font-medium text-text-primary">
+                      <Trans>Active sessions</Trans>
+                    </span>
+                    <span className="text-xs text-text-secondary">
+                      <Trans>You're signed in on these devices</Trans>
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConfirmSignOutOthers(true)}
+                    disabled={revokeOtherSessionsMutation.isPending || status.sessions.length <= 1}
+                  >
+                    <Trans>Sign out everywhere</Trans>
+                  </Button>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-section">
+                  {status.sessions.map((s, idx) => (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        'flex items-center gap-3.5 px-4 py-3',
+                        idx < status.sessions.length - 1 && 'border-b border-divider-subtle',
+                      )}
+                    >
+                      <span
+                        aria-hidden
+                        className="grid size-8 shrink-0 place-items-center rounded-lg border border-divider-regular bg-background-default text-text-secondary"
+                      >
+                        <DeviceIcon userAgent={s.userAgent} />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="truncate text-base font-medium text-text-primary">
+                            {s.userAgent || <Trans>Unknown browser</Trans>}
+                          </span>
+                          {s.isCurrent ? (
+                            <Badge variant="info" className="px-1.5 py-px">
+                              <Trans>This device</Trans>
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <span className="truncate font-mono text-xs text-text-tertiary">
+                          {s.ipAddress || '—'} ·{' '}
+                          {formatDateTimeWithDisplayPreferences(
+                            s.createdAt,
+                            practiceTimezone,
+                            displayPreferences,
+                          )}
+                        </span>
+                      </div>
+                      {s.isCurrent ? (
+                        <span aria-hidden className="text-base text-text-muted">
+                          —
+                        </span>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-text-destructive hover:text-text-destructive"
+                          disabled={revokeSessionMutation.isPending}
+                          onClick={() =>
+                            setPendingSessionRevoke({
+                              sessionId: s.id,
+                              userAgent: s.userAgent ?? '',
+                              ipAddress: s.ipAddress ?? '',
+                              createdAt: s.createdAt,
+                              isCurrent: s.isCurrent,
+                            })
+                          }
+                        >
+                          <Trans>Revoke</Trans>
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -494,35 +494,35 @@ export function SettingsProfileRoute() {
             <CardDescription>{t`Language, date, and time formats`}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="settings-language-trigger">{t`Language`}</FieldLabel>
-              <LanguageSelect
-                id="settings-language-trigger"
-                value={locale}
-                onValueChange={switchLocale}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="settings-language-trigger">{t`Language`}</FieldLabel>
+                <LanguageSelect
+                  id="settings-language-trigger"
+                  value={locale}
+                  onValueChange={switchLocale}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="settings-date-format-trigger">{t`Date format`}</FieldLabel>
+                <DateFormatSelect
+                  id="settings-date-format-trigger"
+                  value={displayPreferences.dateFormat}
+                  onValueChange={switchDateFormatPreference}
+                />
+              </Field>
+            </div>
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5">
+              <span className="text-xs font-medium text-text-secondary">
+                <Trans>Time format</Trans>
+              </span>
+              <Segmented<TimeFormatPreference>
+                ariaLabel={t`Time format`}
+                options={TIME_FORMAT_OPTIONS.map((format) => ({ value: format, label: format }))}
+                value={displayPreferences.timeFormat}
+                onValueChange={switchTimeFormatPreference}
               />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="settings-date-format-trigger">{t`Date format`}</FieldLabel>
-              <DateFormatSelect
-                id="settings-date-format-trigger"
-                value={displayPreferences.dateFormat}
-                onValueChange={switchDateFormatPreference}
-              />
-            </Field>
-          </div>
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5">
-            <span className="text-xs font-medium text-text-secondary">
-              <Trans>Time format</Trans>
-            </span>
-            <Segmented<TimeFormatPreference>
-              ariaLabel={t`Time format`}
-              options={TIME_FORMAT_OPTIONS.map((format) => ({ value: format, label: format }))}
-              value={displayPreferences.timeFormat}
-              onValueChange={switchTimeFormatPreference}
-            />
-          </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -533,58 +533,58 @@ export function SettingsProfileRoute() {
             <CardDescription>{t`Permanent actions on your account data`}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-base font-medium text-text-primary">
-                <Trans>Export all my data</Trans>
-              </span>
-              <span className="text-xs text-text-secondary">
-                <Trans>Download a JSON archive of clients, deadlines, rules, and audit log</Trans>
-              </span>
-            </div>
-            {/* TODO(data): no account.export RPC yet. Disabled controls
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-base font-medium text-text-primary">
+                  <Trans>Export all my data</Trans>
+                </span>
+                <span className="text-xs text-text-secondary">
+                  <Trans>Download a JSON archive of clients, deadlines, rules, and audit log</Trans>
+                </span>
+              </div>
+              {/* TODO(data): no account.export RPC yet. Disabled controls
                 state their reason (visible caption, not just a title). */}
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <Button variant="outline" size="sm" disabled title={t`Not available yet`}>
-                <DownloadIcon data-icon="inline-start" />
-                <Trans>Request export</Trans>
-              </Button>
-              <span className="text-caption-xs text-text-tertiary">
-                <Trans>Not available yet</Trans>
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <Button variant="outline" size="sm" disabled title={t`Not available yet`}>
+                  <DownloadIcon data-icon="inline-start" />
+                  <Trans>Request export</Trans>
+                </Button>
+                <span className="text-caption-xs text-text-tertiary">
+                  <Trans>Not available yet</Trans>
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div className="h-px w-full bg-state-destructive-hover-alt" />
+            <div className="h-px w-full bg-state-destructive-hover-alt" />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-base font-medium text-text-destructive">
-                <Trans>Delete account</Trans>
-              </span>
-              <span className="text-xs text-text-secondary">
-                <Trans>
-                  Removes your access. Your practice's data is kept for 30 days, then permanently
-                  deleted. This can't be undone.
-                </Trans>
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-base font-medium text-text-destructive">
+                  <Trans>Delete account</Trans>
+                </span>
+                <span className="text-xs text-text-secondary">
+                  <Trans>
+                    Removes your access. Your practice's data is kept for 30 days, then permanently
+                    deleted. This can't be undone.
+                  </Trans>
+                </span>
+              </div>
+              {/* TODO(data): no account.delete RPC yet. */}
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <Button
+                  variant="destructive-primary"
+                  size="sm"
+                  disabled
+                  title={t`Not available yet — contact your practice owner`}
+                >
+                  <Trash2Icon data-icon="inline-start" />
+                  <Trans>Delete account</Trans>
+                </Button>
+                <span className="text-caption-xs text-text-tertiary">
+                  <Trans>Contact your practice owner</Trans>
+                </span>
+              </div>
             </div>
-            {/* TODO(data): no account.delete RPC yet. */}
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <Button
-                variant="destructive-primary"
-                size="sm"
-                disabled
-                title={t`Not available yet — contact your practice owner`}
-              >
-                <Trash2Icon data-icon="inline-start" />
-                <Trans>Delete account</Trans>
-              </Button>
-              <span className="text-caption-xs text-text-tertiary">
-                <Trans>Contact your practice owner</Trans>
-              </span>
-            </div>
-          </div>
           </CardContent>
         </Card>
       </div>

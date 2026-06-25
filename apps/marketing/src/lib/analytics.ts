@@ -98,7 +98,10 @@ export function initMarketingAnalytics(): void {
         marker instanceof HTMLElement
           ? (marker.dataset.event?.split('.')[1] ?? 'unknown')
           : 'unknown'
-      track(EVENTS.signupCtaClicked, { location: surface, locale: document.documentElement.lang || 'en' })
+      track(EVENTS.signupCtaClicked, {
+        location: surface,
+        locale: document.documentElement.lang || 'en',
+      })
     },
     { capture: true },
   )

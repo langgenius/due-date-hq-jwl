@@ -7,7 +7,7 @@ errors / 0 warnings. Minimal, behaviour-preserving except one real bug:
   `t`, not the card), so it rendered `undefined` → the alert mini was **missing its
   "Affects " label**. Fixed to `t.affectPre`. (Real rendering bug, EN + zh.)
 - **Sources.astro** — `t.statusLabels[r.dot]` indexed by `string` → cast `r.dot as
-  keyof typeof t.statusLabels`.
+keyof typeof t.statusLabels`.
 - **ScrollRail.astro** — `getAttribute('href')!.slice(1)` (href always present);
   captured `const s = secs[i]` so the null-guard narrows.
 - **SurfaceDeep.astro** — `(s.rows ?? []).map(...)` (rows is optional per surface).

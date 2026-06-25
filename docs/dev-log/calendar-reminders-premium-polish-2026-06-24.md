@@ -15,6 +15,7 @@ Replaced the `variant="default"` (blue) "Active" badge with `variant="success"` 
 
 **"How to subscribe" card (bottom) — branded provider notes:**  
 Replaced the three single-line `IntegrationNote` items (all sharing a generic `CalendarDaysIcon`) with a new `IntegrationNote` component that renders:
+
 - A `ProviderMark` glyph distinct per provider: Google = 4-dot colour-quadrant grid, Apple = solid circle with clip-path, Outlook = "O" lettermark in accent colour
 - A numbered 3-step instruction list in `text-xs text-text-secondary`
 - A subtle `rounded-lg border border-divider-subtle p-3` card wrapper (no raw hex, canonical radius 8)
@@ -25,6 +26,7 @@ Card title changed from "Subscription notes" to "How to subscribe". Description 
 
 **Delivery summary band (new `DeliverySummaryBand` component):**  
 Rendered above the recent-sends table when `reminders.length > 0`. Counts derived entirely from the loaded `ReminderRecentSend[]` array:
+
 - `sentCount` — `deliveryStatus === 'sent'` count (real field on `ReminderRecentSend`)
 - `failedCount` — `deliveryStatus === 'failed'` count (real field on `ReminderRecentSend`)
 
@@ -43,11 +45,11 @@ Replaced hand-rolled `<label className="grid gap-2 text-sm"><span className="fon
 
 ## Data grounding
 
-| Summary number | Source field | Real? |
-|---|---|---|
-| Sent count | `ReminderRecentSend.deliveryStatus === 'sent'` | Yes |
-| Failed count | `ReminderRecentSend.deliveryStatus === 'failed'` | Yes |
-| "Last 20" qualifier | `listRecentSends({ limit: 20 })` query param | Yes |
+| Summary number      | Source field                                     | Real? |
+| ------------------- | ------------------------------------------------ | ----- |
+| Sent count          | `ReminderRecentSend.deliveryStatus === 'sent'`   | Yes   |
+| Failed count        | `ReminderRecentSend.deliveryStatus === 'failed'` | Yes   |
+| "Last 20" qualifier | `listRecentSends({ limit: 20 })` query param     | Yes   |
 
 ## No fiction added
 

@@ -569,9 +569,7 @@ function PulseAlertRow({
               "N% confidence" meter that used to sit in the bottom meta. Dropped
               on the narrow map rail — the detail Source card still states the
               exact confidence tier. */}
-          {showLowConfidence && !narrow ? (
-            <LowConfidenceBadge />
-          ) : null}
+          {showLowConfidence && !narrow ? <LowConfidenceBadge /> : null}
 
           {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
               #6). Pinned to the far right it left a wide dead gap between the

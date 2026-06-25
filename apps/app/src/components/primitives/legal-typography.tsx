@@ -18,7 +18,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 export function Citation({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span
-      className={cn('font-mono text-[0.92em] font-medium tabular-nums text-text-secondary', className)}
+      className={cn(
+        'font-mono text-[0.92em] font-medium tabular-nums text-text-secondary',
+        className,
+      )}
     >
       {children}
     </span>
@@ -63,7 +66,7 @@ export function DeltaMark({ className }: { className?: string }) {
 // (the digit anchors so we don't catch a stray "§" with no body). Bare
 // "Section 199A" prose without the glyph is not wrapped — that would
 // require sense-disambiguating "section" the everyday word.
-const CITATION_PATTERN = /[§¶]\s?[0-9][0-9A-Za-z().\-]*/g
+const CITATION_PATTERN = /[§¶]\s?[0-9][0-9A-Za-z().-]*/g
 
 /**
  * `highlightCitations` — parse a free-text string and wrap every `§ XXXX`

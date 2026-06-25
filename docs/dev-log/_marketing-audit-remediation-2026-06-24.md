@@ -6,6 +6,7 @@ then a P0→P2 fix pass. Also folds in three smaller review-cycle items (spyrail
 tightened, nav cross-page jump fixed, /pricing → "coming soon").
 
 ## P0 — integrity
+
 - **/pricing structured data matched to the visible page.** The "coming soon"
   state hid the priced cards + matrix but left the plan/beta **FAQ** rendering and
   the **JSON-LD still publishing $39/$79/$149 Offers + a "free during the beta"
@@ -13,9 +14,10 @@ tightened, nav cross-page jump fixed, /pricing → "coming soon").
   page's own promise). New `lib/pricing-state.ts` `PRICING_COMING_SOON` is the
   single source of truth, imported by `Pricing.astro` (gates tiers + matrix + FAQ)
   and the page wrappers (`pricingStructuredData(..., comingSoon)` drops the Offers
-  + FAQ nodes). Verified: 0 priced Offers, 0 beta strings on the built page.
+  - FAQ nodes). Verified: 0 priced Offers, 0 beta strings on the built page.
 
 ## P1 — correctness
+
 - **Dead-end CTAs.** `/states/[state]` + `/state-coverage` "Start free" linked to
   `/` (homepage); now `getStartedHref()` → app `/login` like everywhere else.
 - **Killed "free during the beta" sitewide.** State-page ctaNotes + the entire
@@ -31,6 +33,7 @@ tightened, nav cross-page jump fixed, /pricing → "coming soon").
   → "See how it works" → /how-it-works. EN + zh.
 
 ## P2 — architecture & consistency
+
 - **Deleted the dead `legacy.astro` tree** — the `noindex` legacy page + its 13
   old-design components (duplicate top-level Hero/TopNav/Footer/Security + Problem/
   Workflow/Proof/SlaStrip/FinalCta/HeroSurface/WorkflowStep + primitives/
@@ -48,6 +51,7 @@ tightened, nav cross-page jump fixed, /pricing → "coming soon").
   tilegram had no way back to the live feed → re-click the active tile to deselect.
 
 ## Review-cycle polish (same batch)
+
 - Spyrail (`ScrollRail`) gap 11→6px (tighter).
 - Nav cross-page "jump": `transition:persist` on the nav so it stays put across
   view-transition swaps and the glider SLIDES to the new page's active link
@@ -56,6 +60,7 @@ tightened, nav cross-page jump fixed, /pricing → "coming soon").
   team's checkout wiring preserved behind the flag).
 
 ## Verified
+
 Production build clean (73 pages, down from 84 after the legacy deletion); built
 `dist/` confirms: 0 priced Offers / 0 beta copy on pricing, state CTAs → app login,
 home contradictions gone, shared `faqacc__` accordion on home + subpages, no

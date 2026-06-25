@@ -194,11 +194,7 @@ function NeedsAttentionSection() {
       <EmptyState
         icon={MegaphoneIcon}
         title={
-          noSources ? (
-            <Trans>No sources monitored yet</Trans>
-          ) : (
-            <Trans>No alerts right now</Trans>
-          )
+          noSources ? <Trans>No sources monitored yet</Trans> : <Trans>No alerts right now</Trans>
         }
         description={
           <>

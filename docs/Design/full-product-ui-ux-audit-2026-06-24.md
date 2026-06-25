@@ -12,13 +12,13 @@ verification** (see Corrections). All severities below are post-verification.
 
 ## Verdict on the six questions
 
-| Question | Verdict | Note |
-|---|---|---|
-| **Aligned?** | Mostly (B+) | Shared PageHeader/StatBand/spacing rhythm. Broken by font-weight inflation, entry-cluster token divergence, and admin pages reading as a plainer app. |
-| **Component-based?** | Largely (B+) | Strong primitive library, well-used on core surfaces. ~17 hand-rolled pills + local Card/Field/ReadonlyValue re-inventions + raw `<button>` patterns drag it from A to B+. |
-| **Enough design details?** | Uneven | Hero surfaces (drawers, migration wizard, portfolio grid) are richly detailed. Supporting/admin/system surfaces are thin — no signature moment. |
-| **Visually stunning?** | Uneven (3.0 avg /5) | Range 1.5 (error boundary) → 4.5 (migration wizard). Core 3.5–4.5; admin/system 1.5–3. Not yet *uniformly* stunning. |
-| **Working & cohesive?** | Working; cohesive forward, leaky backward | No critical bugs. Forward flows wired; loop-closing/reverse nav + a few cross-query invalidations are the gaps. |
+| Question                   | Verdict                                   | Note                                                                                                                                                                       |
+| -------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Aligned?**               | Mostly (B+)                               | Shared PageHeader/StatBand/spacing rhythm. Broken by font-weight inflation, entry-cluster token divergence, and admin pages reading as a plainer app.                      |
+| **Component-based?**       | Largely (B+)                              | Strong primitive library, well-used on core surfaces. ~17 hand-rolled pills + local Card/Field/ReadonlyValue re-inventions + raw `<button>` patterns drag it from A to B+. |
+| **Enough design details?** | Uneven                                    | Hero surfaces (drawers, migration wizard, portfolio grid) are richly detailed. Supporting/admin/system surfaces are thin — no signature moment.                            |
+| **Visually stunning?**     | Uneven (3.0 avg /5)                       | Range 1.5 (error boundary) → 4.5 (migration wizard). Core 3.5–4.5; admin/system 1.5–3. Not yet _uniformly_ stunning.                                                       |
+| **Working & cohesive?**    | Working; cohesive forward, leaky backward | No critical bugs. Forward flows wired; loop-closing/reverse nav + a few cross-query invalidations are the gaps.                                                            |
 
 **One-line:** a cohesive, well-engineered product with a strong primitive system and several
 genuinely excellent surfaces — held back from "stunning everywhere" by (1) a pervasive
@@ -45,9 +45,11 @@ and (3) a quality gradient where supporting/admin/system surfaces feel like a pl
 ## Systemic themes (ranked — fix these, not the symptoms)
 
 ### 1. Font-weight inflation — P1, ~100+ sites
+
 `font-semibold` (600) appears on tabs, data values, card sub-headers, rail section
 titles, nav, OTP digits — everywhere, not just page/section titles. This is the single
 most widespread canon breach and the biggest single lever on perceived crispness.
+
 - Worst files: `AlertDetailDrawer.tsx` (15), `panels.tsx` (16), `ClientDetailWorkspace.tsx`
   (tab triggers + card headers), `ClientFactsWorkspace.tsx` (portfolio hero numeral, triple-
   signalled), `otp-input.tsx:87`, `merged-brief-card.tsx` (bucket headers).
@@ -55,8 +57,10 @@ most widespread canon breach and the biggest single lever on perceived crispness
   slots → `font-medium`. Add a lint guard (semibold only with `text-lg`+ or on headings).
 
 ### 2. Hand-rolled re-inventions of existing primitives — P1, ~30+ sites
+
 The primitive exists; the surface rebuilds it inline (no token inheritance, no dark-mode
 guarantee, drift risk).
+
 - **Pills/badges (~17×):** `AlertDetailDrawer.tsx:1727`, `AlertCard.tsx:261`,
   `PulseFormRevisedCard.tsx:140`, `PulseAlertRow.tsx:573`, count badges in
   `ClientDetailWorkspace.tsx:919,1193`, header counts in `members-page.tsx` → `Badge` /
@@ -69,16 +73,20 @@ guarantee, drift risk).
   variable reinvents `TextLink`), `AlertListRail.tsx:106` → `TextLink` / `Button variant="ghost"`.
 
 ### 3. Front-door inconsistency — P1
-The highest-traffic surface (login) has a *different identity* from the rest of entry.
+
+The highest-traffic surface (login) has a _different identity_ from the rest of entry.
+
 - Login renders a letter-**"D"** `rounded-2xl` square instead of the real `BrandMark`
   ([login.tsx:222](../../apps/app/src/routes/login.tsx)); `AuthBrandAnchor` exists for this.
 - Entry-shell vs auth-chrome token divergence: `bg-bg-canvas` vs `bg-background-subtle`,
-  `border-border-default` vs `border-divider-subtle` ([_entry-layout.tsx:34,66](../../apps/app/src/routes/_entry-layout.tsx)).
+  `border-border-default` vs `border-divider-subtle` ([\_entry-layout.tsx:34,66](../../apps/app/src/routes/_entry-layout.tsx)).
 - `accept-invite` SSO buttons have no provider icons (login does); inviter avatar is
   hand-rolled instead of `AssigneeAvatar` ([accept-invite.tsx:230,296](../../apps/app/src/routes/accept-invite.tsx)).
 
 ### 4. Cross-page wiring & discoverability gaps — P1/P2
+
 Forward flows are wired; loop-closing and reverse nav leak.
+
 - Alert-type audit events are dead-ends: `auditEntityHref()` returns `null` for `pulse_*`
   ([audit-event-drawer.tsx:44](../../apps/app/src/features/audit/audit-event-drawer.tsx)) → map to `/alerts?alert=`. (P1)
 - Client "Filed" stat is inert ([ClientSummaryStrip.tsx:157](../../apps/app/src/features/clients/ClientSummaryStrip.tsx)) while Blocked/Open drill in → add the filed-status filter link. (P1)
@@ -88,6 +96,7 @@ Forward flows are wired; loop-closing and reverse nav leak.
 - Rule StatBand "Coverage"/"Total" inert; no rule → clients roll-up. (P2)
 
 ### 5. Accessibility — P1/P2
+
 - `rules.library` entity coverage matrix: cells are `aria-hidden` with no text alternative
   → an inaccessible table ([rules.library.tsx:340–431](../../apps/app/src/routes/rules.library.tsx)). (P1)
 - Scroll-spy section navs (alert + deadline detail) are anonymous `<button>`s — no
@@ -96,6 +105,7 @@ Forward flows are wired; loop-closing and reverse nav leak.
 - `fallback.tsx` hides loading content from SR with `aria-hidden`. (P2)
 
 ### 6. Radius & type-scale freelancing — P2
+
 - Radius: `rounded-md` (6) in `panels.tsx:331,345,357` + `sidebar-footer-zone.tsx:155`;
   `rounded-2xl` (16) in login "D", migration `ProcessingOverlay`, login window chrome →
   snap to 8/12.
@@ -106,6 +116,7 @@ Forward flows are wired; loop-closing and reverse nav leak.
   [daily-brief-card.tsx:233](../../apps/app/src/features/dashboard/daily-brief-card.tsx) → tokenize.
 
 ### 7. Quality gradient — supporting surfaces feel like a plainer app — P2 (design)
+
 Standouts: migration wizard (4.5/5), clients portfolio grid (4), deadline + alert detail
 drawers (4 / 3.5). Thin: error boundary (1.5 — anonymous red alert on blank canvas, no
 brand, no path home), two-factor (2), workload (2 — `ManagerInsightMetric` duplicates
@@ -113,6 +124,7 @@ StatBand; busiest-owner buried in a `·`-joined string), calendar/reminders (2),
 settings family (2–3). These share PageHeader but have no StatBand-level personality moment.
 
 ### 8. Smaller systemic items
+
 - Tilegram divergence: `PulseAlertsMap` hand-codes its own US grid instead of consuming
   `us-jurisdiction-tiles` (the rules map does) → will drift. (P2)
 - Dead code: `SHOW_COVERAGE_MAP = false` flag + ~30-line dead branch in `rules.library`;
@@ -126,13 +138,13 @@ settings family (2–3). These share PageHeader but have no StatBand-level perso
 
 ## Per-cluster scores (stunning /5)
 
-| Cluster | Surfaces | Best | Weakest | Avg |
-|---|---|---|---|---|
-| Daily driver | /today, /clients, /clients/:id | clients grid 4 | client-detail setup tab | 3.7 |
-| Deadlines workbench | /deadlines, detail, /calendar, /workload, /readiness, /reminders | detail drawer 4 | /workload 2 | 2.6 |
-| Intelligence | /alerts, history, /rules*, /audit | alert drawer 3.5 | history 2.5 | 3.0 |
-| Admin & billing | /members, /practice, /settings*, /notifications*, /billing*, /migration | migration 4.5 | settings family 3 | 3.4 |
-| Entry & system | login, splash, onboarding, invite, 2fa, error, 404 | login 3.5 | error 1.5 | 2.4 |
+| Cluster             | Surfaces                                                                 | Best             | Weakest                 | Avg |
+| ------------------- | ------------------------------------------------------------------------ | ---------------- | ----------------------- | --- |
+| Daily driver        | /today, /clients, /clients/:id                                           | clients grid 4   | client-detail setup tab | 3.7 |
+| Deadlines workbench | /deadlines, detail, /calendar, /workload, /readiness, /reminders         | detail drawer 4  | /workload 2             | 2.6 |
+| Intelligence        | /alerts, history, /rules\*, /audit                                       | alert drawer 3.5 | history 2.5             | 3.0 |
+| Admin & billing     | /members, /practice, /settings*, /notifications*, /billing\*, /migration | migration 4.5    | settings family 3       | 3.4 |
+| Entry & system      | login, splash, onboarding, invite, 2fa, error, 404                       | login 3.5        | error 1.5               | 2.4 |
 
 ---
 
@@ -140,7 +152,7 @@ settings family (2–3). These share PageHeader but have no StatBand-level perso
 
 1. **Font-weight sweep** (P1) — one mechanical pass, ~100 sites, biggest crispness gain.
 2. **Primitive reclamation** (P1) — replace hand-rolled pills + local Card/Field/ReadonlyValue
-   + raw link-buttons with the canonical primitives. Buys cross-surface parity for free.
+   - raw link-buttons with the canonical primitives. Buys cross-surface parity for free.
 3. **Front-door fix** (P1) — real BrandMark on login, harmonize entry-shell/auth-chrome
    tokens, SSO icons + `AssigneeAvatar` on accept-invite.
 4. **Wiring + a11y** (P1) — alert-audit jump target, Filed-stat link, `clients.*`
