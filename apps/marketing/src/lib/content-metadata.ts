@@ -174,4 +174,166 @@ export const stateOfficialSources: Record<string, OfficialSourceLink[]> = {
       href: 'https://otr.cfo.dc.gov/',
     },
   ],
+  alabama: [
+    {
+      label: 'Alabama Department of Revenue resources',
+      href: 'https://www.revenue.alabama.gov/',
+    },
+  ],
+  alaska: [
+    {
+      label: 'Alaska Department of Revenue resources',
+      href: 'https://tax.alaska.gov/',
+    },
+  ],
+  arkansas: [
+    {
+      label: 'Arkansas Department of Finance and Administration resources',
+      href: 'https://www.dfa.arkansas.gov/income-tax/',
+    },
+  ],
+  delaware: [
+    {
+      label: 'Delaware Division of Revenue resources',
+      href: 'https://revenue.delaware.gov/',
+    },
+  ],
+  hawaii: [
+    {
+      label: 'Hawaii Department of Taxation resources',
+      href: 'https://tax.hawaii.gov/',
+    },
+  ],
+  idaho: [
+    {
+      label: 'Idaho State Tax Commission resources',
+      href: 'https://tax.idaho.gov/taxes/income-tax/business-income/',
+    },
+  ],
+  iowa: [
+    {
+      label: 'Iowa Department of Revenue resources',
+      href: 'https://revenue.iowa.gov/',
+    },
+  ],
+  kansas: [
+    {
+      label: 'Kansas Department of Revenue resources',
+      href: 'https://www.ksrevenue.gov/',
+    },
+  ],
+  kentucky: [
+    {
+      label: 'Kentucky Department of Revenue resources',
+      href: 'https://revenue.ky.gov/',
+    },
+  ],
+  louisiana: [
+    {
+      label: 'Louisiana Department of Revenue resources',
+      href: 'https://revenue.louisiana.gov/',
+    },
+  ],
+  maine: [
+    {
+      label: 'Maine Revenue Services resources',
+      href: 'https://www.maine.gov/revenue/',
+    },
+  ],
+  mississippi: [
+    {
+      label: 'Mississippi Department of Revenue resources',
+      href: 'https://www.dor.ms.gov/',
+    },
+  ],
+  montana: [
+    {
+      label: 'Montana Department of Revenue resources',
+      href: 'https://revenue.mt.gov/',
+    },
+  ],
+  nebraska: [
+    {
+      label: 'Nebraska Department of Revenue resources',
+      href: 'https://revenue.nebraska.gov/',
+    },
+  ],
+  nevada: [
+    {
+      label: 'Nevada Department of Taxation resources',
+      href: 'https://tax.nv.gov/',
+    },
+  ],
+  'new-hampshire': [
+    {
+      label: 'New Hampshire Department of Revenue Administration resources',
+      href: 'https://www.revenue.nh.gov/',
+    },
+  ],
+  'new-mexico': [
+    {
+      label: 'New Mexico Taxation and Revenue Department resources',
+      href: 'https://www.tax.newmexico.gov/',
+    },
+  ],
+  'north-dakota': [
+    {
+      label: 'North Dakota Office of State Tax Commissioner resources',
+      href: 'https://www.tax.nd.gov/business/corporate-income-tax',
+    },
+  ],
+  oklahoma: [
+    {
+      label: 'Oklahoma Tax Commission resources',
+      href: 'https://oklahoma.gov/tax.html',
+    },
+  ],
+  oregon: [
+    {
+      label: 'Oregon Department of Revenue resources',
+      href: 'https://www.oregon.gov/dor/',
+    },
+  ],
+  'rhode-island': [
+    {
+      label: 'Rhode Island Division of Taxation resources',
+      href: 'https://tax.ri.gov/',
+    },
+  ],
+  'south-carolina': [
+    {
+      label: 'South Carolina Department of Revenue resources',
+      href: 'https://dor.sc.gov/',
+    },
+  ],
+  'south-dakota': [
+    {
+      label: 'South Dakota Department of Revenue resources',
+      href: 'https://dor.sd.gov/',
+    },
+  ],
+  utah: [
+    {
+      label: 'Utah State Tax Commission resources',
+      href: 'https://tax.utah.gov/',
+    },
+  ],
+  vermont: [
+    {
+      label: 'Vermont Department of Taxes resources',
+      href: 'https://tax.vermont.gov/',
+    },
+  ],
+  'west-virginia': [
+    {
+      label: 'West Virginia Tax Division resources',
+      href: 'https://tax.wv.gov/',
+    },
+  ],
+  wyoming: [
+    {
+      label: 'Wyoming Department of Revenue resources',
+      href: 'https://revenue.wyo.gov/',
+    },
+  ],
 }
