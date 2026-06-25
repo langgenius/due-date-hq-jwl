@@ -39,6 +39,12 @@ const localeFreePath =
   pathname === '/zh-CN' ? '/' : pathname.startsWith('/zh-CN/') ? pathname.slice('/zh-CN'.length) : pathname
 const enHref = getMarketingUrl(localeFreePath)
 const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${localeFreePath}`)
+
+// Marketing display/body/mono faces. Loaded non-render-blocking (preload as
+// style + media=print onload swap, <noscript> fallback) so the third-party CSS
+// request never blocks first paint; `&display=swap` already prevents FOIT.
+const FONT_CSS_HREF =
+  'https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400..700;1,400&family=Instrument+Serif:ital@0;1&display=swap'
 ---
 
 <!doctype html>
@@ -103,13 +109,13 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    {/* Marketing display/body/mono faces (Instrument Serif hero, Instrument Sans, Geist Mono) */}
+    {/* Marketing display/body/mono faces (Instrument Serif hero, Instrument Sans,
+        Geist Mono) — loaded async so the font CSS never render-blocks. */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400..700;1,400&family=Instrument+Serif:ital@0;1&display=swap"
-    />
+    <link rel="preload" as="style" href={FONT_CSS_HREF} />
+    <link rel="stylesheet" href={FONT_CSS_HREF} media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href={FONT_CSS_HREF} /></noscript>
 
     {structuredData && <StructuredData data={structuredData} />}
 
