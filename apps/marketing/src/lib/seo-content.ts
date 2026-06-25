@@ -2170,6 +2170,138 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         ],
       },
     },
+    {
+      slug: 'payroll-tax-deadlines',
+      meta: {
+        title: 'Payroll tax deadlines for CPA firms — DueDateHQ guide',
+        description:
+          'How CPA teams keep federal payroll tax deadlines straight: Form 941 quarterly returns, Form 940 FUTA, W-2/W-3 and 1099-NEC by January 31, and the monthly vs semiweekly deposit schedule — each with its IRS source.',
+        ogImage: '/og/guide.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'How should a CPA firm track payroll tax deadlines?',
+        description:
+          'Payroll runs on several overlapping clocks: a quarterly return, an annual FUTA return, January 31 wage statements, and a separate deposit schedule. DueDateHQ keeps each one source-backed and matched to the employer clients it affects.',
+        note: 'This guide explains deadline operations, not tax advice.',
+      },
+      sections: [
+        {
+          eyebrow: 'THE CLOCKS',
+          title: 'Payroll is not one deadline — it is four.',
+          body: 'Filing a return is not the same as depositing the tax, and the annual statements run on their own date. A reliable workflow separates the quarterly return, the annual FUTA return, the January 31 wage statements, and the deposit schedule.',
+          items: [
+            {
+              title: 'Form 941 — quarterly',
+              body: 'The employer’s quarterly federal return, due the last day of the month after each quarter ends.',
+            },
+            {
+              title: 'Form 940 — annual FUTA',
+              body: 'The annual federal unemployment return, due January 31, with a short grace if deposits were timely.',
+            },
+            {
+              title: 'W-2 and 1099-NEC',
+              body: 'Wage and nonemployee-compensation statements, due January 31 to recipients and the government.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DEPOSIT VS FILE',
+          title: 'Depositing the tax is a separate obligation.',
+          body: 'Most payroll-tax dollars move on a deposit schedule — monthly or semiweekly — set by a lookback period, not by the return date. Missing a deposit is a different failure mode than missing a return.',
+          items: [
+            {
+              title: 'Monthly schedule',
+              body: 'Monthly depositors deposit a month’s employment taxes by the 15th day of the following month.',
+            },
+            {
+              title: 'Semiweekly schedule',
+              body: 'Semiweekly depositors follow a Wednesday/Friday cadence tied to when payday falls.',
+            },
+            {
+              title: 'Return ≠ deposit',
+              body: 'Form 941 reports the quarter; the tax itself was already due on the deposit schedule.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'OPERATING MODEL',
+          title: 'Make each payroll date source-backed and client-matched.',
+          body: 'DueDateHQ attaches each payroll deadline to the employer clients it affects, with the official IRS source beside it, so a quarterly return, an annual FUTA filing, and a January 31 statement deadline surface as ranked work — not a wall chart.',
+          items: [
+            {
+              title: 'Per-client mapping',
+              body: 'Each payroll date is matched to the employer clients whose facts make it apply.',
+            },
+            {
+              title: 'Source on every date',
+              body: 'Every deadline keeps its IRS source link so the date can be defended.',
+            },
+            {
+              title: 'Change monitoring',
+              body: 'If a payroll date or rule moves, affected employer clients surface in Alerts review.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'Payroll tax deadline questions.' },
+      faq: [
+        {
+          question: 'When are the Form 941 quarterly deadlines?',
+          answer:
+            'Form 941 is due the last day of the month after each quarter: April 30, July 31, October 31, and January 31.',
+        },
+        {
+          question: 'Is filing the return the same as depositing the tax?',
+          answer:
+            'No. Payroll tax is deposited on a monthly or semiweekly schedule set by a lookback period; the return reports what was already due.',
+        },
+        {
+          question: 'Is this guide tax advice?',
+          answer:
+            'No. It describes how DueDateHQ models payroll deadlines as source-backed operational work. Verify obligations against the official IRS source.',
+        },
+      ],
+      cta: {
+        title: 'See which payroll deadlines hit your clients.',
+        body: 'DueDateHQ maps each federal payroll date to the employer clients it affects, with the source attached.',
+        primary: 'Open rule library',
+        secondary: 'Read weekly triage',
+      },
+      keyDates: {
+        eyebrow: 'KEY DATES',
+        title: 'Federal payroll filing deadlines (calendar-year basis)',
+        note: 'If a date falls on a Saturday, Sunday, or legal holiday it moves to the next business day. Filing a return is separate from depositing the tax. Always verify against the official IRS source; this page describes software workflows, not tax advice.',
+        sourceLabel: 'IRS — Employment Tax Due Dates',
+        sourceHref:
+          'https://www.irs.gov/businesses/small-businesses-self-employed/employment-tax-due-dates',
+        rows: [
+          {
+            label: 'Form 941 (quarterly)',
+            value:
+              'April 30, July 31, October 31, and January 31 — the last day of the month after each quarter.',
+          },
+          {
+            label: 'Form 940 (FUTA, annual)',
+            value:
+              'January 31 — or February 10 if all FUTA deposits were made on time and in full.',
+          },
+          {
+            label: 'Form W-2 with W-3',
+            value: 'January 31 — to employees and to the Social Security Administration.',
+          },
+          {
+            label: 'Form 1099-NEC',
+            value: 'January 31 — to recipients and to the IRS.',
+          },
+          {
+            label: 'Deposit schedule',
+            value:
+              'Monthly (by the 15th of the next month) or semiweekly, set by the lookback period — separate from the return.',
+          },
+        ],
+      },
+    },
   ],
   'zh-CN': [
     {
@@ -2649,6 +2781,136 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
           {
             label: '2026 年 10 月 15 日',
             value: '延期后的 C-corporation 与个人申报。',
+          },
+        ],
+      },
+    },
+    {
+      slug: 'payroll-tax-deadlines',
+      meta: {
+        title: 'CPA 事务所的工资税截止日 — DueDateHQ 指南',
+        description:
+          '了解 CPA 团队如何理清联邦工资税截止日：Form 941 季度申报、Form 940 FUTA、1 月 31 日的 W-2/W-3 与 1099-NEC，以及按月与半周的缴存日程——每一项都附 IRS 来源。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: 'CPA 事务所应该如何跟踪工资税截止日？',
+        description:
+          '工资税同时跑着几条时钟：季度申报、年度 FUTA 申报、1 月 31 日的工资单，以及单独的缴存日程。DueDateHQ 让每一条都带官方来源，并匹配到受影响的雇主客户。',
+        note: '本指南解释截止日运营，不提供税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '几条时钟',
+          title: '工资税不是一个截止日，而是四个。',
+          body: '提交申报不等于缴存税款，年度工资单又有自己的日期。可靠的工作流会把季度申报、年度 FUTA 申报、1 月 31 日工资单和缴存日程分开。',
+          items: [
+            {
+              title: 'Form 941——季度',
+              body: '雇主的季度联邦申报，在每个季度结束后次月的最后一天到期。',
+            },
+            {
+              title: 'Form 940——年度 FUTA',
+              body: '年度联邦失业税申报，1 月 31 日到期；若缴存按时则有较短宽限。',
+            },
+            {
+              title: 'W-2 与 1099-NEC',
+              body: '工资单与非雇员报酬单，1 月 31 日前交给收件人和政府。',
+            },
+          ],
+        },
+        {
+          eyebrow: '缴存与申报',
+          title: '缴存税款是另一项独立义务。',
+          body: '大部分工资税款按缴存日程流动——按月或半周——由 lookback period 决定，而不是申报日。漏缴存与漏申报是两种不同的失败。',
+          items: [
+            {
+              title: '按月日程',
+              body: '按月缴存人在次月第 15 天前缴存上个月的雇佣税。',
+            },
+            {
+              title: '半周日程',
+              body: '半周缴存人按与发薪日挂钩的周三/周五节奏缴存。',
+            },
+            {
+              title: '申报 ≠ 缴存',
+              body: 'Form 941 申报的是整个季度；税款本身早已按缴存日程到期。',
+            },
+          ],
+        },
+        {
+          eyebrow: '运营模型',
+          title: '让每个工资税日期都带来源、并匹配到客户。',
+          body: 'DueDateHQ 把每个工资税截止日匹配到受影响的雇主客户，并在旁边附上官方 IRS 来源——季度申报、年度 FUTA、1 月 31 日工资单都作为按风险排序的工作出现，而不是一张挂历。',
+          items: [
+            {
+              title: '按客户匹配',
+              body: '每个工资税日期都匹配到事实上适用的雇主客户。',
+            },
+            {
+              title: '每个日期都带来源',
+              body: '每个截止日都保留 IRS 来源链接，以便日期可被解释。',
+            },
+            {
+              title: '变化监控',
+              body: '若工资税日期或规则发生变动，受影响的雇主客户会进入 Alerts 复核。',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '工资税截止日常见问题。' },
+      faq: [
+        {
+          question: 'Form 941 的季度截止日是哪几天？',
+          answer:
+            'Form 941 在每个季度结束后次月的最后一天到期：4 月 30 日、7 月 31 日、10 月 31 日和 1 月 31 日。',
+        },
+        {
+          question: '提交申报等于缴存税款吗？',
+          answer:
+            '不等于。工资税按 lookback period 决定的按月或半周日程缴存；申报只是申报已到期的税款。',
+        },
+        {
+          question: '这个指南是税务建议吗？',
+          answer:
+            '不是。它说明 DueDateHQ 如何把工资税截止日建模成带来源的运营工作。请对照官方 IRS 来源核实义务。',
+        },
+      ],
+      cta: {
+        title: '看清哪些工资税截止日影响你的客户。',
+        body: 'DueDateHQ 把每个联邦工资税日期匹配到受影响的雇主客户，并附上来源。',
+        primary: '打开规则库',
+        secondary: '阅读每周分诊指南',
+      },
+      keyDates: {
+        eyebrow: '关键日期',
+        title: '联邦工资税申报截止日（以日历年为基准）',
+        note: '若日期为周六、周日或法定假日，顺延至下一个工作日。提交申报与缴存税款是两件事。请始终对照 IRS 官方来源核实；本页说明软件工作流，不提供税务建议。',
+        sourceLabel: 'IRS — Employment Tax Due Dates',
+        sourceHref:
+          'https://www.irs.gov/businesses/small-businesses-self-employed/employment-tax-due-dates',
+        rows: [
+          {
+            label: 'Form 941（季度）',
+            value:
+              '4 月 30 日、7 月 31 日、10 月 31 日和 1 月 31 日——每个季度结束后次月的最后一天。',
+          },
+          {
+            label: 'Form 940（FUTA，年度）',
+            value: '1 月 31 日——若所有 FUTA 税款均按时足额缴存，则为 2 月 10 日。',
+          },
+          {
+            label: 'Form W-2 连同 W-3',
+            value: '1 月 31 日——交给雇员并报送社会保障局（SSA）。',
+          },
+          {
+            label: 'Form 1099-NEC',
+            value: '1 月 31 日——交给收件人并报送 IRS。',
+          },
+          {
+            label: '缴存日程',
+            value: '按月（次月 15 日前）或半周，由 lookback period 决定——与申报相互独立。',
           },
         ],
       },
@@ -3557,6 +3819,10 @@ export function getResourceCtaHrefs(
     '2026-tax-deadline-calendar': {
       primaryHref: `${prefix}/state-coverage`,
       secondaryHref: `${prefix}/rules`,
+    },
+    'payroll-tax-deadlines': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
     },
     'form-1120-c-corp-deadline': {
       primaryHref: `${prefix}/rules`,

@@ -25,6 +25,9 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'jetpack-workflow-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'aero-workflow-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'keeper-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  // Payroll deadlines guide added 2026-06-25 (941/940/W-2/1099 + deposit
+  // schedule, verified vs the IRS Employment Tax Due Dates page).
+  'payroll-tax-deadlines': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
 }
 
 export interface ContentDates {
