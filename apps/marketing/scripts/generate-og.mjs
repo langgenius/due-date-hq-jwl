@@ -79,21 +79,139 @@ function card(c) {
 </svg>`
 }
 
-const CARDS = {
-  'home.en.png': card({
-    sans: 'Helvetica Neue, Helvetica, Arial, sans-serif',
-    wordmark: 'DueDateHQ',
-    eyebrow: 'DEADLINE-CHANGE MONITORING FOR US CPA PRACTICES',
-    headline: ['Catch every tax-deadline change —', 'and see exactly who it affects.'],
-    chips: ['FED + 50 states + DC', 'A source on every date'],
-  }),
-  'home.zh-CN.png': card({
-    sans: 'PingFang SC, Hiragino Sans GB, Helvetica, Arial, sans-serif',
-    wordmark: 'DueDateHQ',
-    eyebrow: '面向美国 CPA 事务所的截止日变化监控',
-    headline: ['抓住每一次税务截止日变化，', '看清它影响到哪些客户。'],
-    chips: ['联邦 + 50 州 + DC', '每个日期都附官方来源'],
-  }),
+const SANS_EN = 'Helvetica Neue, Helvetica, Arial, sans-serif'
+const SANS_ZH = 'PingFang SC, Hiragino Sans GB, Helvetica, Arial, sans-serif'
+
+// One branded card per PAGE TYPE (not per page) — each .astro route picks the
+// card that matches its category, so a state page, a guide, a comparison, and a
+// rule reference each get a distinct, topical social/AI preview instead of the
+// generic home card. Per-type (≈8 cards) rather than per-page (≈150) keeps the
+// committed PNGs small and the script maintainable; the route IS the category,
+// so wiring lives in the page templates (ogImage prop), not 30 data literals.
+const CATEGORIES = [
+  {
+    key: 'home',
+    en: {
+      eyebrow: 'DEADLINE-CHANGE MONITORING FOR US CPA PRACTICES',
+      headline: ['Catch every tax-deadline change —', 'and see exactly who it affects.'],
+      chips: ['FED + 50 states + DC', 'A source on every date'],
+    },
+    zh: {
+      eyebrow: '面向美国 CPA 事务所的截止日变化监控',
+      headline: ['抓住每一次税务截止日变化，', '看清它影响到哪些客户。'],
+      chips: ['联邦 + 50 州 + DC', '每个日期都附官方来源'],
+    },
+  },
+  {
+    key: 'how-it-works',
+    en: {
+      eyebrow: 'HOW IT WORKS · PRODUCT WALKTHROUGH',
+      headline: ['From a deadline change', 'to the clients it affects.'],
+      chips: ['Watch · Match · Rank · Apply', 'A source on every date'],
+    },
+    zh: {
+      eyebrow: '产品导览 · 如何运作',
+      headline: ['从一次截止日变化，', '到它牵动的每个客户。'],
+      chips: ['监测 · 匹配 · 排序 · 应用', '每个日期都附来源'],
+    },
+  },
+  {
+    key: 'coverage',
+    en: {
+      eyebrow: 'COVERAGE · FEDERAL + EVERY STATE',
+      headline: ['Federal, every state,', 'and DC — monitored.'],
+      chips: ['FED + 50 states + DC', 'A source on every date'],
+    },
+    zh: {
+      eyebrow: '覆盖范围 · 联邦 + 全部州',
+      headline: ['联邦、每个州', '与 DC——全程监控。'],
+      chips: ['联邦 + 50 州 + DC', '每个日期都附来源'],
+    },
+  },
+  {
+    key: 'state',
+    en: {
+      eyebrow: 'STATE TAX DEADLINE MONITORING',
+      headline: ['State tax deadlines,', 'monitored at the source.'],
+      chips: ['50 states + DC', 'A source on every date'],
+    },
+    zh: {
+      eyebrow: '州税务截止日监控',
+      headline: ['州税务截止日，', '先从官方来源复核。'],
+      chips: ['50 州 + DC', '每个日期都附来源'],
+    },
+  },
+  {
+    key: 'rule',
+    en: {
+      eyebrow: 'RULE REFERENCE',
+      headline: ['Tax-deadline rules,', 'with the source attached.'],
+      chips: ['IRS-sourced dates', 'Human review gate'],
+    },
+    zh: {
+      eyebrow: '规则参考',
+      headline: ['税务截止日规则，', '每条都附官方来源。'],
+      chips: ['IRS 来源日期', '人工复核门槛'],
+    },
+  },
+  {
+    key: 'guide',
+    en: {
+      eyebrow: 'DEADLINE OPERATIONS GUIDE',
+      headline: ['Field guides for', 'CPA deadline operations.'],
+      chips: ['Source-backed', 'Built for CPA teams'],
+    },
+    zh: {
+      eyebrow: '截止日运营指南',
+      headline: ['面向 CPA 团队的', '截止日运营指南。'],
+      chips: ['带官方来源', '为 CPA 团队打造'],
+    },
+  },
+  {
+    key: 'compare',
+    en: {
+      eyebrow: 'HOW DUEDATEHQ COMPARES',
+      headline: ['A monitoring layer,', 'not another suite.'],
+      chips: ['Source-backed alerts', 'Layered on your stack'],
+    },
+    zh: {
+      eyebrow: 'DueDateHQ 对比',
+      headline: ['一个监控层，', '而不是又一套系统。'],
+      chips: ['带来源的提醒', '叠加在你的工具栈上'],
+    },
+  },
+  {
+    key: 'pricing',
+    en: {
+      eyebrow: 'PRICING',
+      headline: ['Simple pricing for', 'CPA practices.'],
+      chips: ['Built for CPA teams', 'Source-backed monitoring'],
+    },
+    zh: {
+      eyebrow: '定价',
+      headline: ['面向 CPA 事务所的', '简洁定价。'],
+      chips: ['为 CPA 团队打造', '带来源的监控'],
+    },
+  },
+  {
+    key: 'resources',
+    en: {
+      eyebrow: 'RESOURCES',
+      headline: ['Guides, comparisons,', 'and state coverage.'],
+      chips: ['Field guides', 'FED + 50 states + DC'],
+    },
+    zh: {
+      eyebrow: '资源',
+      headline: ['指南、对比', '与州覆盖。'],
+      chips: ['实战指南', '联邦 + 50 州 + DC'],
+    },
+  },
+]
+
+const CARDS = {}
+for (const c of CATEGORIES) {
+  CARDS[`${c.key}.en.png`] = card({ sans: SANS_EN, wordmark: 'DueDateHQ', ...c.en })
+  CARDS[`${c.key}.zh-CN.png`] = card({ sans: SANS_ZH, wordmark: 'DueDateHQ', ...c.zh })
 }
 
 for (const [file, svg] of Object.entries(CARDS)) {
