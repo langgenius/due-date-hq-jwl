@@ -347,6 +347,174 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
       ],
     },
   },
+  {
+    slug: '1099-nec-misc-filing-deadline',
+    label: '1099-NEC and 1099-MISC filing deadlines',
+    labelZh: '1099-NEC 与 1099-MISC 申报截止日',
+    sourceContext: 'IRS information-return instructions and electronic-filing-threshold guidance',
+    sourceContextZh: 'IRS 信息申报表说明与电子申报门槛指南',
+    operationalRisk:
+      'information-return work spans separate recipient-copy deadlines, different IRS paper vs e-file dates, and the ten-return e-file mandate',
+    operationalRiskZh:
+      '信息申报表工作同时涉及收件人副本截止日、IRS 纸质与电子申报的不同日期，以及 10 份起强制电子申报的规定',
+    clientContext:
+      'payer entity, contractor and vendor list, box type (NEC vs MISC box 8 or 10), and filing method',
+    clientContextZh: '付款方实体、承包商与供应商名单、box 类型（NEC 与 MISC box 8/10）和申报方式',
+    keyDates: {
+      sourceLabel: 'IRS — Instructions for Forms 1099-MISC and 1099-NEC',
+      sourceHref: 'https://www.irs.gov/instructions/i1099mec',
+      rows: [
+        {
+          label: 'Form 1099-NEC',
+          labelZh: 'Form 1099-NEC',
+          value:
+            'Due January 31 to both the recipient and the IRS — the same date for paper and e-file.',
+          valueZh: '1 月 31 日前同时提交给收件人和 IRS——纸质与电子申报为同一日期。',
+        },
+        {
+          label: 'Form 1099-MISC — to recipient',
+          labelZh: 'Form 1099-MISC——给收件人',
+          value: 'Due January 31 (February 15 when amounts are in box 8 or box 10).',
+          valueZh: '1 月 31 日（当金额在 box 8 或 box 10 时为 2 月 15 日）。',
+        },
+        {
+          label: 'Form 1099-MISC — to IRS',
+          labelZh: 'Form 1099-MISC——给 IRS',
+          value: 'Due February 28 on paper, or March 31 if e-filed.',
+          valueZh: '纸质申报为 2 月 28 日，电子申报为 3 月 31 日。',
+        },
+        {
+          label: 'E-file mandate',
+          labelZh: '强制电子申报',
+          value: 'Ten or more information returns (all types combined) must be e-filed.',
+          valueZh: '各类信息申报表合计达 10 份及以上必须电子申报。',
+        },
+      ],
+    },
+  },
+  {
+    slug: '1040-es-estimated-tax-deadline',
+    label: 'Form 1040-ES estimated tax deadlines',
+    labelZh: 'Form 1040-ES 估算税截止日',
+    sourceContext: 'IRS estimated-tax guidance and quarterly installment instructions',
+    sourceContextZh: 'IRS 估算税指南与季度分期说明',
+    operationalRisk:
+      'estimated-tax work runs on a four-installment calendar that does not match the annual return, with an early-file waiver for the final payment',
+    operationalRiskZh: '估算税按与年度申报不同的四期日历进行，且最后一期在提前报税时可豁免',
+    clientContext:
+      'individual taxpayer, projected income by period, prior-year safe harbor, and payment status',
+    clientContextZh: '个人纳税人、按期预估收入、上年度 safe harbor 和缴款状态',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1040-ES',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1040-es',
+      rows: [
+        {
+          label: '1st installment',
+          labelZh: '第 1 期',
+          value: 'Due April 15 (income earned January 1 – March 31).',
+          valueZh: '4 月 15 日（1 月 1 日 – 3 月 31 日的收入）。',
+        },
+        {
+          label: '2nd installment',
+          labelZh: '第 2 期',
+          value: 'Due June 15 (April 1 – May 31).',
+          valueZh: '6 月 15 日（4 月 1 日 – 5 月 31 日）。',
+        },
+        {
+          label: '3rd installment',
+          labelZh: '第 3 期',
+          value: 'Due September 15 (June 1 – August 31).',
+          valueZh: '9 月 15 日（6 月 1 日 – 8 月 31 日）。',
+        },
+        {
+          label: '4th installment',
+          labelZh: '第 4 期',
+          value:
+            'Due January 15 of the following year — skippable if the return is filed and paid in full by January 31.',
+          valueZh: '次年 1 月 15 日——若在 1 月 31 日前完成报税并全额缴清，则可免缴此期。',
+        },
+      ],
+    },
+  },
+  {
+    slug: '941-payroll-tax-deadline',
+    label: 'Form 941 payroll tax deadlines',
+    labelZh: 'Form 941 工资税截止日',
+    sourceContext: 'IRS Form 941 instructions and quarterly filing guidance',
+    sourceContextZh: 'IRS Form 941 说明与季度申报指南',
+    operationalRisk:
+      'payroll work separates the quarterly return from the deposit schedule — filing Form 941 is not the same as depositing the tax',
+    operationalRiskZh: '工资税工作把季度申报与缴存日程分开——提交 Form 941 不等于缴存税款',
+    clientContext:
+      'employer entity, deposit schedule (monthly or semiweekly), quarter, and deposit status',
+    clientContextZh: '雇主实体、缴存日程（按月或半周）、所属季度和缴存状态',
+    keyDates: {
+      sourceLabel: 'IRS — Instructions for Form 941',
+      sourceHref: 'https://www.irs.gov/instructions/i941',
+      rows: [
+        {
+          label: 'Filing rule',
+          labelZh: '申报规则',
+          value: 'Form 941 is due the last day of the month after each quarter ends.',
+          valueZh: 'Form 941 在每个季度结束后次月的最后一天到期。',
+        },
+        {
+          label: 'Quarterly due dates',
+          labelZh: '季度截止日',
+          value: 'Q1 April 30, Q2 July 31, Q3 October 31, Q4 January 31.',
+          valueZh:
+            '第一季度 4 月 30 日、第二季度 7 月 31 日、第三季度 10 月 31 日、第四季度 1 月 31 日。',
+        },
+        {
+          label: 'Timely-deposit grace',
+          labelZh: '按时缴存宽限',
+          value:
+            'If all deposits were made on time and in full, you may file by the 10th day of the 2nd month after the quarter.',
+          valueZh: '若所有缴存均按时足额完成，可在季度结束后第 2 个月的第 10 天前申报。',
+        },
+      ],
+    },
+  },
+  {
+    slug: '990-nonprofit-filing-deadline',
+    label: 'Form 990 nonprofit return deadline',
+    labelZh: 'Form 990 非营利组织申报截止日',
+    sourceContext: 'IRS exempt-organization return due-date guidance and Form 8868 extension rules',
+    sourceContextZh: 'IRS 豁免组织申报到期日指南与 Form 8868 延期规则',
+    operationalRisk:
+      'exempt-organization work keys off the 5th-month rule rather than April 15, and the 990-N e-Postcard cannot be extended',
+    operationalRiskZh:
+      '豁免组织工作依据「第 5 个月」规则而非 4 月 15 日，且 990-N e-Postcard 不可延期',
+    clientContext:
+      'exempt organization, accounting period, return type (990 / 990-EZ / 990-PF / 990-N), and extension status',
+    clientContextZh: '豁免组织、会计期间、申报类型（990 / 990-EZ / 990-PF / 990-N）和延期状态',
+    keyDates: {
+      sourceLabel: 'IRS — Annual exempt organization return due date',
+      sourceHref:
+        'https://www.irs.gov/charities-non-profits/annual-exempt-organization-return-due-date',
+      rows: [
+        {
+          label: 'Due-date rule',
+          labelZh: '到期规则',
+          value: "Due the 15th day of the 5th month after the organization's tax year ends.",
+          valueZh: '在组织税年结束后第 5 个月的第 15 天到期。',
+        },
+        {
+          label: 'Calendar-year filer',
+          labelZh: '日历年纳税人',
+          value: 'May 15 for a December 31 year-end.',
+          valueZh: '12 月 31 日财年结束的为 5 月 15 日。',
+        },
+        {
+          label: 'Extension (Form 8868)',
+          labelZh: '延期（Form 8868）',
+          value:
+            'An automatic 6-month extension — to November 15 for calendar-year filers. Form 990-N cannot be extended.',
+          valueZh: '自动延长 6 个月——日历年纳税人至 11 月 15 日。Form 990-N 不可延期。',
+        },
+      ],
+    },
+  },
 ]
 
 const KEY_DATES_NOTE: Record<Locale, string> = {
