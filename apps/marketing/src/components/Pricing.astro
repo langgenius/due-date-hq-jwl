@@ -144,6 +144,11 @@ const ui = zh
       </div>
     </section>
   )}
+  {comingSoon && t.comingSoonFaq.length > 0 && (
+    <section class="pr__faq">
+      <FaqList eyebrow={t.faqHeader.eyebrow} title={t.faqHeader.title} items={t.comingSoonFaq} />
+    </section>
+  )}
   {!comingSoon && (
   <section class="pr__plans">
     <header class="pr__planshead">

@@ -13,6 +13,7 @@ interface Props {
 }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
 
 // columns: status quo · deadline tracker · all-in-one suite · us
 const products = [
@@ -85,6 +86,7 @@ const t = zh
       legendYes: '内建',
       legendPartial: '技术上能，但不监测变化',
       footnote: '套件管事务所，我们盯截止日变化——两者并不冲突。',
+      compareLink: '查看与 File In Time 的完整对比 →',
       ariaSummary:
         '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。只有 DueDateHQ 7×24 盯着官方来源看变化、用 AI 读懂变化、精确标出受影响客户、一键应用并为每个日期保留来源；而完整的事务所管理、开票、文档存储是套件的强项，我们刻意不做，只装在它们之上。',
     }
@@ -99,6 +101,7 @@ const t = zh
       legendYes: 'Built in',
       legendPartial: 'Technically, but no change monitoring',
       footnote: 'Your suite runs the practice; we watch the deadlines — not in competition.',
+      compareLink: 'See the full File In Time comparison →',
       ariaSummary:
         'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources 24/7 for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
     }
@@ -169,6 +172,9 @@ const markLabel: Record<Mark, string> = zh
   </div>
 
   <p class="compare__foot">{t.footnote}</p>
+  <p class="compare__cta">
+    <a class="compare__link" href={`${base}/compare/file-in-time-alternative`}>{t.compareLink}</a>
+  </p>
 </section>
 
 <style>
@@ -304,5 +310,17 @@ const markLabel: Record<Mark, string> = zh
     font-size: var(--m-text-base);
     line-height: 1.6;
     color: var(--m-muted);
+  }
+  .compare__cta {
+    margin-top: 12px;
+  }
+  .compare__link {
+    font-size: var(--m-text-base);
+    font-weight: 600;
+    color: var(--m-accent);
+    text-decoration: none;
+  }
+  .compare__link:hover {
+    text-decoration: underline;
   }
 </style>

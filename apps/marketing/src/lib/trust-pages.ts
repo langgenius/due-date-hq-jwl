@@ -137,6 +137,28 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
       ],
+      faq: [
+        {
+          question: 'Where does my client data live, and is any of it on public pages?',
+          answer:
+            'All client deadline operations live inside the authenticated app workspace, isolated per firm. The public marketing pages contain product copy and examples only — by design they never expose a practice’s client records.',
+        },
+        {
+          question: 'Can a deadline change apply on its own?',
+          answer:
+            'No. A candidate change cannot become firm operations until a person reviews and approves it. Apply, undo, and revert are all recorded, so every change can be explained later.',
+        },
+        {
+          question: 'How do people sign in, and who can change billing?',
+          answer:
+            'Accounts authenticate through Google — there is no separate DueDateHQ password for us to store. Only a practice owner can start or change a paid plan, and we never store card numbers.',
+        },
+        {
+          question: 'Can you support a security review?',
+          answer:
+            'Yes. Reach the team for deployment details, data handling, and security-questionnaire support — we would rather show you than tell you.',
+        },
+      ],
       contact: {
         title: 'Running a security review?',
         body: 'Reach the team directly for deployment details, data handling, and security questionnaire support. We would rather show you than tell you.',
@@ -427,6 +449,28 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
               body: '成员看到的是套餐状态和共享工作，而非计费或其他事务所；权限按事务所授予，而非平台级。',
             },
           ],
+        },
+      ],
+      faq: [
+        {
+          question: '我的客户数据存在哪里？公开页面上会有吗？',
+          answer:
+            '所有客户截止日运营都在已认证的 app 工作区内，并按事务所隔离。公开营销页面只包含产品说明和示例——设计上绝不暴露事务所的客户记录。',
+        },
+        {
+          question: '截止日变化会自动生效吗？',
+          answer:
+            '不会。候选变化必须经人工复核并批准，才会成为事务所运营工作。apply、undo、revert 都会被记录，任何变更日后都能解释清楚。',
+        },
+        {
+          question: '如何登录？谁能更改账单？',
+          answer:
+            '账户通过 Google 登录——我们不会存储单独的 DueDateHQ 密码。只有事务所 owner 能开通或变更付费套餐，而且我们从不保存卡号。',
+        },
+        {
+          question: '能配合安全评审吗？',
+          answer:
+            '可以。就部署细节、数据处理和安全问卷支持联系团队——比起讲给你听，我们更愿意做给你看。',
         },
       ],
       contact: {

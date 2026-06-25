@@ -24,6 +24,16 @@ export const homeFaq: Record<Locale, FaqItemCopy[]> = {
       answer:
         "<b>It never invents a date.</b> Anything that can't be grounded in the official text is held back rather than guessed — so a date only appears once it's been read from, and linked to, the source.",
     },
+    {
+      question: 'Which states do you cover?',
+      answer:
+        "<b>The IRS plus all 50 states and DC</b> — every jurisdiction is watched live, the same way, alongside FEMA disaster postponements nationwide. No 'priority' states.",
+    },
+    {
+      question: 'How fast can I get started?',
+      answer:
+        "Paste your client list and your <b>first sourced deadline shows up in about 10 minutes</b> — it's email-first, with no portal to configure.",
+    },
   ],
   'zh-CN': [
     {
@@ -40,6 +50,16 @@ export const homeFaq: Record<Locale, FaqItemCopy[]> = {
       question: '我怎么知道这些日期是对的？',
       answer:
         '<b>它绝不编造日期。</b>任何无法落实到官方原文的内容都会宁可不显示也不猜——只有当一个日期是从来源读取并链接到来源后，它才会出现。',
+    },
+    {
+      question: '你们覆盖哪些州？',
+      answer:
+        '<b>IRS 加全部 50 个州和 DC</b>——每一个辖区都一视同仁地实时监控，并覆盖 FEMA 全国灾害延期，没有「重点州」之分。',
+    },
+    {
+      question: '上手要多久？',
+      answer:
+        '粘贴你的客户名单，<b>约 10 分钟后第一条带来源的截止日就会出现</b>——以邮件为主，无需配置门户。',
     },
   ],
 }

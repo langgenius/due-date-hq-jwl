@@ -12,8 +12,10 @@ import SurfaceDeep from '../../components/home/SurfaceDeep.astro'
 import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
+import FaqList from '../../components/FaqList.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getStartedHref } from '../../lib/app-url'
+import { howItWorksFaq } from '../../lib/how-it-works-faq'
 import { howItWorksStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
@@ -106,6 +108,9 @@ const description =
 
     <LoopDeep locale="zh-CN" />
     <SurfaceDeep locale="zh-CN" />
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="常见问题" title="常见问题。" items={howItWorksFaq['zh-CN']} />
+    </section>
     <Close ctaHref={ctaHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />

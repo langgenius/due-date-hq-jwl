@@ -16,8 +16,10 @@ import SurfaceDeep from '../components/home/SurfaceDeep.astro'
 import Close from '../components/home/Close.astro'
 import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
+import FaqList from '../components/FaqList.astro'
 import en from '../i18n/en'
 import { getStartedHref } from '../lib/app-url'
+import { howItWorksFaq } from '../lib/how-it-works-faq'
 import { howItWorksStructuredData } from '../lib/structured-data'
 
 const t = en
@@ -112,6 +114,9 @@ const description =
 
     <LoopDeep />
     <SurfaceDeep />
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="Common questions." items={howItWorksFaq.en} />
+    </section>
     <Close ctaHref={ctaHref} />
   </main>
   <Footer />

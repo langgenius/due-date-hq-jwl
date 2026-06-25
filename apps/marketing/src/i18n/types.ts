@@ -330,6 +330,9 @@ export interface PricingCopy {
     title: string
   }
   faq: { question: string; answer: string }[]
+  /** FAQ shown while pricing is "coming soon" (plans/Offers hidden). Separate
+   *  from `faq` so the visible accordion + FAQPage JSON-LD match the gated page. */
+  comingSoonFaq: { question: string; answer: string }[]
 }
 
 export interface FaqItemCopy {

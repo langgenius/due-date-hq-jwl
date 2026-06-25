@@ -8,6 +8,7 @@
  *  the page — chroma in containers, never in text. */
 import { getContentDates } from '../lib/content-metadata'
 import type { TrustPageCopy } from '../lib/trust-pages'
+import FaqList from './FaqList.astro'
 
 interface Props {
   page: TrustPageCopy
@@ -16,6 +17,7 @@ interface Props {
 
 const { page, locale } = Astro.props
 const zh = locale === 'zh-CN'
+const faqCopy = zh ? { eyebrow: '常见问题', title: '关于本页的常见问题。' } : { eyebrow: 'FAQ', title: 'Common questions.' }
 const reviewedOn = getContentDates(page.slug).reviewedOn
 const lastReviewedLabel = zh ? '最近复核' : 'Last reviewed'
 const sectionsLabel = zh ? '本页内容' : 'On this page'
@@ -135,6 +137,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
         </div>
       </section>
     ))
+  }
+
+  {
+    page.faq && page.faq.length > 0 && (
+      <section class="m-section m-page-block trustpg__block trustpg__faq">
+        <FaqList eyebrow={faqCopy.eyebrow} title={faqCopy.title} items={page.faq} />
+      </section>
+    )
   }
 
   <section class="trustpg__close">

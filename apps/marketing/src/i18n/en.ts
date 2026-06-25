@@ -692,6 +692,28 @@ const en: LandingCopy = {
           'Solo, Pro, and Team each include one active practice. For additional practices, separate offices, or demo/production separation, contact us about a multi-practice plan.',
       },
     ],
+    comingSoonFaq: [
+      {
+        question: 'How much will DueDateHQ cost?',
+        answer:
+          'Plans aren’t final yet, so we’re not quoting prices we might change. We’ll publish them here well before your free months are up, and you’re never charged without choosing a plan first.',
+      },
+      {
+        question: 'Is there a free trial?',
+        answer:
+          'Better — your first 3 months on the Team plan are free, with no card to start. Run your real practice on it, then pick the tier that fits your client count.',
+      },
+      {
+        question: 'Do I need a credit card to start?',
+        answer:
+          'No. Start free with no card — we never store card numbers, and billing only begins if you choose a paid plan.',
+      },
+      {
+        question: 'What happens when pricing launches?',
+        answer:
+          'We’ll post the tiers here before your free months end, and you decide whether to continue. Nothing auto-charges.',
+      },
+    ],
   },
   geo: {
     structuredData: {

@@ -10,6 +10,7 @@ import type {
 } from '../i18n/types'
 import { getContentDates } from './content-metadata'
 import { homeFaq } from './home-faq'
+import { howItWorksFaq } from './how-it-works-faq'
 import { MARKETING_SITE_URL, getMarketingUrl } from './site'
 import type { TrustPageCopy } from './trust-pages'
 
@@ -367,6 +368,7 @@ export function howItWorksStructuredData(
     ...baseNodes(t, lang),
     webPageNode(pathname, title, description, lang, 'how-it-works'),
     howToNode(lang),
+    faqNode(howItWorksFaq[lang]),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       { name: labels[lang], pathname },
@@ -404,7 +406,9 @@ export function pricingStructuredData(
   return graph([
     ...baseNodes(t, lang),
     webPageNode(pathname, t.pricing.meta.title, t.pricing.meta.description, lang, 'pricing'),
-    ...(comingSoon ? [] : [productNode(t.pricing, pathname), faqNode(t.pricing.faq)]),
+    ...(comingSoon
+      ? [faqNode(t.pricing.comingSoonFaq)]
+      : [productNode(t.pricing, pathname), faqNode(t.pricing.faq)]),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       { name: CRUMB_LABELS.pricing[lang], pathname },
