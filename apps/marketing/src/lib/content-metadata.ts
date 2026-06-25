@@ -120,4 +120,58 @@ export const stateOfficialSources: Record<string, OfficialSourceLink[]> = {
       href: 'https://www.michigan.gov/taxes',
     },
   ],
+  virginia: [
+    {
+      label: 'Virginia Department of Taxation — corporation income tax',
+      href: 'https://www.tax.virginia.gov/corporation-income-tax',
+    },
+  ],
+  maryland: [
+    {
+      label: 'Comptroller of Maryland — business tax resources',
+      href: 'https://www.marylandcomptroller.gov/',
+    },
+  ],
+  minnesota: [
+    {
+      label: 'Minnesota Department of Revenue — businesses',
+      href: 'https://www.revenue.state.mn.us/businesses',
+    },
+  ],
+  wisconsin: [
+    {
+      label: 'Wisconsin Department of Revenue — businesses',
+      href: 'https://www.revenue.wi.gov/Pages/Businesses/Home.aspx',
+    },
+  ],
+  tennessee: [
+    {
+      label: 'Tennessee Department of Revenue — franchise & excise tax',
+      href: 'https://www.tn.gov/revenue/taxes/franchise---excise-tax.html',
+    },
+  ],
+  missouri: [
+    {
+      label: 'Missouri Department of Revenue — business tax',
+      href: 'https://dor.mo.gov/taxation/business/',
+    },
+  ],
+  indiana: [
+    {
+      label: 'Indiana Department of Revenue — business tax',
+      href: 'https://www.in.gov/dor/business-tax/',
+    },
+  ],
+  connecticut: [
+    {
+      label: 'Connecticut Department of Revenue Services — corporation tax',
+      href: 'https://portal.ct.gov/DRS/Corporation-Tax/Corporation-Welcome-Page',
+    },
+  ],
+  'district-of-columbia': [
+    {
+      label: 'DC Office of Tax and Revenue',
+      href: 'https://otr.cfo.dc.gov/',
+    },
+  ],
 }
