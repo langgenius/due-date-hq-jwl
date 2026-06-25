@@ -52,6 +52,19 @@ adopting the latest deployed version.
    then `... add ...` with identical settings. No effect on the running version.
 3. **Queue purge:** `wrangler queues purge due-date-hq-pulse-staging --force`. No
    effect — fresh post-purge messages are still processed on the old version.
+4. **Another deploy + a secret rotation (2026-06-24):** a fresh `wrangler deploy`
+   plus `wrangler secret put AI_GATEWAY_PROVIDER_API_KEY`. The active deployment
+   updated, but the queue/scheduled path still routed `mt` to browserless.io —
+   still the old version, now also serving an old secret value.
+5. **Brand-new queue + fresh consumer (2026-06-25, on CF support's advice):**
+   created a new queue `due-date-hq-pulse-staging-v2`, repointed both the
+   `PULSE_QUEUE` producer binding and the consumer to it, and deployed. The new
+   queue shows a fresh consumer registration (`consumers=1`). **It did NOT help:**
+   after the next cron tick the `scheduled` handler still enqueued to the OLD queue
+   (its baked-in old binding) and `mt` was still processed via browserless.io on the
+   old version. Strong evidence the freeze is at the **Worker's queue/scheduled
+   execution-version level**, not the queue or the consumer registration — a
+   brand-new queue's fresh consumer still runs old code.
 
 ## Questions for support
 
@@ -60,13 +73,19 @@ adopting the latest deployed version.
    queue/Worker?
 2. Is there a known issue where `scheduled`/`queue` handlers continue running an
    old version after `wrangler deploy` while `fetch` uses the new one?
-3. Can you force-restart / re-pin the consumer for queue
-   `due-date-hq-pulse-staging` on Worker `due-date-hq-app-staging` to version
-   `6e6fae35-4ab3-4e2d-9f5e-e6e8f6e84751`?
+3. Can you force-restart / re-pin the `scheduled` + `queue` execution for Worker
+   `due-date-hq-app-staging` to the current active version
+   `8da844d9-52c1-4652-8401-8b7b12d4a3d9`? (Creating a brand-new queue did not move
+   it — see "Things already tried" #5.)
 
-## Impact
+## Impact (please escalate)
 
-Low urgency / no data loss. The affected sources were already failing before this
-(an unrelated browserless.io free-tier exhaustion); the migration to Cloudflare
-Browser Rendering is otherwise working on the new version. We just need the queue
-consumer to run the current deployment.
+This is now blocking our core pipeline, not cosmetic. **AI extraction — which runs
+on this same frozen `queue` consumer — has been down for ~10 days.** We rotated the
+relevant secret and redeployed; the active version works, but the frozen consumer
+keeps using the old version's old code AND old secret value, so extraction stays
+broken and new tax announcements are not turned into customer alerts. We have
+exhausted every self-service lever (5+ deploys, consumer remove/re-add, queue purge,
+secret rotation, and a brand-new queue with a fresh consumer registration — none
+cause the Worker's `scheduled`/`queue` execution to adopt the current version). We
+need Cloudflare to force-restart / re-pin that execution to the active deployment.
