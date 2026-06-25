@@ -2918,14 +2918,45 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
   ],
 }
 
+// Capitalize the first letter of an English positioning fragment for table cells.
+const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
 function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
   if (locale === 'zh-CN') {
     return {
       slug: spec.slug,
       meta: {
         title: `DueDateHQ vs ${spec.product} — 截止日运营对比`,
-        description: `了解 CPA 事务所如何在 ${spec.product} 和 DueDateHQ 之间比较截止日风险、官方来源证据、州级提醒复核、迁移成本和每周分诊工作流。`,
+        description: `把 DueDateHQ 作为 ${spec.product} 的截止日变化监控替代/补充来比较：CPA 截止日风险、官方来源证据、州级提醒复核、迁移成本与每周分诊——以及两者如何并用。`,
         ogImage: '/og/home.zh-CN.png',
+      },
+      comparisonTable: {
+        eyebrow: '一览',
+        title: `DueDateHQ 与 ${spec.product}，并排对比`,
+        mineLabel: 'DueDateHQ',
+        theirsLabel: spec.product,
+        rows: [
+          {
+            dimension: '这是什么',
+            mine: '面向 CPA 事务所的截止日与规则变化监控层',
+            theirs: spec.positioningZh,
+          },
+          {
+            dimension: '最适合',
+            mine: '希望在现有工具栈之上叠加带来源的截止日与规则监控的事务所',
+            theirs: spec.bestFitZh,
+          },
+          {
+            dimension: '官方来源级截止日变化监控',
+            mine: '核心能力——全天候监控官方 IRS 与各州来源',
+            theirs: '并非其重点',
+          },
+          {
+            dimension: '一起使用',
+            mine: '叠加在上层——不替换你现有的工具',
+            theirs: '仍是你在用的那套工具',
+          },
+        ],
       },
       hero: {
         eyebrow: '对比',
@@ -3000,6 +3031,14 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
           answer: '当核心问题是每周截止日分诊、来源证据、州级变化和迁移辅助的客户上下文。',
         },
         {
+          question: `DueDateHQ 是 ${spec.product} 的替代方案吗？`,
+          answer: `在一件事上可以：在官方来源处捕捉截止日与规则变化，并路由到受影响的客户。若你需要 ${spec.product} 更广的工作流，DueDateHQ 是补充而非完全替代。`,
+        },
+        {
+          question: `可以和 ${spec.product} 一起用吗？`,
+          answer: `可以。DueDateHQ 是叠加在 ${spec.product} 之上的监控层——监控官方 IRS 与各州来源并为每个日期附上来源，不替换你现有的配置。`,
+        },
+        {
           question: '这个对比是否是税务建议？',
           answer: '不是。它只解释软件工作流和产品边界。',
         },
@@ -3017,8 +3056,36 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
     slug: spec.slug,
     meta: {
       title: `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
-      description: `How CPA firms should compare ${spec.product} with DueDateHQ for deadline risk, source evidence, state coverage, and weekly triage workflows.`,
+      description: `How CPA firms compare ${spec.product} with DueDateHQ as a deadline-change monitoring alternative — deadline risk, official-source evidence, state coverage, and weekly triage, and how the two work together.`,
       ogImage: '/og/home.en.png',
+    },
+    comparisonTable: {
+      eyebrow: 'AT A GLANCE',
+      title: `DueDateHQ vs ${spec.product}, side by side`,
+      mineLabel: 'DueDateHQ',
+      theirsLabel: spec.product,
+      rows: [
+        {
+          dimension: 'What it is',
+          mine: 'A deadline-and-rule-change monitoring layer for CPA practices',
+          theirs: cap(spec.positioning),
+        },
+        {
+          dimension: 'Best fit',
+          mine: 'Firms adding source-backed deadline and rule monitoring on top of their stack',
+          theirs: cap(spec.bestFit),
+        },
+        {
+          dimension: 'Source-level deadline-change monitoring',
+          mine: 'Core — watches official IRS and state sources around the clock',
+          theirs: 'Not its focus',
+        },
+        {
+          dimension: 'Using them together',
+          mine: 'Layers on top — it does not replace your existing tools',
+          theirs: 'Stays the tool you already run',
+        },
+      ],
     },
     hero: {
       eyebrow: 'COMPARISON',
@@ -3095,6 +3162,14 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
         question: 'When should a firm choose DueDateHQ?',
         answer:
           'Choose DueDateHQ when the core problem is weekly deadline triage, source evidence, state changes, and migration-assisted client context.',
+      },
+      {
+        question: `Is DueDateHQ a ${spec.product} alternative?`,
+        answer: `It can be, for one job: catching deadline and rule changes at the official source and routing them to the clients they affect. For broader ${spec.product} workflows, DueDateHQ is a complement, not a full replacement.`,
+      },
+      {
+        question: `Can I use DueDateHQ alongside ${spec.product}?`,
+        answer: `Yes. DueDateHQ is a monitoring layer that sits on top of ${spec.product} — it watches official IRS and state sources and attaches a source to every date, without replacing your existing setup.`,
       },
       {
         question: 'Is this comparison tax advice?',

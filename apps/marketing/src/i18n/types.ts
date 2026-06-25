@@ -433,8 +433,20 @@ export interface StatePageCopy {
   keyDeadlines?: KeyDatesBlock
 }
 
+/** A side-by-side positioning table (DueDateHQ vs a named product). Honest,
+ * spec-driven — states each product's category/strength, not false negatives. */
+export interface ComparisonTableBlock {
+  eyebrow: string
+  title: string
+  mineLabel: string
+  theirsLabel: string
+  rows: { dimension: string; mine: string; theirs: string }[]
+}
+
 export interface GuidePageCopy extends ResourcePageCopy {
   slug: string
+  /** Optional DueDateHQ-vs-product table — used by comparison pages for SEO. */
+  comparisonTable?: ComparisonTableBlock
 }
 
 export interface StructuredDataCopy {

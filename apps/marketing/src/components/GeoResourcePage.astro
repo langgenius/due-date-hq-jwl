@@ -40,6 +40,9 @@ const reviewedOn = getContentDates('slug' in page ? page.slug : undefined).revie
 // labelled placeholder figure so the hero still carries a visual.
 const peekDate = page.keyDates?.rows?.[0]
 
+// Optional DueDateHQ-vs-product table (comparison pages only).
+const cmp = 'comparisonTable' in page ? page.comparisonTable : undefined
+
 const t = zh
   ? {
       lastReviewed: '最近复核',
@@ -216,6 +219,35 @@ const t = zh
               </svg>
             </a>
           </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    cmp && (
+      <section class="m-section m-page-block geo-block" id="at-a-glance">
+        <p class="m-eyebrow">{cmp.eyebrow}</p>
+        <h2 class="m-page-h2">{cmp.title}</h2>
+        <div class="geo-cmp">
+          <div class="geo-cmp__head" aria-hidden="true">
+            <span class="geo-cmp__dim" />
+            <span class="geo-cmp__mine">{cmp.mineLabel}</span>
+            <span class="geo-cmp__theirs">{cmp.theirsLabel}</span>
+          </div>
+          {cmp.rows.map((row) => (
+            <div class="geo-cmp__row">
+              <span class="geo-cmp__dim">{row.dimension}</span>
+              <span class="geo-cmp__mine">
+                <span class="geo-cmp__k">{cmp.mineLabel}</span>
+                {row.mine}
+              </span>
+              <span class="geo-cmp__theirs">
+                <span class="geo-cmp__k">{cmp.theirsLabel}</span>
+                {row.theirs}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
     )
@@ -582,6 +614,80 @@ const t = zh
   .geo-source:hover {
     color: var(--m-accent-strong);
     text-decoration-color: currentColor;
+  }
+
+  /* ---- comparison "at a glance" — DueDateHQ vs a product, side by side ---- */
+  .geo-cmp {
+    margin-top: 26px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--m-surface);
+  }
+  .geo-cmp__head,
+  .geo-cmp__row {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px 26px;
+    padding: 15px 22px;
+  }
+  .geo-cmp__head {
+    background: var(--m-section);
+    border-bottom: 1px solid var(--m-hairline);
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .geo-cmp__head .geo-cmp__mine {
+    color: var(--m-accent);
+  }
+  .geo-cmp__row + .geo-cmp__row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .geo-cmp__row {
+    font-size: var(--m-text-sm);
+    line-height: 1.55;
+  }
+  .geo-cmp__dim {
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  /* DueDateHQ column reads slightly stronger than the product column */
+  .geo-cmp__mine {
+    color: var(--m-ink-2);
+  }
+  .geo-cmp__theirs {
+    color: var(--m-muted);
+  }
+  /* per-cell label — hidden on desktop (the header carries it), shown when stacked */
+  .geo-cmp__k {
+    display: none;
+  }
+  @media (max-width: 720px) {
+    .geo-cmp__head {
+      display: none;
+    }
+    .geo-cmp__row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 16px 18px;
+    }
+    .geo-cmp__dim {
+      font-size: var(--m-text-base);
+    }
+    .geo-cmp__k {
+      display: block;
+      font-family: var(--m-font-mono);
+      font-size: var(--m-text-3xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--m-faint);
+      margin-bottom: 3px;
+    }
   }
 
   /* ---- sections — numbered editorial rhythm ---- */
