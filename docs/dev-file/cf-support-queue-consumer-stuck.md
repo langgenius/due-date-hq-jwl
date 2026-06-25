@@ -74,9 +74,11 @@ adopting the latest deployed version.
 2. Is there a known issue where `scheduled`/`queue` handlers continue running an
    old version after `wrangler deploy` while `fetch` uses the new one?
 3. Can you force-restart / re-pin the `scheduled` + `queue` execution for Worker
-   `due-date-hq-app-staging` to the current active version
-   `8da844d9-52c1-4652-8401-8b7b12d4a3d9`? (Creating a brand-new queue did not move
-   it — see "Things already tried" #5.)
+   `due-date-hq-app-staging` to the latest 100%-active version
+   (`710a339e-6231-4d44-9791-b96b984934a6`, active since 2026-06-25T03:42Z — we
+   deploy regularly, so please pin to whatever version is 100% active when you
+   action this)? (Creating a brand-new queue did not move it — see "Things already
+   tried" #5.)
 
 ## Impact (please escalate)
 
