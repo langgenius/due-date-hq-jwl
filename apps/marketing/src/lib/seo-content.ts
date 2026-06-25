@@ -2302,6 +2302,105 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         ],
       },
     },
+    {
+      slug: 'deadline-monitoring-for-quickbooks-firms',
+      meta: {
+        title: 'Deadline monitoring for QuickBooks firms — DueDateHQ guide',
+        description:
+          'QuickBooks keeps the books; it does not watch IRS and state deadline or rule changes. How CPA and bookkeeping firms add a source-backed deadline-change monitoring layer alongside QuickBooks with DueDateHQ.',
+        ogImage: '/og/guide.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'Deadline monitoring for QuickBooks-based firms',
+        description:
+          'QuickBooks is where the books live. It is not built to watch official IRS and state sources and tell you when a filing deadline or rule moves. DueDateHQ adds exactly that layer — alongside QuickBooks, not instead of it.',
+        note: 'This guide explains how the tools fit together; it is not tax advice, and DueDateHQ is not affiliated with Intuit or QuickBooks.',
+      },
+      sections: [
+        {
+          eyebrow: 'WHAT QUICKBOOKS DOES',
+          title: 'QuickBooks runs the ledger — not deadline-change monitoring.',
+          body: 'QuickBooks is accounting and bookkeeping software: the general ledger, reconciliations, invoicing, and (with add-ons) payroll. Watching government sources for deadline and rule changes is not the job it is built for.',
+          items: [
+            {
+              title: 'The books',
+              body: 'Ledger, reconciliations, reporting, and the QuickBooks Online ecosystem your firm already relies on.',
+            },
+            {
+              title: 'Not a source monitor',
+              body: 'QuickBooks does not watch IRS or state pages for disaster postponements, deadline shifts, or rule changes.',
+            },
+            {
+              title: 'Per-client deadlines',
+              body: 'It does not map a moving federal or state deadline to the specific clients it affects.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'THE GAP',
+          title: 'Deadlines and rules move — and the books will not tell you.',
+          body: 'A disaster postponement, a changed state due date, a new filing rule — these happen at the source, not in your ledger. Firms on QuickBooks usually catch them through a patchwork of emails, spreadsheets, and memory.',
+          items: [
+            {
+              title: 'Changes happen at the source',
+              body: 'IRS and state agencies move dates and publish rules on their own pages, on their own schedule.',
+            },
+            {
+              title: 'Who is affected?',
+              body: 'The real question is which of your clients a change hits — before the deadline, not after.',
+            },
+            {
+              title: 'Evidence on every date',
+              body: 'When a date moves, you want the official source attached so the change can be reviewed and defended.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'TOGETHER',
+          title: 'DueDateHQ + QuickBooks: the monitoring layer on top.',
+          body: 'DueDateHQ sits alongside QuickBooks. It watches official IRS and state sources around the clock, routes each deadline and rule change to the clients it affects, and keeps the source on every date — while QuickBooks stays your system of record for the books.',
+          items: [
+            {
+              title: 'Keep QuickBooks',
+              body: 'Nothing migrates. DueDateHQ adds monitoring without replacing your accounting stack.',
+            },
+            {
+              title: 'Source-backed changes',
+              body: 'Each deadline and rule change carries its official IRS or state source, excerpt, and review state.',
+            },
+            {
+              title: 'Affected-client review',
+              body: 'Changes are matched to specific clients and human-reviewed before they become work.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'QuickBooks + DueDateHQ questions.' },
+      faq: [
+        {
+          question: 'Does DueDateHQ replace QuickBooks?',
+          answer:
+            'No. QuickBooks is your accounting and bookkeeping ledger; DueDateHQ is a deadline-and-rule-change monitoring layer. They do different jobs and work together.',
+        },
+        {
+          question: 'Is DueDateHQ a QuickBooks alternative?',
+          answer:
+            'No — they are different categories. QuickBooks keeps the books; DueDateHQ watches official IRS and state sources for deadline and rule changes and maps them to your clients.',
+        },
+        {
+          question: 'Can I use DueDateHQ with QuickBooks?',
+          answer:
+            'Yes. DueDateHQ is designed to sit alongside whatever accounting stack you run, including QuickBooks — it adds the monitoring layer without changing your books.',
+        },
+      ],
+      cta: {
+        title: 'Add deadline-change monitoring next to QuickBooks.',
+        body: 'DueDateHQ watches official IRS and state sources and routes each change to the clients it affects, with the source attached.',
+        primary: 'See how it works',
+        secondary: 'Open rule library',
+      },
+    },
   ],
   'zh-CN': [
     {
@@ -2913,6 +3012,105 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             value: '按月（次月 15 日前）或半周，由 lookback period 决定——与申报相互独立。',
           },
         ],
+      },
+    },
+    {
+      slug: 'deadline-monitoring-for-quickbooks-firms',
+      meta: {
+        title: '面向 QuickBooks 事务所的截止日监控 — DueDateHQ 指南',
+        description:
+          'QuickBooks 管的是账，不会监控 IRS 与各州的截止日或规则变化。了解 CPA 与记账事务所如何用 DueDateHQ 在 QuickBooks 旁边加上一层带来源的截止日变化监控。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: '面向 QuickBooks 事务所的截止日监控',
+        description:
+          'QuickBooks 是账务所在的地方，但它并非为监控官方 IRS 与各州来源、在截止日或规则变动时提醒你而设计。DueDateHQ 补的正是这一层——叠加在 QuickBooks 旁边，而不是替换它。',
+        note: '本指南说明两类工具如何配合，不提供税务建议；DueDateHQ 与 Intuit 或 QuickBooks 无任何关联。',
+      },
+      sections: [
+        {
+          eyebrow: 'QuickBooks 做什么',
+          title: 'QuickBooks 跑的是账本，不是截止日变化监控。',
+          body: 'QuickBooks 是会计与记账软件：总账、对账、开票，以及（通过附加模块）工资。监控政府来源的截止日与规则变化，并不是它被设计来做的事。',
+          items: [
+            {
+              title: '账本',
+              body: '总账、对账、报表，以及你事务所已在依赖的 QuickBooks Online 生态。',
+            },
+            {
+              title: '并非来源监控',
+              body: 'QuickBooks 不会监控 IRS 或各州页面的灾害延期、截止日变动或规则变化。',
+            },
+            {
+              title: '逐客户截止日',
+              body: '它不会把一个变动中的联邦或州截止日映射到具体受影响的客户。',
+            },
+          ],
+        },
+        {
+          eyebrow: '缺口',
+          title: '截止日和规则会变——而账本不会告诉你。',
+          body: '灾害延期、某州改了截止日、出了新申报规则——这些发生在官方来源，而不是你的账本里。用 QuickBooks 的事务所通常靠邮件、表格和记忆拼凑着接住它们。',
+          items: [
+            {
+              title: '变化发生在来源处',
+              body: 'IRS 与各州机构在它们自己的页面、按它们自己的节奏调整日期、发布规则。',
+            },
+            {
+              title: '谁受影响？',
+              body: '真正的问题是某条变化命中你的哪些客户——在截止日之前，而不是之后。',
+            },
+            {
+              title: '每个日期都带证据',
+              body: '日期一变动，你会希望附上官方来源，以便复核与解释。',
+            },
+          ],
+        },
+        {
+          eyebrow: '一起使用',
+          title: 'DueDateHQ + QuickBooks：叠加在上层的监控层。',
+          body: 'DueDateHQ 叠加在 QuickBooks 旁边：全天候监控官方 IRS 与各州来源，把每条截止日与规则变化路由到受影响的客户，并为每个日期保留来源——而 QuickBooks 仍是你账务的系统记录。',
+          items: [
+            {
+              title: '保留 QuickBooks',
+              body: '无需迁移。DueDateHQ 只加监控，不替换你的会计工具栈。',
+            },
+            {
+              title: '带来源的变化',
+              body: '每条截止日与规则变化都带官方 IRS 或州来源、摘录和复核状态。',
+            },
+            {
+              title: '受影响客户复核',
+              body: '变化先匹配到具体客户、经人工复核，再成为工作。',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'QuickBooks + DueDateHQ 常见问题。' },
+      faq: [
+        {
+          question: 'DueDateHQ 会替代 QuickBooks 吗？',
+          answer:
+            '不会。QuickBooks 是你的会计与记账账本；DueDateHQ 是截止日与规则变化监控层。两者做不同的事，并且互相配合。',
+        },
+        {
+          question: 'DueDateHQ 是 QuickBooks 的替代方案吗？',
+          answer:
+            '不是——它们属于不同品类。QuickBooks 管账；DueDateHQ 监控官方 IRS 与各州来源的截止日与规则变化，并映射到你的客户。',
+        },
+        {
+          question: '可以和 QuickBooks 一起用吗？',
+          answer:
+            '可以。DueDateHQ 设计为叠加在你使用的任何会计工具栈旁边，包括 QuickBooks——只加监控层，不改动你的账务。',
+        },
+      ],
+      cta: {
+        title: '在 QuickBooks 旁边加上截止日变化监控。',
+        body: 'DueDateHQ 监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，并附上来源。',
+        primary: '看它如何运作',
+        secondary: '打开规则库',
       },
     },
   ],
@@ -4163,6 +4361,10 @@ export function getResourceCtaHrefs(
     'payroll-tax-deadlines': {
       primaryHref: `${prefix}/rules`,
       secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'deadline-monitoring-for-quickbooks-firms': {
+      primaryHref: `${prefix}/how-it-works`,
+      secondaryHref: `${prefix}/rules`,
     },
     'taxdome-alternatives': {
       primaryHref: `${prefix}/compare/taxdome-deadline-operations`,
