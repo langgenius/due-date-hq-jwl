@@ -681,6 +681,47 @@ const comparisonSpecs: ComparisonSpec[] = [
     contrastZh:
       'DueDateHQ 聚焦截止日变化信号本身——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，并附上来源。',
   },
+  {
+    slug: 'jetpack-workflow-deadline-operations',
+    product: 'Jetpack Workflow',
+    positioning:
+      'accounting workflow software built around recurring client work and deadline tracking',
+    positioningZh: '围绕周期性客户工作与截止日跟踪构建的会计工作流软件',
+    bestFit:
+      'firms standardizing recurring jobs from a template library and watching workload across the team',
+    bestFitZh: '希望用模板库标准化周期性任务、并掌握团队工作量的事务所',
+    contrast:
+      'DueDateHQ does not run your recurring jobs — it watches official IRS and state sources for deadline and rule changes and routes each one to the clients it affects, with the source attached, on top of whatever workflow tool you use.',
+    contrastZh:
+      'DueDateHQ 不负责运行你的周期性任务——它监控官方 IRS 与各州来源的截止日与规则变化，把每条变化路由到受影响的客户并附上来源，叠加在你正在用的任何工作流工具之上。',
+  },
+  {
+    slug: 'aero-workflow-deadline-operations',
+    product: 'Aero Workflow',
+    positioning:
+      'a workflow and task-management tool for bookkeeping, CAS, and accounting firms with a procedures library',
+    positioningZh: '面向记账、CAS 与会计事务所的工作流与任务管理工具，带流程库',
+    bestFit: 'firms turning standardized procedures into assigned, time-tracked client tasks',
+    bestFitZh: '希望把标准化流程转成可分派、可计时的客户任务的事务所',
+    contrast:
+      'DueDateHQ stays narrower than workflow management: it monitors deadline and rule changes at the official source and shows exactly which clients are affected, instead of running the team task list.',
+    contrastZh:
+      'DueDateHQ 比工作流管理更窄：它在官方来源处监控截止日与规则变化，并精确显示哪些客户受影响，而不是去运行团队任务清单。',
+  },
+  {
+    slug: 'keeper-deadline-operations',
+    product: 'Keeper',
+    positioning:
+      'a month-end close and bookkeeping management app with a client portal, file reviews, and QuickBooks sync',
+    positioningZh: '带客户门户、复核与 QuickBooks 同步的月结与记账管理工具',
+    bestFit:
+      'bookkeeping teams running the month-end close, client questions, and management reporting in one place',
+    bestFitZh: '希望把月结、客户问询与管理报表集中在一处的记账团队',
+    contrast:
+      'DueDateHQ is not a close or bookkeeping tool — it is a deadline-and-rule-change monitoring layer that watches official IRS and state sources and attaches a source to every date, independent of where your books live.',
+    contrastZh:
+      'DueDateHQ 不是月结或记账工具——它是一个截止日与规则变化监控层，监控官方 IRS 与各州来源并为每个日期附上来源，与你的账务系统在哪无关。',
+  },
 ]
 
 const ruleReferenceSpecs: RuleReferenceSpec[] = [

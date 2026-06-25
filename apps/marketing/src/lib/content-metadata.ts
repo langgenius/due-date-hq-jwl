@@ -20,6 +20,11 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'form-w-2-filing-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'form-2553-s-corp-election-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'form-5500-benefit-plan-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  // Comparison pages added 2026-06-25 (positioning, source-checked product
+  // categories), likewise post-dating the 06-18 site-wide review.
+  'jetpack-workflow-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'aero-workflow-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'keeper-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
 }
 
 export interface ContentDates {
