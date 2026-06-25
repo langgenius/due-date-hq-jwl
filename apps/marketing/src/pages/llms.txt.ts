@@ -52,7 +52,6 @@ const corePages = [
 ]
 
 const trustPages = [
-  ['About', '/about'],
   ['Security', '/security'],
   ['Privacy', '/privacy'],
   ['Terms', '/terms'],
