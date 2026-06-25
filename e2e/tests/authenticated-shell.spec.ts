@@ -75,7 +75,7 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   await appShellPage.commandItem('Calendar sync').click()
 
   await expect(authenticatedPage).toHaveURL(/\/deadlines\/calendar$/)
-  await expect(authenticatedPage.getByText('Subscription notes')).toBeVisible()
+  await expect(authenticatedPage.getByRole('heading', { name: 'Calendar sync' })).toBeVisible()
   await authenticatedPage.getByRole('button', { name: 'Back to Deadlines' }).click()
   await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
 
