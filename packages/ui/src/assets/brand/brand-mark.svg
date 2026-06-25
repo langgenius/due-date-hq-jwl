@@ -1,10 +1,10 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DueDateHQ">
   <title>DueDateHQ</title>
   <rect width="256" height="256" rx="54" fill="#1F315C"/>
-  <g transform="translate(32 55.15) scale(1.129)" fill="#F3EEE6">
-    <rect width="147.678" height="26.6898" rx="8"/>
-    <rect y="34.1035" width="147.678" height="26.6898" rx="8"/>
-    <rect x="20.8228" y="71.3516" width="147.678" height="26.6898" rx="8" transform="rotate(-2.43169 20.8228 71.3516)"/>
-    <rect y="102.311" width="147.678" height="26.6898" rx="8"/>
+  <g transform="translate(32 54.6) scale(2.259)" fill="#F3EEE6">
+    <rect width="74" height="12" rx="3.5"/>
+    <rect y="17" width="74" height="12" rx="3.5"/>
+    <rect x="10.4111" y="35.6758" width="73.8388" height="12" rx="3.5" transform="rotate(-2.43169 10.4111 35.6758)"/>
+    <rect y="51" width="74" height="12" rx="3.5"/>
   </g>
 </svg>

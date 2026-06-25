@@ -1,9 +1,7 @@
 import { Outlet, useLocation } from 'react-router'
 import { Trans } from '@lingui/react/macro'
 
-import brandMarkDark from '@duedatehq/ui/assets/brand/brand-favicon-dark.svg?url'
-import brandMarkLight from '@duedatehq/ui/assets/brand/brand-favicon.svg?url'
-
+import { BrandWordmark } from '@/components/primitives/brand-wordmark'
 import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 
 // React Router v7 pathless layout route shared by every "entry" surface — the
@@ -65,30 +63,7 @@ function EntryShellHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-divider-subtle px-6 lg:px-10">
       <div className="flex items-center gap-2 text-description">
-        <img
-          src={brandMarkLight}
-          alt=""
-          aria-hidden
-          width={16}
-          height={16}
-          className="size-4 shrink-0 dark:hidden"
-        />
-        <img
-          src={brandMarkDark}
-          alt=""
-          aria-hidden
-          width={16}
-          height={16}
-          className="hidden size-4 shrink-0 dark:block"
-        />
-        <span className="flex items-baseline gap-1">
-          <span className="font-serif font-medium tracking-[-0.1px] text-text-primary">
-            DueDate
-          </span>
-          <span className="text-[0.7em] font-medium uppercase tracking-[0.08em] text-text-tertiary">
-            HQ
-          </span>
-        </span>
+        <BrandWordmark className="h-4 shrink-0 dark:text-brand-ivory" />
         <span aria-hidden className="text-text-muted">
           /
         </span>

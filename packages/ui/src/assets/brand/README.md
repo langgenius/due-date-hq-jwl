@@ -11,6 +11,7 @@ Figma: file `ssejugriUJkW9vbcBzmRgd`, frame "DueDateHQ — Brand Icon (Design Sp
 | `brand-mark.svg`         | 256×256 | `#1F315C` | `#F3EEE6` | OG images, email hero, ≥ 64 px hero tiles                 |
 | `brand-favicon.svg`      | 32×32   | `#1F315C` | `#F3EEE6` | Browser favicon, ≤ 32 px inline brand chips (light theme) |
 | `brand-favicon-dark.svg` | 32×32   | `#071A2E` | `#F4F8FC` | ≤ 32 px inline brand chips (dark theme)                   |
+| `brand-wordmark.svg`     | 592×77  | —         | `#1F315C` | Full lockup (mark + "DueDateHQ" letterforms); OG / email  |
 
 The mark is the **stacked-bars** direction (2026-06-26 refresh, supplied by Yuqi):
 four rounded horizontal bars, the third tilted ~2.4° — a schedule with one row
@@ -20,9 +21,16 @@ square. The shapes that survive 16-32 px:
 - rounded-square navy tile (`--color-brand-ink` `#1F315C`)
 - four ivory bars (`--color-brand-ivory` `#F3EEE6`), the third tilted
 
-The in-app source of truth is `apps/app/src/components/primitives/brand-mark.tsx`
-(`BrandMark`) and `docs/brand/` (full lockup + brand book). Keep these standalone
-SVGs in sync with it.
+The in-app source of truth is two components: `BrandMark`
+(`apps/app/src/components/primitives/brand-mark.tsx`) for the icon, and
+`BrandWordmark` (`brand-wordmark.tsx`) for the full lockup. `BrandWordmark` is
+`currentColor`-driven — set the color with a text utility (`text-brand-ink`
+default; `text-brand-ivory`/`text-white` on dark), so it needs no light/dark
+asset pair. Keep these standalone SVGs in sync with the components.
+
+Mark geometry (single source: `Bars()` in `brand-mark.tsx` / the four rects in
+each asset): four bars `74×12 rx3.5` at y 0 / 17 / 51, the third tilted
+`rotate(-2.43169)` from `x10.4111 y35.6758`, in an `85×65` box.
 
 All files use hardcoded hex (no CSS variables, no `currentColor`) so they
 work as standalone files in `<link rel="icon">` tags and in email templates

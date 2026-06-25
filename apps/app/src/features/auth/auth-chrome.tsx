@@ -7,7 +7,7 @@ import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
-import { BrandMark } from '@/components/primitives/brand-mark'
+import { BrandWordmark } from '@/components/primitives/brand-wordmark'
 
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
 // matching the Pencil auth cluster (pW6pK / uu9SI / e3FyUB): a brand anchor,
@@ -27,24 +27,26 @@ import { BrandMark } from '@/components/primitives/brand-mark'
 export function AuthBrandAnchor({
   className,
   tagline = true,
-  frame = true,
   markClassName,
   animated = false,
 }: {
   className?: string
   tagline?: boolean
+  /** @deprecated The lockup is a single drawn wordmark now (no navy square). Ignored. */
   frame?: boolean
-  /** Override the mark size, e.g. `h-5` for a smaller splash lockup. */
+  /** Override the lockup height, e.g. `h-5` for a smaller splash lockup. */
   markClassName?: string
   /**
-   * Opt-in: settle the mark in with a calm fade + scale on mount (splash /
+   * Opt-in: settle the lockup in with a calm fade + scale on mount (splash /
    * login entrances). Off by default so the always-present chrome surfaces
    * (2FA / accept-invite headers) keep their instant render. Reduced-motion is
    * handled globally via the root <MotionConfig reducedMotion="user">.
    */
   animated?: boolean
 }) {
-  const mark = <BrandMark frame={frame} {...(markClassName ? { className: markClassName } : {})} />
+  // Single drawn lockup (bars + "DueDateHQ"). Navy on the light auth surfaces
+  // via the wordmark's default `text-brand-ink`.
+  const lockup = <BrandWordmark className={cn('h-6', markClassName)} />
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
       {animated ? (
@@ -54,19 +56,11 @@ export function AuthBrandAnchor({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
         >
-          {mark}
+          {lockup}
         </motion.span>
       ) : (
-        mark
+        lockup
       )}
-      <span className="flex items-baseline gap-1 leading-none">
-        <span className="font-serif text-[17px] font-medium tracking-[-0.1px] text-text-primary">
-          DueDate
-        </span>
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
-          HQ
-        </span>
-      </span>
       {tagline ? (
         <>
           <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
