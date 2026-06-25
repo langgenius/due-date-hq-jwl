@@ -60,6 +60,21 @@ function graph(nodes: Array<JsonLdDocument | null>): JsonLdDocument {
   return { '@context': 'https://schema.org', '@graph': withoutNulls(nodes) }
 }
 
+// Canonical entity facts for the Organization node. These are true descriptions
+// of what the company does (not claims we can't back): slogan mirrors the footer
+// tagline, knowsAbout lists the real subject areas. foundingDate / sameAs stay
+// out until we have a verifiable date and real off-repo profiles — never fabricated.
+const ORG_SLOGAN = 'Deadline-change monitoring for US CPA practices — with a source on every date.'
+const ORG_KNOWS_ABOUT: readonly string[] = [
+  'CPA tax deadline management',
+  'IRS filing deadlines',
+  'State tax filing deadlines',
+  'Tax deadline change monitoring',
+  'Multi-state tax compliance',
+  'Tax filing extensions',
+  'Disaster relief filing postponements',
+]
+
 function organizationNode(t: LandingCopy): JsonLdDocument {
   const node: JsonLdDocument = {
     '@type': 'Organization',
@@ -68,7 +83,9 @@ function organizationNode(t: LandingCopy): JsonLdDocument {
     url: SITE,
     logo: { '@type': 'ImageObject', url: `${SITE}/favicon.svg` },
     description: t.geo.structuredData.organizationDescription,
+    slogan: ORG_SLOGAN,
     areaServed: 'US',
+    knowsAbout: [...ORG_KNOWS_ABOUT],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
