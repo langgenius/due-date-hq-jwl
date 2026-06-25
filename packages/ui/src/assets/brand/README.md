@@ -8,17 +8,17 @@ Figma: file `ssejugriUJkW9vbcBzmRgd`, frame "DueDateHQ — Brand Icon (Design Sp
 
 | File                     | viewBox | Tile fill | Bars      | Use it for                                                |
 | ------------------------ | ------- | --------- | --------- | --------------------------------------------------------- |
-| `brand-mark.svg`         | 256×256 | `#0A2540` | `#F3EEE6` | OG images, email hero, ≥ 64 px hero tiles                 |
-| `brand-favicon.svg`      | 32×32   | `#0A2540` | `#F3EEE6` | Browser favicon, ≤ 32 px inline brand chips (light theme) |
+| `brand-mark.svg`         | 256×256 | `#1F315C` | `#F3EEE6` | OG images, email hero, ≥ 64 px hero tiles                 |
+| `brand-favicon.svg`      | 32×32   | `#1F315C` | `#F3EEE6` | Browser favicon, ≤ 32 px inline brand chips (light theme) |
 | `brand-favicon-dark.svg` | 32×32   | `#071A2E` | `#F4F8FC` | ≤ 32 px inline brand chips (dark theme)                   |
 
-The mark is the **stacked-bars** direction (2026-06-16, supplied by Yuqi —
-replaced the Radar D): four rounded horizontal bars, the third indented — an
-abstract timeline / schedule motif. App-icon form: ivory bars on a navy rounded
+The mark is the **stacked-bars** direction (2026-06-26 refresh, supplied by Yuqi):
+four rounded horizontal bars, the third tilted ~2.4° — a schedule with one row
+knocked askew (a deadline off-line). App-icon form: ivory bars on a navy rounded
 square. The shapes that survive 16-32 px:
 
-- rounded-square navy tile (`--color-brand-ink` `#0A2540`)
-- four ivory bars (`--color-brand-ivory` `#F3EEE6`), the third indented
+- rounded-square navy tile (`--color-brand-ink` `#1F315C`)
+- four ivory bars (`--color-brand-ivory` `#F3EEE6`), the third tilted
 
 The in-app source of truth is `apps/app/src/components/primitives/brand-mark.tsx`
 (`BrandMark`) and `docs/brand/` (full lockup + brand book). Keep these standalone
