@@ -11,7 +11,7 @@ interface Props {
   ctaHref?: string
   signInHref?: string
   pageMode?: boolean
-  current?: 'home' | 'how' | 'coverage' | 'pricing' | 'security'
+  current?: 'home' | 'how' | 'coverage' | 'pricing' | 'about'
   locale?: 'en' | 'zh-CN'
 }
 const { pageMode = false, current, locale = 'en' } = Astro.props
@@ -20,15 +20,15 @@ const base = zh ? '/zh-CN' : ''
 const ctaHref = Astro.props.ctaHref ?? getCtaHref(zh ? 'zh-CN' : undefined)
 const signInHref = Astro.props.signInHref ?? getAppHref('/login', zh ? 'zh-CN' : undefined)
 const L = zh
-  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', security: '安全', signIn: '登录', cta: '立即开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单', badge: '抢先体验' }
-  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', security: 'Security', signIn: 'Sign in', cta: 'Get started', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu', badge: 'Early access' }
+  ? { homeNav: '首页', how: '工作原理', coverage: '覆盖范围', pricing: '定价', about: '关于', signIn: '登录', cta: '立即开始', home: 'DueDateHQ 首页', menu: '菜单', menuTitle: '导航菜单', badge: '抢先体验' }
+  : { homeNav: 'Home', how: 'How it works', coverage: 'Coverage', pricing: 'Pricing', about: 'About', signIn: 'Sign in', cta: 'Get started', home: 'DueDateHQ home', menu: 'Menu', menuTitle: 'Navigation menu', badge: 'Early access' }
 
 const links = [
   { key: 'home', label: L.homeNav, href: `${base}/` },
   { key: 'how', label: L.how, href: `${base}/how-it-works` },
   { key: 'coverage', label: L.coverage, href: `${base}/state-coverage` },
   { key: 'pricing', label: L.pricing, href: `${base}/pricing` },
-  { key: 'security', label: L.security, href: `${base}/security` },
+  { key: 'about', label: L.about, href: `${base}/about` },
 ]
 ---
 

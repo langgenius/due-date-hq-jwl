@@ -33,7 +33,7 @@ const ctaHref = getStartedHref()
   ogImage={page.meta.ogImage}
   structuredData={trustPageStructuredData(t, page, 'en', pathname)}
 >
-  <TopNav pageMode ctaHref={ctaHref} current={page.slug === 'security' ? 'security' : undefined} />
+  <TopNav pageMode ctaHref={ctaHref} current={page.slug === 'about' ? 'about' : undefined} />
   <TrustPage page={page} locale="en" />
   <Footer />
 </BaseLayout>
