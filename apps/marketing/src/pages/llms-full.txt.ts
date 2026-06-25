@@ -1,8 +1,20 @@
+import en from '../i18n/en'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
-import { getStateDeadlineLines } from '../lib/seo-content'
+import {
+  getComparisonPages,
+  getGuidePages,
+  getRuleReferencePages,
+  getStateDeadlineLines,
+} from '../lib/seo-content'
 import { getMarketingUrl } from '../lib/site'
 
 export const prerender = true
+
+// Citable counts, derived from the same data the pages render so they never drift.
+const STATE_DEADLINE_COUNT = getStateDeadlineLines().length
+const RULE_REFERENCE_COUNT = getRuleReferencePages('en').length
+const GUIDE_COUNT = getGuidePages(en, 'en').length
+const COMPARISON_COUNT = getComparisonPages('en').length
 
 // Federal facts are stable and verified (IRS Pub 509 + the rule pages); keep in
 // sync with the rule reference pages and the multi-state-filing-deadlines guide.
@@ -35,6 +47,14 @@ export function GET(): Response {
     '',
     'Free $0/mo, Solo $39/mo, Pro $79/mo, Team $149/mo. Free, Solo, Pro, and Team each include one active practice; for multiple practices, contact our team. Trial and demo workspaces are available.',
     '',
+    '## By the numbers',
+    '',
+    '- Jurisdictions monitored: federal (IRS) plus all 50 states and Washington DC.',
+    `- State filing deadlines published with an official source citation: ${STATE_DEADLINE_COUNT}.`,
+    `- Source-backed federal rule references: ${RULE_REFERENCE_COUNT} (e.g., Form 7004, 1120-S, 1065, 1099-NEC/MISC, 1040-ES, 941, 990).`,
+    `- Operational guides: ${GUIDE_COUNT}. Tool comparisons: ${COMPARISON_COUNT}.`,
+    '- Languages: English (default) and Simplified Chinese.',
+    '',
     '## Federal filing deadlines (calendar-year filers)',
     '',
     ...FEDERAL_DEADLINES,
@@ -49,10 +69,16 @@ export function GET(): Response {
     '',
     '## Reference pages',
     '',
+    `- Resources hub (all guides, comparisons, rule references): ${getMarketingUrl('/resources')}`,
     `- Multi-state filing deadlines guide: ${getMarketingUrl('/guides/multi-state-filing-deadlines')}`,
     `- State coverage: ${getMarketingUrl('/state-coverage')}`,
     `- Rule library: ${getMarketingUrl('/rules')}`,
     `- Pricing: ${getMarketingUrl('/pricing')}`,
+    `- Page index (with the Simplified-Chinese mirror list): ${getMarketingUrl('/llms.txt')}`,
+    '',
+    '## 中文 (zh-CN)',
+    '',
+    `Every public page has a Simplified Chinese mirror under /zh-CN (e.g. ${getMarketingUrl('/zh-CN')}, ${getMarketingUrl('/zh-CN/state-coverage')}, ${getMarketingUrl('/zh-CN/rules')}). See llms.txt for the full mirrored page list.`,
     '',
     '## Citation guidance',
     '',

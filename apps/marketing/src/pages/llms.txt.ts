@@ -1,8 +1,19 @@
+import en from '../i18n/en'
+import zhCN from '../i18n/zh-CN'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import {
+  getComparisonPages,
+  getGuidePages,
+  getRuleReferencePages,
+  getStatePages,
+} from '../lib/seo-content'
 import { getMarketingUrl } from '../lib/site'
 
 export const prerender = true
 
+// The hand-written core entries (home / how / pricing / hubs). Everything else
+// — guides, comparisons, rule references, state pages — is generated from the
+// same getters the routes use, so this file never drifts from what ships.
 const corePages = [
   {
     label: 'Homepage',
@@ -22,6 +33,11 @@ const corePages = [
     description: 'plans for CPA practices: Free $0, Solo $39, Pro $79, and Team $149 per month.',
   },
   {
+    label: 'Resources hub',
+    pathname: '/resources',
+    description: 'one index of every guide, comparison, and rule reference, plus state coverage.',
+  },
+  {
     label: 'Rule library',
     pathname: '/rules',
     description:
@@ -33,94 +49,7 @@ const corePages = [
     description:
       'answers which state filing updates DueDateHQ monitors and how Alerts route them into client-impact review.',
   },
-  {
-    label: 'CPA deadline risk guide',
-    pathname: '/guides/cpa-deadline-risk',
-    description:
-      'answers which client deadline a CPA team should touch first using migration data, evidence, ownership, readiness, and state changes.',
-  },
-  {
-    label: 'Evidence-backed tax deadline software guide',
-    pathname: '/guides/evidence-backed-tax-deadline-software',
-    description:
-      'answers what proof should exist before a deadline, alert, AI suggestion, or migration action changes client work.',
-  },
-  {
-    label: 'Weekly CPA deadline triage guide',
-    pathname: '/guides/weekly-cpa-deadline-triage',
-    description:
-      'answers how CPA teams rank deadline work by risk instead of reading a flat calendar.',
-  },
-  {
-    label: 'Excel deadline migration guide',
-    pathname: '/guides/migrate-cpa-deadlines-from-excel',
-    description:
-      'answers how spreadsheet rows become client filing profiles, obligations, evidence review, and weekly triage context.',
-  },
-  {
-    label: 'Extension vs payment deadline guide',
-    pathname: '/guides/extension-vs-payment-deadlines',
-    description:
-      'answers why filing extension work, payment timing, readiness, and source evidence need separate review states.',
-  },
-  {
-    label: 'Multi-state filing deadlines guide',
-    pathname: '/guides/multi-state-filing-deadlines',
-    description:
-      'lists the core federal filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers and how state deadlines vary by state.',
-  },
-  {
-    label: 'Form 7004 extension deadline reference',
-    pathname: '/rules/form-7004-extension-deadline',
-    description:
-      'answers how an extension rule becomes reviewed operational deadline work without collapsing payment context.',
-  },
-  {
-    label: 'S-Corp deadline operations reference',
-    pathname: '/rules/s-corp-deadline-operations',
-    description:
-      'answers how S-Corp filing signals stay tied to source evidence, client context, and review state.',
-  },
-  {
-    label: 'Partnership Form 1065 deadline reference',
-    pathname: '/rules/partnership-form-1065-deadline',
-    description:
-      'answers how partnership deadline work is modeled with source-backed review and audit history.',
-  },
 ]
-
-const comparisonPages = [
-  {
-    label: 'File In Time alternative',
-    pathname: '/compare/file-in-time-alternative',
-  },
-  {
-    label: 'TaxDome deadline operations comparison',
-    pathname: '/compare/taxdome-deadline-operations',
-  },
-  {
-    label: 'Karbon deadline operations comparison',
-    pathname: '/compare/karbon-deadline-operations',
-  },
-]
-
-const statePages = [
-  ['California', '/states/california'],
-  ['New York', '/states/new-york'],
-  ['Texas', '/states/texas'],
-  ['Florida', '/states/florida'],
-  ['Washington', '/states/washington'],
-  ['Illinois', '/states/illinois'],
-  ['New Jersey', '/states/new-jersey'],
-  ['Pennsylvania', '/states/pennsylvania'],
-  ['Georgia', '/states/georgia'],
-  ['Massachusetts', '/states/massachusetts'],
-  ['North Carolina', '/states/north-carolina'],
-  ['Arizona', '/states/arizona'],
-  ['Colorado', '/states/colorado'],
-  ['Ohio', '/states/ohio'],
-  ['Michigan', '/states/michigan'],
-] as const
 
 const trustPages = [
   ['About', '/about'],
@@ -130,15 +59,39 @@ const trustPages = [
   ['Status', '/status'],
 ] as const
 
-// Key Simplified-Chinese mirrors. Every public page has a /zh-CN counterpart.
-const zhPages = [
+// Generated lists (English). Pull labels/descriptions straight from the page copy.
+const guidePages = getGuidePages(en, 'en').map((g) => ({
+  label: g.meta.title,
+  pathname: `/guides/${g.slug}`,
+  description: g.meta.description,
+}))
+const rulePages = getRuleReferencePages('en').map((r) => ({
+  label: r.meta.title,
+  pathname: `/rules/${r.slug}`,
+  description: r.meta.description,
+}))
+const comparisonPages = getComparisonPages('en').map((c) => ({
+  label: c.meta.title,
+  pathname: `/compare/${c.slug}`,
+}))
+const statePages = getStatePages(en, 'en').map((s) => [s.name, `/states/${s.slug}`] as const)
+
+// Every page has a /zh-CN mirror — list them all so an AI engine can cite the
+// Simplified-Chinese surface directly. Generated from the zh getters.
+const zhMirror: Array<readonly [string, string]> = [
   ['首页 (Homepage)', '/zh-CN'],
+  ['运作方式 (How it works)', '/zh-CN/how-it-works'],
   ['价格 (Pricing)', '/zh-CN/pricing'],
+  ['资源 (Resources)', '/zh-CN/resources'],
   ['规则库 (Rule library)', '/zh-CN/rules'],
   ['州覆盖 (State coverage)', '/zh-CN/state-coverage'],
-] as const
+  ...getGuidePages(zhCN, 'zh-CN').map((g) => [g.hero.title, `/zh-CN/guides/${g.slug}`] as const),
+  ...getComparisonPages('zh-CN').map((c) => [c.hero.title, `/zh-CN/compare/${c.slug}`] as const),
+  ...getRuleReferencePages('zh-CN').map((r) => [r.hero.title, `/zh-CN/rules/${r.slug}`] as const),
+  ...getStatePages(zhCN, 'zh-CN').map((s) => [s.name, `/zh-CN/states/${s.slug}`] as const),
+]
 
-function pageLine(page: (typeof corePages)[number]): string {
+function pageLine(page: { label: string; pathname: string; description?: string }): string {
   const description = page.description ? ` - ${page.description}` : ''
   return `- ${page.label}: ${getMarketingUrl(page.pathname)}${description}`
 }
@@ -155,6 +108,13 @@ export function GET(): Response {
     '',
     `A fuller single-file factual reference (definition, coverage, pricing, federal and state filing deadlines) is at ${getMarketingUrl('/llms-full.txt')}.`,
     '',
+    '## At a glance',
+    '',
+    `- Coverage: federal (IRS) plus all 50 states and Washington DC.`,
+    `- Verified state filing deadlines published with an official source: ${statePages.length} jurisdictions.`,
+    `- Federal rule references: ${rulePages.length}. Guides: ${guidePages.length}. Comparisons: ${comparisonPages.length}.`,
+    `- Languages: English (default) and Simplified Chinese (/zh-CN).`,
+    '',
     '## Coverage and pricing',
     '',
     '- Coverage: DueDateHQ monitors official IRS and state tax-authority sources across all 50 states and Washington DC for rule and filing-date changes. Source-backed changes are routed through human review before they become reminder-ready work.',
@@ -163,6 +123,14 @@ export function GET(): Response {
     '## Core public pages',
     '',
     ...corePages.map(pageLine),
+    '',
+    '## Guides',
+    '',
+    ...guidePages.map(pageLine),
+    '',
+    '## Rule references',
+    '',
+    ...rulePages.map(pageLine),
     '',
     '## Trust and company pages',
     '',
@@ -178,9 +146,9 @@ export function GET(): Response {
     '',
     '## 中文 (zh-CN)',
     '',
-    'Every public page has a Simplified Chinese mirror under /zh-CN. Key pages:',
+    'Every public page has a Simplified Chinese mirror under /zh-CN:',
     '',
-    ...zhPages.map(([label, pathname]) => `- ${label}: ${getMarketingUrl(pathname)}`),
+    ...zhMirror.map(([label, pathname]) => `- ${label}: ${getMarketingUrl(pathname)}`),
     '',
     '## AI citation guidance',
     '',

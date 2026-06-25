@@ -331,6 +331,32 @@ const comparisonSpecs: ComparisonSpec[] = [
     contrastZh:
       'DueDateHQ 聚焦税务截止日运营：带来源的规则、受影响客户复核、证据抽屉和专门面向截止日的分诊。',
   },
+  {
+    slug: 'canopy-deadline-operations',
+    product: 'Canopy',
+    positioning:
+      'a cloud practice-management suite with client management, workflow, and a client portal',
+    positioningZh: '带客户管理、工作流和客户门户的云端 practice-management 套件',
+    bestFit: 'firms consolidating CRM, workflow, documents, and billing in one cloud platform',
+    bestFitZh: '希望把 CRM、工作流、文档和账单统一到一个云平台的事务所',
+    contrast:
+      'DueDateHQ stays narrow: source-backed deadline and rule-change monitoring with affected-client review, layered on top of whatever practice suite you run.',
+    contrastZh:
+      'DueDateHQ 范围更窄：带来源的截止日与规则变化监控 + 受影响客户复核，叠加在你正在用的任何 practice suite 之上。',
+  },
+  {
+    slug: 'financial-cents-deadline-operations',
+    product: 'Financial Cents',
+    positioning:
+      'a workflow and client-management tool focused on team task tracking and client work',
+    positioningZh: '聚焦团队任务跟踪与客户工作的工作流与客户管理工具',
+    bestFit: 'small firms that want simple workflow, recurring tasks, and client follow-up',
+    bestFitZh: '需要简单工作流、周期性任务和客户跟进的小型事务所',
+    contrast:
+      'DueDateHQ focuses on the deadline-change signal itself — watching official IRS and state sources and routing each change to the clients it affects, with the source attached.',
+    contrastZh:
+      'DueDateHQ 聚焦截止日变化信号本身——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，并附上来源。',
+  },
 ]
 
 const ruleReferenceSpecs: RuleReferenceSpec[] = [
