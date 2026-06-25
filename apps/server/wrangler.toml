@@ -75,7 +75,11 @@ queue = "due-date-hq-email-staging"
 
 [[queues.producers]]
 binding = "PULSE_QUEUE"
-queue = "due-date-hq-pulse-staging"
+# 2026-06-25: recreated as -v2 to escape a stuck queue-consumer version-freeze
+# (CF support case #02201745, on CF's advice) — a brand-new queue forces a fresh
+# consumer registration on the current Worker version. Old queue left in place
+# (revertible). DLQ reused.
+queue = "due-date-hq-pulse-staging-v2"
 
 [[queues.producers]]
 binding = "DASHBOARD_QUEUE"
@@ -101,7 +105,7 @@ dead_letter_queue = "due-date-hq-email-dlq-staging"
 # for chunk-split groups, retries and the rules-scan path. max_concurrency=5 remains
 # the global cap on parallel invocations (raised 2→5 once browserless was retired).
 [[queues.consumers]]
-queue = "due-date-hq-pulse-staging"
+queue = "due-date-hq-pulse-staging-v2"
 max_batch_size = 10
 max_batch_timeout = 5
 # Retry cap: a persistently-failing snapshot (e.g. AI provider down) is retried
