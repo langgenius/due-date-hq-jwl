@@ -893,14 +893,14 @@ const en: LandingCopy = {
         name: 'California',
         abbreviation: 'CA',
         meta: {
-          title: 'California Tax Deadline Monitoring — DueDateHQ State Coverage',
+          title: 'California Tax Deadline Monitoring — DueDateHQ',
           description:
             'How DueDateHQ monitors public California FTB filing signals with source URLs, excerpts, timestamps, and human review.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'STATE COVERAGE · CA',
-          title: 'California filing signals with source-backed review.',
+          title: 'California tax deadlines, watched at the FTB source.',
           description:
             'DueDateHQ monitors public California filing updates that can affect CPA deadline operations, then routes candidate changes through evidence review before they become operational work.',
           note: 'California coverage describes monitoring scope, not tax advice.',
@@ -956,14 +956,14 @@ const en: LandingCopy = {
         name: 'New York',
         abbreviation: 'NY',
         meta: {
-          title: 'New York Tax Deadline Monitoring — DueDateHQ State Coverage',
+          title: 'New York Tax Deadline Monitoring — DueDateHQ',
           description:
             'How DueDateHQ monitors public New York tax filing signals with official-source context and human review.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'STATE COVERAGE · NY',
-          title: 'New York filing updates routed through evidence review.',
+          title: 'New York tax deadlines, routed through evidence review.',
           description:
             'DueDateHQ monitors public New York tax authority updates and keeps source context attached when a filing signal may affect deadline operations.',
           note: 'New York coverage describes product scope, not a filing recommendation.',
@@ -1019,14 +1019,14 @@ const en: LandingCopy = {
         name: 'Texas',
         abbreviation: 'TX',
         meta: {
-          title: 'Texas Filing Deadline Monitoring — DueDateHQ State Coverage',
+          title: 'Texas Tax Deadline Monitoring — DueDateHQ',
           description:
             'How DueDateHQ monitors public Texas filing signals and franchise-tax deadline updates for CPA operations.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'STATE COVERAGE · TX',
-          title: 'Texas filing signals for CPA deadline operations.',
+          title: 'Texas tax deadlines and franchise-tax signals, at the source.',
           description:
             'DueDateHQ monitors public Texas Comptroller-facing updates and keeps source evidence attached when a signal may affect deadline triage.',
           note: 'Texas coverage is product monitoring scope and should be verified against official sources.',
@@ -1082,14 +1082,14 @@ const en: LandingCopy = {
         name: 'Florida',
         abbreviation: 'FL',
         meta: {
-          title: 'Florida Filing Deadline Monitoring — DueDateHQ State Coverage',
+          title: 'Florida Tax Deadline Monitoring — DueDateHQ',
           description:
             'How DueDateHQ monitors public Florida filing notices and deadline-related state updates with evidence review.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'STATE COVERAGE · FL',
-          title: 'Florida public filing updates with source context.',
+          title: 'Florida tax deadlines, kept in source context.',
           description:
             'DueDateHQ monitors public Florida Department of Revenue-facing updates and relief notices that may affect CPA deadline workflows.',
           note: 'Florida coverage describes public monitoring, not compliance advice.',
@@ -1145,14 +1145,14 @@ const en: LandingCopy = {
         name: 'Washington',
         abbreviation: 'WA',
         meta: {
-          title: 'Washington Filing Deadline Monitoring — DueDateHQ State Coverage',
+          title: 'Washington Tax Deadline Monitoring — DueDateHQ',
           description:
             'How DueDateHQ monitors public Washington Department of Revenue signals with official-source evidence workflows.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'STATE COVERAGE · WA',
-          title: 'Washington filing signals kept tied to official sources.',
+          title: 'Washington tax deadlines, tied to official sources.',
           description:
             'DueDateHQ monitors public Washington Department of Revenue-facing material for filing signals that may need source-backed CPA review.',
           note: 'Washington coverage is software scope, not tax advice.',

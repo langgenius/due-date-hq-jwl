@@ -597,13 +597,13 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       name: spec.name,
       abbreviation: spec.abbreviation,
       meta: {
-        title: `${spec.name} 州申报截止日监控 — DueDateHQ 州覆盖`,
+        title: `${spec.name} 州税务截止日监控 — DueDateHQ`,
         description: `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
         eyebrow: `州覆盖 · ${spec.abbreviation}`,
-        title: `${spec.name} 申报信号先进入来源复核。`,
+        title: `${spec.name} 州税务截止日，先从官方来源复核。`,
         description: `DueDateHQ 监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能影响事务所截止日运营时保留来源、摘录、复核状态和客户匹配上下文。`,
         note: `${spec.name} 覆盖只描述软件监控范围，不是税务建议。`,
       },
@@ -658,13 +658,13 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     name: spec.name,
     abbreviation: spec.abbreviation,
     meta: {
-      title: `${spec.name} Filing Deadline Monitoring — DueDateHQ State Coverage`,
+      title: `${spec.name} Tax Deadline Monitoring — DueDateHQ`,
       description: `How DueDateHQ monitors ${spec.agency} ${spec.sourceSurface} with source-backed review for CPA deadline operations.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
       eyebrow: `STATE COVERAGE · ${spec.abbreviation}`,
-      title: `${spec.name} filing signals with source-backed review.`,
+      title: `${spec.name} tax deadlines, monitored at the source.`,
       description: `DueDateHQ monitors public ${spec.agency} ${spec.sourceSurface}, then preserves source context when ${spec.signal} may affect CPA deadline operations.`,
       note: `${spec.name} coverage describes monitoring scope, not tax advice.`,
     },

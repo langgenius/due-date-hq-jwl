@@ -873,14 +873,14 @@ const zhCN: LandingCopy = {
         name: 'California',
         abbreviation: 'CA',
         meta: {
-          title: 'California 税务截止日监控 — DueDateHQ 州覆盖',
+          title: 'California 州税务截止日监控 — DueDateHQ',
           description:
             '了解 DueDateHQ 如何用官方 source URL、来源摘录、验证时间戳和人工复核监控 California FTB 公开申报信号，并在影响客户队列前保留证据上下文。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: '州覆盖 · CA',
-          title: '带来源复核的 California 申报信号。',
+          title: 'California 州税务截止日，从 FTB 官方来源监控。',
           description:
             'DueDateHQ 监控可能影响 CPA 截止日运营的 California 公开申报更新，并在变成运营工作之前把候选变化送入证据复核。',
           note: 'California 覆盖描述监控范围，不构成税务建议。',
@@ -936,14 +936,14 @@ const zhCN: LandingCopy = {
         name: 'New York',
         abbreviation: 'NY',
         meta: {
-          title: 'New York 税务截止日监控 — DueDateHQ 州覆盖',
+          title: 'New York 州税务截止日监控 — DueDateHQ',
           description:
             '了解 DueDateHQ 如何用官方来源上下文、来源摘录、客户申报档案和人工复核监控 New York 公开税务申报信号，避免把州级更新直接变成黑盒截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: '州覆盖 · NY',
-          title: '进入证据复核的 New York 申报更新。',
+          title: 'New York 州税务截止日，进入证据复核。',
           description:
             'DueDateHQ 监控 New York 税务机关公开更新，并在申报信号可能影响截止日运营时保留来源上下文。',
           note: 'New York 覆盖描述产品范围，不是申报建议。',
@@ -997,14 +997,14 @@ const zhCN: LandingCopy = {
         name: 'Texas',
         abbreviation: 'TX',
         meta: {
-          title: 'Texas 申报截止日监控 — DueDateHQ 州覆盖',
+          title: 'Texas 州税务截止日监控 — DueDateHQ',
           description:
             '了解 DueDateHQ 如何为 CPA 截止日运营监控 Texas Comptroller 公开申报信号、franchise tax 截止日更新、来源证据和人工复核状态。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: '州覆盖 · TX',
-          title: '面向 CPA 截止日运营的 Texas 申报信号。',
+          title: 'Texas 州税务截止日与 franchise tax 信号，源自官方。',
           description:
             'DueDateHQ 监控 Texas Comptroller 公开更新，并在信号可能影响截止日分诊时保留来源证据。',
           note: 'Texas 覆盖是产品监控范围，应对照官方来源核验。',
@@ -1060,14 +1060,14 @@ const zhCN: LandingCopy = {
         name: 'Florida',
         abbreviation: 'FL',
         meta: {
-          title: 'Florida 申报截止日监控 — DueDateHQ 州覆盖',
+          title: 'Florida 州税务截止日监控 — DueDateHQ',
           description:
             '了解 DueDateHQ 如何用证据复核、来源摘录、客户上下文和提醒复核监控 Florida 公开申报公告、救济信息和截止日相关州级更新。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: '州覆盖 · FL',
-          title: '带来源上下文的 Florida 公开申报更新。',
+          title: 'Florida 州税务截止日，保留来源上下文。',
           description:
             'DueDateHQ 监控可能影响 CPA 截止日工作流的 Florida Department of Revenue 公开更新和救济公告。',
           note: 'Florida 覆盖描述公开监控，不构成合规建议。',
@@ -1122,14 +1122,14 @@ const zhCN: LandingCopy = {
         name: 'Washington',
         abbreviation: 'WA',
         meta: {
-          title: 'Washington 申报截止日监控 — DueDateHQ 州覆盖',
+          title: 'Washington 州税务截止日监控 — DueDateHQ',
           description:
             '了解 DueDateHQ 如何用官方来源证据、验证元数据和人工复核工作流监控 Washington Department of Revenue 公开申报信号，并把可能影响客户的更新送入截止日运营。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: '州覆盖 · WA',
-          title: '与官方来源绑定的 Washington 申报信号。',
+          title: 'Washington 州税务截止日，与官方来源绑定。',
           description:
             'DueDateHQ 监控 Washington Department of Revenue 公开材料中可能需要 CPA 来源复核的申报信号。',
           note: 'Washington 覆盖是软件范围，不构成税务建议。',
