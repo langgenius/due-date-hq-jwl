@@ -9,6 +9,7 @@ import type {
   StatePageCopy,
 } from '../i18n/types'
 import { getContentDates } from './content-metadata'
+import { homeFaq } from './home-faq'
 import { MARKETING_SITE_URL, getMarketingUrl } from './site'
 import type { TrustPageCopy } from './trust-pages'
 
@@ -227,7 +228,100 @@ export function homeStructuredData(t: LandingCopy, lang: Locale): JsonLdDocument
   return graph([
     ...baseNodes(t, lang),
     webPageNode(path, t.meta.title, t.meta.description, lang, 'home'),
+    // The landing's visible FAQ (components/home/Faq.astro) shares its copy with
+    // this node via lib/home-faq.ts, so the markup always matches what renders.
+    faqNode(homeFaq[lang]),
     breadcrumbNode([{ name: CRUMB_LABELS.home[lang], pathname: path }]),
+  ])
+}
+
+// How-it-works HowTo copy. The four steps mirror the page's visible loop
+// (Watch · Match · Rank · Apply) so the markup matches the rendered content; the
+// descriptions paraphrase the on-page hero lead, not a specific worked example.
+const HOW_IT_WORKS_HOWTO: Record<
+  Locale,
+  { name: string; description: string; steps: { name: string; text: string }[] }
+> = {
+  en: {
+    name: 'How DueDateHQ turns a deadline change into the clients it affects',
+    description:
+      'DueDateHQ runs one loop around the clock: watch official sources, match each change to your clients, rank the week by risk, and apply the fix with a source on every date.',
+    steps: [
+      {
+        name: 'Watch',
+        text: 'DueDateHQ watches official IRS, state tax-agency, and FEMA sources around the clock for deadline and rule changes.',
+      },
+      {
+        name: 'Match',
+        text: 'It matches each source-backed change to the clients in your book it actually affects, using your filing profiles.',
+      },
+      {
+        name: 'Rank',
+        text: 'It ranks your week by which clients are most at risk, so the Monday triage starts with what matters most.',
+      },
+      {
+        name: 'Apply',
+        text: 'It applies the new date with the official source attached and logs the change to an inspectable audit trail.',
+      },
+    ],
+  },
+  'zh-CN': {
+    name: 'DueDateHQ 如何把一次截止日变化转成受影响的客户',
+    description:
+      'DueDateHQ 全天候只跑一个闭环：监控官方来源、把每条变化匹配到你的客户、按风险为一周排序，并在应用时为每个日期附上来源。',
+    steps: [
+      {
+        name: '监控',
+        text: 'DueDateHQ 全天候监控官方 IRS、各州税务机关与 FEMA 来源的截止日与规则变化。',
+      },
+      {
+        name: '匹配',
+        text: '它依据你的客户申报档案，把每条带来源的变化匹配到真正受影响的客户。',
+      },
+      {
+        name: '排序',
+        text: '它按客户风险高低为你的一周排序，让周一分诊从最要紧的事开始。',
+      },
+      {
+        name: '应用',
+        text: '它在应用新日期时附上官方来源，并把变更记入可追查的审计历史。',
+      },
+    ],
+  },
+}
+
+function howToNode(lang: Locale): JsonLdDocument {
+  const copy = HOW_IT_WORKS_HOWTO[lang]
+  return {
+    '@type': 'HowTo',
+    name: copy.name,
+    description: copy.description,
+    inLanguage: lang,
+    step: copy.steps.map((s, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  }
+}
+
+export function howItWorksStructuredData(
+  t: LandingCopy,
+  lang: Locale,
+  title: string,
+  description: string,
+): JsonLdDocument {
+  const pathname = lang === 'zh-CN' ? '/zh-CN/how-it-works' : '/how-it-works'
+  const labels: Record<Locale, string> = { en: 'How it works', 'zh-CN': '运作方式' }
+  return graph([
+    ...baseNodes(t, lang),
+    webPageNode(pathname, title, description, lang, 'how-it-works'),
+    howToNode(lang),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: labels[lang], pathname },
+    ]),
   ])
 }
 

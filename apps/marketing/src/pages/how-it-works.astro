@@ -18,18 +18,23 @@ import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
 import en from '../i18n/en'
 import { getStartedHref } from '../lib/app-url'
+import { howItWorksStructuredData } from '../lib/structured-data'
 
 const t = en
 const ctaHref = getStartedHref()
 const pathname = '/how-it-works'
+const title = 'How DueDateHQ works — from a deadline change to the clients it affects'
+const description =
+  'The full product walkthrough: DueDateHQ watches official IRS, state, and FEMA sources, matches each change to your clients, ranks your week by risk, and applies the fix with a source on every date.'
 ---
 
 <BaseLayout
   lang="en"
   pathname={pathname}
-  title="How DueDateHQ works — from a deadline change to the clients it affects"
-  description="The full product walkthrough: DueDateHQ watches official IRS, state, and FEMA sources, matches each change to your clients, ranks your week by risk, and applies the fix with a source on every date."
+  title={title}
+  description={description}
   ogImage={t.meta.ogImage}
+  structuredData={howItWorksStructuredData(t, 'en', title, description)}
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" />
   <main>

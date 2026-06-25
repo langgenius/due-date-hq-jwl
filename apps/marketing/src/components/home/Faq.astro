@@ -1,51 +1,19 @@
 ---
 /** FAQ — three short answers, rendered with the shared FaqAccordion so the home
  *  FAQ and every subpage FAQ use one identical accordion (this keeps only the
- *  landing's editorial 2-col layout). */
+ *  landing's editorial 2-col layout). The Q&A copy lives in lib/home-faq.ts so
+ *  the visible accordion and the home FAQPage JSON-LD share one source of truth. */
 import FaqAccordion from '../FaqAccordion.astro'
+import { homeFaq } from '../../lib/home-faq'
 interface Props {
   locale?: 'en' | 'zh-CN'
 }
 const { locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
 const t = zh
-  ? {
-      eyebrow: '常见问题',
-      heading: '简短回答。',
-      faqs: [
-        {
-          q: 'DueDateHQ 和 File In Time 有什么不同？',
-          a: 'File In Time 只记录你录入的截止日。DueDateHQ 会<b>替你盯着变化</b>——一旦 IRS 或某个州调整了截止日，它会立刻告诉你受影响的是哪些客户，并附上官方来源。这是监控，而不是一张截止日表格。',
-        },
-        {
-          q: '我需要离开 TaxDome / Karbon / Canopy 吗？',
-          a: '不需要。它的定位刻意做得很窄——只做每周的截止日分诊这一层，<b>以邮件为主，不用配置门户</b>，因此可以与你现有的工具并行使用。',
-        },
-        {
-          q: '我怎么知道这些日期是对的？',
-          a: '<b>它绝不编造日期。</b>任何无法落实到官方原文的内容都会宁可不显示也不猜——只有当一个日期是从来源读取并链接到来源后，它才会出现。',
-        },
-      ],
-    }
-  : {
-      eyebrow: 'Common questions',
-      heading: 'The short answers.',
-      faqs: [
-        {
-          q: 'How is this different from File In Time?',
-          a: 'File In Time records the deadlines you enter. DueDateHQ <b>watches them for changes</b> — and the moment the IRS or a state moves one, shows you which clients it affects, with the official source attached. Monitoring, not a deadline table.',
-        },
-        {
-          q: 'Do I have to leave TaxDome / Karbon / Canopy?',
-          a: "No. It's deliberately narrow — the weekly deadline-triage layer, <b>email-first with no portal to configure</b>, so it sits alongside whatever you already run.",
-        },
-        {
-          q: 'How do I know the dates are right?',
-          a: "<b>It never invents a date.</b> Anything that can't be grounded in the official text is held back rather than guessed — so a date only appears once it's been read from, and linked to, the source.",
-        },
-      ],
-    }
-const faqs = t.faqs
+  ? { eyebrow: '常见问题', heading: '简短回答。' }
+  : { eyebrow: 'Common questions', heading: 'The short answers.' }
+const faqs = homeFaq[locale]
 ---
 
 <section class="m-section" id="faq" aria-labelledby="faq-h" data-reveal>
@@ -56,7 +24,7 @@ const faqs = t.faqs
     </div>
 
     <div class="faq__grid">
-      <FaqAccordion items={faqs.map((f) => ({ question: f.q, answer: f.a }))} />
+      <FaqAccordion items={faqs} />
     </div>
   </div>
 </section>

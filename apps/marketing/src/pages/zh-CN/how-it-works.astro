@@ -14,18 +14,23 @@ import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getStartedHref } from '../../lib/app-url'
+import { howItWorksStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
 const ctaHref = getStartedHref('zh-CN')
 const pathname = '/zh-CN/how-it-works'
+const title = 'DueDateHQ 如何运作 —— 从截止日变化到受影响的客户'
+const description =
+  '完整的产品导览：DueDateHQ 监控官方 IRS、各州与 FEMA 来源，将每条变化匹配到你的客户，按风险为你的一周排序，并在应用时为每个日期附上来源。'
 ---
 
 <BaseLayout
   lang="zh-CN"
   pathname={pathname}
-  title="DueDateHQ 如何运作 —— 从截止日变化到受影响的客户"
-  description="完整的产品导览：DueDateHQ 监控官方 IRS、各州与 FEMA 来源，将每条变化匹配到你的客户，按风险为你的一周排序，并在应用时为每个日期附上来源。"
+  title={title}
+  description={description}
   ogImage={t.meta.ogImage}
+  structuredData={howItWorksStructuredData(t, 'zh-CN', title, description)}
 >
   <TopNav pageMode ctaHref={ctaHref} current="how" locale="zh-CN" />
   <main>
