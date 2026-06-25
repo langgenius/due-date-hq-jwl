@@ -240,11 +240,43 @@ function articleNode(
   }
 }
 
+// The product's core service, as a schema.org Service node — grounded in the
+// home page's own pitch (24/7 deadline-change monitoring, FED+50+DC). Strengthens
+// the entity graph for AI/answer engines; no offers/ratings (nothing to cite).
+const SERVICE_COPY: Record<Locale, { name: string; serviceType: string; description: string }> = {
+  en: {
+    name: 'Tax deadline-change monitoring for CPA practices',
+    serviceType: 'Tax deadline monitoring',
+    description:
+      'Around-the-clock monitoring of IRS, state tax-agency, and FEMA disaster sources for filing-deadline and rule changes, showing which clients each change affects with a source on every date — across the federal government plus all 50 states and DC.',
+  },
+  'zh-CN': {
+    name: '面向 CPA 事务所的税务截止日变化监控',
+    serviceType: '税务截止日监控',
+    description:
+      '全天候监控 IRS、各州税务机关与 FEMA 灾害来源的申报截止日与规则变化，标出每条变化影响到哪些客户，并为每个日期附上官方来源——覆盖联邦加全部 50 个州与 DC。',
+  },
+}
+
+function serviceNode(lang: Locale): JsonLdDocument {
+  const c = SERVICE_COPY[lang]
+  return {
+    '@type': 'Service',
+    name: c.name,
+    serviceType: c.serviceType,
+    description: c.description,
+    provider: { '@id': ORG_ID },
+    areaServed: 'US',
+    inLanguage: lang,
+  }
+}
+
 export function homeStructuredData(t: LandingCopy, lang: Locale): JsonLdDocument {
   const path = homePath(lang)
   return graph([
     ...baseNodes(t, lang),
     webPageNode(path, t.meta.title, t.meta.description, lang, 'home'),
+    serviceNode(lang),
     // The landing's visible FAQ (components/home/Faq.astro) shares its copy with
     // this node via lib/home-faq.ts, so the markup always matches what renders.
     faqNode(homeFaq[lang]),
@@ -403,6 +435,23 @@ export function resourceStructuredData(
   ])
 }
 
+// The visible jurisdiction roster as a schema.org ItemList — the states with a
+// published detail page become linked ListItems (matches what renders).
+function coverageItemListNode(page: StateCoverageCopy, lang: Locale): JsonLdDocument {
+  const name = lang === 'zh-CN' ? '覆盖的州与辖区' : 'States and jurisdictions covered'
+  return {
+    '@type': 'ItemList',
+    name,
+    numberOfItems: page.states.length,
+    itemListElement: page.states.map((s, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: s.name,
+      url: absoluteUrl(s.href),
+    })),
+  }
+}
+
 export function stateCoverageStructuredData(
   siteCopy: LandingCopy,
   page: StateCoverageCopy,
@@ -412,6 +461,7 @@ export function stateCoverageStructuredData(
   return graph([
     ...baseNodes(siteCopy, lang),
     webPageNode(pathname, page.meta.title, page.meta.description, lang, 'state-coverage'),
+    coverageItemListNode(page, lang),
     faqNode(page.faq),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
@@ -450,9 +500,11 @@ export function trustPageStructuredData(
   return graph([
     ...baseNodes(siteCopy, lang),
     webPageNode(pathname, page.meta.title, page.meta.description, lang, page.slug),
+    faqNode(page.faq ?? []),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
-      { name: page.hero.title, pathname },
+      // Short leaf crumb (the page's eyebrow label), not the full hero sentence.
+      { name: page.hero.eyebrow, pathname },
     ]),
   ])
 }

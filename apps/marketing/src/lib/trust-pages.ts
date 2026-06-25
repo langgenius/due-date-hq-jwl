@@ -27,6 +27,8 @@ export interface TrustPageCopy {
     body: string
     items: { title: string; body: string }[]
   }[]
+  /** Optional FAQ — renders a visible accordion + an FAQPage JSON-LD node. */
+  faq?: { question: string; answer: string }[]
   contact: {
     title: string
     body: string
@@ -42,7 +44,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       meta: {
         title: 'DueDateHQ Security — Source-backed deadline operations',
         description:
-          'How DueDateHQ protects deadline operations with tenant isolation, reviewable source evidence, audit history, and production security boundaries.',
+          'How DueDateHQ protects CPA deadline operations: tenant isolation, a source on every date, human-approved changes, audit history, and security-review support.',
         ogImage: '/og/home.en.png',
       },
       hero: {

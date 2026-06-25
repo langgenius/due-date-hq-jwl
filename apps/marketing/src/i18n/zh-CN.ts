@@ -526,7 +526,7 @@ const zhCN: LandingCopy = {
     meta: {
       title: 'DueDateHQ 价格 — 面向 CPA 团队的截止日智能',
       description:
-        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、提醒与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Free、Solo、Pro 与 Team。',
+        'DueDateHQ 为美国 CPA 事务所监控 IRS、全部 50 个州与 FEMA 的税务截止日变化，每个日期都附官方来源。定价即将公布；先免费用 3 个月，无需信用卡。',
       ogImage: '/og/home.zh-CN.png',
     },
     navPricingHref: '/zh-CN/pricing',

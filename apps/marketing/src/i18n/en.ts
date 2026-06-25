@@ -790,7 +790,7 @@ const en: LandingCopy = {
       meta: {
         title: 'DueDateHQ State Coverage — 50-state and DC filing signals',
         description:
-          'Which state filing updates DueDateHQ monitors, how Alerts route them into review, and how CPA teams decide client impact.',
+          'DueDateHQ monitors IRS and state tax-deadline changes across all 50 states and DC. Every change arrives with its official source URL and excerpt, routed through review.',
         ogImage: '/og/home.en.png',
       },
       hero: {
