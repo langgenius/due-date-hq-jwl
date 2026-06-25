@@ -6,7 +6,7 @@ import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import type { GuidePageCopy } from '../../i18n/types'
 import { getStartedHref } from '../../lib/app-url'
-import { getGuidePages, getResourceCtaHrefs } from '../../lib/seo-content'
+import { getGuidePages, getRelatedResources, getResourceCtaHrefs } from '../../lib/seo-content'
 import { resourceStructuredData } from '../../lib/structured-data'
 
 export function getStaticPaths() {
@@ -43,6 +43,7 @@ const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'en')
     secondaryHref={secondaryHref}
     locale="en"
     back={{ href: '/how-it-works', label: 'How it works' }}
+    related={getRelatedResources(pathname, 'en')}
   />
   <Footer />
 </BaseLayout>

@@ -6,7 +6,7 @@ import Footer from '../../../components/home/Footer.astro'
 import zhCN from '../../../i18n/zh-CN'
 import type { GuidePageCopy } from '../../../i18n/types'
 import { getStartedHref } from '../../../lib/app-url'
-import { getComparisonPages, getResourceCtaHrefs } from '../../../lib/seo-content'
+import { getComparisonPages, getRelatedResources, getResourceCtaHrefs } from '../../../lib/seo-content'
 import { resourceStructuredData } from '../../../lib/structured-data'
 
 export function getStaticPaths() {
@@ -44,6 +44,7 @@ const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'zh-CN')
     secondaryHref={secondaryHref}
     locale="zh-CN"
     back={{ href: '/zh-CN/how-it-works', label: '工作原理' }}
+    related={getRelatedResources(pathname, 'zh-CN')}
   />
   <Footer locale="zh-CN" />
 </BaseLayout>

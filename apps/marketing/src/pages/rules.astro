@@ -5,6 +5,7 @@ import GeoResourcePage from '../components/GeoResourcePage.astro'
 import Footer from '../components/home/Footer.astro'
 import en from '../i18n/en'
 import { getStartedHref } from '../lib/app-url'
+import { getRuleReferenceLinks } from '../lib/seo-content'
 import { resourceStructuredData } from '../lib/structured-data'
 
 const t = en
@@ -27,6 +28,8 @@ const ctaHref = getStartedHref()
     primaryHref="/state-coverage"
     secondaryHref="/pricing"
     locale="en"
+    related={getRuleReferenceLinks('en')}
+    relatedTitle="Source-backed rule references"
   />
   <Footer />
 </BaseLayout>

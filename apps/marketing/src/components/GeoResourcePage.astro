@@ -12,6 +12,7 @@
  *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { getContentDates } from '../lib/content-metadata'
+import type { ResourceLink } from '../lib/seo-content'
 import FaqList from './FaqList.astro'
 
 interface Props {
@@ -21,9 +22,13 @@ interface Props {
   locale: 'en' | 'zh-CN'
   /** Optional parent for the in-hero "back up a level" link (leaf pages only). */
   back?: { href: string; label: string }
+  /** Optional cross-links rendered in a "Keep exploring" block above the CTA. */
+  related?: ResourceLink[]
+  /** Heading for the related block; defaults to a localized "Keep exploring". */
+  relatedTitle?: string
 }
 
-const { page, primaryHref, secondaryHref, locale, back } = Astro.props
+const { page, primaryHref, secondaryHref, locale, back, related, relatedTitle } = Astro.props
 const zh = locale === 'zh-CN'
 
 // Visible "Last reviewed" date — per-slug when an override exists (guides carry a
@@ -40,6 +45,7 @@ const t = zh
       lastReviewed: '最近复核',
       sourced: '每个日期都附官方来源',
       nextEyebrow: '下一步',
+      relatedTitle: '继续了解',
       nextTitle: '把这条规则接到你真实的客户名单上',
       nextBody: '阅读是一回事。真正的价值，是当这条日期变动时，你立刻知道它影响到你的哪些客户。',
       nextPrimary: '开始监控我的客户',
@@ -54,6 +60,7 @@ const t = zh
       lastReviewed: 'Last reviewed',
       sourced: 'A source on every date',
       nextEyebrow: 'Next step',
+      relatedTitle: 'Keep exploring',
       nextTitle: 'Put this rule against your actual client list',
       nextBody:
         'Reading it is one thing. The point is knowing — the moment this date moves — exactly which of your clients it affects.',
@@ -242,6 +249,34 @@ const t = zh
   <section class="m-section m-page-block geo-block geo-faq" id="faq">
     <FaqList eyebrow={page.faqHeader.eyebrow} title={page.faqHeader.title} items={page.faq} />
   </section>
+
+  {
+    related && related.length > 0 && (
+      <section class="m-section m-page-block geo-block geo-related" aria-labelledby="geo-related-h">
+        <h2 class="m-page-h2 geo-related__title" id="geo-related-h">
+          {relatedTitle ?? t.relatedTitle}
+        </h2>
+        <ul class="geo-related__list">
+          {related.map((link) => (
+            <li>
+              <a class="geo-related__link" href={link.href}>
+                <span>{link.label}</span>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M5 12h14M13 6l6 6-6 6"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
   <section class="m-section m-page-block geo-block">
     <div class="geo-next">
@@ -636,5 +671,50 @@ const t = zh
       text-align: left;
       white-space: normal;
     }
+  }
+
+  /* ---- keep-exploring cross-links ---- */
+  .geo-related__title {
+    margin-bottom: clamp(16px, 2vw, 22px);
+  }
+  .geo-related__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  @media (max-width: 640px) {
+    .geo-related__list {
+      grid-template-columns: 1fr;
+    }
+  }
+  .geo-related__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    color: var(--m-ink);
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .geo-related__link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .geo-related__link svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--m-accent);
   }
 </style>

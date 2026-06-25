@@ -1,0 +1,126 @@
+---
+/**
+ * /resources — the long-tail hub. One crawlable page that links every guide,
+ * comparison, and rule reference plus state coverage, so no resource is
+ * reachable only via the sitemap. Built from getResourceIndex() (the same
+ * getters the routes use) so it never drifts from what actually ships.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import en from '../i18n/en'
+import { getStartedHref } from '../lib/app-url'
+import { getResourceIndex } from '../lib/seo-content'
+import { resourceIndexStructuredData } from '../lib/structured-data'
+
+const t = en
+const ctaHref = getStartedHref()
+const pathname = '/resources'
+const title = 'DueDateHQ Resources — guides, comparisons, and rule references'
+const description =
+  'Every DueDateHQ guide, comparison, and source-backed rule reference for US CPA deadline operations, plus state coverage across 50 states + DC — in one place.'
+const sections = getResourceIndex(t, 'en')
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage={t.meta.ogImage}
+  structuredData={resourceIndexStructuredData(t, 'en', title, description)}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <main class="res">
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">Resources</p>
+      <h1 class="m-page-title">Everything we publish, in one place.</h1>
+      <p class="m-page-lead">
+        Guides for the weekly deadline work, side-by-side comparisons, source-backed rule
+        references, and state coverage across all 50 states plus DC.
+      </p>
+    </section>
+
+    {
+      sections.map((section) => (
+        <section class="m-section m-page-block res-group">
+          <div class="res-group__head">
+            <h2 class="m-page-h2">{section.heading}</h2>
+            <p class="res-group__desc">{section.description}</p>
+          </div>
+          <ul class="res-list">
+            {section.links.map((link) => (
+              <li>
+                <a class="res-link" href={link.href}>
+                  <span>{link.label}</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M5 12h14M13 6l6 6-6 6"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .res-group__head {
+    margin-bottom: clamp(16px, 2vw, 22px);
+  }
+  .res-group__desc {
+    margin-top: 6px;
+    color: var(--m-muted);
+    font-size: var(--m-text-md);
+  }
+  .res-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  @media (max-width: 640px) {
+    .res-list {
+      grid-template-columns: 1fr;
+    }
+  }
+  .res-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    color: var(--m-ink);
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .res-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .res-link svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--m-accent);
+  }
+</style>

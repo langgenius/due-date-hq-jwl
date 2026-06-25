@@ -5,6 +5,7 @@ import GeoResourcePage from '../../components/GeoResourcePage.astro'
 import Footer from '../../components/home/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getStartedHref } from '../../lib/app-url'
+import { getRuleReferenceLinks } from '../../lib/seo-content'
 import { resourceStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
@@ -27,6 +28,8 @@ const ctaHref = getStartedHref('zh-CN')
     primaryHref="/zh-CN/state-coverage"
     secondaryHref="/zh-CN/pricing"
     locale="zh-CN"
+    related={getRuleReferenceLinks('zh-CN')}
+    relatedTitle="带来源的规则参考"
   />
   <Footer locale="zh-CN" />
 </BaseLayout>

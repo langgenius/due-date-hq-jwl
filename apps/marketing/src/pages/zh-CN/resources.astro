@@ -1,0 +1,123 @@
+---
+/**
+ * /zh-CN/resources — Simplified-Chinese mirror of the long-tail hub. Mirrors
+ * resources.astro; the section roster comes from getResourceIndex(zhCN,'zh-CN').
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import zhCN from '../../i18n/zh-CN'
+import { getStartedHref } from '../../lib/app-url'
+import { getResourceIndex } from '../../lib/seo-content'
+import { resourceIndexStructuredData } from '../../lib/structured-data'
+
+const t = zhCN
+const ctaHref = getStartedHref('zh-CN')
+const pathname = '/zh-CN/resources'
+const title = 'DueDateHQ 资源 — 指南、对比与规则参考'
+const description =
+  'DueDateHQ 面向美国 CPA 截止日运营的全部指南、对比与带来源的规则参考，以及覆盖 50 州 + DC 的州覆盖 —— 集中在一处。'
+const sections = getResourceIndex(t, 'zh-CN')
+---
+
+<BaseLayout
+  lang="zh-CN"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage={t.meta.ogImage}
+  structuredData={resourceIndexStructuredData(t, 'zh-CN', title, description)}
+>
+  <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" />
+  <main class="res">
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">资源</p>
+      <h1 class="m-page-title">我们发布的全部内容，集中在一处。</h1>
+      <p class="m-page-lead">
+        每周截止日工作的指南、并排对比、带官方来源的规则参考，以及覆盖全部 50 州加 DC 的州覆盖。
+      </p>
+    </section>
+
+    {
+      sections.map((section) => (
+        <section class="m-section m-page-block res-group">
+          <div class="res-group__head">
+            <h2 class="m-page-h2">{section.heading}</h2>
+            <p class="res-group__desc">{section.description}</p>
+          </div>
+          <ul class="res-list">
+            {section.links.map((link) => (
+              <li>
+                <a class="res-link" href={link.href}>
+                  <span>{link.label}</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M5 12h14M13 6l6 6-6 6"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </main>
+  <Footer locale="zh-CN" />
+</BaseLayout>
+
+<style>
+  .res-group__head {
+    margin-bottom: clamp(16px, 2vw, 22px);
+  }
+  .res-group__desc {
+    margin-top: 6px;
+    color: var(--m-muted);
+    font-size: var(--m-text-md);
+  }
+  .res-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  @media (max-width: 640px) {
+    .res-list {
+      grid-template-columns: 1fr;
+    }
+  }
+  .res-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    color: var(--m-ink);
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .res-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .res-link svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--m-accent);
+  }
+</style>

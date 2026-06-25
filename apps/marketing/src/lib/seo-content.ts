@@ -1911,3 +1911,124 @@ export function getResourceCtaHrefs(
     }
   )
 }
+
+export interface ResourceLink {
+  label: string
+  href: string
+}
+
+// Curated cross-links shown in the "Keep exploring" block on every long-tail
+// leaf/hub, so guides/compares/rule references are no longer reachable only via
+// the footer + sitemap. Links lead with the highest-value hubs to concentrate
+// internal link equity (docs/dev-file/13 §6). Labels are short on purpose.
+const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[] = [
+  { href: '/rules', label: 'Rule library', labelZh: '规则库' },
+  { href: '/state-coverage', label: 'State coverage', labelZh: '州覆盖' },
+  { href: '/resources', label: 'All resources', labelZh: '全部资源' },
+  {
+    href: '/guides/weekly-cpa-deadline-triage',
+    label: 'Weekly deadline triage',
+    labelZh: '每周截止日分诊',
+  },
+  {
+    href: '/guides/multi-state-filing-deadlines',
+    label: 'Multi-state filing deadlines',
+    labelZh: '多州申报截止日',
+  },
+  {
+    href: '/guides/cpa-deadline-risk',
+    label: 'Which client deadline comes first',
+    labelZh: '先处理哪个客户截止日',
+  },
+  {
+    href: '/guides/evidence-backed-tax-deadline-software',
+    label: 'Evidence-backed deadline software',
+    labelZh: '带证据的截止日软件',
+  },
+  {
+    href: '/compare/file-in-time-alternative',
+    label: 'File In Time alternative',
+    labelZh: 'File In Time 替代方案',
+  },
+]
+
+export function getRelatedResources(
+  currentPathname: string,
+  locale: Locale,
+  limit = 4,
+): ResourceLink[] {
+  const prefix = locale === 'zh-CN' ? '/zh-CN' : ''
+  const currentFree = currentPathname.replace(/^\/zh-CN/, '') || '/'
+  return RELATED_RESOURCE_LINKS.filter((l) => l.href !== currentFree)
+    .slice(0, limit)
+    .map((l) => ({ label: locale === 'zh-CN' ? l.labelZh : l.label, href: `${prefix}${l.href}` }))
+}
+
+// The rule-reference children, surfaced on the /rules hub so its source-backed
+// reference pages are linked (and crawlable) from the library itself.
+export function getRuleReferenceLinks(locale: Locale): ResourceLink[] {
+  const prefix = locale === 'zh-CN' ? '/zh-CN' : ''
+  return ruleReferenceSpecs.map((spec) => ({
+    label: locale === 'zh-CN' ? spec.labelZh : spec.label,
+    href: `${prefix}/rules/${spec.slug}`,
+  }))
+}
+
+export interface ResourceIndexSection {
+  heading: string
+  description: string
+  links: ResourceLink[]
+}
+
+// The full long-tail roster for the /resources hub — every guide, comparison,
+// and rule reference linked from one crawlable page so nothing is reachable only
+// via the sitemap. Built from the same getters the routes use, so it can never
+// drift out of sync with what actually ships.
+export function getResourceIndex(siteCopy: LandingCopy, locale: Locale): ResourceIndexSection[] {
+  const zh = locale === 'zh-CN'
+  const prefix = zh ? '/zh-CN' : ''
+  return [
+    {
+      heading: zh ? '指南' : 'Guides',
+      description: zh
+        ? '把规则与截止日变成每周可执行的运营工作。'
+        : 'Turn rules and deadlines into weekly operational work.',
+      links: getGuidePages(siteCopy, locale).map((g) => ({
+        label: g.hero.title,
+        href: `${prefix}/guides/${g.slug}`,
+      })),
+    },
+    {
+      heading: zh ? '对比' : 'Comparisons',
+      description: zh
+        ? 'DueDateHQ 与 CPA 团队常评估的工具有何不同。'
+        : 'How DueDateHQ differs from tools CPA teams evaluate.',
+      links: getComparisonPages(locale).map((c) => ({
+        label: c.hero.title,
+        href: `${prefix}/compare/${c.slug}`,
+      })),
+    },
+    {
+      heading: zh ? '规则参考' : 'Rule references',
+      description: zh
+        ? '带官方来源的联邦截止日规则参考。'
+        : 'Source-backed federal deadline rule references.',
+      links: [
+        { label: zh ? '规则库' : 'Rule library', href: `${prefix}/rules` },
+        ...getRuleReferenceLinks(locale),
+      ],
+    },
+    {
+      heading: zh ? '州覆盖' : 'State coverage',
+      description: zh
+        ? '监控全部 50 州 + DC 的公开税务来源。'
+        : 'Monitoring public tax sources across all 50 states + DC.',
+      links: [
+        {
+          label: zh ? '全部州覆盖（50 州 + DC）' : 'All state coverage (50 states + DC)',
+          href: `${prefix}/state-coverage`,
+        },
+      ],
+    },
+  ]
+}

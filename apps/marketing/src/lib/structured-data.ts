@@ -325,6 +325,24 @@ export function howItWorksStructuredData(
   ])
 }
 
+export function resourceIndexStructuredData(
+  t: LandingCopy,
+  lang: Locale,
+  title: string,
+  description: string,
+): JsonLdDocument {
+  const pathname = lang === 'zh-CN' ? '/zh-CN/resources' : '/resources'
+  const labels: Record<Locale, string> = { en: 'Resources', 'zh-CN': '资源' }
+  return graph([
+    ...baseNodes(t, lang),
+    { ...webPageNode(pathname, title, description, lang, 'resources'), '@type': 'CollectionPage' },
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: labels[lang], pathname },
+    ]),
+  ])
+}
+
 export function pricingStructuredData(
   t: LandingCopy,
   lang: Locale,
