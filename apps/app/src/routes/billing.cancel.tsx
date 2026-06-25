@@ -43,7 +43,7 @@ export function BillingCancelRoute() {
       />
       <Card className="max-w-3xl">
         <CardHeader>
-          <CardTitle role="heading" aria-level={1}>
+          <CardTitle>
             <Trans>Checkout canceled</Trans>
           </CardTitle>
           <CardDescription>

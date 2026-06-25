@@ -13,7 +13,13 @@ test.skip(
   'external app targets must provide E2E_MARKETING_BASE_URL for marketing pricing coverage',
 )
 
-test('AC: E2E-BILLING-PRICING-DEEPLINK sends Pro CTA to protected checkout', async ({ page }) => {
+// PRICING_COMING_SOON (apps/marketing/src/lib/pricing-state.ts, flipped true in
+// f06be8be4) hides the priced tiers + checkout CTAs on /pricing, so there are no
+// Start-{Solo,Pro,Team} links to assert. Re-enable both tests when that flag is
+// false and /pricing renders live checkout CTAs again.
+test.skip('AC: E2E-BILLING-PRICING-DEEPLINK sends Pro CTA to protected checkout', async ({
+  page,
+}) => {
   await page.goto(`${marketingBaseURL}/pricing`)
 
   await expect(page.getByRole('link', { name: 'Start Solo' })).toHaveAttribute(
@@ -41,7 +47,7 @@ test('AC: E2E-BILLING-PRICING-DEEPLINK sends Pro CTA to protected checkout', asy
   expect(url.searchParams.get('redirectTo')).toBe('/billing/checkout?plan=pro&interval=yearly')
 })
 
-test('AC: E2E-BILLING-PRICING-LOCALE preserves zh-CN handoff before auth redirect', async ({
+test.skip('AC: E2E-BILLING-PRICING-LOCALE preserves zh-CN handoff before auth redirect', async ({
   page,
 }) => {
   await page.goto(`${marketingBaseURL}/zh-CN/pricing`)
