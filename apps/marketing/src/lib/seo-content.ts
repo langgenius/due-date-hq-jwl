@@ -1403,6 +1403,122 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         secondary: 'Open rule library',
       },
     },
+    {
+      slug: '2026-tax-deadline-calendar',
+      meta: {
+        title: '2026 Tax Deadline Calendar for CPA Firms — Federal Filing Dates',
+        description:
+          'The 2026 federal filing calendar for calendar-year filers: partnership, S-corp, C-corp, individual, estimated tax, and nonprofit deadlines, with the official IRS source.',
+        ogImage: '/og/home.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'When are the 2026 federal tax deadlines for a CPA practice?',
+        description:
+          'The federal calendar for tax year 2025 returns filed in 2026 (calendar-year filers). State deadlines vary — see state coverage for each official Department of Revenue date — and an extension extends time to file, not time to pay.',
+        note: 'This guide lists public federal filing dates, not tax advice. Verify against the official IRS source.',
+      },
+      sections: [
+        {
+          eyebrow: 'HOW TO READ IT',
+          title: 'A calendar is a starting point, not a triage plan.',
+          body: 'Knowing the dates is the easy part. The operational question is which clients each date actually puts at risk — that is what DueDateHQ ranks for the week.',
+          items: [
+            {
+              title: 'Weekend & holiday rule',
+              body: 'When a deadline lands on a Saturday, Sunday, or legal holiday, it moves to the next business day (in 2026 the March 15 entity deadline shifts to March 16).',
+            },
+            {
+              title: 'Extensions',
+              body: 'Form 7004 (entities) and Form 4868 (individuals) extend time to file, not time to pay — tax owed is still due by the original date.',
+            },
+            {
+              title: 'State dates differ',
+              body: 'States set their own deadlines and extension rules; check each state page for the official date and source.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'OPERATING MODEL',
+          title: 'Turn the calendar into a ranked, source-backed queue.',
+          body: 'DueDateHQ attaches each date to the clients it affects, with the official source, owner, readiness, and review status beside it — so the calendar becomes Monday-morning work, not a wall chart.',
+          items: [
+            {
+              title: 'Per-client mapping',
+              body: 'Each filing date is matched to the clients whose entity type and tax year make it apply.',
+            },
+            {
+              title: 'Source on every date',
+              body: 'Every deadline keeps its IRS or state source link so the date can be defended.',
+            },
+            {
+              title: 'Change monitoring',
+              body: 'If a date moves — a disaster postponement, a state change — affected clients surface in Alerts review.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '2026 tax deadline questions.' },
+      faq: [
+        {
+          question: 'Why is the March 2026 entity deadline on the 16th, not the 15th?',
+          answer:
+            'March 15, 2026 is a Sunday, so the partnership (Form 1065) and S-corporation (Form 1120-S) deadline moves to the next business day, Monday March 16, 2026.',
+        },
+        {
+          question: 'Do these federal dates apply to every state?',
+          answer:
+            'No. State filing deadlines vary by state and entity type. See the state coverage pages for each official Department of Revenue date and source.',
+        },
+        {
+          question: 'Is this calendar tax advice?',
+          answer:
+            'No. It lists public federal filing dates. Verify your specific obligations against the official IRS source and a professional.',
+        },
+      ],
+      cta: {
+        title: 'See which 2026 deadlines hit your clients.',
+        body: 'DueDateHQ maps every federal and state date to the clients it affects, with the source attached.',
+        primary: 'See state coverage',
+        secondary: 'Open rule library',
+      },
+      keyDates: {
+        eyebrow: 'KEY DATES',
+        title: '2026 federal filing calendar (calendar-year filers)',
+        note: 'Tax year 2025 returns filed in 2026. If a date falls on a weekend or legal holiday it moves to the next business day; an extension extends time to file, not to pay.',
+        sourceLabel: 'IRS — Publication 509, Tax Calendars',
+        sourceHref: 'https://www.irs.gov/publications/p509',
+        rows: [
+          {
+            label: 'March 16, 2026',
+            value:
+              'Partnership (Form 1065) and S-corporation (Form 1120-S) returns — March 15 falls on a Sunday in 2026; Form 7004 extends filing to September 15, 2026.',
+          },
+          {
+            label: 'April 15, 2026',
+            value:
+              'C-corporation (Form 1120) and individual (Form 1040) returns; Q1 individual estimated tax (Form 1040-ES). Extensions move filing to October 15, 2026.',
+          },
+          {
+            label: 'May 15, 2026',
+            value:
+              'Calendar-year exempt-organization returns (Form 990 series); Form 8868 extends filing to November 15, 2026.',
+          },
+          {
+            label: 'June 15 & September 15, 2026; January 15, 2027',
+            value: 'Remaining 2026 individual estimated-tax installments (Form 1040-ES).',
+          },
+          {
+            label: 'September 15, 2026',
+            value: 'Extended partnership and S-corporation returns.',
+          },
+          {
+            label: 'October 15, 2026',
+            value: 'Extended C-corporation and individual returns.',
+          },
+        ],
+      },
+    },
   ],
   'zh-CN': [
     {
@@ -1768,6 +1884,122 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         body: 'DueDateHQ 跟踪每个客户的联邦与各州申报，每个日期旁都带官方来源。',
         primary: '查看州覆盖',
         secondary: '打开规则库',
+      },
+    },
+    {
+      slug: '2026-tax-deadline-calendar',
+      meta: {
+        title: '2026 年 CPA 税务截止日日历 —— 联邦申报日期',
+        description:
+          '面向日历年纳税人的 2026 年联邦申报日历：合伙企业、S-corp、C-corp、个人、估算税与非营利组织的截止日，附官方 IRS 来源。',
+        ogImage: '/og/home.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: 'CPA 事务所的 2026 年联邦税务截止日是哪些？',
+        description:
+          '2025 税年、2026 年申报的联邦日历（日历年纳税人）。各州截止日不一——请在州覆盖页查看每个州官方 Department of Revenue 的日期；延期只延长申报时间，不延长付款时间。',
+        note: '本指南列出公开的联邦申报日期，不提供税务建议。请对照官方 IRS 来源核实。',
+      },
+      sections: [
+        {
+          eyebrow: '如何使用',
+          title: '日历只是起点，不是分诊计划。',
+          body: '知道日期是容易的部分。真正的运营问题是每个日期实际把哪些客户置于风险——这正是 DueDateHQ 为一周排序的内容。',
+          items: [
+            {
+              title: '周末与假日规则',
+              body: '当截止日落在周六、周日或法定假日时，顺延至下一个工作日（2026 年 3 月 15 日的实体截止日顺延至 3 月 16 日）。',
+            },
+            {
+              title: '延期',
+              body: 'Form 7004（实体）与 Form 4868（个人）只延长申报时间，不延长付款时间——应缴税款仍须在原始截止前缴清。',
+            },
+            {
+              title: '各州日期不同',
+              body: '各州自行设定截止日与延期规则；请在各州页查看官方日期和来源。',
+            },
+          ],
+        },
+        {
+          eyebrow: '运营模型',
+          title: '把日历变成可排序、带来源的队列。',
+          body: 'DueDateHQ 把每个日期连到受影响的客户，并在旁边附上官方来源、负责人、资料准备度和复核状态——让日历成为周一早上的工作，而不是一张墙上的挂历。',
+          items: [
+            {
+              title: '逐客户映射',
+              body: '每个申报日期都匹配到其实体类型和税年使之适用的客户。',
+            },
+            {
+              title: '每个日期都附来源',
+              body: '每个截止日都保留 IRS 或州的来源链接，使该日期可被复核。',
+            },
+            {
+              title: '变化监控',
+              body: '一旦日期变动——灾害延期、某州调整——受影响的客户会在 Alerts 复核中浮现。',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '2026 税务截止日常见问题。' },
+      faq: [
+        {
+          question: '为什么 2026 年 3 月的实体截止日是 16 日而不是 15 日？',
+          answer:
+            '2026 年 3 月 15 日是星期日，因此合伙企业（Form 1065）与 S-corporation（Form 1120-S）的截止日顺延至下一个工作日，即 2026 年 3 月 16 日（周一）。',
+        },
+        {
+          question: '这些联邦日期适用于所有州吗？',
+          answer:
+            '不。各州申报截止日因州和实体类型而异。请在州覆盖页查看每个州官方 Department of Revenue 的日期和来源。',
+        },
+        {
+          question: '这份日历是税务建议吗？',
+          answer:
+            '不是。它列出公开的联邦申报日期。请对照官方 IRS 来源并咨询专业人士，核实你的具体义务。',
+        },
+      ],
+      cta: {
+        title: '看看哪些 2026 截止日会影响你的客户。',
+        body: 'DueDateHQ 把每个联邦与各州日期映射到受影响的客户，并附上来源。',
+        primary: '查看州覆盖',
+        secondary: '打开规则库',
+      },
+      keyDates: {
+        eyebrow: '关键日期',
+        title: '2026 年联邦申报日历（日历年纳税人）',
+        note: '2025 税年、2026 年申报。若日期落在周末或法定假日则顺延至下一个工作日；延期只延长申报时间，不延长付款时间。',
+        sourceLabel: 'IRS — Publication 509, Tax Calendars',
+        sourceHref: 'https://www.irs.gov/publications/p509',
+        rows: [
+          {
+            label: '2026 年 3 月 16 日',
+            value:
+              '合伙企业（Form 1065）与 S-corporation（Form 1120-S）申报——2026 年 3 月 15 日为周日；Form 7004 可延长申报至 2026 年 9 月 15 日。',
+          },
+          {
+            label: '2026 年 4 月 15 日',
+            value:
+              'C-corporation（Form 1120）与个人（Form 1040）申报；第一期个人估算税（Form 1040-ES）。延期后申报截止移至 2026 年 10 月 15 日。',
+          },
+          {
+            label: '2026 年 5 月 15 日',
+            value:
+              '日历年非营利组织申报（Form 990 系列）；Form 8868 可延长申报至 2026 年 11 月 15 日。',
+          },
+          {
+            label: '2026 年 6 月 15 日、9 月 15 日；2027 年 1 月 15 日',
+            value: '2026 年剩余的个人估算税分期（Form 1040-ES）。',
+          },
+          {
+            label: '2026 年 9 月 15 日',
+            value: '延期后的合伙企业与 S-corporation 申报。',
+          },
+          {
+            label: '2026 年 10 月 15 日',
+            value: '延期后的 C-corporation 与个人申报。',
+          },
+        ],
       },
     },
   ],
@@ -2368,6 +2600,10 @@ export function getResourceCtaHrefs(
       secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
     },
     'multi-state-filing-deadlines': {
+      primaryHref: `${prefix}/state-coverage`,
+      secondaryHref: `${prefix}/rules`,
+    },
+    '2026-tax-deadline-calendar': {
       primaryHref: `${prefix}/state-coverage`,
       secondaryHref: `${prefix}/rules`,
     },
