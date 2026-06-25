@@ -3190,13 +3190,278 @@ export const comparisonPages: Record<Locale, GuidePageCopy[]> = {
   'zh-CN': comparisonSpecs.map((spec) => comparisonPage(spec, 'zh-CN')),
 }
 
+// "Best [tool] alternatives" roundup pages — honest, plural-intent capture for
+// "{product} alternatives" searches. Each lists the tools commonly evaluated
+// together (by public positioning, no false claims) and positions DueDateHQ as
+// the deadline-change monitoring option, never as a full-suite replacement.
+interface AlternativeRoundupSpec {
+  slug: string
+  subject: string
+  subjectCategory: string
+  subjectCategoryZh: string
+  alternatives: { name: string; note: string; noteZh: string }[]
+}
+
+const DDHQ_ALT = {
+  name: 'DueDateHQ',
+  note: 'a deadline-and-rule-change monitoring layer — it watches official IRS and state sources and routes each change to the clients it affects, on top of whatever you run.',
+  noteZh:
+    '截止日与规则变化监控层——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，叠加在你用的任何工具之上。',
+}
+
+const ALT_NOTES = {
+  taxdome: {
+    name: 'TaxDome',
+    note: 'an all-in-one practice management and client portal suite.',
+    noteZh: '一体化 practice management 与客户门户套件。',
+  },
+  canopy: {
+    name: 'Canopy',
+    note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal.',
+    noteZh: '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。',
+  },
+  karbon: {
+    name: 'Karbon',
+    note: 'collaborative accounting workflow and team work management with email collaboration.',
+    noteZh: '会计团队协作工作流与 work management，含邮件协作。',
+  },
+  financialCents: {
+    name: 'Financial Cents',
+    note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up.',
+    noteZh: '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。',
+  },
+  jetpack: {
+    name: 'Jetpack Workflow',
+    note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library.',
+    noteZh: '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。',
+  },
+  aero: {
+    name: 'Aero Workflow',
+    note: 'a workflow and task-management tool for bookkeeping and CAS firms with a procedures library.',
+    noteZh: '面向记账与 CAS 事务所的工作流与任务管理工具，带流程库。',
+  },
+} as const
+
+const alternativeRoundupSpecs: AlternativeRoundupSpec[] = [
+  {
+    slug: 'taxdome-alternatives',
+    subject: 'TaxDome',
+    subjectCategory: 'an all-in-one practice management and client portal suite',
+    subjectCategoryZh: '一体化 practice management 与客户门户套件',
+    alternatives: [
+      ALT_NOTES.canopy,
+      ALT_NOTES.karbon,
+      ALT_NOTES.financialCents,
+      ALT_NOTES.jetpack,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'karbon-alternatives',
+    subject: 'Karbon',
+    subjectCategory: 'collaborative accounting workflow and team work management',
+    subjectCategoryZh: '会计团队协作工作流与 work management',
+    alternatives: [
+      ALT_NOTES.taxdome,
+      ALT_NOTES.canopy,
+      ALT_NOTES.financialCents,
+      ALT_NOTES.aero,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'file-in-time-alternatives',
+    subject: 'File In Time',
+    subjectCategory: 'a narrow tax-deadline tracker built around due-date lists',
+    subjectCategoryZh: '围绕截止日清单构建的窄范围税务截止日跟踪工具',
+    alternatives: [ALT_NOTES.jetpack, ALT_NOTES.taxdome, ALT_NOTES.canopy, DDHQ_ALT],
+  },
+]
+
+function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): GuidePageCopy {
+  const zh = locale === 'zh-CN'
+  const altItems = spec.alternatives.map((a) => ({ title: a.name, body: zh ? a.noteZh : a.note }))
+  if (zh) {
+    return {
+      slug: spec.slug,
+      meta: {
+        title: `${spec.subject} 替代方案：CPA 事务所怎么选 — DueDateHQ 指南`,
+        description: `面向 CPA 事务所的 ${spec.subject} 替代方案：常被一起评估的工具清单与各自适合的场景，以及 DueDateHQ 如何作为带来源的截止日变化监控层补位。`,
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: `面向 CPA 事务所的 ${spec.subject} 替代方案`,
+        description: `${spec.subject} 是${spec.subjectCategoryZh}。如果你在评估替代方案，先想清楚要解决哪件事——再看下面这些工具各自的定位。`,
+        note: '本指南基于公开定位，不声称竞品私有能力，也不提供税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '怎么选',
+          title: `评估 ${spec.subject} 替代方案时先看什么？`,
+          body: '替代不是换个名字，而是换一组取舍。先确认你最缺的是哪一块：截止日覆盖与变化监控、官方来源证据，还是迁移成本。',
+          items: [
+            {
+              title: '截止日与变化覆盖',
+              body: '工具是只跟踪你录入的日期，还是会监控官方来源、在日期变动时提醒你？',
+            },
+            {
+              title: '官方来源证据',
+              body: '每个截止日是否带可回看的官方 IRS/州来源，便于复核与解释？',
+            },
+            {
+              title: '迁移成本',
+              body: '换平台的迁移与维护负担，是否值得你要解决的那个问题？',
+            },
+          ],
+        },
+        {
+          eyebrow: '可选方案',
+          title: `值得考虑的 ${spec.subject} 替代方案`,
+          body: '下面按公开定位列出常被一起评估的工具，以及各自更适合的场景。',
+          items: altItems,
+        },
+        {
+          eyebrow: 'DueDateHQ 的位置',
+          title: 'DueDateHQ 补的是「截止日变化监控」这一块。',
+          body: '多数替代方案是更宽的 practice/workflow 平台。DueDateHQ 故意更窄：监控官方 IRS 与各州来源的截止日与规则变化，把每条变化路由到受影响的客户，并附上来源——叠加在你已有的工具之上。',
+          items: [
+            {
+              title: '带来源的规则',
+              body: '每个截止日保留官方来源、摘录、复核时间与复核状态。',
+            },
+            {
+              title: '受影响客户复核',
+              body: '变化先匹配到具体客户、经人工复核，再影响运营。',
+            },
+            {
+              title: '与现有工具并存',
+              body: `可以保留 ${spec.subject} 或其它平台，DueDateHQ 只补监控层。`,
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: `${spec.subject} 替代方案常见问题。` },
+      faq: [
+        {
+          question: `最好的 ${spec.subject} 替代方案是哪个？`,
+          answer: `没有唯一答案——取决于你要解决的问题。若缺的是更宽的 practice 平台，看上面的套件；若缺的是截止日与规则变化监控，DueDateHQ 更直接。`,
+        },
+        {
+          question: `DueDateHQ 是 ${spec.subject} 的替代方案吗？`,
+          answer: '在截止日变化监控这件事上可以；更广的工作流场景上它是补充而非完全替代。',
+        },
+        {
+          question: `可以保留 ${spec.subject} 同时加上 DueDateHQ 吗？`,
+          answer: '可以。DueDateHQ 是叠加在上层的监控层，不替换你现有的配置。',
+        },
+      ],
+      cta: {
+        title: `看看 DueDateHQ 如何补 ${spec.subject} 的截止日监控`,
+        body: '监控官方来源，把每条截止日与规则变化路由到受影响的客户，并附上来源。',
+        primary: '查看对比',
+        secondary: '浏览全部资源',
+      },
+    }
+  }
+
+  return {
+    slug: spec.slug,
+    meta: {
+      title: `The best ${spec.subject} alternatives for CPA firms — DueDateHQ guide`,
+      description: `${spec.subject} alternatives for CPA firms: the tools commonly evaluated together and where each fits, plus how DueDateHQ adds a source-backed deadline-change monitoring layer.`,
+      ogImage: '/og/guide.en.png',
+    },
+    hero: {
+      eyebrow: 'GUIDE',
+      title: `The best ${spec.subject} alternatives for CPA firms`,
+      description: `${spec.subject} is ${spec.subjectCategory}. If you are weighing alternatives, get clear on the job you need done first — then see how the tools below are positioned.`,
+      note: 'This guide is based on public positioning, not competitor claims beyond visible market framing, and is not tax advice.',
+    },
+    sections: [
+      {
+        eyebrow: 'WHAT TO LOOK FOR',
+        title: `What to look for in a ${spec.subject} alternative`,
+        body: 'Switching is a trade-off, not a rename. Pin down the gap you actually have: deadline coverage and change monitoring, official-source evidence, or migration cost.',
+        items: [
+          {
+            title: 'Deadline & change coverage',
+            body: 'Does the tool only track dates you enter, or watch official sources and flag you when a date moves?',
+          },
+          {
+            title: 'Official-source evidence',
+            body: 'Does each deadline carry an inspectable IRS or state source so it can be reviewed and defended?',
+          },
+          {
+            title: 'Migration cost',
+            body: 'Is the switching and maintenance burden worth the problem you are actually solving?',
+          },
+        ],
+      },
+      {
+        eyebrow: 'ALTERNATIVES',
+        title: `${spec.subject} alternatives to consider`,
+        body: 'Tools commonly evaluated together, by public positioning, with where each tends to fit.',
+        items: altItems,
+      },
+      {
+        eyebrow: 'WHERE DUEDATEHQ FITS',
+        title: 'Where DueDateHQ fits: the deadline-change monitoring gap.',
+        body: 'Most alternatives are broader practice or workflow platforms. DueDateHQ is deliberately narrower: it watches official IRS and state sources for deadline and rule changes and routes each one to the clients it affects, with the source attached — on top of the tools you already run.',
+        items: [
+          {
+            title: 'Source-backed rules',
+            body: 'Each deadline keeps its official source, excerpt, review timestamp, and review state.',
+          },
+          {
+            title: 'Affected-client review',
+            body: 'A change is matched to specific clients and human-reviewed before it affects operations.',
+          },
+          {
+            title: 'Runs alongside your stack',
+            body: `Keep ${spec.subject} or any platform — DueDateHQ only adds the monitoring layer.`,
+          },
+        ],
+      },
+    ],
+    faqHeader: { eyebrow: 'FAQ', title: `${spec.subject} alternative questions.` },
+    faq: [
+      {
+        question: `What is the best ${spec.subject} alternative?`,
+        answer: `There is no single answer — it depends on the job. If the gap is a broader practice platform, look at the suites above; if the gap is deadline and rule-change monitoring, DueDateHQ is the more direct fit.`,
+      },
+      {
+        question: `Is DueDateHQ a ${spec.subject} alternative?`,
+        answer:
+          'For deadline-change monitoring, yes; for broader workflows it is a complement rather than a full replacement.',
+      },
+      {
+        question: `Can I keep ${spec.subject} and add DueDateHQ?`,
+        answer:
+          'Yes. DueDateHQ is a monitoring layer that sits on top — it does not replace your existing setup.',
+      },
+    ],
+    cta: {
+      title: `See how DueDateHQ covers the ${spec.subject} deadline-monitoring gap`,
+      body: 'It watches official sources and routes each deadline and rule change to the clients it affects, with the source attached.',
+      primary: 'See the comparison',
+      secondary: 'Browse all resources',
+    },
+  }
+}
+
+export const alternativeRoundupPages: Record<Locale, GuidePageCopy[]> = {
+  en: alternativeRoundupSpecs.map((spec) => alternativeRoundupPage(spec, 'en')),
+  'zh-CN': alternativeRoundupSpecs.map((spec) => alternativeRoundupPage(spec, 'zh-CN')),
+}
+
 export const ruleReferencePages: Record<Locale, GuidePageCopy[]> = {
   en: ruleReferenceSpecs.map((spec) => ruleReferencePage(spec, 'en')),
   'zh-CN': ruleReferenceSpecs.map((spec) => ruleReferencePage(spec, 'zh-CN')),
 }
 
 export function getGuidePages(siteCopy: LandingCopy, locale: Locale): GuidePageCopy[] {
-  return [...siteCopy.geo.guides, ...supplementalGuides[locale]]
+  return [...siteCopy.geo.guides, ...supplementalGuides[locale], ...alternativeRoundupPages[locale]]
 }
 
 export function getComparisonPages(locale: Locale): GuidePageCopy[] {
@@ -3898,6 +4163,18 @@ export function getResourceCtaHrefs(
     'payroll-tax-deadlines': {
       primaryHref: `${prefix}/rules`,
       secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'taxdome-alternatives': {
+      primaryHref: `${prefix}/compare/taxdome-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'karbon-alternatives': {
+      primaryHref: `${prefix}/compare/karbon-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'file-in-time-alternatives': {
+      primaryHref: `${prefix}/compare/file-in-time-alternative`,
+      secondaryHref: `${prefix}/resources`,
     },
     'form-1120-c-corp-deadline': {
       primaryHref: `${prefix}/rules`,
