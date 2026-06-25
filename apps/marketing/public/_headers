@@ -4,6 +4,10 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.amplitude.com; frame-ancestors 'none'
+  # HTML pages (and non-hashed root files) must always revalidate so edited copy,
+  # JSON-LD, and regenerated OG images go live immediately. The more-specific
+  # /_astro/* rule below overrides this for content-hashed assets.
+  Cache-Control: public, max-age=0, must-revalidate
 
 # Astro emits content-hashed filenames under /_astro — safe to cache forever.
 /_astro/*

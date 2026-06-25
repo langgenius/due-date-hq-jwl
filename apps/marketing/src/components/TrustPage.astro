@@ -6,7 +6,7 @@
  *  serif appears here), a calm meta rail, an optional signature statement, a
  *  numbered section rhythm with contained rules, and a bold navy CTA that closes
  *  the page — chroma in containers, never in text. */
-import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import { getContentDates } from '../lib/content-metadata'
 import type { TrustPageCopy } from '../lib/trust-pages'
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
 
 const { page, locale } = Astro.props
 const zh = locale === 'zh-CN'
+const reviewedOn = getContentDates(page.slug).reviewedOn
 const lastReviewedLabel = zh ? '最近复核' : 'Last reviewed'
 const sectionsLabel = zh ? '本页内容' : 'On this page'
 
@@ -36,7 +37,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
       <p class="trustpg__note">{page.hero.note}</p>
       <p class="trustpg__reviewed">
         <span class="trustpg__reviewed-k">{lastReviewedLabel}</span>
-        <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+        <time datetime={reviewedOn}>{reviewedOn}</time>
       </p>
     </div>
 

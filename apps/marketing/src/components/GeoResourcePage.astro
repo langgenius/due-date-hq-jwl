@@ -11,7 +11,7 @@
  *  for AEO; and a confident "next step" block links back into the funnel above
  *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
-import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import { getContentDates } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
 
 interface Props {
@@ -25,6 +25,10 @@ interface Props {
 
 const { page, primaryHref, secondaryHref, locale, back } = Astro.props
 const zh = locale === 'zh-CN'
+
+// Visible "Last reviewed" date — per-slug when an override exists (guides carry a
+// slug; bare ResourcePageCopy hubs fall back to the site-wide reviewed date).
+const reviewedOn = getContentDates('slug' in page ? page.slug : undefined).reviewedOn
 
 // The hero's product peek is built from the page's OWN first sourced date — real
 // data, no fabrication. Pages without key dates (some guides) fall back to a
@@ -96,7 +100,7 @@ const t = zh
           ></path>
         </svg>
         {t.lastReviewed}
-        <time class="geo-trust__date" datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+        <time class="geo-trust__date" datetime={reviewedOn}>{reviewedOn}</time>
       </span>
       <span class="geo-trust__sep" aria-hidden="true"></span>
       <span class="geo-trust__item geo-trust__item--muted">

@@ -8,7 +8,7 @@
  *  watch", the official sources to verify against, what can become review work,
  *  honest limits, FAQ, and a cross-link footer back to the hub + neighbors. */
 import type { StatePageCopy } from '../i18n/types'
-import { CONTENT_REVIEWED_ON, type OfficialSourceLink } from '../lib/content-metadata'
+import { getContentDates, type OfficialSourceLink } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
 import { getStartedHref } from '../lib/app-url'
 
@@ -24,6 +24,7 @@ interface Props {
 
 const { page, coverageHref, locale, officialSources, allStates } = Astro.props
 const zh = locale === 'zh-CN'
+const reviewedOn = getContentDates(page.slug).reviewedOn
 const prefix = zh ? '/zh-CN' : ''
 
 const labels = zh
@@ -103,7 +104,7 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     <p class="m-page-lead">{page.hero.description}</p>
     <p class="m-page-note">{page.hero.note}</p>
     <p class="m-page-reviewed">
-      {labels.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+      {labels.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
     </p>
   </section>
 

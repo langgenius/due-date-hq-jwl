@@ -41,10 +41,10 @@ export default defineConfig({
   integrations: [
     sitemap({
       // Keep historical hidden fallback URLs out if Astro or a future config
-      // change reintroduces them. Also drop /legacy (the preserved old
-      // homepage): it ships `noindex`, so listing it in the sitemap would trip
-      // GSC's "Submitted URL marked noindex" warning and dilute the live home.
-      filter: (page) => !/\/zh-CN\/zh-cn\/?$/i.test(page) && !/\/legacy\/?$/i.test(page),
+      // change reintroduces them (e.g. the i18n /zh-CN/zh-cn duplicate). Any
+      // future noindex-only page must be added here too so the sitemap never
+      // lists a URL that GSC would flag as "Submitted URL marked noindex".
+      filter: (page) => !/\/zh-CN\/zh-cn\/?$/i.test(page),
       // Emit <xhtml:link rel="alternate"> pairs for en <-> zh-CN (mirrors the
       // in-page hreflang). en is the unprefixed default; zh-CN lives under /zh-CN.
       i18n: {

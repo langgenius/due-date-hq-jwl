@@ -8,7 +8,7 @@
  *  priority tiers), the states with published detail pages elevated as links,
  *  and a clear path from public signal → reviewed client impact. */
 import type { StateCoverageCopy } from '../i18n/types'
-import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import { getContentDates } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
 import { getStartedHref } from '../lib/app-url'
 
@@ -19,6 +19,7 @@ interface Props {
 
 const { page, locale } = Astro.props
 const zh = locale === 'zh-CN'
+const reviewedOn = getContentDates('state-coverage').reviewedOn
 
 // Full jurisdiction names — powers the hover tooltip on each roster tile so a
 // two-letter abbreviation is never the only label.
@@ -146,7 +147,7 @@ const ctaPrimaryHref = getStartedHref(zh ? 'zh-CN' : undefined)
 
     <p class="m-page-note">{page.hero.note}</p>
     <p class="m-page-reviewed">
-      {l.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
+      {l.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
     </p>
   </section>
 
