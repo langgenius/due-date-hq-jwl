@@ -973,6 +973,292 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
       ],
     },
   },
+  {
+    slug: 'form-1120-c-corp-deadline',
+    label: 'Form 1120 C corporation deadline',
+    labelZh: 'Form 1120 C 类公司截止日',
+    sourceContext: 'IRS Form 1120 instructions and corporate filing-period guidance',
+    sourceContextZh: 'IRS Form 1120 说明与公司申报期间指南',
+    operationalRisk:
+      'C-corporation work pairs the original filing date with a separate payment deadline and a fiscal-year exception that does not follow the calendar',
+    operationalRiskZh:
+      'C 类公司工作把原始申报日、单独的付款截止日，以及不按日历年的财年例外放在一起',
+    clientContext:
+      'corporation profile, tax year end, estimated-payment status, state registration, and responsible owner',
+    clientContextZh: '公司档案、税年结束日、估缴状态、州注册和负责人',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1120',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1120',
+      rows: [
+        {
+          label: 'Original deadline',
+          labelZh: '原始截止日',
+          value:
+            'April 15 — the 15th day of the 4th month after the tax year ends, for calendar-year corporations.',
+          valueZh: '4 月 15 日——日历年公司为税年结束后第 4 个月的第 15 天。',
+        },
+        {
+          label: 'Extension',
+          labelZh: '延期',
+          value: 'Form 7004 — an automatic 6-month extension of time to file, to October 15.',
+          valueZh: 'Form 7004——自动延长 6 个月的申报时间，至 10 月 15 日。',
+        },
+        {
+          label: 'June 30 fiscal-year filers',
+          labelZh: '6 月 30 日财年纳税人',
+          value:
+            'A corporation with a June 30 year-end files by the 15th day of the 3rd month (September 15) under a special rule.',
+          valueZh: '6 月 30 日财年结束的公司按特殊规则在第 3 个月的第 15 天（9 月 15 日）前申报。',
+        },
+        {
+          label: 'Payment',
+          labelZh: '付款',
+          value:
+            'An extension extends time to file, not time to pay; tax owed is still due by the original deadline.',
+          valueZh: '延期只延长申报时间，不延长付款时间；应缴税款仍需在原始截止日前缴清。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-1040-individual-deadline',
+    label: 'Form 1040 individual filing deadline',
+    labelZh: 'Form 1040 个人申报截止日',
+    sourceContext: 'IRS Form 1040 instructions and individual filing-period guidance',
+    sourceContextZh: 'IRS Form 1040 说明与个人申报期间指南',
+    operationalRisk:
+      'individual return work separates the filing date from the payment date and from quarterly estimated-tax installments',
+    operationalRiskZh: '个人申报工作把申报日、付款日和季度估缴分期分开',
+    clientContext:
+      'individual taxpayer, filing status, extension state, estimated-payment history, and responsible preparer',
+    clientContextZh: '个人纳税人、申报身份、延期状态、估缴历史和负责的报税人',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1040',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1040',
+      rows: [
+        {
+          label: 'Original deadline',
+          labelZh: '原始截止日',
+          value: 'April 15 for calendar-year individual taxpayers.',
+          valueZh: '日历年个人纳税人为 4 月 15 日。',
+        },
+        {
+          label: 'Extension',
+          labelZh: '延期',
+          value: 'Form 4868 — an automatic 6-month extension of time to file, to October 15.',
+          valueZh: 'Form 4868——自动延长 6 个月的申报时间，至 10 月 15 日。',
+        },
+        {
+          label: 'Payment',
+          labelZh: '付款',
+          value:
+            'An extension extends time to file, not time to pay; tax owed is still due by April 15.',
+          valueZh: '延期只延长申报时间，不延长付款时间；应缴税款仍需在 4 月 15 日前缴清。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-1041-estate-trust-deadline',
+    label: 'Form 1041 estate and trust deadline',
+    labelZh: 'Form 1041 遗产与信托截止日',
+    sourceContext: 'IRS Form 1041 instructions and fiduciary filing guidance',
+    sourceContextZh: 'IRS Form 1041 说明与受托人申报指南',
+    operationalRisk:
+      'fiduciary work pairs the filing date with beneficiary Schedule K-1 timing and a shorter extension than other business returns',
+    operationalRiskZh:
+      '受托人工作把申报日与受益人 Schedule K-1 时点，以及比其他企业申报更短的延期放在一起',
+    clientContext:
+      'estate or trust profile, tax year, beneficiary list, distribution status, and responsible fiduciary',
+    clientContextZh: '遗产或信托档案、税年、受益人名单、分配状态和负责的受托人',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 1041',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-1041',
+      rows: [
+        {
+          label: 'Original deadline',
+          labelZh: '原始截止日',
+          value:
+            'April 15 — the 15th day of the 4th month after the tax year ends, for calendar-year estates and trusts.',
+          valueZh: '4 月 15 日——日历年遗产与信托为税年结束后第 4 个月的第 15 天。',
+        },
+        {
+          label: 'Extension',
+          labelZh: '延期',
+          value: 'Form 7004 — an automatic 5½-month extension of time to file, to September 30.',
+          valueZh: 'Form 7004——自动延长 5 个半月的申报时间，至 9 月 30 日。',
+        },
+        {
+          label: 'Payment',
+          labelZh: '付款',
+          value:
+            'An extension extends time to file, not time to pay; tax owed is still due by the original deadline.',
+          valueZh: '延期只延长申报时间，不延长付款时间；应缴税款仍需在原始截止日前缴清。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-940-futa-deadline',
+    label: 'Form 940 FUTA deadline',
+    labelZh: 'Form 940 联邦失业税（FUTA）截止日',
+    sourceContext: 'IRS Form 940 instructions and FUTA deposit guidance',
+    sourceContextZh: 'IRS Form 940 说明与 FUTA 缴存指南',
+    operationalRisk:
+      'unemployment-tax work separates the annual return from the deposit schedule and offers a short filing grace only when deposits were timely',
+    operationalRiskZh:
+      '失业税工作把年度申报与缴存日程分开，且只有在缴存按时完成时才有较短的申报宽限',
+    clientContext: 'employer entity, FUTA deposit history, payroll periods, and deposit status',
+    clientContextZh: '雇主实体、FUTA 缴存历史、工资周期和缴存状态',
+    keyDates: {
+      sourceLabel: 'IRS — Instructions for Form 940',
+      sourceHref: 'https://www.irs.gov/instructions/i940',
+      rows: [
+        {
+          label: 'Annual deadline',
+          labelZh: '年度截止日',
+          value: 'January 31 — Form 940 reports the prior calendar year of FUTA tax.',
+          valueZh: '1 月 31 日——Form 940 申报上一日历年的 FUTA 税。',
+        },
+        {
+          label: 'Timely-deposit grace',
+          labelZh: '按时缴存宽限',
+          value: 'If all FUTA tax was deposited on time and in full, you may file by February 10.',
+          valueZh: '若所有 FUTA 税款均按时足额缴存，可在 2 月 10 日前申报。',
+        },
+        {
+          label: 'Deposit vs file',
+          labelZh: '缴存与申报',
+          value:
+            'FUTA tax is deposited quarterly once it exceeds the threshold; filing Form 940 is separate from depositing the tax.',
+          valueZh: 'FUTA 税在超过门槛后按季度缴存；提交 Form 940 与缴存税款是两件事。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-w-2-filing-deadline',
+    label: 'Form W-2 and W-3 filing deadline',
+    labelZh: 'Form W-2 与 W-3 申报截止日',
+    sourceContext: 'IRS General Instructions for Forms W-2 and W-3 and SSA filing guidance',
+    sourceContextZh: 'IRS Forms W-2 与 W-3 通用说明及 SSA 申报指南',
+    operationalRisk:
+      'wage-statement work shares one January 31 date for both the employee copy and the SSA filing, and is subject to the aggregate e-file threshold',
+    operationalRiskZh:
+      '工资单工作的雇员副本与 SSA 申报共用 1 月 31 日同一日期，并受合计电子申报门槛约束',
+    clientContext: 'employer entity, employee count, payroll provider, and filing method',
+    clientContextZh: '雇主实体、雇员人数、工资服务商和申报方式',
+    keyDates: {
+      sourceLabel: 'IRS — General Instructions for Forms W-2 and W-3',
+      sourceHref: 'https://www.irs.gov/instructions/iw2w3',
+      rows: [
+        {
+          label: 'To employees',
+          labelZh: '给雇员',
+          value: 'Furnish Copies B, C, and 2 to employees by January 31.',
+          valueZh: '在 1 月 31 日前把 Copy B、C、2 交给雇员。',
+        },
+        {
+          label: 'To the SSA',
+          labelZh: '给 SSA',
+          value:
+            'File Copy A of Form W-2 with Form W-3 with the Social Security Administration by January 31 — the same date.',
+          valueZh:
+            '在 1 月 31 日前把 Form W-2 的 Copy A 连同 Form W-3 报送社会保障局（SSA）——同一日期。',
+        },
+        {
+          label: 'E-file threshold',
+          labelZh: '强制电子申报',
+          value: 'Ten or more information returns (all types combined) in a year must be e-filed.',
+          valueZh: '一年内各类信息申报表合计达 10 份及以上必须电子申报。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-2553-s-corp-election-deadline',
+    label: 'Form 2553 S corporation election deadline',
+    labelZh: 'Form 2553 S 类公司选举截止日',
+    sourceContext: 'IRS Form 2553 instructions and S-election timing guidance',
+    sourceContextZh: 'IRS Form 2553 说明与 S 选举时点指南',
+    operationalRisk:
+      'the S election is a one-time timing decision, not an annual return — missing the window changes how the entity is taxed for the year',
+    operationalRiskZh: 'S 选举是一次性的时点决定，而非年度申报——错过窗口会改变该年度实体的纳税方式',
+    clientContext:
+      'corporation profile, intended effective tax year, formation date, shareholder consents, and prior elections',
+    clientContextZh: '公司档案、拟生效税年、成立日期、股东同意书和此前的选举',
+    keyDates: {
+      sourceLabel: 'IRS — Instructions for Form 2553',
+      sourceHref: 'https://www.irs.gov/instructions/i2553',
+      rows: [
+        {
+          label: 'Election window',
+          labelZh: '选举窗口',
+          value:
+            'No later than 2 months and 15 days after the beginning of the tax year the election is to take effect.',
+          valueZh: '不晚于拟生效税年开始后的 2 个月零 15 天。',
+        },
+        {
+          label: 'Calendar-year corporations',
+          labelZh: '日历年公司',
+          value: 'For a calendar-year corporation electing for that year, that date is March 15.',
+          valueZh: '对在该年选举的日历年公司，该日期为 3 月 15 日。',
+        },
+        {
+          label: 'Prior-year option',
+          labelZh: '前一税年选项',
+          value:
+            'The election may also be filed any time during the tax year before it takes effect.',
+          valueZh: '也可以在生效年之前的整个税年内任何时间提交选举。',
+        },
+        {
+          label: 'Late elections',
+          labelZh: '逾期选举',
+          value:
+            'Relief for a late election may be available when specific IRS requirements are met.',
+          valueZh: '在满足 IRS 特定条件时，逾期选举可能获得救济。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'form-5500-benefit-plan-deadline',
+    label: 'Form 5500 benefit-plan filing deadline',
+    labelZh: 'Form 5500 福利计划申报截止日',
+    sourceContext: 'IRS Form 5500 series guidance and DOL EFAST2 filing requirements',
+    sourceContextZh: 'IRS Form 5500 系列指南与 DOL EFAST2 申报要求',
+    operationalRisk:
+      'benefit-plan reporting runs on the plan year, not the tax year, so the filing date depends on when the plan year ends',
+    operationalRiskZh: '福利计划申报按计划年度而非税年进行，申报日取决于计划年度何时结束',
+    clientContext:
+      'plan sponsor, plan year end, plan type, participant count, and EFAST2 filing status',
+    clientContextZh: '计划发起人、计划年度结束日、计划类型、参与人数和 EFAST2 申报状态',
+    keyDates: {
+      sourceLabel: 'IRS — Form 5500 corner',
+      sourceHref: 'https://www.irs.gov/retirement-plans/form-5500-corner',
+      rows: [
+        {
+          label: 'Filing rule',
+          labelZh: '申报规则',
+          value: 'Due the last day of the 7th month after the plan year ends.',
+          valueZh: '在计划年度结束后第 7 个月的最后一天到期。',
+        },
+        {
+          label: 'Calendar-year plan',
+          labelZh: '日历年计划',
+          value: 'July 31 for a plan year ending December 31.',
+          valueZh: '12 月 31 日结束的计划年度为 7 月 31 日。',
+        },
+        {
+          label: 'Extension (Form 5558)',
+          labelZh: '延期（Form 5558）',
+          value:
+            'A one-time extension of up to 2½ months — to October 15 for a calendar-year plan.',
+          valueZh: '一次性延长最多 2 个半月——日历年计划至 10 月 15 日。',
+        },
+      ],
+    },
+  },
 ]
 
 const KEY_DATES_NOTE: Record<Locale, string> = {
@@ -3230,6 +3516,34 @@ export function getResourceCtaHrefs(
     '2026-tax-deadline-calendar': {
       primaryHref: `${prefix}/state-coverage`,
       secondaryHref: `${prefix}/rules`,
+    },
+    'form-1120-c-corp-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-1040-individual-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-1041-estate-trust-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-940-futa-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-w-2-filing-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-2553-s-corp-election-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
+    },
+    'form-5500-benefit-plan-deadline': {
+      primaryHref: `${prefix}/rules`,
+      secondaryHref: `${prefix}/guides/weekly-cpa-deadline-triage`,
     },
   }
 

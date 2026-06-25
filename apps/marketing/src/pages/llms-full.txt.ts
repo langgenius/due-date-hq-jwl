@@ -23,6 +23,12 @@ const FEDERAL_DEADLINES = [
   '- S corporation (Form 1120-S): due March 15; Form 7004 extends the filing deadline to September 15.',
   '- C corporation (Form 1120): due April 15; Form 7004 extends the filing deadline to October 15.',
   '- Individual (Form 1040): due April 15; Form 4868 extends the filing deadline to October 15.',
+  '- Estate or trust (Form 1041): due April 15; Form 7004 extends the filing deadline to September 30.',
+  '- Exempt organization (Form 990 series): due May 15; Form 8868 extends the filing deadline to November 15.',
+  '- Employer wage statements (Form W-2 with W-3): due January 31 to both employees and the SSA.',
+  '- Nonemployee compensation (Form 1099-NEC): due January 31 to recipients and the IRS.',
+  '- Federal unemployment (Form 940, FUTA): due January 31 (February 10 if all deposits were timely).',
+  '- Employee benefit plan (Form 5500 series): due July 31 for a calendar-year plan; Form 5558 extends to October 15.',
 ]
 
 export function GET(): Response {
@@ -51,7 +57,7 @@ export function GET(): Response {
     '',
     '- Jurisdictions monitored: federal (IRS) plus all 50 states and Washington DC.',
     `- State filing deadlines published with an official source citation: ${STATE_DEADLINE_COUNT}.`,
-    `- Source-backed federal rule references: ${RULE_REFERENCE_COUNT} (e.g., Form 7004, 1120-S, 1065, 1099-NEC/MISC, 1040-ES, 941, 990).`,
+    `- Source-backed federal rule references: ${RULE_REFERENCE_COUNT} (e.g., Forms 1120, 1120-S, 1065, 1040, 1041, 7004, 940, 941, W-2, 1099-NEC/MISC, 1040-ES, 990, 2553, 5500).`,
     `- Operational guides: ${GUIDE_COUNT}. Tool comparisons: ${COMPARISON_COUNT}.`,
     '- Languages: English (default) and Simplified Chinese.',
     '',

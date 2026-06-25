@@ -9,7 +9,18 @@ export const CONTENT_REVIEWED_ON = '2026-06-18'
 // slug) or a route key ('home' | 'pricing' | 'state-coverage' | trust slug).
 // Add an entry only when a single page changes independently of a site-wide
 // pass, so its JSON-LD dateModified and sitemap lastmod reflect the real edit.
-const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?: string }> = {}
+const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?: string }> = {
+  // Federal form rule references added 2026-06-25 (each date source-verified
+  // against irs.gov); they did not exist at the 2026-06-18 site-wide review, so
+  // their JSON-LD datePublished/dateModified and sitemap lastmod reflect 06-25.
+  'form-1120-c-corp-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-1040-individual-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-1041-estate-trust-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-940-futa-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-w-2-filing-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-2553-s-corp-election-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'form-5500-benefit-plan-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+}
 
 export interface ContentDates {
   publishedOn: string
