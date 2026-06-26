@@ -822,7 +822,7 @@ function FieldShell({ children, error }: { children: ReactNode; error: string | 
   return (
     <div
       className={cn(
-        'flex h-11 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-9 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',
