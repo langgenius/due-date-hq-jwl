@@ -17,8 +17,8 @@ test('AC: E2E-SMOKE-I18N renders the login entry in the persisted locale', async
   await loginPage.goto()
 
   await expect(loginPage.googleButton).toHaveText(/使用 Google 继续/)
-  await expect(page.getByRole('heading', { name: '登录 DueDateHQ' })).toBeVisible()
-  await expect(page.getByText('全所每一个申报截止日期的唯一可信来源。')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '登录' })).toBeVisible()
+  await expect(page.getByText('每个申报截止日期的唯一事实来源。')).toBeVisible()
   await expect(page).toHaveURL(/\/login$/)
 })
 

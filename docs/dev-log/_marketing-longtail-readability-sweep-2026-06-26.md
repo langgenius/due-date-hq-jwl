@@ -13,7 +13,7 @@ across every page that uses these templates.
     ("A source on every date", on `--m-section`).
   - `StateDetailPage` `.std-kd__source-lead` ("Source for this date" — the label for the
     page's most important link) was 10px `--m-faint` on `--m-section` (~4.3:1) → `--m-muted`
-    + bumped 10px → 11px. Verified live: `#676f83`, 11px.
+    and bumped 10px → 11px. Verified live: `#676f83`, 11px.
 - **A11y — comparison tables had no accessible column headers on desktop.**
   `GeoResourcePage` `.geo-cmp__head` was `aria-hidden` while carrying the real
   "DueDateHQ"/competitor labels, and the per-cell labels are `display:none` on desktop — so
@@ -29,6 +29,7 @@ across every page that uses these templates.
   `Pricing` `.pr__mcadence` 11px `--m-faint` → 12px `--m-muted`.
 
 ## Home P3 (same pass)
+
 - `Surfaces` caption rail said "See in the tour" 3× → destination-predicting labels
   ("See the live feed" / "See the worklist" / "See it apply"; coverage kept "See coverage").
   EN + zh.
@@ -36,5 +37,6 @@ across every page that uses these templates.
 Build 191 pages clean. Compare + state pages spot-checked live.
 
 ## Rule of thumb recorded
+
 `--m-faint` is for eyebrows/meta **on white only**; switch to `--m-muted` the moment the text
 sits on a `--m-section`/`--m-accent-tint` surface. Prevents the same regression site-wide.

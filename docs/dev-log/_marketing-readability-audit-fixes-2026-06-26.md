@@ -2,10 +2,10 @@
 
 Yuqi: "design critique and audit, ensure people read the website content and landing page
 is functioning." Ran a two-track audit (link/route integrity + readability) over the home
-+ core pages. Site is **functioning** — 191 routes resolve, every nav/footer/home link valid,
-every interaction wired (verified live: Notice tabs, Surfaces juris tabs, FAQ, CTAs → app
-login). Readability was mostly solid (the `--m-*` tokens already had an a11y pass), with a
-cluster of sub-AA small labels that got the `-ink` swap in Sources but never reached
+and core pages. Site is **functioning** — 191 routes resolve, every nav/footer/home link
+valid, every interaction wired (verified live: Notice tabs, Surfaces juris tabs, FAQ, CTAs
+→ app login). Readability was mostly solid (the `--m-*` tokens already had an a11y pass),
+with a cluster of sub-AA small labels that got the `-ink` swap in Sources but never reached
 Hero/Notice. Fixed the real ones (measured live, before → after):
 
 ## Contrast / size (verified live against the rendered colours)
@@ -30,10 +30,12 @@ Hero/Notice. Fixed the real ones (measured live, before → after):
   **`var(--m-measure)`** (68ch). Both ran past the 60–75ch comfort ceiling.
 
 ## Verified
+
 Build 191 pages clean. Live re-measure confirms every changed label now clears WCAG AA at
 its rendered size; feed body 13px; dark-band sub-line ~6:1.
 
 ## Flagged, not fixed here
+
 - **One dead link:** the footer language toggle on `/404` derives `/zh-CN/404`, which has
   no route (no `src/pages/zh-CN/404.astro`). The only broken internal link in 191 pages.
   Spun off as a background task.

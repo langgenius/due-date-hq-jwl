@@ -9,9 +9,8 @@ export class LoginPage {
   readonly reassurance: Locator
 
   constructor(readonly page: Page) {
-    // 2026-06-21 (login split preview): the entry now leads with the
-    // product-scoped sign-in heading.
-    this.heading = page.getByRole('heading', { name: /Sign in to DueDateHQ|登录 DueDateHQ/ })
+    // 2026-06-26 (compact login lockup): the brand sits above a short H1.
+    this.heading = page.getByRole('heading', { name: /Sign in|登录/ })
 
     this.emailInput = page.getByLabel(/Work email|工作邮箱/)
 
