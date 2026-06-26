@@ -14590,6 +14590,7 @@ msgid "Showing the full history of a single record."
 msgstr "仅显示单条记录的完整历史。"
 
 #: src/routes/accept-invite.tsx
+#: src/routes/login.tsx
 #: src/routes/route-summary.ts
 msgid "Sign in"
 msgstr "登录"
@@ -14597,10 +14598,6 @@ msgstr "登录"
 #: src/routes/accept-invite.tsx
 msgid "Sign in to accept this invitation — no password to remember."
 msgstr "登录以接受此邀请 — 无需记住密码。"
-
-#: src/routes/login.tsx
-msgid "Sign in to DueDateHQ"
-msgstr "登录 DueDateHQ"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/two-factor.tsx
@@ -17066,8 +17063,8 @@ msgid "We hit a snag loading this page — it's on us, not you. Try again or hea
 msgstr "加载此页面时遇到了问题——是我们的原因，不是你的。请重试或返回首页。（{0} {1}）"
 
 #: src/routes/login.tsx
-msgid "we look up your firm automatically"
-msgstr "我们会自动匹配您的事务所"
+msgid "We look up your firm automatically."
+msgstr "我们会自动查找您所在的事务所。"
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
@@ -17255,6 +17252,10 @@ msgstr "为何紧急 · 优先级 {0}"
 #: src/routes/practice.tsx
 msgid "Why this rank?"
 msgstr "为何是此排名？"
+
+#: src/routes/login.tsx
+msgid "Why we ask for your work email"
+msgstr "为什么需要您的工作邮箱"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Why?"

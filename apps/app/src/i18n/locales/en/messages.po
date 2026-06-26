@@ -14528,6 +14528,7 @@ msgid "Showing the full history of a single record."
 msgstr "Showing the full history of a single record."
 
 #: src/routes/accept-invite.tsx
+#: src/routes/login.tsx
 #: src/routes/route-summary.ts
 msgid "Sign in"
 msgstr "Sign in"
@@ -14535,10 +14536,6 @@ msgstr "Sign in"
 #: src/routes/accept-invite.tsx
 msgid "Sign in to accept this invitation — no password to remember."
 msgstr "Sign in to accept this invitation — no password to remember."
-
-#: src/routes/login.tsx
-msgid "Sign in to DueDateHQ"
-msgstr "Sign in to DueDateHQ"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/two-factor.tsx
@@ -16998,8 +16995,8 @@ msgid "We hit a snag loading this page — it's on us, not you. Try again or hea
 msgstr "We hit a snag loading this page — it's on us, not you. Try again or head home. ({0} {1})"
 
 #: src/routes/login.tsx
-msgid "we look up your firm automatically"
-msgstr "we look up your firm automatically"
+msgid "We look up your firm automatically."
+msgstr "We look up your firm automatically."
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
@@ -17185,6 +17182,10 @@ msgstr "Why this is urgent · priority {0}"
 #: src/routes/practice.tsx
 msgid "Why this rank?"
 msgstr "Why this rank?"
+
+#: src/routes/login.tsx
+msgid "Why we ask for your work email"
+msgstr "Why we ask for your work email"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Why?"
