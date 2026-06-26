@@ -26,13 +26,14 @@ import { BrandWordmark } from '@/components/primitives/brand-wordmark'
 export function AuthBrandAnchor({
   className,
   tagline = true,
+  markClassName,
   animated = false,
 }: {
   className?: string
   tagline?: boolean
   /** @deprecated The lockup is the framed BrandWordmark now. Ignored. */
   frame?: boolean
-  /** @deprecated The lockup sizes itself. Ignored. */
+  /** Override the lockup height, e.g. `h-6` for a small /login lockup. */
   markClassName?: string
   /**
    * Opt-in: settle the lockup in with a calm fade + scale on mount (splash /
@@ -43,7 +44,8 @@ export function AuthBrandAnchor({
   animated?: boolean
 }) {
   // The framed lockup (option A) — navy tile + "DueDateHQ", via brand tokens.
-  const lockup = <BrandWordmark className="h-9" />
+  // Default kept small; callers can size down further (e.g. /login `h-6`).
+  const lockup = <BrandWordmark className={cn('h-7', markClassName)} />
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
       {animated ? (
