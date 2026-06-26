@@ -74,6 +74,21 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
         </a>
         <p class="footer__tag">{copy.tagline}</p>
         <p class="footer__aud">{copy.audience}</p>
+        <a
+          class="footer__ph"
+          href="https://www.producthunt.com/products/duedatehq?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-duedatehq"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1181780&theme=neutral&t=1782489447252"
+            alt={zh ? 'DueDateHQ — Product Hunt 精选' : 'DueDateHQ — featured on Product Hunt'}
+            width="250"
+            height="54"
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
       </div>
       {
         columns.map((c) => (
@@ -145,6 +160,27 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
     font-family: var(--m-font-mono);
     font-size: var(--m-text-xs);
     color: var(--m-faint);
+  }
+  /* Product Hunt "Featured" badge — official embed (img hot-linked from PH so the
+     badge stays current); CSP already allows https: images */
+  .footer__ph {
+    display: inline-block;
+    margin-top: 24px;
+    line-height: 0;
+    transition: opacity var(--m-dur-fast) var(--m-ease);
+  }
+  .footer__ph:hover {
+    opacity: 0.85;
+  }
+  .footer__ph:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 3px;
+    border-radius: var(--m-radius-md);
+  }
+  .footer__ph img {
+    display: block;
+    width: 250px;
+    height: 54px;
   }
   .footer__coltitle {
     font-size: var(--m-text-2xs);
