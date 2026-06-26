@@ -3,6 +3,7 @@
 **Date:** 2026-06-26 · Supplied by Yuqi (`logo-svg.svg`).
 
 Adopted the refreshed stacked-bars mark across the product. Two changes vs the prior mark:
+
 1. **Geometry** — the third bar is now **tilted ~2.4°** (`rotate(-2.43169)`) and nudged right,
    where it used to be indented (`x27`). A schedule with one row knocked askew — a deadline
    off-line. New artwork box `170×129`, bars `147.678×26.6898 rx8`.
@@ -11,6 +12,7 @@ Adopted the refreshed stacked-bars mark across the product. Two changes vs the p
    (`util-colors-primary-600` `#22488C`) is untouched.
 
 ## Files
+
 - `apps/app/src/components/primitives/brand-mark.tsx` — new `Bars()` geometry; framed form
   re-fit into the 64 tile (`translate(8 13.8) scale(0.282)`); frameless viewBox → `170×129`.
 - `packages/ui/src/styles/tokens/primitives.css` — `--color-brand-ink` → `#1f315c`.
@@ -27,12 +29,14 @@ The in-app entry surfaces (`auth-chrome` `AuthBrandAnchor`, `_entry-layout`,
 they pick up the new mark with no further change.
 
 ## Verify
+
 `tsgo` ui + app clean; `vp run @duedatehq/app#build` clean; `#1f315c` confirmed in the built
 CSS bundle; no old `187×36 / x27` geometry left in source. Rendered the framed + frameless
 forms at 96/48/32/16 px — bars stay centered and legible, the tilt survives to 16px.
 
 ## Open / flagged (not changed — needs a call)
-- **Marketing nav mark** (`TopNav.astro`) uses a *different* inline mark — vertical ascending
+
+- **Marketing nav mark** (`TopNav.astro`) uses a _different_ inline mark — vertical ascending
   bars in `--m-ink`/`--m-accent`, not the stacked-bars silhouette. Left as-is (marketing-owned,
   themed with `--m-*`). To fully unify the product, it should switch to this same tilted-bar
   mark — flagged for a decision.
