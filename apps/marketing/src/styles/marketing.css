@@ -15,10 +15,11 @@
 
 :root {
   /* ---- colour (all → shared tokens) ---- */
-  --m-accent: var(--color-util-colors-primary-600); /* brand navy #2e368c */
+  --m-accent: var(--color-util-colors-primary-600); /* UI accent navy #22488c — CTAs, links */
   --m-accent-strong: var(--color-util-colors-primary-700); /* hover/pressed */
   --m-accent-tint: var(--color-util-colors-primary-50); /* #eef0fb faint wash */
   --m-cyan: var(--color-brand-highlight); /* #14c5f6 — delight surfaces only */
+  --m-brand: var(--color-brand-ink); /* #1F315C — logo mark + wordmark only (matches app) */
 
   --m-ink: var(--text-primary); /* headings / strong text */
   --m-ink-2: var(--text-secondary); /* body */
