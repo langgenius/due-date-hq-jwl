@@ -32,13 +32,17 @@ async function startApp() {
   initAnalytics()
   const router = createAppRouter()
 
-  const AgentationDevtools = import.meta.env.DEV
-    ? lazy(async () => {
-        const { Agentation } = await import('agentation')
+  // Agentation = the in-app dev feedback/annotation overlay. Hidden by default
+  // (Yuqi: "hide agentation"); set `VITE_DEVTOOLS=1` (e.g. in apps/app/.env.local)
+  // to bring it back. Dev-only either way — never bundled into production.
+  const AgentationDevtools =
+    import.meta.env.DEV && import.meta.env.VITE_DEVTOOLS === '1'
+      ? lazy(async () => {
+          const { Agentation } = await import('agentation')
 
-        return { default: Agentation }
-      })
-    : null
+          return { default: Agentation }
+        })
+      : null
 
   function AppDevtools() {
     if (!AgentationDevtools) return null
