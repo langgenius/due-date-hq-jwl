@@ -415,6 +415,13 @@ const examples = t.examples
   }
   .clip {
     grid-column: span 5;
+    /* fill the column height and vertically centre the document within it, so the
+       card matches the taller extract column (no short card floating with dead
+       space around it) while its content sits on the same mid-line as the arrow */
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .beam {
     grid-column: span 2;

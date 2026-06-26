@@ -152,7 +152,13 @@ const receiptRows = t.receiptRows
      Hero. A split: the decision left, the audit receipt right. */
   .close__card {
     position: relative;
-    background: var(--m-accent);
+    /* a deep brand-navy ground (deepened toward ink at the foot) so it reads as
+       the page's richest surface, and the cyan highlight has somewhere to glow */
+    background: linear-gradient(
+      176deg,
+      color-mix(in srgb, var(--m-accent) 90%, var(--m-ink)) 0%,
+      color-mix(in srgb, var(--m-accent) 60%, var(--m-ink)) 100%
+    );
     border-radius: var(--m-radius-lg);
     overflow: hidden;
     isolation: isolate;

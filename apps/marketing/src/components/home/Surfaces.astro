@@ -34,15 +34,15 @@ const t = zh
       ],
       cards: {
         alerts: {
-          panel: '提醒动态',
+          panel: '提醒',
           t: '提醒',
           d: '实时动态——每条变更落地即呈现，按紧急程度排序。',
           see: '在导览中查看',
           recent: [
-            { org: 'GA DOR', body: '已核验，无变化', when: '31 分钟前' },
-            { org: 'AZ DOR', body: '已扫描，无变化', when: '52 分钟前' },
-            { org: 'OH Dept of Tax', body: '已扫描，无变化', when: '1 小时前' },
-            { org: 'MA DOR', body: '已核验，无变化', when: '2 小时前' },
+            { org: 'dor.georgia.gov', body: '已核验，无变化', when: '31 分钟前' },
+            { org: 'azdor.gov', body: '已扫描，无变化', when: '52 分钟前' },
+            { org: 'tax.ohio.gov', body: '已扫描，无变化', when: '1 小时前' },
+            { org: 'mass.gov/dor', body: '已核验，无变化', when: '2 小时前' },
           ],
         },
         coverage: {
@@ -92,15 +92,15 @@ const t = zh
       ],
       cards: {
         alerts: {
-          panel: 'Alert feed',
+          panel: 'Alerts',
           t: 'Alerts',
           d: 'The live feed — every change as it lands, sorted by severity.',
           see: 'See in the tour',
           recent: [
-            { org: 'GA DOR', body: 'verified, no change', when: '31m' },
-            { org: 'AZ DOR', body: 'scanned, no change', when: '52m' },
-            { org: 'OH Dept of Tax', body: 'scanned, no change', when: '1h' },
-            { org: 'MA DOR', body: 'verified, no change', when: '2h' },
+            { org: 'dor.georgia.gov', body: 'verified, no change', when: '31m' },
+            { org: 'azdor.gov', body: 'scanned, no change', when: '52m' },
+            { org: 'tax.ohio.gov', body: 'scanned, no change', when: '1h' },
+            { org: 'mass.gov/dor', body: 'verified, no change', when: '2h' },
           ],
         },
         coverage: {
@@ -537,7 +537,8 @@ const surfaces = [
   }
   .mini__recent-org {
     flex: none;
-    font-weight: 600;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
     color: var(--m-ink-2);
   }
   .mini__recent-body {

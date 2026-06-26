@@ -54,7 +54,7 @@ const items = t.items
     z-index: 40;
     display: none;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     /* hidden at the hero; revealed once scrolled into the page (toggled by JS) */
     opacity: 0;
     visibility: hidden;
@@ -99,7 +99,7 @@ const items = t.items
     overflow: hidden;
     white-space: nowrap;
     font-size: var(--m-text-xs);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--m-faint);
     transition:
@@ -122,6 +122,7 @@ const items = t.items
   }
   .spyrail__item.is-active .spyrail__label {
     color: var(--m-ink);
+    font-weight: 500;
   }
   /* on hover the whole list shows; inactive labels read gray */
   .spyrail:hover .spyrail__item:not(.is-active) .spyrail__label {
