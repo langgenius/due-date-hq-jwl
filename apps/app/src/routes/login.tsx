@@ -8,6 +8,7 @@ import {
   BellIcon,
   CalendarDaysIcon,
   ClipboardListIcon,
+  CornerDownLeftIcon,
   GlobeIcon,
   InfoIcon,
   Loader2Icon,
@@ -23,7 +24,6 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
-import { Kbd } from '@/components/patterns/kbd'
 import {
   GoogleGlyph as GoogleIcon,
   MicrosoftGlyph as MicrosoftIcon,
@@ -184,7 +184,7 @@ export function LoginRoute() {
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
-              <AuthBrandAnchor tagline={false} animated markClassName="h-5" />
+              <AuthBrandAnchor tagline={false} animated markClassName="h-4" />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in</Trans>
@@ -210,7 +210,7 @@ export function LoginRoute() {
 
               <div className="flex items-center gap-3.5">
                 <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                <span className="text-xs font-medium tracking-[0.2px] text-text-tertiary">
+                <span className="text-xs font-normal tracking-[0.2px] text-text-quaternary">
                   <Trans>or continue with</Trans>
                 </span>
                 <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
@@ -219,7 +219,6 @@ export function LoginRoute() {
               <div className={cn('grid gap-3', microsoftEnabled ? 'grid-cols-2' : 'grid-cols-1')}>
                 <Button
                   variant="secondary"
-                  size="lg"
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
@@ -238,7 +237,6 @@ export function LoginRoute() {
                 {microsoftEnabled ? (
                   <Button
                     variant="secondary"
-                    size="lg"
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
@@ -267,14 +265,14 @@ export function LoginRoute() {
               </p>
               {/* "Open it now" focuses the email field — a magic link is a URL the
                   user opens from their inbox; there's no separate paste surface. */}
-              <p className="flex items-center justify-center gap-1.5">
-                <span className="text-xs font-medium text-text-tertiary">
+              <p className="flex items-center justify-center gap-1.5 text-sm">
+                <span className="font-medium text-text-secondary">
                   <Trans>Already have a sign-in link?</Trans>
                 </span>
                 <TextLink
                   variant="accent"
                   onClick={() => document.getElementById('login-email')?.focus()}
-                  className="font-medium"
+                  className="text-sm font-medium"
                 >
                   <Trans>Open it now →</Trans>
                 </TextLink>
@@ -721,7 +719,6 @@ function LoginEmailForm({
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
             type="submit"
-            size="lg"
             className="justify-center gap-2"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
@@ -734,7 +731,6 @@ function LoginEmailForm({
           <Button
             type="button"
             variant="outline"
-            size="lg"
             className="px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
@@ -791,7 +787,7 @@ function LoginEmailForm({
             }}
             className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
           />
-          <Kbd>Return ↵</Kbd>
+          <CornerDownLeftIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
         </FieldShell>
         {error ? (
           <p
@@ -806,7 +802,6 @@ function LoginEmailForm({
 
       <Button
         type="submit"
-        size="lg"
         className="w-full justify-center gap-2"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
