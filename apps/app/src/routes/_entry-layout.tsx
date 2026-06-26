@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from 'react-router'
 import { Trans } from '@lingui/react/macro'
 
-import { BrandWordmark } from '@/components/primitives/brand-wordmark'
+import { BrandMark } from '@/components/primitives/brand-mark'
+import { BrandLogotype } from '@/components/primitives/brand-wordmark'
 import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 
 // React Router v7 pathless layout route shared by every "entry" surface — the
@@ -63,7 +64,10 @@ function EntryShellHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-divider-subtle px-6 lg:px-10">
       <div className="flex items-center gap-2 text-description">
-        <BrandWordmark className="h-4 shrink-0 dark:text-brand-ivory" />
+        <span className="inline-flex shrink-0 items-center gap-2">
+          <BrandMark frame className="size-5" />
+          <BrandLogotype className="h-3.5 w-auto text-text-primary dark:text-brand-ivory" />
+        </span>
         <span aria-hidden className="text-text-muted">
           /
         </span>
