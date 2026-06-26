@@ -432,6 +432,36 @@ const alerts = t.alerts
     color: var(--m-ink);
     font-weight: 500;
   }
+  /* entrance — the four proof ticks assemble one after another, each icon popping
+     a beat behind its row (reads like the checklist confirming itself). Pure CSS so
+     it survives no-JS; `both` holds each tick hidden until its delay (no flash); the
+     whole thing is gated behind `no-preference` so reduced-motion shows it at rest. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__points li {
+      opacity: 0;
+      animation: heroTickIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .hero__points li:nth-child(1) { animation-delay: 0.14s; }
+    .hero__points li:nth-child(2) { animation-delay: 0.22s; }
+    .hero__points li:nth-child(3) { animation-delay: 0.3s; }
+    .hero__points li:nth-child(4) { animation-delay: 0.38s; }
+    .hero__points svg {
+      transform-origin: center;
+      animation: heroTickIcon 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .hero__points li:nth-child(1) svg { animation-delay: 0.22s; }
+    .hero__points li:nth-child(2) svg { animation-delay: 0.3s; }
+    .hero__points li:nth-child(3) svg { animation-delay: 0.38s; }
+    .hero__points li:nth-child(4) svg { animation-delay: 0.46s; }
+  }
+  @keyframes heroTickIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes heroTickIcon {
+    from { transform: scale(0.62); }
+    to { transform: scale(1); }
+  }
 
   .hero__cta {
     margin-top: clamp(30px, 3vw, 40px);
