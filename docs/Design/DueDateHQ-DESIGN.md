@@ -661,11 +661,16 @@ Tax Period review。
 基类统一带 `[corner-shape:squircle]`（iOS 连续圆角，受支持的浏览器自动平滑，其余优雅降级）+
 `focus-visible:ring-2 ring-state-accent-active-alt ring-offset-2`。
 
-**Form-control radius（2026-06-18）：** 可编辑控件 —— `Input` / `Textarea` /
-`SelectTrigger` / `Combobox` / `IsoDatePicker` trigger —— 统一 `h-9 rounded-xl`（12px），
-向上对齐 Button 的软圆角家族（曾是 `rounded-lg` 8px，与 16px 的 button 并排时角差太大）。
-`FilterTrigger` 早已是 `h-9 rounded-xl`。控件的 popup（SelectContent / Combobox list /
-日历格）保留自己的半径，不随 trigger 改。
+**Form-control radius（2026-06-18，2026-06-26 补 `InputGroup`）：** 可编辑控件 ——
+`Input` / `Textarea` / `SelectTrigger` / `Combobox` / `IsoDatePicker` trigger /
+`InputGroup` —— 统一 `h-9 rounded-xl`（12px），向上对齐 Button 的软圆角家族（曾是
+`rounded-lg` 8px，与 16px 的 button 并排时角差太大）。`FilterTrigger` 早已是
+`h-9 rounded-xl`。控件的 popup（SelectContent / Combobox list / 日历格）保留自己的半径，
+不随 trigger 改。
+
+> `InputGroup`（带前/后图标槽的输入框）此前漏网，停在 `h-8 rounded-lg`；2026-06-26 并入
+> 家族。登录页过去手搓的 `FieldShell`（白底描边 auth 皮肤）已删除，改用 `InputGroup` +
+> 一段 `AUTH_FIELD_SKIN` className 复刻白底描边——结构走共享 primitive，皮肤随 auth 表面。
 
 #### Size → context 映射（2026-06-11 — 强制规则，不要凭感觉选 size）
 

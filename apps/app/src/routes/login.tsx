@@ -20,6 +20,11 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@duedatehq/ui/components/ui/input-group'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -51,6 +56,15 @@ import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
 // (they are logged out), so it does not violate the no-fiction-on-canvas rule.
 
 const USER_CANCELED = /cancel|popup|closed/i
+
+// Auth surfaces use outlined-white fields (vs the product's default filled
+// inputs) so they read crisply on the plain sign-in background. We compose the
+// shared InputGroup primitive — icon slots, focus ring, aria-invalid wiring —
+// and skin it white. Resting + hover + focus all stay on background-default so
+// the field never tints gray. h-9 / rounded-xl is the form-control canon.
+const AUTH_FIELD_SKIN =
+  'border-divider-regular bg-background-default hover:bg-background-default ' +
+  'has-[[data-slot=input-group-control]:focus-visible]:bg-background-default'
 
 type AuthCapabilities = {
   providers: {
@@ -681,11 +695,11 @@ function LoginEmailForm({
           </Button>
         </div>
 
-        <FieldShell error={error}>
+        <InputGroup className={AUTH_FIELD_SKIN}>
           <label htmlFor="login-otp-code" className="sr-only">
             <Trans>Verification code</Trans>
           </label>
-          <input
+          <InputGroupInput
             id="login-otp-code"
             name="otp"
             inputMode="numeric"
@@ -703,9 +717,9 @@ function LoginEmailForm({
               setCode(normalizeCode(event.target.value).slice(0, 6))
               setError(null)
             }}
-            className="h-full flex-1 bg-transparent font-mono text-sm tracking-[0.3em] text-text-primary outline-none placeholder:font-sans placeholder:tracking-normal placeholder:text-text-muted"
+            className="px-3 font-mono tracking-[0.3em] placeholder:font-sans placeholder:tracking-normal"
           />
-        </FieldShell>
+        </InputGroup>
         {error ? (
           <p
             id="login-otp-error"
@@ -767,9 +781,11 @@ function LoginEmailForm({
           </Tooltip>
         </div>
 
-        <FieldShell error={error}>
-          <MailIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-          <input
+        <InputGroup className={AUTH_FIELD_SKIN}>
+          <InputGroupAddon>
+            <MailIcon className="size-4 text-text-tertiary" aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
             id="login-email"
             name="email"
             type="email"
@@ -785,10 +801,12 @@ function LoginEmailForm({
               setEmail(event.target.value)
               setError(null)
             }}
-            className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
+            className="font-medium"
           />
-          <CornerDownLeftIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
-        </FieldShell>
+          <InputGroupAddon align="inline-end">
+            <CornerDownLeftIcon className="size-4 text-text-muted" aria-hidden />
+          </InputGroupAddon>
+        </InputGroup>
         {error ? (
           <p
             id="login-email-error"
@@ -818,17 +836,3 @@ function LoginEmailForm({
 
 // Shared 44px field shell — white surface, rounded-xl, inner-aligned
 // content, focus-within ring, destructive recolor on error.
-function FieldShell({ children, error }: { children: ReactNode; error: string | null }) {
-  return (
-    <div
-      className={cn(
-        'flex h-9 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
-        error
-          ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
-          : 'border-divider-regular focus-within:border-state-accent-solid',
-      )}
-    >
-      {children}
-    </div>
-  )
-}
