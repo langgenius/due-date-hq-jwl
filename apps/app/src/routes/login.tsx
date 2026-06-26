@@ -28,7 +28,7 @@ import {
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
-import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
+import { BrandBadge } from '@/components/primitives/brand-wordmark'
 import {
   GoogleGlyph as GoogleIcon,
   MicrosoftGlyph as MicrosoftIcon,
@@ -201,7 +201,7 @@ export function LoginRoute() {
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
-              <AuthBrandAnchor tagline={false} animated markClassName="h-3.5" />
+              <BrandBadge className="h-8 animate-in fade-in zoom-in-95 duration-300 ease-out motion-reduce:animate-none" />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in</Trans>
