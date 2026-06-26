@@ -382,11 +382,11 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     margin-left: auto;
   }
   .std-kd__source-lead {
-    font-size: var(--m-text-3xs);
+    font-size: var(--m-text-2xs);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--m-faint);
+    color: var(--m-muted);
   }
   .std-kd__source-label {
     font-size: var(--m-text-sm);
@@ -450,7 +450,7 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     gap: 0;
     list-style: none;
     padding: 0;
-    max-width: 80ch;
+    max-width: var(--m-measure);
   }
   .std-limit {
     display: flex;
