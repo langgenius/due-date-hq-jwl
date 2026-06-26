@@ -61,10 +61,13 @@ const USER_CANCELED = /cancel|popup|closed/i
 // inputs) so they read crisply on the plain sign-in background. We compose the
 // shared InputGroup primitive — icon slots, focus ring, aria-invalid wiring —
 // and skin it white. Resting + hover + focus all stay on background-default so
-// the field never tints gray. h-9 / rounded-xl is the form-control canon.
+// the field never tints gray. Auth fields run one size taller than the in-app
+// canon (h-11 vs h-9) so the sign-in form is the page's clear primary action.
 const AUTH_FIELD_SKIN =
-  'border-divider-regular bg-background-default hover:bg-background-default ' +
+  'h-11 border-divider-regular bg-background-default hover:bg-background-default ' +
   'has-[[data-slot=input-group-control]:focus-visible]:bg-background-default'
+// Auth buttons match the taller field (h-11) so field + CTA align.
+const AUTH_BTN_H = 'h-11'
 
 type AuthCapabilities = {
   providers: {
@@ -192,7 +195,7 @@ export function LoginRoute() {
           id="sign-in"
           className="flex w-full flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:w-[46%] lg:shrink-0 lg:px-16"
         >
-          <div className="flex w-full max-w-[360px] flex-col gap-7">
+          <div className="flex w-full max-w-[360px] flex-col gap-6">
             {/* Left-aligned brand lockup + heading */}
             <div className="flex flex-col items-start gap-4 text-left">
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
@@ -203,8 +206,8 @@ export function LoginRoute() {
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in</Trans>
                 </h1>
-                <p className="text-sm leading-normal text-text-tertiary">
-                  <Trans>One source of truth for every filing deadline across your firm.</Trans>
+                <p className="text-sm leading-normal text-nowrap text-text-tertiary">
+                  <Trans>One source of truth for every filing deadline.</Trans>
                 </p>
               </div>
             </div>
@@ -236,7 +239,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="w-full gap-2.5"
+                  className={cn(AUTH_BTN_H, 'w-full gap-2.5')}
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -254,7 +257,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="w-full gap-2.5"
+                    className={cn(AUTH_BTN_H, 'w-full gap-2.5')}
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -375,17 +378,23 @@ const PREVIEW_NAV: {
 
 function ProductStory() {
   return (
-    <section className="relative hidden min-w-0 flex-1 overflow-hidden border-l border-divider-subtle bg-brand-ink lg:block">
-      {/* One-line promise, top-left of the panel — white on the brand navy. */}
-      <p className="absolute top-14 left-14 z-10 max-w-[340px] text-lg leading-snug font-medium text-pretty text-text-primary-on-surface">
-        <Trans>
-          Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on
-          schedule.
-        </Trans>
-      </p>
+    <section className="relative hidden min-w-0 flex-1 overflow-hidden border-l border-divider-subtle bg-gradient-to-br from-brand-ink to-brand-ink-deep lg:block">
+      {/* Promise, top-left of the panel — white on the brand navy. An eyebrow
+          sets the frame; the headline carries the weight. */}
+      <div className="absolute top-14 left-14 z-10 max-w-[380px]">
+        <p className="text-caption-xs font-semibold tracking-[0.12em] text-text-secondary-on-surface uppercase">
+          <Trans>Every deadline, one workbench</Trans>
+        </p>
+        <p className="mt-3 text-xl leading-snug font-medium text-pretty text-text-primary-on-surface">
+          <Trans>
+            Every 1040, 1120, payroll, and BOI filing, firm-wide — monitored, sourced, and on
+            schedule.
+          </Trans>
+        </p>
+      </div>
 
       {/* Product window — bleeds off the right + bottom edge. */}
-      <div className="absolute top-36 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-xl border border-divider-subtle bg-background-default shadow-overlay">
+      <div className="absolute top-48 left-14 -right-16 bottom-[-56px] overflow-hidden rounded-tl-xl border border-divider-subtle bg-background-default shadow-overlay">
         <div className="flex h-full w-[880px]">
           {/* Sidebar */}
           <aside className="flex w-[212px] shrink-0 flex-col gap-3 border-r border-divider-subtle bg-bg-subtle/50 p-3">
@@ -493,7 +502,7 @@ function ProductStory() {
 
 function LoginFooter() {
   return (
-    <footer className="flex flex-col gap-3 border-t border-divider-subtle px-6 py-3.5 text-xs font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
+    <footer className="flex flex-col gap-3 px-6 py-3.5 text-xs font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
       <div className="flex flex-wrap items-center gap-2.5">
         <span>© {new Date().getFullYear()} DueDateHQ</span>
         {[
@@ -733,7 +742,7 @@ function LoginEmailForm({
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
             type="submit"
-            className="justify-center gap-2"
+            className={cn(AUTH_BTN_H, 'justify-center gap-2')}
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -745,7 +754,7 @@ function LoginEmailForm({
           <Button
             type="button"
             variant="outline"
-            className="px-4"
+            className={cn(AUTH_BTN_H, 'px-4')}
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -783,7 +792,7 @@ function LoginEmailForm({
 
         <InputGroup className={AUTH_FIELD_SKIN}>
           <InputGroupAddon>
-            <MailIcon className="size-4 text-text-tertiary" aria-hidden />
+            <MailIcon className="size-3.5 text-text-tertiary" aria-hidden />
           </InputGroupAddon>
           <InputGroupInput
             id="login-email"
@@ -804,7 +813,7 @@ function LoginEmailForm({
             className="font-medium"
           />
           <InputGroupAddon align="inline-end">
-            <CornerDownLeftIcon className="size-4 text-text-muted" aria-hidden />
+            <CornerDownLeftIcon className="size-3.5 text-text-muted" aria-hidden />
           </InputGroupAddon>
         </InputGroup>
         {error ? (
@@ -820,7 +829,7 @@ function LoginEmailForm({
 
       <Button
         type="submit"
-        className="w-full justify-center gap-2"
+        className={cn(AUTH_BTN_H, 'w-full justify-center gap-2')}
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >

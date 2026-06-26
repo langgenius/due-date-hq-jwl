@@ -6782,6 +6782,10 @@ msgstr "此列表中每个客户都已具备规则库所需的信息。关闭即
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
 msgstr "你打开的所有客户都已修复。关闭面板以刷新列表；如果之后有更多客户进入，可重新打开“立即修复”。"
 
+#: src/routes/login.tsx
+msgid "Every deadline, one workbench"
+msgstr "每个截止日期，同一个工作台"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Every decision captured to audit ledger"
 msgstr "每项决定均记录至审计账本"
@@ -10959,8 +10963,8 @@ msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
 
 #: src/routes/login.tsx
-msgid "One source of truth for every filing deadline across your firm."
-msgstr "全所每一个申报截止日期的唯一可信来源。"
+msgid "One source of truth for every filing deadline."
+msgstr "每个申报截止日期的唯一事实来源。"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"

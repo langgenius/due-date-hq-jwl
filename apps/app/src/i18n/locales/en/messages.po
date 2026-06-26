@@ -6758,6 +6758,10 @@ msgstr "Every client on this list has the facts the rule library needs. Close to
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
 msgstr "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix now if more clients come in."
 
+#: src/routes/login.tsx
+msgid "Every deadline, one workbench"
+msgstr "Every deadline, one workbench"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Every decision captured to audit ledger"
 msgstr "Every decision captured to audit ledger"
@@ -10917,8 +10921,8 @@ msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
 
 #: src/routes/login.tsx
-msgid "One source of truth for every filing deadline across your firm."
-msgstr "One source of truth for every filing deadline across your firm."
+msgid "One source of truth for every filing deadline."
+msgstr "One source of truth for every filing deadline."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
