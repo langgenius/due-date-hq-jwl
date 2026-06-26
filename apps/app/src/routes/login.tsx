@@ -779,7 +779,7 @@ function LoginEmailForm({
           </label>
           <Tooltip>
             <TooltipTrigger
-              className="inline-flex cursor-help items-center text-text-tertiary transition-colors hover:text-text-secondary"
+              className="-m-1.5 inline-flex cursor-help items-center rounded-md p-1.5 text-text-tertiary transition-colors hover:text-text-secondary"
               aria-label={t`Why we ask for your work email`}
             >
               <InfoIcon className="size-3.5" aria-hidden />
