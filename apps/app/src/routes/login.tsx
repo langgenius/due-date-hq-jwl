@@ -28,7 +28,7 @@ import {
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
-import { BrandBadge } from '@/components/primitives/brand-wordmark'
+import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 import {
   GoogleGlyph as GoogleIcon,
   MicrosoftGlyph as MicrosoftIcon,
@@ -201,7 +201,7 @@ export function LoginRoute() {
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
-              <BrandBadge className="h-8 animate-in fade-in zoom-in-95 duration-300 ease-out motion-reduce:animate-none" />
+              <AuthBrandAnchor tagline={false} animated markClassName="h-3.5" />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in</Trans>
@@ -502,7 +502,7 @@ function ProductStory() {
 
 function LoginFooter() {
   return (
-    <footer className="flex flex-col gap-3 px-6 py-3.5 text-xs font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
+    <footer className="flex flex-col gap-3 border-t border-divider-subtle bg-background-default px-6 py-3.5 text-xs font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
       <div className="flex flex-wrap items-center gap-2.5">
         <span>© {new Date().getFullYear()} DueDateHQ</span>
         {[
@@ -791,7 +791,7 @@ function LoginEmailForm({
         </div>
 
         <InputGroup className={AUTH_FIELD_SKIN}>
-          <InputGroupAddon>
+          <InputGroupAddon className="pl-3.5">
             <MailIcon className="size-3.5 text-text-tertiary" aria-hidden />
           </InputGroupAddon>
           <InputGroupInput
@@ -812,7 +812,7 @@ function LoginEmailForm({
             }}
             className="font-medium"
           />
-          <InputGroupAddon align="inline-end">
+          <InputGroupAddon align="inline-end" className="pr-3.5">
             <CornerDownLeftIcon className="size-3.5 text-text-muted" aria-hidden />
           </InputGroupAddon>
         </InputGroup>
