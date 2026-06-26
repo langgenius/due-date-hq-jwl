@@ -198,7 +198,7 @@ export function LoginRoute() {
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
-              <AuthBrandAnchor tagline={false} animated markClassName="h-4" />
+              <AuthBrandAnchor tagline={false} animated markClassName="h-3.5" />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   <Trans>Sign in</Trans>
