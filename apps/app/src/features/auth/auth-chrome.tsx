@@ -7,8 +7,7 @@ import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
-import { BrandMark } from '@/components/primitives/brand-mark'
-import { BrandLogotype } from '@/components/primitives/brand-wordmark'
+import { BrandWordmark } from '@/components/primitives/brand-wordmark'
 
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
 // matching the Pencil auth cluster (pW6pK / uu9SI / e3FyUB): a brand anchor,
@@ -19,20 +18,19 @@ import { BrandLogotype } from '@/components/primitives/brand-wordmark'
 // same chrome instead of re-inlining it. /login keeps its own copy for now
 // (its structure is locked); the others share this.
 
-// Brand anchor — the framed lockup: a navy app-icon tile (BrandMark) + the
-// "DueDateHQ" logotype (BrandLogotype) + an optional hairline + "for CPA firms".
-// The tile gives the mark identity (a bare bars mark reads as a hamburger icon)
-// and makes the tilted bar read as intentional. `tagline={false}` drops the
-// divider + tagline for compact lockups (e.g. the /login sign-in card).
+// Brand anchor — the framed BrandWordmark lockup (navy app-icon tile + ivory
+// bars + "DueDateHQ") + an optional hairline + "for CPA firms". The tile gives
+// the mark identity (a bare bars mark reads as a hamburger icon) and makes the
+// tilted bar read as intentional. `tagline={false}` drops the divider + tagline
+// for compact lockups (e.g. the /login sign-in card).
 export function AuthBrandAnchor({
   className,
   tagline = true,
-  markClassName,
   animated = false,
 }: {
   className?: string
   tagline?: boolean
-  /** @deprecated The lockup is a framed tile + logotype now. Ignored. */
+  /** @deprecated The lockup is the framed BrandWordmark now. Ignored. */
   frame?: boolean
   /** @deprecated The lockup sizes itself. Ignored. */
   markClassName?: string
@@ -44,14 +42,8 @@ export function AuthBrandAnchor({
    */
   animated?: boolean
 }) {
-  // Framed lockup (option A): navy app-icon tile + "DueDateHQ" logotype, navy on
-  // the light auth surfaces via the components' default brand-ink.
-  const lockup = (
-    <span className="inline-flex items-center gap-2.5">
-      <BrandMark frame className="size-10" />
-      <BrandLogotype className="h-5 text-text-primary" />
-    </span>
-  )
+  // The framed lockup (option A) — navy tile + "DueDateHQ", via brand tokens.
+  const lockup = <BrandWordmark className="h-9" />
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
       {animated ? (

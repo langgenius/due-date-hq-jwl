@@ -9,6 +9,7 @@ import {
   CalendarDaysIcon,
   ClipboardListIcon,
   GlobeIcon,
+  InfoIcon,
   Loader2Icon,
   LockIcon,
   MailIcon,
@@ -19,6 +20,7 @@ import {
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 import { Kbd } from '@/components/patterns/kbd'
@@ -177,15 +179,15 @@ export function LoginRoute() {
           className="flex w-full flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:w-[46%] lg:shrink-0 lg:px-16"
         >
           <div className="flex w-full max-w-[360px] flex-col gap-7">
-            {/* Centered brand mark + heading */}
-            <div className="flex flex-col items-center gap-4 text-center">
-              {/* The mark settles in on mount (calm fade + scale, not a snap).
+            {/* Left-aligned brand lockup + heading */}
+            <div className="flex flex-col items-start gap-4 text-left">
+              {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
               <AuthBrandAnchor tagline={false} animated />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
-                  <Trans>Sign in to DueDateHQ</Trans>
+                  <Trans>Sign in</Trans>
                 </h1>
                 <p className="text-sm leading-normal text-text-tertiary">
                   <Trans>One source of truth for every filing deadline across your firm.</Trans>
@@ -752,14 +754,21 @@ function LoginEmailForm({
   return (
     <form onSubmit={handleSendSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <label htmlFor="login-email" className="text-xs font-medium text-text-secondary">
             <Trans>Work email</Trans>
           </label>
-          <span className="flex-1" />
-          <span className="text-xs font-medium text-text-tertiary">
-            <Trans>we look up your firm automatically</Trans>
-          </span>
+          <Tooltip>
+            <TooltipTrigger
+              className="inline-flex cursor-help items-center text-text-tertiary transition-colors hover:text-text-secondary"
+              aria-label={t`Why we ask for your work email`}
+            >
+              <InfoIcon className="size-3.5" aria-hidden />
+            </TooltipTrigger>
+            <TooltipContent>
+              <Trans>We look up your firm automatically.</Trans>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <FieldShell error={error}>
