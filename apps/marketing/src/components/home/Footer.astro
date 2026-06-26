@@ -161,11 +161,11 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
     font-size: var(--m-text-xs);
     color: var(--m-faint);
   }
-  /* Product Hunt "Featured" badge — official embed (img hot-linked from PH so the
-     badge stays current); CSP already allows https: images */
+  /* Product Hunt "Featured" badge — official embed (img hot-linked from PH so it
+     stays current); CSP already allows https: images. Scaled down from native 250px. */
   .footer__ph {
     display: inline-block;
-    margin-top: 24px;
+    margin-top: 20px;
     line-height: 0;
     transition: opacity var(--m-dur-fast) var(--m-ease);
   }
@@ -179,8 +179,8 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
   }
   .footer__ph img {
     display: block;
-    width: 250px;
-    height: 54px;
+    width: 180px;
+    height: auto;
   }
   .footer__coltitle {
     font-size: var(--m-text-2xs);
