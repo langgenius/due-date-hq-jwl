@@ -2626,7 +2626,7 @@ describe('makePulseOpsRepo', () => {
     })
   })
 
-  it('re-drives excerpt-location guard rejections but keeps other guard rejections dead', async () => {
+  it('keeps excerpt-location guard rejections deterministic-dead with other guard rejections', async () => {
     const { db } = fakeDb([[]])
 
     await makePulseOpsRepo(db).listRetryableFailedSnapshots({
@@ -2639,17 +2639,18 @@ describe('makePulseOpsRepo', () => {
     const chain = select.mock.results[0]?.value as { where: ReturnType<typeof vi.fn> }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
     const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
-    expect(query.params).toContain('GUARD_REJECTED: Pulse%could not be located%')
-    // Pre-prefix-era rows carry the bare guard message — the actual stranded backlog.
-    expect(query.params).toContain('Pulse extract rejected because source e%')
+    // Only transient classes (gateway / unavailable / budget / credit / thrown) re-drive.
     expect(query.params).toContain('AI_GATEWAY_ERROR%')
-    // The Pulse-anchored pattern is the only GUARD_REJECTED pattern — every other guard
-    // rejection class stays deterministic-dead so the sweep converges.
+    expect(query.params).toContain('AI_BUDGET_EXCEEDED%')
+    // 2026-06-27: excerpt-grounding rejections were removed from the retry set — a fuzzy-guard
+    // failure is deterministic at temperature=0, so re-driving it just loops. No GUARD_REJECTED
+    // pattern and no bare grounding-message pattern remain, so the sweep converges.
     expect(
       query.params.filter(
         (param) => typeof param === 'string' && param.startsWith('GUARD_REJECTED'),
       ),
-    ).toHaveLength(1)
+    ).toHaveLength(0)
+    expect(query.params).not.toContain('Pulse extract rejected because source e%')
     // D1 caps LIKE patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH); an
     // over-long pattern crashes the whole retry sweep with "pattern too complex".
     for (const param of query.params) {

@@ -1271,15 +1271,24 @@ export function makePulseOpsRepo(db: Db) {
 
     /**
      * Failed snapshots whose failure class is worth re-driving once the AI
-     * pipeline is healthy again: transient classes (gateway / credit / budget)
-     * plus excerpt-location guard rejections, which stopped being deterministic
-     * when the guard learned fuzzy alignment. New failures are written as
-     * "CODE: message" (extract.ts); the bare-message patterns cover rows
-     * written before that convention. Other deterministic failures (remaining
-     * guard rejections, missing source text, out-of-scope, low confidence)
-     * never match, so the retry sweep converges instead of cycling them
-     * forever. Oldest-touched first: a re-failed row bumps updated_at and
-     * rotates to the back of the line.
+     * pipeline is healthy again: transient classes only — gateway / credit /
+     * budget refusals and a thrown extraction ("Pulse extract failed."). New
+     * failures are written as "CODE: message" (extract.ts); the bare-message
+     * patterns cover rows written before that convention. Deterministic failures
+     * — guard rejections (excerpt-grounding, no-change), missing source text,
+     * out-of-scope, low confidence — never match, so the retry sweep converges
+     * instead of cycling them forever.
+     *
+     * 2026-06-27: excerpt-grounding rejections were REMOVED from this set. They
+     * were briefly re-driven after the guard learned fuzzy alignment (06-10), to
+     * clear the exact-match-era backlog — but that backlog is long past the
+     * maxAge cutoff, and a snapshot that fails the *fuzzy* guard is deterministic
+     * at temperature=0, so re-driving it just loops (3 snapshots were each
+     * re-extracted ~70× over 2 days, burning AI budget and inflating the
+     * grounding-rejection metric). A future prompt/guard upgrade that warrants
+     * re-driving old grounding failures should use a one-time backfill, not this
+     * continuous sweep. Oldest-touched first: a re-failed row bumps updated_at
+     * and rotates to the back of the line.
      */
     async listRetryableFailedSnapshots(input: {
       limit: number
@@ -1299,21 +1308,6 @@ export function makePulseOpsRepo(db: Db) {
               like(pulseSourceSnapshot.failureReason, 'AI_GATEWAY_ERROR%'),
               like(pulseSourceSnapshot.failureReason, 'AI_UNAVAILABLE%'),
               like(pulseSourceSnapshot.failureReason, 'AI_BUDGET_EXCEEDED%'),
-              // Excerpt-grounding rejections became fuzzy-tolerant (P3 batch), so the
-              // stranded exact-match-era backlog is worth one re-drive. The Pulse prefix
-              // plus the phrase keeps every other guard rejection deterministic-dead
-              // (rule-draft guards share the phrase but not the prefix). D1 caps LIKE
-              // patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH) — longer ones
-              // throw "LIKE or GLOB pattern too complex" at runtime.
-              like(
-                pulseSourceSnapshot.failureReason,
-                'GUARD_REJECTED: Pulse%could not be located%',
-              ),
-              // The stranded backlog itself predates the refusal-code prefix —
-              // those rows start with the bare guard message ("…because source
-              // excerpt could not be located…"); "source e" keeps the other
-              // pulse guard class (no-change) deterministic-dead.
-              like(pulseSourceSnapshot.failureReason, 'Pulse extract rejected because source e%'),
               // Legacy rows (pre code-prefix): transport-class messages only.
               like(pulseSourceSnapshot.failureReason, '%requires more credits%'),
               eq(pulseSourceSnapshot.failureReason, 'Pulse extract failed.'),
