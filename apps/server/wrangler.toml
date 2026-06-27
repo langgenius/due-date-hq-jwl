@@ -181,6 +181,9 @@ ENABLE_PUBLIC_DEMO = "false"
 # CF's /content REST API (Bearer auth via PULSE_BROWSERLESS_TOKEN = a CF API token
 # scoped "Browser Rendering: Edit"). Rollback = restore the browserless.io URL AND
 # re-set the browserless.io token. ~$0: 10 browser-hrs/mo included in Workers Paid.
+# 2026-06-27: PULSE_BROWSERLESS_TOKEN rotated to a fresh least-privilege CF token
+# (Browser Rendering: Edit only) — the prior token began returning 401 code 10000
+# (auth error) once the queue consumer unfroze and started hitting the CF endpoint.
 PULSE_BROWSERLESS_URL = "https://api.cloudflare.com/client/v4/accounts/305dbc7da819eb47bb3f3f3bc8927046/browser-rendering/content"
 # Inbound email attribution gate (jobs/pulse/govdelivery.ts): matched official
 # sources require sender-domain + passing DKIM/SPF verdicts before their mail
