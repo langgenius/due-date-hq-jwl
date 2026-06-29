@@ -44,6 +44,7 @@ export function EmptyState({
   visual = 'icon',
   duotoneTone = 'accent',
   fill = false,
+  frameless = false,
 }: {
   icon?: LucideIcon
   title: ReactNode
@@ -91,6 +92,12 @@ export function EmptyState({
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
   // never collapses below the design height but can grow with the viewport).
   fill?: boolean
+  // Drops the card frame (border + fill) while keeping the variant's sizing /
+  // icon / copy. For an empty state that sits INSIDE an already-bordered
+  // container (e.g. a table cell, a drawer body) where the card-in-card frame
+  // double-boxes — let it rest on the host surface instead (per "no frames in
+  // frames"). No effect on `compact`, which is already frameless.
+  frameless?: boolean
 }) {
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
@@ -103,17 +110,22 @@ export function EmptyState({
       className={cn(
         'flex flex-col items-center text-center',
         isCompact && 'gap-3 px-4 py-10',
+        // Sizing/spacing (always) is kept separate from the card frame
+        // (border + fill) so `frameless` can drop the box without losing layout.
+        !isCompact && !isProminent && 'gap-3 rounded-lg px-6 py-10',
         !isCompact &&
           !isProminent &&
-          'gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
-        isProminent && 'gap-6 rounded-xl border px-10 py-20',
+          !frameless &&
+          'border border-dashed border-divider-regular bg-background-default',
+        isProminent && 'gap-6 rounded-xl px-10 py-20',
         // Palette finish: a full-surface empty is a resting/invitational
         // moment, so the prominent card wears the warm stone well by default.
-        // `tone="plain"` opts back to the white card.
+        // `tone="plain"` opts back to the white card. Dropped when `frameless`.
         isProminent &&
+          !frameless &&
           (tone === 'warm'
-            ? 'border-divider-warm bg-background-well-warm'
-            : 'border-divider-regular bg-background-default'),
+            ? 'border border-divider-warm bg-background-well-warm'
+            : 'border border-divider-regular bg-background-default'),
         // `fill` makes the prominent card own the whole content
         // area (canvas cards are 600px tall, vertically centered). `min-h`
         // keeps the design height as a floor; `justify-center` centers the

@@ -165,7 +165,7 @@ import {
   FLOATING_ACTION_BAR_SCROLL_PADDING,
 } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
-import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
+import { type StatBandItem } from '@/components/patterns/stat-band'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { Kbd } from '@/components/patterns/kbd'
@@ -3079,7 +3079,9 @@ export function ObligationQueueRoute() {
         label: t`Overdue`,
         value: overdue,
         // Color is a signal: destructive only when something IS overdue, so a
-        // warning-toned zero never flags a problem that doesn't exist.
+        // warning-toned zero never flags a problem that doesn't exist. The
+        // compact summary strip reads `valueClass` to tint the number itself.
+        ...(overdue > 0 ? { valueClass: 'text-text-destructive' } : {}),
         sub: overdue > 0 ? t`needs action` : t`all on time`,
         subClass: overdue > 0 ? 'text-text-destructive' : 'text-text-tertiary',
         onClick: () =>
@@ -3690,65 +3692,97 @@ export function ObligationQueueRoute() {
           stands (eyebrow date + one headline + a metric line). Derived from
           the loaded glance page + client facet. Hidden while a detail panel is
           open so the split view keeps its vertical budget for the table. */}
-      {!panelOpenIntent && !glanceDismissed ? (
-        <section
-          aria-label={t`Deadlines at a glance`}
-          // Slim ONE-LINE editorial strip — was a bordered card (px-5 py-4 +
-          // border + fill), wasteful for a single sentence. Now: accent dot +
-          // date eyebrow + the one-line read + inline dismiss, no card chrome, so
-          // the table rises ~70px. The StatBand below owns the numeric triage.
-          className="flex items-center gap-2.5"
-        >
-          <span className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt" aria-hidden />
-          <CapsFieldLabel as="span" variant="group" className="shrink-0">
-            {bannerDateLabel}
-          </CapsFieldLabel>
-          <span aria-hidden className="shrink-0 text-text-tertiary">
-            ·
-          </span>
-          <p className="min-w-0 flex-1 truncate text-sm leading-snug text-text-primary">
-            {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
-              <Trans>
-                {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today —
-                clear the urgent set to close the week strong.
-              </Trans>
-            ) : deadlinesNarrative.overdue > 0 ? (
-              <Trans>
-                {deadlinesNarrative.overdue} overdue — clear the urgent set to pull the week back on
-                track.
-              </Trans>
-            ) : deadlinesNarrative.dueToday > 0 ? (
-              <Trans>
-                {deadlinesNarrative.dueToday} filing today — stay ahead to keep the week on track.
-              </Trans>
-            ) : (
-              <Trans>Nothing overdue — the week is on track.</Trans>
-            )}
-          </p>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            type="button"
-            onClick={dismissGlance}
-            aria-label={t`Dismiss at-a-glance summary`}
-            className="size-7 shrink-0"
-          >
-            <XIcon className="size-3.5" aria-hidden />
-          </Button>
-        </section>
-      ) : null}
-
-      {/* Portfolio summary band — the shared StatBand "card summary" (also drives
-          /clients, /rules/sources, /rules/library, /alerts/history). The editorial
-          banner above is the one-sentence read of the week; this band is the
-          numeric triage. Hidden while a detail panel is open so the split view
-          keeps its vertical budget for the table. */}
+      {/* 2026-06-29 (Yuqi "the deadline page is quite wasteful of space"): the
+          editorial one-liner + the portfolio summary are now ONE tight zone, and
+          the tall shared StatBand (border-y py-7 → ~110px that just restated the
+          urgency lanes' own breakdown, and printed "12 overdue" a second time) is
+          replaced ON THIS SURFACE by a compact ~24px clickable stat strip. Same
+          totals, same click-to-filter shortcuts, ~85px reclaimed → the table rises
+          well up the fold. The shared StatBand stays on /clients · /rules · /alerts. */}
       {!panelOpenIntent ? (
-        <StatBand
-          stats={statBandCells}
-          loading={glanceQuery.isLoading || facetsQuery.isLoading}
-          ariaLabel={t`Deadlines portfolio summary`}
-        />
+        <div className="flex flex-col gap-2">
+          {/* Editorial one-liner — the week's read (no card chrome). */}
+          {!glanceDismissed ? (
+            <section aria-label={t`Deadlines at a glance`} className="flex items-center gap-2.5">
+              <span
+                className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
+                aria-hidden
+              />
+              <CapsFieldLabel as="span" variant="group" className="shrink-0">
+                {bannerDateLabel}
+              </CapsFieldLabel>
+              <span aria-hidden className="shrink-0 text-text-tertiary">
+                ·
+              </span>
+              <p className="min-w-0 flex-1 truncate text-sm leading-snug text-text-primary">
+                {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
+                  <Trans>
+                    {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today
+                    — clear the urgent set to close the week strong.
+                  </Trans>
+                ) : deadlinesNarrative.overdue > 0 ? (
+                  <Trans>
+                    {deadlinesNarrative.overdue} overdue — clear the urgent set to pull the week
+                    back on track.
+                  </Trans>
+                ) : deadlinesNarrative.dueToday > 0 ? (
+                  <Trans>
+                    {deadlinesNarrative.dueToday} filing today — stay ahead to keep the week on
+                    track.
+                  </Trans>
+                ) : (
+                  <Trans>Nothing overdue — the week is on track.</Trans>
+                )}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                onClick={dismissGlance}
+                aria-label={t`Dismiss at-a-glance summary`}
+                className="size-7 shrink-0"
+              >
+                <XIcon className="size-3.5" aria-hidden />
+              </Button>
+            </section>
+          ) : null}
+          {/* Compact portfolio summary strip — the numeric triage + filter
+              shortcuts in one line (each segment fires the same scope filter the
+              StatBand cell did). */}
+          {glanceQuery.isLoading || facetsQuery.isLoading ? (
+            <Skeleton className="h-5 w-72 rounded" />
+          ) : (
+            <div
+              aria-label={t`Deadlines portfolio summary`}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+            >
+              {statBandCells.map((cell, index) => (
+                <Fragment key={cell.key}>
+                  {index > 0 ? (
+                    <span aria-hidden className="text-divider-regular">
+                      ·
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={cell.onClick}
+                    aria-label={cell.ariaLabel}
+                    className="group inline-flex cursor-pointer items-baseline gap-1.5 rounded-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <span
+                      className={cn('font-medium tabular-nums text-text-primary', cell.valueClass)}
+                    >
+                      {cell.value}
+                    </span>
+                    <span className="text-text-tertiary transition-colors group-hover:text-text-secondary">
+                      {cell.label}
+                    </span>
+                  </button>
+                </Fragment>
+              ))}
+            </div>
+          )}
+        </div>
       ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:
@@ -7393,6 +7427,9 @@ function ObligationQueueEmptyState({
     // filtered case keeps the inline default treatment (data exists, just
     // hidden).
     <EmptyState
+      // Rests on the table surface — it already lives inside the bordered table
+      // cell, so its own card frame double-boxed it (2026-06-29, Yuqi feedback).
+      frameless
       variant={hasActiveFilters ? 'default' : 'prominent'}
       icon={hasActiveFilters ? CalendarDaysIcon : CalendarClockIcon}
       title={
