@@ -9,7 +9,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * places (rules-library entity filter, command-palette scope pills, the
  * states-rail "needs review" toggle, …). The ACTIVE state uses the design
  * system's "engaged filter" treatment — an accent **tint** (`state-accent-
- * hover-alt`) + accent border + accent text + medium weight — NOT a solid fill
+ * hover-alt`) + a soft accent border (`state-accent-solid/30`, light so it
+ * frames rather than shouts) + accent text + medium weight — NOT a solid fill
  * (a dark fill would read as "primary action" rather than "this filter is on").
  * Mirrors the chip-filter look on /deadlines + /clients.
  *
@@ -56,7 +57,7 @@ export function ToggleChip({
         'disabled:cursor-not-allowed disabled:opacity-50',
         size === 'md' ? 'h-8 px-3.5 text-sm' : 'h-7 px-3 text-xs',
         selected
-          ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
+          ? 'border-state-accent-solid/30 bg-state-accent-hover-alt text-text-accent'
           : 'border-divider-regular bg-background-default text-text-secondary hover:border-text-secondary hover:bg-state-base-hover hover:text-text-primary',
         className,
       )}

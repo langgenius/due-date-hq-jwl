@@ -10,30 +10,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { SetupStepIcon } from './setup-step-icon'
 
-// Small progress ring used as the card's leading glyph — speaks the app-wide
-// StatusRing language (a quiet navy arc that fills with progress) instead of a
-// decorative duotone rocket, so the nudge reads as native to the cool utility
-// rail rather than a delight-surface flourish. r=6 → circumference 2π·6 ≈ 37.7.
-function SetupProgressRing({ pct }: { pct: number }) {
-  const circumference = 37.7
-  const filled = (Math.min(100, Math.max(0, pct)) / 100) * circumference
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className="size-4 shrink-0 text-text-accent" aria-hidden>
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" opacity="0.2" />
-      <circle
-        cx="8"
-        cy="8"
-        r="6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeDasharray={`${filled} ${circumference}`}
-        transform="rotate(-90 8 8)"
-      />
-    </svg>
-  )
-}
-
 // Dismiss-for-session lives in localStorage rather than React state so the
 // nudge stays hidden across route changes within a browser session — but it is
 // NOT a permanent dismissal: a firm that hasn't finished setup will see it
@@ -63,7 +39,7 @@ function readDismissed(): boolean {
  * Renders NOTHING when both steps are done (self-dismiss — a set-up firm sees
  * nothing), NOTHING while the probes load (no flash of an empty bar), NOTHING
  * in the collapsed icon rail, and NOTHING once dismissed-for-session. Keeps the
- * decluttered footer aesthetic: a small progress ring + tiny title, two
+ * decluttered footer aesthetic: a tiny title + percent, two checkbox-style
  * checklist rows, and one quiet text-link CTA to the first incomplete step.
  */
 export function SidebarSetupCard() {
@@ -134,7 +110,6 @@ export function SidebarSetupCard() {
       )}
     >
       <div className="flex items-center gap-2">
-        <SetupProgressRing pct={pct} />
         <h3 className="min-w-0 flex-1 truncate text-xs font-semibold text-text-secondary">
           <Trans>Finish setup</Trans>
         </h3>

@@ -118,37 +118,49 @@ export function AuthTrustLine({ className }: { className?: string }) {
   )
 }
 
-// Page footer — copyright + legal on the left, version + region pill on right.
-export function AuthFooter() {
+// Page footer — the single shared footer for every auth surface (login, the
+// centered onboarding/2FA shell, etc.) so the design stays aligned in one place.
+// `showTrust` folds the reassurance line into the footer band (one bordered
+// region) instead of a separate row floating above it: copyright + legal on the
+// left, version + region pill on the right.
+export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
   return (
-    <footer className="flex flex-col gap-3 border-t border-divider-subtle px-6 py-3.5 text-[11px] font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <span>© {new Date().getFullYear()} DueDateHQ</span>
-        {[
-          { label: 'Terms', href: '/terms' },
-          { label: 'Privacy', href: '/privacy' },
-          { label: 'Security', href: '/security' },
-        ].map((item) => (
-          <span key={item.label} className="flex items-center gap-2.5">
-            <span aria-hidden className="text-text-muted">
-              ·
+    <footer className="flex flex-col gap-2.5 border-t border-divider-subtle px-6 py-3 text-[11px] font-medium text-text-tertiary lg:px-10">
+      {showTrust ? <AuthTrustLine /> : null}
+      <div
+        className={cn(
+          'flex flex-col gap-3 sm:flex-row sm:items-center',
+          showTrust && 'border-t border-divider-subtle pt-2.5',
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span>© {new Date().getFullYear()} DueDateHQ</span>
+          {[
+            { label: 'Terms', href: '/terms' },
+            { label: 'Privacy', href: '/privacy' },
+            { label: 'Security', href: '/security' },
+          ].map((item) => (
+            <span key={item.label} className="flex items-center gap-2.5">
+              <span aria-hidden className="text-text-muted">
+                ·
+              </span>
+              <a
+                href={item.href}
+                className="transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                {item.label}
+              </a>
             </span>
-            <a
-              href={item.href}
-              className="transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              {item.label}
-            </a>
+          ))}
+        </div>
+        <span className="hidden flex-1 sm:block" />
+        <div className="flex items-center gap-3.5">
+          <span className="font-mono text-[10px] text-text-tertiary">v2.18.4</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
+            <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
+            <span className="text-text-secondary">US East</span>
           </span>
-        ))}
-      </div>
-      <span className="hidden flex-1 sm:block" />
-      <div className="flex items-center gap-3.5">
-        <span className="font-mono text-[10px] text-text-tertiary">v2.18.4</span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
-          <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
-          <span className="text-text-secondary">US East</span>
-        </span>
+        </div>
       </div>
     </footer>
   )
@@ -161,8 +173,8 @@ export function AuthFooter() {
 export function CenteredAuthScreen({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary dark:bg-bg-canvas">
-      <header className="flex shrink-0 items-center gap-2.5 px-6 py-6 lg:px-10">
-        <AuthBrandAnchor />
+      <header className="flex shrink-0 items-center gap-2.5 px-6 py-4 lg:px-10">
+        <AuthBrandAnchor markClassName="h-6" />
         <span className="flex-1" />
         <AuthStatusPill />
       </header>
@@ -170,11 +182,11 @@ export function CenteredAuthScreen({ children }: { children: ReactNode }) {
           room, but collapses to the top when the form is taller than the viewport
           — unlike `items-center`, which clips the top above an unreachable scroll
           origin (the page title would vanish on short viewports). */}
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-8">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-4">
         <div className="m-auto flex w-full flex-col items-center">{children}</div>
       </main>
-      <AuthTrustLine className="shrink-0 px-6 pb-4 pt-2 lg:px-10" />
-      <AuthFooter />
+      {/* Trust line now lives inside the footer band (one region, not two). */}
+      <AuthFooter showTrust />
     </div>
   )
 }
