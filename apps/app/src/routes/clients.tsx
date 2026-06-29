@@ -517,13 +517,13 @@ export function ClientsRoute() {
         }
       />
 
-      {/* Inline tip surfaces when the firm has fewer than 5 clients.
-          Once the firm exceeds the
-          threshold the banner self-suppresses; if the CPA dismisses
-          it sooner the localStorage key keeps it hidden across
-          sessions. CTA is gated on canRunMigration so the link never
-          noops. */}
-      {clients.length < 5 ? (
+      {/* Inline import tip — only for a PARTIALLY populated directory (1–4
+          clients). At 0 clients the full-surface empty-state hero already owns
+          the import prompt, so showing this banner too was a redundant second
+          import CTA (Yuqi 2026-06-29). Above the threshold it self-suppresses;
+          a manual dismiss persists via localStorage. CTA gated on
+          canRunMigration so the link never noops. */}
+      {clients.length > 0 && clients.length < 5 ? (
         <InfoBanner
           icon={LightbulbIcon}
           message={t`Import clients from CSV to populate the directory faster.`}
