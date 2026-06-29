@@ -29,6 +29,7 @@ import {
   reviewPipelineCurrent,
   willReadinessChecklistBeFullyReceived,
 } from '@/features/obligations/queue/helpers'
+import type { ObligationStatus } from '@/features/obligations/status-control'
 
 const smartPriorityBreakdown = (score: number) => ({
   version: 'smart-priority-v1' as const,
@@ -376,6 +377,9 @@ describe('urgency band derivation', () => {
     currentDueDate: '2026-06-01',
     daysUntilDue: 0,
     extensionInternalTargetDate: null as string | null,
+    // Active (non-terminal) status so the date-based bands apply; the settled
+    // case is covered separately below.
+    status: 'pending' as ObligationStatus,
   }
 
   it('classifies a past-due row as overdue', () => {
@@ -403,14 +407,25 @@ describe('urgency band derivation', () => {
           currentDueDate: '2026-08-01',
           daysUntilDue: 60,
           extensionInternalTargetDate: '2026-06-02',
+          status: 'pending' as ObligationStatus,
         },
         '2026-06-01',
       ),
     ).toBe('this_week')
   })
 
-  it('orders bands overdue → today → this week → upcoming', () => {
-    expect(URGENCY_BAND_ORDER).toEqual(['overdue', 'today', 'this_week', 'upcoming'])
+  it('routes settled work to the Filed band regardless of date (audit P0)', () => {
+    // A return filed 48d late is DONE, not overdue — terminal statuses must land
+    // in the calm Filed band so the urgency lanes hold only what needs action.
+    for (const status of ['done', 'completed', 'paid', 'not_applicable'] as ObligationStatus[]) {
+      expect(urgencyBandOf({ ...baseRow, daysUntilDue: -48, status }, '2026-06-01')).toBe('filed')
+      // even a settled row whose date is upcoming stays in Filed, not Upcoming.
+      expect(urgencyBandOf({ ...baseRow, daysUntilDue: 30, status }, '2026-06-01')).toBe('filed')
+    }
+  })
+
+  it('orders bands overdue → today → this week → upcoming → filed', () => {
+    expect(URGENCY_BAND_ORDER).toEqual(['overdue', 'today', 'this_week', 'upcoming', 'filed'])
   })
 })
 

@@ -613,6 +613,33 @@ export function daysUntilEffectiveInternalDueDate(
   return Math.round(ms / DAY_MS)
 }
 
+// The urgency band a deadline belongs to. The CANONICAL grouping for both the
+// /deadlines table (urgency-grouped rows) and the card grid — one function so
+// the two views can never drift (2026-06-29 audit P1; previously the table and
+// DeadlineCardGrid each had their own copy, which already differed on
+// not_applicable handling + extension-target dates).
+export type UrgencyBand = 'overdue' | 'today' | 'this_week' | 'upcoming' | 'filed'
+export const URGENCY_BAND_ORDER = ['overdue', 'today', 'this_week', 'upcoming', 'filed'] as const
+export function urgencyBandOf(
+  row: Pick<
+    ObligationQueueRow,
+    'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate' | 'status'
+  >,
+  today = todayIsoDate(),
+): UrgencyBand {
+  // Settled work (filed / completed / paid / N/A) is not "urgent" no matter its
+  // date — a return filed 48d late is DONE, not "overdue". Route every terminal
+  // row to the calm Filed band so the urgency lanes above hold ONLY what still
+  // needs action (audit P0). Same terminal set as the stripe/countdown.
+  if (isDueDaysSuppressedForStatus(row.status)) return 'filed'
+  const days = daysUntilEffectiveInternalDueDate(row, today)
+  if (days < 0) return 'overdue'
+  // Today is its own horizon — "due today" ≠ "due later this week".
+  if (days === 0) return 'today'
+  if (days <= 7) return 'this_week'
+  return 'upcoming'
+}
+
 // Stages whose `isPastInternalDue` red ring is suppressed in the
 // milestone timeline. Lateness on a Filed/Completed row is a quality
 // stat, not an active urgency — the dates panel shows the red

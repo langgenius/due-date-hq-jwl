@@ -996,6 +996,14 @@ export function AlertDetailDrawer({
   // Apply path requires one explicit acknowledgement step.
   const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
   const [applyVerified, setApplyVerified] = useState(false)
+  // 2026-06-29 — low-confidence "Mark reviewed" gate. A review_only alert the AI
+  // parsed with LOW confidence shouldn't be rubber-stamped: the first Mark
+  // reviewed opens a confirm that points at the source. Once the CPA has gone to
+  // the source (the gate's "Review source" or the apply-gate nudge), `reviewVerified`
+  // flips and the gate steps aside so it never nags twice. Mirrors the heavier
+  // Apply verification gate, at review-path weight (no checkbox).
+  const [confirmReviewOpen, setConfirmReviewOpen] = useState(false)
+  const [reviewVerified, setReviewVerified] = useState(false)
 
   // Apply-success celebration — the one-click Apply is the product's signature
   // win, but it used to close the drawer instantly with only a toast. On success
@@ -1038,6 +1046,8 @@ export function AlertDetailDrawer({
     setReviewNote('')
     setApplyVerificationOpen(false)
     setApplyVerified(false)
+    setConfirmReviewOpen(false)
+    setReviewVerified(false)
     setHeroScrolled(false)
     setDecisionDocked(true)
     setApplied(false)
@@ -1051,6 +1061,8 @@ export function AlertDetailDrawer({
     setReviewNote('')
     setApplyVerificationOpen(false)
     setApplyVerified(false)
+    setConfirmReviewOpen(false)
+    setReviewVerified(false)
     setApplied(false)
     setResetKey(null)
   }
@@ -1399,6 +1411,35 @@ export function AlertDetailDrawer({
     dismissMutation.mutate({ alertId: detail.alert.id })
   }
 
+  // The low-confidence gate fires only for an open review_only alert the AI was
+  // unsure about, and only until the CPA has gone to the source once.
+  const reviewNeedsVerify =
+    !!detail &&
+    detail.alert.status === 'matched' &&
+    (detail.alert.actionMode === 'review_only' ||
+      detail.alert.firmImpact === 'no_current_match') &&
+    isLowAiConfidence(detail.alert.confidence) &&
+    !reviewVerified
+  // Single entry point for "Mark reviewed" (footer button + `A` hotkey). Routes a
+  // shaky, unverified alert through the confirm gate; everything else fires
+  // straight through, so the fast triage path is unchanged for normal alerts.
+  const requestMarkReviewed = () => {
+    if (!detail || isMutating) return
+    if (reviewNeedsVerify) {
+      setConfirmReviewOpen(true)
+      return
+    }
+    markReviewedMutation.mutate({ alertId: detail.alert.id })
+  }
+  // "Go look at the source" — flips the gate off (so it won't re-prompt) and
+  // jumps to the Source section. Shared by the gate dialog + the apply-gate nudge.
+  const goToSource = () => {
+    setReviewVerified(true)
+    document
+      .getElementById('alert-section-source')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   // Make the footer's `A` / `D` keyboard hints real (they were decorative).
   // `D` dismisses while the alert is open; `A` fires the primary decision —
   // Apply's verification gate, or Mark reviewed for review_only alerts
@@ -1432,7 +1473,9 @@ export function AlertDetailDrawer({
         if (reviewMode) {
           if (reverifyIncomplete) return
           event.preventDefault()
-          markReviewedMutation.mutate({ alertId: detail.alert.id })
+          // Route through the same gate the footer button uses — a low-confidence
+          // alert opens the verify confirm instead of firing straight through.
+          requestMarkReviewed()
         } else {
           const needsDeadlineDetails =
             detail.alert.actionMode === 'due_date_overlay' &&
@@ -1458,6 +1501,9 @@ export function AlertDetailDrawer({
     reverifyIncomplete,
     missingDeadlineDetails,
     stats,
+    // Re-bind when the gate condition flips, so `A` opens the confirm or fires
+    // straight through to match the current verify state.
+    reviewNeedsVerify,
   ])
 
   // 2026-06-16 (audit — alert↔deadline parity): Esc closes the alert detail in
@@ -1525,10 +1571,22 @@ export function AlertDetailDrawer({
   // gives the deadline-tabs orientation while staying a table of contents.
   // Active section = the last group card whose top has crossed the pinned
   // nav line; computed in the body's existing onScroll (no extra listener).
+  // 2026-06-29 (Yuqi "apply the deadline tab work here too"): the inline panel
+  // surface (mode==='panel', the /alerts experience) now does REAL tab-switching
+  // instead of one ~4500px scroll behind a fake tab bar. The off-route `sheet`
+  // fallback keeps the scroll-spy table of contents. The decision-critical pair
+  // (Change + Affected clients) groups into ONE "Change" tab so they stay
+  // co-visible — honouring the original 2026-06-12 "facts + clients must be seen
+  // together" intent — while the long reference (Source, Activity, ~1700px each)
+  // splits into its own tabs so you don't scroll past them.
+  const useTabs = mode === 'panel'
   const sectionNavItems = detail
     ? [
         { id: 'alert-section-facts', label: <Trans>Change</Trans> },
-        ...(showClientsGroup
+        // Clients is its OWN scroll-spy anchor in sheet mode; in tab mode it
+        // lives inside the Change tab (so the affected clients aren't a tab away
+        // from the change that drives them).
+        ...(showClientsGroup && !useTabs
           ? [{ id: 'alert-section-clients', label: <Trans>Clients</Trans> }]
           : []),
         { id: 'alert-section-source', label: <Trans>Source</Trans> },
@@ -1536,6 +1594,24 @@ export function AlertDetailDrawer({
       ]
     : []
   const [activeSection, setActiveSection] = useState('alert-section-facts')
+  // Per-tab visibility. In scroll-spy (sheet) every group renders; in tab mode
+  // only the active tab's group mounts. The Change tab carries facts + the
+  // source-status banner + re-verify list + affected clients.
+  const isFactsTab = !useTabs || activeSection === 'alert-section-facts'
+  const isSourceTab = !useTabs || activeSection === 'alert-section-source'
+  const isActivityTab = !useTabs || activeSection === 'alert-section-activity'
+  // On a deliberate tab change (click/keyboard), scroll the freshly-mounted
+  // panel up under the sticky nav and — for keyboard switches — move focus to
+  // follow the selection. Gated on a ref so the INITIAL mount doesn't scroll the
+  // hero away, and so scroll-spy mode never triggers it.
+  const tabSwitchRef = useRef<{ focus: boolean } | null>(null)
+  useEffect(() => {
+    const pending = tabSwitchRef.current
+    if (!pending) return
+    tabSwitchRef.current = null
+    document.getElementById(activeSection)?.scrollIntoView({ block: 'start' })
+    if (pending.focus) document.getElementById(`alert-tab-${activeSection}`)?.focus()
+  }, [activeSection])
   // 2026-06-15 critique #12: the 1·2·3 section badges are gone. The flat section
   // cards already RANK by tone (Change = action, big primary header; Source +
   // Activity = reference, quiet secondary header). Numbering them 1·2·3 gave them
@@ -1679,7 +1755,9 @@ export function AlertDetailDrawer({
           const atBottom =
             container.scrollTop + container.clientHeight >= container.scrollHeight - 8
           setDecisionDocked((prev) => (prev === atBottom ? prev : atBottom))
-          if (sectionNavItems.length === 0) return
+          // Scroll-spy section tracking is sheet-only — in tab mode only the
+          // active panel is mounted, so there's nothing to track.
+          if (useTabs || sectionNavItems.length === 0) return
           const containerTop = container.getBoundingClientRect().top
           let current = sectionNavItems[0]!.id
           for (const item of sectionNavItems) {
@@ -1855,6 +1933,31 @@ export function AlertDetailDrawer({
         {detail ? (
           <nav
             aria-label={t`Alert sections`}
+            // Tab mode (panel): a real ARIA tablist with arrow-key nav. Sheet mode
+            // keeps plain scroll-spy nav semantics.
+            role={useTabs ? 'tablist' : undefined}
+            aria-orientation={useTabs ? 'horizontal' : undefined}
+            onKeyDown={
+              useTabs
+                ? (event) => {
+                    const keys = sectionNavItems.map((i) => i.id)
+                    const idx = keys.indexOf(activeSection)
+                    if (idx === -1) return
+                    let next: string | null = null
+                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown')
+                      next = keys[(idx + 1) % keys.length] ?? null
+                    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+                      next = keys[(idx - 1 + keys.length) % keys.length] ?? null
+                    else if (event.key === 'Home') next = keys[0] ?? null
+                    else if (event.key === 'End') next = keys[keys.length - 1] ?? null
+                    if (next && next !== activeSection) {
+                      event.preventDefault()
+                      tabSwitchRef.current = { focus: true }
+                      setActiveSection(next)
+                    }
+                  }
+                : undefined
+            }
             className="sticky top-0 z-10 shrink-0 bg-background-default px-6 pt-3 xl:px-12"
           >
             <div className="mx-auto flex w-full max-w-[880px] items-center gap-5 border-b border-divider-subtle pb-2">
@@ -1863,11 +1966,25 @@ export function AlertDetailDrawer({
                 return (
                   <button
                     key={item.id}
+                    id={`alert-tab-${item.id}`}
                     type="button"
+                    // Tab mode: real tab semantics + roving tabindex. Sheet mode:
+                    // scroll-spy link marked with aria-current.
+                    role={useTabs ? 'tab' : undefined}
+                    aria-selected={useTabs ? sectionActive : undefined}
+                    aria-controls={useTabs ? item.id : undefined}
+                    tabIndex={useTabs ? (sectionActive ? 0 : -1) : undefined}
+                    aria-current={useTabs ? undefined : sectionActive ? 'true' : undefined}
                     onClick={(event) => {
-                      // Move the underline to the clicked section immediately —
-                      // the scroll-spy `activeSection` otherwise only catches up
-                      // once the smooth-scroll settles, lagging the click.
+                      if (useTabs) {
+                        // Switch tabs — only the active panel mounts; the effect
+                        // scrolls it up under the sticky nav.
+                        tabSwitchRef.current = { focus: false }
+                        setActiveSection(item.id)
+                        return
+                      }
+                      // Scroll-spy: move the underline immediately (it otherwise
+                      // lags until the smooth-scroll settles), then scroll.
                       setActiveSection(item.id)
                       event.currentTarget
                         .closest('[class*="overflow-y-auto"]')
@@ -1995,7 +2112,8 @@ export function AlertDetailDrawer({
                   reflects the REAL `reverifyRuleIds` (and the ReverifyRulesSection
                   below renders the list when there is one); when none cite this
                   source we say so plainly rather than inventing a number. */}
-              {detail.alert.changeKind === 'source_status' &&
+              {isFactsTab &&
+              detail.alert.changeKind === 'source_status' &&
               detail.alert.sourceStatus !== 'source_revoked' ? (
                 <Alert variant="warning">
                   <TriangleAlertIcon />
@@ -2051,33 +2169,36 @@ export function AlertDetailDrawer({
                 (DeadlineChangeCard / action-deadline callout) was hoisted
                 into the HERO — this section carries only reference depth:
                 the fact grid, caveats, and the practice-impact read. */}
-              <DetailSectionCard
-                id="alert-section-facts"
-                variant="flat"
-                caption={<Trans>what changed and what to verify</Trans>}
-                className="scroll-mt-16"
-                // Bigger gap between the practice-impact read and the parsed
-                // fields below it (Yuqi 2026-06-15 "bigger gap"); the tighter
-                // parsed-header→grid gap lives inside AlertStructuredFields.
-                bodyClassName="flex flex-col gap-6"
-                title={<Trans>Change</Trans>}
-              >
-                {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):
+              {isFactsTab ? (
+                <DetailSectionCard
+                  id="alert-section-facts"
+                  role={useTabs ? 'tabpanel' : undefined}
+                  ariaLabelledby={useTabs ? 'alert-tab-alert-section-facts' : undefined}
+                  variant="flat"
+                  className="scroll-mt-16"
+                  // Bigger gap between the practice-impact read and the parsed
+                  // fields below it (Yuqi 2026-06-15 "bigger gap"); the tighter
+                  // parsed-header→grid gap lives inside AlertStructuredFields.
+                  bodyClassName="flex flex-col gap-6"
+                  title={<Trans>Change</Trans>}
+                >
+                  {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):
                   VALUE before REFERENCE. "What this means for your practice"
                   (self-gating, accent-anchored) now LEADS the section — the
                   plain-language read the CPA actually needs — and the raw
                   fact grid follows as supporting reference. */}
-                <PracticeImpactSection detail={detail} />
+                  <PracticeImpactSection detail={detail} />
 
-                <AlertStructuredFields detail={detail} section="details" />
-              </DetailSectionCard>
+                  <AlertStructuredFields detail={detail} section="details" />
+                </DetailSectionCard>
+              ) : null}
 
               {/* Rules to re-verify — the task list that clears the
                 Mark-reviewed gate (`reverifyIncomplete`, footer + 'A'
                 shortcut), so the disabled CTA's "rules below" tooltip
                 points at a real surface. Sits between The change and
                 Affected clients — it is the action the change demands. */}
-              {detail.reverifyRuleIds.length > 0 ? (
+              {isFactsTab && detail.reverifyRuleIds.length > 0 ? (
                 <ReverifyRulesSection
                   reverifyRuleIds={detail.reverifyRuleIds}
                   onReverified={() => {
@@ -2086,12 +2207,13 @@ export function AlertDetailDrawer({
                 />
               ) : null}
 
-              {/* GROUP 2 — Affected clients + apply/review controls. */}
-              {showClientsGroup ? (
+              {/* GROUP 2 — Affected clients + apply/review controls. In tab mode
+                this lives inside the Change tab (isFactsTab), beside the change
+                that drives it; in sheet mode it's its own scroll-spy anchor. */}
+              {isFactsTab && showClientsGroup ? (
                 <DetailSectionCard
                   id="alert-section-clients"
                   variant="flat"
-                  caption={<Trans>who is affected</Trans>}
                   className="scroll-mt-16"
                   title={
                     <>
@@ -2270,194 +2392,204 @@ export function AlertDetailDrawer({
                 date, and audit note already shown elsewhere — the card
                 title + header-band link now carry all of it, and the body
                 is just citation → quote → confidence. */}
-              <DetailSectionCard
-                id="alert-section-source"
-                variant="flat"
-                tone="reference"
-                caption={<Trans>where this came from</Trans>}
-                className="scroll-mt-16"
-                title={<Trans>Source</Trans>}
-              >
-                {detail.alert.sourceStatus === 'source_revoked' ? (
-                  <Alert variant="destructive">
-                    <AlertTitle>
-                      <Trans>Source revoked</Trans>
-                    </AlertTitle>
-                    <AlertDescription>
-                      <Trans>
-                        This source is no longer trusted. The historical alert remains visible, but
-                        new apply, review, dismiss, and undo actions are disabled.
-                      </Trans>
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
+              {isSourceTab ? (
+                <DetailSectionCard
+                  id="alert-section-source"
+                  role={useTabs ? 'tabpanel' : undefined}
+                  ariaLabelledby={useTabs ? 'alert-tab-alert-section-source' : undefined}
+                  variant="flat"
+                  tone="reference"
+                  className="scroll-mt-16"
+                  title={<Trans>Source</Trans>}
+                >
+                  {detail.alert.sourceStatus === 'source_revoked' ? (
+                    <Alert variant="destructive">
+                      <AlertTitle>
+                        <Trans>Source revoked</Trans>
+                      </AlertTitle>
+                      <AlertDescription>
+                        <Trans>
+                          This source is no longer trusted. The historical alert remains visible,
+                          but new apply, review, dismiss, and undo actions are disabled.
+                        </Trans>
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
 
-                {/* Source card (Pencil MASYz) — institution mark + feed name +
+                  {/* Source card (Pencil MASYz) — institution mark + feed name +
                   jurisdiction, Open original on the right; a hairline meta row
                   carries the published date + the compact URL.
                   2026-06-16 (NrQaI de-frame): the Source section is now itself a
                   white bordered card, so this inner block drops its own
                   border/radius/padding — the section card is the only frame. */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
-                      <LandmarkIcon className="size-4" aria-hidden />
-                    </span>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="text-base font-medium text-text-primary">
-                        {detail.alert.source}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start gap-3">
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
+                        <LandmarkIcon className="size-4" aria-hidden />
                       </span>
-                      <span className="text-sm text-text-tertiary">
-                        {getJurisdictionName(detail.jurisdiction)}
-                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="text-base font-medium text-text-primary">
+                          {detail.alert.source}
+                        </span>
+                        <span className="text-sm text-text-tertiary">
+                          {getJurisdictionName(detail.jurisdiction)}
+                        </span>
+                      </div>
+                      {detail.alert.sourceUrl ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() =>
+                            window.open(detail.alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                          }
+                        >
+                          <Trans>Open original</Trans>
+                          <ExternalLinkIcon data-icon="inline-end" />
+                        </Button>
+                      ) : null}
                     </div>
-                    {detail.alert.sourceUrl ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() =>
-                          window.open(detail.alert.sourceUrl, '_blank', 'noopener,noreferrer')
-                        }
-                      >
-                        <Trans>Open original</Trans>
-                        <ExternalLinkIcon data-icon="inline-end" />
-                      </Button>
+                    {detail.alert.publishedAt || detail.alert.sourceUrl ? (
+                      <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
+                        {detail.alert.publishedAt ? (
+                          <span className="text-sm text-text-secondary">
+                            <Trans>Published</Trans>{' '}
+                            <span className="tabular-nums">
+                              {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
+                            </span>
+                          </span>
+                        ) : null}
+                        {detail.alert.sourceUrl ? (
+                          <span className="inline-flex min-w-0 items-center gap-1.5 font-mono text-xs text-text-tertiary">
+                            <LinkIcon className="size-3 shrink-0" aria-hidden />
+                            <span className="truncate">
+                              {sourceUrlDisplay(detail.alert.sourceUrl)}
+                            </span>
+                          </span>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
-                  {detail.alert.publishedAt || detail.alert.sourceUrl ? (
-                    <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-                      {detail.alert.publishedAt ? (
-                        <span className="text-sm text-text-secondary">
-                          <Trans>Published</Trans>{' '}
-                          <span className="tabular-nums">
-                            {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
-                          </span>
-                        </span>
-                      ) : null}
-                      {detail.alert.sourceUrl ? (
-                        <span className="inline-flex min-w-0 items-center gap-1.5 font-mono text-xs text-text-tertiary">
-                          <LinkIcon className="size-3 shrink-0" aria-hidden />
-                          <span className="truncate">
-                            {sourceUrlDisplay(detail.alert.sourceUrl)}
-                          </span>
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
 
-                {/* Verbatim source excerpt (Pencil MASYz) — quote mark + italic
+                  {/* Verbatim source excerpt (Pencil MASYz) — quote mark + italic
                   in a quiet gray box; hover reveals a copy affordance. */}
-                {detail.sourceExcerpt.trim().length > 0 ? (
-                  <div className="group/excerpt relative rounded-xl bg-background-subtle p-4">
-                    {/* 2026-06-15 (Yuqi "用正常文字的"") — the excerpt is wrapped
+                  {detail.sourceExcerpt.trim().length > 0 ? (
+                    <div className="group/excerpt relative rounded-xl bg-background-subtle p-4">
+                      {/* 2026-06-15 (Yuqi "用正常文字的"") — the excerpt is wrapped
                         in normal-text quotes, not a big off-centre serif
                         pull-quote glyph that read as decoration. */}
-                    <p className="min-w-0 break-words pr-8 text-base leading-relaxed text-text-secondary italic">
-                      &ldquo;{detail.sourceExcerpt}&rdquo;
-                    </p>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={t`Copy source excerpt`}
-                            onClick={() => {
-                              void navigator.clipboard.writeText(detail.sourceExcerpt).then(
-                                () => toast.success(t`Source excerpt copied`),
-                                () => toast.error(t`Couldn't copy source excerpt`),
-                              )
-                            }}
-                            className={cn(
-                              'absolute top-2 right-2 opacity-0 transition-opacity',
-                              'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
-                            )}
-                          >
-                            <CopyIcon aria-hidden />
-                          </Button>
-                        }
-                      />
-                      <TooltipContent>
-                        <Trans>Copy source excerpt</Trans>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                ) : null}
+                      <p className="min-w-0 break-words pr-8 text-base leading-relaxed text-text-secondary italic">
+                        &ldquo;{detail.sourceExcerpt}&rdquo;
+                      </p>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t`Copy source excerpt`}
+                              onClick={() => {
+                                void navigator.clipboard.writeText(detail.sourceExcerpt).then(
+                                  () => toast.success(t`Source excerpt copied`),
+                                  () => toast.error(t`Couldn't copy source excerpt`),
+                                )
+                              }}
+                              className={cn(
+                                'absolute top-2 right-2 opacity-0 transition-opacity',
+                                'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
+                              )}
+                            >
+                              <CopyIcon aria-hidden />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent>
+                          <Trans>Copy source excerpt</Trans>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  ) : null}
 
-                {/* Source meta grid (Pencil MASYz) — provenance facts. MASYz's
+                  {/* Source meta grid (Pencil MASYz) — provenance facts. MASYz's
                   "Detected by {monitor}" is omitted: PulseDetail carries only
                   opaque rule IDs, no monitor name, so rendering one would be
                   fiction. Captured + Parse confidence are real fields. */}
-                {(() => {
-                  const confPct = Math.round(detail.alert.confidence * 100)
-                  const confTier = aiConfidenceTier(detail.alert.confidence)
-                  const confTierLabel =
-                    confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
-                  return (
-                    // 2026-06-16 (NrQaI de-frame): the provenance facts drop
-                    // their own outer border/radius (the Source section card is
-                    // the frame). A top hairline separates them from the excerpt
-                    // above; the gap-px wash keeps the two cells distinct.
-                    <div className="grid grid-cols-2 gap-px overflow-hidden border-t border-divider-subtle bg-divider-subtle pt-px">
-                      <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-                        <CapsFieldLabel as="span" variant="group">
-                          <Trans>Captured</Trans>
-                        </CapsFieldLabel>
-                        <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
-                          {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
-                        </span>
+                  {(() => {
+                    const confPct = Math.round(detail.alert.confidence * 100)
+                    const confTier = aiConfidenceTier(detail.alert.confidence)
+                    const confTierLabel =
+                      confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
+                    return (
+                      // 2026-06-16 (NrQaI de-frame): the provenance facts drop
+                      // their own outer border/radius (the Source section card is
+                      // the frame). A top hairline separates them from the excerpt
+                      // above; the gap-px wash keeps the two cells distinct.
+                      // 2026-06-29 (Yuqi "padding looks incorrect"): full-bleed
+                      // (-mx-5, matching the body inset) so the cell labels line up
+                      // flush under the provenance lines above — the cells' own
+                      // px-5 was double-indenting them past the body padding.
+                      <div className="-mx-5 grid grid-cols-2 gap-px overflow-hidden border-t border-divider-subtle bg-divider-subtle pt-px">
+                        <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
+                          <CapsFieldLabel as="span" variant="group">
+                            <Trans>Captured</Trans>
+                          </CapsFieldLabel>
+                          <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
+                            {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
+                          <CapsFieldLabel as="span" variant="group">
+                            <Trans>Parse confidence</Trans>
+                          </CapsFieldLabel>
+                          <span className="text-sm font-medium text-text-primary tabular-nums">
+                            {t`${confPct}% ${confTierLabel}`}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-                        <CapsFieldLabel as="span" variant="group">
-                          <Trans>Parse confidence</Trans>
-                        </CapsFieldLabel>
-                        <span className="text-sm font-medium text-text-primary tabular-nums">
-                          {t`${confPct}% ${confTierLabel}`}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })()}
-              </DetailSectionCard>
+                    )
+                  })()}
+                </DetailSectionCard>
+              ) : null}
 
               {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes.
                 The "N events · oldest first" meta rides the card header
                 (Yuqi #11) so the timeline body needs no second header. */}
-              <DetailSectionCard
-                id="alert-section-activity"
-                variant="flat"
-                tone="reference"
-                caption={<Trans>everything that has happened</Trans>}
-                className="scroll-mt-16"
-                title={<Trans>Activity</Trans>}
-              >
-                {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
+              {isActivityTab ? (
+                <DetailSectionCard
+                  id="alert-section-activity"
+                  role={useTabs ? 'tabpanel' : undefined}
+                  ariaLabelledby={useTabs ? 'alert-tab-alert-section-activity' : undefined}
+                  variant="flat"
+                  tone="reference"
+                  className="scroll-mt-16"
+                  title={<Trans>Activity</Trans>}
+                >
+                  {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
                   alert's real timestamps (received → matched → reviewed →
                   current) — every node is a fact already on the record. */}
-                <AlertActivityTimeline detail={detail} />
+                  <AlertActivityTimeline detail={detail} />
 
-                {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
+                  {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
                   the alert. Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
-                <AlertTeamNotes alertId={detail.alert.id} />
+                  <AlertTeamNotes alertId={detail.alert.id} />
 
-                {/* Reverse entity→audit path: open this alert's history in the
+                  {/* Reverse entity→audit path: open this alert's history in the
                     firm-wide audit log (full filters + export), scoped via
                     ?entity=<id>. Mirrors rule-detail-drawer.tsx. */}
-                <div className="border-t border-divider-subtle pt-3">
-                  <TextLink
-                    variant="accent"
-                    size="sm"
-                    render={<Link to={`/audit?entity=${encodeURIComponent(detail.alert.id)}`} />}
-                  >
-                    <Trans>View audit trail</Trans>
-                    <ArrowUpRightIcon className="size-3.5" aria-hidden />
-                  </TextLink>
-                </div>
-              </DetailSectionCard>
+                  <div className="border-t border-divider-subtle pt-3">
+                    <TextLink
+                      variant="accent"
+                      size="sm"
+                      render={<Link to={`/audit?entity=${encodeURIComponent(detail.alert.id)}`} />}
+                    >
+                      <Trans>View audit trail</Trans>
+                      <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                    </TextLink>
+                  </div>
+                </DetailSectionCard>
+              ) : null}
             </div>
           ) : null}
 
@@ -2492,14 +2624,7 @@ export function AlertDetailDrawer({
               {/* img-067 — single-line apply-gate diagnostic, directly above the
                   decision button. Explains the gate in one line ("why can't I
                   apply yet") + jumps to the Source section to verify. */}
-              <ApplyGateDiagnostic
-                detail={detail}
-                onReviewSource={() =>
-                  document
-                    .getElementById('alert-section-source')
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-              />
+              <ApplyGateDiagnostic detail={detail} onReviewSource={goToSource} />
               <div className="flex flex-row items-center gap-6">
                 {detail ? (
                   // Critique #7 (standing signals aren't events): the reassurance
@@ -2537,9 +2662,7 @@ export function AlertDetailDrawer({
                       reverifyIncomplete={reverifyIncomplete}
                       isMutating={isMutating}
                       onApply={handleApply}
-                      onMarkReviewed={() =>
-                        markReviewedMutation.mutate({ alertId: detail.alert.id })
-                      }
+                      onMarkReviewed={requestMarkReviewed}
                       onApplyReviewed={() =>
                         applyReviewedMutation.mutate({ alertId: detail.alert.id })
                       }
@@ -2605,6 +2728,54 @@ export function AlertDetailDrawer({
     />
   ) : null
 
+  // Low-confidence "Mark reviewed" gate — a lightweight confirm (no checkbox,
+  // unlike the higher-stakes Apply gate) that interrupts a reflexive rubber-stamp
+  // on a shaky extraction and points at the source. "Review source" flips the
+  // gate off and jumps to the Source section; "Mark reviewed" overrides and fires.
+  const confirmReviewDialog = detail ? (
+    <Dialog open={confirmReviewOpen} onOpenChange={setConfirmReviewOpen}>
+      <DialogContent className="sm:max-w-[460px]">
+        <div className="grid gap-5">
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Verify before marking reviewed</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>
+                The AI parsed this update with low confidence (
+                {Math.round(detail.alert.confidence * 100)}%). Open the source and confirm the parsed
+                fields are right — marking it reviewed logs your decision and moves it to Alert
+                history.
+              </Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setConfirmReviewOpen(false)
+                goToSource()
+              }}
+            >
+              <Trans>Review source</Trans>
+            </Button>
+            <Button
+              type="button"
+              disabled={markReviewedMutation.isPending}
+              onClick={() => {
+                setConfirmReviewOpen(false)
+                markReviewedMutation.mutate({ alertId: detail.alert.id })
+              }}
+            >
+              <Trans>Mark reviewed</Trans>
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  ) : null
+
   // Panel mode — inline page-column aside. No backdrop, no
   // viewport-fixed positioning, no Sheet/SheetContent wrappers.
   // The h2 inside the body satisfies a11y. The dialogs still
@@ -2649,6 +2820,7 @@ export function AlertDetailDrawer({
         </aside>
         {reviewRequestDialog}
         {applyVerificationDialog}
+        {confirmReviewDialog}
       </>
     )
   }
@@ -2675,6 +2847,7 @@ export function AlertDetailDrawer({
       </SheetContent>
       {reviewRequestDialog}
       {applyVerificationDialog}
+      {confirmReviewDialog}
     </Sheet>
   )
 }
