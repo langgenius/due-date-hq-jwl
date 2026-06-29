@@ -1656,9 +1656,17 @@ export function AlertDetailDrawer({
     const pending = tabSwitchRef.current
     if (!pending) return
     tabSwitchRef.current = null
-    document.getElementById(activeSection)?.scrollIntoView({ block: 'start' })
+    // 2026-06-29 (Yuqi "tab switch jumps"): the realign was an INSTANT
+    // scrollIntoView fired on EVERY tab click — so even at the top it yanked the
+    // hero off-screen with a hard jump. Now: only realign when the hero is
+    // already scrolled away (you're reading tab content and want the new panel
+    // pinned under the sticky nav); at the top, switching tabs just swaps the
+    // content in place. And the scroll is SMOOTH, matching scroll-spy mode.
+    if (heroScrolled) {
+      document.getElementById(activeSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
     if (pending.focus) document.getElementById(`alert-tab-${activeSection}`)?.focus()
-  }, [activeSection])
+  }, [activeSection, heroScrolled])
   // 2026-06-15 critique #12: the 1·2·3 section badges are gone. The flat section
   // cards already RANK by tone (Change = action, big primary header; Source +
   // Activity = reference, quiet secondary header). Numbering them 1·2·3 gave them
@@ -2574,13 +2582,16 @@ export function AlertDetailDrawer({
                     return (
                       // 2026-06-16 (NrQaI de-frame): the provenance facts drop
                       // their own outer border/radius (the Source section card is
-                      // the frame). A top hairline separates them from the excerpt
-                      // above; the gap-px wash keeps the two cells distinct.
+                      // the frame). The top hairline + the gap-px wash between the
+                      // two cells both come from the grid's `bg-divider-subtle`
+                      // showing through a 1px inset (pt-px / gap-px).
                       // 2026-06-29 (Yuqi "padding looks incorrect"): full-bleed
                       // (-mx-5, matching the body inset) so the cell labels line up
-                      // flush under the provenance lines above — the cells' own
-                      // px-5 was double-indenting them past the body padding.
-                      <div className="-mx-5 grid grid-cols-2 gap-px overflow-hidden border-t border-divider-subtle bg-divider-subtle pt-px">
+                      // flush under the provenance lines above. Dropped the `border-t`
+                      // — a border STACKS over the translucent 4% `bg-divider-subtle`
+                      // (~8%, darker than the gap-px lines); `pt-px` reuses the same
+                      // bg-bleed so the top line matches the inner hairline exactly.
+                      <div className="-mx-5 grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle pt-px">
                         <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
                           <CapsFieldLabel as="span" variant="group">
                             <Trans>Captured</Trans>

@@ -370,10 +370,14 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           2026-06-29 (Yuqi "padding looks incorrect"): the grid was double-indented
           — each cell's own px-5 added to the card body's px-5, so the cell labels
           sat 20px to the RIGHT of the "Parsed fields" header above them. Full-bleed
-          the grid (-mx-5, matching the body inset) + a top/bottom hairline so it
-          reads as one contained band, and the cell content (px-5) now lines up
-          flush under the header. */}
-        <div className="-mx-5 grid grid-cols-3 gap-px border-y border-divider-subtle bg-divider-subtle">
+          the grid (-mx-5, matching the body inset) so the cell content (px-5) lines
+          up flush under the header. The top/bottom hairlines come from `py-px`
+          (the bg showing through a 1px inset), NOT a `border-y`: `--divider-subtle`
+          is a translucent 4% ink, and a border STACKS over the grid's own
+          `bg-divider-subtle` → ~8% (visibly darker than the gap-px inner lines).
+          `py-px` uses the same bg-bleed as the inner hairlines, so every line is
+          one uniform shade. */}
+        <div className="-mx-5 grid grid-cols-3 gap-px py-px bg-divider-subtle">
           {cells.map((cell) => (
             // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
             // tertiary label over a 13/medium primary value. The grid's
