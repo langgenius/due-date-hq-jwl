@@ -40,11 +40,11 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
   return (
     <div
       className={cn(
-        'flex items-center gap-3.5 px-[22px] py-4',
+        'flex items-center gap-3.5 px-5 py-4',
         !last && 'border-b border-divider-subtle',
       )}
     >
-      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-base font-semibold text-text-warning">
+      <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-base font-semibold text-text-warning">
         {item.code}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -80,10 +80,6 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
           )}
         </p>
       </div>
-      <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-3.5 py-2 text-base font-semibold text-text-secondary">
-        <Trans>Review</Trans>
-        <ArrowRightIcon className="size-3 text-text-tertiary" aria-hidden />
-      </span>
     </div>
   )
 }
@@ -106,16 +102,17 @@ export function RuleReviewPrompt({
 
   return (
     <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-4">
-      {/* Heading */}
-      <div className="flex shrink-0 flex-col items-center gap-2 text-center">
-        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-text-primary">
+      {/* Heading — left-aligned + text-2xl to match the welcome / practice
+          steps' hero (this step was the funnel's centered, oversized outlier). */}
+      <div className="flex shrink-0 flex-col items-start gap-2 text-left">
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
           <Plural
             value={reviewCount}
             one="# jurisdiction needs a quick review"
             other="# jurisdictions need a quick review"
           />
         </h1>
-        <p className="text-sm font-medium leading-relaxed text-text-tertiary">
+        <p className="text-sm leading-normal text-text-tertiary">
           <Trans>You activated {totalRulesActivated} rules.</Trans>{' '}
           {summarizeJurisdictions ? (
             <Plural
@@ -141,7 +138,7 @@ export function RuleReviewPrompt({
 
       {/* Card */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
-        <div className="flex shrink-0 items-center gap-2.5 border-b border-divider-subtle px-[22px] py-4">
+        <div className="flex shrink-0 items-center gap-2.5 border-b border-divider-subtle px-5 py-4">
           <span className="text-sm font-semibold text-text-primary">
             <Trans>Jurisdictions awaiting calendar review</Trans>
           </span>
@@ -159,7 +156,7 @@ export function RuleReviewPrompt({
           ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 bg-bg-subtle px-[22px] py-3">
+        <div className="flex shrink-0 items-center gap-2 bg-bg-subtle px-5 py-3">
           <InfoIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
           <p className="text-xs font-medium leading-relaxed text-text-tertiary">
             <Trans>You can also skip this and review rules later from the Rule Library.</Trans>

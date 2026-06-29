@@ -265,7 +265,7 @@ export function OnboardingRoute() {
   if (review) {
     return (
       <CenteredAuthScreen>
-        <div className="flex h-full min-h-0 w-full max-w-[720px] flex-col items-center gap-4">
+        <div className="flex h-full min-h-0 w-full max-w-[720px] flex-col gap-4">
           <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
           <RuleReviewPrompt
             totalRulesActivated={review.totalActivated}
