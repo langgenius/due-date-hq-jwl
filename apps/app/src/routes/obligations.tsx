@@ -3714,9 +3714,16 @@ export function ObligationQueueRoute() {
           well up the fold. The shared StatBand stays on /clients · /rules · /alerts. */}
       {!panelOpenIntent ? (
         <div className="flex flex-col gap-2">
-          {/* Editorial one-liner — the week's read (no card chrome). */}
+          {/* Editorial one-liner — the week's read. 2026-06-29 (Yuqi "should be in
+              a long thin banner?"): a thin full-width banner (subtle wash +
+              hairline) instead of naked text, so the dismiss ✕ anchors to the
+              banner's right edge — short reads like "Nothing overdue" no longer
+              leave it floating in dead space. */}
           {!glanceDismissed ? (
-            <section aria-label={t`Deadlines at a glance`} className="flex items-center gap-2.5">
+            <section
+              aria-label={t`Deadlines at a glance`}
+              className="flex items-center gap-2.5 rounded-xl border border-divider-subtle bg-background-section px-3.5 py-2"
+            >
               <span
                 className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
                 aria-hidden
