@@ -236,8 +236,8 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn, formatDate, formatDatePretty } from '@/lib/utils'
 
 // /deadlines is the registry TABLE (row view) only — the signature card view +
-// its toggle were removed 2026-06-24 (Yuqi). DeadlineCardGrid.tsx remains in the
-// tree, unused, so the card view can be restored if wanted.
+// its toggle were removed 2026-06-24 (Yuqi), and the dead `DeadlineCardGrid.tsx`
+// was deleted 2026-06-29. Restore from git history if the card view is wanted.
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {

@@ -613,11 +613,12 @@ export function daysUntilEffectiveInternalDueDate(
   return Math.round(ms / DAY_MS)
 }
 
-// The urgency band a deadline belongs to. The CANONICAL grouping for both the
-// /deadlines table (urgency-grouped rows) and the card grid — one function so
-// the two views can never drift (2026-06-29 audit P1; previously the table and
-// DeadlineCardGrid each had their own copy, which already differed on
-// not_applicable handling + extension-target dates).
+// The urgency band a deadline belongs to. The CANONICAL grouping for the
+// /deadlines table (urgency-grouped rows). Lifted here as the single source of
+// truth in the 2026-06-29 audit (P1) — at the time it was shared with the
+// `DeadlineCardGrid` card view, whose own copy had drifted (it omitted
+// not_applicable + ignored extension-target dates); that dead card grid was
+// deleted 2026-06-29, so the table is now the sole consumer.
 export type UrgencyBand = 'overdue' | 'today' | 'this_week' | 'upcoming' | 'filed'
 export const URGENCY_BAND_ORDER = ['overdue', 'today', 'this_week', 'upcoming', 'filed'] as const
 export function urgencyBandOf(
