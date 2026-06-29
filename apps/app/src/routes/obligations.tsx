@@ -165,7 +165,7 @@ import {
   FLOATING_ACTION_BAR_SCROLL_PADDING,
 } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
-import { type StatBandItem } from '@/components/patterns/stat-band'
+import { StatSummaryStrip, type StatBandItem } from '@/components/patterns/stat-band'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { Kbd } from '@/components/patterns/kbd'
@@ -3748,40 +3748,12 @@ export function ObligationQueueRoute() {
           ) : null}
           {/* Compact portfolio summary strip — the numeric triage + filter
               shortcuts in one line (each segment fires the same scope filter the
-              StatBand cell did). */}
-          {glanceQuery.isLoading || facetsQuery.isLoading ? (
-            <Skeleton className="h-5 w-72 rounded" />
-          ) : (
-            <div
-              aria-label={t`Deadlines portfolio summary`}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-            >
-              {statBandCells.map((cell, index) => (
-                <Fragment key={cell.key}>
-                  {index > 0 ? (
-                    <span aria-hidden className="text-divider-regular">
-                      ·
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={cell.onClick}
-                    aria-label={cell.ariaLabel}
-                    className="group inline-flex cursor-pointer items-baseline gap-1.5 rounded-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  >
-                    <span
-                      className={cn('font-medium tabular-nums text-text-primary', cell.valueClass)}
-                    >
-                      {cell.value}
-                    </span>
-                    <span className="text-text-tertiary transition-colors group-hover:text-text-secondary">
-                      {cell.label}
-                    </span>
-                  </button>
-                </Fragment>
-              ))}
-            </div>
-          )}
+              StatBand cell did). Shared `StatSummaryStrip`. */}
+          <StatSummaryStrip
+            stats={statBandCells}
+            loading={glanceQuery.isLoading || facetsQuery.isLoading}
+            ariaLabel={t`Deadlines portfolio summary`}
+          />
         </div>
       ) : null}
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -296,5 +296,94 @@ export function StatBand({
         </div>
       ) : null}
     </section>
+  )
+}
+
+/**
+ * StatSummaryStrip — the COMPACT one-line form of the same summary, for list
+ * surfaces where the tall band (`border-y py-4` ≈ 80px) wastes vertical space
+ * (2026-06-29, Yuqi "wasteful of space"). Renders the SAME `StatBandItem[]` as a
+ * single line — `12 Overdue · 10 In review · …` — at ~24px, so the table/cards
+ * rise up the fold. Same per-stat interaction contract (`href` → `<Link>`,
+ * `onClick` → `<button>`, neither → static text) and the same `valueClass` tone
+ * budget, so a band and a strip are interchangeable per surface. Use the band
+ * when the summary IS the surface's headline; use the strip when a list/lane view
+ * below already carries the weight.
+ */
+export function StatSummaryStrip({
+  stats,
+  loading,
+  ariaLabel,
+  bumpKey,
+  className,
+}: {
+  stats: StatBandItem[]
+  loading?: boolean
+  ariaLabel?: string
+  /** Same as StatBand: remount the value on change to re-fire the quiet pulse. */
+  bumpKey?: string
+  className?: string
+}) {
+  if (loading) {
+    return <Skeleton className="h-5 w-72 rounded" />
+  }
+  return (
+    <div
+      aria-label={ariaLabel}
+      className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-sm', className)}
+    >
+      {stats.map((stat, index) => {
+        const interactive = Boolean(stat.href || stat.onClick)
+        const body = (
+          <>
+            <span
+              {...(bumpKey != null ? { key: bumpKey } : {})}
+              className={cn(
+                'font-medium tabular-nums text-text-primary',
+                stat.valueClass,
+                bumpKey != null && 'animate-stat-bump motion-reduce:animate-none',
+              )}
+            >
+              {stat.value}
+            </span>
+            <span
+              className={cn(
+                'text-text-tertiary',
+                interactive && 'transition-colors group-hover:text-text-secondary',
+              )}
+            >
+              {stat.label}
+            </span>
+          </>
+        )
+        const interactiveClass =
+          'group inline-flex cursor-pointer items-baseline gap-1.5 rounded-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
+        return (
+          <Fragment key={stat.key}>
+            {index > 0 ? (
+              <span aria-hidden className="text-divider-regular">
+                ·
+              </span>
+            ) : null}
+            {stat.href ? (
+              <Link to={stat.href} aria-label={stat.ariaLabel} className={interactiveClass}>
+                {body}
+              </Link>
+            ) : stat.onClick ? (
+              <button
+                type="button"
+                onClick={stat.onClick}
+                aria-label={stat.ariaLabel}
+                className={interactiveClass}
+              >
+                {body}
+              </button>
+            ) : (
+              <span className="inline-flex items-baseline gap-1.5">{body}</span>
+            )}
+          </Fragment>
+        )
+      })}
+    </div>
   )
 }
