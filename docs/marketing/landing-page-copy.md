@@ -4,6 +4,24 @@ Copy only. Final strings for a concise, **early-access** landing page (7 content
 
 > **Hero is locked:** eyebrow = "Never miss a deadline change · all 50 states", headline = "Catch every tax-deadline change — and see exactly who it affects", promise strip = "Every deadline. Every change. Every client. Handled." Alternates remain under **Hero options** for A/B testing.
 
+> **⚠️ STALE (pre-redesign).** The wording below predates the production-v2 home
+> redesign and no longer matches the live site. The live copy is the source of
+> truth and lives in `apps/marketing/src/components/home/*` (each component holds
+> its own EN/zh strings). The live hero CTA structure (current as of 2026-06-29):
+>
+> - **Headline:** "A deadline just moved. Do you know _who_ it hits?"
+> - **Sub (monitoring wedge):** "DueDateHQ watches the IRS, all 50 states, and FEMA
+>   disaster postponements around the clock — so you don't have to. The moment a
+>   filing date moves, you see which clients it affects and the official notice
+>   behind it."
+> - **Primary CTA (self-serve signup):** "Get 3 months free →" → app `/login`
+> - **Secondary CTA (concierge / done-for-you):** "We'll set it up with your list"
+>   → `getConciergeHref()` (`mailto:` to `CONCIERGE_EMAIL` in `site.ts`)
+> - **Reassurance + tertiary:** "Do it yourself: paste your client list … Or
+>   see how it works →"
+>
+> The Close finale mirrors this: primary "Get 3 months free" + ghost concierge.
+
 ---
 
 # Landing page

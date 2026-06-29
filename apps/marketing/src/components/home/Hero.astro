@@ -9,9 +9,10 @@
 interface Props {
   locale?: 'en' | 'zh-CN'
   ctaHref: string
+  conciergeHref: string
   workflowAnchor?: string
 }
-const { locale = 'en', ctaHref, workflowAnchor = '#how' } = Astro.props
+const { locale = 'en', ctaHref, conciergeHref, workflowAnchor = '#how' } = Astro.props
 const zh = locale === 'zh-CN'
 
 const t = zh
@@ -19,10 +20,10 @@ const t = zh
       headBefore: '截止日刚刚变了。你知道它影响到',
       headItal: '谁',
       headAfter: '吗？',
-      subLead: 'DueDateHQ 全天候监控 IRS、全部 50 个州和 FEMA 灾害延期 ——',
+      subLead: 'DueDateHQ 全天候盯着 IRS、全部 50 个州和 FEMA 灾害延期 —— 你不必盯。',
       subEm: '申报日期一变动，',
       subRest: '你立刻看到它影响到哪些客户，以及背后的官方公告。',
-      subStrong: '粘贴你的客户名单，约 10 分钟后第一条带来源的截止日就会出现。',
+      subStrong: '自己来：粘贴客户名单，约 10 分钟出第一条带来源的截止日。',
       points: [
         { strong: '全天候盯着 IRS、各州和 FEMA', rest: '' },
         { strong: '看清每次变化影响到哪些客户', rest: '' },
@@ -30,6 +31,8 @@ const t = zh
         { strong: '免费用 3 个月 Team 版', rest: '' },
       ],
       ctaStart: '免费领 3 个月',
+      ctaConcierge: '把名单交给我们，帮你设置好',
+      reassureHow: '或',
       ctaHow: '看它如何运作',
       panelAria: '本周示例提醒',
       panelTitleAlerts: '提醒',
@@ -80,11 +83,11 @@ const t = zh
       headBefore: 'A deadline just moved. Do you know',
       headItal: 'who',
       headAfter: 'it hits?',
-      subLead: 'DueDateHQ monitors the IRS, all 50 states, and FEMA disaster postponements around the clock —',
-      subEm: 'the moment a filing date moves,',
+      subLead: 'DueDateHQ watches the IRS, all 50 states, and FEMA disaster postponements around the clock — so you don\'t have to.',
+      subEm: 'The moment a filing date moves,',
       subRest: 'you see which clients it affects and the official notice behind it.',
       subStrong:
-        'Paste your client list and your first sourced deadline shows up in about 10 minutes.',
+        'Do it yourself: paste your client list and your first sourced deadline shows up in about 10 minutes.',
       points: [
         { strong: 'We watch IRS, 50 states & FEMA', rest: '' },
         { strong: 'You see who each change hits', rest: '' },
@@ -92,7 +95,9 @@ const t = zh
         { strong: '3 months of Team, free', rest: '' },
       ],
       ctaStart: 'Get 3 months free',
-      ctaHow: 'See how it works',
+      ctaConcierge: "We'll set it up with your list",
+      reassureHow: 'Or',
+      ctaHow: 'see how it works',
       panelAria: 'Sample alerts for this week',
       panelTitleAlerts: 'Alerts',
       panelTitleWhen: 'this week',
@@ -207,7 +212,7 @@ const alerts = t.alerts
         <a class="m-cta m-cta--primary" href={ctaHref} data-event="marketing.hero.cta">
           {t.ctaStart} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="m-cta m-cta--ghost" href={workflowAnchor}>
+        <a class="m-cta m-cta--ghost" href={conciergeHref} data-event="marketing.hero.concierge">
           <svg
             class="m-cta__ico"
             viewBox="0 0 24 24"
@@ -218,14 +223,19 @@ const alerts = t.alerts
             stroke-linejoin="round"
             aria-hidden="true"
           >
-            <path d="M12 6.5V20" />
-            <path d="M12 6.5S10.4 4.5 7 4.5 3 6 3 6v12.4s1.4-1.4 4-1.4 5 1.5 5 1.5" />
-            <path d="M12 6.5S13.6 4.5 17 4.5 21 6 21 6v12.4s-1.4-1.4-4-1.4-5 1.5-5 1.5" />
+            {/* concierge service bell — the "done for you" path */}
+            <path d="M3 19.5h18" />
+            <path d="M5 19.5a7 7 0 0 1 14 0" />
+            <path d="M12 7.5v-2" />
+            <path d="M10 5.5h4" />
           </svg>
-          {t.ctaHow}
+          {t.ctaConcierge}
         </a>
       </div>
-      <p class="hero__reassure">{t.subStrong}</p>
+      <p class="hero__reassure">
+        {t.subStrong} {t.reassureHow}
+        <a class="hero__howlink" href={workflowAnchor}>{t.ctaHow} <span aria-hidden="true">→</span></a>
+      </p>
     </div>
 
     <!-- signature surface: this week's alerts (live preview · not your data) -->
@@ -394,10 +404,32 @@ const alerts = t.alerts
   }
   .hero__reassure {
     margin-top: 14px;
-    max-width: 46ch;
+    max-width: 50ch;
     font-size: var(--m-text-sm);
     line-height: 1.5;
     color: var(--m-muted);
+  }
+  /* tertiary "see how it works" — a quiet inline link, not a third button */
+  .hero__howlink {
+    color: var(--m-accent);
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .hero__howlink:hover {
+    text-decoration: underline;
+  }
+  .hero__howlink span {
+    display: inline-block;
+    transition: transform var(--m-dur-fast) ease;
+  }
+  .hero__howlink:hover span {
+    transform: translateX(2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__howlink span {
+      transition: none;
+    }
   }
   /* demoted to a quiet proof strip beneath the CTA — smaller, set off by a
      hairline so it reads as supporting evidence, not a competing list */
