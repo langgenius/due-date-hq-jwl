@@ -18,6 +18,7 @@ import {
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
 import { getJurisdictionName, JurisdictionChip } from '@/components/primitives/state-badge'
@@ -499,7 +500,7 @@ function HistoryRow({
       <TableCell className="overflow-hidden">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="truncate text-base font-semibold text-text-primary" title={alert.title}>
-            {alert.title}
+            {dedupeTitleSource(alert.title, alert.source)}
           </span>
           <span className="flex min-w-0 items-center gap-2 truncate text-xs text-text-tertiary">
             <span className="shrink-0 font-semibold tracking-[0.3px] text-text-tertiary uppercase">

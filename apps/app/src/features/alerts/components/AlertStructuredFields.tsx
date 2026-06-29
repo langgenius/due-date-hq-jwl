@@ -162,11 +162,15 @@ function daysUntil(isoDate: string): number | null {
 export function AlertStructuredFields({ detail, section = 'details' }: AlertStructuredFieldsProps) {
   const { t } = useLingui()
 
+  // Null (not '—') when the alert carries no effective date, so the cell DROPS
+  // instead of rendering a labelled em-dash that says nothing — matching the
+  // "empty values drop their cell" rule the rest of the grid follows (the bare
+  // "EFFECTIVE —" was the one cell that broke it).
   const effectiveValue = detail.effectiveFrom
     ? new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime() <= Date.now()
       ? t`Immediate`
       : formatDatePretty(detail.effectiveFrom, { alwaysShowYear: true })
-    : '—'
+    : null
   const entityValue =
     detail.entityTypes.length > 0 ? detail.entityTypes.join(' · ') : t`All entity types`
   // 2026-06-14 (Yuqi #9 "Auto-applied" was confusing next to a manual Apply
@@ -247,11 +251,15 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
         ]
       : []),
     ...(reliefCell ? [reliefCell] : []),
-    {
-      key: 'effective',
-      label: <Trans>Effective</Trans>,
-      value: effectiveValue,
-    },
+    ...(effectiveValue
+      ? [
+          {
+            key: 'effective',
+            label: <Trans>Effective</Trans>,
+            value: effectiveValue,
+          },
+        ]
+      : []),
     ...(detail.forms.length > 0
       ? [
           {
@@ -329,8 +337,14 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           AI-verify reminder right, sitting tight above the fact grid (Yuqi
           2026-06-15 "the gap between parse fields and the table should be
           smaller"). */}
+        {/* 2026-06-29 (Yuqi "no good text hierarchy"): "Parsed fields" was a
+            14/600 primary header — the SAME weight as the card's "Change" title,
+            so two bold headers stacked and the eye had no single anchor. Demoted
+            to a quiet uppercase eyebrow (the band-title tier) so "Change" is the
+            one bold header and this reads clearly as the grid's subordinate
+            label, paired with the AI-verify note. */}
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-sm font-semibold text-text-primary">
+          <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Parsed fields</Trans>
           </span>
           <span className="text-xs text-text-tertiary">
@@ -352,8 +366,14 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           2026-06-16 (Yuqi "avoid frames-in-frames" — the Change section is now a
           bordered white card): dropped the grid's OWN outer box (was rounded
           border) so it isn't a frame inside a frame. The internal cell hairlines
-          stay (gap-px over the divider-bg); the section card is the only frame. */}
-        <div className="grid grid-cols-3 gap-px bg-divider-subtle">
+          stay (gap-px over the divider-bg); the section card is the only frame.
+          2026-06-29 (Yuqi "padding looks incorrect"): the grid was double-indented
+          — each cell's own px-5 added to the card body's px-5, so the cell labels
+          sat 20px to the RIGHT of the "Parsed fields" header above them. Full-bleed
+          the grid (-mx-5, matching the body inset) + a top/bottom hairline so it
+          reads as one contained band, and the cell content (px-5) now lines up
+          flush under the header. */}
+        <div className="-mx-5 grid grid-cols-3 gap-px border-y border-divider-subtle bg-divider-subtle">
           {cells.map((cell) => (
             // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
             // tertiary label over a 13/medium primary value. The grid's

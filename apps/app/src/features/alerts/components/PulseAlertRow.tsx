@@ -27,6 +27,7 @@ import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ValueDiff } from '@/components/primitives/value-diff'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
+import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 import {
   dueDateDiffTone,
   DUE_DATE_DIFF_TONE_CLASS,
@@ -391,15 +392,14 @@ function PulseAlertRow({
   const actionText = showAction ? deriveActionText(alert.changeKind) : null
   const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
 
-  // 2026-06-16 (Yuqi "dim anything besides the alert title when not selected"):
-  // on rows that AREN'T the open one, everything but the headline recedes — the
-  // metadata cluster (jurisdiction/form/change-kind/source/time), the time rail,
-  // and the KeyChange/action all drop to a quiet tier so the list scans as a
-  // clean column of titles. Hovering a row, or opening it (`active`), lifts its
-  // detail back to full. The title <h3> never recedes.
-  const recede = active
-    ? undefined
-    : 'opacity-60 transition-opacity duration-150 group-hover/row:opacity-100'
+  // 2026-06-29 (Yuqi "lowering opacity is a shortcut, not a proper design fix —
+  // solve the eye-mess / hard-to-read"): the row previously dimmed all non-title
+  // content to opacity-60 at rest (a veil over a backwards hierarchy where the
+  // meta strip sat above the headline). That's retired. Hierarchy now comes from
+  // real contrast — the headline leads by position + weight (semibold/primary),
+  // the meta line is genuinely quiet (small, tertiary/secondary ink) — so the
+  // list reads as a clean, FULLY-LEGIBLE column of titles without any dimming.
+  // The active row still pops via its accent wash + inset left bar (below).
 
   return (
     <article
@@ -422,10 +422,13 @@ function PulseAlertRow({
         // `px-5 py-3` so /alerts rows share the same density as /today
         // table rows. Time rail still owns the left 100px when not
         // compact.
-        // Rows are a FLAT uniform white surface (no zebra striping by
-        // impact): client impact is already carried by the "Affects N
-        // clients" meta + the High-impact pill, so a receding fill would
-        // be redundant signal. Hover/active use the canonical interactive
+        // Rows are transparent over the list's light-gray body
+        // (`bg-background-section`) — no zebra striping by impact: client
+        // impact is already carried by the "Affects N clients" meta + the
+        // High-impact pill, so a receding fill would be redundant signal.
+        // The active row's accent wash + side bar pops against the gray;
+        // the date bands stay one notch darker (`bg-background-subtle`).
+        // Hover/active use the canonical interactive
         // -row motif (accent wash + 2px inset left accent bar — the
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
@@ -434,7 +437,7 @@ function PulseAlertRow({
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
-          : 'bg-background-default hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+          : 'bg-transparent hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
     >
       {/* Bulk-select checkbox (Pencil g5kKJQ `gT3zO chk`, 18px).
@@ -473,7 +476,7 @@ function PulseAlertRow({
           relocates to the head-row right cluster. */}
       {!compact ? (
         showRailDate ? (
-          <div className={cn('flex w-[90px] shrink-0 flex-col gap-1', recede)}>
+          <div className="flex w-[90px] shrink-0 flex-col gap-1">
             {/* The third rail line (railRelative) is dropped — hovering
                 the date surfaces "N days ago" instead, so the rail is just
                 date + wall-clock at rest. */}
@@ -505,55 +508,164 @@ function PulseAlertRow({
           the head row, subject, KeyChange, and bottom row so the four
           blocks read as distinct. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
-            level → state → form → change-kind (text) · sources →
-            spacer → source link → why. */}
-        <div className={cn('flex min-w-0 items-center gap-2', recede)}>
-          {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
-              tab is not reasonable or logical"): the ACTIVE badge is GONE
-              from queue rows — the Review/Active tab already states which
-              queue you're in, so the per-row pill was pure redundancy.
-              The queues differ structurally instead: Active rows carry the
-              date-diff KeyChange + affected clients; Review rows read
-              "No client impact". (ActiveQueueChip still marks the DETAIL
-              header + history, where queues mix.) */}
-          {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
-              when the alert is in the priority queue. */}
+        {/* Title row (line 1) — the HEADLINE LEADS the row as the single scan
+            anchor, with the when / how-long-left / why cluster pinned right.
+            2026-06-29 (Yuqi "lowering opacity is a shortcut, not proper design —
+            solve the eye-mess / hard-to-read"): the meta strip used to sit ABOVE
+            the title, so the eye hit a run of equal-weight chips before the
+            headline and the list never scanned as a clean column of titles. The
+            old blanket opacity-60 recede was masking that backwards hierarchy.
+            Now the headline leads by POSITION + WEIGHT (semibold, primary ink) and
+            the identity meta is demoted to the quiet line below — real contrast
+            does the hierarchy, no dimming. */}
+        <div className="flex min-w-0 items-start gap-2">
+          {/* `text-base` (16px) + semibold + primary ink — the one big ink jump
+              per row, so the eye lands on a column of headlines. Capped at 72ch
+              (readable measure) and clamped to 2 lines so long titles wrap to a
+              distinct silhouette instead of running the full row width. */}
+          <h3
+            className="line-clamp-2 min-w-0 max-w-[72ch] text-base font-semibold text-text-primary"
+            title={alert.title}
+          >
+            {dedupeTitleSource(alert.title, alert.source)}
+          </h3>
+
+          {/* Spacer pins the when/why cluster to the row's right edge. */}
+          <span className="flex-1" aria-hidden />
+
+          {/* Right cluster — when it arrived · how long is left · why. Kept on
+              line one beside the headline (the triage "when/urgency" axis), and
+              top-aligned to the title's first line via the parent items-start. */}
+          <div className="flex shrink-0 items-center gap-2">
+            {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
+                "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
+                row's only red, this tag just says how long is left. Hidden for
+                far-out / no-deadline alerts (proximityTimeTag → null). */}
+            {timeTag ? (
+              <span className="font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
+                {timeTag}
+              </span>
+            ) : null}
+
+            {/* Wall-clock + unread dot — on day-grouped lists the band owns the
+                date, so the "when it arrived" + unread cue live here. Only when
+                there's no date rail (day-grouped) and not compact; the dot
+                reserves its slot when read so the times stay aligned across rows. */}
+            {!compact && !showRailDate ? (
+              <span className="flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    // Unseen marker → bright highlight tier (--color-brand-highlight).
+                    unread ? 'bg-brand-highlight' : 'bg-transparent',
+                  )}
+                  aria-hidden
+                />
+                <Tooltip>
+                  <TooltipTrigger
+                    render={(props) => (
+                      <span
+                        className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
+                        {...props}
+                      >
+                        {absoluteTime}
+                      </span>
+                    )}
+                  />
+                  <TooltipContent>
+                    {railDate} · {railRelative}
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+            ) : null}
+
+            {/* COMPACT-MODE inline time — only rendered when the time rail is
+                hidden (detail panel open). Quiet relative timestamp ("2h ago" /
+                "Jun 4") with the exact HH:mm on tooltip hover. */}
+            {compact ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={(props) => (
+                    <span
+                      className="cursor-help whitespace-nowrap text-sm font-medium text-text-tertiary tabular-nums outline-none"
+                      {...props}
+                    >
+                      {relativeTime}
+                    </span>
+                  )}
+                />
+                <TooltipContent>{absoluteTime}</TooltipContent>
+              </Tooltip>
+            ) : null}
+
+            {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands the
+                smart-priority reason inset below. Only when the alert carries
+                priority-queue reasons. */}
+            {showPriority ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setWhyOpen((open) => !open)
+                }}
+                aria-expanded={whyOpen}
+                className={cn(
+                  'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-xs font-medium text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                  // Pencil `X6enpJ`: expanded = accent fill + accent border;
+                  // collapsed = transparent with a hairline border that tints to
+                  // the accent wash on hover.
+                  whyOpen
+                    ? 'border-state-accent-border bg-state-accent-hover'
+                    : 'border-divider-subtle bg-transparent hover:bg-state-accent-hover',
+                )}
+              >
+                <Trans>Why?</Trans>
+                {whyOpen ? (
+                  <ChevronUpIcon className="size-3" aria-hidden />
+                ) : (
+                  <ChevronDownIcon className="size-3" aria-hidden />
+                )}
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Meta row (line 2) — the quiet IDENTITY line beneath the headline:
+            priority tier · jurisdiction · form · change-kind · confidence ·
+            source. Small + tertiary/secondary ink so it reads as calm support
+            under the bold title, no longer a strip of equal-weight chips above
+            it competing for first read. Color is reserved for genuine signals
+            (the urgency tier pill, the low-confidence flag); the rest stay
+            neutral. Pill order: level → state → form → change-kind → confidence
+            → source. */}
+        <div className="flex min-w-0 items-center gap-2">
+          {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only when the
+              alert is in the priority queue. */}
           {levelPill ? (
             <SeverityChip level={levelPill.level}>{levelPill.label}</SeverityChip>
           ) : null}
 
           {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
-              gray chip, NOT red (2026-06-15 critique #4): red is reserved for the
-              single URGENT priority pill, so a row never wears two reds (urgency
-              + reach reading as one alarm). Client reach is carried by weight + a
-              quiet chip; it sits on a different axis from the urgency tier, so it
-              must look different from it too.
-              Dropped on the narrow map rail (2026-06-23): the affects-N-clients
-              meta on line two carries reach there without crowding line one. */}
+              gray chip, NOT red: red is reserved for the single URGENT priority
+              pill, so a row never wears two reds. Dropped on the narrow map rail
+              — the affects-N-clients meta carries reach there. */}
           {highImpact && !narrow ? (
             <SeverityChip level="neutral">
               <Trans>High impact</Trans>
             </SeverityChip>
           ) : null}
 
-          {/* STATE — shared JurisdictionChip primitive (outline reference
-              tag, no circular StateBadge seal). Kept on the narrow rail: the
-              two-letter jurisdiction is the cheapest triage anchor (and the
-              map rail is filtered BY state, so it confirms the active tile). */}
+          {/* STATE — shared JurisdictionChip primitive. The two-letter
+              jurisdiction is the cheapest triage anchor; kept on every variant. */}
           <JurisdictionChip code={alert.jurisdiction} />
 
-          {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
-              code chip), stock chrome so the form badge reads identically
-              on every surface (per the pulse-alert-chrome contract: no
-              className override on /alerts). Dropped on the narrow map rail —
-              the form code lives in the detail drawer's structured fields. */}
+          {/* FORM PILL — shared TaxCodeBadge primitive (stock chrome per the
+              pulse-alert-chrome contract: no className override on /alerts).
+              Dropped on the narrow map rail. */}
           {formLabel && !narrow ? <TaxCodeBadge code={formLabel} /> : null}
 
-          {/* CHANGE KIND — icon + sentence-case medium secondary, matching
-              the detail hero exactly (2026-06-14). One treatment across
-              list + rail + detail. Dropped on the narrow map rail — the kind
-              reads in the detail hero; the title already carries the gist. */}
+          {/* CHANGE KIND — icon + sentence-case medium secondary, matching the
+              detail hero. Dropped on the narrow map rail. */}
           {!narrow ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
               <ChangeKindIcon changeKind={alert.changeKind} />
@@ -561,160 +673,25 @@ function PulseAlertRow({
             </span>
           ) : null}
 
-          {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
-              ONLY when the extraction is shaky: "Low confidence" (medium tier)
-              / "Very low confidence" (low tier). High confidence shows nothing
-              — the absence is the all-clear. Amber-family (never red — the row's
-              one red stays on the urgent deadline). Replaces the always-on
-              "N% confidence" meter that used to sit in the bottom meta. Dropped
-              on the narrow map rail — the detail Source card still states the
-              exact confidence tier. */}
+          {/* CONFIDENCE FLAG (Pencil aUZTy) — categorical warning shown ONLY when
+              the extraction is shaky. Amber-family (never red). Dropped on the
+              narrow map rail — the detail Source card states the exact tier. */}
           {showLowConfidence && !narrow ? <LowConfidenceBadge /> : null}
 
-          {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
-              #6). Pinned to the far right it left a wide dead gap between the
-              title and "where this came from", a long horizontal eye-sweep on
-              every row. It now reads beside the change-kind — "what kind of
-              change, from where" as one phrase — and shrinks/truncates so it
-              never crowds the right-side time-to-act. Dropped on the narrow map
-              rail — the source link lives on the detail's Source card. */}
+          {/* SOURCE — "what kind of change, from where" reads as one phrase with
+              the change-kind; shrinks/truncates so it never crowds the row.
+              Dropped on the narrow map rail. */}
           {!narrow ? (
             <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
           ) : null}
-
-          {/* Spacer NdGpw (fill_container) */}
-          <span className="flex-1" aria-hidden />
-
-          {/* Wall-clock + unread dot — relocated here from the removed left
-              wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
-              content stays flush-left with the date band while the "when it
-              arrived" + unread cue keep a home. Only when there's no date rail
-              (day-grouped) and not compact; the dot reserves its slot when read
-              so the times stay aligned across rows. */}
-          {!compact && !showRailDate ? (
-            <span className="flex shrink-0 items-center gap-1.5">
-              <span
-                className={cn(
-                  'size-1.5 shrink-0 rounded-full',
-                  // Unseen marker → bright highlight tier (--color-brand-highlight).
-                  unread ? 'bg-brand-highlight' : 'bg-transparent',
-                )}
-                aria-hidden
-              />
-              <Tooltip>
-                <TooltipTrigger
-                  render={(props) => (
-                    <span
-                      className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
-                      {...props}
-                    >
-                      {absoluteTime}
-                    </span>
-                  )}
-                />
-                <TooltipContent>
-                  {railDate} · {railRelative}
-                </TooltipContent>
-              </Tooltip>
-            </span>
-          ) : null}
-
-          {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
-              "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
-              row's only red, this tag just says how long is left. Hidden for
-              far-out / no-deadline alerts (proximityTimeTag → null). */}
-          {timeTag ? (
-            <span className="shrink-0 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
-              {timeTag}
-            </span>
-          ) : null}
-
-          {/* COMPACT-MODE inline time — only rendered when the time rail
-              is hidden. Reads as a quiet relative timestamp ("2h ago" /
-              "Jun 4") with the exact HH:mm on tooltip hover, so the
-              panel-open layout doesn't lose the "when did this drop"
-              signal even though the rail is gone. */}
-          {compact ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <span
-                    className="shrink-0 cursor-help whitespace-nowrap text-sm font-medium text-text-tertiary tabular-nums outline-none"
-                    {...props}
-                  >
-                    {relativeTime}
-                  </span>
-                )}
-              />
-              <TooltipContent>{absoluteTime}</TooltipContent>
-            </Tooltip>
-          ) : null}
-
-          {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
-              the smart-priority reason inset below. Only renders when
-              the alert carries priority-queue reasons. */}
-          {showPriority ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                setWhyOpen((open) => !open)
-              }}
-              aria-expanded={whyOpen}
-              className={cn(
-                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-xs font-medium text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                // Pencil `X6enpJ`: expanded = accent fill + accent
-                // border; collapsed = transparent with a hairline
-                // border that tints to the accent wash on hover.
-                whyOpen
-                  ? 'border-state-accent-border bg-state-accent-hover'
-                  : 'border-divider-subtle bg-transparent hover:bg-state-accent-hover',
-              )}
-            >
-              <Trans>Why?</Trans>
-              {whyOpen ? (
-                <ChevronUpIcon className="size-3" aria-hidden />
-              ) : (
-                <ChevronDownIcon className="size-3" aria-hidden />
-              )}
-            </button>
-          ) : null}
         </div>
-
-        {/* Subject — title only. No 2-line summary dek (it largely
-            restated the title and added noise to every row). The title
-            carries the headline (clamped to 2 lines so long ones aren't
-            cut mid-thought); the full summary lives in the detail
-            drawer. */}
-        <h3
-          // `text-lg` (the 16px token, not a literal) + text-primary —
-          // the title is the row's primary read, so it takes the primary
-          // ink while everything around it recedes (batch 3 #3 polish).
-          // 2026-06-12 (Yuqi "is it because it is too wide — the alerts
-          // are so hard to read?" → attack): titles ran ~140ch at full
-          // row width, double the readable measure, so the eye lost the
-          // line on every return sweep. Capped at 72ch — long titles now
-          // wrap to two lines (distinct row silhouettes), and the freed
-          // right side stays meta-only.
-          // 2026-06-12 (Yuqi "flat hierarchies, nothing strong"): title led with
-          // the 16/600 tier — the one big ink jump per row.
-          // 2026-06-16 (Yuqi "why the titles so big and bold"): dialed back to
-          // 14/500. The headline still leads (it's the largest text block on the
-          // row + heavier than the 12px meta) but no longer shouts, and it now
-          // matches the deadline row weight for list-to-list cohesion. If this
-          // reads flat, the lever is weight (→ semibold), not size.
-          className="line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium text-text-primary"
-          title={alert.title}
-        >
-          {alert.title}
-        </h3>
 
         {/* KeyChange inset hKGFX — transparent (Pencil fill disabled),
             gap 8 vertical. */}
         {showKeyChange ? (
           // No `mt-1` push — the parent main col uses `gap-2`, so each
           // block already has 8px breathing.
-          <div className={cn('flex flex-col gap-2', recede)}>
+          <div className="flex flex-col gap-2">
             {showDateRow ? (
               // Canonical before→after via <ValueDiff> (one home for the pattern).
               // Tone shared with the detail's DeadlineChangeCard via the one
@@ -744,13 +721,21 @@ function PulseAlertRow({
             {actionText ? (
               <div className="flex">
                 {/* Suggested action (Pencil aUZTy) — the do-this affordance.
-                    2026-06-15 critique #5: dropped the filled accent pill. When
-                    EVERY row wore a filled blue pill the accent stopped meaning
-                    "act here" — a wall of blue. It now reads as quiet accent text
-                    + wand: still scannable as the next step, weightless enough
-                    that a genuinely accented control (the detail CTA) keeps its
-                    meaning. */}
-                <span className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-text-accent">
+                    2026-06-15 critique #5 dropped the filled accent pill (a wall
+                    of blue). 2026-06-29: even as accent TEXT it was still the most
+                    saturated thing on every row, repeated down the whole list — so
+                    the suggestion competed with the headline. Now it rests in a
+                    quiet SECONDARY tone (still scannable as the next step) and only
+                    goes accent when the row is engaged (hover / open), where "act
+                    here" actually means something. */}
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1.5 self-start text-sm font-medium transition-colors',
+                    active
+                      ? 'text-text-accent'
+                      : 'text-text-secondary group-hover/row:text-text-accent',
+                  )}
+                >
                   <SparklesIcon className="size-3 shrink-0" aria-hidden />
                   {actionText}
                 </span>
@@ -907,7 +892,14 @@ function formatDayHeader(
   dayKey: string,
   timeZone: string,
 ): {
+  /** Absolute date — "May 20, 2026". Always computed; the section's precise
+   *  anchor, kept on the band's `title` hover when the visible label is
+   *  humanized. */
   label: string
+  /** `today` / `yesterday` when the group is the firm-local current or prior
+   *  day, else null — lets the band swap the precise date for a humanized word
+   *  at the top of the list, where fresh alerts land. */
+  relative: 'today' | 'yesterday' | null
 } {
   // 2026-06-15 (Yuqi — Pencil aUZTy "clean up the date header"): the band is a
   // single quiet date eyebrow — "May 20, 2026", uppercased via CSS — with no
@@ -920,7 +912,17 @@ function formatDayHeader(
     year: 'numeric',
     timeZone,
   }).format(date)
-  return { label }
+  // 2026-06-29: humanize the two freshest groups. The rows' relative time moved
+  // to a hover tooltip, so the band is now the list's only at-rest recency cue —
+  // and "Today" / "Yesterday" read faster than an absolute date for the
+  // is-this-fresh triage. Older groups keep the precise date (CPAs anchor on
+  // exact dates); the precise date stays one hover away on the humanized ones.
+  // Keys are firm-local (same `startOfFirmDay` basis as the group keys), so the
+  // day boundary matches the band the alert sorts under.
+  const todayKey = startOfFirmDay(new Date().toISOString(), timeZone)
+  const yesterdayKey = startOfFirmDay(new Date(Date.now() - 86_400_000).toISOString(), timeZone)
+  const relative = dayKey === todayKey ? 'today' : dayKey === yesterdayKey ? 'yesterday' : null
+  return { label, relative }
 }
 
 function PulseAlertList({
@@ -1077,7 +1079,7 @@ function PulseAlertList({
     // to fit and the clip swallows the rest, so nothing scrolls.
     <div
       className={cn(
-        'flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-default',
+        'flex shrink-0 flex-col overflow-clip rounded-xl border border-divider-regular bg-background-section',
         className,
       )}
     >
@@ -1093,7 +1095,11 @@ function PulseAlertList({
         <AnimatePresence initial={false}>{alerts.map(renderRow)}</AnimatePresence>
       ) : (
         Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
-          const { label } = formatDayHeader(dayKey, firmTimezone)
+          const { label, relative } = formatDayHeader(dayKey, firmTimezone)
+          // Humanized word for the two freshest groups; the precise date stays
+          // on the band's `title` hover so nothing is lost.
+          const displayLabel =
+            relative === 'today' ? t`Today` : relative === 'yesterday' ? t`Yesterday` : label
 
           return (
             <div key={dayKey} className="flex flex-col">
@@ -1129,8 +1135,13 @@ function PulseAlertList({
                     className="size-4 rounded"
                   />
                 ) : null}
-                <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
-                  {label}
+                <span
+                  className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums"
+                  // Humanized bands ("Today"/"Yesterday") keep the precise date
+                  // on hover; absolute bands already show it, so no title needed.
+                  {...(relative ? { title: label } : {})}
+                >
+                  {displayLabel}
                 </span>
               </div>
 

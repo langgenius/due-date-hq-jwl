@@ -8,6 +8,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
+import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 
 import {
   ListRail,
@@ -357,12 +358,29 @@ function RailItem({
         </span>
       </div>
 
-      {/* Content — head meta row + 2-line title + bottom meta row, the
-          same field set the main /alerts row carries, wrapped to the
-          narrower rail width. */}
+      {/* Content — title-led, mirroring the main /alerts row (2026-06-29): the
+          HEADLINE leads as the scan anchor, the identity chips demote to the
+          quiet line below it. Keeping this parity means opening an alert doesn't
+          reshuffle the list layout — the row you clicked keeps its shape in the
+          rail. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        {/* Badge row dims on unselected items so the selected alert's chips
-            carry the colour (Yuqi 2026-06-15); hover restores. */}
+        {/* Title leads — semibold anchor, AA-readable on both states
+            (text-primary when active, text-secondary otherwise; never the faint
+            tertiary that read as disabled). The 2px left accent on the active row
+            carries the selected distinction. */}
+        <span
+          className={cn(
+            'line-clamp-2 text-base font-semibold leading-snug',
+            active ? 'text-text-primary' : 'text-text-secondary',
+          )}
+          title={alert.title}
+        >
+          {dedupeTitleSource(alert.title, alert.source)}
+        </span>
+
+        {/* Identity meta row (demoted beneath the headline) — dims on unselected
+            items so the selected alert's chips carry the colour (Yuqi
+            2026-06-15); hover restores. */}
         <div
           className={cn(
             'flex min-w-0 flex-wrap items-center gap-1.5 transition-opacity',
@@ -398,18 +416,6 @@ function RailItem({
               High confidence shows nothing. */}
           {showLowConfidence ? <LowConfidenceBadge /> : null}
         </div>
-        {/* Title is AA-readable on both states — text-primary when active,
-            text-secondary otherwise (never the faint tertiary that read as
-            disabled). The 2px left accent on the active row carries the
-            selected distinction. */}
-        <span
-          className={cn(
-            'line-clamp-2 text-base font-medium leading-snug',
-            active ? 'text-text-primary' : 'text-text-secondary',
-          )}
-        >
-          {alert.title}
-        </span>
 
         {/* Source — the shared `AlertSourceLink` (row-safe `stopPropagation`,
             trailing ↗ only when a sourceUrl exists; never a dead
