@@ -470,7 +470,12 @@ export function DashboardRoute() {
         // cards (Yuqi create-choice-card refs) — Import clients / Add a client /
         // Add a deadline — so the get-started moment is a richer chooser, every
         // card wired to its real action. Gated to the same showFirstRun signal.
-        <div className="flex flex-1 flex-col gap-6 pt-2">
+        // Heading + cards share ONE capped column (max-w-5xl) so they align to
+        // the same edge and read as a single grounded block — instead of a
+        // narrow heading with full-bleed cards sprawling across the wide page
+        // (which floated free of their own title). The cap also holds the three
+        // cards at a comfortable ~330px each, not stretched-thin rectangles.
+        <div className="flex w-full max-w-5xl flex-1 flex-col gap-6 pt-2">
           <div className="flex flex-col gap-1.5">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1 text-column-label font-semibold tracking-wide text-text-secondary">
               <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
