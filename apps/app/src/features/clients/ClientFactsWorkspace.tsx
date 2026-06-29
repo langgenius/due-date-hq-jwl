@@ -1,4 +1,4 @@
-import { Fragment, type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
@@ -42,7 +42,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { SortableHeader } from '@/components/patterns/sortable-header'
-import { type StatBandItem } from '@/components/patterns/stat-band'
+import { StatSummaryStrip, type StatBandItem } from '@/components/patterns/stat-band'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -1890,36 +1890,11 @@ function ClientsKpiStrip({
   ]
 
   // 2026-06-29 (Yuqi "wasteful of space", carried over from /deadlines): a slim
-  // one-line summary instead of the tall shared StatBand (border-y py-7 ≈ 110px).
-  // These cells are display-only (no filter onClick), so the strip is plain text
-  // segments. The jurisdiction count already rides the page eyebrow ("N clients ·
-  // M jurisdictions"), so the sub-labels are dropped here. The shared StatBand
-  // stays on /sources · /rules · /alerts-history.
-  if (isLoading) {
-    return <Skeleton className="h-5 w-72 rounded" />
-  }
-  return (
-    <div
-      aria-label={t`Clients summary`}
-      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-    >
-      {stats.map((cell, index) => (
-        <Fragment key={cell.key}>
-          {index > 0 ? (
-            <span aria-hidden className="text-divider-regular">
-              ·
-            </span>
-          ) : null}
-          <span className="inline-flex items-baseline gap-1.5">
-            <span className={cn('font-medium tabular-nums text-text-primary', cell.valueClass)}>
-              {cell.value}
-            </span>
-            <span className="text-text-tertiary">{cell.label}</span>
-          </span>
-        </Fragment>
-      ))}
-    </div>
-  )
+  // one-line summary instead of the tall shared StatBand (border-y py-4 ≈ 80px),
+  // via the shared `StatSummaryStrip`. These cells are display-only (no filter
+  // onClick). The jurisdiction count already rides the page eyebrow ("N clients ·
+  // M jurisdictions"), so the sub-labels are dropped here.
+  return <StatSummaryStrip stats={stats} loading={isLoading} ariaLabel={t`Clients summary`} />
 }
 
 /**
