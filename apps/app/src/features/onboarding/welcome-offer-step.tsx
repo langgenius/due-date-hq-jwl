@@ -71,7 +71,7 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
   }
 
   return (
-    <div className="flex w-full max-w-[760px] flex-col gap-4">
+    <div className="flex w-full max-w-[720px] flex-col gap-4">
       {/* Offer hero — step eyebrow, the campaign promise, then what's included. */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">

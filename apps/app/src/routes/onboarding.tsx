@@ -283,7 +283,10 @@ export function OnboardingRoute() {
 
   return (
     <CenteredAuthScreen>
-      <div className="flex w-full max-w-[560px] flex-col gap-6">
+      {/* Shared onboarding step width — keep in sync with the welcome step
+          (welcome-offer-step.tsx) and the rule-review step below so the card
+          doesn't resize as the user advances through the funnel. */}
+      <div className="flex w-full max-w-[720px] flex-col gap-6">
         {/* Hero — step 2 eyebrow, title, and value line live at page level above
             the form card, so the primary anchor is the first thing read (and is
             always reachable now that the shell scroll-centers). */}
@@ -305,11 +308,11 @@ export function OnboardingRoute() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-8 lg:px-10 lg:py-10"
+          className="flex w-full flex-col gap-6 rounded-xl border border-divider-subtle bg-background-default px-6 py-6 lg:px-8 lg:py-6"
         >
           {/* Fields — rows stagger in top-down on mount. */}
           <motion.div
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-4"
             initial="hidden"
             animate="show"
             variants={FIELD_COLUMN_VARIANTS}
@@ -344,7 +347,7 @@ export function OnboardingRoute() {
             <motion.div
               variants={FIELD_ROW_VARIANTS}
               transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-              className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2"
             >
               <Field>
                 <FieldHeaderRow

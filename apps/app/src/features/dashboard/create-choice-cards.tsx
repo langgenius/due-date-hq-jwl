@@ -91,6 +91,7 @@ function ChoiceCard({
   title,
   description,
   cta,
+  primary = false,
   disabled,
   disabledHint,
   onAction,
@@ -100,6 +101,9 @@ function ChoiceCard({
   title: ReactNode
   description: ReactNode
   cta: ReactNode
+  /** The recommended path — its CTA is a filled primary button, the rest stay
+   *  outline, so the eye lands on the highest-value first action. */
+  primary?: boolean
   disabled: boolean
   disabledHint: ReactNode
   onAction: () => void
@@ -109,7 +113,7 @@ function ChoiceCard({
     // hover state nudges the border + background a touch so the whole card
     // reads as one big affordance. The primary Button inside owns the click;
     // the card hover is just a visual "this is pickable" cue.
-    <div className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-divider-regular bg-background-default p-5 transition-colors hover:border-divider-deep hover:bg-background-section/40">
+    <div className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-divider-regular bg-background-default p-5 transition-colors hover:border-divider-deep hover:bg-background-section/40">
       {/* Faint grid motif top-right — a quiet illustration cue (the choice-card
           reference's textured corner), purely decorative and behind content. */}
       <div
@@ -122,19 +126,20 @@ function ChoiceCard({
         }}
       />
 
-      <DuotoneIcon icon={icon} tone={tone} size="lg" className="relative" />
+      <DuotoneIcon icon={icon} tone={tone} size="md" className="relative" />
 
-      <div className="relative flex min-h-[3.75rem] flex-col gap-1">
+      <div className="relative flex flex-col gap-1">
         <h3 className="text-base font-semibold text-text-primary">{title}</h3>
-        {/* Two-line description (line-clamp-2 keeps the three cards' button rows
-            aligned even if one description runs long). */}
+        {/* Two-line description (line-clamp-2). The card stretches to the grid
+            row height and the button sits at the bottom via `mt-auto`, so rows
+            stay aligned without forcing a min-height that padded the cards. */}
         <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary">{description}</p>
       </div>
 
       <div className="relative mt-auto flex flex-col gap-1.5">
         <Button
           type="button"
-          variant="outline"
+          variant={primary ? 'primary' : 'outline'}
           size="sm"
           className="w-full justify-center [&_svg[data-icon=inline-end]]:transition-transform group-hover:[&_svg[data-icon=inline-end]]:translate-x-0.5"
           disabled={disabled}
@@ -204,12 +209,10 @@ export function CreateChoiceCards({ className }: { className?: string }) {
           <ChoiceCard
             icon={UploadIcon}
             tone="brand"
+            primary
             title={<Trans>Import clients</Trans>}
             description={
-              <Trans>
-                Bring your whole book from TaxDome, Karbon, Drake, QuickBooks and more — every
-                deadline shows up on its own.
-              </Trans>
+              <Trans>From TaxDome, Karbon, Drake and more — every deadline appears on its own.</Trans>
             }
             cta={<Trans>Import clients</Trans>}
             disabled={!canRunMigration}
@@ -227,10 +230,7 @@ export function CreateChoiceCards({ className }: { className?: string }) {
             tone="accent"
             title={<Trans>Add a client</Trans>}
             description={
-              <Trans>
-                Create one client by hand — name, entity type, and jurisdiction. Good for trying it
-                out with a single account.
-              </Trans>
+              <Trans>One client by hand — name, entity type, jurisdiction. Good for a quick try.</Trans>
             }
             cta={<Trans>Add a client</Trans>}
             disabled={!canCreateClient}
@@ -248,10 +248,7 @@ export function CreateChoiceCards({ className }: { className?: string }) {
             tone="success"
             title={<Trans>Add a deadline</Trans>}
             description={
-              <Trans>
-                Add a single rule-backed deadline for a client. DueDateHQ calculates the due date
-                from the rule library.
-              </Trans>
+              <Trans>One rule-backed deadline for a client — DueDateHQ calculates the date for you.</Trans>
             }
             cta={<Trans>Add a deadline</Trans>}
             disabled={!canCreateDeadline}
