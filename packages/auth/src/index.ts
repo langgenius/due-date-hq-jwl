@@ -164,7 +164,14 @@ function isString(value: string | undefined): value is string {
 }
 
 function trustedOrigins(env: AuthEnv): string[] {
-  return Array.from(new Set([toOrigin(env.AUTH_URL), toOrigin(env.APP_URL)].filter(isString)))
+  const origins = [toOrigin(env.AUTH_URL), toOrigin(env.APP_URL)].filter(isString)
+  // Local dev runs the app on many localhost ports (launch.json cycles
+  // 5173/5177/5188/5193/5199/…), so a fixed APP_URL can't cover the port a
+  // given session happens to be on — origin-guarded POSTs like /sign-out then
+  // 403 on the "wrong" port. Trust any localhost origin in development only;
+  // staging/production stay pinned to AUTH_URL + APP_URL.
+  if (env.ENV === 'development') origins.push('http://localhost:*')
+  return Array.from(new Set(origins))
 }
 
 export function isStripeConfigured(env: AuthEnv): env is AuthEnv & {
