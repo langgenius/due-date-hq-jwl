@@ -32,7 +32,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
-import { StatBand } from '@/components/patterns/stat-band'
+import { StatBand, StatSummaryStrip } from '@/components/patterns/stat-band'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -149,7 +149,7 @@ export function WorkloadPage() {
           the same as /clients, /rules, /sources, /audit. Values stay neutral;
           chromatic intent (only when non-zero — red economy) moves to the sub
           caption, matching the /clients "AT RISK · need attention" grammar. */}
-      <StatBand
+      <StatSummaryStrip
         ariaLabel={t`Team workload summary`}
         loading={workloadQuery.isLoading}
         stats={[
@@ -159,9 +159,8 @@ export function WorkloadPage() {
             key: 'overdue',
             label: t`Overdue`,
             value: data?.summary.overdue ?? 0,
-            ...(data?.summary.overdue
-              ? { sub: t`Needs attention`, subClass: 'text-text-destructive' }
-              : {}),
+            // Tone moves from the (dropped) sub onto the value for the strip.
+            ...(data?.summary.overdue ? { valueClass: 'text-text-destructive' } : {}),
           },
           { key: 'waiting', label: t`Waiting`, value: data?.summary.waiting ?? 0 },
           { key: 'review', label: t`Review`, value: data?.summary.review ?? 0 },
@@ -169,9 +168,7 @@ export function WorkloadPage() {
             key: 'unassigned',
             label: t`Unassigned`,
             value: data?.summary.unassigned ?? 0,
-            ...(data?.summary.unassigned
-              ? { sub: t`Needs an owner`, subClass: 'text-text-warning' }
-              : {}),
+            ...(data?.summary.unassigned ? { valueClass: 'text-text-warning' } : {}),
           },
         ]}
       />
