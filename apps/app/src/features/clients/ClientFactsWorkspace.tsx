@@ -1889,12 +1889,22 @@ function ClientsKpiStrip({
     },
   ]
 
-  // 2026-06-29 (Yuqi "wasteful of space", carried over from /deadlines): a slim
+  // 2026-06-29 (Yuqi "wasteful of space" → "太零碎", matching /deadlines): a slim
   // one-line summary instead of the tall shared StatBand (border-y py-4 ≈ 80px),
-  // via the shared `StatSummaryStrip`. These cells are display-only (no filter
-  // onClick). The jurisdiction count already rides the page eyebrow ("N clients ·
-  // M jurisdictions"), so the sub-labels are dropped here.
-  return <StatSummaryStrip stats={stats} loading={isLoading} ariaLabel={t`Clients summary`} />
+  // via the shared `StatSummaryStrip`. Cells are display-only (no filter onClick);
+  // the jurisdiction count already rides the page eyebrow ("N clients · M
+  // jurisdictions"). Drop the title-redundant "Total clients" (already the
+  // "Clients · N" pill) + any zero segment → "19 Active deadlines · 8 At risk";
+  // hide entirely when there are no clients (empty / pre-load).
+  const summaryCells = stats.filter(
+    (cell) => cell.key !== 'total' && !(typeof cell.value === 'number' && cell.value === 0),
+  )
+  if (totalClients === 0 || summaryCells.length === 0) {
+    return null
+  }
+  return (
+    <StatSummaryStrip stats={summaryCells} loading={isLoading} ariaLabel={t`Clients summary`} />
+  )
 }
 
 /**

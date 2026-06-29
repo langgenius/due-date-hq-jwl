@@ -22,3 +22,9 @@ the card lanes rise up the fold. The shared `StatBand` is untouched and still us
 ## Verification
 
 Live-verified: strip renders with the amber At-risk count; card lanes rise. `tsgo` clean.
+
+## Update (same day) — less-fragmented trim, matching /deadlines
+
+Yuqi "太零碎": dropped the title-redundant "Total clients" (already the "Clients · N" pill) + any
+zero segment, and hid the strip when there are no clients. Now reads `19 Active deadlines · 8 At
+risk`. Refactored onto the shared `StatSummaryStrip` in the interim.
