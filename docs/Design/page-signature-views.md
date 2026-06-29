@@ -5,10 +5,14 @@ list/table via a one-click `Segmented` toggle (icon-only, persisted per browser)
 The signatures share one DNA so the product reads as one thing, while each page
 stays distinct.
 
-**Default (2026-06-23):** both `/clients` and `/deadlines` default to **cards**
-(the signature urgency-lane view); the registry table is the opt-in toggle on
-each. `readStoredDeadlinesView` returns `'cards'` unless the browser has an
-explicit stored `'table'` choice.
+**Default (2026-06-23):** `/clients` defaults to **cards** (the signature
+urgency-lane view); the registry table is the opt-in toggle.
+
+**⚠ Update (2026-06-24, Yuqi): `/deadlines` is registry-TABLE ONLY** — the
+signature card view + its toggle were removed. `DeadlineCardGrid.tsx` is retained
+in the tree but is **unused** (no import/render), so the card view can be restored
+later. The "shared card + lane DNA" below still describes `/clients`; for
+`/deadlines` only the lane *banding logic* survives (see the audit note).
 
 ## The shared card + lane DNA (Clients, Deadlines)
 
@@ -18,10 +22,12 @@ explicit stored `'table'` choice.
   done items go in a calm trailing lane (Filed / No deadlines), never scattered
   through the urgent lanes.
   - **2026-06-29 (audit P0/P1):** the banding is one shared function —
-    `urgencyBandOf` in `features/obligations/queue/helpers.ts` — used by BOTH the
-    card grid and the `/deadlines` registry table (re-exported from
-    `routes/obligations.tsx`). It routes every terminal-status row (done / paid /
-    completed / not_applicable) to the trailing **Filed** band regardless of date,
+    `urgencyBandOf` in `features/obligations/queue/helpers.ts` (re-exported from
+    `routes/obligations.tsx`). The **live consumer is the `/deadlines` registry
+    table**; `DeadlineCardGrid` also imports it but is currently unused (see the
+    table-only note above), so if the card view is ever restored the two can't
+    drift. It routes every terminal-status row (done / paid / completed /
+    not_applicable) to the trailing **Filed** band regardless of date,
     so a "filed 48d late" return is DONE, not Overdue. Before this the table
     grouped by date only — settled rows polluted Overdue (19 rows, 12 actionable)
     and read as inconsistent against the status-aware urgency stripe. The two
