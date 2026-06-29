@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckIcon } from 'lucide-react'
+import { ArrowRightIcon, CreditCardIcon, GiftIcon, TagIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
@@ -42,9 +42,9 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
   const [pain, setPain] = useState('')
 
   const perks = [
-    t`3 months of Team — our full plan, free`,
-    t`No credit card to start`,
-    t`Real pricing only after the three months`,
+    { Icon: GiftIcon, label: t`3 months of Team, free` },
+    { Icon: CreditCardIcon, label: t`No credit card` },
+    { Icon: TagIcon, label: t`Real pricing after` },
   ]
   const focusOptions = [
     t`Individual tax`,
@@ -71,9 +71,9 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
   }
 
   return (
-    <div className="flex w-full max-w-[560px] flex-col gap-6">
+    <div className="flex w-full max-w-[760px] flex-col gap-4">
       {/* Offer hero — step eyebrow, the campaign promise, then what's included. */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">
           <StepDots step={step} total={total} />
           <div className="flex flex-col gap-2">
@@ -88,20 +88,22 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
             </p>
           </div>
         </div>
-        <ul className="flex flex-col gap-1.5">
-          {perks.map((perk) => (
-            <li key={perk} className="flex items-start gap-2 text-sm text-text-secondary">
-              <CheckIcon className="mt-0.5 size-4 shrink-0 text-state-success-solid" aria-hidden />
-              {perk}
+        {/* Perks on one line — each with its own glyph, so the three reasons
+            read as a quick scannable row rather than a vertical checklist. */}
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          {perks.map(({ Icon, label }) => (
+            <li key={label} className="flex items-center gap-1.5 text-sm text-text-secondary">
+              <Icon className="size-4 shrink-0 text-state-success-solid" aria-hidden />
+              {label}
             </li>
           ))}
         </ul>
       </div>
 
       {/* Questions — same flat card chrome as the practice-setup step. */}
-      <div className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-8 duration-300 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none lg:px-10 lg:py-10">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-text-primary">
+      <div className="flex w-full flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-6 py-6 duration-300 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none lg:px-8 lg:py-6">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-base font-semibold text-text-primary">
             <Trans>Tell us a little about your practice</Trans>
           </h2>
           <p className="text-sm leading-normal text-text-tertiary">
@@ -109,7 +111,7 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           </p>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {/* Focus — single select */}
           <div className="flex flex-col gap-2.5">
             <p className="text-sm font-medium leading-none text-text-primary">
@@ -169,14 +171,14 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
               id="welcome-pain"
               value={pain}
               onChange={(event) => setPain(event.target.value)}
-              rows={3}
+              rows={2}
               placeholder={t`e.g. refreshing fifty state sites by hand, or finding out a date moved when a client asks…`}
             />
           </div>
         </div>
 
         {/* Claim → continue into practice setup. The quiet skip forgoes the offer. */}
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-2.5">
           <Button
             type="button"
             size="lg"

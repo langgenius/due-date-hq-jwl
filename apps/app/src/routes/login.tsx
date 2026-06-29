@@ -9,7 +9,6 @@ import {
   CalendarDaysIcon,
   ClipboardListIcon,
   CornerDownLeftIcon,
-  GlobeIcon,
   InfoIcon,
   Loader2Icon,
   LockIcon,
@@ -28,7 +27,7 @@ import {
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
-import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
+import { AuthBrandAnchor, AuthFooter } from '@/features/auth/auth-chrome'
 import {
   GoogleGlyph as GoogleIcon,
   MicrosoftGlyph as MicrosoftIcon,
@@ -196,8 +195,8 @@ export function LoginRoute() {
           className="flex w-full flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:w-[46%] lg:shrink-0 lg:px-16"
         >
           <div className="flex w-full max-w-[360px] flex-col gap-6">
-            {/* Left-aligned brand lockup + heading */}
-            <div className="flex flex-col items-start gap-4 text-left">
+            {/* Centered brand lockup + heading */}
+            <div className="flex flex-col items-center gap-4 text-center">
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
@@ -272,7 +271,8 @@ export function LoginRoute() {
               </div>
             </div>
 
-            {/* Reassurance + magic-link recovery — one quiet centered line each. */}
+            {/* Reassurance + magic-link recovery — centered on the column axis,
+                matching the centered hero above and the residency line below. */}
             <div className="flex flex-col items-center gap-2.5 text-center">
               <p className="flex items-center justify-center gap-1.5">
                 <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
@@ -307,7 +307,7 @@ export function LoginRoute() {
         <ProductStory />
       </div>
 
-      <LoginFooter />
+      <AuthFooter />
     </div>
   )
 }
@@ -500,40 +500,6 @@ function ProductStory() {
   )
 }
 
-function LoginFooter() {
-  return (
-    <footer className="flex flex-col gap-3 border-t border-divider-subtle bg-background-default px-6 py-3.5 text-xs font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <span>© {new Date().getFullYear()} DueDateHQ</span>
-        {[
-          { label: 'Terms', href: '/terms' },
-          { label: 'Privacy', href: '/privacy' },
-          { label: 'Security', href: '/security' },
-        ].map((item) => (
-          <span key={item.label} className="flex items-center gap-2.5">
-            <span aria-hidden className="text-text-muted">
-              ·
-            </span>
-            <a
-              href={item.href}
-              className="transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              {item.label}
-            </a>
-          </span>
-        ))}
-      </div>
-      <span className="hidden flex-1 sm:block" />
-      <div className="flex items-center gap-3.5">
-        <span className="font-mono text-caption-xs text-text-tertiary">v2.18.4</span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
-          <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
-          <span className="text-text-secondary">US East</span>
-        </span>
-      </div>
-    </footer>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Inline email-OTP form — login-specific styling that matches pW6pK (label
@@ -773,7 +739,7 @@ function LoginEmailForm({
   return (
     <form onSubmit={handleSendSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5">
           <label htmlFor="login-email" className="text-xs font-medium text-text-secondary">
             <Trans>Work email</Trans>
           </label>
