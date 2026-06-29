@@ -1512,9 +1512,7 @@ export function RulesLibraryRoute() {
   // The overview summary surfaces read from the SAME wired `rules` the
   // grouped table consumes — no new query. `recentChanges` is the
   // 5 most-recently-touched rules (by reviewedAt → verifiedAt) for the
-  // Recent Changes card; `oldestReviewRelative` is the age of the
-  // longest-waiting pending-review rule for the ActionHero "oldest Nd"
-  // chip.
+  // Recent Changes card.
   // Windowed to the SAME trailing 30 days as the CHANGED (30D) stat tile —
   // a "Last 30 days" header listing 45-day-old rows above a stat saying 0
   // is the exact data-consistency breach this page is supposed to prevent.
@@ -1535,16 +1533,6 @@ export function RulesLibraryRoute() {
       if (changed !== null && (latest === null || changed > latest)) latest = changed
     }
     return latest
-  }, [rules])
-  const oldestReviewRelative = useMemo(() => {
-    let oldest = Number.POSITIVE_INFINITY
-    for (const rule of rules) {
-      if (statusGroupOf(rule.status) !== 'needs_review') continue
-      const changed = ruleChangedAt(rule)
-      if (changed !== null && changed < oldest) oldest = changed
-    }
-    if (!Number.isFinite(oldest)) return null
-    return formatRelativeTime(new Date(oldest).toISOString())
   }, [rules])
   // Most-recent review timestamp — backs the "all caught up" empty
   // state's "Last rule reviewed …" meta line (Pencil O0pyRO `whr8M`).
@@ -2547,18 +2535,14 @@ export function RulesLibraryRoute() {
   // work) or below the "all caught up" card (queue clear).
   // Decision-oriented stat band (Yuqi): drop the static vanity figures
   // (Jurisdictions, Changed-30d — the totals already live in the page
-  // subtitle) for stats that drive the CPA's next move — the backlog, what's
-  // high-risk, coverage health, and one Total anchor.
+  // subtitle) for stats that drive the CPA's next move — what's high-risk,
+  // coverage health, and one Total anchor.
+  // 2026-06-29 (Yuqi "looks messy"): dropped the "Pending review" stat — the
+  // review banner/pill directly above ALWAYS prints "N rules need review", and
+  // the rail header repeats it too, so a third "PENDING REVIEW 456" right below
+  // was pure echo. The backlog's staleness still reads in "Where to start"'s
+  // per-jurisdiction "Nd waiting".
   const overviewStats = [
-    {
-      key: 'pending',
-      label: t`Pending review`,
-      value: totalPendingReview,
-      sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`Queue clear`,
-      // 2026-06-16 (audit): StatBand values stay neutral; tone lives in the
-      // sub, matching the /clients grammar (neutral value · colored caption).
-      subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
-    },
     {
       key: 'high-severity',
       label: t`High-severity`,
@@ -2956,8 +2940,8 @@ export function RulesLibraryRoute() {
                     <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-text-tertiary" />
                   </button>
                 ) : (
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
-                  {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
+                  <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
+                    {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
                       the middle"): the strip was a chromatic navy wash
                       (state-accent-hover) that read as neither calm nor a
                       purposeful prompt. Resolved toward a CALM neutral wash
@@ -2965,65 +2949,65 @@ export function RulesLibraryRoute() {
                       icon chip and the Start-review CTA (containers, not the
                       wash; per the no-colored-wash canon), so the one true
                       action stands out instead of the whole strip glowing. */}
-                  <span
-                    aria-hidden
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover-alt text-text-accent"
-                  >
-                    <EyeIcon className="size-[18px]" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-nav font-semibold text-text-primary">
-                      <Plural
-                        value={totalPendingReview}
-                        one="# rule needs your review"
-                        other="# rules need your review"
-                      />
-                    </p>
-                    {/* Sets the real first step. When pending rules are gated
+                    <span
+                      aria-hidden
+                      className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover-alt text-text-accent"
+                    >
+                      <EyeIcon className="size-[18px]" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-nav font-semibold text-text-primary">
+                        <Plural
+                          value={totalPendingReview}
+                          one="# rule needs your review"
+                          other="# rules need your review"
+                        />
+                      </p>
+                      {/* Sets the real first step. When pending rules are gated
                         behind an AI draft, "review" starts with generating one
                         — say so rather than implying they're ready to accept.
                         (The oldest-waiting date is owned by the StatBand.) */}
-                    <p className="truncate text-sm font-medium text-text-tertiary">
-                      {draftGatedPendingCount === 0 ? (
-                        <Trans>Review them before they affect client filings</Trans>
-                      ) : draftGatedPendingCount >= totalPendingReview ? (
-                        <Trans>Each needs an AI draft generated before it can be accepted</Trans>
-                      ) : (
-                        <Plural
-                          value={draftGatedPendingCount}
-                          one="# needs an AI draft before it can be accepted"
-                          other="# need an AI draft before they can be accepted"
-                        />
-                      )}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      // Select EVERY rule awaiting review and open the bulk
-                      // modal. The modal handles >BULK_ACCEPT_BATCH_MAX: Reject
-                      // has no cap (acts on all), and the impact preview/Accept
-                      // explain the per-batch ceiling there — so the entry never
-                      // silently withholds rules from the batch.
-                      setSelectedRuleIds(new Set(allReviewableRuleIds))
-                      setBulkListOpen(true)
-                    }}
-                  >
-                    <Trans>Start review</Trans>
-                  </Button>
-                  {/* Dismiss → collapse to the pill above. Sits after the
+                      <p className="truncate text-sm font-medium text-text-tertiary">
+                        {draftGatedPendingCount === 0 ? (
+                          <Trans>Review them before they affect client filings</Trans>
+                        ) : draftGatedPendingCount >= totalPendingReview ? (
+                          <Trans>Each needs an AI draft generated before it can be accepted</Trans>
+                        ) : (
+                          <Plural
+                            value={draftGatedPendingCount}
+                            one="# needs an AI draft before it can be accepted"
+                            other="# need an AI draft before they can be accepted"
+                          />
+                        )}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        // Select EVERY rule awaiting review and open the bulk
+                        // modal. The modal handles >BULK_ACCEPT_BATCH_MAX: Reject
+                        // has no cap (acts on all), and the impact preview/Accept
+                        // explain the per-batch ceiling there — so the entry never
+                        // silently withholds rules from the batch.
+                        setSelectedRuleIds(new Set(allReviewableRuleIds))
+                        setBulkListOpen(true)
+                      }}
+                    >
+                      <Trans>Start review</Trans>
+                    </Button>
+                    {/* Dismiss → collapse to the pill above. Sits after the
                       primary CTA so it reads as the quiet secondary exit,
                       never competing with "Start review". */}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => persistReviewBannerCollapsed(true)}
-                    aria-label={t`Dismiss review prompt`}
-                    className="shrink-0 text-text-tertiary hover:text-text-secondary"
-                  >
-                    <XIcon className="size-4" aria-hidden />
-                  </Button>
-                </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => persistReviewBannerCollapsed(true)}
+                      aria-label={t`Dismiss review prompt`}
+                      className="shrink-0 text-text-tertiary hover:text-text-secondary"
+                    >
+                      <XIcon className="size-4" aria-hidden />
+                    </Button>
+                  </div>
                 )}
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
                 <OverviewReviewBreakdown
