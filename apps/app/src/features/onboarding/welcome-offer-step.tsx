@@ -72,7 +72,9 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           hook), then a light task subline. */}
       <div className="flex flex-col gap-2.5">
         <StepDots step={step} total={total} />
-        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-state-accent-hover-alt px-3.5 py-1.5 text-sm font-semibold tracking-tight text-text-accent">
+        {/* Solid green promo fill — a distinct "free/offer" register, NOT the
+            accent tint used by selected chips (which read as a control). */}
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-state-success-solid px-3.5 py-1.5 text-sm font-semibold tracking-tight text-text-inverted">
           <GiftIcon className="size-4 shrink-0" aria-hidden />
           <Trans>3 months of Team — free</Trans>
         </span>

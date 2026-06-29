@@ -99,7 +99,7 @@ export function StateRuleActivationSelector({
   }
 
   return (
-    <div className="mt-5 flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2.5">
       {/* Vertical header layout: the field name + helper sit on top in the
           canonical Label style; the controls drop below at full width with
           [Select all] taking the lead edge and [0/56] anchoring the trailing

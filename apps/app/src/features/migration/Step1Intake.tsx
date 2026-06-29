@@ -991,15 +991,21 @@ function DetectionHero({
         </div>
       </button>
 
-      <TextLink variant="quiet" size="sm" onClick={onRemove}>
-        <Trans>Remove file</Trans>
-      </TextLink>
-
-      {selectedPresetLabel && !isReadingFile ? (
-        <p className="text-xs text-text-tertiary">
-          <Trans>Source set to {selectedPresetLabel}.</Trans>
-        </p>
-      ) : null}
+      {/* Source caption + Remove on one quiet line under the file card, rather
+          than two separate stacked centred lines. */}
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
+        {selectedPresetLabel && !isReadingFile ? (
+          <>
+            <span>
+              <Trans>Source set to {selectedPresetLabel}.</Trans>
+            </span>
+            <span aria-hidden>·</span>
+          </>
+        ) : null}
+        <TextLink variant="quiet" size="sm" onClick={onRemove}>
+          <Trans>Remove file</Trans>
+        </TextLink>
+      </div>
     </div>
   )
 }

@@ -7,7 +7,8 @@ import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
-import { BrandWordmark } from '@/components/primitives/brand-wordmark'
+import { BrandMark } from '@/components/primitives/brand-mark'
+import { BrandLogotype } from '@/components/primitives/brand-wordmark'
 
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
 // matching the Pencil auth cluster (pW6pK / uu9SI / e3FyUB): a brand anchor,
@@ -18,8 +19,9 @@ import { BrandWordmark } from '@/components/primitives/brand-wordmark'
 // same chrome instead of re-inlining it. /login keeps its own copy for now
 // (its structure is locked); the others share this.
 
-// Brand anchor — the framed BrandWordmark lockup (navy app-icon tile + ivory
-// bars + "DueDateHQ") + an optional hairline + "for CPA firms". The tile gives
+// Brand anchor — the standard horizontal lockup (framed bars mark — navy
+// app-icon tile + ivory bars — followed by the "DueDateHQ" logotype) + an
+// optional hairline + "for CPA firms". The tile gives
 // the mark identity (a bare bars mark reads as a hamburger icon) and makes the
 // tilted bar read as intentional. `tagline={false}` drops the divider + tagline
 // for compact lockups (e.g. the /login sign-in card).
@@ -43,9 +45,16 @@ export function AuthBrandAnchor({
    */
   animated?: boolean
 }) {
-  // The framed lockup (option A) — navy tile + "DueDateHQ", via brand tokens.
-  // Default kept small; callers can size down further (e.g. /login `h-6`).
-  const lockup = <BrandWordmark className={cn('h-7', markClassName)} />
+  // The standard horizontal lockup: framed bars mark (navy tile) + the
+  // "DueDateHQ" logotype — the same construction the entry layout uses, so every
+  // auth surface shares one lockup. `markClassName` (an `h-*`) sizes both halves
+  // to the same height; the mark stays square via its 1:1 viewBox + `w-auto`.
+  const lockup = (
+    <span className="inline-flex items-center gap-2">
+      <BrandMark frame className={cn('size-5 w-auto', markClassName)} />
+      <BrandLogotype className={cn('h-4 w-auto text-text-primary dark:text-brand-ivory', markClassName)} />
+    </span>
+  )
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
       {animated ? (
@@ -171,7 +180,7 @@ export function CenteredAuthScreen({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background-subtle text-text-primary dark:bg-bg-canvas">
       <header className="flex shrink-0 items-center gap-2.5 px-6 py-4 lg:px-10">
-        <AuthBrandAnchor markClassName="h-6" />
+        <AuthBrandAnchor markClassName="h-5" />
         <span className="flex-1" />
         <AuthStatusPill />
       </header>
