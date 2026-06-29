@@ -224,41 +224,40 @@ function deadlines() {
     <div class="float" style="position:absolute;right:42px;top:240px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 14px"><span style="font-family:'Geist Mono';font-size:12px;font-weight:500;color:${ACC}">12</span><span style="font-size:11.5px;color:${MUT}">due this week</span></div>
     <div class="float" style="position:absolute;left:756px;top:566px;display:inline-flex;align-items:center;gap:18px;background:#fff;border-radius:999px;padding:10px 19px">${[[RED, '5 overdue'], [AMBER, '8 due soon'], [GREEN, '15 filed']].map(d => `<span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:${INK}"><span style="width:8px;height:8px;border-radius:50%;background:${d[0]}"></span>${d[1]}</span>`).join('')}</div>`)
 }
-function security() {
-  const arow = (av, avbg, avfg, text, time) => `<div style="display:flex;align-items:center;gap:12px;padding:11px 0">${AV[av] ? pic(av, 30) : `<div class="av" style="width:30px;height:30px;background:${avbg};color:${avfg}">${av}</div>`}<span style="font-size:13.5px;color:${INK}">${text}</span><span style="margin-left:auto;font-size:12px;color:${MUT}" class="num">${time}</span></div>`
+function sourceCard() {
+  const pf = (label, val) => `<div><div class="lab" style="margin:0">${label}</div><div style="font-size:13.5px;font-weight:500;color:${INK};margin-top:4px">${val}</div></div>`
   return page(`
     <div style="position:absolute;left:96px;top:236px;max-width:600px">
       <div class="ey" style="margin-bottom:28px">Built for client trust</div>
-      <div class="h" style="font-size:56px">Every date <em>sourced</em>.<br>Every change <em>logged</em>.</div>
-      <div class="s" style="margin-top:30px;max-width:380px">No black-box dates. No silent edits.</div>
+      <div class="h" style="font-size:56px">Every date <em>sourced</em>.<br>Straight from the <em>agency</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:380px">No black-box dates — every one quoted, linked, and timestamped from the agency&rsquo;s own page.</div>
     </div>
-    <div style="position:absolute;left:752px;top:166px;width:446px;height:440px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div style="position:absolute;left:766px;top:250px;width:360px;height:250px;border-radius:50%;background:rgba(34,72,140,.11);filter:blur(82px)"></div>
+    <div style="position:absolute;left:752px;top:166px;width:446px;height:420px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
     <div class="card" style="position:absolute;left:730px;top:150px;width:446px;padding:24px 26px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div class="seal"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
-        <div style="line-height:1.18"><div style="font-size:15px;font-weight:600;color:${INK}">Provenance &amp; audit</div><div style="font-size:12.5px;color:${MUT}">Every decision on the record</div></div>
+        <div class="seal">${ic(I.landmark, 18, '#fff')}</div>
+        <div style="line-height:1.18"><div style="font-size:15px;font-weight:600;color:${INK}">NY DTF · New York</div><div style="font-size:12.5px;color:${MUT}">Official agency source</div></div>
         <span class="spill" style="margin-left:auto;background:${WGRN};color:${GREEN_INK}"><span style="width:7px;height:7px;border-radius:50%;background:${GREEN}"></span>Verified</span>
       </div>
-      <div class="qblk" style="margin-top:18px">
-        <div style="font-size:13.5px;color:${INK};line-height:1.5">“The PTET election for tax year 2026 must be made by March 15, 2026.”</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:10px"><span style="font-size:11.5px;color:${MUT};font-family:'Geist Mono'">tax.ny.gov/bus/ptet</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">Open original ${ic(I.ext, 11, ACC)}</span></div>
+      <div class="qblk" style="position:relative;margin-top:18px;padding-left:18px">
+        <span style="position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:2px;background:${ACC}"></span>
+        <div style="font-size:14px;color:${INK};line-height:1.55">&ldquo;The PTET election for tax year 2026 must be made by <span style="background:rgba(20,197,246,.30);color:${INK};font-weight:600;padding:1px 5px;border-radius:3px">March&nbsp;15,&nbsp;2026</span>.&rdquo;</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:11px">${ic(I.link, 12, MUT)}<span style="font-size:11.5px;color:${MUT};font-family:'Geist Mono'">tax.ny.gov/bus/ptet</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">Open original ${ic(I.ext, 11, ACC)}</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:16px"><span class="lab" style="margin:0">Parse confidence</span><div class="bar" style="flex:1"><i style="width:98%"></i></div><span style="font-size:12.5px;font-weight:500;color:${INK}" class="num">98% · High</span></div>
       <div class="divh"></div>
-      <div class="lab">Audit ledger</div>
-      <div style="margin-top:6px">
-        ${arow('pp',WACC,ACC,'Priya applied the new date','2d')}
-        ${arow('AI',WGRN,GREEN_INK,'Matched 3 affected clients','2d')}
-        ${arow('✓',WACC,ACC,'Source captured &amp; verified','3d')}
+      <div class="lab">Read from the source</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;margin-top:11px">
+        ${pf('Published', 'May 16, 2026')}${pf('Captured', 'May 16, 2026')}${pf('Effective date', 'Mar 15, 2026')}${pf('Affected form', 'NY IT-204')}
       </div>
       <div style="display:flex;gap:8px;margin-top:16px">
-        <span class="spill" style="background:#F2F4F7;color:${INK}">US-East residency</span>
-        <span class="spill" style="background:#F2F4F7;color:${INK}">ISO 27001 · in progress</span>
+        <span class="spill" style="background:#F2F4F7;color:${INK}">Government source</span>
+        <span class="spill" style="background:${WGRN};color:${GREEN_INK}"><span style="width:6px;height:6px;border-radius:50%;background:${GREEN}"></span>Live · checked 4m ago</span>
       </div>
     </div>
-    <div class="float" style="position:absolute;left:600px;top:402px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px">${ic(I.lock, 13, NAVY)}<span style="font-family:'Geist Mono';font-size:11px;font-weight:500;color:${INK}">a3f9…2e1 · signed</span></div>
-    <div class="float" style="position:absolute;left:636px;top:622px;width:236px;background:#fff;border-radius:12px;padding:14px 16px">
-      <div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:8px;background:${WGRN};display:flex;align-items:center;justify-content:center">${ic(I.check, 16, GREEN_INK, 2.6)}</div><div style="line-height:1.25"><div style="font-size:12.5px;font-weight:500;color:${INK}">New ledger entry</div><div style="font-size:11px;color:${MUT}">Date applied · append-only</div></div><span style="margin-left:auto;font-size:10.5px;color:${MUT}">now</span></div>
+    <div class="float" style="position:absolute;left:636px;top:606px;width:252px;background:#fff;border-radius:12px;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:8px;background:${WGRN};display:flex;align-items:center;justify-content:center">${ic(I.check, 16, GREEN_INK, 2.6)}</div><div style="line-height:1.25"><div style="font-size:12.5px;font-weight:500;color:${INK}">Captured from tax.ny.gov</div><div style="font-size:11px;color:${MUT}">Snapshot saved · May 16</div></div></div>
     </div>`)
 }
 function loop() {
@@ -803,9 +802,9 @@ function footer() {
 const OUTDIR = '/Users/yuqi/dev/due-date-hq-jwl/docs/marketing/product-hunt-launch/images'
 // Canonical PH gallery — 8. Cover + 6 content + closer.
 // watch everything → from official sources → it acts → who's blocking → you approve → all logged.
-const SET = [['1-cover', cover], ['2-today', today], ['3-monitoring', monitoring], ['4-sources', sources], ['5-action', action], ['6-completeness', completeness], ['7-clients', clients], ['8-rules-review', ruleLibrary], ['9-activity', activity], ['10-closer', closer]]
+const SET = [['1-cover', cover], ['2-today', today], ['3-monitoring', monitoring], ['4-sources', sourceCard], ['5-action', action], ['6-completeness', completeness], ['7-clients', clients], ['8-rules-review', ruleLibrary], ['9-activity', activity], ['10-closer', closer]]
 // Alternates (move any entry into SET to add it back to the gallery):
-const ALT = [['1b-cover-dark', coverB], ['alert', alert], ['deadlines', deadlines], ['security', security], ['loop', loop], ['daily-brief', dailyBrief], ['status', status6]]
+const ALT = [['1b-cover-dark', coverB], ['alert', alert], ['deadlines', deadlines], ['sources-notice', sources], ['loop', loop], ['daily-brief', dailyBrief], ['status', status6]]
 ;(async () => {
   const b = await chromium.launch({ channel: 'chrome' })
   const ctx = await b.newContext({ viewport: { width: 1270, height: 820 }, deviceScaleFactor: 2 })
