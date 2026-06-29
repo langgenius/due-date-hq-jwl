@@ -129,8 +129,11 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           </h2>
           <MappingCapabilityBadge mapping={mapping} />
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-text-secondary tabular-nums">
+        <div className="flex items-center justify-end gap-3">
+          {/* The colored MappingPillStrip below is the visible at-a-glance count
+              split; this sentence readout stays in the DOM (sr-only) for screen
+              readers + test assertions so the header isn't double-counting. */}
+          <p className="sr-only">
             <MappingHeadline summary={summary} status={mapping.status} />
           </p>
           {/* The label "Re-run AI (keep my changes)" deliberately avoids
@@ -424,8 +427,8 @@ function MappingBannerRow({
         </span>
         <span className="flex min-w-0 items-center gap-2 sm:w-[200px] sm:shrink-0">
           {row.targetField === 'IGNORE' ? (
-            <span className="truncate font-mono text-xs italic text-text-muted">
-              {destinationLabel}
+            <span className="truncate text-xs text-text-tertiary">
+              <Trans>Not imported</Trans>
             </span>
           ) : (
             <span className="truncate font-mono text-xs font-medium text-text-accent">
@@ -596,7 +599,7 @@ function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
   if (row.targetField === 'IGNORE') {
     return (
       <Badge variant="outline" className="shrink-0">
-        <Trans>Ignored</Trans>
+        <Trans>Skipped</Trans>
       </Badge>
     )
   }

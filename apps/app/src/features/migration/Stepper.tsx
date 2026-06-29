@@ -77,13 +77,13 @@ function HorizontalStepper({ current }: { current: StepIndex }) {
         const isActive = step.index === current
 
         const pillTone = isActive
-          ? 'bg-state-accent-solid text-text-primary-on-surface'
+          ? 'border border-state-accent-solid/30 bg-state-accent-hover-alt text-text-accent'
           : isDone
             ? 'border border-state-success-border bg-state-success-hover text-text-success'
             : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'
 
         const circleTone = isActive
-          ? 'bg-white/20 text-text-primary-on-surface'
+          ? 'bg-state-accent-solid text-text-primary-on-surface'
           : isDone
             ? 'bg-state-success-solid text-text-primary-on-surface'
             : 'bg-background-section text-text-tertiary'
@@ -159,13 +159,13 @@ function VerticalStepper({ current }: { current: StepIndex }) {
           const isActive = step.index === current
 
           const pillTone = isActive
-            ? 'bg-state-accent-solid text-text-primary-on-surface'
+            ? 'border border-state-accent-solid/30 bg-state-accent-hover-alt text-text-accent'
             : isDone
               ? 'border border-state-success-border bg-state-success-hover text-text-success'
               : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'
 
           const circleTone = isActive
-            ? 'bg-white/20 text-text-primary-on-surface'
+            ? 'bg-state-accent-solid text-text-primary-on-surface'
             : isDone
               ? 'bg-state-success-solid text-text-primary-on-surface'
               : 'bg-background-section text-text-tertiary'

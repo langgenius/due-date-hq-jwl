@@ -283,10 +283,11 @@ export function OnboardingRoute() {
 
   return (
     <CenteredAuthScreen>
-      {/* Shared onboarding step width — keep in sync with the welcome step
-          (welcome-offer-step.tsx) and the rule-review step below so the card
-          doesn't resize as the user advances through the funnel. */}
-      <div className="flex w-full max-w-[800px] flex-col gap-6">
+      {/* Wider than the welcome / rule-review steps (800) because this step
+          runs a side-by-side at lg: text fields on the left, the state-rule
+          tilegram on the right — so it uses the screen instead of a single
+          centered column. */}
+      <div className="flex w-full max-w-[1080px] flex-col gap-6">
         {/* Hero — step 2 eyebrow, title, and value line live at page level above
             the form card, so the primary anchor is the first thing read (and is
             always reachable now that the shell scroll-centers). */}
@@ -310,13 +311,16 @@ export function OnboardingRoute() {
           noValidate
           className="flex w-full flex-col gap-6 rounded-xl border border-divider-subtle bg-background-default px-6 py-6 lg:px-8 lg:py-6"
         >
-          {/* Fields — rows stagger in top-down on mount. */}
-          <motion.div
-            className="flex flex-col gap-4"
-            initial="hidden"
-            animate="show"
-            variants={FIELD_COLUMN_VARIANTS}
-          >
+          {/* Side-by-side at lg: text fields on the left, the state-rule
+              tilegram on the right. Stacks to one column below lg. */}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-10">
+            {/* Left — text fields, staggered in on mount */}
+            <motion.div
+              className="flex flex-col gap-5"
+              initial="hidden"
+              animate="show"
+              variants={FIELD_COLUMN_VARIANTS}
+            >
             <motion.div
               variants={FIELD_ROW_VARIANTS}
               transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
@@ -409,19 +413,20 @@ export function OnboardingRoute() {
               </Field>
             </motion.div>
 
-            <motion.div
-              variants={FIELD_ROW_VARIANTS}
-              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-            >
+            </motion.div>
+
+            {/* Right — state-rule coverage tilegram */}
+            <div>
               <StateRuleActivationSelector
                 selected={selectedRuleStates}
                 onChange={setSelectedRuleStates}
               />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
-          {/* CTA */}
-          <div className="flex flex-col gap-3">
+          {/* CTA — constrained so the button isn't stretched the full wide-step
+              width; sits under the left fields column. */}
+          <div className="flex flex-col gap-3 lg:max-w-md">
             <Button
               type="submit"
               size="lg"
@@ -441,7 +446,7 @@ export function OnboardingRoute() {
                 </>
               )}
             </Button>
-            <p className="text-center text-caption leading-relaxed text-text-tertiary">
+            <p className="text-caption leading-relaxed text-text-tertiary">
               <Trans>
                 DueDateHQ schedules filing plans from the first applicable deadline on or after your
                 monitoring start date. By continuing you agree to the Terms and Privacy Policy.

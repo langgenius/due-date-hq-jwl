@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans } from '@lingui/react/macro'
-import { ArrowLeftIcon, CircleCheckIcon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
+import { ArrowLeftIcon } from 'lucide-react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
@@ -272,39 +272,9 @@ function MigrationActivationIntro({
             Import your client list to generate deadlines and unlock the first Today risk view.
           </Trans>
         </p>
-        {/* The three outcome chips (Import / Deadlines / Risk view)
-            surface "what activation includes" but must NOT be in a
-            step-shaped row — that would compete visually with the
-            4-step Stepper rendered inside the wizard card. Rendered as
-            a quiet icon + label row at body type with bullet separators
-            — no rounded background, no count slot, no fixed pill — so it
-            reads as a description list, not as numbered steps. Sits
-            BELOW the descriptive paragraph so it elaborates on "import /
-            deadlines / risk view" the sentence already named. */}
-        <div
-          role="list"
-          aria-label="Practice activation outcomes"
-          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary"
-        >
-          <span role="listitem" className="inline-flex items-center gap-1.5">
-            <FileSpreadsheetIcon aria-hidden className="size-4 text-text-accent" />
-            <Trans>Import</Trans>
-          </span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span role="listitem" className="inline-flex items-center gap-1.5">
-            <CircleCheckIcon aria-hidden className="size-4 text-text-accent" />
-            <Trans>Deadlines</Trans>
-          </span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span role="listitem" className="inline-flex items-center gap-1.5">
-            <GaugeIcon aria-hidden className="size-4 text-text-accent" />
-            <Trans>Risk view</Trans>
-          </span>
-        </div>
+        {/* (Removed the Import · Deadlines · Risk view outcome chips — they
+            restated the description sentence above, adding a redundant row to
+            an already-busy header.) */}
         {ruleReviewCount > 0 ? (
           <Alert className="mt-4 max-w-4xl">
             <AlertTitle>
