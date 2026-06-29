@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { dedupeTitleSource } from './needs-attention-card'
+import { dedupeTitleSource } from './alert-headline'
 
 describe('dedupeTitleSource', () => {
   it('strips a leading source prefix from the title', () => {

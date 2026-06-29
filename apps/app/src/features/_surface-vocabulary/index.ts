@@ -20,3 +20,5 @@ export {
   isLowAiConfidence,
   type AiConfidenceTier,
 } from './ai-confidence'
+
+export { dedupeTitleSource } from './alert-headline'

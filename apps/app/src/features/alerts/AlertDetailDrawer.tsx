@@ -74,6 +74,7 @@ import { AlertSourceLink } from './components/AlertSourceLink'
 import { ApplyingPill } from './components/ApplyingPill'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
+import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 
 import { ActiveQueueChip } from './components/ActiveQueueChip'
 import { impactBadgeFromAlert, isActiveAlert } from './components/pulse-alert-chrome'
@@ -634,6 +635,52 @@ function ApplyGateDiagnostic({
       <TextLink variant="accent" size="sm" onClick={onReviewSource} className="shrink-0">
         <Trans>Review source</Trans>
       </TextLink>
+    </div>
+  )
+}
+
+/**
+ * True while the alert still has an OPEN gate blocking a clean decision — missing
+ * apply details or a low-confidence extraction. Mirrors `ApplyGateDiagnostic`'s
+ * own conditions so the footer can show the gate warning OR the decision prompt,
+ * never both.
+ */
+function alertHasOpenGate(detail: PulseDetail): boolean {
+  if (detail.alert.status !== 'matched') return false
+  return (
+    detail.applyReadiness.status === 'needs_details' || isLowAiConfidence(detail.alert.confidence)
+  )
+}
+
+/**
+ * `DecisionPrompt` — 2026-06-29 (Yuqi "the decision is a thin footer … pull it
+ * into a clear Your-decision zone"). Names the decision + its CONSEQUENCE on a
+ * framing band directly above the action buttons, so the footer reads as the
+ * "Your decision" region rather than a toolbar. The decision lives at the BOTTOM
+ * by design: this is a verify-before-you-act tool, so the action is the terminus
+ * of read-change → check-source → decide, not the lead-in (leading with the
+ * action would invite the rubber-stamp the low-confidence gate guards against).
+ * Shown only while the alert awaits a decision AND no gate is blocking (the gate
+ * warning owns the slot then); resolved/gated alerts never show it.
+ */
+function DecisionPrompt({ detail }: { detail: PulseDetail }) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  if (alert.status !== 'matched' || alertHasOpenGate(detail)) return null
+  const noActionReview =
+    alert.actionMode === 'review_only' || alert.firmImpact === 'no_current_match'
+  const consequence = noActionReview
+    ? t`Mark it reviewed once you've confirmed the change — it moves to Alert history.`
+    : t`Apply to update the selected clients' due dates — reversible for 24 hours.`
+  return (
+    <div className="flex w-full min-w-0 items-center gap-2 rounded-lg bg-background-subtle px-3 py-2 text-sm">
+      <span className="shrink-0 font-medium text-text-accent">
+        <Trans>Your decision</Trans>
+      </span>
+      <span className="shrink-0 text-text-quaternary" aria-hidden>
+        ·
+      </span>
+      <span className="min-w-0 truncate text-text-secondary">{consequence}</span>
     </div>
   )
 }
@@ -1662,8 +1709,11 @@ export function AlertDetailDrawer({
                 <span className="shrink-0 text-text-muted" aria-hidden>
                   /
                 </span>
-                <span className="max-w-[420px] truncate text-text-secondary">
-                  {detail.alert.title}
+                <span
+                  className="max-w-[420px] truncate text-text-secondary"
+                  title={detail.alert.title}
+                >
+                  {dedupeTitleSource(detail.alert.title, detail.alert.source)}
                 </span>
               </motion.span>
             ) : null}
@@ -1892,7 +1942,7 @@ export function AlertDetailDrawer({
                     )}
                     title={detail.alert.title}
                   >
-                    {detail.alert.title}
+                    {dedupeTitleSource(detail.alert.title, detail.alert.source)}
                   </h2>
 
                   {/* Summary / dek — body prose, not a sub-title (14/400). */}
@@ -2625,11 +2675,19 @@ export function AlertDetailDrawer({
                   decision button. Explains the gate in one line ("why can't I
                   apply yet") + jumps to the Source section to verify. */}
               <ApplyGateDiagnostic detail={detail} onReviewSource={goToSource} />
+              {/* Decision framing — names the decision + consequence above the
+                  buttons when the alert is clean and ready, so the footer reads
+                  as the "Your decision" region (the decision's home, at the end
+                  of the read-then-decide flow). Mutually exclusive with the gate
+                  warning above. */}
+              <DecisionPrompt detail={detail} />
               <div className="flex flex-row items-center gap-6">
-                {detail ? (
-                  // Critique #7 (standing signals aren't events): the reassurance
-                  // line reads tertiary with only the shield icon in green — a
-                  // permanently green sentence claimed success-event semantics.
+                {/* Audit reassurance — shown EXCEPT while the "Your decision"
+                    prompt is up (the prompt already states the consequence, so
+                    the two would double the "what happens to it" reassurance).
+                    Critique #7: tertiary text, shield icon the only green. */}
+                {detail &&
+                !(detail.alert.status === 'matched' && !alertHasOpenGate(detail)) ? (
                   <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
                     <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
                     <Trans>Every decision captured to audit ledger</Trans>

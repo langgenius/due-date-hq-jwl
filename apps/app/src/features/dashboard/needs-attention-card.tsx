@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 import { alertTone } from '@/features/alerts/alert-tone'
 // PulseSourceMeta was retired from this card in round 81 — source
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
@@ -68,52 +69,6 @@ const CARD_MIN_HEIGHT_CLASS = 'min-h-[120px]'
 // single "{N} clients" label with a tooltip-revealed roster, not a
 // chip cluster).
 //
-
-/**
- * When an alert title starts with the source name (e.g. title "FL DOR
- * Bulletin has very-low-confidence…" alongside source "FL DOR Bulletin"),
- * the two read as a duplicate. Strip the source prefix from the title
- * when it matches, then clean up a trailing separator (":", "·", "—",
- * "-") if present.
- *
- * Edge cases:
- *   • If `title === source` exactly (or trimmed-equal), there's
- *     nothing meaningful to surface as a stripped title. Return
- *     the raw title so the card still shows SOMETHING in the
- *     subject slot; the source line below renders the same text
- *     once, which is the round-81 problem in miniature but is
- *     less bad than rendering an empty `<h3>`.
- *   • If the trimmed-rest is purely punctuation/whitespace, treat
- *     as "no meaningful content" and fall back to raw title.
- *   • Otherwise strip the prefix and the trailing separator
- *     (same shape as the original).
- * Defensive — falls back to the raw title for any non-matching
- * shape so unrelated titles render unchanged.
- *
- * @internal Exported for unit tests.
- */
-export function dedupeTitleSource(title: string, source: string): string {
-  const t = title.trim()
-  const s = source.trim()
-  if (!s) return t
-  // Edge case: source IS the entire title. Nothing meaningful
-  // after stripping; fall back to the raw title.
-  if (t.toLowerCase() === s.toLowerCase()) return t
-  if (t.toLowerCase().startsWith(s.toLowerCase())) {
-    const rest = t
-      .slice(s.length)
-      .trim()
-      .replace(/^[-—:·]+\s*/u, '')
-    // Also guard against rest being non-empty but pure
-    // punctuation/whitespace — render the raw title instead.
-    if (rest.length > 0 && /[\p{L}\p{N}]/u.test(rest)) {
-      // Capitalize first letter so the stripped title still reads
-      // like a proper sentence.
-      return rest.charAt(0).toUpperCase() + rest.slice(1)
-    }
-  }
-  return t
-}
 
 function NeedsAttentionCard({
   alert,
