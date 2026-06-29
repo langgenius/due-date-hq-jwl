@@ -84,13 +84,13 @@ function DemoSignupBanner() {
 }
 
 export function AppShell(props: AppShellProps) {
-  // Seed the rail's
-  // initial collapse from the landing path so a non-Today reload lands
-  // collapsed with no expand→collapse flash. SidebarRouteSync keeps it
-  // updated on every subsequent navigation.
-  const { pathname } = useLocation()
+  // 2026-06-29 (Yuqi "keep the sidebar UX clean — it is always collapsed even on
+  // Today"): the rail now seeds COLLAPSED on every route (Today no longer
+  // expands), so a reload anywhere lands collapsed with no expand→collapse flash.
+  // The manual toggle / hotkey still expands the current page; SidebarRouteSync
+  // re-collapses on the next navigation.
   return (
-    <SidebarProvider initialRouteCollapsed={pathname !== '/'}>
+    <SidebarProvider initialRouteCollapsed={true}>
       <SidebarKeyboardBindings />
       <SidebarRouteSync />
       {/*
@@ -274,16 +274,16 @@ export function AppShell(props: AppShellProps) {
   )
 }
 
-// Drives the rail's per-page default from the route. Today (`/`)
-// expands; every other path collapses. The user's
-// manual toggle still wins for the current page (it's cleared on the
-// next navigation). Lives inside SidebarProvider so it can reach the
-// context; renders nothing.
+// Re-collapses the rail on every navigation so it stays collapsed by default
+// across all routes (2026-06-29 Yuqi: "always collapsed even on Today" — Today
+// no longer gets a special expanded default). The user's manual toggle still
+// wins for the current page; it's cleared on the next navigation. Lives inside
+// SidebarProvider so it can reach the context; renders nothing.
 function SidebarRouteSync() {
   const { pathname } = useLocation()
   const { setRouteCollapsed } = useSidebar()
   useEffect(() => {
-    setRouteCollapsed(pathname !== '/')
+    setRouteCollapsed(true)
   }, [pathname, setRouteCollapsed])
   return null
 }
