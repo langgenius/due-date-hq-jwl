@@ -395,7 +395,11 @@ function MappingBannerRow({
   const { t } = useLingui()
   const [expanded, setExpanded] = useState(false)
   const tier = confidenceTier(row.confidence, row.targetField)
-  const needsAttention = tier === 'low' || row.targetField === 'IGNORE'
+  const isIgnored = row.targetField === 'IGNORE'
+  // Only a genuinely-low match gets the warm "attention" wash. Skipping a column
+  // is intentional, so skipped rows are quietly de-emphasised (neutral gray),
+  // not flagged warm-yellow as if something is wrong.
+  const needsAttention = tier === 'low'
   const destinationLabel =
     row.targetField === 'IGNORE' ? targetLabels.IGNORE : targetLabels[row.targetField]
   const samples = parseSamples(sample)
@@ -405,6 +409,7 @@ function MappingBannerRow({
       className={cn(
         'border-b border-divider-regular bg-background-surface transition-colors last:border-b-0',
         needsAttention && 'bg-components-badge-bg-warning-soft',
+        isIgnored && 'bg-background-section',
       )}
     >
       {/* The row header is a strict 4-column grid aligned to the table head —
@@ -431,7 +436,7 @@ function MappingBannerRow({
               <Trans>Not imported</Trans>
             </span>
           ) : (
-            <span className="truncate font-mono text-xs font-medium text-text-accent">
+            <span className="truncate text-sm font-medium text-text-accent">
               {destinationLabel}
             </span>
           )}
@@ -612,12 +617,15 @@ function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
   }
   // Name-matcher fallback rows (model === null) carry an ASSIGNED 0.7, not
   // a measured score — printing "Low match · 70%" on an exact header match
-  // reads as alarm about a number nobody computed. Say what happened
-  // instead; the row still floats into the review band.
+  // reads as alarm about a number nobody computed. State the METHOD instead:
+  // "Matched by name" = matched by the column header, not the AI. (Dropped the
+  // "— review" suffix — it contradicted the "0 need review" count; the row
+  // still sorts to the top for a glance, and the page-level fallback alert
+  // already asks the user to review the matches.)
   if (row.model === null) {
     return (
-      <Badge variant="warning" className="shrink-0">
-        <Trans>Name match — review</Trans>
+      <Badge variant="secondary" className="shrink-0">
+        <Trans>Matched by name</Trans>
       </Badge>
     )
   }
