@@ -2,15 +2,37 @@ import { useCallback, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, RocketIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { DuotoneIcon } from '@/components/primitives/duotone-icon'
-import { TickProgress } from '@/components/primitives/tick-progress'
 import { orpc } from '@/lib/rpc'
 import { SetupStepIcon } from './setup-step-icon'
+
+// Small progress ring used as the card's leading glyph — speaks the app-wide
+// StatusRing language (a quiet navy arc that fills with progress) instead of a
+// decorative duotone rocket, so the nudge reads as native to the cool utility
+// rail rather than a delight-surface flourish. r=6 → circumference 2π·6 ≈ 37.7.
+function SetupProgressRing({ pct }: { pct: number }) {
+  const circumference = 37.7
+  const filled = (Math.min(100, Math.max(0, pct)) / 100) * circumference
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="size-4 shrink-0 text-text-accent" aria-hidden>
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" opacity="0.2" />
+      <circle
+        cx="8"
+        cy="8"
+        r="6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${circumference}`}
+        transform="rotate(-90 8 8)"
+      />
+    </svg>
+  )
+}
 
 // Dismiss-for-session lives in localStorage rather than React state so the
 // nudge stays hidden across route changes within a browser session — but it is
@@ -41,7 +63,7 @@ function readDismissed(): boolean {
  * Renders NOTHING when both steps are done (self-dismiss — a set-up firm sees
  * nothing), NOTHING while the probes load (no flash of an empty bar), NOTHING
  * in the collapsed icon rail, and NOTHING once dismissed-for-session. Keeps the
- * decluttered footer aesthetic: a tiny title, the brand TickProgress bar, two
+ * decluttered footer aesthetic: a small progress ring + tiny title, two
  * checklist rows, and one quiet text-link CTA to the first incomplete step.
  */
 export function SidebarSetupCard() {
@@ -102,15 +124,17 @@ export function SidebarSetupCard() {
     <section
       aria-label={t`Setup progress`}
       className={cn(
-        // Warm stone well (palette finish) — matches SetupProgressCard so the
-        // two onboarding nudges share one warm, invitational surface.
-        'flex flex-col gap-2 rounded-xl border border-divider-warm bg-background-well-warm p-2.5',
+        // Cool sectioned well + hairline — matches the rail's own cool surface
+        // (#f6f8fa) so the nudge sits inside the sidebar rather than reading as
+        // a warm foreign card. The larger /today SetupProgressCard keeps the
+        // warm well; this rail variant speaks the cool utility-rail vocabulary.
+        'flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-section p-2.5',
         'animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none',
         'group-data-[collapsed=true]/sidebar:hidden',
       )}
     >
       <div className="flex items-center gap-2">
-        <DuotoneIcon icon={RocketIcon} tone="brand" size="sm" />
+        <SetupProgressRing pct={pct} />
         <h3 className="min-w-0 flex-1 truncate text-xs font-semibold text-text-secondary">
           <Trans>Finish setup</Trans>
         </h3>
@@ -124,8 +148,6 @@ export function SidebarSetupCard() {
           <XIcon className="size-3" aria-hidden />
         </button>
       </div>
-
-      <TickProgress value={pct} tickCount={20} />
 
       <ul className="flex flex-col gap-1">
         {steps.map((step) => {
