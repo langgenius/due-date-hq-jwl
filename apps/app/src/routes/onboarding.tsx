@@ -265,7 +265,7 @@ export function OnboardingRoute() {
   if (review) {
     return (
       <CenteredAuthScreen>
-        <div className="flex h-full min-h-0 w-full max-w-[720px] flex-col gap-4">
+        <div className="flex h-full min-h-0 w-full max-w-[800px] flex-col gap-4">
           <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
           <RuleReviewPrompt
             totalRulesActivated={review.totalActivated}
@@ -286,7 +286,7 @@ export function OnboardingRoute() {
       {/* Shared onboarding step width — keep in sync with the welcome step
           (welcome-offer-step.tsx) and the rule-review step below so the card
           doesn't resize as the user advances through the funnel. */}
-      <div className="flex w-full max-w-[720px] flex-col gap-6">
+      <div className="flex w-full max-w-[800px] flex-col gap-6">
         {/* Hero — step 2 eyebrow, title, and value line live at page level above
             the form card, so the primary anchor is the first thing read (and is
             always reachable now that the shell scroll-centers). */}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CreditCardIcon, GiftIcon, TagIcon } from 'lucide-react'
+import { ArrowRightIcon, GiftIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
@@ -41,11 +41,6 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
   const [tools, setTools] = useState<string[]>([])
   const [pain, setPain] = useState('')
 
-  const perks = [
-    { Icon: GiftIcon, label: t`3 months of Team, free` },
-    { Icon: CreditCardIcon, label: t`No credit card` },
-    { Icon: TagIcon, label: t`Real pricing after` },
-  ]
   const focusOptions = [
     t`Individual tax`,
     t`Business tax`,
@@ -71,46 +66,30 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
   }
 
   return (
-    <div className="flex w-full max-w-[720px] flex-col gap-4">
-      {/* Offer hero — step eyebrow, the campaign promise, then what's included. */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3">
-          <StepDots step={step} total={total} />
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
-              <Trans>Get 3 months of Team, free.</Trans>
-            </h1>
-            <p className="text-base leading-normal text-text-tertiary">
-              <Trans>
-                DueDateHQ pricing is real — but right now, tell us a little about your practice and
-                your first three months on the Team plan are on us.
-              </Trans>
-            </p>
-          </div>
-        </div>
-        {/* Perks on one line — each with its own glyph, so the three reasons
-            read as a quick scannable row rather than a vertical checklist. */}
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          {perks.map(({ Icon, label }) => (
-            <li key={label} className="flex items-center gap-1.5 text-sm text-text-secondary">
-              <Icon className="size-4 shrink-0 text-state-success-solid" aria-hidden />
-              {label}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Questions — same flat card chrome as the practice-setup step. */}
-      <div className="flex w-full flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-6 py-6 duration-300 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none lg:px-8 lg:py-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-base font-semibold text-text-primary">
+    <div className="flex w-full max-w-[800px] flex-col gap-5">
+      {/* Hero — the questionnaire is the title, but the 3-months-free offer
+          rides LOUD above it as an accent promo badge (it's the conversion
+          hook), then a light task subline. */}
+      <div className="flex flex-col gap-2.5">
+        <StepDots step={step} total={total} />
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-state-accent-hover-alt px-3.5 py-1.5 text-sm font-semibold tracking-tight text-text-accent">
+          <GiftIcon className="size-4 shrink-0" aria-hidden />
+          <Trans>3 months of Team — free</Trans>
+        </span>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
             <Trans>Tell us a little about your practice</Trans>
-          </h2>
-          <p className="text-sm leading-normal text-text-tertiary">
-            <Trans>About two minutes — it tailors your setup. Every field is optional.</Trans>
+          </h1>
+          <p className="text-base leading-normal text-text-tertiary">
+            <Trans>
+              Answer a few quick questions and your trial's on us — every field is optional.
+            </Trans>
           </p>
         </div>
+      </div>
 
+      {/* Questions — flat card chrome shared with the practice-setup step. */}
+      <div className="flex w-full flex-col gap-5 rounded-xl border border-divider-subtle bg-background-default px-6 py-6 duration-300 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none lg:px-8 lg:py-6">
         <div className="flex flex-col gap-4">
           {/* Focus — single select */}
           <div className="flex flex-col gap-2.5">
@@ -191,12 +170,6 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           <TextLink variant="muted" onClick={onSkip} className="text-sm">
             <Trans>Skip for now</Trans>
           </TextLink>
-          <p className="text-center text-caption leading-relaxed text-text-tertiary">
-            <Trans>
-              We use this to set up your trial and understand your workflow — never to sell or
-              share.
-            </Trans>
-          </p>
         </div>
       </div>
     </div>
