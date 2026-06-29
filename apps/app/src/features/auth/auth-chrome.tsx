@@ -126,13 +126,10 @@ export function AuthTrustLine({ className }: { className?: string }) {
 export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
   return (
     <footer className="flex flex-col gap-2.5 border-t border-divider-subtle px-6 py-3 text-[11px] font-medium text-text-tertiary lg:px-10">
-      {showTrust ? <AuthTrustLine /> : null}
-      <div
-        className={cn(
-          'flex flex-col gap-3 sm:flex-row sm:items-center',
-          showTrust && 'border-t border-divider-subtle pt-2.5',
-        )}
-      >
+      {/* Left-aligned + no divider so it reads as a quiet footer line, not a
+          full-width banded stripe above the legal row. */}
+      {showTrust ? <AuthTrustLine className="justify-start text-left" /> : null}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-wrap items-center gap-2.5">
           <span>© {new Date().getFullYear()} DueDateHQ</span>
           {[
