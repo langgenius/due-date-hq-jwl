@@ -17,6 +17,16 @@ explicit stored `'table'` choice.
   Lane header = `CapsFieldLabel variant="group"` + neutral `CountPill`. Settled /
   done items go in a calm trailing lane (Filed / No deadlines), never scattered
   through the urgent lanes.
+  - **2026-06-29 (audit P0/P1):** the banding is one shared function —
+    `urgencyBandOf` in `features/obligations/queue/helpers.ts` — used by BOTH the
+    card grid and the `/deadlines` registry table (re-exported from
+    `routes/obligations.tsx`). It routes every terminal-status row (done / paid /
+    completed / not_applicable) to the trailing **Filed** band regardless of date,
+    so a "filed 48d late" return is DONE, not Overdue. Before this the table
+    grouped by date only — settled rows polluted Overdue (19 rows, 12 actionable)
+    and read as inconsistent against the status-aware urgency stripe. The two
+    views can no longer drift. Bands: `overdue · today · this_week · upcoming ·
+    filed` (`URGENCY_BAND_ORDER`).
 - **Countdown hero.** The days-to-deadline as one bold `text-stat-value` numeral.
   Its **colour is the card's only urgency tone**: red late · amber ≤7d · neutral
   comfortable. Settled rows never go red.

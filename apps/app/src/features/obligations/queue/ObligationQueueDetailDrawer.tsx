@@ -566,27 +566,33 @@ export function ObligationQueueDetailDrawer({
   // Type-aware drawer surface: per PRD §3.1 different obligation types
   // expose different tabs. A `payment` row has no readiness checklist;
   // a `client_action` row has no deadline readiness surface.
+  //
+  // 2026-06-29 (Yuqi "more tabs, each more specific > fewer long ones"):
+  // Extension is no longer folded into Status — it earns its OWN tab (its
+  // own form + rule facts), but only when the matched rule actually allows
+  // an extension or one's already on file. So Status stays pure workflow.
+  const extensionApplicable =
+    Boolean(detail?.matchedRule?.extensionPolicy?.available) || Boolean(row?.extensionDecidedAt)
   const visibleTabsList = useMemo(() => {
     const base = tabsForObligationType(row?.obligationType ?? null)
-    // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww): the
-    // standalone page shows the locked 4-tab set Status · Materials ·
-    // Record · Audit (memory: tab count locked). Map onto the existing
-    // tab values (Status=summary, Record=evidence) and drop Extension +
-    // Risk — Extension folds into the Status workflow as a follow-up;
-    // Risk was already unmounted. The set still adapts per obligation
-    // type (a payment row keeps Status/Record/Audit, no Materials).
+    // 2026-06-09 (Pencil rzzww): the persistent panel/page surfaces show a
+    // curated tab set mapped onto the existing tab values (Status=summary,
+    // Record=evidence). The legacy floating sheet keeps the full `base`.
     //
-    // 2026-06-15 (Yuqi): the locked-4 set applies to every persistent
-    // panel surface, not just the page. The client-detail side panel
-    // (ObligationPanelDispatcher, mode="panel") is the same filing the
-    // user would otherwise open at /deadlines/:ref — showing it 5 tabs
-    // there and 4 on the page was an inconsistency. Gate on `panelLayout`
-    // (panel + page) so both match; the legacy floating sheet keeps base.
+    // 2026-06-29 (Yuqi): reverses the earlier "locked 4-tab" gate — Extension
+    // rejoins as a conditional 5th tab (only when `extensionApplicable`), so
+    // the order falls out of `base` as Status · Materials · Extension · Record
+    // · Activity. Risk stays dropped (its content was unmounted long ago).
     if (!panelLayout) return base
     return base.filter(
-      (tab) => tab === 'summary' || tab === 'readiness' || tab === 'evidence' || tab === 'audit',
+      (tab) =>
+        tab === 'summary' ||
+        tab === 'readiness' ||
+        tab === 'evidence' ||
+        tab === 'audit' ||
+        (tab === 'extension' && extensionApplicable),
     )
-  }, [row?.obligationType, panelLayout])
+  }, [row?.obligationType, panelLayout, extensionApplicable])
   const visibleTabs = useMemo(() => new Set(visibleTabsList), [visibleTabsList])
   // If the URL pins a tab that this obligation type doesn't expose
   // (e.g. ?tab=extension on a payment row), bounce to the first tab
@@ -1755,6 +1761,36 @@ export function ObligationQueueDetailDrawer({
   // the deep-linked activeTab so the nav highlights correctly before the first
   // scroll event.
   const [activeSection, setActiveSection] = useState(`deadline-section-${activeTab}`)
+  // 2026-06-29 (Yuqi "do better"): directional tab-switch motion. The newly
+  // mounted panel slides in FROM the side you travelled — forward (a later tab)
+  // enters from the right, back (an earlier tab) enters from the left — so the
+  // tab strip reads as a left-to-right map instead of every panel blinking in
+  // from the same edge. Legacy sheet (scroll-spy, no switch) keeps the canonical
+  // contentEnterMotion. Reduced-motion is honoured globally by the motion layer.
+  const currentTabIndex = sectionNavItems.findIndex((i) => i.tab === activeTab)
+  const prevTabIndexRef = useRef(currentTabIndex < 0 ? 0 : currentTabIndex)
+  const tabTravel = (currentTabIndex < 0 ? 0 : currentTabIndex) - prevTabIndexRef.current
+  const tabDir = tabTravel < 0 ? -1 : 1
+  useEffect(() => {
+    prevTabIndexRef.current = currentTabIndex < 0 ? 0 : currentTabIndex
+  }, [currentTabIndex])
+  // Keyboard-initiated tab changes move focus to the newly-selected tab after
+  // the roving tabindex updates (so the focused tab is the only tabindex=0 stop).
+  // Set by the tablist's arrow-key handler; mouse clicks leave it false so a
+  // click doesn't yank focus around.
+  const focusActiveTabRef = useRef(false)
+  useEffect(() => {
+    if (!focusActiveTabRef.current) return
+    focusActiveTabRef.current = false
+    document.getElementById(`deadline-tab-${activeTab}`)?.focus()
+  }, [activeTab])
+  const tabContentMotion = panelLayout
+    ? {
+        initial: { opacity: 0, x: 10 * tabDir },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: MOTION_DURATION.enter, ease: EASE_APPLE },
+      }
+    : contentEnterMotion
   // Explicit ref on the scroll container so the deep-link effect + jumpToSection
   // target sections directly, instead of the alert's fragile
   // closest('[class*=overflow-y-auto]') walk (panel mode nests a sticky strip).
@@ -1819,6 +1855,38 @@ export function ObligationQueueDetailDrawer({
     sectionNavItems.length > 0 ? (
       <nav
         aria-label={t`Deadline sections`}
+        // 2026-06-29 (Yuqi "do better"): on the panel/page surfaces the nav is a
+        // real ARIA tablist — roving tabindex + ←/→/↑/↓/Home/End move between tabs
+        // and activate them (automatic-activation pattern). The legacy sheet keeps
+        // plain nav semantics (it's a scroll-spy table of contents, not tabs).
+        role={panelLayout ? 'tablist' : undefined}
+        aria-orientation={panelLayout ? 'horizontal' : undefined}
+        onKeyDown={
+          panelLayout
+            ? (event) => {
+                const keys = sectionNavItems.map((i) => i.tab)
+                // findIndex (not indexOf) — `activeTab` is the wider tab union that
+                // still nominally includes 'risk', which `keys` has filtered out.
+                const idx = keys.findIndex((k) => k === activeTab)
+                if (idx === -1) return
+                let next: ObligationQueueDetailTab | null = null
+                if (event.key === 'ArrowRight' || event.key === 'ArrowDown')
+                  next = keys[(idx + 1) % keys.length] ?? null
+                else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+                  next = keys[(idx - 1 + keys.length) % keys.length] ?? null
+                else if (event.key === 'Home') next = keys[0] ?? null
+                else if (event.key === 'End') next = keys[keys.length - 1] ?? null
+                if (next && next !== activeTab) {
+                  event.preventDefault()
+                  // Move focus to follow the selection (roving tabindex). Done in
+                  // a post-commit effect rather than rAF — rAF is throttled to ~0
+                  // in background tabs, which would strand focus on the old tab.
+                  focusActiveTabRef.current = true
+                  jumpToSection(next)
+                }
+              }
+            : undefined
+        }
         className={cn(
           // Page mode renders this nav inside the non-scrolling white <header>
           // (no sticky needed). Panel + sheet render it in the scroll body, so
@@ -1834,12 +1902,24 @@ export function ObligationQueueDetailDrawer({
           )}
         >
           {sectionNavItems.map((item) => {
-            const sectionActive = item.id === activeSection
+            // 2026-06-29 (Yuqi "hard to navigate"): on the persistent panel/page
+            // surfaces the nav now SWITCHES tabs (only the active section mounts),
+            // so the underline follows `activeTab` directly. The legacy sheet keeps
+            // the scroll-spy table-of-contents behaviour, driven by `activeSection`.
+            const sectionActive = panelLayout ? item.tab === activeTab : item.id === activeSection
             return (
               <button
                 key={item.id}
+                id={`deadline-tab-${item.tab}`}
                 type="button"
-                aria-current={sectionActive ? 'true' : undefined}
+                // Panel/page: real tab semantics (roving tabindex — only the
+                // selected tab is in the tab order; arrows move within the list).
+                // Sheet: a scroll-spy link, marked aria-current instead.
+                role={panelLayout ? 'tab' : undefined}
+                aria-selected={panelLayout ? sectionActive : undefined}
+                aria-controls={panelLayout ? `deadline-section-${item.tab}` : undefined}
+                tabIndex={panelLayout ? (sectionActive ? 0 : -1) : undefined}
+                aria-current={panelLayout ? undefined : sectionActive ? 'true' : undefined}
                 onClick={() => jumpToSection(item.tab)}
                 className={cn(
                   'relative inline-flex cursor-pointer items-center gap-1.5 pb-0.5 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -2634,15 +2714,26 @@ export function ObligationQueueDetailDrawer({
                 a sticky table-of-contents at the body top. The `sectionNav` node
                 is shared so the nav markup lives in one place. */}
               {mode === 'sheet' ? sectionNav : null}
-              {visibleTabs.has('summary') ? (
-                <section id="deadline-section-summary" className={sectionScrollClass}>
+              {/* 2026-06-29 (Yuqi "hard to navigate"): on the persistent panel/page
+                surfaces these sections now SWITCH like real tabs — only the active
+                one mounts — instead of all stacking in one long scroll-spy column.
+                That turns the giant Materials scroll into a short, bounded surface
+                and makes Record/Activity reachable in one click. The legacy floating
+                sheet keeps the stacked scroll-spy view (all sections render). */}
+              {visibleTabs.has('summary') && (!panelLayout || activeTab === 'summary') ? (
+                <section
+                  id="deadline-section-summary"
+                  role={panelLayout ? 'tabpanel' : undefined}
+                  aria-labelledby={panelLayout ? 'deadline-tab-summary' : undefined}
+                  className={sectionScrollClass}
+                >
                   <motion.div
                     // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
                     // per-section content drops its 24px top padding in the
                     // persistent layouts so it sits tight under the nav. The
                     // legacy sheet keeps pt-6.
                     className={cn(panelLayout ? '' : 'pt-6')}
-                    {...contentEnterMotion}
+                    {...tabContentMotion}
                   >
                     {/* Summary tab — milestone chevron + active-stage zoom.
                   These were previously pinned in the sticky snapshot
@@ -2831,18 +2922,14 @@ export function ObligationQueueDetailDrawer({
                             }}
                           />
                         </div>
-                        {/* 2026-06-16 (Yuqi NrQaI "ensure WHAT'S LEFT TO DO is a
-                        carded section with its header — it floats on gray under
-                        the workflow card; match the other sections"): the
-                        checklist was a divider sub-section INSIDE the Workflow
-                        card; it now stands alone as its own white bordered
-                        DetailSectionCard (flat, tone="action") with a real
-                        "What's left to do" header + a right-aligned N-of-M count,
-                        identical treatment to Recent activity / Extension. It
-                        renders in every mode (like Recent activity) — the flat
-                        card reads correctly on the gray body and the sheet's
-                        warm canvas alike. */}
-                        {checklist.length > 0 &&
+                        {/* What's left to do — a checklist summary card.
+                        2026-06-29 (Yuqi "Status = pure workflow"): SHEET-ONLY now.
+                        On the panel/page surfaces the full checklist lives one tab
+                        over in Materials (with its progress legend), so this peek
+                        was duplicated surface on the Status decision tab. The legacy
+                        sheet (one long scroll) keeps it inline. */}
+                        {!panelLayout &&
+                        checklist.length > 0 &&
                         row.status !== 'done' &&
                         row.status !== 'completed' ? (
                           <DetailSectionCard
@@ -2916,15 +3003,13 @@ export function ObligationQueueDetailDrawer({
                             </div>
                           </DetailSectionCard>
                         ) : null}
-                        {/* Recent activity — last few audit-feed entries, with a
-                        link out to the full Timeline tab. */}
-                        {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
-                        activity): the shared <DetailSectionCard> over flush rows
-                        with top hairlines + mono timestamps.
-                        2026-06-16 (deadlines↔alerts §11): FLAT + tone="reference"
-                        — the detail reads as one calm document (matching the
-                        alert detail), not boxes-in-boxes. */}
-                        {detail.auditEvents.length > 0 ? (
+                        {/* Recent activity — last few audit-feed entries.
+                        2026-06-29 (Yuqi "should activity belong to Activity?"):
+                        SHEET-ONLY now. On panel/page the full timeline is its own
+                        Activity tab, so this 3-row preview of (mostly admin) events
+                        was duplicated surface on the Status decision tab. The legacy
+                        sheet keeps it inline in the long scroll. */}
+                        {!panelLayout && detail.auditEvents.length > 0 ? (
                           <DetailSectionCard
                             variant="flat"
                             tone="reference"
@@ -2945,10 +3030,13 @@ export function ObligationQueueDetailDrawer({
                                     className={cn(
                                       // 2026-06-10 (Yuqi page-polish #16 "更扁"):
                                       // the Recent-activity rows flatten to py-2.5.
-                                      // 2026-06-16 (§11 flat): no px — the rows sit
-                                      // at the flat section's edge, aligned with its
-                                      // header (the card's px-5 inset is gone).
-                                      'flex items-center gap-3 py-2.5',
+                                      // 2026-06-29 (Yuqi padding fix): rows carry
+                                      // px-5 to align with the flat header band —
+                                      // which DOES keep its own px-5 (the earlier
+                                      // "inset is gone" note was wrong, so the
+                                      // flush rows hung ~20px left of every sibling
+                                      // card's content + this card's own title).
+                                      'flex items-center gap-3 px-5 py-2.5',
                                       index > 0 && 'border-t border-divider-subtle',
                                     )}
                                   >
@@ -2967,169 +3055,12 @@ export function ObligationQueueDetailDrawer({
                             </ul>
                           </DetailSectionCard>
                         ) : null}
-                        {/* 2026-06-10 (Yuqi restore rework 2adfcf5e — fold Extension
-                        into Status): the decideExtension flow (Form 7004/4868)
-                        is unreachable in page mode (no Extension tab in the
-                        locked 4-tab bar), so the apply-extension action folds
-                        here as a Status-tab DetailSectionCard. Reuses the same
-                        extensionDraft + saveExtensionDecision as the legacy
-                        Extension tab — no fiction (real rule fields only).
-                        Shows when a rule allows an extension or one is already
-                        on file. */}
-                        {panelLayout &&
-                        (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
-                          <DetailSectionCard
-                            variant="flat"
-                            tone="action"
-                            title={<Trans>Extension</Trans>}
-                            headerRight={
-                              row.extensionDecidedAt ? (
-                                <span className="text-caption-xs text-text-tertiary">
-                                  <Trans>
-                                    Filed {formatDate(row.extensionDecidedAt.slice(0, 10))}
-                                  </Trans>
-                                </span>
-                              ) : detail.matchedRule ? (
-                                <TextLink
-                                  variant="accent"
-                                  className="font-semibold"
-                                  render={
-                                    <Link
-                                      to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                                    />
-                                  }
-                                >
-                                  <Trans>Open rule →</Trans>
-                                </TextLink>
-                              ) : null
-                            }
-                          >
-                            <div className="flex flex-col gap-3">
-                              <p className="text-caption text-text-tertiary">
-                                {(() => {
-                                  const formName =
-                                    extensionPolicy?.formName ?? row.extensionFormName ?? null
-                                  return formName
-                                    ? t`${formName} — automatic extension of time to file. Defers filing, not payment.`
-                                    : t`Extension of time to file. Defers filing, not payment.`
-                                })()}
-                              </p>
-                              {extensionNeedsManualDeadline ? (
-                                <label className="flex flex-col gap-1">
-                                  <CapsFieldLabel as="span" variant="group">
-                                    <Trans>Extended filing deadline</Trans>
-                                  </CapsFieldLabel>
-                                  <IsoDatePicker
-                                    value={extensionDraft.extendedFilingDate}
-                                    invalid={extensionManualDeadlineInvalid}
-                                    ariaLabel={t`Extended filing deadline`}
-                                    placeholder={t`Extended filing deadline`}
-                                    onValueChange={(extendedFilingDate) =>
-                                      setExtensionDraft((current) => ({
-                                        ...current,
-                                        extendedFilingDate,
-                                      }))
-                                    }
-                                  />
-                                </label>
-                              ) : null}
-                              <div className="grid gap-3 sm:grid-cols-2">
-                                <label className="flex flex-col gap-1">
-                                  <CapsFieldLabel as="span" variant="group">
-                                    <Trans>Internal target date</Trans>
-                                  </CapsFieldLabel>
-                                  <IsoDatePicker
-                                    value={extensionDraft.internalTargetDate}
-                                    invalid={internalTargetDateInvalid}
-                                    maxIsoDate={extensionDeadlineCap}
-                                    ariaLabel={t`Internal extension target date`}
-                                    placeholder={t`Internal extension target date`}
-                                    onValueChange={(internalTargetDate) =>
-                                      setExtensionDraft((current) => ({
-                                        ...current,
-                                        internalTargetDate,
-                                      }))
-                                    }
-                                  />
-                                </label>
-                                <label className="flex flex-col gap-1">
-                                  <CapsFieldLabel as="span" variant="group">
-                                    <Trans>Source or confirmation</Trans>
-                                  </CapsFieldLabel>
-                                  <Input
-                                    aria-label={t`Extension source`}
-                                    placeholder={t`Reference (optional)`}
-                                    value={extensionDraft.source}
-                                    onChange={(event) =>
-                                      setExtensionDraft((current) => ({
-                                        ...current,
-                                        source: event.target.value,
-                                      }))
-                                    }
-                                  />
-                                </label>
-                              </div>
-                              <label className="flex flex-col gap-1">
-                                <CapsFieldLabel as="span" variant="group">
-                                  <Trans>Decision memo</Trans>
-                                </CapsFieldLabel>
-                                <Textarea
-                                  aria-label={t`Decision memo`}
-                                  aria-required="true"
-                                  placeholder={t`Why is this extension being filed? (required)`}
-                                  value={extensionDraft.memo}
-                                  onChange={(event) =>
-                                    setExtensionDraft((current) => ({
-                                      ...current,
-                                      memo: event.target.value,
-                                    }))
-                                  }
-                                />
-                              </label>
-                              {row.paymentDueDate ? (
-                                <PaymentStillDueCallout
-                                  title={
-                                    typeof row.estimatedTaxDueCents === 'number' &&
-                                    row.estimatedTaxDueCents > 0
-                                      ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
-                                      : t`Payment still due ${formatDate(row.paymentDueDate)}`
-                                  }
-                                >
-                                  <Trans>
-                                    Filing an extension does not extend the time to pay. Schedule an
-                                    EFTPS payment by the original deadline to avoid additional
-                                    interest.
-                                  </Trans>
-                                </PaymentStillDueCallout>
-                              ) : null}
-                              <div className="flex flex-wrap items-center justify-end gap-2">
-                                {row.extensionDecidedAt ? (
-                                  <span className="mr-auto text-caption text-text-tertiary">
-                                    <Trans>
-                                      Last decided{' '}
-                                      {formatDateTimeWithTimezone(
-                                        row.extensionDecidedAt,
-                                        practiceTimezone,
-                                      )}
-                                    </Trans>
-                                  </span>
-                                ) : null}
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setExtensionDraft(emptyExtensionPlanDraft(row.id))}
-                                >
-                                  <Trans>Reset</Trans>
-                                </Button>
-                                <Button
-                                  onClick={saveExtensionDecision}
-                                  disabled={saveExtensionPlanDisabled}
-                                >
-                                  <Trans>File extension</Trans>
-                                </Button>
-                              </div>
-                            </div>
-                          </DetailSectionCard>
-                        ) : null}
+                        {/* Extension is its own tab now (2026-06-29, Yuqi "more
+                        specific tabs > fewer long ones"): the apply-extension form
+                        + rule facts live in the standalone `deadline-section-
+                        extension` panel, surfaced as a conditional Extension tab on
+                        panel/page and inline in the sheet's scroll. No longer folded
+                        into Status, so the Status tab stays pure workflow. */}
                       </div>
                       {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX):
                       single-column body, so Ownership + Linked-from fold to a
@@ -3277,9 +3208,14 @@ export function ObligationQueueDetailDrawer({
                   </motion.div>
                 </section>
               ) : null}
-              {visibleTabs.has('readiness') ? (
-                <section id="deadline-section-readiness" className={sectionScrollClass}>
-                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
+              {visibleTabs.has('readiness') && (!panelLayout || activeTab === 'readiness') ? (
+                <section
+                  id="deadline-section-readiness"
+                  role={panelLayout ? 'tabpanel' : undefined}
+                  aria-labelledby={panelLayout ? 'deadline-tab-readiness' : undefined}
+                  className={sectionScrollClass}
+                >
+                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...tabContentMotion}>
                     {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
                     structural tighten, #13 "scattered"): outer gap
                     bumped from gap-3 → gap-4 so each top-level
@@ -4153,9 +4089,14 @@ export function ObligationQueueDetailDrawer({
                 (sheet + filing types). In panel/page the locked-4 set drops it
                 (it folds into the Status workflow), so it no longer mounts
                 hidden. Intentional divergence — logged in the dev-log. */}
-              {visibleTabs.has('extension') ? (
-                <section id="deadline-section-extension" className={sectionScrollClass}>
-                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
+              {visibleTabs.has('extension') && (!panelLayout || activeTab === 'extension') ? (
+                <section
+                  id="deadline-section-extension"
+                  role={panelLayout ? 'tabpanel' : undefined}
+                  aria-labelledby={panelLayout ? 'deadline-tab-extension' : undefined}
+                  className={sectionScrollClass}
+                >
+                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...tabContentMotion}>
                     <div className="grid gap-4">
                       {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
                       tab): the matched-rule facts render as a Form 7004
@@ -4553,9 +4494,14 @@ export function ObligationQueueDetailDrawer({
                   </motion.div>
                 </section>
               ) : null}
-              {visibleTabs.has('evidence') ? (
-                <section id="deadline-section-evidence" className={sectionScrollClass}>
-                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
+              {visibleTabs.has('evidence') && (!panelLayout || activeTab === 'evidence') ? (
+                <section
+                  id="deadline-section-evidence"
+                  role={panelLayout ? 'tabpanel' : undefined}
+                  aria-labelledby={panelLayout ? 'deadline-tab-evidence' : undefined}
+                  className={sectionScrollClass}
+                >
+                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...tabContentMotion}>
                     {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
                     - WORKPAPERS (top, default open): client-attached
@@ -4847,9 +4793,14 @@ export function ObligationQueueDetailDrawer({
                 from the real audit feed (was a dead deep-link before). Only
                 mounts when the tab is visible (page mode / types that expose
                 it) so the panel/sheet surfaces are unchanged. */}
-              {visibleTabs.has('audit') ? (
-                <section id="deadline-section-audit" className={sectionScrollClass}>
-                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
+              {visibleTabs.has('audit') && (!panelLayout || activeTab === 'audit') ? (
+                <section
+                  id="deadline-section-audit"
+                  role={panelLayout ? 'tabpanel' : undefined}
+                  aria-labelledby={panelLayout ? 'deadline-tab-audit' : undefined}
+                  className={sectionScrollClass}
+                >
+                  <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...tabContentMotion}>
                     {/* 2026-06-11 (Yuqi tab-content unification): the timeline
                         sits in the shared card chrome like every other tab's
                         primary content; event count in headerRight. */}
@@ -4905,7 +4856,11 @@ export function ObligationQueueDetailDrawer({
             the sticky footer. Small uppercase eyebrow gives it gentle
             visual separation from the tab content above without
             needing a full divider. */}
-          {row ? (
+          {/* 2026-06-29 (Yuqi): with real tab-switching this trailing panel must
+              belong to ONE tab, else it repeats at the bottom of every tab. It's
+              reference info under the deadline → it lives on Status. Sheet (one
+              long scroll) keeps it as the single closing panel. */}
+          {row && (!panelLayout || activeTab === 'summary') ? (
             <div className="mt-4 flex flex-col gap-2">
               <CapsFieldLabel as="div" variant="group">
                 <Trans>Reference dates</Trans>

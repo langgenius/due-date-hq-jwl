@@ -8,6 +8,12 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  URGENCY_BAND_ORDER,
+  isDueDaysSuppressedForStatus,
+  urgencyBandOf,
+  type UrgencyBand,
+} from '@/features/obligations/queue/helpers'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
@@ -30,22 +36,10 @@ import { formatDatePretty } from '@/lib/utils'
  * lanes show only work that still needs a hand.
  */
 
-// The "settled" cluster (the success-green statuses). These are done; they
-// never show a red countdown and live in their own Filed lane.
-const SETTLED_STATUSES = new Set<ObligationStatus>(['done', 'paid', 'completed'])
-
-type LaneKey = 'overdue' | 'today' | 'week' | 'upcoming' | 'filed'
-
-const LANE_ORDER: readonly LaneKey[] = ['overdue', 'today', 'week', 'upcoming', 'filed']
-
-function laneOf(row: ObligationQueueRow): LaneKey {
-  if (SETTLED_STATUSES.has(row.status)) return 'filed'
-  const days = row.daysUntilDue
-  if (days < 0) return 'overdue'
-  if (days === 0) return 'today'
-  if (days <= 7) return 'week'
-  return 'upcoming'
-}
+// 2026-06-29 (audit P1): lane bucketing now uses the CANONICAL `urgencyBandOf`
+// from queue/helpers — shared with the /deadlines table so the two views can't
+// drift. (The old local copy omitted `not_applicable` from settled and ignored
+// extension target dates, which the shared helper handles.)
 
 function entityLabel(type: ObligationQueueRow['clientEntityType']): string {
   switch (type) {
@@ -81,34 +75,34 @@ export function DeadlineCardGrid({
   const currentUserName = useCurrentUserName()
 
   const lanes = useMemo(() => {
-    const buckets: Record<LaneKey, ObligationQueueRow[]> = {
+    const buckets: Record<UrgencyBand, ObligationQueueRow[]> = {
       overdue: [],
       today: [],
-      week: [],
+      this_week: [],
       upcoming: [],
       filed: [],
     }
-    for (const row of rows) buckets[laneOf(row)].push(row)
+    for (const row of rows) buckets[urgencyBandOf(row)].push(row)
     // Soonest-first within each active lane (most-overdue first in Overdue);
     // the Filed lane reads most-recently-due first.
     const byDueAsc = (a: ObligationQueueRow, b: ObligationQueueRow) =>
       a.daysUntilDue - b.daysUntilDue
     buckets.overdue.sort(byDueAsc)
     buckets.today.sort(byDueAsc)
-    buckets.week.sort(byDueAsc)
+    buckets.this_week.sort(byDueAsc)
     buckets.upcoming.sort(byDueAsc)
     buckets.filed.sort((a, b) => b.daysUntilDue - a.daysUntilDue)
-    return LANE_ORDER.map((key) => ({ key, rows: buckets[key] })).filter(
+    return URGENCY_BAND_ORDER.map((key) => ({ key, rows: buckets[key] })).filter(
       (lane) => lane.rows.length > 0,
     )
   }, [rows])
 
-  const laneLabel = (key: LaneKey) =>
+  const laneLabel = (key: UrgencyBand) =>
     key === 'overdue'
       ? t`Overdue`
       : key === 'today'
         ? t`Due today`
-        : key === 'week'
+        : key === 'this_week'
           ? t`Due this week`
           : key === 'upcoming'
             ? t`Upcoming`
@@ -173,7 +167,7 @@ function DeadlineCard({
   onOpen: (obligationId: string) => void
 }) {
   const { t } = useLingui()
-  const settled = SETTLED_STATUSES.has(row.status)
+  const settled = isDueDaysSuppressedForStatus(row.status)
   const days = row.daysUntilDue
   const dueIso = row.filingDueDate ?? row.currentDueDate
 

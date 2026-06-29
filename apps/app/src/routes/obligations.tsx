@@ -194,6 +194,14 @@ import {
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
+// 2026-06-29 (audit P1): the urgency banding now lives in queue/helpers as the
+// single source of truth shared with DeadlineCardGrid (re-exported below for the
+// colocated test + existing './obligations' importers).
+import {
+  URGENCY_BAND_ORDER,
+  urgencyBandOf,
+  type UrgencyBand,
+} from '@/features/obligations/queue/helpers'
 import {
   DEADLINE_DETAIL_TABS,
   cleanDeadlineDetailSearch,
@@ -1964,6 +1972,7 @@ export function ObligationQueueRoute() {
       today: t`Today`,
       this_week: t`This week`,
       upcoming: t`Upcoming`,
+      filed: t`Filed`,
     }
     const groupKeyOf = (r: ObligationQueueRow) =>
       group === 'urgency'
@@ -2563,13 +2572,24 @@ export function ObligationQueueRoute() {
         accessorKey: 'filingDueDate',
         id: 'filingDueDate',
         header: () => <span className="whitespace-nowrap">{t`Official due`}</span>,
-        cell: (info) => {
-          const value = info.getValue<string | null>()
+        cell: ({ row: tableRow }) => {
+          const value = tableRow.original.filingDueDate
           if (!value) return <EmptyCellMark />
+          // 2026-06-29 (audit P2): demote when the statutory date just restates
+          // the internal working date — with no firm buffer, OFFICIAL DUE is
+          // redundant next to INTERNAL DUE, so render it muted. A REAL divergence
+          // (extension target, or statutory ≠ working) stays full-strength, which
+          // is the only time this column earns its keep.
+          const sameAsInternal = value === effectiveInternalDueDate(tableRow.original)
           // Prose date "May 12, 2026". alwaysShowYear keeps the year visible
           // even within the current tax year.
           return (
-            <span className="text-xs tabular-nums text-text-secondary">
+            <span
+              className={cn(
+                'text-xs tabular-nums',
+                sameAsInternal ? 'text-text-tertiary' : 'text-text-secondary',
+              )}
+            >
               {formatDatePretty(value, { alwaysShowYear: true })}
             </span>
           )
@@ -4829,7 +4849,15 @@ export function ObligationQueueRoute() {
                                           other="# deadlines"
                                         />
                                       </span>
-                                      {(groupHeader.lateCount ?? 0) > 0 ? (
+                                      {/* "· N late" qualifies the count only when
+                                          SOME (not all) of the band is late — e.g.
+                                          a client/filing group with 3 of 8 past due.
+                                          Once the Overdue band holds only actionable
+                                          late rows (audit P0), count === lateCount,
+                                          so the suffix would just restate the count;
+                                          suppress it. */}
+                                      {(groupHeader.lateCount ?? 0) > 0 &&
+                                      groupHeader.lateCount !== groupHeader.count ? (
                                         <span
                                           className="text-xs tracking-wide text-text-destructive uppercase tabular-nums"
                                           title={
@@ -5676,26 +5704,13 @@ export function daysUntilEffectiveInternalDueDate(
   return Math.round(ms / DAY_MS)
 }
 
-// Urgency buckets are derived from the INTERNAL (effective) due date so
-// they honor extension target dates exactly like the Internal-due cell pill.
-// `urgency` is no longer a Group-by option; keep this helper scoped to due-date
-// urgency semantics. Thresholds match the toolbar chip semantics: Past due =
-// days < 0, Due this week = 0..7.
-export type UrgencyBand = 'overdue' | 'today' | 'this_week' | 'upcoming'
-export const URGENCY_BAND_ORDER = ['overdue', 'today', 'this_week', 'upcoming'] as const
-export function urgencyBandOf(
-  row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
-  today = todayIsoDate(),
-): UrgencyBand {
-  const days = daysUntilEffectiveInternalDueDate(row, today)
-  if (days < 0) return 'overdue'
-  // Today is its own horizon — "due today" is a different decision than "due
-  // later this week", and a deadline product should say so. Splitting it out of
-  // this_week gives the time-forward ladder Overdue · Today · This week · Upcoming.
-  if (days === 0) return 'today'
-  if (days <= 7) return 'this_week'
-  return 'upcoming'
-}
+// Urgency banding (overdue · today · this week · upcoming · filed) is the
+// CANONICAL `urgencyBandOf` in queue/helpers — imported above and re-exported
+// here so './obligations' importers (incl. the colocated test) keep resolving.
+// It derives from the INTERNAL (effective) due date so extension target dates
+// band exactly like the Internal-due cell pill, and routes settled work to the
+// Filed band (audit P0/P1).
+export { URGENCY_BAND_ORDER, urgencyBandOf, type UrgencyBand }
 function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
   if (isDueDaysSuppressedForStatus(status)) {
     // Quality stat, not active urgency. Skip the dot, drop the

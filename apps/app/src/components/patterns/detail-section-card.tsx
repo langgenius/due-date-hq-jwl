@@ -30,6 +30,8 @@ export function DetailSectionCard({
   tone = 'action',
   index,
   caption,
+  role,
+  ariaLabelledby,
 }: {
   title: ReactNode
   /** Right-aligned header meta or actions (e.g. "Verify before apply", a count,
@@ -64,6 +66,14 @@ export function DetailSectionCard({
    */
   variant?: 'card' | 'flat'
   /**
+   * 2026-06-29: when the card IS a tab's panel (e.g. the alert detail's real
+   * tabs), pass `role="tabpanel"` + `ariaLabelledby` (the controlling tab's id)
+   * so the inner `<section>` is announced as the tab's content. Defaults off —
+   * the card stays a plain `<section>` everywhere else.
+   */
+  role?: string | undefined
+  ariaLabelledby?: string | undefined
+  /**
    * 2026-06-14 (Yuqi critique — "eyes don't know where to go"): flat sections
    * are ranked. `action` = the decision-critical sections (Change, Clients):
    * a 16/600 primary header. `reference` = supporting depth (Source, Activity):
@@ -86,6 +96,8 @@ export function DetailSectionCard({
       // Yuqi-requested move away from the earlier NrQaI "no header bands" rule.
       <section
         id={id}
+        role={role}
+        aria-labelledby={ariaLabelledby}
         data-section-tone={tone}
         className={cn(
           'overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
