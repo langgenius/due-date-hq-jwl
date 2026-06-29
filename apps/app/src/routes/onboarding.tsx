@@ -314,10 +314,13 @@ export function OnboardingRoute() {
           {/* Side-by-side at lg: text fields on the left, the state-rule
               tilegram on the right. Stacks to one column below lg. */}
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-10">
-            {/* Left — text fields, staggered in on mount */}
+            {/* Left — text fields. `initial={false}` renders them at the shown
+                state immediately (no hidden→show mount animation): the stagger
+                could otherwise leave rows stuck invisible at opacity 0 inside
+                the side-by-side grid. */}
             <motion.div
               className="flex flex-col gap-5"
-              initial="hidden"
+              initial={false}
               animate="show"
               variants={FIELD_COLUMN_VARIANTS}
             >

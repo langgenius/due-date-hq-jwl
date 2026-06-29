@@ -222,17 +222,6 @@ export function DailyBriefCard({
 
   return (
     <div className="relative">
-      {/* Aurora "generating" glow (Yuqi ref: the "Brief is generating" pill) — a
-          soft brand-cyan → violet → warm halo that drifts behind the banner ONLY
-          while the AI writes the brief, so the wait reads as alive thinking, not
-          a dead spinner. A blurred gradient layer sits behind the card and leaks
-          a few px past the edge as a halo; reduced-motion freezes the drift. */}
-      {isPending ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -inset-1 rounded-2xl bg-[linear-gradient(115deg,var(--color-brand-highlight),var(--color-aurora-violet),var(--color-aurora-warm),var(--color-brand-highlight))] bg-[length:300%_300%] opacity-55 blur-lg animate-[ddhq-aurora-drift_4.5s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-40"
-        />
-      ) : null}
       <section
         aria-label={t`Daily brief`}
         // The accent-tinted banner of /today (Yuqi: "background blue tint") —
@@ -273,7 +262,7 @@ export function DailyBriefCard({
               className="size-3.5 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
               aria-hidden
             />
-            <h2 className="text-sm font-semibold text-text-secondary">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
               <Trans>Daily Brief</Trans>
             </h2>
           </span>
