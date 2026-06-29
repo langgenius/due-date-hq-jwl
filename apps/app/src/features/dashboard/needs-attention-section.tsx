@@ -342,7 +342,7 @@ function NeedsAttentionSection() {
         // monitor still reports what changed; it just stops shouting about
         // changes that touch zero clients (critique: cards earn their height
         // only when clients are affected).
-        <div className="flex flex-col">
+        <div className="flex flex-col divide-y divide-divider-subtle border-t border-divider-subtle">
           {quietAlerts.map((alert) => (
             <NeedsAttentionQuietRow
               key={alert.id}

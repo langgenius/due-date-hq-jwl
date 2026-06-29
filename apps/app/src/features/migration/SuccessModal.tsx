@@ -5,6 +5,7 @@ import {
   ArrowRightIcon,
   CalendarDaysIcon,
   CheckIcon,
+  ChevronRightIcon,
   MailIcon,
   ScrollTextIcon,
   TriangleAlertIcon,
@@ -332,7 +333,7 @@ function NextStep({
     <button
       type="button"
       onClick={onClick}
-      className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       <span
         className={cn(
@@ -348,7 +349,7 @@ function NextStep({
         <span className="text-sm font-semibold text-text-primary">{title}</span>
         <span className="text-caption font-medium text-text-secondary">{sub}</span>
       </span>
-      <ArrowRightIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+      <ChevronRightIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
     </button>
   )
 }

@@ -131,16 +131,19 @@ export function Step3Normalize({
         </div>
       ) : (
         <>
-          <SummaryReadout
-            totalValues={countTotalValues(normalizationSummary.groups)}
-            categoryCount={categories.length}
-            needsReview={normalizationSummary.exceptionGroups}
-            affectedClients={normalizationSummary.affectedExceptionClients}
-          />
+          {/* Prose readout kept sr-only (the chips + the category bar below are
+              the visible count); stays in the DOM for a11y + tests so the screen
+              isn't triple-counting the same "N values · all matched". */}
+          <div className="sr-only">
+            <SummaryReadout
+              totalValues={countTotalValues(normalizationSummary.groups)}
+              categoryCount={categories.length}
+              needsReview={normalizationSummary.exceptionGroups}
+              affectedClients={normalizationSummary.affectedExceptionClients}
+            />
+          </div>
 
-          {/* Count chips — Auto-normalized / Confirm / Default Matrix +
-              "Audit logged". The prose SummaryReadout above stays for the
-              detailed readout; these chips give the at-a-glance split. */}
+          {/* At-a-glance count chips — the visible split. */}
           {categories.length > 0 || matrixSummary.enabledCells > 0 ? (
             <NormalizePillStrip
               autoNormalized={Math.max(
@@ -193,22 +196,26 @@ function NormalizePillStrip({
   defaultMatrix: number
 }) {
   return (
+    // Only the positive "Auto-normalized" count always shows; the Confirm /
+    // Tax-type-defaults chips appear only when there's a non-zero count to act
+    // on (a "· 0" chip is noise). "Audit logged" was dropped — the reassurance
+    // line below already says every change is logged.
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="success" className="tabular-nums">
         <Trans>Auto-normalized · {autoNormalized}</Trans>
       </Badge>
-      <Badge variant={confirm > 0 ? 'warning' : 'outline'} className="tabular-nums">
-        <Trans>Confirm · {confirm}</Trans>
-      </Badge>
-      <Badge variant="outline" className="tabular-nums">
-        {/* "Tax type defaults", not "Default Matrix" — the chip names the same
-            thing its own card below is titled (2026-06-12 critique: "Matrix"
-            is system vocabulary). */}
-        <Trans>Tax type defaults · {defaultMatrix}</Trans>
-      </Badge>
-      <span className="text-xs text-text-tertiary">
-        <Trans>Audit logged</Trans>
-      </span>
+      {confirm > 0 ? (
+        <Badge variant="warning" className="tabular-nums">
+          <Trans>Confirm · {confirm}</Trans>
+        </Badge>
+      ) : null}
+      {defaultMatrix > 0 ? (
+        <Badge variant="secondary" className="tabular-nums">
+          {/* "Tax type defaults", not "Default Matrix" — names the same thing
+              its own card below is titled (2026-06-12: "Matrix" is jargon). */}
+          <Trans>Tax type defaults · {defaultMatrix}</Trans>
+        </Badge>
+      ) : null}
     </div>
   )
 }

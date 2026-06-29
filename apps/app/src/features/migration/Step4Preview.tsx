@@ -183,9 +183,11 @@ export function Step4Preview({
                     </>
                   ) : null}
                 </span>
-                <span className="ml-auto shrink-0 text-text-secondary tabular-nums">
-                  <Plural value={client.obligationCount} one="# deadline" other="# deadlines" />
-                </span>
+                {client.obligationCount > 0 ? (
+                  <span className="ml-auto shrink-0 text-text-secondary tabular-nums">
+                    <Plural value={client.obligationCount} one="# deadline" other="# deadlines" />
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>
