@@ -257,7 +257,7 @@ export function DailyBriefCard({
           whole card is hovered (the section owns `group`), echoing the tab's
           "pick the paper up off the mat" motion without adding any chrome. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-2">
             <NewspaperIcon
               className="size-3.5 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
               aria-hidden
@@ -298,7 +298,7 @@ export function DailyBriefCard({
 
         {/* Failure footnote — a quiet caption, never the headline. */}
         {aiEnabled && brief?.status === 'failed' && !brief.text ? (
-          <p className="text-caption text-text-tertiary">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             <Trans>Brief unavailable — we'll retry shortly.</Trans>
           </p>
         ) : null}
@@ -624,14 +624,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   // amber "Outdated" label again — the inline "· Refresh" affordance is
   // gone; the icon-only regenerate button on the right handles refresh.
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5">
-      <span
-        className={cn(
-          'size-1.5 rounded-full',
-          stale ? 'bg-state-warning-solid' : 'bg-state-success-solid',
-        )}
-        aria-hidden
-      />
+    <span className="inline-flex shrink-0 items-center">
       <span
         className={cn(
           'font-mono text-chip-label tabular-nums uppercase',
