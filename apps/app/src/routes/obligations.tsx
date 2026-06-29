@@ -3129,6 +3129,19 @@ export function ObligationQueueRoute() {
       },
     ]
   }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t, setObligationQueueQuery])
+  // 2026-06-29 (Yuqi "还是太零碎" / still too fragmented): the compact strip leads
+  // with the ACTIONABLE states only. "Total tracked" is already the title pill
+  // ("Deadlines · N"), and a zero segment ("0 Due this week") is just noise — both
+  // dropped, so the five-piece line tightens to "12 Overdue · 10 In review ·
+  // 6 Filed". The strip itself is hidden when the workspace has nothing to
+  // summarise (scopeTotal === 0 — empty, or the pre-load flash that showed 0·0·0).
+  const summaryStripCells = useMemo(
+    () =>
+      statBandCells.filter(
+        (cell) => cell.key !== 'tracked' && !(typeof cell.value === 'number' && cell.value === 0),
+      ),
+    [statBandCells],
+  )
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   // A v2 scope tab filters to the FULL set of raw statuses that display
   // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
@@ -3746,14 +3759,17 @@ export function ObligationQueueRoute() {
               </Button>
             </section>
           ) : null}
-          {/* Compact portfolio summary strip — the numeric triage + filter
-              shortcuts in one line (each segment fires the same scope filter the
-              StatBand cell did). Shared `StatSummaryStrip`. */}
-          <StatSummaryStrip
-            stats={statBandCells}
-            loading={glanceQuery.isLoading || facetsQuery.isLoading}
-            ariaLabel={t`Deadlines portfolio summary`}
-          />
+          {/* Compact portfolio summary strip — the actionable triage states in
+              one line (each segment fires the same scope filter the StatBand cell
+              did). Hidden when there's nothing to summarise so the empty/loading
+              state never shows "0 · 0 · 0 · 0 · 0". Shared `StatSummaryStrip`. */}
+          {scopeTotal > 0 ? (
+            <StatSummaryStrip
+              stats={summaryStripCells}
+              loading={glanceQuery.isLoading || facetsQuery.isLoading}
+              ariaLabel={t`Deadlines portfolio summary`}
+            />
+          ) : null}
         </div>
       ) : null}
 
