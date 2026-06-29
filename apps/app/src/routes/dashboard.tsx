@@ -476,18 +476,18 @@ export function DashboardRoute() {
         // (which floated free of their own title). The cap also holds the three
         // cards at a comfortable ~330px each, not stretched-thin rectangles.
         <div className="flex w-full max-w-5xl flex-1 flex-col gap-6 pt-2">
-          <div className="flex flex-col gap-1.5">
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1 text-column-label font-semibold tracking-wide text-text-secondary">
-              <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
-              <Trans>Get started</Trans>
-            </span>
-            <h2 className="text-display-large font-semibold tracking-tight text-text-primary">
+          <div className="flex flex-col gap-1">
+            {/* A calm section heading, not a second display hero — the page
+                title ("Today") already owns the top of the page, so the
+                empty-state heading sits a step below it (no eyebrow badge,
+                which would stack a second eyebrow under "Good evening"). */}
+            <h2 className="text-xl font-semibold tracking-tight text-text-primary">
               <Trans>Add your first work</Trans>
             </h2>
             <p className="max-w-xl text-sm leading-relaxed text-text-secondary">
               <Trans>
-                Pick how you want to begin. Import your whole book, add a single client, or drop in
-                one deadline — DueDateHQ tracks every due date from there.
+                Import your whole book, add a single client, or drop in one deadline — DueDateHQ
+                tracks every due date from there.
               </Trans>
             </p>
           </div>

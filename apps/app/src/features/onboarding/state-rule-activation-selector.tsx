@@ -166,20 +166,20 @@ export function StateRuleActivationSelector({
                         // touch target). The 2-letter code still reads as an
                         // abbreviation, not a competing button label.
                         className={cn(
-                          'relative flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[11px] font-medium transition-colors outline-none',
+                          'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[11px] font-medium transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+                          // Selected = a light accent TINT (navy text on a soft
+                          // navy wash + soft border), not a solid navy fill —
+                          // so the whole map at 51/51 reads as calm coverage, not
+                          // a wall of navy. The tint + navy code is the "on"
+                          // signal; the old corner check (size-3, white-on-navy)
+                          // was illegible and is dropped.
                           selectedState
-                            ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'
+                            ? 'border-state-accent-solid/40 bg-state-accent-hover-alt text-text-accent'
                             : 'border-divider-subtle bg-background-subtle text-text-muted hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary',
                         )}
                       >
                         {code}
-                        {selectedState ? (
-                          <CheckIcon
-                            className="absolute -top-1 -right-1 size-3 rounded-full bg-background-default p-0.5 text-text-accent"
-                            aria-hidden
-                          />
-                        ) : null}
                       </button>
                     }
                   />
