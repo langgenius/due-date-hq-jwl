@@ -391,57 +391,20 @@ export function MergedBriefCard({
         // sections celebrate the same way. Coffee, not confetti: the calm
         // brand's idea of a party. Every word is real state — no fiction.
         <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
-          {/* A faint skyline at rest behind the all-clear — the firm's city
-              quiet, nothing on fire. Decorative (aria-hidden), masked to fade up
-              so it never competes with the coffee beat or the copy.
-              Colour is `text-text-primary` (NOT the fixed `--color-brand-ink`
-              primitive, which has no dark mirror → invisible on a dark canvas):
-              the semantic token resolves to dark navy-ink in light mode and
-              near-white in dark, so the skyline reads in both. Dark bumps the
-              opacity (0.07 → 0.10) because near-white at 7% on a dark surface is
-              too faint — keeps it present but still recessive under the mask. */}
-          <svg
-            aria-hidden
-            viewBox="0 0 400 64"
-            preserveAspectRatio="xMidYMax meet"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full text-text-primary opacity-[0.07] [mask-image:linear-gradient(to_top,black,transparent)] dark:opacity-10"
-          >
-            <g fill="currentColor">
-              <rect x="6" y="34" width="22" height="30" />
-              <rect x="32" y="22" width="16" height="42" />
-              <rect x="52" y="40" width="26" height="24" />
-              <rect x="82" y="28" width="18" height="36" />
-              <rect x="104" y="16" width="14" height="48" />
-              <rect x="122" y="36" width="24" height="28" />
-              <rect x="150" y="26" width="18" height="38" />
-              <rect x="172" y="42" width="28" height="22" />
-              <rect x="204" y="20" width="16" height="44" />
-              <rect x="224" y="34" width="22" height="30" />
-              <rect x="250" y="12" width="14" height="52" />
-              <rect x="268" y="38" width="26" height="26" />
-              <rect x="298" y="28" width="18" height="36" />
-              <rect x="320" y="44" width="24" height="20" />
-              <rect x="348" y="24" width="16" height="40" />
-              <rect x="368" y="36" width="24" height="28" />
-            </g>
-          </svg>
           <span
-            // The coffee disc gives a gentle pop (zoom 90%→100%) over the text's
-            // fade — a small "you're clear" beat. Calm, not confetti. Palette
-            // finish: the disc wears the LIME celebration highlight (the one
-            // sanctioned home for the all-clear beat) — navy glyph on lime for
-            // a warm, legible pop, never white text on the light fill.
-            className="flex size-14 items-center justify-center rounded-full bg-highlight-celebrate animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
+            // Calm neutral disc + navy glyph — a quiet "you're clear" beat. (Was
+            // the loud lime "celebration" fill; Yuqi: drop the fluorescent green.)
+            className="flex size-14 items-center justify-center rounded-full bg-background-subtle animate-in zoom-in-90 duration-200 motion-reduce:animate-none"
             aria-hidden
           >
-            <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.5} />
+            <CoffeeIcon className="size-6 text-text-secondary" strokeWidth={1.5} />
           </span>
           <div className="flex max-w-md flex-col gap-1">
             <p className="text-base font-medium text-text-primary">
-              <Trans>All clear — nothing due, nothing late.</Trans>
+              <Trans>All clear — nothing due or late.</Trans>
             </p>
             <p className="text-sm text-text-tertiary">
-              <Trans>New deadlines land here as rules match your clients.</Trans>
+              <Trans>New deadlines appear here automatically.</Trans>
             </p>
           </div>
         </div>
