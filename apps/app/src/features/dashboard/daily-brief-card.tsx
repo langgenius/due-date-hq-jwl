@@ -233,7 +233,7 @@ export function DailyBriefCard({
         // docs/Design/brief-banner-language.md.
         // The unfold: expanding from the tab plays the house animate-in recipe
         // (fade + 4px slide from the tab's position) — the paper opens.
-        className="group relative z-10 flex flex-col gap-1 rounded-xl bg-state-accent-hover px-5 py-2.5 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+        className="group relative z-10 flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-3 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
       >
         {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}
@@ -504,7 +504,7 @@ function TodayLine({
       : ''
 
   return (
-    <p className="min-w-0 max-w-[72ch] text-base text-text-primary">
+    <p className="min-w-0 max-w-[72ch] text-base font-medium text-text-primary">
       <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
       {fallbackMarkers ? (
         <>
@@ -538,7 +538,7 @@ function FirmTodayLine({
   if (concentration && concentration.count >= 2) {
     const formLabel = formatTaxCode(concentration.taxType)
     return (
-      <p className="min-w-0 max-w-[72ch] text-base text-text-primary">
+      <p className="min-w-0 max-w-[72ch] text-base font-medium text-text-primary">
         <Trans>
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
