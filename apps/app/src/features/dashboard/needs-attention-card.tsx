@@ -403,7 +403,7 @@ function NeedsAttentionQuietRow({
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
       className={cn(
-        '-mx-2 flex h-9 min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left',
+        'flex h-10 min-w-0 cursor-pointer items-center gap-2.5 px-1 text-left',
         'transition-colors hover:bg-background-section',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
