@@ -1,7 +1,7 @@
 const { chromium } = require('@playwright/test')
 const OUT = '/Users/yuqi/Desktop'
 const NAVY = '#1F315C', INK = '#1A2433', MUT = '#667085', ACC = '#22488C', BG = '#F9FAFB'
-const GREEN = '#3FA86A', GREEN_INK = '#1E7A47', AMBER = '#C0883A', AMBER_INK = '#7A5320', RED = '#D2553F', RED_INK = '#B23A28', INFO = '#3AB3E0', INFO_INK = '#0E6E92', GRAY = '#98A2B3'
+const GREEN = '#3FA86A', GREEN_INK = '#1E7A47', AMBER = '#C0883A', AMBER_INK = '#7A5320', RED = '#D2553F', RED_INK = '#B23A28', INFO = '#3AB3E0', INFO_INK = '#0E6E92', GRAY = '#98A2B3', CYAN = '#14C5F6'
 const WACC = '#EAEFF7', WGRN = '#E8F5EC', WAMB = '#F4ECDE', WRED = '#FBE9E4'
 const BRD = 'rgba(16,24,40,.11)', HAIR = 'rgba(16,24,40,.07)'
 const fs = require('fs')
@@ -30,18 +30,28 @@ const HOT = ['WA','NY','TX','CA','FL','IL','GA','OH']
 function cleanMap(C, S) {
   return Object.entries(TILES).map(([code, [col, row]]) => {
     const on = HOT.includes(code)
-    const dot = on ? `<span style="position:absolute;top:-3px;right:-3px;width:${Math.round(S*0.32)}px;height:${Math.round(S*0.32)}px;border-radius:50%;background:${INFO};box-shadow:0 0 0 2px ${BG}"></span>` : ''
-    return `<div style="position:absolute;left:${col*C}px;top:${row*C}px;width:${S}px;height:${S}px;border-radius:${Math.round(S*0.28)}px;background:${on ? 'rgba(16,24,40,.18)' : 'rgba(16,24,40,.08)'}">${dot}</div>`
+    const dot = on ? `<span style="position:absolute;top:-3px;right:-3px;width:${Math.round(S * 0.34)}px;height:${Math.round(S * 0.34)}px;border-radius:50%;background:${CYAN};box-shadow:0 0 0 2px ${BG},0 0 9px ${CYAN}"></span>` : ''
+    return `<div style="position:absolute;left:${col * C}px;top:${row * C}px;width:${S}px;height:${S}px;border-radius:${Math.round(S * 0.28)}px;background:${on ? 'rgba(34,72,140,.92)' : 'rgba(16,24,40,.07)'}">${dot}</div>`
   }).join('')
+}
+function slimFooter(dark) {
+  const txt = dark ? 'rgba(243,238,230,.72)' : INK
+  const mut = dark ? 'rgba(243,238,230,.5)' : MUT
+  const line = dark ? 'rgba(255,255,255,.12)' : HAIR
+  const dotc = dark ? 'rgba(243,238,230,.34)' : 'rgba(16,24,40,.26)'
+  const acc = dark ? CYAN : ACC
+  const feat = (t) => `<span style="font-size:12.5px;font-weight:500;color:${txt};white-space:nowrap">${t}</span>`
+  const dt = `<span style="width:3px;height:3px;border-radius:50%;background:${dotc};flex-shrink:0"></span>`
+  return `<div style="position:absolute;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;gap:14px;padding:0 48px;border-top:1px solid ${line}">${dark ? markSvgLight(20) : markSvg(20)}<div style="display:flex;align-items:center;gap:10px">${feat('50 states + DC')}${dt}${feat('Matched to clients')}${dt}${feat('Sourced to the agency')}${dt}${feat('Audit-logged')}</div><div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0"><span style="display:inline-flex;align-items:center;gap:6px;border:1px solid ${acc};border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;color:${acc};white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:${INFO}"></span>Early access open</span><span style="font-family:'Geist Mono';font-size:12px;color:${mut}">duedatehq.com</span></div></div>`
 }
 function page(inner, dark) {
   return `<!doctype html><html><head><meta charset="utf-8">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
   <style>*{margin:0;padding:0;box-sizing:border-box}
-  body{width:1270px;height:760px;overflow:hidden;font-family:'Instrument Sans',system-ui,sans-serif;color:${MUT};background:${dark ? NAVY : BG};
+  body{width:1270px;height:820px;overflow:hidden;font-family:'Instrument Sans',system-ui,sans-serif;color:${MUT};background:${dark ? NAVY : BG};
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='1.5' cy='1.5' r='1.1' fill='${dark ? '%23F3EEE6' : '%231F315C'}' fill-opacity='${dark ? '0.06' : '0.055'}'/%3E%3C/svg%3E")}
-  .stage{position:relative;width:1270px;height:760px}
+  .stage{position:relative;width:1270px;height:820px}
   .h{font-family:'Instrument Sans',sans-serif;font-weight:600;color:${INK};line-height:1.05;letter-spacing:-.022em}
   .h em{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400;color:${ACC};letter-spacing:0}
   .s{font-size:19px;line-height:1.55;color:${MUT};font-weight:400}
@@ -76,7 +86,7 @@ function page(inner, dark) {
   .anc{display:flex;gap:20px;font-size:13px;font-weight:500;color:${MUT};border-bottom:1px solid ${HAIR}}
   .anc .on{color:${INK};font-weight:500;padding-bottom:9px;box-shadow:inset 0 -2px 0 ${ACC}}
   .anc span:not(.on){padding-bottom:9px}
-  </style></head><body><div class="stage">${dark ? LOCK_LIGHT : LOCK}${inner}</div></body></html>`
+  </style></head><body><div class="stage">${dark ? LOCK_LIGHT : LOCK}${inner}${slimFooter(dark)}</div></body></html>`
 }
 function ic(d, s, c, sw) { return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>` }
 const I = {
@@ -90,17 +100,28 @@ const I = {
   lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
   ext: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  news: '<path d="M16 22H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M22 4v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z"/><path d="M14 7h4M14 11h4M10 7h.01M10 11h.01M10 15h8"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  doc: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/>',
+  sparkles: '<path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/>',
+  download: '<path d="M12 3v12M7 11l5 5 5-5M5 21h14"/>',
+  penline: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  key: '<circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5 20 3"/><path d="m17 4 2 2"/><path d="m14.5 6.5 2 2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 1.9"/>',
 }
 function cover() {
   const dim = (sealIc, agency, type, typeIc, title, n, top) => `<div style="position:absolute;left:0;right:0;top:${top}px;display:flex;align-items:center;gap:12px;padding:13px 20px;opacity:.5;border-top:1px solid ${HAIR}"><div style="width:30px;height:30px;border-radius:8px;background:#F2F4F7;display:flex;align-items:center;justify-content:center">${ic(sealIc, 15, NAVY)}</div><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12.5px;font-weight:500;color:${INK}">${agency}</span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:${MUT}">${ic(typeIc, 11, MUT)}${type}</span></div><div style="font-size:13px;color:${MUT};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">${title}</div></div><span style="font-size:11.5px;font-weight:500;color:${MUT};flex-shrink:0">${n}</span></div>`
   return page(`
     <div style="position:absolute;left:96px;top:262px;max-width:580px">
       <div class="ey" style="margin-bottom:26px">For CPA firms · 50 states + DC</div>
-      <div class="h" style="font-size:56px">Never miss a<br><em>tax deadline</em>.</div>
+      <div class="h" style="font-size:60px">Never miss a<br><em>tax deadline</em>.</div>
       <div class="s" style="margin-top:28px;max-width:430px">One change, matched to every client it affects.</div>
     </div>
-    <div style="position:absolute;left:724px;top:156px;width:448px;height:380px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
-    <div class="card" style="position:absolute;left:702px;top:140px;width:470px;height:396px;padding:6px 0;overflow:hidden">
+    <div style="position:absolute;left:742px;top:250px;width:400px;height:270px;border-radius:50%;background:rgba(34,72,140,.12);filter:blur(80px)"></div>
+    <div style="position:absolute;left:724px;top:156px;width:448px;height:236px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:702px;top:140px;width:470px;height:252px;padding:6px 0;overflow:hidden">
       <div style="display:flex;align-items:center;gap:9px;padding:16px 20px 12px;border-bottom:1px solid ${HAIR}">${ic(I.bell, 17, INK)}<span style="font-size:15px;font-weight:600;color:${INK}">Alerts</span><span style="font-size:12px;font-weight:500;color:${MUT};background:#F2F4F7;border-radius:999px;padding:2px 9px">6</span><span style="display:inline-flex;align-items:center;gap:5px;margin-left:auto;font-size:12px;font-weight:500;color:${INFO_INK}"><span style="width:7px;height:7px;border-radius:50%;background:${INFO}"></span>Live</span></div>
       <div style="position:relative;background:${WACC};box-shadow:inset 3px 0 0 ${ACC};padding:16px 20px 18px">
         <div style="display:flex;align-items:center;gap:11px">
@@ -108,7 +129,7 @@ function cover() {
           <div style="line-height:1.15"><div style="font-size:13.5px;font-weight:500;color:${INK}">IRS · Federal</div><div style="font-size:11.5px;color:${MUT};display:flex;align-items:center;gap:5px">${ic(I.filePlus, 11, MUT)}New requirement · 2h ago</div></div>
           <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:${WAMB};color:${AMBER_INK};font-size:11px;font-weight:500;padding:4px 10px;border-radius:999px"><span style="width:6px;height:6px;border-radius:50%;background:${AMBER}"></span>Needs decision</span>
         </div>
-        <div style="font-size:16px;font-weight:500;color:${INK};line-height:1.4;margin-top:13px">Schedule K-3 now required for all partnership filings.</div>
+        <div style="font-size:16px;font-weight:500;color:${INK};line-height:1.4;margin-top:13px">Schedule K-3 now required for partnerships with foreign activity.</div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:13px">
           <span style="font-size:12.5px;font-weight:500;color:${INK}">Affects 3 clients</span>
           <div style="display:flex">${['ls', 'ph', 'mc'].map((k, i) => `<span style="width:26px;height:26px;border-radius:50%;background:#e9edf2 url('${AV[k]}') center/cover;margin-left:${i ? -8 : 0}px;box-shadow:0 0 0 2px #fff;flex-shrink:0;display:inline-block"></span>`).join('')}</div>
@@ -118,23 +139,22 @@ function cover() {
           <div class="btn sec" style="display:inline-flex;align-items:center;gap:7px;padding:10px 15px;font-size:13.5px">${ic(I.send, 13, INK)}Copy email draft</div>
         </div>
       </div>
-      ${dim(I.landmark, 'NY DTF', 'Form updated', I.refresh, 'PTET election window moved to Mar 15', '5 clients', 266)}
-      ${dim(I.cal, 'TX Comptroller', 'Extension', I.cal, 'Franchise report window extended 30 days', '2 clients', 332)}
     </div>
-    <div class="float" style="position:absolute;right:40px;top:258px;display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:500;color:${GREEN_INK}">${ic(I.check, 12, GREEN_INK, 2.6)}AI matched</div>
-    <div class="float" style="position:absolute;left:672px;top:520px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px"><span style="font-family:'Geist Mono';font-size:11px;font-weight:500;color:${ACC}">98%</span><span style="font-size:11px;color:${MUT}">parse confidence</span></div>`)
+    <div class="float" style="position:absolute;right:40px;top:288px;display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:500;color:${GREEN_INK}">${ic(I.check, 12, GREEN_INK, 2.6)}AI matched</div>
+    <div class="float" style="position:absolute;left:838px;top:418px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px"><span style="font-family:'Geist Mono';font-size:11px;font-weight:500;color:${ACC}">98%</span><span style="font-size:11px;color:${MUT}">· High parse confidence</span></div>`)
 }
 function monitoring() {
   const feed = (chip, text, n, time, last) => `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;${last?'':`border-bottom:1px solid ${HAIR}`}"><span class="chip" style="flex-shrink:0">${chip}</span><span style="flex:1;min-width:0;font-size:13.5px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${text}</span><span class="spill" style="background:${WACC};color:${ACC};flex-shrink:0">${n} clients</span><span class="num" style="font-size:12px;color:${MUT};width:42px;text-align:right;flex-shrink:0">${time}</span></div>`
   return page(`
     <div style="position:absolute;left:96px;top:262px;max-width:580px">
       <div class="ey" style="margin-bottom:28px">Always-on monitoring</div>
-      <div class="h" style="font-size:56px">All 50 states,<br>plus <em>federal</em>.</div>
+      <div class="h" style="font-size:58px">All 50 states,<br>plus <em>federal</em>.</div>
       <div class="s" style="margin-top:30px;max-width:360px">The IRS, FEMA, and every state agency — watched 24/7.</div>
     </div>
-    <div style="position:absolute;left:716px;top:150px;width:460px;height:268px">${cleanMap(36, 28)}</div>
-    <div class="float" style="position:absolute;left:961px;top:160px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:10px;padding:6px 12px"><span style="width:7px;height:7px;border-radius:50%;background:${INFO}"></span><span style="font-size:11.5px;font-weight:500;color:${INK}">NY · 5 new</span></div>
-    <div style="position:absolute;left:1011px;top:189px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff"></div>
+    <div style="position:absolute;left:806px;top:96px;width:400px;height:350px;background:radial-gradient(circle,rgba(20,197,246,.22),transparent 68%)"></div>
+    <div style="position:absolute;left:700px;top:100px;width:540px;height:360px">${cleanMap(44, 34)}</div>
+    <div class="float" style="position:absolute;left:1026px;top:126px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:10px;padding:6px 12px"><span style="width:7px;height:7px;border-radius:50%;background:${CYAN};box-shadow:0 0 7px ${CYAN}"></span><span style="font-size:11.5px;font-weight:500;color:${INK}">NY · 5 new</span></div>
+    <div style="position:absolute;left:1062px;top:158px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #fff"></div>
     <div style="position:absolute;left:722px;top:466px;width:476px;height:172px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
     <div class="card" style="position:absolute;left:700px;top:452px;width:476px;padding:14px 22px 18px">
       <div style="display:flex;align-items:center;gap:10px;padding-bottom:4px"><span style="width:8px;height:8px;border-radius:50%;background:${INFO}"></span><span style="font-size:13px;font-weight:600;color:${INK}">Live source watch</span><span style="margin-left:auto;font-size:12.5px;font-weight:500;color:${MUT}" class="num">8 changes today</span></div>
@@ -160,7 +180,7 @@ function alert() {
       <div style="display:flex;align-items:center;gap:11px">
         <div class="seal" style="width:32px;height:32px">${ic(I.landmark, 16, '#fff')}</div>
         <div style="line-height:1.2"><div style="font-size:14px;font-weight:500;color:${INK}">NY DTF · New York</div><div style="font-size:12px;color:${MUT};display:flex;align-items:center;gap:5px">${ic(I.refresh, 11, MUT)}Form updated</div></div>
-        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">View source ${ic(I.ext, 11, ACC)}</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">Open original ${ic(I.ext, 11, ACC)}</span>
       </div>
       <div style="font-size:16px;font-weight:600;color:${INK};line-height:1.4;margin-top:14px">NY DTF clarifies the PTET election window for partnerships.</div>
       <div class="pipe" style="margin-top:15px">${seg('Monitored', 'done')}${seg('AI parsed', 'done')}${seg('Matched', 'done')}${seg('Your decision', 'now')}${seg('Applied', 'next')}</div>
@@ -179,7 +199,7 @@ function alert() {
         </div>
       </div>
     </div>
-    <div class="float" style="position:absolute;left:648px;top:612px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px"><span style="font-family:'Geist Mono';font-size:11px;font-weight:500;color:${ACC}">98%</span><span style="font-size:11px;color:${MUT}">parse confidence</span></div>`)
+    <div class="float" style="position:absolute;left:648px;top:612px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px"><span style="font-family:'Geist Mono';font-size:11px;font-weight:500;color:${ACC}">98%</span><span style="font-size:11px;color:${MUT}">· High parse confidence</span></div>`)
 }
 function deadlines() {
   const row = (form, client, sub, av, stripe, level, sInk, sLabel, due, dInk, last) => `<div style="display:flex;align-items:center;gap:13px;padding:13px 22px;${last ? '' : `border-bottom:1px solid ${HAIR}`}"><span style="width:4px;height:30px;border-radius:2px;background:${stripe};flex-shrink:0"></span><span class="chip" style="flex-shrink:0">${form}</span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${client}</div><div style="font-size:12px;color:${MUT}">${sub}</div></div>${pic(av, 28)}<span style="display:inline-flex;align-items:center;gap:8px;flex-shrink:0;width:104px;color:${sInk}">${ring(level)}<span style="font-size:12.5px;color:${sInk}">${sLabel}</span></span><span style="flex-shrink:0;width:58px;text-align:right;font-size:13px;color:${dInk}" class="num">${due}</span></div>`
@@ -221,9 +241,9 @@ function security() {
       </div>
       <div class="qblk" style="margin-top:18px">
         <div style="font-size:13.5px;color:${INK};line-height:1.5">“The PTET election for tax year 2026 must be made by March 15, 2026.”</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:10px"><span style="font-size:11.5px;color:${MUT};font-family:'Geist Mono'">tax.ny.gov/bus/ptet</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">View source ${ic(I.ext, 11, ACC)}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px"><span style="font-size:11.5px;color:${MUT};font-family:'Geist Mono'">tax.ny.gov/bus/ptet</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">Open original ${ic(I.ext, 11, ACC)}</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:16px"><span class="lab" style="margin:0">Parse confidence</span><div class="bar" style="flex:1"><i style="width:98%"></i></div><span style="font-size:12.5px;font-weight:500;color:${INK}" class="num">98%</span></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:16px"><span class="lab" style="margin:0">Parse confidence</span><div class="bar" style="flex:1"><i style="width:98%"></i></div><span style="font-size:12.5px;font-weight:500;color:${INK}" class="num">98% · High</span></div>
       <div class="divh"></div>
       <div class="lab">Audit ledger</div>
       <div style="margin-top:6px">
@@ -280,7 +300,7 @@ function coverB() {
         <div style="line-height:1.18"><div style="font-size:14px;font-weight:600;color:${INK}">IRS · Federal</div><div style="font-size:11.5px;color:${MUT}">New requirement · 2h ago</div></div>
         <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:${WAMB};color:${AMBER_INK};font-size:11px;font-weight:500;padding:4px 10px;border-radius:999px"><span style="width:6px;height:6px;border-radius:50%;background:${AMBER}"></span>Needs decision</span>
       </div>
-      <div style="font-size:16.5px;font-weight:500;color:${INK};line-height:1.4;margin-top:14px">Schedule K-3 now required for all partnership filings.</div>
+      <div style="font-size:16.5px;font-weight:500;color:${INK};line-height:1.4;margin-top:14px">Schedule K-3 now required for partnerships with foreign activity.</div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
         <span style="font-size:12.5px;font-weight:500;color:${INK}">Affects 3 clients</span>
         <div style="display:flex">${['ls', 'ph', 'mc'].map((k, i) => `<span style="width:26px;height:26px;border-radius:50%;background:#e9edf2 url('${AV[k]}') center/cover;margin-left:${i ? -8 : 0}px;box-shadow:0 0 0 2px #fff;flex-shrink:0;display:inline-block"></span>`).join('')}</div>
@@ -291,16 +311,520 @@ function coverB() {
       </div>
     </div>`, true)
 }
-const OUTDIR = '/Users/yuqi/Desktop/DueDateHQ PH/Final'
-const SET = [['1-cover', cover], ['1b-cover-dark', coverB], ['2-monitoring', monitoring], ['3-alert', alert], ['4-deadlines', deadlines], ['5-security', security], ['6-loop', loop]]
+// ── NEW · Action layer: apply to every matched client + draft the email (all shipped) ──
+function action() {
+  const seg = (label) => `<span class="seg" style="color:${INK}">${ic(I.check, 12, GREEN_INK, 2.8)}${label}</span>`
+  const crow = (av, name, last) => `<div style="display:flex;align-items:center;gap:10px;padding:8.5px 0;${last ? '' : `border-bottom:1px solid ${HAIR}`}">${pic(av, 24)}<span style="flex:1;min-width:0;font-size:12.5px;font-weight:500;color:${INK}">${name}</span><span class="chip" style="font-size:10px">IT-204</span><span class="num" style="font-size:11.5px;color:${MUT};text-decoration:line-through">Mar 1</span><span style="font-size:10px;color:${MUT}">→</span><span class="num" style="font-size:12.5px;font-weight:600;color:${INK}">Mar 15</span><span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:${WGRN};align-items:center;justify-content:center;flex-shrink:0">${ic(I.check, 10, GREEN_INK, 2.8)}</span></div>`
+  const dalert = (code, text, hi) => `<div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid ${HAIR};${hi ? `background:${WACC}` : ''}"><span class="chip" style="font-size:10px;flex-shrink:0">${code}</span><span style="flex:1;min-width:0;font-size:12px;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${text}</span></div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">Not just alerts</div>
+      <div class="h" style="font-size:58px">One click updates<br><em>every client</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:360px">Apply a date change across every matched client at once — and copy a ready client email, without leaving the alert.</div>
+    </div>
+    <div style="position:absolute;left:618px;top:104px;width:574px;height:632px;background:#fff;border-radius:14px;border:1px solid ${BRD};box-shadow:0 16px 38px -18px rgba(16,24,40,.14);opacity:.5;filter:blur(.8px);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:13px 18px;border-bottom:1px solid ${HAIR}"><span style="font-size:14px;font-weight:600;color:${INK}">Alerts</span><span style="font-size:11.5px;color:${MUT}">6 open</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:${GREEN_INK}"><span style="width:6px;height:6px;border-radius:50%;background:${GREEN}"></span>LIVE</span></div>
+      ${dalert('IRS', 'Schedule K-3 now required for partnerships with foreign activity')}
+      ${dalert('NY', 'NY DTF moves the PTET election window to Mar 15', true)}
+      ${dalert('TX', 'Franchise report window extended 30 days')}
+      ${dalert('FL', 'FL DOR corporate income-tax bulletin')}
+      ${dalert('FED', 'IRS annual inflation-adjustment Revenue Procedure')}
+      ${dalert('WA', 'New gross-receipts surtax for tech firms')}
+      ${dalert('GA', 'GA DOR e-file schema update')}
+    </div>
+    <div class="card" style="position:absolute;left:684px;top:138px;width:492px;padding:20px 22px">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div class="seal" style="width:32px;height:32px">${ic(I.landmark, 16, '#fff')}</div>
+        <div style="line-height:1.2"><div style="font-size:14px;font-weight:500;color:${INK}">NY DTF · New York</div><div style="font-size:12px;color:${MUT};display:flex;align-items:center;gap:5px">${ic(I.refresh, 11, MUT)}Form updated</div></div>
+        <span class="spill" style="margin-left:auto;background:${WGRN};color:${GREEN_INK}"><span style="width:7px;height:7px;border-radius:50%;background:${GREEN}"></span>Applied</span>
+      </div>
+      <div style="font-size:16px;font-weight:600;color:${INK};line-height:1.4;margin-top:13px">PTET election window moved to Mar 15.</div>
+      <div class="pipe" style="margin-top:13px">${seg('Monitored')}${seg('AI parsed')}${seg('Matched')}${seg('Applied')}</div>
+      <div style="display:flex;align-items:center;gap:12px;background:${WGRN};border-radius:10px;padding:13px 14px;margin-top:15px">
+        <span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:#fff;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px rgba(63,168,106,.16)">${ic(I.check, 15, GREEN_INK, 2.8)}</span>
+        <span style="font-size:14px;font-weight:600;color:${GREEN_INK};line-height:1.3">Applied to 3 clients<br><span style="font-size:11.5px;font-weight:500;opacity:.85">Logged to audit ledger</span></span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC};white-space:nowrap">${ic(I.refresh, 12, ACC)}Undo</span>
+      </div>
+      <div style="display:flex;align-items:baseline;margin-top:15px"><span class="lab" style="margin:0">Affected clients · 3</span><span style="margin-left:auto;font-size:10.5px;color:${MUT}">Current &rarr; New</span></div>
+      <div style="margin-top:5px">
+        ${crow('ls', 'Lone Star Holdings')}
+        ${crow('ph', 'Patel &amp; Co')}
+        ${crow('mc', 'Maple Creek LLC', true)}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid ${HAIR}">
+        <span style="font-size:11px;color:${MUT}">Client email drafted for all 3</span>
+        <div class="btn sec" style="margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;font-size:12.5px">${ic(I.send, 12, INK)}Copy client email draft</div>
+      </div>
+    </div>`)
+}
+
+// ── NEW · Filing readiness: per-deadline doc checklist + materials request (all shipped) ──
+function completeness() {
+  const rrow = (form, client, sub, stripe, level, sInk, sLabel, last) => `<div style="display:flex;align-items:center;gap:13px;padding:13px 22px;${last ? '' : `border-bottom:1px solid ${HAIR}`}"><span style="width:4px;height:30px;border-radius:2px;background:${stripe};flex-shrink:0"></span><span class="chip" style="flex-shrink:0">${form}</span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${client}</div><div style="font-size:12px;color:${MUT}">${sub}</div></div><span style="display:inline-flex;align-items:center;gap:8px;flex-shrink:0;color:${sInk}">${ring(level)}<span style="font-size:12.5px;color:${sInk};white-space:nowrap">${sLabel}</span></span></div>`
+  const ditem = (label, status) => {
+    const cfg = status === 'received'
+      ? { ic: `<span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:${WGRN};align-items:center;justify-content:center">${ic(I.check, 11, GREEN_INK, 2.8)}</span>`, txt: 'Received', col: GREEN_INK }
+      : status === 'needs_review'
+        ? { ic: `<span style="display:inline-flex;width:18px;height:18px;border-radius:50%;background:${WAMB};align-items:center;justify-content:center;font-size:11px;color:${AMBER_INK};font-weight:600">!</span>`, txt: 'Needs review', col: AMBER_INK }
+        : { ic: `<span style="width:18px;height:18px;border-radius:50%;border:1.5px dashed ${AMBER}"></span>`, txt: 'Missing', col: AMBER_INK }
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><span style="flex-shrink:0;display:inline-flex">${cfg.ic}</span><span style="flex:1;font-size:12.5px;color:${INK}">${label}</span><span style="font-size:11.5px;font-weight:500;color:${cfg.col}">${cfg.txt}</span></div>`
+  }
+  // status progress bar — faithful to PathToFilingSummary: 6 stages, active dark-filled, done gray-check, future faded
+  const seg = (label, state, leftSolid, rightSolid, first, last) => {
+    const solid = 'rgba(16,24,40,.30)', light = 'rgba(16,24,40,.12)'
+    const circle = state === 'active'
+      ? `<span style="width:18px;height:18px;border-radius:50%;background:${INK};display:flex;align-items:center;justify-content:center"><span style="width:6px;height:6px;border-radius:50%;background:#fff"></span></span>`
+      : state === 'done'
+        ? `<span style="width:18px;height:18px;border-radius:50%;background:#F2F4F7;border:1px solid ${BRD};display:flex;align-items:center;justify-content:center">${ic(I.check, 10, MUT, 2.6)}</span>`
+        : state === 'skipped'
+          ? `<span style="width:18px;height:18px;border-radius:50%;background:#fff;border:1.5px dashed rgba(16,24,40,.3)"></span>`
+          : `<span style="width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid ${BRD}"></span>`
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;${state === 'upcoming' || state === 'skipped' ? 'opacity:.55' : ''}"><div style="display:flex;align-items:center;width:100%;gap:3px"><span style="flex:1;height:1.5px;background:${first ? 'transparent' : (leftSolid ? solid : light)}"></span>${circle}<span style="flex:1;height:1.5px;background:${last ? 'transparent' : (rightSolid ? solid : light)}"></span></div><span style="font-size:9.5px;line-height:1.1;text-align:center;color:${state === 'active' ? INK : MUT};font-weight:${state === 'active' ? 600 : 400}">${label}</span></div>`
+  }
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:560px">
+      <div class="ey" style="margin-bottom:28px">The real blocker</div>
+      <div class="h" style="font-size:58px">Know what each<br>filing <em>still needs</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:380px">Every deadline tracked doc-by-doc — what&rsquo;s received, what&rsquo;s outstanding, and exactly who to ask.</div>
+    </div>
+    <div style="position:absolute;left:760px;top:250px;width:360px;height:240px;border-radius:50%;background:rgba(34,72,140,.10);filter:blur(80px)"></div>
+    <div style="position:absolute;left:728px;top:160px;width:448px;height:452px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:706px;top:144px;width:448px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:15px 22px;border-bottom:1px solid ${HAIR}"><span class="chip">Form 1065</span><span style="font-size:14.5px;font-weight:600;color:${INK}">Lone Star Ventures</span><span style="margin-left:auto;font-size:12px;color:${MUT}">LLC · TX</span></div>
+      <div style="padding:13px 22px 15px;border-bottom:1px solid ${HAIR}">
+        <div class="lab" style="margin-bottom:10px">Filing status</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr)">
+          ${seg('Not started', 'done', false, true, true, false)}
+          ${seg('Waiting', 'active', true, false, false, false)}
+          ${seg('Blocked', 'skipped', false, false, false, false)}
+          ${seg('Review', 'upcoming', false, false, false, false)}
+          ${seg('Filed', 'upcoming', false, false, false, false)}
+          ${seg('Done', 'upcoming', false, false, false, true)}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;padding:18px 22px;border-bottom:1px solid ${HAIR}">
+        <svg width="92" height="92" viewBox="0 0 92 92" style="flex-shrink:0">
+          <circle cx="46" cy="46" r="36" fill="none" stroke="rgba(16,24,40,.10)" stroke-width="9"/>
+          <circle cx="46" cy="46" r="36" fill="none" stroke="${GREEN}" stroke-width="9" stroke-linecap="round" stroke-dasharray="113.1 226.2" transform="rotate(-90 46 46)"/>
+          <text x="46" y="51" text-anchor="middle" font-family="Instrument Sans,sans-serif" font-size="25" font-weight="600" fill="${INK}">2/4</text>
+        </svg>
+        <div>
+          <div style="font-size:17px;font-weight:600;color:${INK};line-height:1.25">2 of 4 documents in</div>
+          <div style="font-size:13px;font-weight:500;color:${AMBER_INK};margin-top:6px">Outstanding: W-2, K-1</div>
+          <div style="font-size:12px;color:${MUT};margin-top:4px">Requested 4 days ago · awaiting reply</div>
+        </div>
+      </div>
+      <div style="padding:14px 22px 18px">
+        <div class="lab" style="margin-bottom:4px">Materials checklist</div>
+        ${ditem('1099-NEC · contractor pay', 'received')}
+        ${ditem('Bank statements', 'received')}
+        ${ditem('W-2 · wages', 'missing')}
+        ${ditem('K-1 · partner shares', 'needs_review')}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid ${HAIR}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:${MUT}">${ic(I.doc, 13, MUT)}Auto-built from the 1065 template</span><div class="btn pri" style="margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 15px;font-size:13px">${ic(I.send, 12, '#fff')}Send materials request</div></div>
+      </div>
+    </div>`)
+}
+
+// ── NEW · Daily Brief: the calm state — when nothing needs you, it says so (shipped /today) ──
+function dailyBrief() {
+  const fact = (icon, text, tag, tagcol, last) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;${last ? '' : `border-bottom:1px solid ${HAIR}`}"><div style="width:30px;height:30px;border-radius:8px;background:#F2F4F7;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic(icon, 15, ACC)}</div><span style="flex:1;font-size:13.5px;font-weight:500;color:${INK}">${text}</span><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${tagcol}">${tagcol === GREEN_INK ? ic(I.check, 12, GREEN_INK, 2.6) : ''}${tag}</span></div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:258px;max-width:560px">
+      <div class="ey" style="margin-bottom:28px">Your morning brief</div>
+      <div class="h" style="font-size:56px">When nothing needs<br>you, <em>it says so</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:380px">Each day opens with one honest line — what needs you, or that nothing does. No inbox to dig through.</div>
+    </div>
+    <div style="position:absolute;left:738px;top:188px;width:440px;height:330px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:716px;top:172px;width:440px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid ${HAIR}">
+        <span style="display:inline-flex;align-items:center;gap:7px;background:${WACC};color:${ACC};border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600">${ic(I.news, 14, ACC)}Daily Brief</span>
+        <span style="margin-left:auto;font-size:12.5px;font-weight:500;color:${MUT}">Mon · Jun 29</span>
+      </div>
+      <div style="padding:22px 22px 20px;border-bottom:1px solid ${HAIR}">
+        <div style="font-size:23px;font-weight:600;color:${INK};line-height:1.32;letter-spacing:-.01em">All quiet.</div>
+        <div style="font-size:14.5px;color:${MUT};line-height:1.45;margin-top:7px">Nothing new needs your attention right now.</div>
+      </div>
+      <div style="padding:14px 22px 18px">
+        <div class="lab" style="margin-bottom:2px">Checked for you this morning</div>
+        ${fact(I.landmark, '50 states + federal watched', 'Up to date', GREEN_INK)}
+        ${fact(I.bell, 'Source changes triaged', '0 need a decision', GREEN_INK)}
+        ${fact(I.cal, '28 deadlines tracked', 'Next in 6 days', MUT, true)}
+      </div>
+    </div>
+    <div class="float" style="position:absolute;right:54px;top:118px;display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:500;color:${GREEN_INK}">${ic(I.check, 12, GREEN_INK, 2.6)}0 alerts to decide</div>
+    <div class="float" style="position:absolute;left:690px;top:556px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 13px">${ic(I.refresh, 12, ACC)}<span style="font-size:11px;color:${MUT}">Updated 7:00 AM</span></div>`)
+}
+
+// ── NEW · Rule library: AI drafts, a human approves every rule (shipped human-in-the-loop) ──
+function ruleLibrary() {
+  const fact = (l, v) => `<span style="display:inline-flex;align-items:center;gap:6px;background:#F2F4F7;border-radius:8px;padding:6px 10px"><span style="font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:${MUT}">${l}</span><span style="font-size:12px;font-weight:500;color:${INK}">${v}</span></span>`
+  const jrow2 = (name, n, hi) => `<div style="display:flex;align-items:center;gap:10px;padding:8.5px 18px;border-bottom:1px solid ${HAIR};${hi ? `background:${WACC}` : ''}"><div style="width:22px;height:22px;border-radius:50%;background:${hi ? ACC : '#E2E7EF'};flex-shrink:0"></div><span style="flex:1;min-width:0;font-size:12.5px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:${MUT}"><span style="width:5px;height:5px;border-radius:50%;background:${AMBER}"></span>${n}</span></div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">You stay in control</div>
+      <div class="h" style="font-size:58px">Every rule is<br><em>your call</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:360px">We monitor every agency and draft each rule — you accept or reject before it ever touches a client.</div>
+    </div>
+    <div style="position:absolute;left:618px;top:104px;width:574px;height:632px;background:#fff;border-radius:14px;border:1px solid ${BRD};box-shadow:0 16px 38px -18px rgba(16,24,40,.14);opacity:.5;filter:blur(.8px);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:13px 18px;border-bottom:1px solid ${HAIR}"><span style="font-size:14px;font-weight:600;color:${INK}">Jurisdictions</span><span style="margin-left:auto;font-size:11.5px;font-weight:500;color:${MUT}">456 to review</span></div>
+      ${jrow2('Federal', 24)}${jrow2('Alabama', 10, true)}${jrow2('Alaska', 3)}${jrow2('Arizona', 9)}${jrow2('Arkansas', 10)}${jrow2('California', 16)}${jrow2('Colorado', 9)}${jrow2('Connecticut', 9)}${jrow2('Delaware', 9)}${jrow2('District of Columbia', 10)}${jrow2('Florida', 6)}${jrow2('Georgia', 10)}${jrow2('Hawaii', 9)}
+    </div>
+    <div class="card" style="position:absolute;left:684px;top:138px;width:492px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 20px;background:#FAFBFC;border-bottom:1px solid ${HAIR}"><span class="lab" style="margin:0">Review queue</span><span style="margin-left:auto;font-size:12px;font-weight:500;color:${INK}">Rule 3 of 456</span><span style="font-size:12px;color:${MUT}">&lsaquo;&nbsp;&rsaquo;</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid ${HAIR}">
+        <div style="width:38px;height:38px;border-radius:9px;background:${NAVY};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono';font-size:13px;font-weight:600;color:#F3EEE6;flex-shrink:0">AL</div>
+        <div style="line-height:1.25;flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:${INK}">Individual income tax return</div><div style="font-size:12px;color:${MUT}">Alabama Dept. of Revenue</div></div>
+        <span class="spill" style="background:${WAMB};color:${AMBER_INK};flex-shrink:0">${ic(I.clock, 11, AMBER_INK)}Awaiting review</span>
+      </div>
+      <div style="padding:14px 20px 16px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${fact('Entity', 'Individuals')}${fact('Files', 'Form 1040')}${fact('Effective', 'Jul 15, 2026')}</div>
+        <div style="background:${WACC};border:1px solid rgba(34,72,140,.18);border-radius:10px;padding:13px 15px;margin-top:13px">
+          <div style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:${ACC}">${ic(I.sparkles, 12, ACC)}AI-drafted rule</span><span style="margin-left:auto;font-family:'Geist Mono';font-size:11px;font-weight:500;color:${ACC}">87% · High</span></div>
+          <div style="font-size:13.5px;font-weight:500;color:${INK};margin-top:9px;line-height:1.4">Due April 15 — 15th day of the 3rd month after year-end.</div>
+          <div style="font-size:12px;font-style:italic;color:${MUT};margin-top:8px;line-height:1.5;font-family:'Instrument Serif',Georgia,serif">&ldquo;Returns are due by April 15 each year.&rdquo;</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:9px">${ic(I.link, 12, MUT)}<span style="font-family:'Geist Mono';font-size:11px;color:${MUT}">revenue.alabama.gov</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500;color:${ACC}">Open source ${ic(I.ext, 10, ACC)}</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px"><span style="width:6px;height:6px;border-radius:50%;background:${ACC};flex-shrink:0"></span><span style="font-size:12px;color:${MUT}">Activates for <b style="font-weight:600;color:${INK}">15 clients</b> · ~15 new deadlines</span></div>
+      </div>
+      <div style="padding:13px 20px;border-top:1px solid ${HAIR}">
+        <div style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:${GREEN_INK}">${ic(I.check, 12, GREEN_INK, 2.6)}Your decision is recorded in the audit log</div>
+        <div style="display:flex;gap:9px;margin-top:11px">
+          <div class="btn sec" style="flex:none;padding:10px 20px;font-size:13.5px">Reject</div>
+          <div class="btn pri" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px;font-size:13.5px">${ic(I.check, 14, '#fff', 2.6)}Accept rule</div>
+        </div>
+      </div>
+    </div>
+    <div class="float" style="position:absolute;right:54px;top:116px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 14px">${ic(I.shield, 13, NAVY)}<span style="font-size:11.5px;font-weight:500;color:${INK}">Nothing auto-applies</span></div>`)
+}
+
+// ── NEW · Six-status taxonomy: status observed from events, not chosen (shipped) ──
+function status6() {
+  const VIOLET = '#6D5BD0', VIOLET_INK = '#5A48B0'
+  const srow = (level, color, label, meaning, current) => `<div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:10px;${current ? `background:${WACC}` : ''}"><span style="color:${color};display:inline-flex;flex-shrink:0">${ring(level, 20)}</span><div style="flex:1"><div style="font-size:14.5px;font-weight:500;color:${INK}">${label}</div><div style="font-size:12px;color:${MUT};margin-top:1px">${meaning}</div></div>${current ? `<span class="spill" style="background:#fff;color:${ACC};border:1px solid ${BRD};font-size:11px;padding:4px 10px">Current</span>` : ''}</div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:248px;max-width:560px">
+      <div class="ey" style="margin-bottom:28px">Status, observed not guessed</div>
+      <div class="h" style="font-size:56px">Every filing has<br><em>one true status</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:380px">Six states, advanced automatically from real events — so the board always matches reality.</div>
+    </div>
+    <div style="position:absolute;left:722px;top:166px;width:456px;height:404px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:700px;top:150px;width:456px;padding:14px 12px">
+      ${srow('not_started', GRAY, 'Not started', 'No work logged yet')}
+      ${srow('waiting', AMBER_INK, 'Waiting on client', 'Docs requested — client owes you')}
+      ${srow('blocked', RED_INK, 'Blocked', 'Can&rsquo;t proceed — needs a fix')}
+      ${srow('in_review', VIOLET_INK, 'In review', 'Prepared — in your review queue', true)}
+      ${srow('filed', GREEN_INK, 'Filed', 'Submitted to the agency')}
+      ${srow('completed', GREEN_INK, 'Completed', 'Filed &amp; accepted')}
+    </div>
+    <div class="float" style="position:absolute;left:666px;top:556px;display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:7px 14px">${ic(I.refresh, 12, ACC)}<span style="font-size:11.5px;font-weight:500;color:${INK}">Auto-advanced from events</span></div>`)
+}
+
+// ── NEW · Navy closer: the product philosophy in one line + the offer (bold bookend) ──
+function closer() {
+  const IVO = '#F3EEE6', IVMUT = 'rgba(243,238,230,.62)'
+  return page(`
+    <div style="position:absolute;left:435px;top:486px;width:400px;height:220px;border-radius:50%;background:rgba(20,197,246,.22);filter:blur(82px)"></div>
+    <div style="position:absolute;left:0;right:0;top:212px;text-align:center">
+      <div style="display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 16px"><span style="width:7px;height:7px;border-radius:50%;background:${CYAN};box-shadow:0 0 8px ${CYAN}"></span><span style="font-size:12.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:${IVO}">Early access · 50 states + DC</span></div>
+      <div style="font-family:'Instrument Sans',sans-serif;font-weight:600;font-size:58px;line-height:1.05;letter-spacing:-.022em;color:${IVO};margin-top:30px;font-size:60px">You handle the judgment.<br>We handle the <span style="font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400">watching</span>.</div>
+      <div style="font-size:18px;color:${IVMUT};margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.5">Every agency monitored 24/7, matched to your clients, sourced and logged — you just decide.</div>
+      <div style="display:inline-flex;align-items:center;gap:16px;margin-top:36px">
+        <span style="display:inline-flex;align-items:center;gap:8px;background:${CYAN};color:${NAVY};border-radius:10px;padding:13px 24px;font-size:15px;font-weight:600">Get early access ${ic(I.ext, 15, NAVY)}</span>
+        <span style="font-size:15px;font-weight:500;color:${IVO}">3 months of Team, free</span>
+      </div>
+    </div>`, true)
+}
+
+// ── Sources: the agency's own notice → the parsed date, with the receipt (shipped provenance) ──
+function sources() {
+  const pf = (label, val, strong) => `<div><div class="lab">${label}</div><div style="font-size:14px;color:${INK};margin-top:4px;${strong ? 'font-weight:600' : ''}">${val}</div></div>`
+  const srow = (chip, name, juris, time) => `<div style="display:flex;align-items:center;gap:12px;padding:10.5px 20px;border-bottom:1px solid ${HAIR}"><span style="width:28px;height:28px;border-radius:7px;background:#F2F4F7;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono';font-size:9.5px;font-weight:600;color:${ACC};flex-shrink:0">${chip}</span><div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div><div style="font-size:10.5px;color:${MUT}">${juris}</div></div><span style="font-family:'Geist Mono';font-size:10.5px;color:${MUT}">checked ${time}</span><span style="width:7px;height:7px;border-radius:50%;background:${GREEN};flex-shrink:0"></span></div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">Straight from the agency</div>
+      <div class="h" style="font-size:58px">Every date traces<br>to the <em>source</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:368px">Read from the agency&rsquo;s own notice and parsed into the exact date — with the receipt to show any client.</div>
+    </div>
+    <div style="position:absolute;left:632px;top:104px;width:566px;height:560px;background:#fff;border-radius:14px;border:1px solid ${BRD};box-shadow:0 16px 38px -18px rgba(16,24,40,.14);opacity:.5;filter:blur(0.8px);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid ${HAIR}"><span style="font-size:14px;font-weight:600;color:${INK}">Sources</span><span style="font-size:11.5px;font-weight:500;color:${MUT};background:#F2F4F7;border-radius:999px;padding:2px 9px">392</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;color:${GREEN_INK}"><span style="width:7px;height:7px;border-radius:50%;background:${GREEN}"></span>All healthy</span></div>
+      ${srow('IRS', 'Internal Revenue Service', 'Federal', '1m')}
+      ${srow('NY', 'NY Dept. of Tax &amp; Finance', 'New York', '3m')}
+      ${srow('CA', 'CA Franchise Tax Board', 'California', '4m')}
+      ${srow('TX', 'TX Comptroller', 'Texas', '6m')}
+      ${srow('FL', 'FL Dept. of Revenue', 'Florida', '9m')}
+      ${srow('IL', 'IL Dept. of Revenue', 'Illinois', '12m')}
+      ${srow('GA', 'GA Dept. of Revenue', 'Georgia', '18m')}
+      ${srow('OH', 'OH Dept. of Taxation', 'Ohio', '24m')}
+      ${srow('PA', 'PA Dept. of Revenue', 'Pennsylvania', '31m')}
+      ${srow('NJ', 'NJ Division of Taxation', 'New Jersey', '40m')}
+    </div>
+    <div class="card" style="position:absolute;left:706px;top:150px;width:476px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:#FAFBFC;border-bottom:1px solid ${HAIR}">
+        <div class="seal" style="width:36px;height:36px">${ic(I.landmark, 17, '#fff')}</div>
+        <div style="line-height:1.25;min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">NY State Dept. of Taxation &amp; Finance</div><div style="font-size:11.5px;color:${MUT}">New York · government source</div></div>
+        <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid ${BRD};border-radius:8px;padding:7px 11px;font-size:12px;font-weight:500;color:${INK};flex-shrink:0">Open original ${ic(I.ext, 11, INK)}</span>
+      </div>
+      <div class="anc" style="padding:11px 20px 0"><span>Change</span><span class="on">Source</span><span>Activity</span></div>
+      <div style="padding:16px 20px 18px">
+        <div style="position:relative;background:#F7F9FC;border:1px solid ${HAIR};border-radius:10px;padding:13px 16px 13px 18px">
+          <span style="position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:${ACC}"></span>
+          <div class="lab" style="margin-bottom:7px">Source notice</div>
+          <div style="font-size:13.5px;color:${MUT};line-height:1.6">Eligible partnerships may elect into the Pass-Through Entity Tax for 2026. The election must be made by <span style="background:rgba(20,197,246,.30);color:${INK};font-weight:600;padding:1px 5px;border-radius:3px">March&nbsp;15,&nbsp;2026</span>.</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:11px">${ic(I.link, 12, MUT)}<span style="font-family:'Geist Mono';font-size:11px;color:${MUT}">tax.ny.gov/bus/ptet · captured May 16</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:7px 0"><span style="width:2px;height:8px;background:${HAIR}"></span><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:${ACC};background:${WACC};border-radius:999px;padding:3px 11px;margin:3px 0">${ic(I.sparkles, 11, ACC)}Parsed by AI</span><span style="width:2px;height:8px;background:${HAIR}"></span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(20,197,246,.10);border:1px solid rgba(20,197,246,.32);border-radius:10px;padding:12px 16px">
+          <div style="flex:1"><div class="lab">Effective date</div><div class="num" style="font-size:19px;font-weight:600;color:${INK};margin-top:2px">Mar 15, 2026</div></div>
+          <span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:${WGRN};align-items:center;justify-content:center">${ic(I.check, 13, GREEN_INK, 2.8)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:13px">
+          <span class="spill" style="background:#F2F4F7;color:${INK}">NY IT-204</span>
+          <span class="spill" style="background:#F2F4F7;color:${INK}">Partnership</span>
+          <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><span class="lab" style="margin:0">Confidence</span><div class="bar" style="width:64px"><i style="width:96%"></i></div><span class="num" style="font-size:12px;font-weight:500;color:${INK}">96%</span></span>
+        </div>
+      </div>
+    </div>
+`)
+}
+
+// ── NEW · Audit log: the real /audit page — append-only ledger, day-grouped rows (shipped) ──
+function activity() {
+  const TONE = {
+    filing: { tile: WGRN, ink: GREEN_INK, ic: I.download, label: 'FILING' },
+    decision: { tile: WACC, ink: ACC, ic: I.sparkles, label: 'DECISION' },
+    amendment: { tile: WAMB, ink: AMBER_INK, ic: I.penline, label: 'AMENDMENT' },
+    access: { tile: '#F2F4F7', ink: MUT, ic: I.key, label: 'ACCESS' },
+  }
+  const row = (t, time, actor, ai, headline, meta, hash, last) => {
+    const T = TONE[t]
+    return `<div style="display:flex;gap:11px;padding:8px 0;${last ? '' : `border-bottom:1px solid ${HAIR}`}">
+      <span style="width:27px;height:27px;border-radius:7px;background:${T.tile};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${ic(T.ic, 14, T.ink)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;font-weight:600;color:${INK}">${actor}</span>
+          <span style="font-family:'Geist Mono';font-size:9px;font-weight:600;letter-spacing:.05em;color:${MUT}">${T.label}</span>
+          ${ai ? `<span style="display:inline-flex;align-items:center;gap:3px;background:${WACC};color:${ACC};border-radius:4px;padding:0 5px;font-size:9.5px;font-weight:500">${ic(I.sparkles, 8, ACC)}AI</span>` : ''}
+          <span style="margin-left:auto;font-family:'Geist Mono';font-size:10.5px;font-weight:500;color:${INK}">${time}</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px">
+          <span style="flex:1;min-width:0;font-size:12.5px;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${headline}</span>
+          <span style="font-family:'Geist Mono';font-size:9.5px;color:${MUT};flex-shrink:0">${meta} · ${hash}</span>
+        </div>
+      </div>
+    </div>`
+  }
+  const day = (label, n) => `<div style="display:flex;align-items:center;gap:8px;padding:7px 20px;background:#F7F9FC;border-top:1px solid ${HAIR};border-bottom:1px solid ${HAIR}"><span style="font-size:11px;font-weight:600;color:${INK}">${label}</span><span style="font-size:11px;color:${MUT}">${n} events</span></div>`
+  const pill = (label) => `<span style="display:inline-flex;align-items:center;gap:5px;border:1px solid ${BRD};border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:500;color:${INK};white-space:nowrap">${label} <span style="font-size:8px;color:${MUT}">▾</span></span>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">A complete paper trail</div>
+      <div class="h" style="font-size:58px">Nothing happens<br><em>off the record</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:360px">Who changed what, when, and why — every event on an append-only audit ledger.</div>
+    </div>
+    <div style="position:absolute;left:656px;top:136px;width:524px;height:562px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:636px;top:120px;width:524px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:11px;padding:14px 20px;border-bottom:1px solid ${HAIR}"><div style="line-height:1.3"><div style="font-size:15px;font-weight:600;color:${INK}">Audit log</div><div style="font-size:11px;color:${MUT}">Newest practice-wide events first</div></div><span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid ${BRD};border-radius:8px;padding:7px 11px;font-size:12px;font-weight:500;color:${INK}">${ic(I.download, 13, INK)}Export</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:11px 20px;border-bottom:1px solid ${HAIR}">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;background:#F2F4F7;border-radius:8px;padding:8px 11px">${ic(I.search, 13, MUT)}<span style="font-size:12px;color:${MUT}">Filter by person, item, action…</span></div>
+        ${pill('All categories')}${pill('Last 7 days')}
+      </div>
+      ${day('Today · Fri · Jun 5', 5)}
+      <div style="padding:3px 20px 6px">
+        ${row('filing', '14:23', 'Sarah Martinez', false, 'Deadline status changed to Filed', 'arbor-vale-1040', 'a4f2b1c3')}
+        ${row('decision', '13:58', 'Priya Shah', true, 'Alert applied to 3 clients', 'ny-ptet-2026', '9c2e71d0')}
+        ${row('amendment', '11:40', 'Marcus Lee', false, '<span style="color:' + AMBER_INK + ';font-weight:600">&Delta;</span> Due date · Mar 1 &rarr; Mar 15', 'obligation', '5f0ab341')}
+        ${row('decision', '10:12', 'Priya Shah', false, 'Rule accepted · NY PTET election', 'rule ny-ptet', '1b77e904')}
+        ${row('access', '08:31', 'Sarah Martinez', false, 'Signed in', 'session web', 'c3d9a187', true)}
+      </div>
+      ${day('Yesterday · Thu · Jun 4', 12)}
+      <div style="padding:3px 20px 8px">
+        ${row('filing', '17:02', 'Marcus Lee', false, 'Form 1120-S e-filed · accepted', 'northstar-1120s', '7a31f0c2')}
+        ${row('decision', '15:20', 'Priya Shah', true, 'Matched 3 clients to Schedule K-3', 'irs-k3', 'b90e44a1')}
+        ${row('amendment', '11:05', 'Priya Shah', false, '<span style="color:' + AMBER_INK + ';font-weight:600">&Delta;</span> Client jurisdiction · +CA', 'patel-co', '2c8da590', true)}
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;padding:10px 20px;border-top:1px solid ${HAIR}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:${MUT}">${ic(I.shield, 12, MUT)}Append-only</span><span style="font-size:11px;color:${MUT}">Showing 1–8 of 1,284 events</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:${ACC}">Export evidence ${ic(I.ext, 11, ACC)}</span></div>
+    </div>`)
+}
+
+// ── /clients portfolio brought in from the live app — monogram + countdown hero + urgency ──
+function clients() {
+  const pcard = (mono, mbg, name, sub, num, numTone, numSub, form, due, sLabel, sBg, sInk, done) => `<div style="border:1px solid ${BRD};border-radius:12px;padding:13px 15px;background:#fff">
+    <div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:50%;background:${mbg};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono';font-size:11px;font-weight:600;color:#fff;flex-shrink:0">${mono}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div><div style="font-size:11px;color:${MUT}">${sub}</div></div></div>
+    <div style="display:flex;align-items:baseline;gap:7px;margin-top:12px;height:30px">${done ? `<span style="display:inline-flex;align-items:center;gap:7px"><span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:${WGRN};align-items:center;justify-content:center">${ic(I.check, 14, GREEN_INK, 2.8)}</span><span style="font-size:16px;font-weight:600;color:${GREEN_INK}">Filed</span></span>` : `<span class="num" style="font-size:27px;font-weight:600;color:${numTone};line-height:1;letter-spacing:-.02em">${num}</span><span style="font-size:11px;color:${MUT}">${numSub}</span>`}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid ${HAIR}"><span class="chip" style="font-size:10px">${form}</span><span style="font-size:11px;color:${MUT}">${due}</span><span class="spill" style="margin-left:auto;background:${sBg};color:${sInk};font-size:10.5px;padding:3px 9px">${sLabel}</span></div>
+  </div>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">Your whole book</div>
+      <div class="h" style="font-size:58px">Every client,<br>by <em>urgency</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:360px">Each client&rsquo;s next deadline, countdown, and status — your entire portfolio in one glance.</div>
+    </div>
+    <div style="position:absolute;left:760px;top:250px;width:360px;height:240px;border-radius:50%;background:rgba(34,72,140,.10);filter:blur(80px)"></div>
+    <div style="position:absolute;left:650px;top:160px;width:526px;height:400px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:628px;top:144px;width:526px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:11px;padding:15px 22px;border-bottom:1px solid ${HAIR}"><span style="font-size:15px;font-weight:600;color:${INK}">Clients</span><span style="font-size:12px;font-weight:500;color:${MUT};background:#F2F4F7;border-radius:999px;padding:2px 9px">28</span><span style="margin-left:auto;display:inline-flex;background:#F2F4F7;border-radius:8px;padding:3px"><span style="font-size:11.5px;font-weight:600;color:${INK};background:#fff;border-radius:6px;padding:4px 11px;box-shadow:0 1px 2px rgba(16,24,40,.08)">Cards</span><span style="font-size:11.5px;font-weight:500;color:${MUT};padding:4px 11px">Table</span></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 22px">
+        ${pcard('RS', '#C0883A', 'Riverside Sole Prop', 'Sole prop · IRS', '3d', RED_INK, 'overdue', 'Form 1040', 'May 12', 'Not started', '#F2F4F7', MUT)}
+        ${pcard('LS', '#22488C', 'Lone Star Ventures', 'LLC · TX', '4d', AMBER_INK, 'until due', 'Form 1065', 'Mar 15', 'Waiting', WAMB, AMBER_INK)}
+        ${pcard('PH', '#6D5BD0', 'Patel Holdings', 'S-corp · NY', '12d', ACC, 'until due', 'Form 1120-S', 'Apr 1', 'In review', WACC, ACC)}
+        ${pcard('KC', '#3FA86A', 'Kim Consulting', 'Corp · CA', '', GREEN_INK, '', 'NY IT-204', 'this period', 'Filed', WGRN, GREEN_INK, true)}
+      </div>
+    </div>`)
+}
+// ── /today dashboard brought in from the live app — Good morning · Daily Brief · Priorities ──
+function today() {
+  const prow = (form, client, sub, level, sInk, sLabel, due, last) => `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;${last ? '' : `border-bottom:1px solid ${HAIR}`}"><span class="chip" style="flex-shrink:0">${form}</span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${client}</div><div style="font-size:11px;color:${MUT}">${sub}</div></div><span style="display:inline-flex;align-items:center;gap:7px;width:106px;flex-shrink:0;color:${sInk}">${ring(level)}<span style="font-size:12px;color:${sInk}">${sLabel}</span></span><span class="num" style="width:60px;text-align:right;flex-shrink:0;font-size:12.5px;color:${RED_INK}">${due}</span></div>`
+  const fpill = (l, v, c) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:${MUT}"><span style="width:6px;height:6px;border-radius:50%;background:${c}"></span>${l} <span style="font-weight:600;color:${INK}">${v}</span></span>`
+  return page(`
+    <div style="position:absolute;left:96px;top:262px;max-width:520px">
+      <div class="ey" style="margin-bottom:28px">Your morning read</div>
+      <div class="h" style="font-size:58px">Everything due today,<br>in one <em>calm read</em>.</div>
+      <div class="s" style="margin-top:30px;max-width:360px">One honest line on what needs you — then the short list that actually does.</div>
+    </div>
+    <div style="position:absolute;left:760px;top:250px;width:360px;height:240px;border-radius:50%;background:rgba(34,72,140,.10);filter:blur(80px)"></div>
+    <div style="position:absolute;left:650px;top:160px;width:526px;height:338px;background:#fff;border-radius:12px;border:1px solid ${BRD};opacity:.55"></div>
+    <div class="card" style="position:absolute;left:628px;top:144px;width:526px;padding:0;overflow:hidden">
+      <div style="padding:15px 22px;border-bottom:1px solid ${HAIR}">
+        <div style="font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:${MUT}">Good morning, Priya</div>
+        <div style="display:flex;align-items:baseline;gap:9px;margin-top:3px"><span style="font-size:20px;font-weight:600;color:${INK}">Today</span><span style="font-size:14px;color:${MUT}">June 29</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:13px 22px;border-bottom:1px solid ${HAIR}">
+        <span style="display:inline-flex;align-items:center;gap:7px;background:${WACC};color:${ACC};border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;flex-shrink:0">${ic(I.news, 14, ACC)}Daily Brief</span>
+        <span style="font-size:13px;color:${INK}">All quiet — nothing new needs your attention right now.</span>
+      </div>
+      <div style="padding:14px 22px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span style="font-size:14px;font-weight:600;color:${INK}">Priorities</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:14px">${fpill('This week', '0', GRAY)}${fpill('This month', '1', AMBER)}${fpill('Overdue', '7', RED)}</span></div>
+        <div style="font-size:12px;color:${MUT};margin-bottom:6px">Every overdue deadline is waiting on source documents.</div>
+        ${prow('Form 1040', 'Riverside Sole Prop', 'Attach the source document · Docs 0/3', 'not_started', GRAY, 'Not started', '44d late')}
+        ${prow('TX PIR/OIR', 'Lone Star Ventures LLC', 'Attach the source document · Docs 0/2', 'not_started', GRAY, 'Not started', '3d late')}
+        ${prow('Form 1120', 'Meridian Multistate Corp', 'S-corp · multistate', 'in_review', ACC, 'In review', '44d late', true)}
+      </div>
+    </div>`)
+}
+
+// ════ (superseded) navy browser-window experiment — kept for reference, not in the deck ════
+const SIDE_ICONS = [I.search, I.cal, I.bell, I.news, I.landmark, I.shield]
+function screen({ eyebrow, title, url, active, content, H = 880 }) {
+  const navIcon = (d, i) => `<div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;${i === active ? `background:${WACC}` : ''}">${ic(d, 17, i === active ? ACC : '#8A93A6')}</div>`
+  return `<!doctype html><html><head><meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>*{margin:0;padding:0;box-sizing:border-box}
+  body{width:1270px;height:${H}px;overflow:hidden;font-family:'Instrument Sans',system-ui,sans-serif;color:${INK};background:${NAVY};
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='1.5' cy='1.5' r='1.1' fill='%23F3EEE6' fill-opacity='0.05'/%3E%3C/svg%3E")}
+  .chip{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;font-weight:500;color:${INK};background:#fff;border:1px solid ${BRD};border-radius:6px;padding:3px 7px}
+  .lab{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${MUT}}
+  .num{font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;gap:5px;border:1px solid ${BRD};border-radius:8px;padding:6px 10px;font-size:12px;font-weight:500;color:${INK};white-space:nowrap}
+  </style></head><body>
+    <div style="position:absolute;right:-70px;top:36px;width:280px;height:130px;border-radius:26px;background:rgba(255,255,255,.045)"></div>
+    <div style="position:absolute;right:150px;top:150px;width:210px;height:96px;border-radius:22px;background:rgba(255,255,255,.03)"></div>
+    <div style="position:absolute;left:88px;top:66px;max-width:820px">
+      <div style="font-size:14px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:${CYAN}">${eyebrow}</div>
+      <div style="font-family:'Instrument Serif',Georgia,serif;font-weight:400;color:#F3EEE6;line-height:1.08;font-size:52px;margin-top:18px">${title}</div>
+    </div>
+    <div style="position:absolute;left:88px;top:248px;width:1094px;height:${H - 208}px;background:#fff;border-radius:14px 14px 0 0;box-shadow:0 40px 90px -34px rgba(0,0,0,.55);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 16px;height:42px;background:#F2F4F7;border-bottom:1px solid ${BRD}">
+        <span style="width:11px;height:11px;border-radius:50%;background:#E0635A"></span><span style="width:11px;height:11px;border-radius:50%;background:#E3B341"></span><span style="width:11px;height:11px;border-radius:50%;background:#46B17B"></span>
+        <span style="margin:0 auto;display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid ${BRD};border-radius:7px;padding:5px 18px;font-size:12px;color:${MUT};min-width:360px;justify-content:center">${ic(I.lock, 11, MUT)}${url}</span>
+        <span style="width:56px"></span>
+      </div>
+      <div style="display:flex;height:calc(100% - 42px)">
+        <div style="width:58px;flex-shrink:0;background:#FAFBFC;border-right:1px solid ${HAIR};display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:16px">
+          <div style="width:30px;height:30px;border-radius:8px;background:${NAVY};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono';font-size:11px;font-weight:600;color:#F3EEE6">PP</div>
+          ${SIDE_ICONS.map(navIcon).join('')}
+        </div>
+        <div style="flex:1;min-width:0;background:#fff">${content}</div>
+      </div>
+    </div>
+  </body></html>`
+}
+const A_COUNT = { WA: 1, NY: 1, TX: 1, FL: 1 }
+function alertMap(C, S) {
+  const tile = (code, col, row, n) => `<div style="position:absolute;left:${col * C}px;top:${row * C}px;width:${S}px;height:${S}px;border-radius:8px;background:${n ? '#DCE8F7' : 'rgba(16,24,40,.05)'};display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:8.5px;font-weight:600;color:${n ? ACC : '#9AA4B2'}">${code}</span>${n ? `<span class="num" style="font-size:11px;font-weight:600;color:${ACC};margin-top:1px">${n}</span>` : ''}</div>`
+  return Object.entries(TILES).map(([c, [col, row]]) => tile(c, col, row, A_COUNT[c] || 0)).join('') + tile('FED', 2.7, 7, 2)
+}
+function monitorScreen() {
+  const aRow = (code, date, text, action, last) => `<div style="padding:13px 0;${last ? '' : `border-bottom:1px solid ${HAIR}`}"><div style="display:flex;align-items:center;gap:8px"><span class="chip">${code}</span><span class="num" style="margin-left:auto;font-size:11.5px;color:${MUT}">${date}</span></div><div style="font-size:12.5px;color:${INK};line-height:1.45;margin-top:8px">${text}</div><div style="display:inline-flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:500;color:${ACC}">${ic(I.refresh, 12, ACC)}${action}</div></div>`
+  const leg = (sw, t) => `<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:3px;background:${sw}"></span>${t}</span>`
+  const content = `<div style="padding:20px 24px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="font-size:21px;font-weight:600;color:${INK}">Alerts</span><span style="font-size:13px;color:${MUT}">6 open</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;background:${WGRN};color:${GREEN_INK};border-radius:999px;padding:3px 9px;font-size:10.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:${GREEN}"></span>LIVE</span>
+      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:${MUT}">${ic(I.refresh, 14, MUT)}Alert history</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+      <span style="font-size:13px;font-weight:600;color:${INK};background:#F2F4F7;border-radius:8px;padding:6px 12px">Review <span style="color:${MUT}">4</span></span>
+      <span style="font-size:13px;font-weight:500;color:${MUT};padding:6px 6px">Active 2</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:${INK};margin-left:4px"><span style="width:15px;height:15px;border-radius:4px;background:${ACC};display:inline-flex;align-items:center;justify-content:center">${ic(I.check, 10, '#fff', 3)}</span>Suggested action</span>
+      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px">${ic(I.search, 15, MUT)}<span class="pill">Filters ▾</span><span class="pill">State ▾</span><span class="pill">Sort · Newest ▾</span></span>
+    </div>
+    <div style="display:flex;gap:22px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:flex-end;gap:11px;margin-bottom:12px;font-size:10.5px;color:${MUT}">${leg('rgba(16,24,40,.05)', '0')}${leg('#DCE8F7', '1')}${leg('#AECBF0', '2–3')}${leg('#E8B765', '4–6')}${leg('#D2553F', '7+')}</div>
+        <div style="position:relative;height:336px">${alertMap(40, 34)}</div>
+      </div>
+      <div style="width:438px;flex-shrink:0;border-left:1px solid ${HAIR};padding-left:22px">
+        <div class="lab" style="margin-bottom:6px">Active alerts · 4</div>
+        ${aRow('NY', 'May 16', 'NY DTF clarifies the pass-through entity tax (PTET) election window. Low-confidence advisory — review applicability for affected partnerships.', 'Re-issue revised form')}
+        ${aRow('FL', 'May 15', 'FL DOR corporate income-tax bulletin. Very-low-confidence extraction — applicability depends on entity status and fiscal year.', 'Re-confirm client scope')}
+        ${aRow('FED', 'May 15', 'IRS released the annual inflation-adjustment Revenue Procedure. Review thresholds (gift / estate exclusions, brackets).', 'Review adjusted thresholds')}
+        ${aRow('TX', 'May 1', 'TX Comptroller RSS feed degraded — last successful poll 24h ago. No content gap detected; watch this source for follow-up.', 'Review source change', true)}
+      </div>
+    </div>
+  </div>`
+  return screen({ eyebrow: 'Regulatory monitoring', title: 'See what changed —<br>and exactly who&rsquo;s affected.', url: 'app.duedatehq.com/alerts', active: 2, content })
+}
+
+// ── Brand footer strip (navy): lockup · loop tagline · 4 proof pillars · early-access CTA ──
+function footer() {
+  const div = `<span style="width:1px;height:24px;background:${BRD};flex-shrink:0"></span>`
+  const dot = `<span style="width:3px;height:3px;border-radius:50%;background:rgba(16,24,40,.28)"></span>`
+  const feat = (t) => `<span style="font-size:13.5px;font-weight:500;color:${INK};white-space:nowrap">${t}</span>`
+  return `<!doctype html><html><head><meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>*{margin:0;padding:0;box-sizing:border-box}body{width:1270px;height:96px;overflow:hidden;font-family:'Instrument Sans',system-ui,sans-serif;background:${BG};border-top:1px solid ${HAIR}}</style></head><body>
+    <div style="display:flex;align-items:center;gap:18px;height:96px;padding:0 44px">
+      <div style="display:flex;align-items:center;gap:11px;flex-shrink:0">${markSvg(26)}${wmk(18)}</div>
+      ${div}
+      <span style="font-size:13.5px;font-weight:500;color:${MUT};white-space:nowrap">Monitor. Alert. Apply.</span>
+      ${div}
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">${feat('50 states + DC')}${dot}${feat('Matched to clients')}${dot}${feat('Sourced to the agency')}${dot}${feat('Audit-logged')}</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:16px;flex-shrink:0">
+        <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid ${ACC};border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;color:${ACC};white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:${INFO}"></span>Early access open</span>
+        ${div}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-family:'Geist Mono';font-size:12px;color:${MUT};line-height:1.3"><span>duedatehq.com</span><span>hello@duedatehq.com</span></div>
+      </div>
+    </div>
+  </body></html>`
+}
+
+const OUTDIR = '/Users/yuqi/dev/due-date-hq-jwl/docs/marketing/product-hunt-launch/images'
+// Canonical PH gallery — 8. Cover + 6 content + closer.
+// watch everything → from official sources → it acts → who's blocking → you approve → all logged.
+const SET = [['1-cover', cover], ['2-today', today], ['3-monitoring', monitoring], ['4-sources', sources], ['5-action', action], ['6-completeness', completeness], ['7-clients', clients], ['8-rules-review', ruleLibrary], ['9-activity', activity], ['10-closer', closer]]
+// Alternates (move any entry into SET to add it back to the gallery):
+const ALT = [['1b-cover-dark', coverB], ['alert', alert], ['deadlines', deadlines], ['security', security], ['loop', loop], ['daily-brief', dailyBrief], ['status', status6]]
 ;(async () => {
   const b = await chromium.launch({ channel: 'chrome' })
-  const ctx = await b.newContext({ viewport: { width: 1270, height: 760 }, deviceScaleFactor: 2 })
+  const ctx = await b.newContext({ viewport: { width: 1270, height: 820 }, deviceScaleFactor: 2 })
   const p = await ctx.newPage()
-  for (const [k, fn] of SET) {
-    await p.setContent(fn(), { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400)
-    await p.screenshot({ path: `${OUTDIR}/ph-final-${k}.png` })
-    fs.writeFileSync(`${OUTDIR}/ph-final-${k}.html`, fn()); console.log('rendered', k)
+  const ALTDIR = `${OUTDIR}/alternates`
+  fs.mkdirSync(ALTDIR, { recursive: true })
+  const render = async (list, dir, label) => {
+    for (const [k, fn] of list) {
+      await p.setContent(fn(), { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400)
+      await p.screenshot({ path: `${dir}/ph-${label}-${k}.png` })
+      fs.writeFileSync(`${dir}/ph-${label}-${k}.html`, fn()); console.log('rendered', label, k)
+    }
   }
+  await render(SET, OUTDIR, 'final')
+  await render(ALT, ALTDIR, 'alt')
+  const ctxF = await b.newContext({ viewport: { width: 1270, height: 96 }, deviceScaleFactor: 2 })
+  const pF = await ctxF.newPage()
+  await pF.setContent(footer(), { waitUntil: 'networkidle' }); await pF.evaluate(() => document.fonts.ready); await pF.waitForTimeout(400)
+  await pF.screenshot({ path: `${OUTDIR}/ph-footer.png` })
+  fs.writeFileSync(`${OUTDIR}/ph-footer.html`, footer()); console.log('rendered footer')
   await b.close()
 })().catch((e) => { console.error('FAIL', e.message); process.exit(1) })
