@@ -92,6 +92,7 @@ import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { FunIconButton } from '@/components/primitives/fun-icon-button'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
@@ -860,11 +861,81 @@ function OverviewReviewBreakdown({
 }) {
   const now = Date.now()
 
+  // 2026-06-29 (Yuqi "looks flat and plain — use colour, size, caps, groupings"):
+  // the single-gray-sentence cards are split into two tiers with caps eyebrows so
+  // the page TELLS the CPA the order — do the high-severity jurisdictions first,
+  // then work down by wait time. Within a card: a bold name anchor, the severity
+  // flag promoted to a strong right-aligned chip (the lone urgency colour,
+  // von-Restorff), and a colour-cued meta line (ready = accent "act now", waiting
+  // = quiet). Colour lives in the chips + eyebrow, never a card wash (no-coloured-
+  // wash canon).
+  const renderCard = (g: (typeof jurisdictions)[number]) => {
+    const days = g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
+    return (
+      <button
+        key={g.jurisdiction}
+        type="button"
+        onClick={() => onSelectJurisdiction(g.jurisdiction)}
+        className="group flex cursor-pointer items-start gap-3 rounded-xl border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+      >
+        <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          {/* Name anchor (15/600 primary) + the severity flag pinned right — the
+              one strong colour on the card, so the eye finds "review first". */}
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-base font-semibold text-text-primary">
+              {g.label}
+            </span>
+            {g.highCount > 0 ? (
+              <SeverityChip
+                level="high"
+                size="sm"
+                icon={<TriangleAlertIcon className="size-3" aria-hidden />}
+              >
+                <Plural value={g.highCount} one="# high" other="# high" />
+              </SeverityChip>
+            ) : null}
+          </div>
+          {/* Meta — pending count (anchor), then ready (accent = act now) and the
+              wait age (quiet), middot-separated so each fact reads distinctly. */}
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm">
+            <span className="font-medium text-text-primary tabular-nums">
+              <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+            </span>
+            {g.readyCount > 0 ? (
+              <>
+                <span aria-hidden className="text-text-quaternary">
+                  ·
+                </span>
+                <span className="font-medium text-text-accent tabular-nums">
+                  <Trans>{g.readyCount} ready</Trans>
+                </span>
+              </>
+            ) : null}
+            {days != null ? (
+              <>
+                <span aria-hidden className="text-text-quaternary">
+                  ·
+                </span>
+                <span className="text-text-tertiary tabular-nums">
+                  <Trans>{days}d waiting</Trans>
+                </span>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </button>
+    )
+  }
+
+  const urgent = jurisdictions.filter((g) => g.highCount > 0)
+  const rest = jurisdictions.filter((g) => g.highCount === 0)
+
   return (
-    // `@container` so the card grid below responds to THIS column's width
-    // (the right side of the overview split), not the viewport — the app
-    // sidebar makes viewport breakpoints unreliable for inner content.
-    <section className="@container flex shrink-0 flex-col gap-3">
+    // `@container` so the card grids below respond to THIS column's width (the
+    // right side of the overview split), not the viewport — the app sidebar makes
+    // viewport breakpoints unreliable for inner content.
+    <section className="@container flex shrink-0 flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3">
         {/* h2 peer of the Coverage map title — same region-title size. */}
         <h2 className="text-region-title text-text-primary">
@@ -874,80 +945,33 @@ function OverviewReviewBreakdown({
           <Trans>Most urgent first</Trans>
         </span>
       </div>
-      {/* Ranked jurisdictions (longest-waiting first) as a CARD GRID. Each card
-          is a click target into that jurisdiction's review queue. 2026-06-23
-          (Yuqi): the cards used to echo the StatBand — a big `text-stat-value`
-          number per card — which CLASHED with the stat-card row directly above
-          (two KPI bands stacked) and read as terse data, not an action. So this
-          zone deliberately diverges: this is an actionable RANKED LIST, not a
-          KPI grid. No protagonist number; instead a readable SENTENCE per card
-          ("New York — 16 rules to review · 20 active") with the count inline at
-          data weight (500) inside the sentence, and the lone red high-severity
-          flag (von-Restorff) called out below as a quiet pill. Denser padding
-          (p-3.5) + smaller seal so the list reads lighter than the band. */}
-      <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
-        {jurisdictions.map((g) => {
-          const days =
-            g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
-          return (
-            <button
-              key={g.jurisdiction}
-              type="button"
-              onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className="group flex cursor-pointer items-start gap-3 rounded-xl border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
-            >
-              {/* Seal sits inline at the start of the row (a list affordance),
-                  not stacked as a card header — keeps the card shallow. */}
-              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                {/* The sentence. Jurisdiction name at title weight (500), then a
-                    dash and the readable backlog phrase. The pending count is the
-                    only number, set at data weight (500) inline — not a giant
-                    stat-value — so the row reads as prose, distinct from the
-                    band's "label · big number · sub" grammar above. */}
-                <p className="text-sm leading-snug text-text-secondary">
-                  <span className="font-medium text-text-primary">{g.label}</span>
-                  {' — '}
-                  <Plural
-                    value={g.pendingReviewCount}
-                    one={
-                      <Trans>
-                        <span className="font-medium text-text-primary tabular-nums">#</span> rule
-                        to review
-                      </Trans>
-                    }
-                    other={
-                      <Trans>
-                        <span className="font-medium text-text-primary tabular-nums">#</span> rules
-                        to review
-                      </Trans>
-                    }
-                  />
-                  {g.readyCount > 0 ? (
-                    <>
-                      {' · '}
-                      <Trans>{g.readyCount} ready</Trans>
-                    </>
-                  ) : days != null ? (
-                    <>
-                      {' · '}
-                      <Trans>{days}d waiting</Trans>
-                    </>
-                  ) : null}
-                </p>
-                {/* High-severity is the lone color signal (von-Restorff): a quiet
-                    warning-toned pill, only when the jurisdiction carries high-risk
-                    rules. Everything else in the sentence stays neutral. */}
-                {g.highCount > 0 ? (
-                  <Badge variant="warning" className="w-fit">
-                    <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                  </Badge>
-                ) : null}
-              </div>
-            </button>
-          )
-        })}
-      </div>
+
+      {urgent.length > 0 ? (
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-1.5">
+            <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0 text-text-warning" />
+            <span className="text-xs font-semibold tracking-eyebrow text-text-warning uppercase">
+              <Trans>Review these first · high-severity</Trans>
+            </span>
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
+            {urgent.map(renderCard)}
+          </div>
+        </div>
+      ) : null}
+
+      {rest.length > 0 ? (
+        <div className="flex flex-col gap-2.5">
+          {urgent.length > 0 ? (
+            <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+              <Trans>Then, longest waiting</Trans>
+            </span>
+          ) : null}
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 @lg:grid-cols-2">
+            {rest.map(renderCard)}
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
