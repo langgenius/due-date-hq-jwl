@@ -12,6 +12,7 @@ import {
   ClockIcon,
   DownloadIcon,
   SparklesIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   CircleIcon,
   CircleCheckIcon,
@@ -728,6 +729,11 @@ function defaultExpandedSet(): Set<RuleJurisdiction> {
 // a fetch.
 const PAGE_SIZE = 10
 
+// localStorage key for the collapsed/expanded state of the overview
+// needs-review prompt. Sticky per-user so a deliberate dismiss survives
+// reloads; cleared (key removed) when re-expanded.
+const REVIEW_BANNER_COLLAPSE_KEY = 'rules-library:review-banner-collapsed'
+
 // ---------------------------------------------------------------------------
 // Label maps — re-declared inline so the Lingui macro picks up the
 // t-templates. (See obligation-drawer.tsx for why function-parameter
@@ -1286,6 +1292,29 @@ export function RulesLibraryRoute() {
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
   // The bulk-review list modal (Pencil `Oaey3`) — the default bulk surface.
   const [bulkListOpen, setBulkListOpen] = useState(false)
+  // Review-prompt collapse. The needs-review banner can be tucked into a
+  // small pill (still present, never gone) so the CPA can dismiss the nag
+  // without losing the entry point. Sticky per-user via localStorage —
+  // seeded synchronously so a collapsed banner never flashes open first.
+  const [reviewBannerCollapsed, setReviewBannerCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return window.localStorage.getItem(REVIEW_BANNER_COLLAPSE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  const persistReviewBannerCollapsed = useCallback((next: boolean) => {
+    setReviewBannerCollapsed(next)
+    if (typeof window === 'undefined') return
+    try {
+      if (next) window.localStorage.setItem(REVIEW_BANNER_COLLAPSE_KEY, '1')
+      else window.localStorage.removeItem(REVIEW_BANNER_COLLAPSE_KEY)
+    } catch {
+      // localStorage can throw in privacy modes — collapse still works
+      // for the session, it just won't persist. Acceptable degradation.
+    }
+  }, [])
   const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
   const [batchReviewIndex, setBatchReviewIndex] = useState<number | null>(null)
   const [batchReviewDirty, setBatchReviewDirty] = useState(false)
@@ -2860,7 +2889,35 @@ export function RulesLibraryRoute() {
                 {/* Review prompt — the counterpart to OverviewCaughtUpCard.
                     When the queue is NOT clear, tell the CPA plainly that
                     rules are waiting and give them a one-click way into the
-                    bulk review (select all pending → open the review list). */}
+                    bulk review (select all pending → open the review list).
+
+                    Dismiss collapses it to a small pill rather than removing
+                    it — the entry point is "always present" while still
+                    tuck-away-able. The collapsed state is sticky per-user
+                    (localStorage) so a deliberate dismiss survives reloads. */}
+                {reviewBannerCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => persistReviewBannerCollapsed(false)}
+                    aria-label={t`Show review prompt`}
+                    className="flex shrink-0 items-center gap-2 self-start rounded-full border border-divider-subtle bg-background-section py-1.5 pl-2 pr-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <span
+                      aria-hidden
+                      className="flex size-5 shrink-0 items-center justify-center rounded-full bg-state-accent-hover-alt text-text-accent"
+                    >
+                      <EyeIcon className="size-3" />
+                    </span>
+                    <span className="text-sm font-medium text-text-secondary">
+                      <Plural
+                        value={totalPendingReview}
+                        one="# rule needs review"
+                        other="# rules need review"
+                      />
+                    </span>
+                    <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-text-tertiary" />
+                  </button>
+                ) : (
                 <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-background-section px-4 py-3.5">
                   {/* 2026-06-23 (Yuqi: "not strong yet quite strong, like in
                       the middle"): the strip was a chromatic navy wash
@@ -2916,7 +2973,20 @@ export function RulesLibraryRoute() {
                   >
                     <Trans>Start review</Trans>
                   </Button>
+                  {/* Dismiss → collapse to the pill above. Sits after the
+                      primary CTA so it reads as the quiet secondary exit,
+                      never competing with "Start review". */}
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => persistReviewBannerCollapsed(true)}
+                    aria-label={t`Dismiss review prompt`}
+                    className="shrink-0 text-text-tertiary hover:text-text-secondary"
+                  >
+                    <XIcon className="size-4" aria-hidden />
+                  </Button>
                 </div>
+                )}
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
                 <OverviewReviewBreakdown
                   jurisdictions={topReviewJurisdictions}

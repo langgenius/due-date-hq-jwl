@@ -34,10 +34,19 @@ dot). Footer "Showing N of M states".
 
 Vertical stack inside the centered panel:
 
-1. **ActionHero** banner (only when pending > 0, not snoozed) — count tile,
-   "N rule changes waiting" + "oldest Nd", **risk subline** (high/med/low from
-   `riskLevel`), "Open review queue" (→ batch review) + "Remind me Friday"
-   (localStorage snooze until next Friday).
+1. **Review prompt** strip (only when pending > 0) — calm neutral wash
+   (`background-section`), accent confined to the eye chip + **Start review**
+   CTA (selects all pending → opens the bulk-review list). Subline sets the
+   real first step (draft-gated vs. ready). The counterpart `OverviewCaughtUpCard`
+   takes its place when the queue is clear (0 pending).
+   - **Dismiss → collapse, never gone.** A quiet ghost `×` after the CTA tucks
+     the strip into a small persistent pill (eye chip + live count + chevron,
+     `N rules need review ⌄`) in the same slot; clicking the pill re-expands.
+     The collapsed state is sticky per-user via `localStorage`
+     (`rules-library:review-banner-collapsed`), seeded synchronously so a
+     collapsed strip never flashes open on load. This satisfies "always
+     present" (the entry point never disappears) while still being
+     tuck-away-able — **demote, don't delete**.
 2. **KPI band** (`KpiStrip size="lg"`, 32px values) — Total rules /
    Jurisdictions / Changed 30d / Pending review. Derived from wired queries.
 3. **Dashboard row** (`2xl:flex-row`, equal height; stacked below):
