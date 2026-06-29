@@ -18,12 +18,13 @@ import Footer from '../components/home/Footer.astro'
 import ScrollMotion from '../components/home/ScrollMotion.astro'
 import FaqList from '../components/FaqList.astro'
 import en from '../i18n/en'
-import { getStartedHref } from '../lib/app-url'
+import { getStartedHref, getConciergeHref } from '../lib/app-url'
 import { howItWorksFaq } from '../lib/how-it-works-faq'
 import { howItWorksStructuredData } from '../lib/structured-data'
 
 const t = en
 const ctaHref = getStartedHref()
+const conciergeHref = getConciergeHref()
 const pathname = '/how-it-works'
 const title = 'How DueDateHQ works — tax deadline monitoring for CPAs'
 const description =
@@ -117,7 +118,7 @@ const description =
     <section class="m-section m-page-block">
       <FaqList eyebrow="FAQ" title="Common questions." items={howItWorksFaq.en} />
     </section>
-    <Close ctaHref={ctaHref} />
+    <Close ctaHref={ctaHref} conciergeHref={conciergeHref} />
   </main>
   <Footer />
   <ScrollMotion />

@@ -7,11 +7,11 @@
  *  honest proof of one applied change, sitting like paper on the desk. */
 interface Props {
   ctaHref: string
+  conciergeHref: string
   locale?: 'en' | 'zh-CN'
 }
-const { ctaHref, locale = 'en' } = Astro.props
+const { ctaHref, conciergeHref, locale = 'en' } = Astro.props
 const zh = locale === 'zh-CN'
-const howHref = zh ? '/zh-CN/how-it-works' : '/how-it-works'
 const t = zh
   ? {
       pill: '在报税旺季到来前做好准备',
@@ -19,7 +19,7 @@ const t = zh
         '把客户名单粘贴进来，约 10 分钟第一条带来源的截止日就会出现。从此我们替你盯着每一处官方来源——日期一变动，你立刻看清它影响到谁。',
       bodyStrong: '再也不会是最后一个知道的。',
       ctaPrimary: '免费领 3 个月',
-      ctaGhost: '看它如何运作',
+      ctaGhost: '把名单交给我们设置',
       trust: ['免费用 3 个月 Team 版', '开始无需信用卡', '数据留在你的事务所'],
       receiptEyebrow: '审计凭据',
       receiptId: '#DDH-2240',
@@ -36,7 +36,7 @@ const t = zh
         'Paste your client list once — your first sourced deadline shows up in about 10 minutes. From there we watch every official source for you, so the moment a date moves you see exactly who it hits. ',
       bodyStrong: 'Never the last to know.',
       ctaPrimary: 'Get 3 months free',
-      ctaGhost: 'See how it works',
+      ctaGhost: "We'll set it up with your list",
       trust: ['3 months of Team, free', 'No card to start', 'Data stays in your practice'],
       receiptEyebrow: 'Audit receipt',
       receiptId: '#DDH-2240',
@@ -76,7 +76,7 @@ const receiptRows = t.receiptRows
         <a class="m-cta m-cta--primary" href={ctaHref} data-event="marketing.close.cta">
           {t.ctaPrimary} <span class="arrow" aria-hidden="true">→</span>
         </a>
-        <a class="m-cta m-cta--ghost" href={howHref}>{t.ctaGhost}</a>
+        <a class="m-cta m-cta--ghost" href={conciergeHref} data-event="marketing.close.concierge">{t.ctaGhost}</a>
       </div>
 
       <div class="close__trust">

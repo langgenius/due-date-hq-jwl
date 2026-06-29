@@ -20,10 +20,11 @@ import Close from '../../components/home/Close.astro'
 import Footer from '../../components/home/Footer.astro'
 import ScrollMotion from '../../components/home/ScrollMotion.astro'
 import zhCN from '../../i18n/zh-CN'
-import { getStartedHref, getAppHref } from '../../lib/app-url'
+import { getStartedHref, getAppHref, getConciergeHref } from '../../lib/app-url'
 import { homeStructuredData } from '../../lib/structured-data'
 
 const ctaHref = getStartedHref('zh-CN')
+const conciergeHref = getConciergeHref('zh-CN')
 const signInHref = getAppHref('/login', 'zh-CN')
 const t = zhCN
 ---
@@ -39,7 +40,7 @@ const t = zhCN
   <TopNav ctaHref={ctaHref} signInHref={signInHref} current="home" locale="zh-CN" />
   <ScrollRail locale="zh-CN" />
   <main>
-    <Hero ctaHref={ctaHref} workflowAnchor="/zh-CN/how-it-works" locale="zh-CN" />
+    <Hero ctaHref={ctaHref} conciergeHref={conciergeHref} workflowAnchor="/zh-CN/how-it-works" locale="zh-CN" />
     <Villain locale="zh-CN" />
     <Surfaces locale="zh-CN" />
     <Creed locale="zh-CN" />
@@ -48,7 +49,7 @@ const t = zhCN
     <Compare locale="zh-CN" />
     <Security locale="zh-CN" />
     <Faq locale="zh-CN" />
-    <Close ctaHref={ctaHref} locale="zh-CN" />
+    <Close ctaHref={ctaHref} conciergeHref={conciergeHref} locale="zh-CN" />
   </main>
   <Footer locale="zh-CN" />
   <ScrollMotion />
