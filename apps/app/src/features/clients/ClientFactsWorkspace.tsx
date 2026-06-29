@@ -700,15 +700,15 @@ export function ClientFactsWorkspace({
             <div className="flex min-w-0 flex-col gap-0.5">
               <NextDueRelativeLabel iso={summary.nextDueDate} />
               <div className="flex flex-wrap items-center gap-1.5">
-                {/* Exact-date secondary line uses `text-text-secondary`
-                    to match the /deadlines queue row treatment — one
-                    tone for the same job. Uses `formatDate()` for the
-                    prose date format /deadlines uses (e.g. "May 8")
-                    rather than mono raw ISO (mono numbers read as
-                    "code/identifier-y" when these are just dates),
-                    plus `tabular-nums` for column alignment. */}
+                {/* Exact-date secondary line in `text-text-secondary` (one tone
+                    for the same job as the /deadlines queue). 2026-06-29: was
+                    `formatDate()`, which returns RAW ISO ("2026-05-12") — the
+                    comment claimed prose but the function doesn't deliver it, so
+                    the table read ISO while the card read "May 12". Switched to
+                    `formatDatePretty` (prose dates, never raw ISO — date canon),
+                    matching the card view + the rest of the product. */}
                 <span className="text-caption tabular-nums text-text-secondary">
-                  {formatDate(summary.nextDueDate)}
+                  {formatDatePretty(summary.nextDueDate)}
                 </span>
                 {summary.nextDueStatus ? (
                   // Status pill renders at the canonical
