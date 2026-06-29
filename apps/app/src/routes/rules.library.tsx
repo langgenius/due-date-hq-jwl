@@ -87,7 +87,7 @@ import {
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
-import { StatBand } from '@/components/patterns/stat-band'
+import { StatSummaryStrip } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
@@ -912,7 +912,10 @@ function OverviewReviewBreakdown({
                 </span>
               </>
             ) : null}
-            {days != null ? (
+            {/* "Nd waiting" only on the longest-waiting tier, where the wait IS
+                the reason for ordering. The high-severity tier leads with the HIGH
+                chip, so the wait there was just extra noise on the card. */}
+            {g.highCount === 0 && days != null ? (
               <>
                 <span aria-hidden className="text-text-quaternary">
                   ·
@@ -1545,11 +1548,6 @@ export function RulesLibraryRoute() {
     return latest > 0 ? formatRelativeTime(new Date(latest).toISOString()) : null
   }, [rules])
 
-  // Overview KPI-strip + eyebrow inputs (Pencil O0pyRO KPI Strip /
-  // eyebrow). All derived from already-wired queries — no extra fetch.
-  //   jurisdictionCount — one coverage row per jurisdiction
-  //   changedLast30     — rules touched in the trailing 30d
-  const jurisdictionCount = coverageRows.length
   // Rail library-section rows (Pencil O0pyRO — Sources / Temporary rules).
   const railSources = useMemo(() => {
     const data = sourcesQuery.data
@@ -2549,6 +2547,8 @@ export function RulesLibraryRoute() {
       value: highSeverityPending,
       sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
       subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      // The compact strip tints the number itself (the band put tone on the sub).
+      ...(highSeverityPending > 0 ? { valueClass: 'text-text-warning' } : {}),
       // "action?" (Yuqi): when high-risk rules are waiting, the column is a
       // shortcut — select all high-severity reviewable rules and open the bulk
       // modal scoped to them (same select-then-open idiom as "Start review").
@@ -2572,21 +2572,14 @@ export function RulesLibraryRoute() {
           ? t`${gappedJurisdictions.length} with gaps`
           : t`Full coverage`,
       subClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-success',
+      // Tone on the value for the strip — amber only when there's a gap to act on
+      // (full coverage stays neutral; a green "100%" would be an always-on accent).
+      ...(coveragePct < 100 ? { valueClass: 'text-text-warning' } : {}),
     },
-    {
-      key: 'total',
-      label: t`Total rules`,
-      value: totalRules,
-      // The page subtitle's "N rules across M jurisdictions" was redundant with
-      // this anchor stat, so the jurisdiction count folds in here (Yuqi: "do we
-      // need this?") and the subtitle drops — one home for the catalog totals.
-      sub: t`${totalActive} active · ${jurisdictionCount} jurisdictions`,
-      // Anchor/context stat — stays NEUTRAL (2026-06-18 color budget). Color in a
-      // StatBand is reserved for conditionally-actionable stats (the three above
-      // go amber only when there's work); an always-on accent on the vanity total
-      // diluted that signal (von-Restorff).
-      subClass: 'text-text-tertiary',
-    },
+    // 2026-06-29 (Yuqi "looks messy" — light pass): dropped the "Total rules"
+    // stat. The rail header already shows the catalog total ("Overview 479") and
+    // its footer the jurisdiction count ("52 jurisdictions"), so the anchor stat
+    // was a third home for figures that already have one.
   ]
 
   return (
@@ -2896,7 +2889,7 @@ export function RulesLibraryRoute() {
             //  - otherwise (`O0pyRO`) → stats band ABOVE the flush Recent
             //    changes feed
             statsLoading ? (
-              <StatBand loading stats={overviewStats} ariaLabel={t`Rule library summary`} />
+              <StatSummaryStrip loading stats={overviewStats} ariaLabel={t`Rule library summary`} />
             ) : totalPendingReview === 0 ? (
               <>
                 <OverviewCaughtUpCard
@@ -2904,7 +2897,7 @@ export function RulesLibraryRoute() {
                   onViewDecisions={handleViewAllChanges}
                   onMonitorSources={handleMonitorSources}
                 />
-                <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                <StatSummaryStrip stats={overviewStats} ariaLabel={t`Rule library summary`} />
               </>
             ) : (
               <>
@@ -3009,7 +3002,7 @@ export function RulesLibraryRoute() {
                     </Button>
                   </div>
                 )}
-                <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                <StatSummaryStrip stats={overviewStats} ariaLabel={t`Rule library summary`} />
                 <OverviewReviewBreakdown
                   jurisdictions={topReviewJurisdictions}
                   onSelectJurisdiction={selectJurisdiction}
