@@ -327,12 +327,20 @@ export function StatSummaryStrip({
   if (loading) {
     return <Skeleton className="h-5 w-72 rounded" />
   }
+  // A "0 Overdue" segment is noise in a compact line (its absence already says
+  // zero) — drop numeric-zero cells so the strip stays tight, and render nothing
+  // when that leaves it empty (2026-06-29, Yuqi "太零碎"). Callers still drop any
+  // surface-specific redundant cell (e.g. a "Total" already in the title pill).
+  const visible = stats.filter((stat) => !(typeof stat.value === 'number' && stat.value === 0))
+  if (visible.length === 0) {
+    return null
+  }
   return (
     <div
       aria-label={ariaLabel}
       className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-sm', className)}
     >
-      {stats.map((stat, index) => {
+      {visible.map((stat, index) => {
         const interactive = Boolean(stat.href || stat.onClick)
         const body = (
           <>
