@@ -77,7 +77,7 @@ function HorizontalStepper({ current }: { current: StepIndex }) {
         const isActive = step.index === current
 
         const pillTone = isActive
-          ? 'border border-state-accent-solid/30 bg-state-accent-hover-alt text-text-accent'
+          ? 'border border-state-accent-solid bg-background-default font-medium text-text-accent'
           : isDone
             ? 'border border-state-success-border bg-state-success-hover text-text-success'
             : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'
@@ -159,7 +159,7 @@ function VerticalStepper({ current }: { current: StepIndex }) {
           const isActive = step.index === current
 
           const pillTone = isActive
-            ? 'border border-state-accent-solid/30 bg-state-accent-hover-alt text-text-accent'
+            ? 'border border-state-accent-solid bg-background-default font-medium text-text-accent'
             : isDone
               ? 'border border-state-success-border bg-state-success-hover text-text-success'
               : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'

@@ -114,32 +114,21 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
   return (
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* The wizard frame title "Import clients" above is the MASTER for
-              this card; each step's h2 (here, on Step 3, and on Step 4)
-              describes the current step's outcome — child of the master. Sized
-              one notch down (text-base) so the master title wins the visual
-              weight and the step h2 reads as a sub-section. */}
-          <h2 className="text-base font-semibold text-text-primary">
-            {mapping.status === 'fallback' ? (
-              <Trans>Review your column mappings</Trans>
-            ) : (
-              <Trans>AI prepared your columns</Trans>
-            )}
-          </h2>
-          <MappingCapabilityBadge mapping={mapping} />
-        </div>
-        <div className="flex items-center justify-end gap-3">
-          {/* The colored MappingPillStrip below is the visible at-a-glance count
-              split; this sentence readout stays in the DOM (sr-only) for screen
-              readers + test assertions so the header isn't double-counting. */}
-          <p className="sr-only">
-            <MappingHeadline summary={summary} status={mapping.status} />
-          </p>
-          {/* The label "Re-run AI (keep my changes)" deliberately avoids
-              "with my overrides" — overrides are passed as hints, not
-              guaranteed preserved, so the parenthetical describes the intent,
-              not a contract. */}
+        {/* Title + capability pill on the left, Re-run AI as the row's action on
+            the right — one title-action line, not a button floating on its own. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold text-text-primary">
+              {mapping.status === 'fallback' ? (
+                <Trans>Review your column mappings</Trans>
+              ) : (
+                <Trans>AI prepared your columns</Trans>
+              )}
+            </h2>
+            <MappingCapabilityBadge mapping={mapping} />
+          </div>
+          {/* "Re-run AI (keep my changes)" avoids "with my overrides" — overrides
+              are passed as hints, not a guaranteed contract. */}
           <Button
             variant="outline"
             size="sm"
@@ -154,6 +143,11 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
             )}
           </Button>
         </div>
+        {/* Sentence count readout kept sr-only (the colored chips below are the
+            visible at-a-glance split); stays in the DOM for a11y + tests. */}
+        <p className="sr-only">
+          <MappingHeadline summary={summary} status={mapping.status} />
+        </p>
       </div>
 
       {/* Count chips ("Auto-mapped / Needs review / Skipped") + override hint.
@@ -754,7 +748,7 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
         label={t`Explain name matching`}
         title={t`Name matching means AI was unavailable, so columns were matched to fields by their header names.`}
         badge={
-          <Badge variant="outline">
+          <Badge variant="secondary">
             <ListChecksIcon data-icon="inline-start" />
             <Trans>Matched by name</Trans>
           </Badge>
@@ -774,9 +768,9 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
         label={t`Explain import template suggestions`}
         title={t`Import template suggestions mean AI was unavailable and the selected import template filled defaults.`}
         badge={
-          <Badge variant="outline">
+          <Badge variant="secondary">
             <ListChecksIcon data-icon="inline-start" />
-            <Trans>Import template</Trans>
+            <Trans>From template</Trans>
           </Badge>
         }
       >
@@ -812,7 +806,7 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       badge={
         // Step 9 F-001/F-014: SparklesIcon → canonical SparklesIcon AI
         // provenance icon. Sparkles reserved for billing/opportunities.
-        <Badge variant="outline">
+        <Badge variant="secondary">
           <SparklesIcon data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
