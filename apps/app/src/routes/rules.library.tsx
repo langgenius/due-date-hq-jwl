@@ -1611,6 +1611,19 @@ export function RulesLibraryRoute() {
   // independent of the active scope/entity filter.
   const tierLabels = useRuleTierLabels()
   const unfilteredGroups = useMemo(() => buildGroups(rules, coverageRows), [rules, coverageRows])
+  // Per-jurisdiction high-severity pending count — escalates the rail's review
+  // dot to a warning triangle so the "review first" jurisdictions stand out in
+  // the nav, matching the overview's high-severity tier. Same gate as
+  // `highSeverityPending` (the StatBand stat), bucketed by jurisdiction.
+  const highSeverityByJurisdiction = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of rules) {
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      if (r.riskLevel !== 'high') continue
+      m.set(r.jurisdiction, (m.get(r.jurisdiction) ?? 0) + 1)
+    }
+    return m
+  }, [rules])
   const railItems = useMemo<RailJurisdiction[]>(
     () =>
       unfilteredGroups.map((g) => ({
@@ -1618,8 +1631,9 @@ export function RulesLibraryRoute() {
         label: g.label,
         ruleCount: g.ruleCount,
         reviewCount: g.pendingReviewCount,
+        highCount: highSeverityByJurisdiction.get(g.jurisdiction) ?? 0,
       })),
-    [unfilteredGroups],
+    [unfilteredGroups, highSeverityByJurisdiction],
   )
   // Overview "Where to start" + sharpened-stat data — all from already-wired
   // sources, no new fiction.

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
+import { LayoutDashboardIcon, TimerIcon, TriangleAlertIcon } from 'lucide-react'
 import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 
@@ -56,6 +56,10 @@ export type RailJurisdiction = {
   ruleCount: number
   /** Rules in this jurisdiction awaiting CPA review — drives the amber dot. */
   reviewCount: number
+  /** Pending rules that are HIGH-severity — escalates the dot to a warning
+   *  triangle so "review these first" jurisdictions stand out in the rail
+   *  (matches the overview's high-severity tier). */
+  highCount: number
 }
 
 /** Sort/group order for the states list (the rail-head `Segmented`). */
@@ -247,6 +251,7 @@ export function JurisdictionRail({
                 label={federalVisible.label}
                 count={federalVisible.ruleCount}
                 reviewCount={federalVisible.reviewCount}
+                highCount={federalVisible.highCount}
                 selected={selected === 'FED'}
                 onSelect={() => onSelect('FED')}
               />
@@ -263,6 +268,7 @@ export function JurisdictionRail({
                   label={it.label}
                   count={it.ruleCount}
                   reviewCount={it.reviewCount}
+                  highCount={it.highCount}
                   selected={selected === it.jurisdiction}
                   onSelect={() => onSelect(it.jurisdiction)}
                 />
@@ -348,6 +354,7 @@ function RailRow({
   label,
   count,
   reviewCount,
+  highCount = 0,
   selected,
   onSelect,
 }: {
@@ -358,6 +365,9 @@ function RailRow({
   label: string
   count: number
   reviewCount: number
+  /** High-severity pending rules — escalates the trailing marker to a warning
+   *  triangle so "review first" jurisdictions stand out. */
+  highCount?: number
   selected: boolean
   onSelect: () => void
 }) {
@@ -366,6 +376,12 @@ function RailRow({
     plural(reviewCount, {
       one: '# rule to review',
       other: '# rules to review',
+    }),
+  )
+  const highLabel = i18n._(
+    plural(highCount, {
+      one: '# high-severity rule to review',
+      other: '# high-severity rules to review',
     }),
   )
 
@@ -424,7 +440,16 @@ function RailRow({
           row to row). size-1 dot (not 1.5) so a list where most rows carry
           one doesn't read as a field of warning dots. */}
       <span className="flex shrink-0 items-center gap-1.5">
-        {reviewCount > 0 ? (
+        {highCount > 0 ? (
+          // High-severity pending → a warning triangle (stronger than the plain
+          // dot) so the "review these first" jurisdictions read at a glance,
+          // matching the overview's high-severity tier.
+          <TriangleAlertIcon
+            className="size-3 shrink-0 text-text-warning"
+            aria-label={highLabel}
+            role="img"
+          />
+        ) : reviewCount > 0 ? (
           <span
             className="size-1 shrink-0 rounded-full bg-state-warning-solid"
             title={reviewLabel}
