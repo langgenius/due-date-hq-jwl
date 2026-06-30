@@ -73,7 +73,7 @@ function InvitePill() {
   return (
     <Badge
       variant="info"
-      className="gap-1.5 px-2.5 py-1 text-[11px] font-semibold tracking-[0.2px]"
+      className="gap-1.5 px-2.5 py-1 text-caption font-semibold tracking-[0.2px]"
     >
       <MailIcon className="size-3" aria-hidden />
       <Trans>Firm invitation</Trans>
@@ -172,7 +172,7 @@ export function AcceptInviteRoute() {
             </Button>
             <Button
               nativeButton={false}
-              variant="outline"
+              variant="secondary"
               size="lg"
               className="flex-1 rounded-lg"
               render={<Link to="/" />}
@@ -233,7 +233,7 @@ export function AcceptInviteRoute() {
         {!signedIn ? (
           <div className="flex flex-col gap-4">
             <Button
-              variant="outline"
+              variant="secondary"
               size="lg"
               className="w-full justify-center gap-2.5 rounded-lg"
               onClick={() => void handleProvider('google')}
@@ -249,7 +249,7 @@ export function AcceptInviteRoute() {
             </Button>
             {microsoftEnabled ? (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="lg"
                 className="w-full justify-center gap-2.5 rounded-lg"
                 onClick={() => void handleProvider('microsoft')}
@@ -268,7 +268,7 @@ export function AcceptInviteRoute() {
               <>
                 <div className="flex items-center gap-3.5">
                   <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                  <span className="text-[11px] font-medium tracking-[0.2px] text-text-tertiary">
+                  <span className="text-caption font-medium tracking-[0.2px] text-text-tertiary">
                     <Trans>or continue with email</Trans>
                   </span>
                   <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
@@ -350,7 +350,7 @@ export function AcceptInviteRoute() {
           </div>
         )}
 
-        <p className="text-center text-[11px] font-medium text-text-tertiary">
+        <p className="text-center text-caption font-medium text-text-tertiary">
           <Trans>By accepting you agree to the Terms and Privacy Policy.</Trans>
         </p>
       </AuthCard>

@@ -176,7 +176,7 @@ export function DeadlineDetailRoute() {
             }
             cta={
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 nativeButton={false}
                 render={<Link to="/deadlines" />}

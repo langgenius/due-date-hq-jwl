@@ -153,7 +153,7 @@ export function BillingSuccessRoute() {
                   Refresh the page, or contact support if it persists.
                 </Trans>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
+                  <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
                     <RefreshCwIcon data-icon="inline-start" />
                     <Trans>Refresh now</Trans>
                   </Button>
@@ -186,7 +186,7 @@ export function BillingSuccessRoute() {
             <Trans>Go to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
-          <Button variant="outline" nativeButton={false} render={<Link to="/billing" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link to="/billing" />}>
             <Trans>Open billing</Trans>
           </Button>
         </CardFooter>

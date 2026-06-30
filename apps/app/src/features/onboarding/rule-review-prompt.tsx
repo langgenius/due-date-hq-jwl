@@ -63,12 +63,12 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
             </>
           ) : null}
           {item.blockedCount != null ? (
-            <Badge variant="destructive" className="text-[10px] font-semibold">
+            <Badge variant="destructive" className="text-2xs font-semibold">
               <Trans>{item.blockedCount} blocked</Trans>
             </Badge>
           ) : null}
         </div>
-        <p className="text-[11px] font-medium leading-relaxed text-text-tertiary">
+        <p className="text-caption font-medium leading-relaxed text-text-tertiary">
           {item.detail ?? (
             // Plain gloss, not the internal term "source-defined calendar"
             // (2026-06-12 critique). "Jurisdiction" not "state" — the review set

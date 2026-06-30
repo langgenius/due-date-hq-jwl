@@ -132,7 +132,7 @@ export function JurisdictionRail({
           alerts rail's "Alerts · N open" head (title + CountPill). Neutral
           tone: a standing backlog count isn't an alarm; the pill disappears
           when the queue is clear (quiet = caught up).
-          #7 — `pr-6` (24px) overrides the shell's `px-[18px]` so the head's
+          #7 — `pr-6` (24px) overrides the shell's `px-4` so the head's
           trailing element right-aligns with the per-row count column: each
           row's count box sits at body `px-3` (12px) + row `px-3` (12px) = 24px
           from the rail edge, so the columns line up vertically down the rail. */}
@@ -199,7 +199,7 @@ export function JurisdictionRail({
 
       {/* ListBody — the canonical scrolling body (same primitive the alerts
           rail uses). `px-3 py-2` so each row's left edge + trailing count
-          column settle under the head's `px-[18px]` (body px-3 + row px-3). */}
+          column settle under the head's `px-4` (body px-3 + row px-3). */}
       <ListRailBody className="px-3 py-2">
         <div className="flex flex-col gap-0.5">
           {/* Overview — the All-jurisdictions surface, always first. */}
@@ -288,7 +288,7 @@ export function JurisdictionRail({
           jurisdiction renders), so the old "Showing N of M states" read as
           truncation that never happens. A quiet `border-t` strip with the
           honest count, same divider rhythm as the head/search rows above. */}
-      <div className="flex shrink-0 items-center border-t border-divider-subtle px-[18px] py-3">
+      <div className="flex shrink-0 items-center border-t border-divider-subtle px-4 py-3">
         <span className="text-xs font-medium text-text-tertiary tabular-nums">
           {t`${items.length} jurisdictions`}
         </span>

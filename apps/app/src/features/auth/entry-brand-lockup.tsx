@@ -35,7 +35,7 @@ export function EntryBetaPill({ children }: { children: ReactNode }) {
   return (
     <Badge
       variant="info"
-      className="gap-1.5 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide"
+      className="gap-1.5 px-2.5 py-1 font-mono text-caption font-semibold tracking-wide"
     >
       <span aria-hidden className="block size-1.5 rounded-full bg-status-done" />
       {children}

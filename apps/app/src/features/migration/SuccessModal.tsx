@@ -195,7 +195,7 @@ export function SuccessModal({
               </span>
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               className="shrink-0 border-state-warning-hover-alt text-text-warning"
               disabled={reverting}
@@ -272,7 +272,7 @@ export function SuccessModal({
               <Trans>View audit log entry</Trans>
             </Button>
             <span className="flex-1" />
-            <Button variant="outline" size="sm" onClick={onImportAnother}>
+            <Button variant="secondary" size="sm" onClick={onImportAnother}>
               <Trans>Import another file</Trans>
             </Button>
             <Button size="sm" onClick={onOpenDashboard}>

@@ -130,7 +130,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           {/* "Re-run AI (keep my changes)" avoids "with my overrides" — overrides
               are passed as hints, not a guaranteed contract. */}
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={onRerun}
             disabled={mapping.status === 'loading'}

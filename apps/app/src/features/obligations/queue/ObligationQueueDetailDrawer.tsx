@@ -241,7 +241,7 @@ function DeadlineTopActions({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" disabled={assignPending}>
+            <Button variant="secondary" size="sm" className="h-8 gap-1.5" disabled={assignPending}>
               <UserPlusIcon className="size-3.5" aria-hidden />
               <Trans>Assign owner</Trans>
             </Button>
@@ -302,7 +302,7 @@ function DeadlineTopActions({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="outline" size="sm" className="h-8 gap-1.5" disabled={snoozePending}>
+            <Button variant="secondary" size="sm" className="h-8 gap-1.5" disabled={snoozePending}>
               <AlarmClockIcon className="size-3.5" aria-hidden />
               <Trans>Snooze</Trans>
             </Button>
@@ -3102,7 +3102,7 @@ export function ObligationQueueDetailDrawer({
                                     // accent-solid (~3:1 on white). Switched to a
                                     // bordered outline button at the default size so
                                     // it clears AA and reads as a real affordance.
-                                    <Button variant="outline" size="sm" className="h-8 font-medium">
+                                    <Button variant="secondary" size="sm" className="h-8 font-medium">
                                       <Trans>Change</Trans>
                                     </Button>
                                   }
@@ -3441,7 +3441,7 @@ export function ObligationQueueDetailDrawer({
                                   </span>
                                   <Button
                                     size="xs"
-                                    variant="outline"
+                                    variant="secondary"
                                     onClick={() => void autoGenerateChecklistQuery.refetch()}
                                   >
                                     <Trans>Retry</Trans>
@@ -4345,7 +4345,7 @@ export function ObligationQueueDetailDrawer({
                             </span>
                           ) : null}
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => setExtensionDraft(emptyExtensionPlanDraft())}
                           >
                             <Trans>Cancel</Trans>
@@ -4613,7 +4613,7 @@ export function ObligationQueueDetailDrawer({
                         <div className="flex items-center justify-end">
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
                             disabled
                             title={t`Coming soon — attach PDFs and exports here once ingest lands.`}

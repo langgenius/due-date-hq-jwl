@@ -3619,7 +3619,7 @@ export function ObligationQueueRoute() {
             {/* Export uses ArrowUpRightIcon (arrow up + out — data LEAVING the
                 app), not a download arrow — the convention used by Linear /
                 Notion / Figma for export actions. */}
-            <Button variant="outline" onClick={() => openExportDialog('filtered')}>
+            <Button variant="secondary" onClick={() => openExportDialog('filtered')}>
               <ArrowUpRightIcon data-icon="inline-start" />
               <Trans>Export</Trans>
             </Button>
@@ -6944,7 +6944,7 @@ function ObligationFiltersPopover({
           </span>
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               type="button"
               onClick={() => setStage(emptyStage)}
@@ -7448,11 +7448,11 @@ function ObligationQueueEmptyState({
       }
       cta={
         hasActiveFilters ? (
-          <Button size="sm" variant="outline" onClick={onClearFilters}>
+          <Button size="sm" variant="secondary" onClick={onClearFilters}>
             <Trans>Clear filters</Trans>
           </Button>
         ) : (
-          <Button size="sm" variant="outline" onClick={onOpenWizard} disabled={!canRunMigration}>
+          <Button size="sm" variant="secondary" onClick={onOpenWizard} disabled={!canRunMigration}>
             <Trans>Import clients</Trans>
           </Button>
         )
@@ -7533,7 +7533,7 @@ function CalendarSyncPopover() {
             + the filter-trigger chrome. */}
         <PopoverTrigger
           render={
-            <Button variant="outline">
+            <Button variant="secondary">
               <CalendarDaysIcon data-icon="inline-start" />
               <Trans>Calendar sync</Trans>
             </Button>

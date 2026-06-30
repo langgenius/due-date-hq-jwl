@@ -385,7 +385,7 @@ function AuditLogPagination({
       </div>
       <div className="flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={onPreviousPage}
           disabled={!hasPreviousPage}
@@ -395,7 +395,7 @@ function AuditLogPagination({
           <Trans>Previous</Trans>
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={onNextPage}
           disabled={!hasNextPage || isFetchingNextPage}
@@ -472,7 +472,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
   const latest = packagesQuery.data?.packages[0] ?? null
   const trigger = (
     <Button
-      variant="outline"
+      variant="secondary"
       size="sm"
       onClick={() => setOpen(true)}
       disabled={!canExport}
@@ -1138,7 +1138,7 @@ export function AuditLogPage() {
                     }
                     cta={
                       filtersActive ? (
-                        <Button variant="outline" size="sm" onClick={resetFilters}>
+                        <Button variant="secondary" size="sm" onClick={resetFilters}>
                           <FilterIcon data-icon="inline-start" />
                           <Trans>Clear filters</Trans>
                         </Button>

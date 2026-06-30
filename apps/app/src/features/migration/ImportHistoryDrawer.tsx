@@ -352,7 +352,7 @@ export function ImportHistoryDrawer({
                                 <Trans>Resume</Trans>
                               </Button>
                               <Button
-                                variant="outline"
+                                variant="secondary"
                                 size="sm"
                                 onClick={() =>
                                   setPendingRecovery({
@@ -368,7 +368,7 @@ export function ImportHistoryDrawer({
                             </>
                           ) : (
                             <Button
-                              variant="outline"
+                              variant="secondary"
                               size="sm"
                               onClick={() =>
                                 setPendingRecovery({

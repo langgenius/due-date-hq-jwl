@@ -99,7 +99,7 @@ export function ObligationListRail({
           // Zero-results is a recovery moment, not a dead-end: when a filter is
           // narrowing the list to nothing, offer a one-click way back to the
           // full list (matches the page-level alerts/audit/notifications empties).
-          <div className="px-[18px] py-10 text-center">
+          <div className="px-4 py-10 text-center">
             <p className="text-base text-text-tertiary">
               <Trans>No deadlines match.</Trans>
             </p>
@@ -174,7 +174,7 @@ function RailItem({
         // navigators feel identical: `group/rail` for hover-reveal dimming,
         // py-4, and selection by a LIGHT base-hover fill — not a left accent bar
         // (Yuqi: "rail has its edge"; accent isn't the steady-selection colour).
-        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
+        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-4 py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}

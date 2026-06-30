@@ -118,7 +118,7 @@ export function AlertsHistoryRoute() {
       breadcrumbs={[{ label: t`Alerts`, to: '/alerts' }]}
       actions={
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={handleExport}
           disabled={handledCount === 0}
           aria-label={t`Export handled alerts as CSV`}

@@ -199,7 +199,7 @@ export function AlertListRail({
         {visible.length === 0 ? (
           // Zero-results is a recovery moment, not a dead-end: offer a one-click
           // way back to the full list (matches the page-level empties).
-          <div className="px-[18px] py-10 text-center">
+          <div className="px-4 py-10 text-center">
             <p className="text-base text-text-tertiary">
               <Trans>No alerts match.</Trans>
             </p>
@@ -314,7 +314,7 @@ function RailItem({
         // `border-b-divider-subtle` (bottom-only color) so it doesn't
         // override the left accent below. Roomier item padding (py-4) +
         // a touch more column gap so the rail breathes.
-        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
+        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-4 py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         // 2026-06-14 (Yuqi: "active bg is too dark"): selection is a LIGHT
         // neutral fill — `state-base-hover` (0.2) instead of the heavier

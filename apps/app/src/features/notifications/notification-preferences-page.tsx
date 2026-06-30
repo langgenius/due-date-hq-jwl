@@ -205,7 +205,7 @@ export function NotificationPreferencesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-12 md:px-6">
       <PageHeader
         breadcrumbs={[
           { label: t`Notifications`, to: '/notifications' },
@@ -227,7 +227,7 @@ export function NotificationPreferencesPage() {
           title={<Trans>Couldn't load your preferences</Trans>}
           description={<Trans>Something went wrong fetching your notification settings.</Trans>}
           cta={
-            <Button variant="outline" onClick={() => void preferencesQuery.refetch()}>
+            <Button variant="secondary" onClick={() => void preferencesQuery.refetch()}>
               <Trans>Try again</Trans>
             </Button>
           }
@@ -349,7 +349,7 @@ function ChannelRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-3.5 px-5 py-[18px]',
+        'flex items-center gap-3.5 px-5 py-4',
         last ? null : 'border-b border-divider-regular',
       )}
     >

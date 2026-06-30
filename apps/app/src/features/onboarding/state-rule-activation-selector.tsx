@@ -127,7 +127,7 @@ export function StateRuleActivationSelector({
       <div className="flex items-center justify-between gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={toggleAllStates}
           aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
@@ -166,7 +166,7 @@ export function StateRuleActivationSelector({
                         // touch target). The 2-letter code still reads as an
                         // abbreviation, not a competing button label.
                         className={cn(
-                          'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[11px] font-medium transition-colors outline-none',
+                          'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-caption font-medium transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
                           // Selected = a light accent TINT (navy text on a soft
                           // navy wash + soft border), not a solid navy fill —

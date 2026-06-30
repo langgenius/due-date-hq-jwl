@@ -146,7 +146,7 @@ export function FixNeedsFactsSheet({
                 </Trans>
               }
               cta={
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
                   <Trans>Close</Trans>
                 </Button>
               }
@@ -277,7 +277,7 @@ function FixNeedsFactsRow({
           // on the destination cleanly.
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="sm"
             nativeButton={false}
             render={<Link to={`${clientDetailPath(client)}?tab=info`} />}

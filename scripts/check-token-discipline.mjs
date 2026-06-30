@@ -43,6 +43,10 @@ const EXCEPTIONS = [
   // Tooltip arrow tip: 1px softening on the rotated 8px square — a decorative
   // detail, not a container radius (no canonical token applies).
   { path: 'packages/ui/src/components/ui/tooltip.tsx', has: 'rounded-[1px]' },
+  // Readiness bar segments (h-full flex-1 tiles): 1px softens the segment
+  // corners on a thin bar — same decorative-detail case as the tooltip tip;
+  // the 4px compact-radius minimum would over-round a hairline bar.
+  { path: 'apps/app/src/features/obligations/queue/components/primitives.tsx', has: 'rounded-[1px]' },
   // PulseFormRevisedCard identity colors — purple change-kind badge + amber-800
   // NEW badge (Pencil QJ04z/U3D0D); no standard token, intentional one-offs.
   { path: 'apps/app/src/features/alerts/components/PulseFormRevisedCard.tsx', has: '#6B21A8' },

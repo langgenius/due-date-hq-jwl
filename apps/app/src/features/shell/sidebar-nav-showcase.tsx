@@ -104,7 +104,7 @@ function SidebarNavRow({
           // symmetric 11px inset so the leading icon column lines up across
           // every row. transition limited to color/bg/transform + an
           // active:scale press for a crafted feel; motion-reduce drops it.
-          'group/row flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-[11px] text-left text-sm font-normal outline-none',
+          'group/row flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-sm font-normal outline-none',
           'transition-[color,background-color,transform] active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           active
@@ -161,7 +161,7 @@ function SidebarNavSection({
           between groups; the label reads as an orientation hint, not chrome. */}
       <div
         role="presentation"
-        className="flex h-7 shrink-0 items-center px-[11px] pt-2.5 pb-1 text-caption-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary"
+        className="flex h-7 shrink-0 items-center px-3 pt-2.5 pb-1 text-caption-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary"
       >
         {section.label}
       </div>

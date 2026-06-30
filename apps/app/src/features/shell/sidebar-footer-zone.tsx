@@ -117,7 +117,7 @@ function FooterRow({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg px-[11px] text-left text-text-secondary outline-none',
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg px-3 text-left text-text-secondary outline-none',
         'transition-[color,background-color,transform] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
         'hover:bg-background-sidebar-hover hover:text-text-primary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',

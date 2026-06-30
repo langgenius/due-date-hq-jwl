@@ -213,7 +213,7 @@ function NeedsAttentionCard({
           {alertForm ? (
             <TaxCodeBadge
               code={alertForm}
-              className="rounded-lg border-divider-subtle px-2 py-[2px] text-xs"
+              className="rounded-lg border-divider-subtle px-2 py-0.5 text-xs"
             />
           ) : null}
 

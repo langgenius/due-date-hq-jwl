@@ -114,7 +114,7 @@ export function WorkloadPage() {
             {/* Refresh button announces aria-busy + spins the icon while
                 refetching so the user has a visible signal. */}
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => void workloadQuery.refetch()}
               disabled={workloadQuery.isFetching}
@@ -191,7 +191,7 @@ export function WorkloadPage() {
           <CardAction>
             <Button
               nativeButton={false}
-              variant="outline"
+              variant="secondary"
               size="sm"
               render={<Link to="/deadlines" />}
             >
@@ -266,7 +266,7 @@ function WorkloadUpgradePanel() {
           <Button nativeButton={false} render={<Link to="/billing" />}>
             <Trans>Upgrade plan</Trans>
           </Button>
-          <Button nativeButton={false} variant="outline" render={<Link to="/deadlines" />}>
+          <Button nativeButton={false} variant="secondary" render={<Link to="/deadlines" />}>
             <Trans>Open deadlines</Trans>
           </Button>
         </CardContent>
@@ -500,7 +500,7 @@ function WorkloadTable({
               <TableCell className="text-right">
                 <Button
                   nativeButton={false}
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   className="text-xs"
                   render={<Link to={workloadRowHref(row)} />}

@@ -64,7 +64,7 @@ export function BillingCancelRoute() {
             <CreditCardIcon data-icon="inline-start" />
             {hasPlanSelection ? <Trans>Restart checkout</Trans> : <Trans>Choose a plan</Trans>}
           </Button>
-          <Button variant="outline" nativeButton={false} render={<Link to="/billing" />}>
+          <Button variant="secondary" nativeButton={false} render={<Link to="/billing" />}>
             <ArrowLeftIcon data-icon="inline-start" />
             <Trans>Back to Billing</Trans>
           </Button>

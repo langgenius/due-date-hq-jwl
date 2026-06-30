@@ -944,7 +944,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         <CardContent className="flex justify-end">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => backfillSignatureLoopMutation.mutate({})}
             disabled={!canBackfillSignatureLoop || backfillSignatureLoopMutation.isPending}
             title={

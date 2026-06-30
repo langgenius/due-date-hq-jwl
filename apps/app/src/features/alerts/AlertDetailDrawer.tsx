@@ -515,7 +515,7 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                   {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 12/500
                       step title — a step lighter than the section body (text-sm)
                       so the timeline reads as a quiet log, not a heading stack.
-                      Tokenized from the off-scale text-[13px] to text-xs. */}
+                      Tokenized from the off-scale 13px size to text-xs. */}
                   <span
                     className={cn(
                       'text-xs font-medium',
@@ -2143,7 +2143,7 @@ export function AlertDetailDrawer({
                 </Trans>
               }
               cta={
-                <Button type="button" variant="outline" onClick={onClose}>
+                <Button type="button" variant="secondary" onClick={onClose}>
                   <Trans>Back to alerts</Trans>
                 </Button>
               }
@@ -2200,7 +2200,7 @@ export function AlertDetailDrawer({
                     <AlertAction>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
                         onClick={() =>
                           window.open(detail.alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -2292,7 +2292,7 @@ export function AlertDetailDrawer({
                           type="button"
                           onClick={handleConfirmAllNeedsReview}
                           disabled={stats.needsReviewCount === 0}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-text-primary-on-surface outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-1 text-xs font-semibold text-text-primary-on-surface outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <CheckIcon className="size-3 shrink-0" aria-hidden />
                           {t`Confirm ${stats.needsReviewCount}`}
@@ -2301,7 +2301,7 @@ export function AlertDetailDrawer({
                           type="button"
                           onClick={handleExcludeSelected}
                           disabled={stats.selectedCount === 0}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-1 text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <XIcon className="size-3 shrink-0" aria-hidden />
                           <Trans>Exclude</Trans>
@@ -2496,7 +2496,7 @@ export function AlertDetailDrawer({
                       {detail.alert.sourceUrl ? (
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           size="sm"
                           className="shrink-0"
                           onClick={() =>
@@ -2821,7 +2821,7 @@ export function AlertDetailDrawer({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setConfirmReviewOpen(false)
                 goToSource()
@@ -3048,7 +3048,7 @@ export function DrawerActions({
       <div className="flex min-w-0 flex-nowrap items-center gap-2">
         {showRevert ? (
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             // ROH-D15 — was `disabled={!canApply || …}` (proxy gate via
             // pulse.apply). Now gates on `canRevert` (pulse.revert) so
@@ -3067,7 +3067,7 @@ export function DrawerActions({
         ) : null}
         {showReactivate ? (
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             disabled={!canApply || isMutating || sourceRevoked}
             onClick={onReactivate}
@@ -3214,7 +3214,7 @@ function ManagerReviewPanel({
         <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="sm"
             disabled={!canManage || isMutating || needsReviewCount === 0}
             onClick={onConfirmAll}
@@ -3291,7 +3291,7 @@ function AlertReviewRequestDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
@@ -3471,7 +3471,7 @@ function AlertApplyVerificationDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >

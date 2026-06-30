@@ -175,7 +175,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm">
+          <Button variant="secondary" size="sm">
             <RepeatIcon data-icon="inline-start" />
             <Trans>Annual rollover</Trans>
           </Button>
@@ -354,7 +354,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
           </DialogClose>
           <div className="flex-1" />
           <Button
-            variant="outline"
+            variant="secondary"
             disabled={pending || willUpdateCount === 0 || safeClientIds.length === 0}
             onClick={() =>
               createMutation.mutate({

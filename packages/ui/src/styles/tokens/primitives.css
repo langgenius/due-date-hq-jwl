@@ -73,8 +73,8 @@
   --text-description--line-height: 18px;
   --text-base: 14px; /* 2026-05-20: was 13px. Workbench body scale. */
   --text-base--line-height: 19px;
-  --text-md: 14px;
-  --text-md--line-height: 19px;
+  /* --text-md retired 2026-06-30: byte-identical to --text-base (14/19) with
+     zero call-sites. Use text-base for the workbench body scale. */
   --text-lg: 16px;
   --text-lg--line-height: 22px;
   --text-xl: 18px; /* 2026-05-20: was 20px. Calm section-label scale. */
@@ -295,15 +295,14 @@
   --color-util-colors-green-600: #1e7a47;
   --color-util-colors-green-700: #19663b;
 
-  /* ===== Util-colors: yellow ============================================= */
-  --color-util-colors-yellow-50: #fefbe8;
-  --color-util-colors-yellow-100: #fef7c3;
-  --color-util-colors-yellow-200: #feee95;
-  --color-util-colors-yellow-300: #fde272;
-  --color-util-colors-yellow-400: #fac515;
-  --color-util-colors-yellow-500: #eaaa08;
-  --color-util-colors-yellow-600: #ca8504;
-  --color-util-colors-yellow-700: #a15c07;
+  /* Util-colors retired 2026-06-30 (token-set de-burr): yellow, indigo, teal,
+     pink, rose — full Dify-inherited ramps with ZERO semantic-token or
+     component consumers (grep-confirmed across apps + packages). Re-introduce
+     a ramp alongside its first real consumer if a future surface needs it;
+     Tailwind's own default palettes (bg-yellow-500, …) remain available
+     regardless. Live status hues stay: red (destructive), green (success),
+     warning (amber/caution), violet (review), blue-light (info/sky), orange
+     (severity-high only), blue (filter-trigger value accent). */
 
   /* ===== Util-colors: orange ============================================= */
   --color-util-colors-orange-50: #fef6ee;
@@ -353,16 +352,6 @@
   --color-util-colors-blue-light-600: #0e6e92;
   --color-util-colors-blue-light-700: #0b5a78;
 
-  /* ===== Util-colors: indigo ============================================= */
-  --color-util-colors-indigo-50: #eef4ff;
-  --color-util-colors-indigo-100: #e0eaff;
-  --color-util-colors-indigo-200: #c7d7fe;
-  --color-util-colors-indigo-300: #a4bcfd;
-  --color-util-colors-indigo-400: #8098f9;
-  --color-util-colors-indigo-500: #6172f3;
-  --color-util-colors-indigo-600: #444ce7;
-  --color-util-colors-indigo-700: #3538cd;
-
   /* ===== Util-colors: violet (review) ====================================
    * 2026-06-23 (palette retune): retuned review violet — same semantic, new
    * hue/lightness. Anchored: 500 = solid #7A5AF0, 50 = wash #EEEBFD,
@@ -375,36 +364,6 @@
   --color-util-colors-violet-500: #7a5af0;
   --color-util-colors-violet-600: #5f43c4;
   --color-util-colors-violet-700: #4b3596;
-
-  /* ===== Util-colors: teal =============================================== */
-  --color-util-colors-teal-50: #f0fdf9;
-  --color-util-colors-teal-100: #ccfbef;
-  --color-util-colors-teal-200: #99f6e0;
-  --color-util-colors-teal-300: #5fe9d0;
-  --color-util-colors-teal-400: #2ed3b7;
-  --color-util-colors-teal-500: #15b79e;
-  --color-util-colors-teal-600: #0e9384;
-  --color-util-colors-teal-700: #107569;
-
-  /* ===== Util-colors: pink =============================================== */
-  --color-util-colors-pink-50: #fdf2fa;
-  --color-util-colors-pink-100: #fce7f6;
-  --color-util-colors-pink-200: #fcceee;
-  --color-util-colors-pink-300: #faa7e0;
-  --color-util-colors-pink-400: #f670c7;
-  --color-util-colors-pink-500: #ee46bc;
-  --color-util-colors-pink-600: #dd2590;
-  --color-util-colors-pink-700: #c11574;
-
-  /* ===== Util-colors: rose =============================================== */
-  --color-util-colors-rose-50: #fff1f3;
-  --color-util-colors-rose-100: #ffe4e8;
-  --color-util-colors-rose-200: #fecdd6;
-  --color-util-colors-rose-300: #fea3b4;
-  --color-util-colors-rose-400: #fd6f8e;
-  --color-util-colors-rose-500: #f63d68;
-  --color-util-colors-rose-600: #e31b54;
-  --color-util-colors-rose-700: #c01048;
 
   /* ===== Brand identity (theme-invariant) ================================
    * 2026-06-16 (Yuqi — logo + design-system pass): the DueDateHQ brand/chrome

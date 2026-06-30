@@ -208,7 +208,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
               </Button>
               <Button
                 nativeButton={false}
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 render={<Link to={`/deadlines?client=${client.id}`} />}
                 onClick={onClose}

@@ -371,7 +371,7 @@ export function DeadlineNavigatorRail({
           // Zero-results is a recovery moment, not a dead-end: offer a one-click
           // way back to the full list (matches the page-level empties + the
           // sibling ObligationListRail / AlertListRail treatment).
-          <div className="px-[18px] py-10 text-center">
+          <div className="px-4 py-10 text-center">
             <p className="text-base text-text-tertiary">
               <Trans>No deadlines match.</Trans>
             </p>
@@ -400,7 +400,7 @@ export function DeadlineNavigatorRail({
                   <CapsFieldLabel
                     as="div"
                     variant="group"
-                    className="sticky top-0 z-[1] border-b border-divider-subtle bg-background-subtle px-[18px] py-1.5"
+                    className="sticky top-0 z-[1] border-b border-divider-subtle bg-background-subtle px-4 py-1.5"
                   >
                     {row.clientName}
                   </CapsFieldLabel>
@@ -421,7 +421,7 @@ export function DeadlineNavigatorRail({
             type="button"
             onClick={onLoadMore}
             disabled={isLoadingMore}
-            className="w-full cursor-pointer px-[18px] py-3 text-left text-xs font-medium text-text-accent hover:bg-state-base-hover disabled:opacity-50"
+            className="w-full cursor-pointer px-4 py-3 text-left text-xs font-medium text-text-accent hover:bg-state-base-hover disabled:opacity-50"
           >
             {isLoadingMore ? <Trans>Loading…</Trans> : <Trans>Load more deadlines</Trans>}
           </button>
@@ -461,7 +461,7 @@ function DeadlineNavigatorRow({
         // Mirror the alert rail (AlertListRail) so both detail-page navigators
         // read identically: group/rail dimming, py-4, light base-hover selection
         // — not a left accent bar (accent isn't the steady-selection colour).
-        'group/rail flex gap-3 border-b border-divider-subtle px-[18px] py-4 outline-none transition-colors',
+        'group/rail flex gap-3 border-b border-divider-subtle px-4 py-4 outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}

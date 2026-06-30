@@ -471,7 +471,7 @@ export function AffectedClientsTable({
                           type="button"
                           onClick={() => toggleGroup(stage)}
                           aria-expanded={!isCollapsed}
-                          className="flex w-full cursor-pointer items-center gap-2 px-[18px] py-1.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+                          className="flex w-full cursor-pointer items-center gap-2 px-4 py-1.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
                         >
                           {/* One chevron that ROTATES 90° when the group is
                               expanded (the same disclosure motif DeadlineRow

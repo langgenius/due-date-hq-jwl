@@ -194,7 +194,7 @@ function parseRuleReviewJurisdictions(value: string | null): string[] {
 function OnboardingStepDots({ step, total }: { step: number; total: number }) {
   return (
     <div className="mb-3 flex items-center gap-3.5">
-      <span className="text-[11px] font-semibold tracking-[1.4px] text-text-tertiary uppercase">
+      <span className="text-caption font-semibold tracking-[1.4px] text-text-tertiary uppercase">
         <Trans>
           Step {step} of {total}
         </Trans>
@@ -292,7 +292,7 @@ function MigrationActivationIntro({
                 {showRuleReviewAction ? (
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     className="w-fit shrink-0"
                     onClick={onReviewRules}

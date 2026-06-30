@@ -1086,7 +1086,7 @@ export function CreateObligationDialog({
                 // button, not the page's destination CTA). Outline gives it
                 // the same visual weight as the dropdowns so the toolbar
                 // reads as a uniform action strip.
-                <Button type="button" variant="outline" size="sm">
+                <Button type="button" variant="secondary" size="sm">
                   <PlusIcon data-icon="inline-start" />
                   {/* Keep the visible copy in the CPA-facing "deadline"
                     vocabulary; the component name still follows the

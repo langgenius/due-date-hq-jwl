@@ -736,7 +736,7 @@ export function RuleDetailCompact({
   // Stacked mode (batch-review drawer): one vertical column in source order,
   // including the inline Decision footer.
   return (
-    <div className="flex min-w-0 flex-col gap-[18px]">
+    <div className="flex min-w-0 flex-col gap-4">
       {applicabilityCard}
       {dueDateCard}
       {evidenceCard}
@@ -1486,7 +1486,7 @@ function CandidateReviewForm({
         <div className="flex items-center gap-2.5">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => setRejectOpen(true)}
             disabled={reviewDisabled}
             data-rule-action="reject"
@@ -1624,7 +1624,7 @@ export function RuleAcceptErrorDialog({
         showCloseButton
         className="flex w-[min(480px,calc(100vw-2rem))] max-w-[480px] flex-col gap-0 overflow-hidden p-0"
       >
-        <div className="flex items-center gap-3 border-b border-divider-subtle px-[18px] py-4">
+        <div className="flex items-center gap-3 border-b border-divider-subtle px-4 py-4">
           <span
             aria-hidden
             className={cn(
@@ -1678,8 +1678,8 @@ export function RuleAcceptErrorDialog({
             </div>
           ) : null}
         </div>
-        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-[18px] py-3.5">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={retrying}>
+        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-4 py-3.5">
+          <Button variant="secondary" size="sm" onClick={onClose} disabled={retrying}>
             <Trans>Cancel</Trans>
           </Button>
           {isConflict && onReload ? (

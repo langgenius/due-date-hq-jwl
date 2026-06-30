@@ -38,7 +38,7 @@ export function TickProgress({
       aria-valuenow={Math.round(ratio * 100)}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={cn('flex items-center gap-[3px]', className)}
+      className={cn('flex items-center gap-1', className)}
     >
       {Array.from({ length: tickCount }).map((_, i) => {
         const on = i < filled

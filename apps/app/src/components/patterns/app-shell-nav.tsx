@@ -226,9 +226,9 @@ function SidebarQuickFind() {
         // centers like the nav rows.
         // transform added to the transition + active:scale-[0.98] for the
         // same tactile press as the nav rows (Yuqi "delicacy").
-        // px-[11px] (was px-3) so the 16px search icon shares the exact rail
+        // px-3 (was px-3) so the 16px search icon shares the exact rail
         // centerline (x=41) with the nav-row icons below it.
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-[11px] text-left text-text-muted outline-none transition-[color,background-color,transform] active:scale-[0.98]',
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-[color,background-color,transform] active:scale-[0.98]',
         'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
@@ -313,7 +313,7 @@ function SidebarSystemStatus() {
             to="/rules/sources"
             aria-label={t`Source monitoring status`}
             className={cn(
-              'flex h-7 w-full items-center gap-3 rounded-lg px-[11px] text-left outline-none transition-[color,background-color] hover:bg-background-sidebar-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'flex h-7 w-full items-center gap-3 rounded-lg px-3 text-left outline-none transition-[color,background-color] hover:bg-background-sidebar-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'group-data-[collapsed=true]/sidebar:gap-0',
               // 2026-06-22 (Yuqi consistency): in the collapsed rail this is just
               // the status dot — collapse to the same centered 32×32 square as the

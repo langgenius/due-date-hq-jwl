@@ -239,7 +239,7 @@ function WizardFrame({
           active Continue. */}
       <footer className="flex h-12 shrink-0 items-center justify-end gap-4 border-divider-subtle px-4">
         {step > 1 && onBack ? (
-          <Button variant="outline" size="lg" onClick={onBack} disabled={busy || backDisabled}>
+          <Button variant="secondary" size="lg" onClick={onBack} disabled={busy || backDisabled}>
             <Trans>Back</Trans>
           </Button>
         ) : null}

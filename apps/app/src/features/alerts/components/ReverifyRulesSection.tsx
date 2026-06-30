@@ -96,7 +96,7 @@ export function ReverifyRulesSection({
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
+                variant="secondary"
                 onClick={() => setOpenRuleId(rule.id)}
               >
                 <Trans>Re-verify</Trans>

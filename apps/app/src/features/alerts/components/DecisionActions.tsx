@@ -73,7 +73,7 @@ export function DecisionActions({
 
       {secondary ? (
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={secondary.onClick}
           disabled={loading || secondary.disabled}
         >

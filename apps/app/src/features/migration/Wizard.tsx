@@ -750,7 +750,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
                 >
                   <Trans>Resume</Trans>
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setResumeDismissed(true)}>
+                <Button size="sm" variant="secondary" onClick={() => setResumeDismissed(true)}>
                   <Trans>Start fresh</Trans>
                 </Button>
               </div>

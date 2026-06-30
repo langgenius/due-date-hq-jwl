@@ -1148,7 +1148,7 @@ function OverviewRecentChangesCard({
               >
                 <span
                   className={cn(
-                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-medium',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-1 text-xs font-medium',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
@@ -1166,7 +1166,7 @@ function OverviewRecentChangesCard({
                 </span>
                 <span
                   className={cn(
-                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-medium tracking-wider uppercase',
+                    'inline-flex shrink-0 items-center rounded-full px-2 py-1 text-caption-xs font-medium tracking-wider uppercase',
                     RECENT_CHANGE_PILL_CLASS[kind],
                   )}
                 >
@@ -2270,7 +2270,7 @@ export function RulesLibraryRoute() {
           (links to the standalone Sources view, with a live health dot +
           monitored count). */}
       <Button
-        variant="outline"
+        variant="secondary"
         onClick={() => void navigate('/rules/sources')}
         aria-label={t`View monitored sources`}
       >

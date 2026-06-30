@@ -292,7 +292,7 @@ export function TablePaginationFooter({
       <div className="flex items-center gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="xs"
           onClick={onPreviousPage}
           disabled={!hasPreviousPage}
@@ -303,7 +303,7 @@ export function TablePaginationFooter({
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="xs"
           onClick={onNextPage}
           disabled={!hasNextPage}

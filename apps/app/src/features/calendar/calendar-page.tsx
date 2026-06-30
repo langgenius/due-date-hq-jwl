@@ -196,7 +196,7 @@ export function CalendarPage() {
         actions={
           <Button
             nativeButton={false}
-            variant="outline"
+            variant="secondary"
             size="sm"
             render={<Link to="/deadlines" />}
           >
@@ -597,7 +597,7 @@ function CalendarSubscriptionCard({
               {activeSubscription && feedUrl ? (
                 <>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => {
                       // Copy-feed-URL is the Google / Outlook subscribe path
@@ -611,7 +611,7 @@ function CalendarSubscriptionCard({
                   </Button>
                   {appleCalendarUrl ? (
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       nativeButton={false}
                       render={<a href={appleCalendarUrl} />}
@@ -625,7 +625,7 @@ function CalendarSubscriptionCard({
                     </Button>
                   ) : (
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={() =>
                         toast.error(t`Apple Calendar requires HTTPS`, {
@@ -638,7 +638,7 @@ function CalendarSubscriptionCard({
                     </Button>
                   )}
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onRegenerate(activeSubscription.id)}
                     disabled={pending}
@@ -647,7 +647,7 @@ function CalendarSubscriptionCard({
                     <Trans>Regenerate URL</Trans>
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onDisable(activeSubscription.id)}
                     disabled={pending}
@@ -663,7 +663,7 @@ function CalendarSubscriptionCard({
                     <Trans>Enable redacted feed</Trans>
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onEnable('full')}
                     disabled={pending}

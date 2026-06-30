@@ -114,7 +114,7 @@ export function ClientsEmptyState({
               <Trans>Import clients</Trans>
             </Button>
             {onCreate ? (
-              <Button variant="outline" size="lg" onClick={onCreate} disabled={canCreate === false}>
+              <Button variant="secondary" size="lg" onClick={onCreate} disabled={canCreate === false}>
                 <UserPlusIcon data-icon="inline-start" />
                 <Trans>Add one manually</Trans>
               </Button>

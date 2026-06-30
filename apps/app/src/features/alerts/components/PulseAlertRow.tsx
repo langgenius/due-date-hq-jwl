@@ -433,7 +433,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
+        'group/row relative flex cursor-pointer gap-2.5 border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -751,7 +751,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
+          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-3.5 py-3 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-xs font-semibold tracking-[0.3px] text-text-secondary">
@@ -825,7 +825,7 @@ function PulseAlertRow({
         {onDismiss ? (
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="xs"
             className="rounded-lg [corner-shape:round]"
             // Disabled while this row's dismiss is in flight so a slow
@@ -1112,7 +1112,7 @@ function PulseAlertList({
                     reads as a section break inside the bordered frame, and stays
                     opaque so rows mask cleanly as they scroll under it. Thin
                     (py-1.5), padded to the row content edge (px-5). */}
-              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+              <div className="group/band sticky top-12 z-10 flex items-center gap-2.5 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
                 {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.

@@ -484,7 +484,7 @@ export function ClientsRoute() {
             <ShortcutHintChip className="hidden md:inline-flex" />
             {hasSampleClients && canCreateClient ? (
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => removeSampleMutation.mutate({})}
                 disabled={removeSampleMutation.isPending}
               >
@@ -498,7 +498,7 @@ export function ClientsRoute() {
                 visible "Import history" label); `aria-label` stays for AT
                 users if the visible label ever becomes icon-only. */}
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => handleImportHistoryOpenChange(true)}
               aria-label={t`Import history`}
             >

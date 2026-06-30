@@ -755,7 +755,7 @@ export function ClientDetailWorkspace({
                       <Button
                         type="button"
                         size="icon-sm"
-                        variant="default"
+                        variant="primary"
                         aria-label={t`Add deadline`}
                         title={t`Add deadline`}
                       >
@@ -764,7 +764,7 @@ export function ClientDetailWorkspace({
                     ) : (
                       // Primary CTA — filled (solid background), not the faint
                       // outline default trigger that read as a bare link.
-                      <Button type="button" size="sm" variant="default">
+                      <Button type="button" size="sm" variant="primary">
                         <PlusIcon data-icon="inline-start" />
                         <Trans>Add deadline</Trans>
                       </Button>
@@ -868,7 +868,7 @@ export function ClientDetailWorkspace({
                   + /alerts detail tab bars) so the tabs read as part of the
                   header rather than floating. 2026-06-16 (Yuqi "still squashed
                   underline"): the segmented-tabs PRIMITIVE forces `h-8` on the
-                  list and `p-[3px]` inset padding (for the pill variant) — that
+                  list and `p-1` inset padding (for the pill variant) — that
                   capped the trigger height so `py-3` got clipped (underline 1px
                   under the label) AND left the border-b 3px below the triggers
                   (underline floating off the seam). `!h-auto` + `p-0` here strip
@@ -1150,7 +1150,7 @@ export function ClientDetailWorkspace({
                           {practiceAiEnabled ? (
                             <Button
                               type="button"
-                              variant="outline"
+                              variant="secondary"
                               size="sm"
                               disabled={requestRiskSummaryMutation.isPending}
                               onClick={() =>
@@ -1695,7 +1695,7 @@ function ClientHeaderOverflowMenu({
         render={
           // size="icon-sm" (h-8 w-8, true square) rather than size="sm"
           // (h-8 with horizontal padding, which produces a rectangle).
-          <Button variant="outline" size="icon-sm" aria-label={t`More client actions`}>
+          <Button variant="secondary" size="icon-sm" aria-label={t`More client actions`}>
             <EllipsisIcon className="size-4" aria-hidden />
           </Button>
         }

@@ -745,7 +745,7 @@ function GapRow({
       </TableCell>
       <TableCell className="py-2.5 text-right">
         <Button
-          variant="outline"
+          variant="secondary"
           size="xs"
           onClick={(event) => {
             event.stopPropagation()

@@ -414,7 +414,7 @@ export function IconsRoute() {
                 className="size-5 text-text-secondary transition-colors group-hover:text-text-primary"
                 aria-hidden
               />
-              <span className="w-full truncate text-[11px] font-medium text-text-tertiary">
+              <span className="w-full truncate text-caption font-medium text-text-tertiary">
                 {name}
               </span>
             </button>

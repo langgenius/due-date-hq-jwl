@@ -833,7 +833,7 @@ function PlanOption({
             <ArrowRightIcon data-icon="inline-end" />
           </Link>
         ) : (
-          <Button disabled className="w-full" variant="outline">
+          <Button disabled className="w-full" variant="secondary">
             {current ? <Trans>Current plan</Trans> : plan.cta}
           </Button>
         )}

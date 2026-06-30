@@ -572,7 +572,7 @@ function DeadlineRowExpansion({
               <Trans>Mark as filed</Trans>
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => onReassign?.(deadline.id)}>
+          <Button size="sm" variant="secondary" onClick={() => onReassign?.(deadline.id)}>
             <UserRoundCogIcon data-icon="inline-start" />
             <Trans>Reassign</Trans>
           </Button>

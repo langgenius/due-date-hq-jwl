@@ -322,7 +322,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         title={<Trans>Members</Trans>}
         actions={
           <>
-            <Button variant="outline" size="sm" nativeButton={false} render={<Link to="/audit" />}>
+            <Button variant="secondary" size="sm" nativeButton={false} render={<Link to="/audit" />}>
               <Trans>View audit log</Trans>
             </Button>
             <Tooltip>
@@ -765,7 +765,7 @@ function SeatLimitBanner() {
           </Trans>
         </p>
       </div>
-      <Button variant="outline" nativeButton={false} render={<Link to="/billing" />}>
+      <Button variant="secondary" nativeButton={false} render={<Link to="/billing" />}>
         <Trans>Upgrade plan</Trans>
       </Button>
     </section>

@@ -217,7 +217,7 @@ export function EmailOtpSignInForm({
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             className="px-3"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}

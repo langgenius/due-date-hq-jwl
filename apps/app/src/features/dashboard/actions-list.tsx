@@ -206,7 +206,7 @@ function ActionsTable({
               >
                 <TableCell
                   colSpan={5}
-                  className="bg-background-subtle px-[18px] py-1.5 text-column-label text-text-tertiary uppercase"
+                  className="bg-background-subtle px-4 py-1.5 text-column-label text-text-tertiary uppercase"
                 >
                   <StatusGroupLabel kind={currentStatusGroup} />
                 </TableCell>
@@ -284,7 +284,7 @@ function ActionsTableRow({
       {/* CLIENT + ACTION stacked into ONE column — client name on top
           (primary ink), the action prompt below (quieter). A per-row STATUS
           badge sits below and the owner avatar shrinks. */}
-      <TableCell className="w-[440px] pl-[18px]">
+      <TableCell className="w-[440px] pl-4">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="truncate text-row-name text-text-primary">{row.clientName}</span>
           <span className="truncate text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
@@ -320,9 +320,9 @@ function ActionsTableRow({
         />
       </TableCell>
       {/* DUE cell stacks: relative countdown + absolute internal due date.
-          It's now the trailing cell (pr-[18px] gives the row's right inset);
+          It's now the trailing cell (pr-4 gives the row's right inset);
           the Review action no longer takes a dedicated column. */}
-      <TableCell className="pr-[18px]">
+      <TableCell className="pr-4">
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
             days={days}
@@ -344,7 +344,7 @@ function ActionsTableRow({
             keeps the whole-row click working; the button re-enables pointer
             events. `tabIndex={-1}`/`aria-hidden` keep it out of the tab
             order — the row itself is the focusable target. */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-4 pl-16 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <Button
             type="button"
             size="xs"
@@ -515,7 +515,7 @@ function DashboardActionsList({
               />
             }
             cta={
-              <Button size="sm" variant="outline" onClick={onSwitchToEveryone}>
+              <Button size="sm" variant="secondary" onClick={onSwitchToEveryone}>
                 <Trans>Show everyone's work</Trans>
                 <ArrowRightIcon data-icon="inline-end" />
               </Button>
@@ -545,7 +545,7 @@ function DashboardActionsList({
                 </Trans>
               }
               cta={
-                <Button size="sm" variant="outline" onClick={onOpenAllObligations}>
+                <Button size="sm" variant="secondary" onClick={onOpenAllObligations}>
                   <Trans>View deadlines</Trans>
                 </Button>
               }
@@ -556,7 +556,7 @@ function DashboardActionsList({
               title={<Trans>No clients yet</Trans>}
               description={<Trans>Import your client list to start tracking deadlines.</Trans>}
               cta={
-                <Button size="sm" variant="outline" onClick={onOpenWizard}>
+                <Button size="sm" variant="secondary" onClick={onOpenWizard}>
                   <Trans>Import clients</Trans>
                 </Button>
               }
@@ -577,7 +577,7 @@ function DashboardActionsList({
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 nativeButton={false}
                 render={<Link to="/practice" />}

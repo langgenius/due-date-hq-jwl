@@ -307,7 +307,7 @@ function RuleAcceptErrorDialogDemo() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
         Show accept error
       </Button>
       {open ? (
@@ -850,9 +850,9 @@ export function PreviewRoute() {
               </div>
             </Row>
             <Row label="Legacy aliases" mono="default · outline · destructive">
-              <Button variant="default">Default → primary</Button>
-              <Button variant="outline">Outline → secondary</Button>
-              <Button variant="destructive">Destructive → dest-secondary</Button>
+              <Button variant="primary">Default → primary</Button>
+              <Button variant="secondary">Outline → secondary</Button>
+              <Button variant="destructive-secondary">Destructive → dest-secondary</Button>
             </Row>
             <Row label="Sizes" mono="size=…">
               <Button variant="primary" size="xs">
@@ -1326,7 +1326,7 @@ export function PreviewRoute() {
                 <TooltipContent>This client has no obligations yet</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger render={<Button variant="outline">Hover me for shortcut</Button>} />
+                <TooltipTrigger render={<Button variant="secondary">Hover me for shortcut</Button>} />
                 <TooltipContent>
                   Press <Kbd>⌘</Kbd>
                   <Kbd>K</Kbd> for command palette
@@ -1410,7 +1410,7 @@ export function PreviewRoute() {
 
             <Row label="AlertDialog" mono="<AlertDialog />">
               <AlertDialog>
-                <AlertDialogTrigger render={<Button variant="destructive">Delete client</Button>} />
+                <AlertDialogTrigger render={<Button variant="destructive-secondary">Delete client</Button>} />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Acme LLC?</AlertDialogTitle>
@@ -1458,7 +1458,7 @@ export function PreviewRoute() {
 
             <Row label="Popover" mono="<Popover />">
               <Popover>
-                <PopoverTrigger render={<Button variant="outline">Open popover</Button>} />
+                <PopoverTrigger render={<Button variant="secondary">Open popover</Button>} />
                 <PopoverContent className="w-72">
                   <PopoverHeader>
                     <PopoverTitle>Quick edit</PopoverTitle>
@@ -1574,7 +1574,7 @@ export function PreviewRoute() {
                 Info
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() =>
                   toast.warning('Rule library is read-only this session', {
                     description: 'Switch to a writable env to edit.',
@@ -1584,7 +1584,7 @@ export function PreviewRoute() {
                 Warning
               </Button>
               <Button
-                variant="destructive"
+                variant="destructive-secondary"
                 onClick={() =>
                   toast.error('Could not save', { description: 'Network error. Try again.' })
                 }
@@ -1892,7 +1892,7 @@ export function PreviewRoute() {
                   title="No deadlines yet"
                   description="Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
                   cta={
-                    <Button variant="outline" size="sm">
+                    <Button variant="secondary" size="sm">
                       Import clients
                     </Button>
                   }
@@ -1911,7 +1911,7 @@ export function PreviewRoute() {
                   title="No history yet"
                   description="Once you decide on alerts (apply / review / dismiss) they'll show up here as an immutable record."
                   cta={
-                    <Button variant="outline" size="sm">
+                    <Button variant="secondary" size="sm">
                       Go to alerts
                     </Button>
                   }

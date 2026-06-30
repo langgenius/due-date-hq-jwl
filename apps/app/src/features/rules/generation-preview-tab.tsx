@@ -282,7 +282,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
           {createdIds.length > 0 ? (
             <Button
               nativeButton={false}
-              variant="outline"
+              variant="secondary"
               size="sm"
               render={<Link to={obligationQueueHref(createdIds[0]!)} />}
             >

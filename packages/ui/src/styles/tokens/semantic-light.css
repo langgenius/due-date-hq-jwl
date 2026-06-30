@@ -63,9 +63,11 @@
      wells) where the cool gray section bg reads too clinical. Used by
      EXCEPTION, not as the default section fill. */
   --background-well-warm: var(--color-util-colors-stone-50);
+  /* NOT a synonym of --background-section: they coincide here (both gray-50)
+     in light, but DIVERGE in dark (soft = 24 24 27 / 0.25, section = / 0.4).
+     Do not fold one into the other — the dark split is intentional. */
   --background-soft: var(--color-util-colors-gray-50);
   --background-subtle: var(--color-util-colors-gray-100);
-  --background-neutral-subtle: var(--color-util-colors-gray-50);
   --background-overlay: rgb(16 24 40 / 0.6);
   --background-overlay-alt: rgb(16 24 40 / 0.4);
   --background-overlay-backdrop: rgb(255 255 255 / 0.95);

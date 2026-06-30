@@ -73,7 +73,7 @@ export function RouteErrorBoundary() {
               <RefreshCwIcon className="size-4" aria-hidden />
               <Trans>Try again</Trans>
             </Button>
-            <Button variant="outline" nativeButton={false} render={<Link to="/" />}>
+            <Button variant="secondary" nativeButton={false} render={<Link to="/" />}>
               <Trans>Go to Today</Trans>
             </Button>
           </div>

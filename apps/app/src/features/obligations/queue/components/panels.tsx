@@ -1389,7 +1389,7 @@ export function AuthorityResponsePanel({
             <Button
               type="button"
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => onChangeTab(action.tab)}
             >
               {action.label}
@@ -1442,7 +1442,7 @@ export function AuthorityResponsePanel({
         <Button
           type="button"
           size="sm"
-          variant="outline"
+          variant="secondary"
           onClick={onRecordRejection}
           disabled={accepting || rejecting}
         >

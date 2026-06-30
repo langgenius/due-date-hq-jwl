@@ -313,7 +313,7 @@ export function NotificationsPage() {
               title={<Trans>No notifications match these filters.</Trans>}
               description={<Trans>Clear the filters to see your full inbox.</Trans>}
               cta={
-                <Button variant="outline" size="sm" onClick={clearFilters}>
+                <Button variant="secondary" size="sm" onClick={clearFilters}>
                   <Trans>Clear filters</Trans>
                 </Button>
               }
@@ -406,7 +406,7 @@ export function NotificationsPage() {
               (search only scans already-loaded rows). */}
           {!isFiltering && notificationsQuery.hasNextPage ? (
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               className="justify-self-center"
               onClick={() => void notificationsQuery.fetchNextPage()}

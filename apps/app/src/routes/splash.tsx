@@ -159,7 +159,7 @@ export function SplashRoute() {
                 <Trans>Good evening</Trans>
               )}
             </h1>
-            <p className="text-center text-[16px] font-normal text-text-tertiary">{todayLabel}</p>
+            <p className="text-center text-lg font-normal text-text-tertiary">{todayLabel}</p>
           </div>
 
           {/* "While you were away" recap card */}
@@ -266,7 +266,7 @@ export function SplashRoute() {
       {/* Footer — last sign-in stamp from the session */}
       <footer className="px-4 pb-6 text-center md:pb-10">
         {data?.lastSignInAt ? (
-          <p className="text-[11px] font-medium text-text-tertiary">
+          <p className="text-caption font-medium text-text-tertiary">
             {data.lastSignInIp ? (
               <Trans>
                 Last sign-in: {formatRelativeTime(data.lastSignInAt)} from {data.lastSignInIp}

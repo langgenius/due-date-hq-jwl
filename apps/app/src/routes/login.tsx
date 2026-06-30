@@ -403,7 +403,7 @@ function ProductStory() {
                 D
               </span>
               <span className="truncate text-sm font-medium text-text-primary">Whitmore CPA</span>
-              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-text-accent">
+              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-micro font-bold tracking-wide text-text-accent">
                 PRO
               </span>
             </div>
@@ -416,7 +416,7 @@ function ProductStory() {
                 <span
                   key={item.label}
                   className={cn(
-                    'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium',
+                    'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium',
                     item.active ? 'bg-state-accent-hover text-text-accent' : 'text-text-secondary',
                   )}
                 >
@@ -437,7 +437,7 @@ function ProductStory() {
             </nav>
             <div className="mt-auto rounded-lg bg-text-primary px-3.5 py-3 text-text-primary-on-surface">
               <p className="text-xs font-medium">Busy-season ready</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-text-secondary-on-surface">
+              <p className="mt-0.5 text-caption leading-snug text-text-secondary-on-surface">
                 142 rules active across FED + 6 states.
               </p>
             </div>
@@ -719,7 +719,7 @@ function LoginEmailForm({
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             className={cn(AUTH_BTN_H, 'px-4')}
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}

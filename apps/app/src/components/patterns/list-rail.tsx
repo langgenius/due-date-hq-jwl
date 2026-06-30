@@ -60,7 +60,7 @@ export function ListRailHead({ className, children }: { className?: string; chil
       // the alert + deadline crumb bars are h-[52px] (Yuqi 2026-06-23: "the lines
       // slightly misalign"). Content centers vertically within the fixed height.
       className={cn(
-        'flex h-[52px] shrink-0 items-center gap-2 border-b border-divider-subtle px-[18px]',
+        'flex h-[52px] shrink-0 items-center gap-2 border-b border-divider-subtle px-4',
         className,
       )}
     >

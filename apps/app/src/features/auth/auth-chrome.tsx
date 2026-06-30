@@ -117,7 +117,7 @@ export function AuthTrustLine({ className }: { className?: string }) {
         // oxlint-disable-next-line no-array-index-key -- fixed-order TRUST_ITEMS, separator pattern
         <Fragment key={i}>
           {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
-          <span className="flex items-center gap-1.5 text-[11px] font-medium italic text-text-tertiary">
+          <span className="flex items-center gap-1.5 text-caption font-medium italic text-text-tertiary">
             <item.Icon className="size-[11px] shrink-0 text-text-muted" />
             {item.label}
           </span>
@@ -134,7 +134,7 @@ export function AuthTrustLine({ className }: { className?: string }) {
 // left, version + region pill on the right.
 export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
   return (
-    <footer className="flex flex-col gap-2.5 border-t border-divider-subtle px-6 py-3 text-[11px] font-medium text-text-tertiary lg:px-10">
+    <footer className="flex flex-col gap-2.5 border-t border-divider-subtle px-6 py-3 text-caption font-medium text-text-tertiary lg:px-10">
       {/* Left-aligned + no divider so it reads as a quiet footer line, not a
           full-width banded stripe above the legal row. */}
       {showTrust ? <AuthTrustLine className="justify-start text-left" /> : null}
@@ -161,7 +161,7 @@ export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
         </div>
         <span className="hidden flex-1 sm:block" />
         <div className="flex items-center gap-3.5">
-          <span className="font-mono text-[10px] text-text-tertiary">v2.18.4</span>
+          <span className="font-mono text-2xs text-text-tertiary">v2.18.4</span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
             <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
             <span className="text-text-secondary">US East</span>

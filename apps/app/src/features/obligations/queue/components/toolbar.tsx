@@ -311,11 +311,11 @@ export function ObligationQueueEmptyState({
       }
       cta={
         hasActiveFilters ? (
-          <Button size="sm" variant="outline" onClick={onClearFilters}>
+          <Button size="sm" variant="secondary" onClick={onClearFilters}>
             <Trans>Clear filters</Trans>
           </Button>
         ) : (
-          <Button size="sm" variant="outline" onClick={onOpenWizard} disabled={!canRunMigration}>
+          <Button size="sm" variant="secondary" onClick={onOpenWizard} disabled={!canRunMigration}>
             <Trans>Import clients</Trans>
           </Button>
         )

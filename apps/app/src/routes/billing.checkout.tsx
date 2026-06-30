@@ -496,7 +496,7 @@ export function BillingCheckoutRoute() {
                 <Trans>Continue to secure checkout</Trans>
               )}
             </Button>
-            <Button variant="outline" onClick={() => void navigate('/billing')}>
+            <Button variant="secondary" onClick={() => void navigate('/billing')}>
               <Trans>Choose another plan</Trans>
             </Button>
             {/* The primary CTA opens Stripe via `window.location.assign`.
