@@ -15,11 +15,14 @@ const t = zh
       headingPre: '它读取官方公告——并提取出变化内容，以及',
       headingItal: '影响到谁。',
       leadHtml:
-        '没有出处，就不呈现——下方每一个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>，否则宁可保留不展示，也不去猜。',
+        '没有出处，就不呈现——每个字段都附有它的<b>来源原文</b>和一个<b>已核验日期</b>。它还会区分这次变的是<b>申报</b>还是<b>缴款</b>——能延期申报，不等于能延期缴款。',
       tablistLabel: '示例变化类型',
       switchCue: '换一个示例看看',
       sourceQuote: '来源原文',
       theChange: '变化内容',
+      scopeLabel: '影响',
+      scopeFiling: '申报',
+      scopePayment: '缴款',
       whosAffected: '影响到谁',
       eligible: '符合',
       review: '待复核',
@@ -37,6 +40,7 @@ const t = zh
           quote: '"…须自 January 1, 2026 起开始提交特许经营税报告…"',
           verify: { url: 'comptroller.texas.gov', date: '已核验 Jan 30' },
           change: { effective: '自 Jan 1, 2026 起生效', badge: '新增义务' },
+          scope: ['filing'],
           count: '5 个客户',
           affected: [
             { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', tone: 'ok' },
@@ -57,6 +61,7 @@ const t = zh
           quote: '"…在声明发布后延至 September 29, 2026…"',
           verify: { url: 'ftb.ca.gov', date: '已核验 Sep 4' },
           change: { from: 'Sep 15', to: 'Sep 29, 2026', delta: '+14 天' },
+          scope: ['payment'],
           count: '12 个客户',
           affected: [
             { in: 'CV', name: 'Coastal Ventures', meta: '540-ES · CA', tone: 'ok' },
@@ -77,6 +82,7 @@ const t = zh
           quote: '"…在 November 3, 2026 之前提交申报并完成缴款…"',
           verify: { url: 'irs.gov', date: '已核验 Mar 2' },
           change: { from: 'Apr 15', to: 'Nov 3, 2026', delta: '+202 天' },
+          scope: ['filing', 'payment'],
           count: '8 个客户',
           affected: [
             { in: 'RO', name: 'Red Oak Partners', meta: '1120-S · TX', tone: 'ok' },
@@ -92,11 +98,14 @@ const t = zh
       headingPre: 'It reads the official notice — and pulls out what changed and ',
       headingItal: 'who it hits.',
       leadHtml:
-        "No provenance, no render — every field below carries its <b>source quote</b> and a <b>verified date</b>, or it's held back rather than guessed.",
+        "No provenance, no render — every field carries its <b>source quote</b> and a <b>verified date</b>. And it tells <b>filing</b> from <b>payment</b> — an extension to file is never an extension to pay.",
       tablistLabel: 'Example change types',
       switchCue: 'See another example',
       sourceQuote: 'Source quote',
       theChange: 'The change',
+      scopeLabel: 'Applies to',
+      scopeFiling: 'Filing',
+      scopePayment: 'Payment',
       whosAffected: "Who's affected",
       eligible: 'ELIGIBLE',
       review: 'REVIEW',
@@ -114,6 +123,7 @@ const t = zh
           quote: '"…must begin filing a franchise tax report on January 1, 2026…"',
           verify: { url: 'comptroller.texas.gov', date: 'Verified Jan 30' },
           change: { effective: 'Effective Jan 1, 2026', badge: 'new obligation' },
+          scope: ['filing'],
           count: '5 clients',
           affected: [
             { in: 'LS', name: 'Lone Star LLC', meta: '05-158 · TX', tone: 'ok' },
@@ -134,6 +144,7 @@ const t = zh
           quote: '"…extended to September 29, 2026 following the declaration…"',
           verify: { url: 'ftb.ca.gov', date: 'Verified Sep 4' },
           change: { from: 'Sep 15', to: 'Sep 29, 2026', delta: '+14 days' },
+          scope: ['payment'],
           count: '12 clients',
           affected: [
             { in: 'CV', name: 'Coastal Ventures', meta: '540-ES · CA', tone: 'ok' },
@@ -154,6 +165,7 @@ const t = zh
           quote: '"…until November 3, 2026 to file the returns and make the payments…"',
           verify: { url: 'irs.gov', date: 'Verified Mar 2' },
           change: { from: 'Apr 15', to: 'Nov 3, 2026', delta: '+202 days' },
+          scope: ['filing', 'payment'],
           count: '8 clients',
           affected: [
             { in: 'RO', name: 'Red Oak Partners', meta: '1120-S · TX', tone: 'ok' },
@@ -274,6 +286,15 @@ const examples = t.examples
                   <b>{e.change.effective}</b> <span class="field__badge">{e.change.badge}</span>
                 </p>
               )}
+              <p class="field__scope">
+                <span class="field__scope-label">{t.scopeLabel}</span>
+                {e.scope.includes('filing') && (
+                  <span class="scopetag scopetag--filing">{t.scopeFiling}</span>
+                )}
+                {e.scope.includes('payment') && (
+                  <span class="scopetag scopetag--payment">{t.scopePayment}</span>
+                )}
+              </p>
             </div>
             <div class="field">
               <div class="field__head">
@@ -635,6 +656,39 @@ const examples = t.examples
     background: var(--m-section);
     border-radius: 999px;
     padding: 1px 9px;
+  }
+  /* filing vs. payment — a first-class extracted fact. The two carry distinct
+     tints so the eye learns they're different axes: payment takes the warm/urgent
+     chroma (it's the one with penalty teeth — an extension to file ≠ to pay),
+     filing stays neutral. Chroma in the container, not the surrounding copy. */
+  .field__scope {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .field__scope-label {
+    font-size: var(--m-text-2xs);
+    color: var(--m-muted);
+  }
+  .scopetag {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 1px 9px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .scopetag--filing {
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border-color: var(--m-hairline);
+  }
+  .scopetag--payment {
+    color: var(--m-urgent-ink);
+    background: color-mix(in srgb, var(--m-urgent) 10%, transparent);
+    border-color: color-mix(in srgb, var(--m-urgent) 22%, transparent);
   }
   .field__rows {
     margin-top: 12px;

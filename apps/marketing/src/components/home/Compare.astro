@@ -116,7 +116,8 @@ const markLabel: Record<Mark, string> = zh
   <p class="m-eyebrow">{t.eyebrow}</p>
   <h2 class="compare__lead" id="cmp-h" set:html={t.leadHtml} />
 
-  <div class="cmp-scroll">
+  <div class="cmp-scrollwrap">
+    <div class="cmp-scroll" data-cmp-scroll>
     <div class="cmp" role="table" aria-label={t.eyebrow}>
       <div class="cmp__r cmp__r--head" role="row">
         <div class="cmp__c cmp__c--head cmp__c--corner" role="columnheader" />
@@ -137,7 +138,7 @@ const markLabel: Record<Mark, string> = zh
           <>
             <div class="cmp__r cmp__r--group" role="row">
               <div class="cmp__c cmp__c--group" role="cell" aria-colspan="5">
-                {g.label}
+                <span class="cmp__glabel">{g.label}</span>
               </div>
             </div>
             {g.rows.map((r) => (
@@ -169,6 +170,8 @@ const markLabel: Record<Mark, string> = zh
         ))
       }
     </div>
+    </div>
+    <span class="cmp-hint" aria-hidden="true"></span>
   </div>
 
   <p class="compare__foot">{t.footnote}</p>
@@ -195,10 +198,28 @@ const markLabel: Record<Mark, string> = zh
     font-weight: 600;
     color: var(--m-ink);
   }
-  .cmp-scroll {
+  .cmp-scrollwrap {
+    position: relative;
     margin-top: clamp(28px, 3.5vw, 44px);
+  }
+  .cmp-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  /* right-edge fade — a scroll affordance so the off-screen columns (incl. the
+     DueDateHQ column, the whole point of the table) read as "more this way" on
+     narrow screens. JS clears it once you reach the end so it never veils the
+     final column. Only meaningful where the table overflows. */
+  .cmp-hint {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--m-canvas));
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
   /* a real ARIA table: each row is its own grid with the SAME fractional template,
      so columns line up pixel-for-pixel across rows (no display:contents needed,
@@ -323,4 +344,66 @@ const markLabel: Record<Mark, string> = zh
   .compare__link:hover {
     text-decoration: underline;
   }
+
+  /* ===== mobile: pin the feature column, tighten the matrix =====
+     On phones the 2fr feature column ate the viewport and pushed all four
+     product columns (most importantly DueDateHQ) off-screen. Here the feature
+     names stay pinned on the left while the product columns scroll past them,
+     so every row keeps its label and the comparison stays legible. */
+  @media (max-width: 640px) {
+    .cmp {
+      min-width: 512px;
+    }
+    .cmp__r {
+      grid-template-columns: 140px repeat(4, minmax(0, 1fr));
+    }
+    .cmp__c {
+      padding-inline: 13px;
+    }
+    .cmp__c--corner,
+    .cmp__c--row {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--m-canvas);
+      /* hairline + soft lift so the pinned column reads as floating over the
+         cells scrolling beneath it */
+      box-shadow: 1px 0 0 var(--m-hairline-2);
+    }
+    /* keep the group label readable while the matrix scrolls (the cell spans
+       the full width, so pin the label text itself, not the cell) */
+    .cmp__glabel {
+      position: sticky;
+      left: 13px;
+    }
+    /* the DueDateHQ column keeps its tint even where it scrolls under nothing */
+    .cmp-hint[data-show] {
+      opacity: 1;
+    }
+  }
 </style>
+
+<script>
+  // Show the right-edge fade only while the comparison matrix has more to scroll
+  // (mobile, where it overflows). Re-inits per View-Transition navigation.
+  function initCompareHint(signal: AbortSignal) {
+    document.querySelectorAll<HTMLElement>('.cmp-scrollwrap').forEach((wrap) => {
+      const scroller = wrap.querySelector<HTMLElement>('[data-cmp-scroll]')
+      const hint = wrap.querySelector<HTMLElement>('.cmp-hint')
+      if (!scroller || !hint) return
+      const sync = () => {
+        const more = scroller.scrollWidth - scroller.clientWidth - scroller.scrollLeft > 2
+        hint.toggleAttribute('data-show', more)
+      }
+      scroller.addEventListener('scroll', sync, { passive: true, signal })
+      window.addEventListener('resize', sync, { passive: true, signal })
+      sync()
+    })
+  }
+  let compareHintCtl: AbortController | undefined
+  document.addEventListener('astro:page-load', () => {
+    compareHintCtl = new AbortController()
+    initCompareHint(compareHintCtl.signal)
+  })
+  document.addEventListener('astro:before-swap', () => compareHintCtl?.abort())
+</script>
