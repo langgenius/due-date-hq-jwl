@@ -92,7 +92,7 @@ Reading each site before fixing shrank the backlog — several "findings" were n
 **Genuine remaining backlog (real, but larger than the flag labels suggested):**
 - ✅ **F-010 · Select compact `size="sm"`** — DONE. `size="sm"` now carries `h-8 + rounded-lg + text-xs`; the 4 generation-preview SelectTriggers use it (dropped the per-site overrides). Zero-visual-change (sites already rendered those values via overrides).
 - **F-009 · members inline cell-picker** — the one `h-6` transparent SelectTrigger is a genuinely distinct *inline table-cell* pattern (smaller than `sm`'s h-8, borderless) — left as a documented one-off, not the same as the compact Select. Low priority.
-- **F-003 · `migration.new` adopt `PageHeader`** — replace the custom `MigrationActivationIntro` header. *(medium, non-alerts)*
+- **F-003 · `migration.new` header — RECLASSIFIED, not a bug** — `MigrationActivationIntro` carries onboarding-flow affordances `PageHeader` lacks (Step 3-of-3 dots, conditional Back, Skip, Review-rules count). It's a justified flow-specific header (like the auth pages), not drift. Removed from backlog.
 - **F-002 · `RulesPageShell` compose `PageHeader`** — verify/refactor so there's one header source. *(medium; touches the alerts area an active sibling session is editing → coordinate/defer)*
 - **F-015 · widen `EmptyState` adoption** — ~13 hand-rolled empties → the primitive. *(large, spread across surfaces)*
 - **F-011a / F-012 (optional primitive enhancements)** — add Card `destructive` tone; build a `ButtonGroup` primitive (the existing `data-[slot=button-group]` hooks don't actually flatten joins, so it's real design work for 2 working hand-rolls — low ROI).
