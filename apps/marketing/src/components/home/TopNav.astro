@@ -506,6 +506,11 @@ const links = [
   }
 
   /* ===== hamburger (≤920px only) — hidden on desktop ===== */
+  /* The brand mark is four stacked bars, so a three-bar hamburger right across
+     the bar reads as its twin. This menu control de-conflicts on every axis:
+     a filled accent-tint pill (the logo sits on bare canvas), and a glyph of
+     three SHORT dashes that taper — clearly a "menu", not the logo's even
+     full-width bars. */
   .nav__burger {
     display: none;
     flex: none;
@@ -514,52 +519,65 @@ const links = [
     width: 40px;
     height: 40px;
     padding: 0;
-    background: transparent;
-    border: 1px solid var(--m-hairline);
-    border-radius: 8px;
-    color: var(--m-ink);
+    background: var(--m-accent-tint);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--m-accent);
     cursor: pointer;
     transition:
       background var(--m-dur-fast) ease,
       border-color var(--m-dur-fast) ease;
   }
   .nav__burger:hover {
-    background: var(--m-section);
+    background: color-mix(in srgb, var(--m-accent) 16%, transparent);
   }
   .nav__burger-box {
     display: inline-flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     gap: 4px;
     width: 18px;
     height: 14px;
   }
   .nav__burger-bar {
-    width: 18px;
     height: 2px;
     border-radius: 999px;
     background: currentColor;
     transition:
       transform var(--m-dur) var(--m-ease),
+      width var(--m-dur) var(--m-ease),
       opacity var(--m-dur-fast) ease;
   }
-  /* open state morphs the three bars into an X */
+  /* a stepped, right-aligned glyph — a distinct menu signature, not even bars */
+  .nav__burger-bar:nth-child(1) {
+    width: 18px;
+  }
+  .nav__burger-bar:nth-child(2) {
+    width: 13px;
+  }
+  .nav__burger-bar:nth-child(3) {
+    width: 9px;
+  }
+  /* open state morphs the bars into an X (all equalise + cross) */
   .nav__burger[aria-expanded='true'] .nav__burger-bar:nth-child(1) {
+    width: 18px;
     transform: translateY(6px) rotate(45deg);
   }
   .nav__burger[aria-expanded='true'] .nav__burger-bar:nth-child(2) {
     opacity: 0;
   }
   .nav__burger[aria-expanded='true'] .nav__burger-bar:nth-child(3) {
+    width: 18px;
     transform: translateY(-6px) rotate(-45deg);
   }
   .nav--on-dark .nav__burger {
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: transparent;
   }
   .nav--on-dark .nav__burger:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.24);
   }
 
   /* ===== mobile sheet + scrim ===== */
@@ -682,6 +700,23 @@ const links = [
   @media (max-width: 560px) {
     .nav__signin {
       display: none;
+    }
+    /* shrink the brand lockup on phones — the wordmark follows the font-size,
+       the mark + gap + beta badge scale down with it so the whole lockup reads
+       a size smaller and leaves the bar less crowded */
+    .brand {
+      font-size: var(--m-text-lg);
+    }
+    .brand__lockup {
+      gap: 8px;
+    }
+    .brand__mark svg {
+      width: 23px;
+      height: 18px;
+    }
+    .brand__beta {
+      font-size: 9px;
+      padding: 2px 6px;
     }
   }
   /* above 920px the sheet never shows even if a stale class lingers */
