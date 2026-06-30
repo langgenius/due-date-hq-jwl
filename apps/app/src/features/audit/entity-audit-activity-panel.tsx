@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
-import { ClipboardCheckIcon } from 'lucide-react'
+import { ArrowUpRightIcon, ClipboardCheckIcon } from 'lucide-react'
 
 import type { AuditRange } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -71,34 +73,57 @@ export function EntityAuditActivityPanel({
       </div>
     )
   }
+  // Reverse entity→audit path: jump to this entity's full history in the
+  // firm-wide audit log (full filters + export), scoped via ?entity=<id>.
+  // Lives INSIDE the panel so every caller (rules, clients, alerts, …) gets the
+  // de-isolation link — including the empty state, which otherwise dead-ended.
+  const fullLogLink = (
+    <div className="mt-3 border-t border-divider-subtle pt-3">
+      <TextLink
+        variant="accent"
+        size="sm"
+        render={<Link to={`/audit?entity=${encodeURIComponent(entityId)}`} />}
+      >
+        <Trans>View in full audit log</Trans>
+        <ArrowUpRightIcon className="size-3.5" aria-hidden />
+      </TextLink>
+    </div>
+  )
+
   const events = auditQuery.data?.events ?? []
   if (events.length === 0) {
     return (
-      <EmptyState icon={ClipboardCheckIcon} title={emptyTitle} description={emptyDescription} />
+      <div>
+        <EmptyState icon={ClipboardCheckIcon} title={emptyTitle} description={emptyDescription} />
+        {fullLogLink}
+      </div>
     )
   }
   return (
-    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
-      <ul className="divide-y divide-divider-subtle">
-        {events.map((event) => (
-          <li
-            key={event.id}
-            className="grid gap-1 px-4 py-3 transition-colors hover:bg-state-base-hover"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium text-text-primary">
-                {formatAuditActionLabel(event.action, actionLabels)}
-              </span>
-              <span className="text-xs tabular-nums text-text-tertiary">
-                {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
-              </span>
-            </div>
-            <p className="text-xs text-text-tertiary">
-              {event.actorLabel ?? event.actorId ?? 'System'}
-            </p>
-          </li>
-        ))}
-      </ul>
+    <div>
+      <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
+        <ul className="divide-y divide-divider-subtle">
+          {events.map((event) => (
+            <li
+              key={event.id}
+              className="grid gap-1 px-4 py-3 transition-colors hover:bg-state-base-hover"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium text-text-primary">
+                  {formatAuditActionLabel(event.action, actionLabels)}
+                </span>
+                <span className="text-xs tabular-nums text-text-tertiary">
+                  {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
+                </span>
+              </div>
+              <p className="text-xs text-text-tertiary">
+                {event.actorLabel ?? event.actorId ?? 'System'}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {fullLogLink}
     </div>
   )
 }
