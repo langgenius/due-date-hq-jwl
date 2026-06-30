@@ -48,7 +48,11 @@ function SelectTrigger({
       data-size={size}
       className={cn(
         'flex w-fit cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-divider-regular bg-components-input-bg-normal py-2 pr-2 pl-3 text-sm whitespace-nowrap text-text-primary transition-colors outline-none',
-        'data-[size=default]:h-9 data-[size=sm]:h-8',
+        // 2026-06-30: sm is the compact trigger — shorter (h-8), with a
+        // proportionally smaller radius (rounded-lg) and text (text-xs), so
+        // dense panels (e.g. generation-preview) get the compact treatment as
+        // a token instead of re-overriding h-8/rounded-lg/text-xs per call.
+        'data-[size=default]:h-9 data-[size=sm]:h-8 data-[size=sm]:rounded-lg data-[size=sm]:text-xs',
         'hover:bg-components-input-bg-hover',
         'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
         'disabled:cursor-not-allowed disabled:bg-components-input-bg-disabled disabled:text-components-input-text-filled-disabled',

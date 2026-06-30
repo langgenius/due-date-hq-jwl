@@ -331,7 +331,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
                 if (value) setSelectedClientId(value)
               }}
             >
-              <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+              <SelectTrigger size="sm" className="w-full">
                 <SelectValue>{selectedClientLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -473,7 +473,7 @@ function GenerationPreviewForm({
                   onSelectClient(client.id)
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-lg font-mono text-xs">
+                <SelectTrigger size="sm" className="w-full font-mono">
                   <SelectValue>{selectedClientLabel}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -506,7 +506,7 @@ function GenerationPreviewForm({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+                <SelectTrigger size="sm" className="w-full">
                   <SelectValue>{previewEntityLabel(entityTypeValue)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -529,7 +529,7 @@ function GenerationPreviewForm({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+                <SelectTrigger size="sm" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

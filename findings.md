@@ -90,7 +90,8 @@ Reading each site before fixing shrank the backlog — several "findings" were n
 - **F-011 (Card border)** — `settings.profile` Danger-zone uses `border-state-destructive-*`, which is a **valid semantic token** (right role), not a raw bypass. Card simply has no `destructive` tone. Optional enhancement, not a fix.
 
 **Genuine remaining backlog (real, but larger than the flag labels suggested):**
-- **F-009 + F-010 · Select "compact" treatment** — needs a primitive enhancement: `size="sm"` only sets `h-8`; the 4 generation-preview + members sites also want `text-xs`/`rounded-lg`. Add a compact Select size, then drop the overrides. *(bounded primitive change)*
+- ✅ **F-010 · Select compact `size="sm"`** — DONE. `size="sm"` now carries `h-8 + rounded-lg + text-xs`; the 4 generation-preview SelectTriggers use it (dropped the per-site overrides). Zero-visual-change (sites already rendered those values via overrides).
+- **F-009 · members inline cell-picker** — the one `h-6` transparent SelectTrigger is a genuinely distinct *inline table-cell* pattern (smaller than `sm`'s h-8, borderless) — left as a documented one-off, not the same as the compact Select. Low priority.
 - **F-003 · `migration.new` adopt `PageHeader`** — replace the custom `MigrationActivationIntro` header. *(medium, non-alerts)*
 - **F-002 · `RulesPageShell` compose `PageHeader`** — verify/refactor so there's one header source. *(medium; touches the alerts area an active sibling session is editing → coordinate/defer)*
 - **F-015 · widen `EmptyState` adoption** — ~13 hand-rolled empties → the primitive. *(large, spread across surfaces)*
