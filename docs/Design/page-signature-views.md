@@ -12,7 +12,7 @@ urgency-lane view); the registry table is the opt-in toggle.
 signature card view + its toggle were removed; the dead `DeadlineCardGrid.tsx` was
 deleted 2026-06-29 (restore from git history if the card view is ever wanted). The
 "shared card + lane DNA" below still describes `/clients`; for `/deadlines` only
-the lane *banding logic* survives (see the audit note).
+the lane _banding logic_ survives (see the audit note).
 
 ## The shared card + lane DNA (Clients, Deadlines)
 
@@ -31,7 +31,7 @@ the lane *banding logic* survives (see the audit note).
     grouped by date only — settled rows polluted Overdue (19 rows, 12 actionable)
     and read as inconsistent against the status-aware urgency stripe. The two
     views can no longer drift. Bands: `overdue · today · this_week · upcoming ·
-    filed` (`URGENCY_BAND_ORDER`).
+filed` (`URGENCY_BAND_ORDER`).
 - **Countdown hero.** The days-to-deadline as one bold `text-stat-value` numeral.
   Its **colour is the card's only urgency tone**: red late · amber ≤7d · neutral
   comfortable. Settled rows never go red.

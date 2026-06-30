@@ -52,7 +52,9 @@ export function AuthBrandAnchor({
   const lockup = (
     <span className="inline-flex items-center gap-2">
       <BrandMark frame className={cn('size-5 w-auto', markClassName)} />
-      <BrandLogotype className={cn('h-4 w-auto text-text-primary dark:text-brand-ivory', markClassName)} />
+      <BrandLogotype
+        className={cn('h-4 w-auto text-text-primary dark:text-brand-ivory', markClassName)}
+      />
     </span>
   )
   return (

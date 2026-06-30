@@ -2,6 +2,7 @@
 
 **Date:** 2026-06-29
 **Files:**
+
 - `apps/app/src/features/alerts/components/PulseAlertRow.tsx` (list row + day band)
 - `apps/app/src/features/alerts/components/AlertListRail.tsx` (navigator rail)
 - `apps/app/src/features/alerts/AlertHistoryView.tsx`

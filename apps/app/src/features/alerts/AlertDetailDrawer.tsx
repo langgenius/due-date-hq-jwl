@@ -1463,8 +1463,7 @@ export function AlertDetailDrawer({
   const reviewNeedsVerify =
     !!detail &&
     detail.alert.status === 'matched' &&
-    (detail.alert.actionMode === 'review_only' ||
-      detail.alert.firmImpact === 'no_current_match') &&
+    (detail.alert.actionMode === 'review_only' || detail.alert.firmImpact === 'no_current_match') &&
     isLowAiConfidence(detail.alert.confidence) &&
     !reviewVerified
   // Single entry point for "Mark reviewed" (footer button + `A` hotkey). Routes a
@@ -2697,8 +2696,7 @@ export function AlertDetailDrawer({
                     prompt is up (the prompt already states the consequence, so
                     the two would double the "what happens to it" reassurance).
                     Critique #7: tertiary text, shield icon the only green. */}
-                {detail &&
-                !(detail.alert.status === 'matched' && !alertHasOpenGate(detail)) ? (
+                {detail && !(detail.alert.status === 'matched' && !alertHasOpenGate(detail)) ? (
                   <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
                     <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
                     <Trans>Every decision captured to audit ledger</Trans>
@@ -2812,9 +2810,9 @@ export function AlertDetailDrawer({
             <DialogDescription>
               <Trans>
                 The AI parsed this update with low confidence (
-                {Math.round(detail.alert.confidence * 100)}%). Open the source and confirm the parsed
-                fields are right — marking it reviewed logs your decision and moves it to Alert
-                history.
+                {Math.round(detail.alert.confidence * 100)}%). Open the source and confirm the
+                parsed fields are right — marking it reviewed logs your decision and moves it to
+                Alert history.
               </Trans>
             </DialogDescription>
           </DialogHeader>

@@ -500,7 +500,6 @@ function ProductStory() {
   )
 }
 
-
 // ---------------------------------------------------------------------------
 // Inline email-OTP form — login-specific styling that matches pW6pK (label
 // row + hint, inner mail icon, Return hint, blue "Send sign-in link" CTA).

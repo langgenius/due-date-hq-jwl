@@ -324,98 +324,97 @@ export function OnboardingRoute() {
               animate="show"
               variants={FIELD_COLUMN_VARIANTS}
             >
-            <motion.div
-              variants={FIELD_ROW_VARIANTS}
-              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-            >
-              <Field>
-                <FieldHeaderRow
-                  htmlFor="practice-name"
-                  label={t`Practice name`}
-                  hint={t`required, 2+ characters`}
-                />
-                <Input
-                  id="practice-name"
-                  name="name"
-                  autoFocus
-                  autoComplete="organization"
-                  required
-                  minLength={MIN_NAME_LENGTH}
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder={t`e.g. Smith & Associates CPA`}
-                  aria-invalid={error ? true : undefined}
-                  aria-describedby={error ? 'practice-name-error' : undefined}
-                />
-                {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
-              </Field>
-            </motion.div>
+              <motion.div
+                variants={FIELD_ROW_VARIANTS}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <Field>
+                  <FieldHeaderRow
+                    htmlFor="practice-name"
+                    label={t`Practice name`}
+                    hint={t`required, 2+ characters`}
+                  />
+                  <Input
+                    id="practice-name"
+                    name="name"
+                    autoFocus
+                    autoComplete="organization"
+                    required
+                    minLength={MIN_NAME_LENGTH}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder={t`e.g. Smith & Associates CPA`}
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? 'practice-name-error' : undefined}
+                  />
+                  {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
+                </Field>
+              </motion.div>
 
-            <motion.div
-              variants={FIELD_ROW_VARIANTS}
-              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2"
-            >
-              <Field>
-                <FieldHeaderRow
-                  htmlFor="monitoring-start-date"
-                  label={t`Monitoring start date`}
-                  hint={t`watch deadlines from`}
-                />
-                <IsoDatePicker
-                  id="monitoring-start-date"
-                  value={monitoringStartDate}
-                  maxIsoDate={today}
-                  invalid={monitoringStartDateInvalid}
-                  ariaLabel={t`Select monitoring start date`}
-                  onValueChange={setMonitoringStartDate}
-                />
-                {monitoringStartDateInvalid ? (
-                  <FieldError>
-                    <Trans>Monitoring start date cannot be in the future.</Trans>
-                  </FieldError>
-                ) : null}
-              </Field>
+              <motion.div
+                variants={FIELD_ROW_VARIANTS}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+              >
+                <Field>
+                  <FieldHeaderRow
+                    htmlFor="monitoring-start-date"
+                    label={t`Monitoring start date`}
+                    hint={t`watch deadlines from`}
+                  />
+                  <IsoDatePicker
+                    id="monitoring-start-date"
+                    value={monitoringStartDate}
+                    maxIsoDate={today}
+                    invalid={monitoringStartDateInvalid}
+                    ariaLabel={t`Select monitoring start date`}
+                    onValueChange={setMonitoringStartDate}
+                  />
+                  {monitoringStartDateInvalid ? (
+                    <FieldError>
+                      <Trans>Monitoring start date cannot be in the future.</Trans>
+                    </FieldError>
+                  ) : null}
+                </Field>
 
-              <Field>
-                <FieldHeaderRow
-                  htmlFor="internal-deadline-offset"
-                  label={t`Internal deadline offset`}
-                  hint={t`days early`}
-                />
-                <Input
-                  id="internal-deadline-offset"
-                  name="internalDeadlineOffsetDays"
-                  type="number"
-                  min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
-                  max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
-                  step={1}
-                  value={internalDeadlineOffsetDays}
-                  onChange={(event) =>
-                    setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
-                  }
-                />
-              </Field>
-            </motion.div>
+                <Field>
+                  <FieldHeaderRow
+                    htmlFor="internal-deadline-offset"
+                    label={t`Internal deadline offset`}
+                    hint={t`days early`}
+                  />
+                  <Input
+                    id="internal-deadline-offset"
+                    name="internalDeadlineOffsetDays"
+                    type="number"
+                    min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                    max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                    step={1}
+                    value={internalDeadlineOffsetDays}
+                    onChange={(event) =>
+                      setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                    }
+                  />
+                </Field>
+              </motion.div>
 
-            <motion.div
-              variants={FIELD_ROW_VARIANTS}
-              transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
-            >
-              <Field>
-                <FieldHeaderRow
-                  htmlFor="firm-timezone"
-                  label={t`Time zone`}
-                  hint={t`when reminders send`}
-                />
-                <FirmTimezoneSelect
-                  id="firm-timezone"
-                  value={timezone}
-                  onValueChange={setTimezone}
-                />
-              </Field>
-            </motion.div>
-
+              <motion.div
+                variants={FIELD_ROW_VARIANTS}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
+              >
+                <Field>
+                  <FieldHeaderRow
+                    htmlFor="firm-timezone"
+                    label={t`Time zone`}
+                    hint={t`when reminders send`}
+                  />
+                  <FirmTimezoneSelect
+                    id="firm-timezone"
+                    value={timezone}
+                    onValueChange={setTimezone}
+                  />
+                </Field>
+              </motion.div>
             </motion.div>
 
             {/* Right — state-rule coverage tilegram */}

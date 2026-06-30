@@ -201,6 +201,13 @@ export default defineConfig({
         rules: { 'no-await-in-loop': 'off' },
       },
       {
+        // One-off marketing build scripts (OG/asset generation). Sequential awaits
+        // are intentional (render assets one at a time to bound memory), and the
+        // `__dirname` ESM shim is the standard Node idiom — both rules off here.
+        files: ['apps/marketing/scripts/**'],
+        rules: { 'no-await-in-loop': 'off', 'no-underscore-dangle': 'off' },
+      },
+      {
         // Test stubs legitimately use `as unknown as X` casts and locally
         // scoped helpers; relax the rules that only fire on those patterns.
         files: ['**/*.test.ts', '**/*.test.tsx'],
@@ -218,6 +225,10 @@ export default defineConfig({
       '**/coverage/**',
       '**/drizzle/**',
       'packages/ui/src/components/ui/**',
+      // Generated Product Hunt gallery artifacts (HTML mockups + their
+      // generator); machine-emitted, regenerated from generator.cjs, so
+      // they're not linted as hand-authored source.
+      'docs/marketing/product-hunt-launch/**',
       '.agents/**',
       '.claude/**',
     ],
@@ -237,7 +248,14 @@ export default defineConfig({
     arrowParens: 'always',
     endOfLine: 'lf',
     sortPackageJson: true,
-    ignorePatterns: ['.agents/**', '.claude/**', 'apps/app/src/i18n/locales/**/messages.ts'],
+    ignorePatterns: [
+      '.agents/**',
+      '.claude/**',
+      'apps/app/src/i18n/locales/**/messages.ts',
+      // Generated PH gallery artifacts — handwritten/compact HTML the formatter
+      // would explode into thousands of lines; kept verbatim (see lint note above).
+      'docs/marketing/product-hunt-launch/**',
+    ],
   },
 
   // ──────────────────────────────────────────────────────────

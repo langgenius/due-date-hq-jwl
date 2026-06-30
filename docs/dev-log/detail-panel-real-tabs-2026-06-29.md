@@ -30,7 +30,7 @@ scroll away. Then: _"can you push it further?"_ and _"should this apply to the A
   one from the left, so the strip reads as a left-to-right map. Honours reduced-motion.
 - **Underline** drives off `activeTab` (not the old scroll-spy `activeSection`) in panelLayout.
 - **IA: 4 → up to 5 specific tabs** (Yuqi: _"more tabs, each more specific > fewer long ones"_).
-  Order **Status · Materials · Extension · Record · Activity**. **Extension** is its own *conditional*
+  Order **Status · Materials · Extension · Record · Activity**. **Extension** is its own _conditional_
   tab (only when the matched rule allows an extension or one's filed) — un-folded from Status; the
   full standalone `deadline-section-extension` panel serves it, and the panel-only embedded fold in
   Status was deleted. **Status is now pure workflow**: "What's left" (Materials owns the checklist)

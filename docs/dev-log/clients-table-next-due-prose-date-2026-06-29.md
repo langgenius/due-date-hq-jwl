@@ -7,7 +7,7 @@
 
 Inspecting the `/clients` **list (table)** view: the NEXT DUE column's exact-date line rendered raw ISO
 (`2026-05-12`, `2026-06-22`) while the card view showed prose (`May 12`). The date-formatting canon is
-explicit — prose dates, never raw ISO. A code comment even *claimed* it was using a prose format, but
+explicit — prose dates, never raw ISO. A code comment even _claimed_ it was using a prose format, but
 `formatDate()` returns ISO (`value.slice(0,10)`); the intent and the function disagreed.
 
 ## What changed

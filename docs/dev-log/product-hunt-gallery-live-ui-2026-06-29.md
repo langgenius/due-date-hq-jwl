@@ -21,7 +21,7 @@ shipping app** and to show its breadth — while holding the integrity line (onl
 - **House style → light + lockup + slim footer.** `page()` now renders 1270×**820** with the brand
   lockup top-left and a **slim footer baked in** (light on light slides, dark variant on the navy
   closer): `50 states + DC · Matched to clients · Sourced to the agency · Audit-logged · Early access
-  open · duedatehq.com`. (A fuller standalone footer with contact lives in `footer()` / `ph-footer`.)
+open · duedatehq.com`. (A fuller standalone footer with contact lives in `footer()` / `ph-footer`.)
   Headline pillar reworked: dropped the vague `AI-parsed` for the moat **Matched to clients**.
 - **Cards grounded on their real lists** (dimmed + blurred behind the focal card): Sources → Sources
   list; Rules review → Jurisdictions queue (AL highlighted); Action → Alerts list.

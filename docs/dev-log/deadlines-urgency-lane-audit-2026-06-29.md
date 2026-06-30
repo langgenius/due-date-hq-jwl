@@ -15,7 +15,7 @@ they belong to OVERDUE?"_ and _"is it achieving its purpose?"_
 
 Root cause — **two definitions of "overdue" fought each other**. The per-row urgency stripe was
 status-aware (suppressed for terminal status via `isDueDaysSuppressedForStatus`), but the LANE
-grouping (`urgencyBandOf`) was **date-only**. So a return *filed* 48d late landed in OVERDUE with no
+grouping (`urgencyBandOf`) was **date-only**. So a return _filed_ 48d late landed in OVERDUE with no
 stripe → the lane looked inconsistent. The OVERDUE lane held **19 rows but only 12 were actionable**
 (the other 7 were filed/completed-late, already done), and "19 deadlines" disagreed with the "12
 needs action" stat tile.

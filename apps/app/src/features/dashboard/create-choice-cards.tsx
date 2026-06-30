@@ -212,7 +212,9 @@ export function CreateChoiceCards({ className }: { className?: string }) {
             primary
             title={<Trans>Import clients</Trans>}
             description={
-              <Trans>From TaxDome, Karbon, Drake and more — every deadline appears on its own.</Trans>
+              <Trans>
+                From TaxDome, Karbon, Drake and more — every deadline appears on its own.
+              </Trans>
             }
             cta={<Trans>Import clients</Trans>}
             disabled={!canRunMigration}
@@ -230,7 +232,9 @@ export function CreateChoiceCards({ className }: { className?: string }) {
             tone="accent"
             title={<Trans>Add a client</Trans>}
             description={
-              <Trans>One client by hand — name, entity type, jurisdiction. Good for a quick try.</Trans>
+              <Trans>
+                One client by hand — name, entity type, jurisdiction. Good for a quick try.
+              </Trans>
             }
             cta={<Trans>Add a client</Trans>}
             disabled={!canCreateClient}
@@ -248,7 +252,9 @@ export function CreateChoiceCards({ className }: { className?: string }) {
             tone="success"
             title={<Trans>Add a deadline</Trans>}
             description={
-              <Trans>One rule-backed deadline for a client — DueDateHQ calculates the date for you.</Trans>
+              <Trans>
+                One rule-backed deadline for a client — DueDateHQ calculates the date for you.
+              </Trans>
             }
             cta={<Trans>Add a deadline</Trans>}
             disabled={!canCreateDeadline}

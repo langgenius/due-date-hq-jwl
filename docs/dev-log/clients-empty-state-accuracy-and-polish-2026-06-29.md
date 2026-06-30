@@ -15,6 +15,7 @@ missing logos, an orphaned word in the headline, no card background, and a redun
 supported tools and drop the file; the app auto-detects the source from the headers (proven by
 `intake-files.ts`: "Export Client Information from Tools > Export…", etc.). So the old copy was
 fiction:
+
 - Headline "**Plug in your tools**…" → "**Drop in your client list.** Walk away with a triage list."
   (no fake connection).
 - Body dropped "**no setup wizard**" (there IS a migration wizard) and the wrong "**6 more**" count;
@@ -22,6 +23,7 @@ fiction:
   then drop the file here — we auto-detect the format, no column mapping."
 
 **Hero polish.**
+
 - Removed the gradient brand-wash and the one-off "Get started" eyebrow (it appeared nowhere else).
 - Gave the card a flat `bg-background-section` fill so the frame reads as a distinct surface; flipped
   the logo tiles to white so they pop on it.

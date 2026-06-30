@@ -12,12 +12,14 @@ colour/caps/groupings" pass. Goal: land it in the middle (calmer, but not flat).
 ## What changed
 
 **Light:**
+
 - **Dropped the "Total rules" stat** — the rail already shows the catalog total ("Overview 479") and
   its footer the jurisdiction count ("52 jurisdictions"). (Removed the orphaned `jurisdictionCount`.)
 - **"Nd waiting" now shows only on the longest-waiting tier** in "Where to start" — the high-severity
   tier leads with the HIGH chip (that's its reason for ordering), so the wait there was just card noise.
 
 **Bold:**
+
 - **The metric band → the compact `StatSummaryStrip`.** After the two drops it was a 2-stat band
   spanning full width with a half-empty right side. Collapsed it to a one-line
   `7 High-severity · 100% Coverage` (~24px, the app-wide strip pattern), tone moved onto the values
