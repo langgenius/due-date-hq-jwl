@@ -1,0 +1,222 @@
+---
+/** Gap — the affordability/access positioning. The enterprise platforms that
+ *  watch for changes (Bloomberg Tax, Checkpoint, CCH) run thousands a seat, so
+ *  only large & regional firms can justify them. A solo-to-small firm carrying
+ *  multi-state / business clients has the SAME exposure to a moved deadline and
+ *  no affordable tool — so it gets watched by hand, and things slip. We're the
+ *  layer built for exactly that firm.
+ *
+ *  Framing rule: accessibility, NOT cheapness — "built for the firm that was
+ *  priced out", never "we're the cheap one". No price figure for us (pricing is
+ *  still coming soon); competitor cost stays directional ("thousands a seat").
+ *  Chroma lives in containers (the accent us-tier), copy stays neutral. */
+interface Props {
+  locale?: 'en' | 'zh-CN'
+}
+const { locale = 'en' } = Astro.props
+const zh = locale === 'zh-CN'
+
+// the enterprise platforms small firms are priced out of — short, recognizable
+// names (matching how Compare names TaxDome / File In Time)
+const platforms = ['Bloomberg Tax', 'Checkpoint', 'CCH']
+
+const t = zh
+  ? {
+      eyebrow: '为谁而建',
+      headPre: '大所每席位花上千美元盯住每一处变化。其他人,只能',
+      headItal: '靠人工。',
+      leadHtml:
+        'Bloomberg Tax、Checkpoint、CCH 是为大所和区域所打造的——撑得起按席位计费的研究预算。而一个手握多州、多类业务客户的独立或小型事务所,面对的是同样会变的截止日,却没有一件用得起的工具去盯。<b>DueDateHQ 就是那件工具——为被大平台挡在门外的事务所,盯住每一处变化。</b>',
+      themLabel: '面向大所与区域所',
+      price: '上千美元 / 席位',
+      gapLabel: '这道缺口',
+      usLabel: '面向其他所有人',
+      usName: 'DueDateHQ',
+      usNote: '同样的盯防,小所也用得起。',
+    }
+  : {
+      eyebrow: "Who it's for",
+      headPre: 'Big firms pay thousands a seat to stay ahead of every change. Everyone else does it ',
+      headItal: 'by hand.',
+      leadHtml:
+        'Bloomberg Tax, Checkpoint, and CCH are built for large and regional firms — the kind that can justify a per-seat research budget. A solo or small firm carrying multi-state and business clients faces the very same moved deadlines, with no affordable tool to watch for them. <b>DueDateHQ is that tool — built to catch those changes for the firm the big platforms leave out.</b>',
+      themLabel: 'For large & regional firms',
+      price: 'thousands / seat',
+      gapLabel: 'the gap',
+      usLabel: 'For everyone else',
+      usName: 'DueDateHQ',
+      usNote: 'The same watch, built for small firms.',
+    }
+---
+
+<section class="m-section gap" aria-labelledby="gap-h" data-reveal>
+  <p class="m-eyebrow">{t.eyebrow}</p>
+  <h2 class="m-h2 gap__h" id="gap-h">
+    {t.headPre}<span class="ital">{t.headItal}</span>
+  </h2>
+  <p class="m-lead gap__lead" set:html={t.leadHtml} />
+
+  <!-- the divide: what large firms buy → the gap → what we built for the rest -->
+  <div class="gap-fig" aria-hidden="true">
+    <div class="gap-tier gap-tier--them">
+      <span class="gap-tier__label">{t.themLabel}</span>
+      <ul class="gap-plat">
+        {
+          platforms.map((p) => (
+            <li class="gap-plat__item">
+              <span class="gap-plat__name">{p}</span>
+              <span class="gap-plat__price">{t.price}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="gap-divide">
+      <span class="gap-divide__label">{t.gapLabel}</span>
+    </div>
+
+    <div class="gap-tier gap-tier--us">
+      <span class="gap-tier__label">{t.usLabel}</span>
+      <div class="gap-us">
+        <span class="gap-us__name">{t.usName}</span>
+        <span class="gap-us__note">{t.usNote}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .gap__h {
+    max-width: 24ch;
+  }
+  .gap__lead {
+    margin-top: 16px;
+    max-width: 62ch;
+  }
+  .gap__lead :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+
+  /* the figure: three tiers in a row — them · gap · us. Chroma only on the us
+     tier; the enterprise platforms read as quiet, out-of-reach pills. */
+  .gap-fig {
+    margin-top: clamp(28px, 3.5vw, 44px);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: clamp(16px, 2vw, 28px);
+  }
+  .gap-tier__label {
+    display: block;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin-bottom: 12px;
+  }
+  .gap-tier--us .gap-tier__label {
+    color: var(--m-accent);
+    opacity: 0.78;
+  }
+
+  /* enterprise platforms — quiet bordered rows, the price set in mono so it reads
+     as a hard fact, muted so the tier recedes (it's the option that's out of reach) */
+  .gap-plat {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .gap-plat__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 16px;
+    border: 1px solid var(--m-hairline);
+    border-radius: var(--m-radius-md);
+    background: var(--m-surface);
+  }
+  .gap-plat__name {
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-ink-2);
+  }
+  .gap-plat__price {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    color: var(--m-muted);
+    white-space: nowrap;
+  }
+
+  /* the gap — a literal break between the tiers, labelled */
+  .gap-divide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    align-self: stretch;
+    justify-content: center;
+  }
+  .gap-divide::before,
+  .gap-divide::after {
+    content: '';
+    flex: 1;
+    width: 0;
+    border-left: 1.5px dashed color-mix(in srgb, var(--m-faint) 60%, transparent);
+    min-height: 12px;
+  }
+  .gap-divide__label {
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    white-space: nowrap;
+  }
+
+  /* us — the accent tier: the bridge across the gap. One filled, lifted bar. */
+  .gap-us {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 20px;
+    border: 1px solid var(--m-accent);
+    border-radius: 12px;
+    background: var(--m-accent-tint);
+  }
+  .gap-us__name {
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--m-accent);
+  }
+  .gap-us__note {
+    font-size: var(--m-text-sm);
+    line-height: 1.45;
+    color: var(--m-ink-2);
+  }
+
+  /* stack on narrow screens — the divide rotates to a horizontal break */
+  @media (max-width: 760px) {
+    .gap-fig {
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 4vw, 20px);
+    }
+    .gap-divide {
+      flex-direction: row;
+      width: 100%;
+    }
+    .gap-divide::before,
+    .gap-divide::after {
+      width: auto;
+      min-height: 0;
+      border-left: 0;
+      border-top: 1.5px dashed color-mix(in srgb, var(--m-faint) 60%, transparent);
+    }
+  }
+</style>
