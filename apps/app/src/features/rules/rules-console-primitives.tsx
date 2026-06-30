@@ -236,12 +236,14 @@ export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'di
 export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) {
   const { t } = useLingui()
   const normalized = normalizeSourceHealth(health)
-  const tones: Record<typeof normalized, 'success' | 'disabled'> = {
+  const tones: Record<typeof normalized, 'success' | 'warning' | 'disabled'> = {
     healthy: 'success',
+    attention: 'warning',
     paused: 'disabled',
   }
   const labels: Record<typeof normalized, string> = {
     healthy: t`Watched`,
+    attention: t`Needs attention`,
     paused: t`Paused`,
   }
   const tone = tones[normalized]

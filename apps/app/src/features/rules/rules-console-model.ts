@@ -17,7 +17,12 @@ import {
 } from '@duedatehq/contracts'
 import { ClientTaxClassificationSchema } from '@duedatehq/contracts/shared/enums'
 
-type SourceDisplayHealth = 'healthy' | 'paused'
+// 'attention' folds the raw degraded + failing states — both mean "a feed the
+// firm relies on needs a look", and the filter/badge don't need to split them.
+// Keeping them distinct from 'healthy' is what lets the Alerts "N source
+// errors" badge deep-link to the actual broken sources (was impossible while
+// degraded/failing normalized to 'healthy').
+type SourceDisplayHealth = 'healthy' | 'attention' | 'paused'
 export type SourceHealthFilter = 'all' | SourceDisplayHealth
 export type CoverageCellState = 'active' | 'review' | 'none'
 
@@ -323,6 +328,7 @@ export function countSourcesByHealth(sources: readonly SourceHealthOnly[]) {
   return {
     all: sources.length,
     healthy: normalized.filter((status) => status === 'healthy').length,
+    attention: normalized.filter((status) => status === 'attention').length,
     paused: normalized.filter((status) => status === 'paused').length,
   }
 }
@@ -338,7 +344,9 @@ export function filterSources<T extends SourceHealthOnly>(
 export function normalizeSourceHealth(
   healthStatus: RuleSource['healthStatus'],
 ): SourceDisplayHealth {
-  return healthStatus === 'paused' ? 'paused' : 'healthy'
+  if (healthStatus === 'paused') return 'paused'
+  if (healthStatus === 'degraded' || healthStatus === 'failing') return 'attention'
+  return 'healthy'
 }
 
 export function groupPreviewRows<T extends PreviewReadyOnly>(rows: readonly T[]) {

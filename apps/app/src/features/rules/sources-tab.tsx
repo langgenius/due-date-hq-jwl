@@ -53,7 +53,13 @@ export function SourcesTab() {
   const { t } = useLingui()
   const [searchParams, setSearchParams] = useSearchParams()
   const domainFilter = searchParams.get('domain')
-  const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
+  // Seed the health filter from `?health=` so inbound deep-links (the Alerts
+  // "N source errors" badge / monitoring chip) land pre-filtered to the
+  // sources that need attention, instead of an unfiltered list.
+  const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>(() => {
+    const param = searchParams.get('health')
+    return param === 'healthy' || param === 'attention' || param === 'paused' ? param : 'all'
+  })
   const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>(() => {
     const jurisdiction = searchParams.get('jur')
     return jurisdiction ? [jurisdiction] : []
@@ -171,6 +177,11 @@ export function SourcesTab() {
     () => [
       { value: 'all' as const, label: t`All`, count: counts.all },
       { value: 'healthy' as const, label: t`Watched`, count: counts.healthy },
+      // Only offer the "Needs attention" facet when something is degraded/failing,
+      // so a healthy firm's filter row stays clean.
+      ...(counts.attention > 0
+        ? [{ value: 'attention' as const, label: t`Needs attention`, count: counts.attention }]
+        : []),
       { value: 'paused' as const, label: t`Paused`, count: counts.paused },
     ],
     [counts, t],

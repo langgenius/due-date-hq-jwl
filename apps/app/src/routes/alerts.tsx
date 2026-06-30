@@ -119,7 +119,13 @@ export function AlertsRoute() {
           }
         >
           <MonitoringChip
-            to="/rules/sources"
+            // When the chip is amber (some sources need attention), deep-link
+            // straight to those feeds instead of the unfiltered list.
+            to={
+              sourceHealthLoaded && !allSourcesHealthy
+                ? '/rules/sources?health=attention'
+                : '/rules/sources'
+            }
             ariaLabel={t`Monitoring: Federal · 50 States · DC`}
             tooltip={
               !sourceHealthLoaded ? (

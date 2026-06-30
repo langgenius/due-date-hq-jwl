@@ -724,14 +724,16 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                     <Trans>Live</Trans>
                   </Badge>
                   {/* Source-error chip — only when a monitored source is
-                      degraded/failing. Destructive tint + links to /rules/sources
-                      so the CPA can act. Silent when all sources are healthy. */}
+                      degraded/failing. Destructive tint + deep-links to
+                      /rules/sources pre-filtered to "Needs attention" so the CPA
+                      lands on the broken feeds, not an unfiltered list. Silent
+                      when all sources are healthy. */}
                   {sourceErrorCount > 0 ? (
                     <Badge
                       variant="destructive"
                       size="lg"
                       className="gap-1 tabular-nums"
-                      render={<Link to="/rules/sources" />}
+                      render={<Link to="/rules/sources?health=attention" />}
                     >
                       <Plural
                         value={sourceErrorCount}
