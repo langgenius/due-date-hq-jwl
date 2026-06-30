@@ -686,7 +686,6 @@ describe('RulesLibraryRoute', () => {
     await render(<RulesLibraryRoute />)
     await waitForText('Federal')
     await waitForText('Arizona')
-    await waitForText('Total rules')
     await waitForText('2 rules need your review')
     await waitForText('Coverage')
     await waitForText('Recent changes')

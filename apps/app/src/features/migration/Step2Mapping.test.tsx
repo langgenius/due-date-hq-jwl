@@ -185,10 +185,12 @@ describe('Step2Mapping banner rows', () => {
     expect(rows[2]?.textContent).toContain('Client Name')
   })
 
-  it('shows Import template when AI uses the selected import template', () => {
+  it('shows the From-template badge when AI uses the selected import template', () => {
     renderStep(mappingState({ status: 'fallback', fallback: 'preset' }))
 
-    expect(document.body.textContent).toContain('Import template')
+    // The visible badge reads "From template"; the longer "Import template …"
+    // copy lives in the explain tooltip (title/aria-label), asserted below.
+    expect(document.body.textContent).toContain('From template')
     expect(document.body.textContent).toContain(
       'Automatic field matching is unavailable. We used the selected import template',
     )

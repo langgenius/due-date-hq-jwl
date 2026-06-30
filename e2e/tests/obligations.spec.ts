@@ -105,15 +105,15 @@ test.describe('seeded obligations', () => {
       name: /Arbor & Vale LLC/,
     })
     await expect(deadlineDrawer).toBeVisible()
-    // 2026-06-16 (detail drawer IA): sections are scroll-spy navigation
-    // buttons, not ARIA tabs. The Extension flow lives inside Status.
-    const sectionNav = deadlineDrawer.getByRole('navigation', { name: 'Deadline sections' })
-    await expect(sectionNav.getByRole('button', { name: 'Status' })).toBeVisible()
-    await expect(sectionNav.getByRole('button', { name: /^Materials\b/ })).toBeVisible()
-    await expect(sectionNav.getByRole('button', { name: /^Record\b/ })).toBeVisible()
-    await expect(sectionNav.getByRole('button', { name: /^Activity\b/ })).toBeVisible()
+    // 2026-06-29 (detail drawer IA): on the page/panel surface the section nav is
+    // a real ARIA tablist (roving tabindex) — its items are tabs, not buttons.
+    const sectionNav = deadlineDrawer.getByRole('tablist', { name: 'Deadline sections' })
+    await expect(sectionNav.getByRole('tab', { name: 'Status' })).toBeVisible()
+    await expect(sectionNav.getByRole('tab', { name: /^Materials\b/ })).toBeVisible()
+    await expect(sectionNav.getByRole('tab', { name: /^Record\b/ })).toBeVisible()
+    await expect(sectionNav.getByRole('tab', { name: /^Activity\b/ })).toBeVisible()
 
-    await sectionNav.getByRole('button', { name: /^Materials\b/ }).click()
+    await sectionNav.getByRole('tab', { name: /^Materials\b/ }).click()
     const checklistItems = deadlineDrawer.getByRole('checkbox', {
       name: /^Select document .* for batch action$/,
     })

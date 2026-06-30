@@ -23,10 +23,11 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
-  // 2026-06-10 (Pencil O0pyRO): the overview is a summary dashboard now —
-  // its stats band ("Total rules" tile) is the always-rendered anchor that
-  // confirms the library route rendered its console.
-  await expect(authenticatedPage.getByText('Total rules')).toBeVisible({
+  // The overview's PageHeader <h1> ("Rule library") is the always-rendered anchor
+  // that confirms the library route mounted. (The old "Total rules" stat tile was
+  // dropped in the 2026-06-29 overview declutter; the sidebar entry is a link, not
+  // a heading, so this matches the page title only.)
+  await expect(authenticatedPage.getByRole('heading', { name: 'Rule library' })).toBeVisible({
     timeout: 20_000,
   })
 
@@ -41,7 +42,7 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.goto('/rules/library?filter=pending')
   await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
-  await expect(authenticatedPage.getByText('Total rules')).toBeVisible({
+  await expect(authenticatedPage.getByRole('heading', { name: 'Rule library' })).toBeVisible({
     timeout: 20_000,
   })
 })
