@@ -73,6 +73,11 @@ function makeScoped() {
       upsertPracticeRule,
       decideReviewTask,
       ensureReviewTasks,
+      // Fresh firm has no practice rows yet — so every activatable rule is a
+      // genuine new transition and the counts stay full (the delta-count guard
+      // in activateOnboardingJurisdictionRules reads this to avoid re-counting
+      // already-active rules on a re-run).
+      listPracticeRules: vi.fn().mockResolvedValue([]),
     },
     audit: {
       write: writeAudit,

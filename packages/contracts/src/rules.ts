@@ -692,6 +692,24 @@ export const RuleOnboardingActivationOutputSchema = z.object({
 })
 export type RuleOnboardingActivationOutput = z.infer<typeof RuleOnboardingActivationOutputSchema>
 
+// The inverse of onboarding activation: stop monitoring a jurisdiction by
+// archiving its engaged practice rules (active / pending_review). Existing
+// generated deadlines are left intact (archive semantics) — only future
+// generation stops. A reason is recorded in the audit log per rule.
+export const RuleDeactivateJurisdictionInputSchema = z.object({
+  states: z.array(RuleGenerationStateSchema).min(1).max(RuleGenerationStateValues.length),
+  reason: z.string().trim().min(1).max(1000),
+})
+export type RuleDeactivateJurisdictionInput = z.infer<typeof RuleDeactivateJurisdictionInputSchema>
+
+export const RuleDeactivateJurisdictionOutputSchema = z.object({
+  archivedCount: z.number().int().nonnegative(),
+  deactivatedStates: z.array(RuleGenerationStateSchema),
+})
+export type RuleDeactivateJurisdictionOutput = z.infer<
+  typeof RuleDeactivateJurisdictionOutputSchema
+>
+
 export const RuleRejectTemplateInputSchema = RuleVersionSelectionSchema.extend({
   reason: z.string().trim().min(1).max(1000),
 })
@@ -929,6 +947,9 @@ export const rulesContract = oc.router({
   activateOnboardingJurisdictions: oc
     .input(RuleOnboardingActivationInputSchema)
     .output(RuleOnboardingActivationOutputSchema),
+  deactivateJurisdiction: oc
+    .input(RuleDeactivateJurisdictionInputSchema)
+    .output(RuleDeactivateJurisdictionOutputSchema),
   rejectTemplate: oc.input(RuleRejectTemplateInputSchema).output(RuleReviewTaskSchema),
   createCustomRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),
   updatePracticeRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),

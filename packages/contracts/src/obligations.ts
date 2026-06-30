@@ -150,6 +150,16 @@ export const DueDateUpdateInputSchema = z.object({
   currentDueDate: z.iso.date(),
 })
 
+// Re-bind (or unbind) the rule this deadline cites as its authority. Corrects
+// a wrong auto-match — a pure attribution fix (no date recompute, which the
+// rule itself drives). `ruleId: null` clears the binding ("flag as incorrect").
+export const ObligationRebindRuleInputSchema = z.object({
+  id: EntityIdSchema,
+  ruleId: z.string().trim().min(1).nullable(),
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationRebindRuleInput = z.infer<typeof ObligationRebindRuleInputSchema>
+
 function isValidFiscalYearEnd(month: number, day: number): boolean {
   const date = new Date(Date.UTC(2024, month - 1, day))
   return date.getUTCMonth() === month - 1 && date.getUTCDate() === day
@@ -743,6 +753,7 @@ export const obligationsContract = oc.router({
     .input(ListProjectedDeadlinesInputSchema)
     .output(ListProjectedDeadlinesOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
+  rebindRule: oc.input(ObligationRebindRuleInputSchema).output(ObligationInstancePublicSchema),
   updateTaxYearProfile: oc
     .input(ObligationTaxYearProfileUpdateInputSchema)
     .output(ObligationTaxYearProfileUpdateOutputSchema),

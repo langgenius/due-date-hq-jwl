@@ -1,12 +1,29 @@
-import { useMemo } from 'react'
-import { CircleCheckIcon, GitPullRequestArrowIcon, SlidersHorizontalIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  ArchiveIcon,
+  CircleCheckIcon,
+  GitPullRequestArrowIcon,
+  Loader2Icon,
+  PencilIcon,
+  SlidersHorizontalIcon,
+} from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
+import { toast } from 'sonner'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import { Input } from '@duedatehq/ui/components/ui/input'
+import { Label } from '@duedatehq/ui/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@duedatehq/ui/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,8 +44,12 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
+import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { FLOATING_ACTION_BAR_SCROLL_PADDING } from '@/components/patterns/floating-action-bar'
@@ -400,7 +421,7 @@ export function JurisdictionRuleTable({
   const reviewScope = scope === 'review'
   const showLastModified = !reviewScope
   const showStatus = !reviewScope
-  const bodyColSpan = 5 + (showLastModified ? 1 : 0) + (showStatus ? 1 : 0)
+  const bodyColSpan = 6 + (showLastModified ? 1 : 0) + (showStatus ? 1 : 0)
 
   // Selectable (needs-review) rule IDs in view — drives the header
   // select-all checkbox tri-state.
@@ -473,6 +494,8 @@ export function JurisdictionRuleTable({
                 <Trans>Status</Trans>
               </TableHead>
             ) : null}
+            {/* Trailing per-row actions (⋯) — archive a live rule, copy id. */}
+            <TableHead className="w-10 px-2" aria-label={t`Actions`} />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -559,9 +582,81 @@ function JurisdictionRuleRow({
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
+  const { t } = useLingui()
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
   const typeLabel = formatRuleTypeLabel(rule.taxType, rule.jurisdiction)
   const tone = STATUS_TONE[rule.status]
+
+  // Archive (deactivate) — the inverse of Accept, exposed in the row's ⋯ menu
+  // for live rules only (active/verified have something to take down). Reuses
+  // the server-side `archivePracticeRule` (audit-logged); a short reason is
+  // required, mirroring Reject.
+  const queryClient = useQueryClient()
+  const isLiveRule = rule.status === 'active' || rule.status === 'verified'
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [archiveReason, setArchiveReason] = useState('')
+  const archiveMutation = useMutation(
+    orpc.rules.archivePracticeRule.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Rule archived`)
+        setArchiveOpen(false)
+        setArchiveReason('')
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.coverage.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't archive rule`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const archiveReasonTrimmed = archiveReason.trim()
+
+  // Edit (live rules) — correct a live rule's human-facing labels without the
+  // reject→re-accept detour. The row already carries the full ObligationRule,
+  // so editing is a spread-and-override over the existing object passed to
+  // `updatePracticeRule`. Scoped to title + form name — always-present string
+  // fields a CPA actually fixes (typos, renames). Structural changes
+  // (due-date logic, entity applicability) are variant-shaped and stay in the
+  // dedicated review flow.
+  const [editOpen, setEditOpen] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editFormName, setEditFormName] = useState('')
+  function openEdit() {
+    setEditTitle(rule.title)
+    setEditFormName(rule.formName)
+    setEditOpen(true)
+  }
+  const updateMutation = useMutation(
+    orpc.rules.updatePracticeRule.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Rule updated`)
+        setEditOpen(false)
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't update rule`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const editValid = editTitle.trim().length > 0 && editFormName.trim().length > 0
+  function submitEdit() {
+    if (!editValid || updateMutation.isPending) return
+    updateMutation.mutate({
+      rule: { ...rule, title: editTitle.trim(), formName: editFormName.trim() },
+      reviewNote: `Edited ${rule.title} from the Rule library`,
+    })
+  }
+
   // oJL8o columns: Effective = the publication date of the rule's authoritative
   // source (server-derived `effectiveOn`). When the source publishes no date we
   // fall back to our own verification date, rendered muted + "≈"-marked (tooltip
@@ -706,6 +801,142 @@ function JurisdictionRuleRow({
           <Badge variant={statusVariant}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
         </TableCell>
       ) : null}
+      {/* Trailing ⋯ actions — hover-revealed (RowActionsMenu keys off the
+          row's `group/row`). Archive only appears for live rules; every row
+          can copy its id. */}
+      <TableCell
+        className="w-10 px-2 align-middle"
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
+      >
+        <RowActionsMenu
+          label={t`Actions for ${displayTitle}`}
+          items={[
+            {
+              label: t`Copy rule ID`,
+              onSelect: () => {
+                if (typeof window === 'undefined') return
+                void window.navigator.clipboard?.writeText(rule.id)
+                toast.success(t`Rule ID copied`)
+              },
+            },
+            ...(isLiveRule
+              ? [
+                  {
+                    label: t`Edit rule`,
+                    icon: PencilIcon,
+                    onSelect: openEdit,
+                  },
+                  { separator: true as const },
+                  {
+                    label: t`Archive rule`,
+                    icon: ArchiveIcon,
+                    destructive: true,
+                    onSelect: () => setArchiveOpen(true),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </TableCell>
+      {/* Archive-reason dialog. Portals out of the row. */}
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent
+          className="sm:max-w-md"
+          aria-describedby={undefined}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <DialogHeader>
+            <DialogTitle>{t`Archive ${displayTitle}?`}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-text-secondary">
+            <Trans>
+              Archiving stops this rule from generating new deadlines. Existing deadlines stay. Add
+              a short reason for the audit log.
+            </Trans>
+          </p>
+          <Textarea
+            value={archiveReason}
+            onChange={(event) => setArchiveReason(event.target.value)}
+            placeholder={t`e.g. Superseded by the 2026 rule update`}
+            rows={3}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setArchiveOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={archiveReasonTrimmed.length === 0 || archiveMutation.isPending}
+              onClick={() => {
+                if (archiveReasonTrimmed.length === 0) return
+                archiveMutation.mutate({ ruleId: rule.id, reason: archiveReasonTrimmed })
+              }}
+            >
+              {archiveMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : (
+                <ArchiveIcon data-icon="inline-start" />
+              )}
+              <Trans>Archive rule</Trans>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog — corrects the live rule's descriptive fields via
+          updatePracticeRule (spread-and-override over the existing rule). */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent
+          className="sm:max-w-md"
+          aria-describedby={undefined}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <DialogHeader>
+            <DialogTitle>{t`Edit ${displayTitle}`}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`edit-title-${rule.id}`}>
+                <Trans>Title</Trans>
+              </Label>
+              <Input
+                id={`edit-title-${rule.id}`}
+                value={editTitle}
+                onChange={(event) => setEditTitle(event.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`edit-form-${rule.id}`}>
+                <Trans>Form name</Trans>
+              </Label>
+              <Input
+                id={`edit-form-${rule.id}`}
+                value={editFormName}
+                onChange={(event) => setEditFormName(event.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              type="button"
+              disabled={!editValid || updateMutation.isPending}
+              onClick={submitEdit}
+            >
+              {updateMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              <Trans>Save changes</Trans>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </RowComp>
   )
 }
@@ -731,7 +962,9 @@ function GapRow({
       )}
     >
       <TableCell className="pl-4" />
-      <TableCell colSpan={5} className="py-2.5">
+      {/* colSpan 6 (was 5) absorbs the trailing ⋯ actions column added to the
+          rule rows, keeping the "Add rule" cell right-aligned with them. */}
+      <TableCell colSpan={6} className="py-2.5">
         <div className="flex items-center gap-2">
           <span
             aria-hidden

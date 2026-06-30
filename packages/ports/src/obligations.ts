@@ -194,6 +194,8 @@ export interface ObligationsRepo {
     meta: { reason: string; auditId?: string | null },
   ): Promise<{ supersededIds: string[] }>
   updateDueDate(id: string, newDate: Date): Promise<void>
+  // Re-bind / unbind the rule this deadline cites (attribution fix).
+  updateRuleId(id: string, ruleId: string | null): Promise<void>
   updateTaxYearProfile(
     id: string,
     patch: {

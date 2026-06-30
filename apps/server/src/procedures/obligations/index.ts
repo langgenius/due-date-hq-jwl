@@ -786,6 +786,37 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
   return toObligationPublic(after, { client, asOfDate: dateInTimezone(tenant.timezone) })
 })
 
+// Re-bind / unbind the rule a deadline cites as its authority — corrects a
+// wrong auto-match. Pure attribution change (no date recompute); audit-logged.
+const rebindRule = os.obligations.rebindRule.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  await scoped.obligations.updateRuleId(input.id, input.ruleId)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.rule.rebound',
+    before: { ruleId: before.ruleId ?? null },
+    after: { ruleId: input.ruleId },
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+  })
+  const client = await scoped.clients.findById(after.clientId)
+  return toObligationPublic(after, { client, asOfDate: dateInTimezone(tenant.timezone) })
+})
+
 const updateStatus = os.obligations.updateStatus.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -1314,6 +1345,7 @@ export const obligationsHandlers = {
   applyReprojection,
   listProjectedDeadlines,
   updateDueDate,
+  rebindRule,
   updateTaxYearProfile,
   listByClient,
   updateStatus,

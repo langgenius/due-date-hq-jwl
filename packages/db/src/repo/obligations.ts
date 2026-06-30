@@ -597,6 +597,13 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    async updateRuleId(id: string, ruleId: string | null): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ ruleId })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateTaxYearProfile(
       id: string,
       patch: {

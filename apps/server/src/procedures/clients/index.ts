@@ -1028,6 +1028,50 @@ const updateNotes = os.clients.updateNotes.handler(async ({ input, context }) =>
   }
 })
 
+// Rename a client — the one core identity field with no UI edit path before.
+// Mirrors updateNotes: role-gated, no-op short-circuit, audit-logged.
+const rename = os.clients.rename.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+  const nextName = input.name.trim()
+  const hideDollars = await shouldHideDollars(context)
+  if (nextName === before.name) {
+    const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
+    return {
+      client: toClientPublic(before, { hideDollars, filingProfiles }),
+      auditId: '' as string,
+    }
+  }
+  await scoped.clients.updateName(input.id, nextName)
+  const [after, filingProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Renamed client could not be re-read.',
+    })
+  }
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.name.updated',
+    before: { name: before.name },
+    after: { name: after.name },
+  })
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles }),
+    auditId,
+  }
+})
+
 type ClientHistoryScope = ReturnType<typeof requireTenant>['scoped']
 
 // Compact, drift-free humanization of an audit action key, e.g.
@@ -1309,6 +1353,7 @@ export const clientsHandlers = {
   previewClassificationRecompute,
   applyClassificationRecompute,
   updateNotes,
+  rename,
   getRiskSummary,
   requestRiskSummaryRefresh,
   bulkUpdateAssignee,

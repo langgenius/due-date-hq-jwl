@@ -361,6 +361,13 @@ export function makeClientsRepo(db: Db, firmId: string) {
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 
+    async updateName(id: string, name: string): Promise<void> {
+      await db
+        .update(client)
+        .set({ name })
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
     async updateTaxYearProfile(
       id: string,
       input: {

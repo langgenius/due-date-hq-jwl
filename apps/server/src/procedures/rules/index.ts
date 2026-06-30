@@ -729,6 +729,24 @@ export async function activateOnboardingJurisdictionRules(input: {
   const activatableRules = matchingRules.filter(isOnboardingActivatableRule)
   const reviewRequiredRules = activatableRules.filter(isSourceDefinedRule)
   const activationReadyRules = activatableRules.filter((rule) => !isSourceDefinedRule(rule))
+  // Honest counts: report rules that actually CHANGE status, not the full
+  // activatable set. The selected jurisdictions always include FED (always-on
+  // federal), and re-running for a state already covered re-upserts the same
+  // rows idempotently — counting those as freshly "activated" overstated the
+  // result (e.g. "21 active" on a single-state add that only re-touched FED).
+  // A fresh onboarding has no practice rows yet, so every rule still counts.
+  const existingStatusByRuleId = new Map(
+    (await input.scoped.rules.listPracticeRules()).map((practiceRow) => [
+      practiceRow.ruleId,
+      practiceRow.status,
+    ]),
+  )
+  const newlyActivatedCount = activationReadyRules.filter(
+    (rule) => existingStatusByRuleId.get(rule.id) !== 'active',
+  ).length
+  const newlyReviewRequiredCount = reviewRequiredRules.filter(
+    (rule) => existingStatusByRuleId.get(rule.id) !== 'pending_review',
+  ).length
   const reviewRequiredJurisdictionSet = new Set(
     reviewRequiredRules.map((rule) => rule.jurisdiction),
   )
@@ -810,9 +828,9 @@ export async function activateOnboardingJurisdictionRules(input: {
     after: {
       selectedStates,
       jurisdictions,
-      activatedCount: activationReadyRules.length,
+      activatedCount: newlyActivatedCount,
       skippedCount: matchingRules.length - activatableRules.length,
-      reviewRequiredCount: reviewRequiredRules.length,
+      reviewRequiredCount: newlyReviewRequiredCount,
       reviewRequiredJurisdictions,
       generatedObligationCount: generation.createdCount,
     },
@@ -822,9 +840,9 @@ export async function activateOnboardingJurisdictionRules(input: {
   return {
     selectedStates,
     jurisdictions,
-    activatedCount: activationReadyRules.length,
+    activatedCount: newlyActivatedCount,
     skippedCount: matchingRules.length - activatableRules.length,
-    reviewRequiredCount: reviewRequiredRules.length,
+    reviewRequiredCount: newlyReviewRequiredCount,
     reviewRequiredJurisdictions,
     generatedObligationCount: generation.createdCount,
   }
@@ -1776,6 +1794,63 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
   })
 })
 
+// Deactivate (stop monitoring) one or more jurisdictions — the inverse of
+// onboarding activation. Archives the firm's ENGAGED practice rules
+// (active / verified / pending_review) for each state via the same per-rule
+// archive path as `archivePracticeRule`; candidate-only (never-engaged)
+// templates are left untouched (they stay available to re-add). Existing
+// generated deadlines are preserved (archive semantics) — only future
+// generation stops. Every archived rule writes an audit row.
+const deactivateJurisdiction = os.rules.deactivateJurisdiction.handler(
+  async ({ input, context }) => {
+    const { scoped, userId } = requireTenant(context)
+    await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+    const reviewedAt = new Date()
+    let archivedCount = 0
+    const deactivatedStates: RuleGenerationState[] = []
+    for (const state of input.states) {
+      const rulesForState = await listPracticeRules({ context, jurisdiction: state })
+      const engaged = rulesForState.filter(
+        (rule) =>
+          rule.status === 'active' ||
+          rule.status === 'verified' ||
+          rule.status === 'pending_review',
+      )
+      let stateArchived = 0
+      for (const rule of engaged) {
+        const existing = await scoped.rules.getPracticeRule(rule.id)
+        // Only practice rows in a non-terminal state are archivable; a contract
+        // rule that has no practice row (default-active template) or is already
+        // archived/rejected is skipped.
+        if (!existing || existing.status === 'archived' || existing.status === 'rejected') continue
+        await scoped.rules.upsertPracticeRule({
+          ruleId: existing.ruleId,
+          templateId: existing.templateId,
+          templateVersion: existing.templateVersion,
+          status: 'archived',
+          ruleJson: existing.ruleJson,
+          reviewNote: input.reason,
+          reviewedBy: userId,
+          reviewedAt,
+        })
+        await scoped.audit.write({
+          actorId: userId,
+          entityType: 'rule',
+          entityId: existing.ruleId,
+          action: 'rules.archived',
+          before: { status: existing.status, version: existing.templateVersion },
+          after: { status: 'archived' },
+          reason: input.reason,
+        })
+        stateArchived += 1
+      }
+      archivedCount += stateArchived
+      if (stateArchived > 0) deactivatedStates.push(state)
+    }
+    return { archivedCount, deactivatedStates }
+  },
+)
+
 const previewRuleImpact = os.rules.previewRuleImpact.handler(async ({ input, context }) => {
   return previewBulkImpactForSelections(context, [input])
 })
@@ -2552,6 +2627,7 @@ export const rulesHandlers = {
   diffAgainstPredecessor,
   bulkAcceptCarryforward,
   activateOnboardingJurisdictions,
+  deactivateJurisdiction,
   rejectTemplate,
   createCustomRule,
   updatePracticeRule,

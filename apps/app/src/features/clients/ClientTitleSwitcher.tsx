@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, Loader2Icon, PencilIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -14,10 +15,19 @@ import {
   CommandItem,
   CommandList,
 } from '@duedatehq/ui/components/ui/command'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@duedatehq/ui/components/ui/dialog'
+import { Input } from '@duedatehq/ui/components/ui/input'
+import { Label } from '@duedatehq/ui/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import { useEntityLabels } from '@/routes/clients'
 
@@ -39,11 +49,53 @@ const EMPTY_CLIENTS: readonly ClientPublic[] = []
  * other client?". Earlier revision crammed both into a breadcrumb and
  * users mistook the whole eyebrow for a back link.
  */
-export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id' | 'name'> }) {
+export function ClientTitleSwitcher({
+  client,
+  canRename = false,
+}: {
+  client: Pick<ClientPublic, 'id' | 'name'>
+  /** Gated on `client.write` — the rename pencil only shows for editors. */
+  canRename?: boolean
+}) {
   const { t } = useLingui()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const entityLabels = useEntityLabels()
   const [open, setOpen] = useState(false)
+
+  // Rename — the client's name had no edit path before (display-only across
+  // the list + this H1). A small pencil beside the title opens a dialog that
+  // calls the new `clients.rename` mutation.
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState('')
+  const renameMutation = useMutation(
+    orpc.clients.rename.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Client renamed`)
+        setRenameOpen(false)
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't rename client`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const renameTrimmed = renameValue.trim()
+  function openRename() {
+    setRenameValue(client.name)
+    setRenameOpen(true)
+  }
+  function submitRename() {
+    if (renameTrimmed.length === 0 || renameMutation.isPending) return
+    renameMutation.mutate({ id: client.id, name: renameTrimmed })
+  }
 
   const clientsQuery = useQuery({
     ...orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }),
@@ -142,6 +194,62 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
           </Command>
         </PopoverContent>
       </Popover>
+      {canRename ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label={t`Rename client`}
+          onClick={openRename}
+        >
+          <PencilIcon className="size-4" aria-hidden />
+        </Button>
+      ) : null}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Rename client</Trans>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="client-rename-input">
+              <Trans>Client name</Trans>
+            </Label>
+            <Input
+              id="client-rename-input"
+              value={renameValue}
+              onChange={(event) => setRenameValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  submitRename()
+                }
+              }}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setRenameOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              type="button"
+              disabled={
+                renameTrimmed.length === 0 ||
+                renameTrimmed === client.name ||
+                renameMutation.isPending
+              }
+              onClick={submitRename}
+            >
+              {renameMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              <Trans>Save</Trans>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </span>
   )
 }

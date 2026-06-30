@@ -641,7 +641,7 @@ export function ClientDetailWorkspace({
               // else a derived health pill — "At risk" when there are
               // statutory-late unextended filings, "Healthy" otherwise.
               <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                <ClientTitleSwitcher client={client} />
+                <ClientTitleSwitcher client={client} canRename={canUpdateClient} />
                 {/* Cross-fade the health pill when the derived state flips
                     (needs-facts → at-risk → healthy) instead of a hard swap.
                     Each branch carries a stable per-state key so AnimatePresence

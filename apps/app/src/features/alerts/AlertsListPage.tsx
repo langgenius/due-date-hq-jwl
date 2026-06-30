@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
+  ArrowLeftIcon,
   CircleAlertIcon,
   ArchiveIcon,
   CheckIcon,
@@ -14,6 +15,7 @@ import {
   HistoryIcon,
   ListIcon,
   MapIcon,
+  PlusIcon,
   SatelliteDishIcon,
   SlidersHorizontalIcon,
   XIcon,
@@ -62,6 +64,7 @@ import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { AlertListRail } from './components/AlertListRail'
 import { StateTilegram } from './components/StateTilegram'
+import { AddStateCoverage, AddStateCoverageButton } from './components/AddStateCoverage'
 import {
   // Non-infinite query options. The infinite variants
   // `useAlertsListInfiniteQueryOptions` /
@@ -763,7 +766,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 ]}
               />
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 nativeButton={false}
                 render={<Link to="/rules/sources" />}
@@ -773,7 +776,7 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 <Trans>Sources</Trans>
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 nativeButton={false}
                 render={<Link to="/alerts/history" />}
@@ -1576,12 +1579,26 @@ function StateFilterPopover({
   onSelect: (code: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  // Two-mode popover: 'filter' narrows the visible alerts to a state (a
+  // read-only view filter); 'add' switches to the coverage map where a CPA
+  // turns ON a state they skipped at onboarding (a real write). Keeping them
+  // as distinct modes — not one map that silently does both — preserves the
+  // read/write line: filtering can't accidentally change what you monitor.
+  // Resets to 'filter' each time the popover closes so it always opens in the
+  // expected narrowing mode.
+  const [mode, setMode] = useState<'filter' | 'add'>('filter')
   const { t } = useLingui()
   const activeCount = activeState
     ? (jurisdictionCounts.find(([code]) => code === activeState)?.[1] ?? 0)
     : 0
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) setMode('filter')
+      }}
+    >
       <PopoverTrigger
         render={
           <FilterTrigger
@@ -1606,32 +1623,70 @@ function StateFilterPopover({
         }
       />
       <PopoverContent align="start" alignOffset={0} sideOffset={4} className="w-auto p-3">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3 text-xs">
-            <span className="uppercase tracking-wide text-text-tertiary">
-              <Trans>Filter by state</Trans>
-            </span>
-            {activeState ? (
-              <TextLink
-                variant="accent"
-                onClick={() => {
-                  onSelect(activeState)
-                  setOpen(false)
-                }}
-              >
-                <Trans>Clear</Trans>
-              </TextLink>
-            ) : null}
+        {mode === 'filter' ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-3 text-xs">
+              <span className="uppercase tracking-wide text-text-tertiary">
+                <Trans>Filter by state</Trans>
+              </span>
+              {activeState ? (
+                <TextLink
+                  variant="accent"
+                  onClick={() => {
+                    onSelect(activeState)
+                    setOpen(false)
+                  }}
+                >
+                  <Trans>Clear</Trans>
+                </TextLink>
+              ) : null}
+            </div>
+            <StateTilegram
+              counts={new Map(jurisdictionCounts)}
+              activeState={activeState}
+              onSelect={(code) => {
+                onSelect(code)
+                setOpen(false)
+              }}
+            />
+            {/* The bridge out of "I only see states with alerts": a CPA who
+                skipped a state at onboarding can't filter to it (it has no
+                tile here), so the footer hands them the coverage map instead
+                of dead-ending them at the Rule Library. */}
+            <button
+              type="button"
+              onClick={() => setMode('add')}
+              className="-mx-1 mt-1 inline-flex items-center gap-1.5 rounded-md border-t border-divider-subtle px-1 pt-2.5 text-sm text-text-secondary transition-colors hover:text-text-accent"
+            >
+              <PlusIcon className="size-3.5" aria-hidden />
+              <Trans>Add a state to your coverage</Trans>
+            </button>
           </div>
-          <StateTilegram
-            counts={new Map(jurisdictionCounts)}
-            activeState={activeState}
-            onSelect={(code) => {
-              onSelect(code)
-              setOpen(false)
-            }}
-          />
-        </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-1.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setMode('filter')}
+                aria-label={t`Back to filter`}
+                className="inline-flex items-center gap-1 rounded-md text-text-tertiary uppercase tracking-wide transition-colors hover:text-text-secondary"
+              >
+                <ArrowLeftIcon className="size-3" aria-hidden />
+                <Trans>Add state coverage</Trans>
+              </button>
+            </div>
+            <AddStateCoverage enabled={open && mode === 'add'} />
+            {/* Honest framing: one click activates a state's rules, but
+                source-defined-calendar states park their rules for review —
+                so the map doesn't imply "click = instant alerts". */}
+            <p className="max-w-[480px] text-xs leading-relaxed text-text-tertiary">
+              <Trans>
+                Tap a state to start monitoring it. Some states' rules need a quick review in the
+                Rule Library before deadlines generate.
+              </Trans>
+            </p>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )
@@ -1977,7 +2032,7 @@ function SkeletonAlertRow() {
   return (
     <div
       data-skeleton="alert"
-      className="flex gap-[10px] border-b border-divider-subtle px-5 py-3 last:border-b-0"
+      className="flex gap-2.5 border-b border-divider-subtle px-5 py-3 last:border-b-0"
     >
       {/* Time rail — 100px column matching PulseAlertRow */}
       <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
@@ -2043,6 +2098,10 @@ function AlertsEmptyState({ sources }: { sources: readonly PulseSourceHealth[] }
           </Trans>
         )
       }
+      // An empty board is the moment a CPA notices a state they care about
+      // isn't being watched — so the caught-up state offers the coverage map
+      // right here, not just behind the toolbar's State control.
+      footer={<AddStateCoverageButton />}
     />
   )
 }

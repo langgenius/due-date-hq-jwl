@@ -54,6 +54,7 @@ import { contentEnterMotion, EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
+import { RuleRebindControl } from '@/features/obligations/RuleRebindControl'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { tabsForObligationType } from '@/features/obligations/obligation-type'
 import { ObligationTimeline } from '@/features/obligations/timeline'
@@ -3102,7 +3103,11 @@ export function ObligationQueueDetailDrawer({
                                     // accent-solid (~3:1 on white). Switched to a
                                     // bordered outline button at the default size so
                                     // it clears AA and reads as a real affordance.
-                                    <Button variant="secondary" size="sm" className="h-8 font-medium">
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-8 font-medium"
+                                    >
                                       <Trans>Change</Trans>
                                     </Button>
                                   }
@@ -4679,17 +4684,29 @@ export function ObligationQueueDetailDrawer({
                             },
                           ]}
                           action={
-                            <TextLink
-                              variant="accent"
-                              className="font-semibold"
-                              render={
-                                <Link
-                                  to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              {/* Per-deadline rule re-bind: correct a wrong
+                                  auto-match without editing the rule globally.
+                                  Gated on the same write role the server enforces. */}
+                              {permission.can('obligation.status.update') && row.jurisdiction ? (
+                                <RuleRebindControl
+                                  obligationId={row.id}
+                                  currentRuleId={detail.matchedRule.id}
+                                  jurisdiction={row.jurisdiction}
                                 />
-                              }
-                            >
-                              <Trans>Open rule reference →</Trans>
-                            </TextLink>
+                              ) : null}
+                              <TextLink
+                                variant="accent"
+                                className="font-semibold"
+                                render={
+                                  <Link
+                                    to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                                  />
+                                }
+                              >
+                                <Trans>Open rule reference →</Trans>
+                              </TextLink>
+                            </div>
                           }
                         />
                       ) : null}

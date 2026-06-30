@@ -144,6 +144,9 @@ export interface ClientsRepo {
   // write. Mirrors the contract-level `updateNotes` mutation that
   // powers the slide-in Notes panel.
   updateNotes(id: string, notes: string | null): Promise<void>
+  // Rename — sets the client's display name. Mirrors the contract-level
+  // `rename` mutation (the H1 edit affordance on the client detail page).
+  updateName(id: string, name: string): Promise<void>
   updateTaxYearProfile(
     id: string,
     input: {
