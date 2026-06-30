@@ -78,6 +78,26 @@ this 22px now reads as an odd one-off. Not optical alignment (it's container pad
 
 ---
 
+## Fix log + backlog re-scope (post-inspection, 2026-06-30)
+
+Reading each site before fixing shrank the backlog — several "findings" were not bugs:
+
+**Fixed:**
+- ✅ **F-013** — `OnboardingSkipModal`: "Stay and import" → primary, "Skip for now" → secondary. Emphasis now favors the wanted action.
+
+**Reclassified — NOT bugs (do not re-flag):**
+- **F-014 (split buttons)** — `obligations` + `ClientsCreateSplitButton` "Add deadline" are proper **split buttons** (one control: primary action + dropdown chevron). Both halves primary is *correct*; making the chevron secondary would break the joined affordance. Code comment confirms it's the deliberate primary affordance. Only a genuinely-separate adjacent dual-primary (e.g. permission-gate) would qualify, pending check.
+- **F-011 (Card border)** — `settings.profile` Danger-zone uses `border-state-destructive-*`, which is a **valid semantic token** (right role), not a raw bypass. Card simply has no `destructive` tone. Optional enhancement, not a fix.
+
+**Genuine remaining backlog (real, but larger than the flag labels suggested):**
+- **F-009 + F-010 · Select "compact" treatment** — needs a primitive enhancement: `size="sm"` only sets `h-8`; the 4 generation-preview + members sites also want `text-xs`/`rounded-lg`. Add a compact Select size, then drop the overrides. *(bounded primitive change)*
+- **F-003 · `migration.new` adopt `PageHeader`** — replace the custom `MigrationActivationIntro` header. *(medium, non-alerts)*
+- **F-002 · `RulesPageShell` compose `PageHeader`** — verify/refactor so there's one header source. *(medium; touches the alerts area an active sibling session is editing → coordinate/defer)*
+- **F-015 · widen `EmptyState` adoption** — ~13 hand-rolled empties → the primitive. *(large, spread across surfaces)*
+- **F-011a / F-012 (optional primitive enhancements)** — add Card `destructive` tone; build a `ButtonGroup` primitive (the existing `data-[slot=button-group]` hooks don't actually flatten joins, so it's real design work for 2 working hand-rolls — low ROI).
+
+---
+
 ## 波3 — Components
 
 Verdict: **mostly disciplined.** The chip family largely wraps `Badge`; the real issues are a few token-fighting overrides + one backwards CTA — not sprawl.

@@ -95,10 +95,10 @@ export function OnboardingSkipModal({
 
         <DialogFooter className="flex-row items-center gap-2.5 border-t border-divider-subtle px-6 py-3.5 sm:justify-start">
           <span className="flex-1" />
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button variant="primary" onClick={() => onOpenChange(false)}>
             <Trans>Stay and import</Trans>
           </Button>
-          <Button onClick={onConfirmSkip}>
+          <Button variant="secondary" onClick={onConfirmSkip}>
             <Trans>Skip for now</Trans>
           </Button>
         </DialogFooter>
