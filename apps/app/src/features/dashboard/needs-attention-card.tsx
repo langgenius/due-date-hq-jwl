@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ExternalLinkIcon, PlusIcon } from 'lucide-react'
+import { ArrowUpRightIcon, ExternalLinkIcon, PlusIcon, XIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -74,10 +74,13 @@ function NeedsAttentionCard({
   alert,
   affectedClients = [],
   onReview,
+  onDismiss,
 }: {
   alert: PulseAlertPublic
   affectedClients?: PulseAffectedClient[]
   onReview: () => void
+  /** Inline triage — dismiss the alert off /today without opening the drawer. */
+  onDismiss?: () => void
 }) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
@@ -135,9 +138,20 @@ function NeedsAttentionCard({
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
   return (
-    <button
-      type="button"
+    // Clickable card (role=button, not a real <button>) so it can host the
+    // nested dismiss control + source link without invalid button-in-button
+    // nesting. Enter/Space open the alert, matching the old button semantics.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onReview}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onReview()
+        }
+      }}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
       className={cn(
         // A single uniform surface that lifts off the page. Alert cards
@@ -158,14 +172,27 @@ function NeedsAttentionCard({
       )}
       data-tone={tone}
     >
-      {/* Open affordance — ↗ fades in at the top-right corner on hover/focus
-          and nudges diagonally, telling the user the whole card is the click
-          target (the footer's source link opens elsewhere, so the card needed
-          its own "this opens the alert" hint). */}
-      <ArrowUpRightIcon
-        className="pointer-events-none absolute top-4 right-4 size-4 text-text-tertiary opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
-        aria-hidden
-      />
+      {/* Top-right corner affordance. With inline triage the dismiss ✕ is the
+          corner action (hover/focus-revealed); the source link opens elsewhere,
+          so the open-hint ↗ takes over only when there's no dismiss. */}
+      {onDismiss ? (
+        <button
+          type="button"
+          aria-label={t`Dismiss alert`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDismiss()
+          }}
+          className="absolute top-3 right-3 z-10 inline-flex size-6 items-center justify-center rounded-md text-text-tertiary opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <XIcon className="size-4" aria-hidden />
+        </button>
+      ) : (
+        <ArrowUpRightIcon
+          className="pointer-events-none absolute top-4 right-4 size-4 text-text-tertiary opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+          aria-hidden
+        />
+      )}
       {/* Outer block holding the head row + the subject stack. */}
       <div className="flex min-w-0 flex-col gap-2">
         {/* Top row — meta strip. LEFT (severity + state pill) +
@@ -379,7 +406,7 @@ function NeedsAttentionCard({
           </span>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 

@@ -1,8 +1,9 @@
 import { motion } from 'motion/react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { CircleAlertIcon, ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -11,6 +12,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -19,6 +21,7 @@ import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
   useActiveAlertCount,
   useAlertsAffectedClients,
+  useAlertsInvalidation,
   useAlertsListQueryOptions,
   useAlertSourceHealthQueryOptions,
 } from '@/features/alerts/api'
@@ -50,6 +53,40 @@ const TODAY_ALERTS_LIMIT = 50
 function NeedsAttentionSection() {
   const { t } = useLingui()
   const { openDrawer: openAlert } = useAlertDrawer()
+
+  // Inline triage: dismiss an alert straight off the /today card without
+  // opening the drawer (the drawer stays the full-review path). Reuses the
+  // alerts-list invalidation so the card drops immediately, with an Undo toast
+  // that re-activates it — same reversible dismiss the alerts list offers.
+  const invalidateAlerts = useAlertsInvalidation()
+  const reactivateMutation = useMutation(
+    orpc.pulse.reactivate.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert restored`)
+        invalidateAlerts()
+      },
+    }),
+  )
+  const dismissMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: (_data, variables) => {
+        toast.success(t`Alert dismissed`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => reactivateMutation.mutate({ alertId: variables.alertId }),
+          },
+        })
+        invalidateAlerts()
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
 
   // Visibility contract (verified 2026-06-12 — Yuqi: "what is the showing
   // mechanism?"): pulse.listAlerts returns only OPEN alerts — server filters
@@ -331,6 +368,7 @@ function NeedsAttentionSection() {
                 alert={alert}
                 affectedClients={affectedByAlert.get(alert.id) ?? []}
                 onReview={() => openAlert(alert.id)}
+                onDismiss={() => dismissMutation.mutate({ alertId: alert.id })}
               />
             </motion.div>
           ))}
