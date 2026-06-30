@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "marketing-4327",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/marketing", "exec", "astro", "dev", "--port", "4327", "--strictPort"],
+      "port": 4327
+    },
+    {
       "name": "app-5173",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5173", "--strictPort"],
