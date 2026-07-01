@@ -849,10 +849,20 @@ const links = [
     links.forEach((l) => l.addEventListener('pointerenter', () => place(l, true), { signal }))
     pill.addEventListener('pointerleave', () => rest(true), { signal })
     window.addEventListener('resize', () => rest(false), { passive: true, signal })
-    // the nav collapse (pill morph) shifts link positions — re-rest when it ends
-    document
-      .querySelector('.nav__inner')
-      ?.addEventListener('transitionend', () => rest(false), { signal })
+    // the nav collapse (pill morph) shifts link positions — re-rest when it ends.
+    // Guard on target: the glider's OWN transform/width slide and each link's
+    // hover-colour transition also fire transitionend and BUBBLE up to .nav__inner.
+    // Without this guard, finishing a hover-slide re-rests the glider straight back
+    // to the active link — it glides over, then jumps back. Only the collapse
+    // animates .nav__inner itself, so react to that element's own transitions only.
+    const navInner = document.querySelector<HTMLElement>('.nav__inner')
+    navInner?.addEventListener(
+      'transitionend',
+      (e) => {
+        if (e.target === navInner) rest(false)
+      },
+      { signal },
+    )
     // first paint snaps into place; later page swaps SLIDE to the new active link
     const animate = !navGliderFirst
     navGliderFirst = false
