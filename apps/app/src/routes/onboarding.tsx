@@ -16,6 +16,7 @@ import {
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { RuleReviewPrompt } from '@/features/onboarding/rule-review-prompt'
 import { StepDots } from '@/features/onboarding/step-dots'
@@ -79,13 +80,15 @@ function FieldHeaderRow({
   label,
   hint,
   htmlFor,
+  className,
 }: {
   label: string
   hint: string
   htmlFor: string
+  className?: string
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn('flex items-center gap-2', className)}>
       <FieldLabel htmlFor={htmlFor} className="text-xs font-semibold text-text-secondary">
         {label}
       </FieldLabel>
@@ -361,6 +364,7 @@ export function OnboardingRoute() {
                     htmlFor="monitoring-start-date"
                     label={t`Monitoring start date`}
                     hint={t`watch deadlines from`}
+                    className="min-h-8 items-start"
                   />
                   <IsoDatePicker
                     id="monitoring-start-date"
@@ -382,6 +386,7 @@ export function OnboardingRoute() {
                     htmlFor="internal-deadline-offset"
                     label={t`Internal deadline offset`}
                     hint={t`days early`}
+                    className="min-h-8 items-start"
                   />
                   <Input
                     id="internal-deadline-offset"
