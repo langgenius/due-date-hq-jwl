@@ -844,25 +844,69 @@ const links = [
         glider.style.transition = ''
       }
     }
-    const rest = (animate = false) => place(active(), animate)
+    // the glider rests under the hovered link while the pointer is inside the pill,
+    // and under the active link otherwise
+    let hovered: HTMLElement | null = null
+    const target = () => hovered ?? active()
+    const rest = (animate = false) => place(target(), animate)
 
-    links.forEach((l) => l.addEventListener('pointerenter', () => place(l, true), { signal }))
-    pill.addEventListener('pointerleave', () => rest(true), { signal })
-    window.addEventListener('resize', () => rest(false), { passive: true, signal })
-    // the nav collapse (pill morph) shifts link positions — re-rest when it ends.
-    // Guard on target: the glider's OWN transform/width slide and each link's
-    // hover-colour transition also fire transitionend and BUBBLE up to .nav__inner.
-    // Without this guard, finishing a hover-slide re-rests the glider straight back
-    // to the active link — it glides over, then jumps back. Only the collapse
-    // animates .nav__inner itself, so react to that element's own transitions only.
-    const navInner = document.querySelector<HTMLElement>('.nav__inner')
-    navInner?.addEventListener(
-      'transitionend',
-      (e) => {
-        if (e.target === navInner) rest(false)
+    links.forEach((l) =>
+      l.addEventListener(
+        'pointerenter',
+        () => {
+          hovered = l
+          place(l, true)
+        },
+        { signal },
+      ),
+    )
+    pill.addEventListener(
+      'pointerleave',
+      () => {
+        hovered = null
+        rest(true)
       },
       { signal },
     )
+    window.addEventListener('resize', () => rest(false), { passive: true, signal })
+
+    // Keep the glider glued to its link *throughout* the collapse/expand morph.
+    // When the nav collapses the pill sheds its padding + border (and regains them
+    // on expand), stepping every link ~4px sideways and up in a single reflow — and
+    // that reflow is instant (the pill itself isn't transitioned). Re-resting only
+    // at transitionend parked the glider at the old spot for the whole ~0.5s morph,
+    // then snapped it onto the text — a visible slip. Watch the .nav--scrolled flip
+    // with a MutationObserver (it fires in-frame, so no 1-frame lag vs. transitionrun)
+    // and re-rest every frame until the morph settles.
+    const navEl = document.querySelector<HTMLElement>('.nav')
+    let morphRaf = 0
+    let morphUntil = 0
+    const rideMorph = () => {
+      // the .nav__inner morph runs ≤0.5s (see its transition list); track a touch
+      // past that, refreshed on each flip so a quick collapse→expand stays covered
+      morphUntil = performance.now() + 560
+      rest(false)
+      if (morphRaf) return
+      const step = () => {
+        rest(false)
+        morphRaf = performance.now() < morphUntil ? requestAnimationFrame(step) : 0
+      }
+      morphRaf = requestAnimationFrame(step)
+    }
+    if (navEl) {
+      let wasScrolled = navEl.classList.contains('nav--scrolled')
+      const mo = new MutationObserver(() => {
+        const now = navEl.classList.contains('nav--scrolled')
+        if (now === wasScrolled) return
+        wasScrolled = now
+        rideMorph()
+      })
+      mo.observe(navEl, { attributes: true, attributeFilter: ['class'] })
+      signal.addEventListener('abort', () => {
+        mo.disconnect()
+        if (morphRaf) cancelAnimationFrame(morphRaf)
+      })
+    }
     // first paint snaps into place; later page swaps SLIDE to the new active link
     const animate = !navGliderFirst
     navGliderFirst = false
