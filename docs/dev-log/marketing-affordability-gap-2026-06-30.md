@@ -10,14 +10,14 @@ firms with the same exposure to a moved deadline and no affordable tool, so they
 watch by hand and things slip.
 
 This is a **distinct beat from `Compare`**: Compare pits us against all-in-one
-practice suites (TaxDome / File In Time) on the monitoring *job*; this band is the
-affordability/access angle against the enterprise *research platforms* (Bloomberg
+practice suites (TaxDome / File In Time) on the monitoring _job_; this band is the
+affordability/access angle against the enterprise _research platforms_ (Bloomberg
 Tax, Checkpoint, CCH).
 
 ## Component (`components/home/Gap.astro`)
 
 - **Eyebrow → heading → lead → figure.** Heading: "Big firms pay thousands a seat
-  to stay ahead of every change. Everyone else does it *by hand*." Lead names the
+  to stay ahead of every change. Everyone else does it _by hand_." Lead names the
   three platforms, then resolves with a callback — "no affordable tool" → "**is
   that tool** — built to catch those changes for the firm the big platforms leave
   out."
@@ -37,7 +37,7 @@ Tax, Checkpoint, CCH).
   needs a citation on the page.
 - The resolve clause avoids claiming those research libraries "sell monitoring" (an
   earlier draft did — they're research libraries with alert feeds, so the claim was
-  a stretch). It now states *our* value directly.
+  a stretch). It now states _our_ value directly.
 
 ## Verify
 
