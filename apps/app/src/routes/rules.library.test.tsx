@@ -1164,7 +1164,7 @@ describe('RulesLibraryRoute', () => {
       evidence: [],
     })
     nuqsMocks.rule = rule.id
-    const acceptRequest = deferred<Record<string, never>>()
+    const acceptRequest = deferred<{ generatedObligationCount: number }>()
     rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
     rpcMocks.acceptTemplateMutationFn.mockReturnValueOnce(acceptRequest.promise)
 
@@ -1191,15 +1191,16 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).not.toContain('Accepting rule…')
 
     await act(async () => {
-      acceptRequest.resolve({})
+      // The count now comes from the mutation RESULT (journey-QA J3: the
+      // preview-based estimate was fiction for profile-less clients).
+      acceptRequest.resolve({ generatedObligationCount: 1 })
       await acceptRequest.promise
     })
 
     await waitForAssertion(() => {
       expect(toastMocks.success).toHaveBeenCalledWith(
         // Accept closure copy (2026-07-02 ux-flow audit): "activated" +
-        // the real generated-deadline count from the impact preview the
-        // confirm dialog already showed (mock preview reports 1).
+        // the ACTUAL generated-deadline count returned by the accept write.
         'Rule activated — 1 deadline generated',
         expect.objectContaining({
           id: 'accept-rule-toast',
