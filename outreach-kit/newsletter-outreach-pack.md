@@ -40,7 +40,7 @@ Two tracks. Don't mix them — the ask and the tone are different.
 
 ## Template A — Creator sponsorship inquiry (Track 1)
 
-Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}`, `{{link}}`
+Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}` *(OPTIONAL — must be a true, verifiable fact, e.g. "saw you're running sponsor reads with Canopy and Soraban"; never a fabricated readership claim. If nothing true to say, delete the line)*, `{{link}}`
 
 **Subject options:**
 - sponsoring an issue of {{newsletter_name}}?
@@ -50,7 +50,7 @@ Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}`, `{{link}}`
 
 > Hi {{first_name}},
 >
-> I read {{newsletter_name}} — {{personal_line}}.
+> {{personal_line}}
 >
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA, and the moment a filing deadline moves, we show you which of your clients it hits — with the official notice behind it. It's built for the small US firms who read you.
 >
@@ -86,12 +86,11 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 ## Pre-personalized versions (top 3 creators)
 
+**RULE (Yuqi, 2026-07-02): no fabricated personal lines.** Never claim to read/listen to something unless it's true. Openers must be verifiable facts (e.g. "saw you're running sponsor reads") or omitted entirely — going straight to "I'm the co-founder" is fine.
+
 **Jason Staats** — to jason@jasononfirms.com
-`{{personal_line}}` → *the no-vendor-fluff take is why* (used inline below)
 
 > Hi Jason,
->
-> I read What's Next For Accounting? every week — the no-vendor-fluff take is why.
 >
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes, and show you which clients each one hits. Every date links to its official notice, or we hold it back — no guessing. It's built for the small firms who read you.
 >
@@ -106,8 +105,6 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 > Hi Ryan,
 >
-> I read Future Firm — the "build a firm that runs without you" throughline is one I think about a lot.
->
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes and flag which clients each one hits — one less thing your readers have to track by hand.
 >
 > Would you consider a sponsored mention? Happy to set you up free to try first.
@@ -120,8 +117,6 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 **Blake Oliver (The Accounting Podcast)** — via classified link or sponsor form
 
 > Hi Blake,
->
-> Longtime listener of The Accounting Podcast — the weekly roundup is a staple for me.
 >
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes, and show you which clients each one hits, with the official notice behind it. It's built for the small firms who listen to you.
 >

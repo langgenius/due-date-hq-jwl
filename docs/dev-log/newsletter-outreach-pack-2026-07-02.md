@@ -14,3 +14,13 @@ Template A/B with tokens, pre-personalized bodies for the top 3 creators, and
 sending notes (Tue–Thu mid-morning, one follow-up, UTM attribution, US-only
 caveat for Future Firm). Product copy verified against the live site
 2026-07-02. Docs only — no emails sent as part of this change.
+
+**Same-day revision (Yuqi):** removed all fabricated readership openers
+("I read X every week", "Longtime listener") from Template A and the three
+pre-personalized creator versions. New rule recorded in the pack: personal
+lines must be true, verifiable facts (e.g. "saw you're running sponsor
+reads") or omitted — going straight to "I'm the co-founder" is fine.
+Send path decided: the three batch emails go manually from Gmail
+(gigi@duedatehq.com send-as, signature covers the sign-off), not via the
+Resend API — one-to-one inquiries, better deliverability, replies thread
+in the watched inbox.
