@@ -3368,9 +3368,14 @@ export function ObligationQueueDetailDrawer({
                       >
                         {/* 2026-06-16 (Yuqi "narrower header"): list controls
                         (Select all + Add item) live in a body toolbar so the band
-                        stays thin — only the count + reference chip sit in it. */}
+                        stays thin — only the count + reference chip sit in it.
+                        2026-07-02 (ux-flow audit, checkbox mental-model trap):
+                        Select-all moved to the LEFT so it sits directly above
+                        the row checkboxes — the aligned column header is what
+                        makes the gutter read as a SELECTION column (the table
+                        archetype) rather than per-row "mark done" ticks. */}
                         {checklist.length > 0 ? (
-                          <div className="flex items-center justify-end gap-3">
+                          <div className="flex items-center justify-between gap-3">
                             <span className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
                               <Checkbox
                                 aria-label={
@@ -3836,81 +3841,99 @@ export function ObligationQueueDetailDrawer({
                                 )
                               })()}
                               {/* Primary CTA below the checklist — the actual
-                        workflow terminal action. Selection state now
-                        lives in the same row, with client-send on the
-                        left and selected-item batch actions on the right. */}
+                        workflow terminal action.
+                        2026-07-02 (ux-flow audit, checkbox mental-model trap):
+                        the selected-item batch actions now render as a
+                        SELECTION BAR — same accent wash the selected rows
+                        carry, count-first labeling ("2 · items selected")
+                        mirroring the queue's floating bulk bar — so ticking
+                        a checkbox visibly enters selection mode instead of
+                        reading as "marked done". Behavior unchanged. */}
                               {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
-                                <div className="flex flex-wrap items-center gap-2 pt-1">
-                                  {canShowMaterialsRequestAction ? (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => openMaterialsRequestPreview(row.id)}
-                                      disabled={
-                                        previewRequestEmailMutation.isPending ||
-                                        sendRequestMutation.isPending ||
-                                        !canOpenMaterialsRequestPreview
-                                      }
-                                    >
-                                      <SendIcon data-icon="inline-start" />
-                                      {correctionMaterialsMode ? (
-                                        <Trans>Send correction request</Trans>
-                                      ) : (
-                                        <Trans>Send to client</Trans>
-                                      )}
-                                    </Button>
-                                  ) : null}
+                                <div className="flex flex-col gap-2 pt-1">
                                   {selectedChecklistItemCount > 0 ? (
-                                    <div className="ml-auto flex flex-wrap items-center gap-2">
-                                      <span className="text-xs font-medium text-text-primary">
-                                        <Plural
-                                          value={selectedChecklistItemCount}
-                                          one="# item selected"
-                                          other="# items selected"
-                                        />
+                                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-divider-subtle bg-state-accent-hover px-3 py-1.5">
+                                      <span className="flex items-baseline gap-1.5 whitespace-nowrap text-xs">
+                                        <span className="font-semibold tabular-nums text-text-primary">
+                                          {selectedChecklistItemCount}
+                                        </span>
+                                        <span className="text-text-secondary">
+                                          <Plural
+                                            value={selectedChecklistItemCount}
+                                            one="item selected"
+                                            other="items selected"
+                                          />
+                                        </span>
                                       </span>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={clearMaterialsSelection}
-                                        disabled={updateChecklistItemMutation.isPending}
-                                      >
-                                        <Trans>Deselect</Trans>
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant={correctionMaterialsMode ? 'outline' : 'default'}
-                                        onClick={() =>
-                                          void (correctionMaterialsMode
-                                            ? batchMarkNeedsCorrection(
-                                                new Set(selectedChecklistItemIdsForAction),
-                                              )
-                                            : batchMarkReceived(
-                                                new Set(selectedChecklistItemIdsForAction),
-                                              ))
-                                        }
-                                        disabled={updateChecklistItemMutation.isPending}
-                                      >
-                                        {correctionMaterialsMode ? (
-                                          <>
-                                            <Trans>Mark needs correction</Trans>
-                                            <TriangleAlertIcon data-icon="inline-end" />
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Trans>Mark client docs received</Trans>
-                                            <CircleCheckIcon data-icon="inline-end" />
-                                          </>
-                                        )}
-                                      </Button>
+                                      <div className="ml-auto flex flex-wrap items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={clearMaterialsSelection}
+                                          disabled={updateChecklistItemMutation.isPending}
+                                        >
+                                          <Trans>Deselect</Trans>
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant={correctionMaterialsMode ? 'outline' : 'default'}
+                                          onClick={() =>
+                                            void (correctionMaterialsMode
+                                              ? batchMarkNeedsCorrection(
+                                                  new Set(selectedChecklistItemIdsForAction),
+                                                )
+                                              : batchMarkReceived(
+                                                  new Set(selectedChecklistItemIdsForAction),
+                                                ))
+                                          }
+                                          disabled={updateChecklistItemMutation.isPending}
+                                        >
+                                          {correctionMaterialsMode ? (
+                                            <>
+                                              <Trans>Mark needs correction</Trans>
+                                              <TriangleAlertIcon data-icon="inline-end" />
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Trans>Mark client docs received</Trans>
+                                              <CircleCheckIcon data-icon="inline-end" />
+                                            </>
+                                          )}
+                                        </Button>
+                                      </div>
                                     </div>
                                   ) : null}
-                                  {correctionMaterialsMode &&
-                                  correctionChecklistItems.length === 0 ? (
-                                    <p className="text-xs text-text-tertiary">
-                                      <Trans>
-                                        Mark at least one received item needs correction first.
-                                      </Trans>
-                                    </p>
+                                  {canShowMaterialsRequestAction ||
+                                  (correctionMaterialsMode &&
+                                    correctionChecklistItems.length === 0) ? (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {canShowMaterialsRequestAction ? (
+                                        <Button
+                                          size="sm"
+                                          onClick={() => openMaterialsRequestPreview(row.id)}
+                                          disabled={
+                                            previewRequestEmailMutation.isPending ||
+                                            sendRequestMutation.isPending ||
+                                            !canOpenMaterialsRequestPreview
+                                          }
+                                        >
+                                          <SendIcon data-icon="inline-start" />
+                                          {correctionMaterialsMode ? (
+                                            <Trans>Send correction request</Trans>
+                                          ) : (
+                                            <Trans>Send to client</Trans>
+                                          )}
+                                        </Button>
+                                      ) : null}
+                                      {correctionMaterialsMode &&
+                                      correctionChecklistItems.length === 0 ? (
+                                        <p className="text-xs text-text-tertiary">
+                                          <Trans>
+                                            Mark at least one received item needs correction first.
+                                          </Trans>
+                                        </p>
+                                      ) : null}
+                                    </div>
                                   ) : null}
                                 </div>
                               ) : null}

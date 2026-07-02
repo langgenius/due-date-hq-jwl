@@ -981,12 +981,32 @@ export function CreateObligationDialog({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        toast.success(t`Deadline added`, {
-          description:
-            result.obligations.length > 0
-              ? t`${result.obligations.length} deadline created from the rule library.`
-              : t`That deadline already exists for this client and tax year.`,
-        })
+        if (result.obligations.length > 0) {
+          toast.success(t`Deadline added`, {
+            description: t`${result.obligations.length} deadline created from the rule library.`,
+          })
+        } else {
+          // 2026-07-02 (ux-flow audit): duplicate create used to dead-end —
+          // "already exists" with no way to SEE the existing row. The server
+          // now returns the blocking row's id, so the toast can close the
+          // loop with a real "View deadline" action.
+          const existingId = result.duplicateObligationIds[0]
+          toast.info(t`Already tracked`, {
+            description: t`That deadline already exists for this client and tax year.`,
+            ...(existingId
+              ? {
+                  action: {
+                    label: t`View deadline`,
+                    onClick: () => {
+                      void navigate(deadlineDetailPath(existingId), {
+                        state: { obligationId: existingId },
+                      })
+                    },
+                  },
+                }
+              : {}),
+          })
+        }
         // 2026-07-02 (ux-flow audit P0 #2): notes used to be discarded by the
         // form.reset below while the toast told the user to go save text that
         // no longer existed. `createFromRules` still has no notes field, so

@@ -50,7 +50,10 @@ export function railListInputFromSearch(
   const searchQuery = params.q.trim().slice(0, OBLIGATION_QUEUE_SEARCH_MAX_LENGTH)
   const obligationQuery = cleanEntityIdFilters(params.obligation ? [params.obligation] : [])
   const clientQuery = cleanEntityIdFilters(params.client)
-  const ruleQuery = cleanEntityIdFilters(params.rule)
+  // Rule ids are free-text catalog ids ("ny.it204.return.2025"), not UUIDs —
+  // same cleaning as the table (routes/obligations.tsx ruleQuery), or the rail
+  // would silently drop the filter the table is honoring.
+  const ruleQuery = cleanStringFilters(params.rule)
   const stateQuery = cleanStateFilters(params.state)
   const countyQuery = cleanStringFilters(params.county)
   const taxTypeQuery = cleanStringFilters(params.taxType)

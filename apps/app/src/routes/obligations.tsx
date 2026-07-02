@@ -1384,7 +1384,11 @@ export function ObligationQueueRoute() {
     [obligation],
   )
   const clientQuery = useMemo(() => cleanEntityIdFilters(clientFilter), [clientFilter])
-  const ruleQuery = useMemo(() => cleanEntityIdFilters(ruleFilter), [ruleFilter])
+  // Rule ids are free-text catalog ids ("ny.it204.return.2025"), not UUIDs —
+  // the UUID cleaner silently dropped every real rule deep-link (decision-rail
+  // and accept-toast "View deadlines" landed unfiltered). Plain string cleaning
+  // matches the contract's bounded-string ruleIds schema.
+  const ruleQuery = useMemo(() => cleanStringFilters(ruleFilter), [ruleFilter])
   const stateQuery = useMemo(() => cleanStateFilters(stateFilter), [stateFilter])
   const countyQuery = useMemo(() => cleanStringFilters(countyFilter), [countyFilter])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxTypeFilter), [taxTypeFilter])
@@ -1857,6 +1861,35 @@ export function ObligationQueueRoute() {
     () => listQuery.data?.pages.flatMap((page) => page.rows) ?? EMPTY_OBLIGATION_QUEUE_ROWS,
     [listQuery.data?.pages],
   )
+  // Rule-filter chip labels (ux-flow audit 2026-07-02): resolve the ?rule=
+  // deep-link ids to human rule titles instead of rendering the raw id in
+  // the chip. NO new query — reads whatever `rules.listRules` payload is
+  // already in the TanStack cache (warm when the user arrived via the rule
+  // detail's "View deadlines from this rule" link), then falls back to the
+  // loaded rows' jurisdiction + form for that rule, then the raw id.
+  const ruleFilterOptions = useMemo<FilterOption[]>(() => {
+    if (ruleQuery.length === 0) return []
+    const titleById = new Map<string, string>()
+    for (const [, data] of queryClient.getQueriesData<{ id: string; title: string }[]>({
+      queryKey: orpc.rules.listRules.key(),
+    })) {
+      for (const cachedRule of data ?? []) titleById.set(cachedRule.id, cachedRule.title)
+    }
+    return ruleQuery.map((ruleId) => {
+      const cachedTitle = titleById.get(ruleId)
+      if (cachedTitle) return { value: ruleId, label: cachedTitle }
+      const matchingRow = rows.find((r) => r.ruleId === ruleId)
+      if (matchingRow?.formName) {
+        return {
+          value: ruleId,
+          label: matchingRow.jurisdiction
+            ? `${matchingRow.jurisdiction} · ${matchingRow.formName}`
+            : matchingRow.formName,
+        }
+      }
+      return { value: ruleId, label: ruleId }
+    })
+  }, [ruleQuery, rows, queryClient])
   // The AT A GLANCE tiles must summarize ALL deadlines regardless of the
   // active status scope tab or any filter — feeding them the filtered `rows`
   // would flip the tiles to "Nothing overdue — you're clear" the moment the
@@ -2122,6 +2155,22 @@ export function ObligationQueueRoute() {
       : row && rowsById.has(row)
         ? row
         : null
+  // Row-highlight round trip (ux-flow audit 2026-07-02): landing on
+  // /deadlines with ?row=<id> ALREADY set — returning from the detail page
+  // (crumb/✕/Esc set it), browser Back, or a shared link — scrolls that row
+  // into view once and plays the one-time arrival wash, the same "did I land
+  // on the thing I clicked?" confirmation the master-detail rails give
+  // (`useRailArrival`). Mount-time capture only: in-page clicks that set
+  // ?row later were user-chosen and visible, so they never wash.
+  const pendingArrivalRowRef = useRef<string | null>(row)
+  const [arrivedRowId, setArrivedRowId] = useState<string | null>(null)
+  useEffect(() => {
+    const target = pendingArrivalRowRef.current
+    if (!target || !rowsById.has(target)) return
+    pendingArrivalRowRef.current = null
+    scrollObligationRowIntoView(target)
+    setArrivedRowId(target)
+  }, [rowsById])
   const openQueueDetail = useCallback(
     (obligationId: string, tab: ObligationQueueDetailTab = activeDetailTab) => {
       void navigate(deadlineDetailHref({ obligationId, tab, search: deadlineDetailSearch }), {
@@ -3152,8 +3201,7 @@ export function ObligationQueueRoute() {
       if (!terminal && days >= 0 && days <= 7) dueThisWeek++
       if ((LIFECYCLE_V2_STATUS_SETS.review as readonly ObligationStatus[]).includes(r.status))
         inReview++
-      if ((LIFECYCLE_V2_STATUS_SETS.done as readonly ObligationStatus[]).includes(r.status))
-        filed++
+      if ((LIFECYCLE_V2_STATUS_SETS.done as readonly ObligationStatus[]).includes(r.status)) filed++
     }
     return { overdue, dueThisWeek, inReview, filed, total: rows.length }
   }, [queueFiltersActive, rows])
@@ -3239,7 +3287,14 @@ export function ObligationQueueRoute() {
         ariaLabel: t`Filter to filed deadlines`,
       },
     ]
-  }, [statusFacetCounts, deadlinesNarrative, filteredSummary, scopeTotal, t, setObligationQueueQuery])
+  }, [
+    statusFacetCounts,
+    deadlinesNarrative,
+    filteredSummary,
+    scopeTotal,
+    t,
+    setObligationQueueQuery,
+  ])
   // 2026-06-29 (Yuqi "还是太零碎" / still too fragmented): the compact strip leads
   // with the ACTIONABLE states only. "Total tracked" is already the title pill
   // ("Deadlines · N"), and a zero segment ("0 Due this week") is just noise — both
@@ -3712,7 +3767,12 @@ export function ObligationQueueRoute() {
                 tone="neutral"
                 title={
                   queueFiltersActive
-                    ? t`${rows.length}${hasNextPage ? '+' : ''} deadlines match the current filters (${scopeTotal} tracked in total)`
+                    ? // Count ternary, not <Plural>: title is a string attribute
+                      // (see reference lingui footguns) and "1 deadlines" reads
+                      // broken in the tooltip.
+                      rows.length === 1 && !hasNextPage
+                      ? t`1 deadline matches the current filters (${scopeTotal} tracked in total)`
+                      : t`${rows.length}${hasNextPage ? '+' : ''} deadlines match the current filters (${scopeTotal} tracked in total)`
                     : t`${scopeTotal} deadlines tracked across all statuses, filed included`
                 }
               >
@@ -4371,6 +4431,7 @@ export function ObligationQueueRoute() {
                 assigneeName={assignee}
                 owner={owner}
                 ruleSelected={ruleQuery}
+                ruleOptions={ruleFilterOptions}
                 dueWithin={dueWithin}
                 projected={projected}
                 taxTypeSelected={taxTypeQuery}
@@ -5155,6 +5216,11 @@ export function ObligationQueueRoute() {
                                   'h-14 group cursor-pointer border-l-2 border-l-transparent transition-colors hover:!bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                                   tableRow.original.id === explicitActiveRowId &&
                                     'bg-state-accent-hover-alt',
+                                  // One-time arrival wash on the return-trip /
+                                  // deep-linked ?row= target (see the
+                                  // pendingArrivalRowRef effect above).
+                                  tableRow.original.id === arrivedRowId &&
+                                    'animate-arrival-wash',
                                   // Within-group rows lose their bottom border so
                                   // same-client filings weld into a single block.
                                   // The last row of each group keeps the divider,
@@ -5743,7 +5809,11 @@ function ObligationQueueSortableHeader({
     direction === 'asc' ? ChevronUpIcon : direction === 'desc' ? ChevronDownIcon : null
 
   return (
-    <span className="-mx-1 inline-flex min-w-0 items-center gap-0.5">
+    // `group/sort` — the idle dual-chevron below resolves on hover via
+    // `group-hover/sort:`; without the group class on this wrapper the
+    // hover affordance never fired and an unsorted (but sortable) column
+    // looked inert (ux-flow audit 2026-07-02).
+    <span className="group/sort -mx-1 inline-flex min-w-0 items-center gap-0.5">
       <button
         type="button"
         aria-label={sortLabel}
@@ -5773,7 +5843,7 @@ function ObligationQueueSortableHeader({
           <SortIcon className="size-3 shrink-0 text-text-secondary" aria-hidden />
         ) : (
           <ChevronsUpDownIcon
-            className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover:text-text-tertiary"
+            className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover/sort:text-text-tertiary"
             aria-hidden
           />
         )}
@@ -7382,6 +7452,7 @@ function ObligationActiveFilterChips({
   assigneeName,
   owner,
   ruleSelected,
+  ruleOptions,
   dueWithin,
   projected,
   taxTypeSelected,
@@ -7407,6 +7478,8 @@ function ObligationActiveFilterChips({
   assigneeName: string | null
   owner: string | null
   ruleSelected: readonly string[]
+  /** Human titles for the rule ids (cache/row-derived) — chip labels. */
+  ruleOptions: readonly FilterOption[]
   dueWithin: number | null
   projected: boolean | null
   taxTypeSelected: readonly string[]
@@ -7485,7 +7558,9 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `rule-${value}`,
       dimension: t`Rule`,
-      label: value,
+      // Human rule title (cache/row-derived), never the raw id when a real
+      // label is resolvable (ux-flow audit 2026-07-02).
+      label: facetLabelOf(ruleOptions, value),
       onRemove: () =>
         onPatch({
           rule: ruleSelected.filter((v) => v !== value),

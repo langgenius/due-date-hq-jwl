@@ -137,8 +137,21 @@ export function DeadlineDetailRoute() {
   )
 
   const handleClose = useCallback(() => {
-    void navigate(`/deadlines${cleanDeadlineDetailSearch(location.search)}`)
-  }, [navigate, location.search])
+    // Row-highlight round trip (ux-flow audit 2026-07-02): carry the open
+    // obligation back as ?row=<id> so /deadlines lands with the origin row
+    // scrolled into view + the one-time arrival wash — closing the detail
+    // (crumb, ✕, Esc) no longer dumps the user at the top of the queue with
+    // their place lost. `cleanDeadlineDetailSearch` strips any stale `row`
+    // first, so this is the only writer.
+    const cleaned = cleanDeadlineDetailSearch(location.search)
+    if (obligationId) {
+      const params = new URLSearchParams(cleaned.startsWith('?') ? cleaned.slice(1) : cleaned)
+      params.set('row', obligationId)
+      void navigate(`/deadlines?${params.toString()}`)
+      return
+    }
+    void navigate(`/deadlines${cleaned}`)
+  }, [navigate, location.search, obligationId])
 
   // Prev/Next navigation across the loaded rows, in the same order the
   // rail shows. Clamped at the ends.
