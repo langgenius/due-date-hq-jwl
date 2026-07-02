@@ -1,68 +1,44 @@
-# Send ALL 205 today — from Gigi <gigi@duedatehq.com>
+# DueDateHQ cold outreach — how this campaign runs
 
-Decision: full send in one day (risk of spam-foldering on a brand-new domain accepted).
-3 campaigns, one per track. Space them out across the day — it meaningfully lowers the spam-filter hit vs one blast.
+**Status: LIVE.** Day 1 = 2026-07-02. Wave 1 (Track A 2 + Track B 63) sent 65/65, zero failures.
+Waves C1/C2 (70 + 70) complete the 205.
 
-## Step 0 — mail-tester check (2 min, do NOT skip)
-1. https://www.mail-tester.com → copy the one-time address.
-2. Gmail → compose From **Gigi <gigi@duedatehq.com>** → paste the Track B body → send to it.
-3. Need **SPF pass + DKIM pass, score ≥ 8**. If lower, STOP and paste the report to Claude.
-4. Send one to gigi@duedatehq.com itself → confirm the reply lands in your own inbox.
+## The send path (script, not Mailmeteor)
+Everything sends via `send-outreach.mjs` (Resend API, from `Gigi from DueDateHQ <gigi@duedatehq.com>`).
+Touch 1 renders the locked **v11 template** in code — serif hero question, product-faithful GA
+alert card (IRS/GEORGIA comparison, Clinch/Echols/Brantley counties, card links to
+`app.duedatehq.com/?lng=en`), cid-embedded wordmark signature, CAN-SPAM footer.
+The older Mailmeteor/plain-text flow this doc used to describe is retired.
 
-## Step 1 — Mailmeteor setup
-- Install Mailmeteor, open Gmail (wuyuqi827@gmail.com).
-- **Upgrade to a paid plan** — free tier caps at 50 emails/day; 205-in-one-day needs paid (~$10–25/mo, cancel after).
-- Campaign editor: **From = Gigi <gigi@duedatehq.com>**.
-- Settings → footer: **Dify's physical mailing address** + auto unsubscribe link (CAN-SPAM, required).
+```bash
+cd outreach-kit
+export RESEND_API_KEY=...            # sending-only key (Jerry/李敏) — never commit
+export FROM="Gigi from DueDateHQ <gigi@duedatehq.com>"
+export REPLY_TO="gigi@dify.ai"
+export FOOTER_ADDRESS="548 Market St PMB 60083, San Francisco, CA 94104"
 
-## Step 2 — 3 campaigns, spaced across the day
-| When | Campaign | File | Count | Template |
-|---|---|---|---|---|
-| Morning | 1 | `ALL-trackA.csv` | 2 | Track A |
-| Morning | 2 | `ALL-trackB.csv` | 63 | Track B |
-| Afternoon | 3 | `ALL-trackC.csv` | 140 | Track C |
+# waves (touch 1)
+node send-outreach.mjs --touch 1 --send --wave ALL-trackC-part1.csv --limit 75 --delay 8000
+node send-outreach.mjs --touch 1 --send --wave ALL-trackC-part2.csv --limit 75 --delay 8000
 
-Import CSV → paste subject + body → test to yourself → Send.
-If Mailmeteor offers a throttle / "send over X hours" option, turn it ON for campaign 3.
-
----
-
-## TRACK A
-**Subject:** `DueDateHQ — the IRS moved GA's wildfire deadline, Georgia didn't`
-```
-Hi {{FirstName}},
-We just launched DueDateHQ — it watches the IRS and state deadline changes around the clock and tells you which of your clients each one hits. Quick example: the IRS pushed the SE Georgia wildfire deadline to Aug 20, but Georgia didn't conform (Oct 13 / Oct 28 / Feb 12).
-It's free right now. If you file across a few states, worth five minutes?
-Gigi
-DueDateHQ — a new product from the Dify team
-duedatehq.com
+# follow-ups (script enforces the day gaps from .outreach-state.json)
+node send-outreach.mjs --touch 2 --send --limit 75 --delay 8000   # ≈ 2026-07-06
+node send-outreach.mjs --touch 3 --send --limit 75 --delay 8000   # ≈ 2026-07-12
 ```
 
-## TRACK B
-**Subject:** `DueDateHQ — IRS + state deadline monitoring for your clients`
-```
-Hi {{FirstName}},
-We just launched DueDateHQ — it watches the IRS and state deadline changes around the clock and tells you which of your clients each one hits. Simple as that.
-It's free right now. If you file across a few states, worth five minutes?
-Gigi
-DueDateHQ — a new product from the Dify team
-duedatehq.com
-```
+Dry-run by default — add `--send` only when you mean it.
 
-## TRACK C
-**Subject:** `DueDateHQ — deadline monitoring for your S-corps and partnerships`
-```
-Hi {{FirstName}},
-We just launched DueDateHQ — it watches the IRS and state deadline changes around the clock and tells you which of your clients each one hits. Simple as that.
-It's free right now. If you've got a book of S-corps and partnerships, worth five minutes?
-Gigi
-DueDateHQ — a new product from the Dify team
-duedatehq.com
-```
+## Operating rules
+- **Before every touch:** add repliers, "no thanks", and bounces to `outreach-suppress.txt`
+  (one email per line). The script skips them.
+- `.outreach-state.json` is the campaign's memory (who got which touch, when). Commit it
+  after every send day. Never hand-edit.
+- Replies land in Yuqi's inbox via Cloudflare Email Routing (gigi@duedatehq.com → Gmail).
+- Touches 2/3 are plain-text follow-ups from `duedatehq-OUTREACH-sequence.csv` (subjects
+  `re: DueDateHQ`), threading under touch 1.
 
----
-
-## After sending
-- Watch replies in your inbox (they route back via gigi@duedatehq.com).
-- Follow-ups: touch 2 ≈ 4 days, touch 3 ≈ 10 days after touch 1 — bodies in `duedatehq-OUTREACH-sequence.csv`.
-- If Gmail shows bounce-backs, forward them to Claude to build the suppression list.
+## Files
+- `duedatehq-MASTER-verified.csv` — 283 verified targets (205 emailable + 78 contact-form)
+- `duedatehq-OUTREACH-sequence.csv` — per-target 3-touch bodies (touch 1 superseded by v11 in code)
+- `ALL-track{A,B,C}*.csv` — wave lists · `ramp-day*.csv` — legacy ramp plan (unused)
+- `send-log-day1.txt` — day-1 send log · `wordmark-2x.png` — signature logo (cid-embedded)
