@@ -133,11 +133,12 @@ describe('Step2Mapping banner rows', () => {
     )
     expect(changeButtons.length).toBeGreaterThanOrEqual(2)
 
-    // Click the banner expand button (the row button itself carries
-    // aria-expanded), then assert the body reveals sample / data-type.
+    // Click the banner expand header (a div role="button" carrying
+    // aria-expanded — NOT a <button>, since it hosts the nested "Change →"
+    // dropdown trigger), then assert the body reveals sample / data-type.
     const expandButton = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(
-        '[data-slot="step2-mapping-rows"] button[aria-expanded]',
+      document.querySelectorAll<HTMLElement>(
+        '[data-slot="step2-mapping-rows"] [role="button"][aria-expanded]',
       ),
     ).find((btn) => btn.textContent?.includes('Client Name'))
     expect(expandButton).toBeTruthy()

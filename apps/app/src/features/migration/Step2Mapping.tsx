@@ -412,10 +412,24 @@ function MappingBannerRow({
           confidence pill — followed by the chevron. The destination + sample
           are stacked under the source column at mobile widths (sm: switches to
           the grid). */}
-      <button
-        type="button"
+      {/* Clickable header (role=button, not a real <button>) so it can host
+          the nested "Change →" dropdown trigger — a <button> here nested
+          button-in-button (invalid HTML, React hydration error). Same
+          pattern as the /today needs-attention card: Enter/Space toggle via
+          onKeyDown with a target guard so keypresses on the nested trigger
+          don't also toggle the row. */}
+      <div
+        role="button"
+        tabIndex={0}
         aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            setExpanded((v) => !v)
+          }
+        }}
         className="flex w-full min-h-14 cursor-pointer flex-col items-stretch gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset sm:flex-row sm:items-center sm:gap-3"
       >
         <span className="truncate text-sm font-medium text-text-primary sm:w-[170px] sm:shrink-0">
@@ -461,7 +475,7 @@ function MappingBannerRow({
             )}
           />
         </span>
-      </button>
+      </div>
       <AnimatePresence initial={false}>
         {expanded ? (
           <motion.div

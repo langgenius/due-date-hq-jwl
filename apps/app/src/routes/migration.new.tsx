@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plural, Trans } from '@lingui/react/macro'
 import { ArrowLeftIcon } from 'lucide-react'
-import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
+import { useLoaderData, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
 
@@ -43,7 +43,21 @@ export function MigrationNewRoute() {
   // hit /onboarding which redirects right back here). For other
   // entry points (e.g. "Import clients" CTA from /today), the prior
   // page is a real, mountable surface — `navigate(-1)` works.
-  const goBack = () => void navigate(-1)
+  //
+  // Direct loads (pasted URL, bookmark, new tab) have NO prior in-app
+  // entry: `navigate(-1)` would land on about:blank or eject to whatever
+  // site the tab held before. React Router marks the initial entry with
+  // `location.key === 'default'` and stamps `idx` into history state
+  // (0 = first in-app entry) — either signal means "nothing behind us",
+  // so fall back to Today.
+  const location = useLocation()
+  const goBack = () => {
+    const historyIdx = (window.history.state as { idx?: number } | null)?.idx
+    const hasInAppHistory =
+      location.key !== 'default' && typeof historyIdx === 'number' && historyIdx > 0
+    if (hasInAppHistory) void navigate(-1)
+    else void navigate('/')
+  }
   const showBack = !isOnboardingSource
   const ruleReviewCount = parseRuleReviewCount(params.get('ruleReview'))
   const ruleReviewJurisdictions = parseRuleReviewJurisdictions(params.get('ruleReviewJur'))

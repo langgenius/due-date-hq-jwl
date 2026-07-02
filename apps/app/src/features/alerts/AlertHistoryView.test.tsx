@@ -284,16 +284,21 @@ describe('AlertHistoryView search', () => {
 
 describe('AlertHistoryView grouping', () => {
   it('buckets rows into a THIS WEEK band and a month band', async () => {
+    // Bands bucket by the HANDLED date (appliedAt here), not publishedAt — a
+    // just-handled alert files under THIS WEEK even when the underlying
+    // change was published months ago.
     const recent = historyAlert({
       id: '99999999-9999-4999-8999-999999999999',
       title: 'Fresh handled alert',
-      // ~2 days ago — inside the trailing 7-day window.
-      publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      // Published months ago, applied ~2 days ago — must land in THIS WEEK.
+      publishedAt: '2026-03-10T00:00:00.000Z',
+      appliedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     })
     const old = historyAlert({
       id: '88888888-8888-4888-8888-888888888888',
       title: 'Old handled alert',
-      publishedAt: '2026-01-15T00:00:00.000Z',
+      publishedAt: '2026-01-10T00:00:00.000Z',
+      appliedAt: '2026-01-15T00:00:00.000Z',
     })
     rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [recent, old], nextCursor: null })
 

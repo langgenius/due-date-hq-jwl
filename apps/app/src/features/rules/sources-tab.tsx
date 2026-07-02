@@ -497,39 +497,19 @@ function SourceRow({
   ruleCount: number
 }) {
   const { t } = useLingui()
-  // Keep every interactive affordance on this row pointed at the exact
-  // RuleSource.url from the registry. The title and trailing icon are native
-  // anchors; the row-level handler is only a larger mouse target.
-  const openSource = useCallback(() => {
-    if (typeof window === 'undefined') return
-    track(ANALYTICS_EVENTS.sourceLinkOpened, {})
-    window.open(source.url, '_blank', 'noopener,noreferrer')
-  }, [source.url])
-
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLTableRowElement>) => {
-      // Only handle Enter / Space when focus is on the row itself; trailing
-      // anchor handles its own activation.
-      if (event.target !== event.currentTarget) return
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault()
-        openSource()
-      }
-    },
-    [openSource],
-  )
-
+  // No row-level click handler (2026-07-02 audit): the whole-row click
+  // opened a NEW TAB to an external government site — an unsignposted eject
+  // that surprised users who clicked anywhere on the row to inspect it. The
+  // external affordance stays explicit instead: the TITLE anchor and the
+  // trailing ↗ icon open the source; "Feeds N rules" stays internal. A click
+  // on the rest of the row now does nothing (there is no expandable detail).
   return (
     <TableRow
-      role="link"
-      tabIndex={-1}
-      onClick={openSource}
-      onKeyDown={handleKeyDown}
       // Row height h-14 (56px) matches /deadlines, /clients, and
       // /rules/library so every workbench table shares one row pitch —
       // the Sources table previously ran a tighter h-10 and read denser
       // than the rest of the app.
-      className="h-14 cursor-pointer"
+      className="h-14"
     >
       <TableCell className="px-4 py-3">
         <a
@@ -537,10 +517,7 @@ function SourceRow({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={t`Open official source: ${source.title}`}
-          onClick={(event) => {
-            event.stopPropagation()
-            track(ANALYTICS_EVENTS.sourceLinkOpened, {})
-          }}
+          onClick={() => track(ANALYTICS_EVENTS.sourceLinkOpened, {})}
           className="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           {/* Title + id mirror the rules-library "Rule name" column — the
@@ -557,14 +534,12 @@ function SourceRow({
         </a>
         {/* Internal "Feeds N rules" link — the de-isolation path into the rule
             library, filtered to this source (?source=). Sibling of the external
-            anchor (not nested); stopPropagation so the row's open-source handler
-            doesn't also fire. Hidden when no rule cites this source. */}
+            anchor (not nested). Hidden when no rule cites this source. */}
         {ruleCount > 0 ? (
           <TextLink
             variant="accent"
             size="default"
             className="mt-1"
-            onClick={(event) => event.stopPropagation()}
             render={<Link to={`/rules/library?source=${encodeURIComponent(source.id)}`} />}
           >
             <Plural value={ruleCount} one="Feeds # rule" other="Feeds # rules" />
@@ -613,10 +588,7 @@ function SourceRow({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t`Open official source: ${source.title}`}
-            onClick={(event) => {
-              event.stopPropagation()
-              track(ANALYTICS_EVENTS.sourceLinkOpened, {})
-            }}
+            onClick={() => track(ANALYTICS_EVENTS.sourceLinkOpened, {})}
             className="inline-flex size-7 items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <ExternalLinkIcon className="size-3.5" aria-hidden />
