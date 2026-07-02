@@ -24,6 +24,10 @@ type TwoFactorSetupPanelProps = {
   code: string
   pendingSetup: PendingTwoFactorSetup
   verifyPending: boolean
+  // Collapses the enrollment and discards the pending setup. Safe without a
+  // server call: MFA only turns on when verify succeeds, and the server
+  // clears unverified setups when enrollment is next started.
+  onCancel: () => void
   onCodeChange: (code: string) => void
   onCopyBackupCodes: () => void
   onCopySetupUri: () => void
@@ -35,6 +39,7 @@ export function TwoFactorSetupPanel({
   code,
   pendingSetup,
   verifyPending,
+  onCancel,
   onCodeChange,
   onCopyBackupCodes,
   onCopySetupUri,
@@ -222,10 +227,25 @@ export function TwoFactorSetupPanel({
             onChange={(event) => onCodeChange(event.target.value)}
           />
         </Field>
-        <Button type="submit" className="w-fit" disabled={verifyDisabled}>
-          {verifyPending ? <Loader2Icon className="size-4 animate-spin" aria-hidden /> : null}
-          <Trans>Verify and enable</Trans>
-        </Button>
+        {/* 2026-07-02 (audit): the enrollment block expanded with only
+            "Verify and enable" — no way out except leaving the page. Cancel
+            collapses the panel and discards the pending QR/recovery codes;
+            nothing is enabled server-side until verify succeeds. */}
+        <div className="flex items-center gap-2">
+          <Button type="submit" className="w-fit" disabled={verifyDisabled}>
+            {verifyPending ? <Loader2Icon className="size-4 animate-spin" aria-hidden /> : null}
+            <Trans>Verify and enable</Trans>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-fit"
+            disabled={verifyPending}
+            onClick={onCancel}
+          >
+            <Trans>Cancel</Trans>
+          </Button>
+        </div>
       </div>
     </form>
   )

@@ -26,6 +26,7 @@ function renderSetup(
   input: {
     code?: string
     verifyPending?: boolean
+    onCancel?: () => void
     onCodeChange?: (code: string) => void
     onCopyBackupCodes?: () => void
     onCopySetupUri?: () => void
@@ -44,6 +45,7 @@ function renderSetup(
           code={input.code ?? ''}
           pendingSetup={pendingSetup}
           verifyPending={input.verifyPending ?? false}
+          onCancel={input.onCancel ?? vi.fn()}
           onCodeChange={input.onCodeChange ?? vi.fn()}
           onCopyBackupCodes={input.onCopyBackupCodes ?? vi.fn()}
           onCopySetupUri={input.onCopySetupUri ?? vi.fn()}
@@ -123,6 +125,24 @@ describe('TwoFactorSetupPanel', () => {
 
     expect(onVerify).toHaveBeenCalledTimes(1)
     expect(onMissingRecoveryCodeAcknowledgement).not.toHaveBeenCalled()
+  })
+
+  it('offers a cancel action that never submits the form', () => {
+    const onCancel = vi.fn()
+    const onVerify = vi.fn((event: SyntheticEvent<HTMLFormElement>) => event.preventDefault())
+    renderSetup({ code: '123456', onCancel, onVerify })
+
+    const buttons = Array.from(document.querySelectorAll('button'))
+    const cancel = buttons.find((button) => button.textContent === 'Cancel')
+    expect(cancel).toBeInstanceOf(HTMLButtonElement)
+    expect(cancel?.type).toBe('button')
+
+    act(() => {
+      cancel?.click()
+    })
+
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    expect(onVerify).not.toHaveBeenCalled()
   })
 
   it('exposes separate copy actions for URI and recovery codes', () => {

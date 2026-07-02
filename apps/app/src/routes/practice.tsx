@@ -76,6 +76,10 @@ import { orpc } from '@/lib/rpc'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
+import {
+  UnsavedChangesGuardDialog,
+  useUnsavedChangesGuard,
+} from '@/lib/use-unsaved-changes-guard'
 import { formatDate } from '@/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
@@ -406,6 +410,14 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityProfile.historyCapCount >= MIN_HISTORY_CAP_COUNT &&
     priorityProfile.historyCapCount <= MAX_HISTORY_CAP_COUNT
   const priorityDirty = !samePriorityProfile(priorityProfile, savedPriorityProfile)
+  // Dirty-form guard (UX audit 2026-07-02): navigating away used to silently
+  // discard edits to the profile form AND the Smart Priority tuner. Block
+  // in-app navigation behind a Discard/Keep-editing confirm while either is
+  // dirty. Deleting the practice redirects on purpose — don't hold that
+  // navigation hostage over a stale name edit.
+  const unsavedChangesBlocker = useUnsavedChangesGuard(
+    (dirty || priorityDirty) && !deleteMutation.isSuccess && !deleteMutation.isPending,
+  )
   // The preview button is disabled for two distinct reasons — (1) no
   // open deadlines to score against or (2) the current weights/ranges
   // don't pass validation. Surface whichever reason currently blocks
@@ -1049,6 +1061,8 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UnsavedChangesGuardDialog blocker={unsavedChangesBlocker} />
     </div>
   )
 }

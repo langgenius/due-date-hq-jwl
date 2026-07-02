@@ -382,6 +382,17 @@ export function SettingsProfileRoute() {
                     code={code}
                     pendingSetup={pendingSetup}
                     verifyPending={verifyMutation.isPending}
+                    // Cancel collapses the enrollment and discards the pending
+                    // QR/recovery codes. No server cancel call exists or is
+                    // needed: verify never ran, so 2FA stays off, and
+                    // enableTwoFactor deletes unverified setups when
+                    // enrollment is next started.
+                    onCancel={() => {
+                      setPendingSetup(null)
+                      setCode('')
+                      verifyMutation.reset()
+                      enableMutation.reset()
+                    }}
                     onCodeChange={handleCodeChange}
                     onCopyBackupCodes={() =>
                       pendingSetup &&
