@@ -4,7 +4,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { PulseAlertPublic, PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
@@ -107,7 +106,10 @@ export function AlertHistoryView() {
 
   const [tab, setTab] = useState<HistoryTab>('all')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set())
+  // 2026-07-02 audit: the row checkboxes + "N selected" bulk bar are GONE —
+  // the bar shipped with zero actions (dead chrome), and the archive's real
+  // per-row action (Restore to queue) lives in the detail drawer. If bulk
+  // restore ever earns a backend endpoint, reintroduce selection with it.
 
   // Stats derived from the real loaded list — no faked aggregate.
   const stats = useMemo(() => {
@@ -164,19 +166,6 @@ export function AlertHistoryView() {
     }
     return Array.from(map.entries())
   }, [filtered, firmTimezone])
-
-  const allVisibleSelected = filtered.length > 0 && filtered.every((a) => selected.has(a.id))
-  const someSelected = selected.size > 0 && !allVisibleSelected
-
-  const toggleAll = (next: boolean) =>
-    setSelected(next ? new Set(filtered.map((a) => a.id)) : new Set())
-  const toggleOne = (id: string, next: boolean) =>
-    setSelected((current) => {
-      const set = new Set(current)
-      if (next) set.add(id)
-      else set.delete(id)
-      return set
-    })
 
   const statCards: StatBandItem[] = [
     {
@@ -260,30 +249,6 @@ export function AlertHistoryView() {
           />
         </div>
 
-        {/* BULK BAR — appears when rows are selected. */}
-        {selected.size > 0 ? (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-state-accent-border bg-state-accent-hover px-4 py-2.5">
-            <Checkbox
-              checked={allVisibleSelected}
-              indeterminate={someSelected}
-              onCheckedChange={(next) => toggleAll(next)}
-              aria-label={t`Select all`}
-              className="size-4 rounded"
-            />
-            <span className="text-base font-semibold text-text-accent tabular-nums">
-              <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
-            </span>
-            <TextLink
-              variant="accent"
-              size="sm"
-              onClick={() => setSelected(new Set())}
-              className="text-base"
-            >
-              <Trans>Clear</Trans>
-            </TextLink>
-          </div>
-        ) : null}
-
         {/* TABLE — built on the canonical <Table> primitive so the history
             table shares the exact same DOM + style source as every other
             table. `table-fixed` + the truncating ALERT cell keep the
@@ -294,15 +259,6 @@ export function AlertHistoryView() {
           <Table className="table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[52px]">
-                  <Checkbox
-                    checked={allVisibleSelected}
-                    indeterminate={someSelected}
-                    onCheckedChange={(next) => toggleAll(next)}
-                    aria-label={t`Select all`}
-                    className="size-4 rounded"
-                  />
-                </TableHead>
                 <TableHead className="w-[104px]">
                   <Trans>Date</Trans>
                 </TableHead>
@@ -323,7 +279,7 @@ export function AlertHistoryView() {
                   {/* sr-only live region — visual users get the shimmer rows
                       below; SR users get the status announcement. */}
                   <TableRow className="even:bg-transparent hover:bg-transparent">
-                    <TableCell colSpan={5} className="p-0">
+                    <TableCell colSpan={4} className="p-0">
                       <span className="sr-only" role="status" aria-live="polite">
                         <Trans>Loading handled alerts…</Trans>
                       </span>
@@ -340,7 +296,7 @@ export function AlertHistoryView() {
                 // CPA their archive is empty when the load actually failed.
                 // Mirrors the AlertsListPage list error (message + inline retry).
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
+                  <TableCell colSpan={4} className="py-10 text-center text-base text-text-tertiary">
                     <span className="font-medium text-text-secondary">
                       <Trans>Couldn't load handled alerts</Trans>
                     </span>{' '}
@@ -357,7 +313,7 @@ export function AlertHistoryView() {
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
+                  <TableCell colSpan={4} className="py-10 text-center text-base text-text-tertiary">
                     <Trans>No handled alerts match this view.</Trans>
                     {/* Recovery affordance when the empty is caused by the
                         free-text filter (matches the alerts/audit/notifications
@@ -379,7 +335,7 @@ export function AlertHistoryView() {
                     {/* Month band — same gray-200 (#e9ebf0) group-header band
                         the /today Actions table uses. */}
                     <TableRow className="even:bg-transparent hover:bg-transparent">
-                      <TableCell colSpan={5} className="bg-background-subtle px-5 py-2">
+                      <TableCell colSpan={4} className="bg-background-subtle px-5 py-2">
                         <div className="flex items-center justify-between">
                           <span className="text-column-label text-text-secondary uppercase">
                             {month}
@@ -395,9 +351,7 @@ export function AlertHistoryView() {
                         key={alert.id}
                         alert={alert}
                         active={alert.id === alertId}
-                        selected={selected.has(alert.id)}
                         firmTimezone={firmTimezone}
-                        onToggle={(next) => toggleOne(alert.id, next)}
                         onOpen={() => openDrawer(alert.id)}
                       />
                     ))}
@@ -420,16 +374,12 @@ export function AlertHistoryView() {
 function HistoryRow({
   alert,
   active,
-  selected,
   firmTimezone,
-  onToggle,
   onOpen,
 }: {
   alert: PulseAlertPublic
   active: boolean
-  selected: boolean
   firmTimezone: string
-  onToggle: (next: boolean) => void
   onOpen: () => void
 }) {
   const { t } = useLingui()
@@ -470,16 +420,6 @@ function HistoryRow({
           : 'even:bg-transparent',
       )}
     >
-      {/* Checkbox */}
-      <TableCell onClick={(event) => event.stopPropagation()}>
-        <Checkbox
-          checked={selected}
-          onCheckedChange={(next) => onToggle(next)}
-          aria-label={t`Select alert: ${alert.title}`}
-          className="size-4 rounded"
-        />
-      </TableCell>
-
       {/* DATE */}
       <TableCell>
         <div className="flex flex-col">
@@ -539,16 +479,13 @@ function HistoryRow({
   )
 }
 
-// First-load placeholder row — mirrors HistoryRow's 5 columns (checkbox /
-// date / juris / two-line alert / status badge) so the table doesn't reflow
-// on paint. Only the value slots shimmer; the chrome (row height via
-// [&>td]:py-3) matches the real row.
+// First-load placeholder row — mirrors HistoryRow's 4 columns (date / juris /
+// two-line alert / status badge) so the table doesn't reflow on paint. Only
+// the value slots shimmer; the chrome (row height via [&>td]:py-3) matches
+// the real row.
 function SkeletonHistoryRow() {
   return (
     <TableRow aria-hidden className="even:bg-transparent hover:bg-transparent [&>td]:py-3">
-      <TableCell>
-        <Skeleton className="size-4 rounded" />
-      </TableCell>
       <TableCell>
         <Skeleton className="h-3.5 w-12 rounded" />
       </TableCell>

@@ -7,6 +7,8 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   ArrowUpRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CircleAlertIcon,
   CircleCheckIcon,
   CopyIcon,
@@ -1207,12 +1209,15 @@ export function AlertDetailDrawer({
     orpc.pulse.reactivate.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Alert reactivated`, {
-          description: t`Select clients and apply again.`,
+        // One restore path, three origins (reverted re-apply, dismiss Undo,
+        // reviewed Restore) — the copy states the shared truth: the alert is
+        // back in the active queue awaiting a decision.
+        toast.success(t`Alert restored`, {
+          description: t`Back in the active queue.`,
         })
       },
       onError: (err) => {
-        toast.error(t`Couldn't reactivate alert`, {
+        toast.error(t`Couldn't restore alert`, {
           description: i18n._(alertErrorDescriptor(err)),
         })
       },
@@ -1269,15 +1274,21 @@ export function AlertDetailDrawer({
 
   const markReviewedMutation = useMutation(
     orpc.pulse.markReviewed.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         // Marking reviewed RESOLVES the alert — it leaves the active queue
         // for Alert history, so the user must land somewhere deliberate
         // (Yuqi: "where does the user land?"). Triage flow: advance to the
         // next alert in the rail when there is one; otherwise close back
         // to the list. The toast names where the reviewed alert went so
-        // the hand-off is legible even as the panel moves on.
+        // the hand-off is legible even as the panel moves on — and carries
+        // an inline Undo (2026-07-02 audit: `A` was a one-keystroke one-way
+        // door) that restores the alert to the queue via pulse.reactivate.
         toast.success(t`Alert marked reviewed`, {
           description: t`Moved to Alert history.`,
+          action: {
+            label: t`Undo`,
+            onClick: () => reactivateMutation.mutate({ alertId: variables.alertId }),
+          },
         })
         invalidate()
         if (onNext) onNext()
@@ -1297,7 +1308,7 @@ export function AlertDetailDrawer({
   // the footer Dismiss button.
   const dismissMutation = useMutation(
     orpc.pulse.dismiss.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         invalidate()
         if (detail) {
           track(ANALYTICS_EVENTS.alertDismissed, {
@@ -1307,8 +1318,16 @@ export function AlertDetailDrawer({
         }
         // Dismiss resolves the alert → advance to the next in the rail (same
         // triage flow as Mark reviewed), or close back to the list when it was
-        // the last one. The toast names where it went.
-        toast.success(t`Alert dismissed`, { description: t`Moved to Alert history.` })
+        // the last one. The toast names where it went and carries an inline
+        // Undo (2026-07-02 audit: keyboard `D` was a one-keystroke one-way
+        // door) — same pulse.reactivate path the list-row dismiss toast uses.
+        toast.success(t`Alert dismissed`, {
+          description: t`Moved to Alert history.`,
+          action: {
+            label: t`Undo`,
+            onClick: () => reactivateMutation.mutate({ alertId: variables.alertId }),
+          },
+        })
         if (onNext) onNext()
         else onClose()
       },
@@ -1501,6 +1520,12 @@ export function AlertDetailDrawer({
         return
       }
       if (event.metaKey || event.ctrlKey || event.altKey || isMutating) return
+      // Ignore key auto-repeat: a HELD `D` fires repeated keydowns ~30ms apart,
+      // faster than `isMutating` can re-render to true — the 2026-07-02 audit
+      // log shows the same alert dismissed twice in one second, and the second
+      // success handler then advances/closes from a stale rail index (the
+      // post-dismiss ghost/skip). One decision per deliberate keypress.
+      if (event.repeat) return
       if (isModalLayerOpen()) return
       const key = event.key.toLowerCase()
       if (key === 'd' && canDismiss) {
@@ -1674,15 +1699,16 @@ export function AlertDetailDrawer({
 
   const body = (
     <>
-      {/* Top bar — back-to-Alerts breadcrumb on the left, "N of M"
-          position + close on the right. This close is the single close
+      {/* Top bar — back-to-Alerts breadcrumb on the left, ▲ "N of M" ▼
+          pager + close on the right. This close is the single close
           affordance (panel mode drops its absolute X; sheet mode hides the
-          primitive's). The alert RAIL on the left is the navigator, so
-          there are no ▲▼ paging buttons here. The chrome border spans the
-          full width (so the bar never looks cut off) but its content is
-          capped to the same 760px `mx-auto` measure as the document below,
-          so it sits centered over the same column the header/body/footer
-          share. */}
+          primitive's). The alert RAIL on the left stays the primary
+          navigator; the chevrons (2026-07-02 audit — the read-out was
+          text-only) reuse the same onPrev/onNext the ↑/↓ hotkeys fire. The
+          chrome border spans the full width (so the bar never looks cut
+          off) but its content is capped to the same 760px `mx-auto` measure
+          as the document below, so it sits centered over the same column
+          the header/body/footer share. */}
       {/* Top bar is CHROME, so it spans the full panel width (no 760px
           document cap): the breadcrumb hugs the left edge and the close X
           hugs the top-right corner where a close affordance is expected
@@ -1757,8 +1783,34 @@ export function AlertDetailDrawer({
             </span>
           ) : null}
           {position && position.total > 0 ? (
-            <span className="text-sm text-text-tertiary tabular-nums">
-              {t`${position.index + 1} of ${position.total}`}
+            // 2026-07-02 audit: the "N of M" read-out was text-only — the
+            // paging it describes existed solely as the rail + ↑/↓ hotkeys.
+            // Real prev/next buttons reuse the same onPrev/onNext handlers;
+            // a disabled chevron marks the end of the list.
+            <span className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                disabled={!onPrev}
+                onClick={onPrev}
+                aria-label={t`Previous alert`}
+              >
+                <ChevronUpIcon className="size-4" aria-hidden />
+              </Button>
+              <span className="text-sm text-text-tertiary tabular-nums">
+                {t`${position.index + 1} of ${position.total}`}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                disabled={!onNext}
+                onClick={onNext}
+                aria-label={t`Next alert`}
+              >
+                <ChevronDownIcon className="size-4" aria-hidden />
+              </Button>
             </span>
           ) : null}
           <Button
@@ -3023,6 +3075,10 @@ export function DrawerActions({
     REVERTABLE_STATUSES.has(alertStatus) && !undoWindowOpen && undoClosesAt !== null
   const showReactivate = alertStatus === 'reverted'
   const isDismissed = alertStatus === 'dismissed'
+  // Dismissed/reviewed alerts (opened from Alert history, or still on screen
+  // after resolving) offer "Restore to queue" — the same pulse.reactivate
+  // path as the reverted re-apply button, so history is never a one-way door
+  // (2026-07-02 audit).
   const sourceRevoked = sourceStatus === 'source_revoked'
   // `reviewed` is terminal for a review_only alert — once marked reviewed it
   // sits in history with no further action, so the primary button must not
@@ -3072,6 +3128,17 @@ export function DrawerActions({
           >
             <RotateCcwIcon data-icon="inline-start" />
             <Trans>Reactivate / Re-apply</Trans>
+          </Button>
+        ) : null}
+        {(isDismissed || isReviewed) && !sourceRevoked ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!canApply || isMutating}
+            onClick={onReactivate}
+          >
+            <RotateCcwIcon data-icon="inline-start" />
+            <Trans>Restore to queue</Trans>
           </Button>
         ) : null}
         {/* The button is `size="sm"` (h-8) so it matches the other footer

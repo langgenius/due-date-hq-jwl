@@ -2433,7 +2433,19 @@ export function makePulseRepo(db: Db, firmId: string) {
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
       const now = input.now ?? new Date()
-      if (alert.alertStatus !== 'reverted') throw new PulseRepoError('conflict')
+      // Restorable statuses: `reverted` (re-apply after undo), plus the two
+      // one-way doors the 2026-07-02 UX audit flagged — `dismissed` and
+      // `reviewed` (dismiss-toast Undo + history "Restore to queue"). All
+      // three write only status + dismissedBy/dismissedAt, which this method
+      // clears symmetrically. `applied`/`partially_applied` stay blocked:
+      // undoing an apply must go through `revert` (it unwinds the overlay).
+      if (
+        alert.alertStatus !== 'reverted' &&
+        alert.alertStatus !== 'dismissed' &&
+        alert.alertStatus !== 'reviewed'
+      ) {
+        throw new PulseRepoError('conflict')
+      }
 
       const auditId = crypto.randomUUID()
       await db.batch([

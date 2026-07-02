@@ -344,23 +344,19 @@ describe('AlertHistoryView row interactions', () => {
     expect(drawerMocks.openDrawer).toHaveBeenCalledWith('77777777-7777-4777-8777-777777777777')
   })
 
-  it('reveals the bulk bar with a selection count when a row is checked', async () => {
+  it('renders no selection checkboxes or bulk bar (removed dead chrome)', async () => {
+    // 2026-07-02 audit: the selection column + "N selected" bulk bar shipped
+    // with ZERO bulk actions, so the whole selection layer was removed —
+    // honest UI over dead chrome. Guard against it re-appearing without
+    // actions attached.
     const alert = historyAlert({ id: '66666666-6666-4666-8666-666666666666', title: 'Pick me' })
     rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [alert], nextCursor: null })
 
     await renderView(<AlertHistoryView />)
     await waitForText('Pick me')
 
-    // No bulk bar at rest.
+    expect(document.querySelector('[aria-label="Select alert: Pick me"]')).toBeNull()
+    expect(document.querySelector('[aria-label="Select all"]')).toBeNull()
     expect(document.body.textContent).not.toContain('alert selected')
-
-    const checkbox = document.querySelector<HTMLElement>('[aria-label="Select alert: Pick me"]')
-    expect(checkbox).toBeTruthy()
-    await act(async () => {
-      checkbox?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-
-    await waitForText('1 alert selected')
   })
 })

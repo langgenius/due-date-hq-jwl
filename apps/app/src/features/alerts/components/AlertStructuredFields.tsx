@@ -348,7 +348,16 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
             <Trans>Parsed fields</Trans>
           </span>
           <span className="text-xs text-text-tertiary">
-            <Trans>AI parsed — verify before Apply</Trans>
+            {/* 2026-07-02 audit (fictional copy): review_only alerts have no
+                Apply action, so "verify before Apply" pointed at a button
+                that doesn't exist. The reminder now names the mode's real
+                closing action — Mark reviewed (matching the low-confidence
+                gate's "Verify before marking reviewed" dialog). */}
+            {detail.alert.actionMode === 'review_only' ? (
+              <Trans>AI parsed — verify before marking reviewed</Trans>
+            ) : (
+              <Trans>AI parsed — verify before Apply</Trans>
+            )}
           </span>
         </div>
 
