@@ -1,4 +1,5 @@
 import { Fragment, type ReactElement, useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -54,6 +55,8 @@ import {
   type DeadlineCategorySuggestion,
   type ResolvedDeadlineRuleCandidate,
 } from '@/features/obligations/deadline-category-suggestions'
+import { deadlineDetailPath } from '@/features/obligations/deadline-detail-url'
+import { saveDeadlineNoteDraft } from '@/features/obligations/deadline-note-draft'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
@@ -745,6 +748,7 @@ export function CreateObligationDialog({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const entityLabels = useEntityLabels()
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen ?? internalOpen
@@ -983,14 +987,36 @@ export function CreateObligationDialog({
               ? t`${result.obligations.length} deadline created from the rule library.`
               : t`That deadline already exists for this client and tax year.`,
         })
+        // 2026-07-02 (ux-flow audit P0 #2): notes used to be discarded by the
+        // form.reset below while the toast told the user to go save text that
+        // no longer existed. `createFromRules` still has no notes field, so
+        // park the draft in sessionStorage keyed by the new obligation — the
+        // deadline detail surfaces it as a recoverable "draft note" callout —
+        // and give the toast a real action that opens that deadline.
         if (internalNotes.trim().length > 0) {
-          // Notes capture is intentionally local until the
-          // `obligations.addReviewNote` endpoint ships. Surface
-          // that expectation so the user knows the textarea
-          // content didn't silently drop.
-          toast.info(t`Internal notes drafted`, {
-            description: t`Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet.`,
-          })
+          if (obligation) {
+            saveDeadlineNoteDraft(obligation.id, internalNotes.trim())
+            toast.info(t`Internal note kept with the new deadline`, {
+              description: t`Deadlines can't store notes yet — your text is waiting on the deadline as a draft.`,
+              action: {
+                label: t`Open deadline`,
+                onClick: () => {
+                  // Route state carries the obligation id so the detail page
+                  // resolves instantly (same fast-path the table rows use).
+                  void navigate(deadlineDetailPath(obligation.id), {
+                    state: { obligationId: obligation.id },
+                  })
+                },
+              },
+            })
+          } else {
+            // Duplicate deadline → nothing was created, so there's no row to
+            // key the draft to. Say so honestly instead of pointing at a
+            // drawer that can't save it.
+            toast.warning(t`Internal note not saved`, {
+              description: t`No new deadline was created (it already exists), and deadlines can't store notes yet.`,
+            })
+          }
         }
         form.reset(defaultFormValues(defaultClientId, taxYearContext.defaultTaxYear))
         setOpen(false)

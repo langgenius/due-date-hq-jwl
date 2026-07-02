@@ -2,10 +2,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { XIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 
+import { cleanDeadlineDetailSearch } from '@/features/obligations/deadline-detail-url'
 import { fadeMotion } from '@/lib/motion'
 
 /**
@@ -43,6 +44,13 @@ export function DeadlineCrumbBar({
   heroScrolled?: boolean
 }) {
   const { t } = useLingui()
+  const location = useLocation()
+  // 2026-07-02 (ux-flow audit S3): the crumb used to link to a bare
+  // /deadlines while browser Back preserved ?status etc — the two "back"
+  // affordances disagreed. Carry the current search (minus the detail's own
+  // drawer/id/row/tab params) so the crumb returns to the filtered list the
+  // user came from, exactly like the drawer's onClose.
+  const deadlinesHref = `/deadlines${cleanDeadlineDetailSearch(location.search)}`
 
   return (
     // Full-bleed CHROME band (px-5, no document cap): the crumb hugs the left
@@ -50,7 +58,7 @@ export function DeadlineCrumbBar({
     <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-5">
       <nav className="flex min-w-0 items-center gap-1.5 text-sm">
         <Link
-          to="/deadlines"
+          to={deadlinesHref}
           className="shrink-0 rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>Deadlines</Trans>

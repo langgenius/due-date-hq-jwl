@@ -49,6 +49,15 @@ import {
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@duedatehq/ui/components/ui/dialog'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -1480,7 +1489,10 @@ export function ActiveStageDetailCard({
   onConfirmAcceptance: () => void
   onRecordRejection: () => void
   onChangePrepStage: (prepStage: ObligationPrepStage) => void
-  onChangeReviewStage: (reviewStage: ObligationReviewStage) => void
+  // `reason` rides along to the audit row (the RPC's optional 280-char
+  // reason field) — the "Leave note for preparer" dialog is the only
+  // caller that sets it today.
+  onChangeReviewStage: (reviewStage: ObligationReviewStage, reason?: string) => void
   // P0 signature loop: advance efileState → authorization_signed.
   onMarkSigned: () => void
   // P0: email the client a Form 8879 signature reminder.
@@ -2046,6 +2058,11 @@ export function ActiveStageDetailCard({
   // focus. Single-expand-at-a-time keeps the panel from ballooning.
   const pastEntries = useMemo(() => computePastStageEntries(auditEvents), [auditEvents])
   const [expandedPast, setExpandedPast] = useState<string | null>(null)
+  // "Leave note for preparer" (ux-flow audit P1): the note dialog's open flag
+  // + draft text. The stage flip to `notes_open` only fires from the dialog's
+  // confirm, with the note riding the mutation's audit reason.
+  const [reviewNoteOpen, setReviewNoteOpen] = useState(false)
+  const [reviewNoteDraft, setReviewNoteDraft] = useState('')
   // Label maps for the e-file / payment sub-status pipelines, computed
   // inline so the Lingui macro transforms the t-tags correctly.
   // Same "actor + object" treatment as the review pipeline above.
@@ -2131,8 +2148,15 @@ export function ActiveStageDetailCard({
         return onChangePrepStage('prepared')
       case 'approve-return':
         return onChangeReviewStage('approved')
+      // 2026-07-02 (ux-flow audit P1): "Leave note for preparer" used to flip
+      // reviewStage → notes_open instantly with zero note content — the verb
+      // promised a note the action never collected. Open the note dialog
+      // first; the stage flip fires from its confirm with the text riding the
+      // mutation's audit `reason` (visible in Activity / the timeline).
       case 'leave-review-note':
-        return onChangeReviewStage('notes_open')
+        setReviewNoteDraft('')
+        setReviewNoteOpen(true)
+        return
       case 'mark-notes-addressed':
         return onChangeReviewStage('in_review')
       // P0 signature loop (efileState authorization_requested →
@@ -2910,6 +2934,52 @@ export function ActiveStageDetailCard({
           </ul>
         </div>
       ) : null}
+
+      {/* "Leave note for preparer" dialog (ux-flow audit P1). protectInput —
+          a half-typed review note shouldn't vanish on a stray outside click
+          (close-interaction policy); Esc/✕/Cancel still close. Max length
+          matches the RPC's 280-char audit reason. */}
+      <Dialog protectInput open={reviewNoteOpen} onOpenChange={setReviewNoteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Leave note for preparer</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>
+                Reopens review notes on this return. The note is recorded in the activity trail so
+                the preparer sees what to address.
+              </Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <label className="flex flex-col gap-1">
+            <CapsFieldLabel as="span" variant="group">
+              <Trans>Review note</Trans>
+            </CapsFieldLabel>
+            <Textarea
+              aria-label={t`Review note`}
+              placeholder={t`What should the preparer fix or double-check?`}
+              maxLength={280}
+              value={reviewNoteDraft}
+              onChange={(event) => setReviewNoteDraft(event.target.value)}
+            />
+          </label>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setReviewNoteOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              disabled={reviewNoteDraft.trim().length === 0 || pending?.reviewStage === true}
+              onClick={() => {
+                onChangeReviewStage('notes_open', reviewNoteDraft.trim())
+                setReviewNoteOpen(false)
+              }}
+            >
+              <Trans>Leave note</Trans>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

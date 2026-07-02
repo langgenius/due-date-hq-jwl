@@ -55,6 +55,10 @@ import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
+import {
+  clearDeadlineNoteDraft,
+  readDeadlineNoteDraft,
+} from '@/features/obligations/deadline-note-draft'
 import { tabsForObligationType } from '@/features/obligations/obligation-type'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
@@ -485,6 +489,11 @@ export function ObligationQueueDetailDrawer({
     nextStep: 'correct_resubmit',
   })
   const [authorityRejectionReasonError, setAuthorityRejectionReasonError] = useState(false)
+  // Draft note handed off from the "+ Add deadline" dialog (ux-flow P0 #2):
+  // sessionStorage keyed by obligation id, read fresh each render (cheap).
+  // The version counter only exists to re-render after Dismiss clears the key.
+  const [, setNoteDraftVersion] = useState(0)
+  const noteDraft = obligationId ? readDeadlineNoteDraft(obligationId) : null
   const detailQuery = useQuery({
     ...orpc.obligations.getDetail.queryOptions({
       input: { obligationId: obligationId ?? '' },
@@ -948,6 +957,24 @@ export function ObligationQueueDetailDrawer({
       isPending: decideExtensionMutation.isPending,
       memo: extensionDraft.memo,
     })
+  // 2026-07-02 (ux-flow audit P2): the required decision memo sits below the
+  // fold, so a disabled "File extension" button gave no clue WHY. Name the
+  // first unmet requirement inline next to the button — same order as the
+  // saveExtensionDecision guards, so the copy matches what a click would say.
+  const extensionDisabledHint =
+    !row || decideExtensionMutation.isPending
+      ? null
+      : extensionNeedsManualDeadline && extensionDraft.extendedFilingDate === ''
+        ? t`Enter the extended filing deadline to file.`
+        : extensionManualDeadlineInvalid
+          ? t`The extended filing deadline must be after the original deadline.`
+          : extensionDraft.internalTargetDate === ''
+            ? t`Set an internal target date to file.`
+            : internalTargetDateInvalid
+              ? t`The internal target must be on or before the extended filing deadline.`
+              : extensionDraft.memo.trim().length === 0
+                ? t`Add a decision memo to file.`
+                : null
   // Lifecycle v2 slice 2d.3: manual acceptance — when a filed return has
   // been accepted by the authority (e-file accepted / paper return
   // received with no rejection), the preparer marks it complete from the
@@ -1036,12 +1063,37 @@ export function ObligationQueueDetailDrawer({
   )
   const snoozeMutation = useMutation(
     orpc.obligations.snooze.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (result, variables) => {
         invalidateDetail()
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        toast.success(result.obligation.snoozedUntil ? t`Deadline snoozed` : t`Snooze cleared`, {
-          description: t`Audit ${result.auditId.slice(0, 8)}`,
-        })
+        const snoozedUntil = result.obligation.snoozedUntil
+        if (snoozedUntil) {
+          // 2026-07-02 (ux-flow audit P0 "snooze black hole"): a snoozed row
+          // drops out of obligations.list until the instant passes, so it
+          // vanishes from the table, the rail, AND every filter with no way
+          // back. Close the loop: name the return date (so hiding reads as
+          // deferral, not deletion) and offer Undo — the snooze contract
+          // takes `snoozedUntil: null` to clear the defer. Self-reference in
+          // the toast callback mirrors updatePrepStageMutation's Undo above.
+          toast.success(t`Deadline snoozed`, {
+            description: t`Hidden from the queue until ${formatDatePretty(snoozedUntil)} — it returns automatically.`,
+            action: {
+              label: t`Undo`,
+              onClick: () => {
+                snoozeMutation.mutate({ id: variables.id, snoozedUntil: null })
+              },
+            },
+          })
+          // On the standalone page the rail list is the detail's only ref
+          // resolver, so once the row leaves the list the pane degraded to
+          // "Deadline not found". Return to the (still-filtered) queue
+          // instead — onClose carries the cleaned current search.
+          if (mode === 'page') onClose()
+        } else {
+          toast.success(t`Snooze cleared`, {
+            description: t`Audit ${result.auditId.slice(0, 8)}`,
+          })
+        }
       },
       onError: (err) => {
         toast.error(t`Couldn't snooze deadline`, {
@@ -2755,6 +2807,61 @@ export function ObligationQueueDetailDrawer({
                     gone. This matches the alert detail's single flat card
                     stack. */}
                     <div className="flex flex-col gap-4">
+                      {/* 2026-07-02 (ux-flow audit P0 #2): draft note handed off
+                          from the "+ Add deadline" dialog. The create endpoint
+                          accepts no notes and no per-deadline note mutation
+                          ships yet, so the text parks in sessionStorage and
+                          surfaces here as a recoverable draft — copy it out or
+                          dismiss it. Honest by construction: no fake "save". */}
+                      {noteDraft ? (
+                        <Alert variant="info">
+                          <MessageSquareTextIcon aria-hidden />
+                          <AlertDescription>
+                            <div className="flex flex-col gap-1.5">
+                              <span>
+                                <Trans>
+                                  Your note from Add deadline — deadlines can't store notes yet, so
+                                  copy it where it belongs. It only lasts this browser session.
+                                </Trans>
+                              </span>
+                              <span className="whitespace-pre-wrap text-text-primary">
+                                {noteDraft}
+                              </span>
+                              <span className="flex items-center gap-3">
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  size="sm"
+                                  className="h-auto p-0 align-baseline"
+                                  onClick={() => {
+                                    copyTextToClipboard(noteDraft)
+                                      .then(() => toast.success(t`Note copied`))
+                                      .catch(() =>
+                                        toast.error(
+                                          t`Couldn't copy — your browser blocked clipboard access.`,
+                                        ),
+                                      )
+                                  }}
+                                >
+                                  <Trans>Copy note</Trans>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  size="sm"
+                                  className="h-auto p-0 align-baseline"
+                                  onClick={() => {
+                                    if (obligationId) clearDeadlineNoteDraft(obligationId)
+                                    setNoteDraftVersion((version) => version + 1)
+                                  }}
+                                >
+                                  <Trans>Dismiss</Trans>
+                                </Button>
+                              </span>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      ) : null}
                       <div className={cn('grid min-w-0 flex-1', panelLayout ? 'gap-4' : 'gap-3')}>
                         {/* WorkflowMilestoneCard (Pencil Qn4nX `CorQi`): the stepper,
                         active stage, blocking, and "What's left" — the deadline
@@ -2866,11 +2973,15 @@ export function ObligationQueueDetailDrawer({
                                 prepStage: nextPrepStage,
                               })
                             }}
-                            onChangeReviewStage={(nextReviewStage) => {
+                            onChangeReviewStage={(nextReviewStage, reason) => {
                               reviewStagePreviousRef.current = row.reviewStage
+                              // `reason` (the leave-note dialog's text) lands on
+                              // the audit row, so the note is readable from
+                              // Activity / the timeline.
                               updateReviewStageMutation.mutate({
                                 id: row.id,
                                 reviewStage: nextReviewStage,
+                                ...(reason ? { reason } : {}),
                               })
                             }}
                             onMarkSigned={() => {
@@ -4333,7 +4444,14 @@ export function ObligationQueueDetailDrawer({
                           </PaymentStillDueCallout>
                         ) : null}
                         <div className="flex flex-wrap items-center justify-end gap-2">
-                          {row.extensionDecidedAt ? (
+                          {/* Disabled-reason hint takes the left slot over the
+                              "Last decided" meta while a requirement is unmet —
+                              the button never disables silently (ux-flow P2). */}
+                          {extensionDisabledHint ? (
+                            <span className="mr-auto text-caption text-text-tertiary">
+                              {extensionDisabledHint}
+                            </span>
+                          ) : row.extensionDecidedAt ? (
                             <span className="mr-auto text-caption text-text-tertiary">
                               <Trans>
                                 Last decided{' '}

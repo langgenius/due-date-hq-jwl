@@ -2984,6 +2984,14 @@ export function ObligationQueueRoute() {
   const selectedRows = table.getSelectedRowModel().rows.map((selectedRow) => selectedRow.original)
   const selectedIds = selectedRows.map((selectedRow) => selectedRow.id)
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
+  // 2026-07-02 (ux-flow audit P1): "Confirm projected" applicability, computed
+  // from the selection itself (`confirmed: false` = projected, awaiting CPA
+  // confirmation). With 0 applicable rows the action used to fire anyway,
+  // toast "0 deadlines confirmed", and eat the selection — honest math means
+  // the button disables with a reason and only the projected rows are sent.
+  const selectedProjectedIds = selectedRows
+    .filter((selectedRow) => !selectedRow.confirmed)
+    .map((selectedRow) => selectedRow.id)
   const thisWeekFilterActive = isThisWeekFilterActive(daysMin, daysMax)
   // Stripe-style scope tabs across the top of the queue. Each tab maps
   // to a single lifecycle v2 status. Counts come from the facets RPC's
@@ -3464,8 +3472,11 @@ export function ObligationQueueRoute() {
   }
 
   function confirmSelectedProjected() {
-    if (selectedIds.length === 0) return
-    confirmObligationsMutation.mutate({ obligationIds: selectedIds })
+    // Only the projected (unconfirmed) rows go to the server — sending
+    // already-confirmed ids just inflates the request for rows the server
+    // would skip, and a 0-applicable call was a selection-eating no-op.
+    if (selectedProjectedIds.length === 0) return
+    confirmObligationsMutation.mutate({ obligationIds: selectedProjectedIds })
   }
 
   function changeSelectedAssignee(assigneeId: string | null, assigneeName?: string) {
@@ -4432,16 +4443,33 @@ export function ObligationQueueRoute() {
                   <Button
                     variant={projected ? 'accent' : 'ghost'}
                     size="sm"
-                    disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
+                    disabled={
+                      !canUpdateObligationStatus ||
+                      confirmObligationsMutation.isPending ||
+                      // Applicability from the selection: 0 projected rows =
+                      // nothing to confirm, so disable with a reason instead
+                      // of toasting "0 deadlines confirmed" + eating the
+                      // selection (mirrors the Remind-to-sign honest-math).
+                      selectedProjectedIds.length === 0
+                    }
                     title={
-                      canUpdateObligationStatus
-                        ? t`Confirm projected deadlines so they enter the reminder pipeline`
-                        : t`Confirming requires owner, partner, manager, or preparer access.`
+                      !canUpdateObligationStatus
+                        ? t`Confirming requires owner, partner, manager, or preparer access.`
+                        : selectedProjectedIds.length === 0
+                          ? t`None of the selected deadlines are projected — they're already confirmed.`
+                          : t`Confirm projected deadlines so they enter the reminder pipeline`
                     }
                     onClick={confirmSelectedProjected}
                   >
                     <CircleCheckIcon data-icon="inline-start" />
-                    <Trans>Confirm projected</Trans>
+                    {/* Live applicable count so "confirm" states its reach
+                        before the click, like the signature-reminder dialog. */}
+                    {selectedProjectedIds.length > 0 &&
+                    selectedProjectedIds.length < selectedIds.length ? (
+                      <Trans>Confirm projected ({selectedProjectedIds.length})</Trans>
+                    ) : (
+                      <Trans>Confirm projected</Trans>
+                    )}
                   </Button>
                   {/* Secondary actions collapse under a single "More" overflow
                   menu so the bar reads as ~5 affordances instead of 8. Order

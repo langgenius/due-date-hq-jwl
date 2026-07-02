@@ -94,12 +94,20 @@ export function DeadlineDetailRoute() {
   // settled and every page is loaded, show a recoverable empty state instead of
   // nothing. Guarded on `!hasNextPage` so we never false-positive while a ref
   // that lives on a not-yet-fetched page is still pending.
+  //
+  // 2026-07-02 (ux-flow audit P1): a MALFORMED ref (non-hex, wrong length —
+  // normalizeDeadlineRef → null) used to skip this branch entirely (the
+  // routeRef !== null guard) and fall through to the drawer with a null
+  // obligationId — a blank white pane. An invalid ref can never resolve, so
+  // it's not-found immediately, no list settling required.
+  const invalidRef = routeRef === null && Boolean(params.obligationRef)
   const detailNotFound =
-    routeRef !== null &&
-    !obligationId &&
-    listQuery.isSuccess &&
-    !listQuery.isFetching &&
-    !listQuery.hasNextPage
+    invalidRef ||
+    (routeRef !== null &&
+      !obligationId &&
+      listQuery.isSuccess &&
+      !listQuery.isFetching &&
+      !listQuery.hasNextPage)
 
   const handleTabChange = useCallback(
     // NonNullable — the tab is always a concrete value here; the optional
@@ -179,7 +187,9 @@ export function DeadlineDetailRoute() {
                 variant="outline"
                 size="sm"
                 nativeButton={false}
-                render={<Link to="/deadlines" />}
+                // Carry the cleaned current search so recovery lands on the
+                // same filtered list the user came from (S3 crumb parity).
+                render={<Link to={`/deadlines${cleanDeadlineDetailSearch(location.search)}`} />}
               >
                 <Trans>Back to deadlines</Trans>
               </Button>
