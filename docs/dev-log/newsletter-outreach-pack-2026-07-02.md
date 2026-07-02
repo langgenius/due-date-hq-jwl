@@ -35,3 +35,11 @@ you up free" — everyone gets it free, favor-framing overstates); closing
 "No worries if not — thanks for your time" (not "thanks for the work you
 put in" — unanchored once the readership claim was cut). Ryan/Blake
 versions and the follow-up line aligned to the same wording.
+
+**Batch sent + form versions (same day):** Yuqi sent the three email
+targets (Staats, AICPA, CPA Practice Advisor) manually from Gmail.
+Added a "Form-ready versions" section to the pack for the four manual
+inquiry targets (Future Firm, CPA Trendlines, Accounting Today, Going
+Concern) — inquiries go out now to lock fall placements; only the Blake
+Oliver classified (a self-serve purchase) waits for rate benchmarks and
+UTM links.

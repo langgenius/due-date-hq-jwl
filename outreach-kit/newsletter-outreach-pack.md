@@ -128,6 +128,52 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 ---
 
+## Form-ready versions (manual targets, prepared 2026-07-02)
+
+Forms don't carry the Gmail signature — these end with a typed sign-off.
+Common fields: Name **Gigi** · Email **gigi@duedatehq.com** · Company **DueDateHQ** · Website **https://duedatehq.com/**
+Sign-off block for all four:
+
+> Gigi
+> Co-founder, DueDateHQ
+> https://duedatehq.com/ · gigi@duedatehq.com
+
+**Ryan Lazanis / Future Firm** — futurefirm.co/contact (subject field, if any: "Sponsorship inquiry — DueDateHQ")
+
+> Hi Ryan,
+>
+> I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes and flag which clients each one hits — one less thing your readers have to track by hand.
+>
+> Would you consider a sponsored mention in Future Firm? I'd rather you try it before deciding — it's free while we're in beta.
+>
+> No worries if not — thanks for your time.
+
+**CPA Trendlines** — media-kit page at cpatrendlines.com
+
+> Hi team,
+>
+> I'd like to advertise in CPA Trendlines. I'm the co-founder of DueDateHQ — we monitor filing-deadline changes for US CPA firms (IRS, all 50 states, and FEMA) and flag which clients each change hits.
+>
+> Could you send your rates and media kit? I'm interested in e-blasts and in-newsletter placements.
+>
+> Thanks,
+
+**Accounting Today** — advertise/ad-sales form at accountingtoday.com: same as CPA Trendlines with "I'd like to advertise in Accounting Today."
+
+**Going Concern** — advertising inquiry (sponsored content runs via Accountingfly; keep the editorial tip line separate for a future news pitch)
+
+> Hi team,
+>
+> I'm the co-founder of DueDateHQ — we monitor filing-deadline changes for US CPA firms (IRS, all 50 states, and FEMA) and flag which clients each change hits.
+>
+> I'm interested in sponsored placements in the Going Concern newsletter. Could you point me to your rates and options?
+>
+> Thanks,
+
+**Blake Oliver** — deliberately NOT in this batch: the classified is a self-serve PURCHASE (cloudacctpod.link/RunClassifiedAd, posted pricing), not an inquiry. Buy after rate benchmarks arrive and UTM links are ready — his audience also overlaps Jason's heavily.
+
+---
+
 ## Sending notes
 
 - **Timing:** Tuesday–Thursday, mid-morning in the recipient's time zone lands best for B2B. Avoid Mondays/Fridays. Most of these are US (Oregon, Montreal, Scottsdale, NY) — target ~9–11am ET/PT.
