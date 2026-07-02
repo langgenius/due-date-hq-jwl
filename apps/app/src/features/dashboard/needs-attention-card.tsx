@@ -1,6 +1,8 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ExternalLinkIcon, PlusIcon } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { ExternalLinkIcon, PlusIcon, XIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -9,6 +11,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { dedupeTitleSource } from '@/features/_surface-vocabulary/alert-headline'
 import { alertTone } from '@/features/alerts/alert-tone'
+import { useAlertsInvalidation } from '@/features/alerts/api'
 // PulseSourceMeta was retired from this card in round 81 — source
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
 // truncated label with the URL on tooltip hover.
@@ -30,6 +33,8 @@ function formatActByDate(value: string): string {
 }
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 // Dashboard variant of the Alert card. Tuned for the dashboard's
 // "scan-and-act" mode and built to Pencil node VVMj9 specs:
@@ -121,6 +126,47 @@ function NeedsAttentionCard({
       }).format(new Date(alert.publishedAt))
     : ''
 
+  // Inline triage — dismiss the alert straight off the /today card without
+  // opening the drawer (the drawer stays the full-review path; this is the
+  // quick "not relevant" shortcut). Restored after the round-81 rewrite
+  // dropped it (see 31116bb8): same pulse.dismiss + Undo-toast pair the
+  // /alerts list row uses, with the shared invalidation so the card drops
+  // (and comes back on Undo) everywhere at once.
+  const invalidateAlerts = useAlertsInvalidation()
+  const reactivateMutation = useMutation(
+    orpc.pulse.reactivate.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert restored`)
+        invalidateAlerts()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't restore alert`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const dismissMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: (_data, variables) => {
+        toast.success(t`Alert dismissed`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => reactivateMutation.mutate({ alertId: variables.alertId }),
+          },
+        })
+        invalidateAlerts()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+
   // Clicking this card opens the alert drawer in-place on the dashboard
   // (via `useAlertDrawer().openDrawer`) — not a navigation to /alerts.
   // This is intentional:
@@ -135,9 +181,22 @@ function NeedsAttentionCard({
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
   return (
-    <button
-      type="button"
+    // Clickable card (role=button, not a real <button>) so it can host the
+    // nested dismiss control + source link without invalid button-in-button
+    // nesting. Enter/Space open the alert, matching the old button semantics;
+    // the target guard keeps keypresses on the nested controls from also
+    // opening the drawer.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onReview}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onReview()
+        }
+      }}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
       className={cn(
         // A single uniform surface that lifts off the page. Alert cards
@@ -158,14 +217,23 @@ function NeedsAttentionCard({
       )}
       data-tone={tone}
     >
-      {/* Open affordance — ↗ fades in at the top-right corner on hover/focus
-          and nudges diagonally, telling the user the whole card is the click
-          target (the footer's source link opens elsewhere, so the card needed
-          its own "this opens the alert" hint). */}
-      <ArrowUpRightIcon
-        className="pointer-events-none absolute top-4 right-4 size-4 text-text-tertiary opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
-        aria-hidden
-      />
+      {/* Top-right corner affordance — with inline triage the dismiss ✕ is
+          the corner action (hover/focus-revealed), taking the slot the
+          open-hint ↗ held; the whole card is still the open-the-alert click
+          target. Disabled while the mutation is in flight so a double-click
+          can't double-dismiss. */}
+      <button
+        type="button"
+        aria-label={t`Dismiss alert`}
+        disabled={dismissMutation.isPending}
+        onClick={(event) => {
+          event.stopPropagation()
+          dismissMutation.mutate({ alertId: alert.id })
+        }}
+        className="absolute top-3 right-3 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <XIcon className="size-4" aria-hidden />
+      </button>
       {/* Outer block holding the head row + the subject stack. */}
       <div className="flex min-w-0 flex-col gap-2">
         {/* Top row — meta strip. LEFT (severity + state pill) +
@@ -342,22 +410,30 @@ function NeedsAttentionCard({
           <Tooltip>
             <TooltipTrigger
               render={(props) => (
+                // Spread `props` FIRST: Base UI merges its own onClick /
+                // onKeyDown into the render props, so a trailing spread
+                // overwrote the window.open handlers below — clicking the
+                // source chip fell through to the card's onReview instead of
+                // opening the authority page. The handlers compose Base UI's
+                // via props.onClick/onKeyDown so the tooltip wiring survives.
                 <span
+                  {...props}
                   role="link"
                   tabIndex={0}
                   className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 rounded-sm text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   onClick={(event) => {
+                    props.onClick?.(event)
                     event.stopPropagation()
                     window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
                   }}
                   onKeyDown={(event) => {
+                    props.onKeyDown?.(event)
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault()
                       event.stopPropagation()
                       window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
                     }
                   }}
-                  {...props}
                 >
                   <span className="truncate text-right">{alert.source}</span>
                   <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
@@ -379,7 +455,7 @@ function NeedsAttentionCard({
           </span>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 

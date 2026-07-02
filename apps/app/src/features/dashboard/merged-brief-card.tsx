@@ -144,6 +144,17 @@ export function MergedBriefCard({
         : counts.thisWeek
   const shown = byBucket[selected].slice(0, ROWS_PER_BUCKET)
   const moreCount = Math.max(0, activeTotal - shown.length)
+  // Bucket-scoped destination for the "See all {activeTotal}" links — a link
+  // quoting a bucket count must land on a queue filtered to that bucket, not
+  // the bare list (scoped-count → unscoped-destination mismatch, UX audit
+  // 2026-07-02). `due=overdue` / `dueWithin=N` are the real /deadlines params
+  // (routes/obligations.tsx parsers; dueWithin caps at 30).
+  const seeAllTo =
+    selected === 'overdue'
+      ? '/deadlines?due=overdue'
+      : selected === 'week'
+        ? '/deadlines?dueWithin=7'
+        : '/deadlines?dueWithin=30'
 
   // One-line deterministic summary — the lede of the brief. It surfaces the
   // docs blocker the count chips can't, so it says something they don't.
@@ -416,10 +427,11 @@ export function MergedBriefCard({
           {activeTotal > 0 ? (
             // "open the queue" is a real link — the message names the next
             // action, so the action lives on the words themselves instead of
-            // making the user hunt for the footer link.
+            // making the user hunt for the footer link. Carries the bucket
+            // (seeAllTo) so "see all {activeTotal}" lands on that count.
             <Trans>
               None in the priority shortlist —{' '}
-              <TextLink variant="accent" size="sm" render={<Link to="/deadlines" />}>
+              <TextLink variant="accent" size="sm" render={<Link to={seeAllTo} />}>
                 open the queue
               </TextLink>{' '}
               to see all {activeTotal}.
@@ -428,10 +440,30 @@ export function MergedBriefCard({
             // The selected WINDOW is empty but work exists in other tabs —
             // claiming "No open deadlines" while the lede above says
             // "2 overdue" is a same-screen contradiction. Name where the
-            // work actually sits.
-            <Trans>Nothing in this window — {counts.overdue} overdue in the Overdue tab.</Trans>
+            // work actually sits — and make the hint the control: the phrase
+            // switches the bucket, so the user can act on it in place.
+            <Trans>
+              Nothing in this window —{' '}
+              <TextLink variant="accent" size="sm" onClick={() => setOverride('overdue')}>
+                {counts.overdue} overdue in the Overdue tab
+              </TextLink>
+              .
+            </Trans>
           ) : (
-            <Trans>Nothing in this window — {totalActive} coming up in the other tabs.</Trans>
+            <Trans>
+              Nothing in this window —{' '}
+              <TextLink
+                variant="accent"
+                size="sm"
+                // Jump to whichever other tab actually holds the work.
+                onClick={() =>
+                  setOverride(counts.thisWeek > 0 && selected !== 'week' ? 'week' : 'month')
+                }
+              >
+                {totalActive} coming up in the other tabs
+              </TextLink>
+              .
+            </Trans>
           )}
         </p>
       ) : (
@@ -509,7 +541,14 @@ export function MergedBriefCard({
             Alerts section's "View all", so the page's two go-to-the-full-list
             affordances share one voice (the hand-rolled Link was a
             vocabulary violation). */}
-        <TextLink variant="accent" render={<Link to="/deadlines" />} className="group shrink-0">
+        {/* When the link quotes the bucket-scoped count it carries the bucket
+            (seeAllTo) so the queue arrives filtered to those {activeTotal}
+            rows; the generic "See all deadlines" stays the unfiltered list. */}
+        <TextLink
+          variant="accent"
+          render={<Link to={moreCount > 0 ? seeAllTo : '/deadlines'} />}
+          className="group shrink-0"
+        >
           {moreCount > 0 ? (
             <span className="tabular-nums">
               <Trans>See all {activeTotal} deadlines</Trans>

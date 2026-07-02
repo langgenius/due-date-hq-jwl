@@ -21,6 +21,7 @@ import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import { clientDetailPath } from '@/features/clients/client-url'
 import type { ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
+import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
@@ -159,6 +160,11 @@ export function CreateChoiceCards({ className }: { className?: string }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { openWizard } = useMigrationWizard()
+  // Same drawer handle /today's Priorities rows use — off /deadlines it
+  // navigates to `/deadlines/<short-ref>`, landing the user ON the deadline
+  // they just created (with the arrival wash) instead of back on an "All
+  // clear" dashboard that hides their first row.
+  const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const permission = useFirmPermission()
   const entityLabels = useEntityLabels()
 
@@ -278,6 +284,10 @@ export function CreateChoiceCards({ className }: { className?: string }) {
       <CreateObligationDialog
         open={createDeadlineOpen}
         onOpenChange={setCreateDeadlineOpen}
+        // Close the loop on the first-created deadline: mirror the add-client
+        // card (which navigates to the new client) by opening the new
+        // obligation instead of leaving the user on the dashboard.
+        onCreated={(id) => openObligationDrawer(id)}
         hideTrigger
       />
     </>

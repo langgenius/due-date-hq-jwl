@@ -393,7 +393,12 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       // unfiltered list would lose the user's place. (`waiting_on_client`
       // is a canonical ?status= literal — see status-control ALL_STATUSES.)
       to: '/deadlines?status=waiting_on_client',
-      ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
+      // Count ternary, not plural()+i18n._ — the repo pattern for pluralized
+      // strings outside JSX (a bare `1 deadlines` read wrong to SR users).
+      ariaLabel:
+        counts.waitingOnClientCount === 1
+          ? t`1 deadline waiting on the client`
+          : t`${counts.waitingOnClientCount} deadlines waiting on the client`,
     })
   }
 

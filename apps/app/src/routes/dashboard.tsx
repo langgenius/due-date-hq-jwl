@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
+import { toast } from 'sonner'
 
 import { formatRelativeTime } from '@/lib/utils'
 
@@ -339,7 +340,14 @@ export function DashboardRoute() {
                       type="button"
                       onClick={(event) => {
                         props.onClick?.(event)
-                        if (!event.defaultPrevented) void dashboardQuery.refetch()
+                        if (event.defaultPrevented) return
+                        // Close the loop on the explicit click: the icon spins
+                        // while fetching (below); a quiet toast confirms the
+                        // sweep finished. Only this click fires it — background
+                        // refetches stay silent.
+                        void dashboardQuery.refetch().then((result) => {
+                          if (result.status === 'success') toast.success(t`Synced just now`)
+                        })
                       }}
                       disabled={dashboardQuery.isFetching}
                       aria-label={
