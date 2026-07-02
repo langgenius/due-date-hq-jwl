@@ -21,6 +21,10 @@ msgstr ": active"
 msgid ": inactive"
 msgstr ": inactive"
 
+#: src/routes/rules.library.tsx
+msgid "· {BULK_ACCEPT_BATCH_MAX} preselected — Accept's per-batch cap"
+msgstr "· {BULK_ACCEPT_BATCH_MAX} preselected — Accept's per-batch cap"
+
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "· Current tax year"
 msgstr "· Current tax year"
@@ -87,11 +91,6 @@ msgstr "(optional)"
 #: src/components/primitives/readiness-indicator.tsx
 msgid "{0, plural, one {(# unverified)} other {(# unverified)}}"
 msgstr "{0, plural, one {(# unverified)} other {(# unverified)}}"
-
-#. placeholder {0}: selected.size
-#: src/features/alerts/AlertHistoryView.tsx
-msgid "{0, plural, one {# alert selected} other {# alerts selected}}"
-msgstr "{0, plural, one {# alert selected} other {# alerts selected}}"
 
 #. placeholder {0}: detail.evidence.length
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -1575,6 +1574,10 @@ msgstr "1 day before filing"
 msgid "1 day earlier"
 msgstr "1 day earlier"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "1 deadline waiting on the client"
+msgstr "1 deadline waiting on the client"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filed or completed deadline for this client"
 msgstr "1 filed or completed deadline for this client"
@@ -1815,6 +1818,10 @@ msgid "Accepted"
 msgstr "Accepted"
 
 #: src/features/rules/rule-detail-drawer.tsx
+msgid "Accepted — this rule is live"
+msgstr "Accepted — this rule is live"
+
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepted AI concrete draft from rule detail review."
 msgstr "Accepted AI concrete draft from rule detail review."
 
@@ -2043,6 +2050,10 @@ msgstr "Add a client to this practice."
 #: src/features/dashboard/create-choice-cards.tsx
 msgid "Add a deadline"
 msgstr "Add a deadline"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Add a decision memo to file."
+msgstr "Add a decision memo to file."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Add a note for your team — explain assumptions, scope decisions, or follow-ups."
@@ -2332,6 +2343,10 @@ msgstr "AI parsed"
 msgid "AI parsed — verify before Apply"
 msgstr "AI parsed — verify before Apply"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "AI parsed — verify before marking reviewed"
+msgstr "AI parsed — verify before marking reviewed"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI prepared your columns"
 msgstr "AI prepared your columns"
@@ -2394,6 +2409,7 @@ msgstr "Alert detail"
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "Alert dismissed"
 msgstr "Alert dismissed"
 
@@ -2414,7 +2430,6 @@ msgstr "Alert marked reviewed"
 msgid "Alert quarantined"
 msgstr "Alert quarantined"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert reactivated"
 msgstr "Alert reactivated"
@@ -2423,7 +2438,9 @@ msgstr "Alert reactivated"
 msgid "Alert rejected"
 msgstr "Alert rejected"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "Alert restored"
 msgstr "Alert restored"
 
@@ -2786,6 +2803,7 @@ msgstr "Annual rolling"
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/route-summary.ts
+#: src/routes/rules.library.tsx
 #: src/routes/rules.preview.tsx
 msgid "Annual rollover"
 msgstr "Annual rollover"
@@ -3314,6 +3332,10 @@ msgid "Back"
 msgstr "Back"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Back in the active queue."
+msgstr "Back in the active queue."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Back to alerts"
 msgstr "Back to alerts"
 
@@ -3517,6 +3539,12 @@ msgstr "Business tax"
 msgid "by {0}"
 msgstr "by {0}"
 
+#. placeholder {0}: rule.reviewedByName
+#. placeholder {1}: formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "By {0} · {1}"
+msgstr "By {0} · {1}"
+
 #: src/routes/accept-invite.tsx
 msgid "By accepting you agree to the Terms and Privacy Policy."
 msgstr "By accepting you agree to the Terms and Privacy Policy."
@@ -3649,6 +3677,7 @@ msgstr "Calendar year"
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -3945,7 +3974,6 @@ msgstr "Cleaning up client's books"
 
 #: src/components/primitives/iso-date-picker.tsx
 #: src/components/primitives/search-input.tsx
-#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/routes/obligations.tsx
@@ -4520,6 +4548,11 @@ msgstr "Confirm filing or payment status — due today"
 msgid "Confirm projected"
 msgstr "Confirm projected"
 
+#. placeholder {0}: selectedProjectedIds.length
+#: src/routes/obligations.tsx
+msgid "Confirm projected ({0})"
+msgstr "Confirm projected ({0})"
+
 #: src/routes/obligations.tsx
 msgid "Confirm projected deadlines so they enter the reminder pipeline"
 msgstr "Confirm projected deadlines so they enter the reminder pipeline"
@@ -4686,6 +4719,10 @@ msgstr "Copy link"
 msgid "Copy link to this deadline"
 msgstr "Copy link to this deadline"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Copy note"
+msgstr "Copy note"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Copy recap"
 msgstr "Copy recap"
@@ -4800,6 +4837,10 @@ msgstr "Couldn't confirm deadlines"
 msgid "Couldn't copy"
 msgstr "Couldn't copy"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Couldn't copy — your browser blocked clipboard access."
+msgstr "Couldn't copy — your browser blocked clipboard access."
+
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
@@ -4870,6 +4911,7 @@ msgstr "Couldn't discard draft import"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "Couldn't dismiss alert"
 msgstr "Couldn't dismiss alert"
 
@@ -5076,10 +5118,6 @@ msgstr "Couldn't queue risk summary"
 msgid "Couldn't re-send invitation"
 msgstr "Couldn't re-send invitation"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Couldn't reactivate alert"
-msgstr "Couldn't reactivate alert"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Couldn't read your data"
 msgstr "Couldn't read your data"
@@ -5113,7 +5151,9 @@ msgstr "Couldn't request export"
 msgid "Couldn't request review"
 msgstr "Couldn't request review"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "Couldn't restore alert"
 msgstr "Couldn't restore alert"
 
@@ -5829,6 +5869,10 @@ msgstr "Deadlines at a glance"
 msgid "Deadlines bulk owner change"
 msgstr "Deadlines bulk owner change"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Deadlines can't store notes yet — your text is waiting on the deadline as a draft."
+msgstr "Deadlines can't store notes yet — your text is waiting on the deadline as a draft."
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadlines created"
 msgstr "Deadlines created"
@@ -6023,6 +6067,7 @@ msgstr "Discarding this draft will commit these changes"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -6031,6 +6076,7 @@ msgid "Dismiss {selectedCount} alerts?"
 msgstr "Dismiss {selectedCount} alerts?"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "Dismiss alert"
 msgstr "Dismiss alert"
 
@@ -6581,6 +6627,10 @@ msgstr "Enter the 6-digit code we emailed you — or just tap the link in the em
 #: src/routes/login.tsx
 msgid "Enter the 6-digit code."
 msgstr "Enter the 6-digit code."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Enter the extended filing deadline to file."
+msgstr "Enter the extended filing deadline to file."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Enter the extended filing deadline."
@@ -7878,6 +7928,11 @@ msgstr "Handled by Stripe"
 msgid "Healthy"
 msgstr "Healthy"
 
+#. placeholder {0}: formatDatePretty(snoozedUntil)
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Hidden from the queue until {0} — it returns automatically."
+msgstr "Hidden from the queue until {0} — it returns automatically."
+
 #: src/features/dashboard/changes-since-last-section.tsx
 msgid "Hide"
 msgstr "Hide"
@@ -8377,12 +8432,16 @@ msgid "Internal extension target date must be on or before the extended filing d
 msgstr "Internal extension target date must be on or before the extended filing deadline."
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Internal notes"
-msgstr "Internal notes"
+msgid "Internal note kept with the new deadline"
+msgstr "Internal note kept with the new deadline"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Internal notes drafted"
-msgstr "Internal notes drafted"
+msgid "Internal note not saved"
+msgstr "Internal note not saved"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Internal notes"
+msgstr "Internal notes"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Internal request"
@@ -8753,6 +8812,10 @@ msgstr "Latest materials state: {0}."
 #: src/features/audit/audit-log-page.tsx
 msgid "Latest status"
 msgstr "Latest status"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Leave note"
+msgstr "Leave note"
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Leave note for preparer"
@@ -9732,6 +9795,10 @@ msgstr "Needs action"
 msgid "Needs Action"
 msgstr "Needs Action"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Needs AI draft"
+msgstr "Needs AI draft"
+
 #: src/routes/rules.library.tsx
 msgid "Needs AI draft review"
 msgstr "Needs AI draft review"
@@ -9945,6 +10012,10 @@ msgstr "Next {THIS_WEEK_MAX_DAYS} days"
 #: src/routes/obligations.tsx
 msgid "next 7 days"
 msgstr "next 7 days"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Next alert"
+msgstr "Next alert"
 
 #: src/features/clients/ClientCycleArrows.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -10277,6 +10348,11 @@ msgstr "No items waived"
 msgid "No jurisdictions match \"{search}\""
 msgstr "No jurisdictions match \"{search}\""
 
+#. placeholder {0}: formatEnumLabel(rule.status)
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "No longer in effect ({0})"
+msgstr "No longer in effect ({0})"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "No matched rule"
 msgstr "No matched rule"
@@ -10309,6 +10385,10 @@ msgstr "No monitored rules cite this source, so nothing needs re-verifying."
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No new deadline was created (it already exists), and deadlines can't store notes yet."
+msgstr "No new deadline was created (it already exists), and deadlines can't store notes yet."
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No next client"
@@ -10583,6 +10663,10 @@ msgstr "none in 90 days"
 msgid "None in the priority shortlist — <0>open the queue</0> to see all {activeTotal}."
 msgstr "None in the priority shortlist — <0>open the queue</0> to see all {activeTotal}."
 
+#: src/routes/obligations.tsx
+msgid "None of the selected deadlines are projected — they're already confirmed."
+msgstr "None of the selected deadlines are projected — they're already confirmed."
+
 #: src/routes/rules.library.tsx
 msgid "None of these can be accepted yet — each needs an AI concrete draft."
 msgstr "None of these can be accepted yet — each needs an AI concrete draft."
@@ -10707,6 +10791,10 @@ msgstr "Note"
 msgid "Note added"
 msgstr "Note added"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Note copied"
+msgstr "Note copied"
+
 #: src/features/clients/ClientNotesStrip.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -10745,12 +10833,12 @@ msgstr "Nothing here."
 
 #. placeholder {0}: counts.overdue
 #: src/features/dashboard/merged-brief-card.tsx
-msgid "Nothing in this window — {0} overdue in the Overdue tab."
-msgstr "Nothing in this window — {0} overdue in the Overdue tab."
+msgid "Nothing in this window — <0>{0} overdue in the Overdue tab</0>."
+msgstr "Nothing in this window — <0>{0} overdue in the Overdue tab</0>."
 
 #: src/features/dashboard/merged-brief-card.tsx
-msgid "Nothing in this window — {totalActive} coming up in the other tabs."
-msgstr "Nothing in this window — {totalActive} coming up in the other tabs."
+msgid "Nothing in this window — <0>{totalActive} coming up in the other tabs</0>."
+msgstr "Nothing in this window — <0>{totalActive} coming up in the other tabs</0>."
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "Nothing is waiting on your review"
@@ -11025,6 +11113,7 @@ msgid "Open Contacts and click the cloud icon; Admin permissions are required."
 msgstr "Open Contacts and click the cloud icon; Admin permissions are required."
 
 #: src/features/dashboard/daily-brief-card.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open deadline"
 msgstr "Open deadline"
 
@@ -11156,10 +11245,6 @@ msgstr "Open the Annual rollover preview →"
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the deadline blocking this row: {label}."
 msgstr "Open the deadline blocking this row: {label}."
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
-msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Open the exported .xls in Excel and re-save it as .xlsx or CSV before uploading; DueDateHQ cannot read UltraTax .xls or .dif files directly yet."
@@ -11343,6 +11428,10 @@ msgstr "Overridden"
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Override"
 msgstr "Override"
+
+#: src/routes/rules.library.tsx
+msgid "Overrides created by applied alerts"
+msgstr "Overrides created by applied alerts"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -12103,6 +12192,10 @@ msgstr "Preview impact as of {0}"
 msgid "Preview materials request"
 msgstr "Preview materials request"
 
+#: src/routes/rules.library.tsx
+msgid "Preview next year's generated deadlines"
+msgstr "Preview next year's generated deadlines"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Preview pagination"
@@ -12123,6 +12216,10 @@ msgstr "Previewing…"
 #: src/routes/rules.library.tsx
 msgid "Previous"
 msgstr "Previous"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Previous alert"
+msgstr "Previous alert"
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "Previous and next client in the filtered list"
@@ -12427,6 +12524,10 @@ msgstr "Read-only view"
 msgid "Read: {0}"
 msgstr "Read: {0}"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Readiness"
+msgstr "Readiness"
+
 #: src/routes/readiness.tsx
 msgid "Readiness check"
 msgstr "Readiness check"
@@ -12442,6 +12543,7 @@ msgstr "Reading file…"
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/queue/components/evidence.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/readiness.tsx
 #: src/routes/rules.library.tsx
 msgid "Ready"
@@ -12747,6 +12849,7 @@ msgstr "rejected"
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/rejection-chip.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/rules.library.tsx
 msgid "Rejected"
 msgstr "Rejected"
@@ -12926,6 +13029,10 @@ msgstr "Renews {0}"
 msgid "Reopen the return for drafting"
 msgstr "Reopen the return for drafting"
 
+#: src/features/obligations/queue/components/panels.tsx
+msgid "Reopens review notes on this return. The note is recorded in the activity trail so the preparer sees what to address."
+msgstr "Reopens review notes on this return. The note is recorded in the activity trail so the preparer sees what to address."
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Replace this file"
 msgstr "Replace this file"
@@ -13040,6 +13147,10 @@ msgstr "Responses"
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
 msgstr "Restart checkout"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Restore to queue"
+msgstr "Restore to queue"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Result"
@@ -13209,6 +13320,11 @@ msgstr "Review impact…"
 msgid "Review individually"
 msgstr "Review individually"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Review next"
+msgstr "Review next"
+
+#: src/features/obligations/queue/components/panels.tsx
 #: src/routes/rules.library.tsx
 msgid "Review note"
 msgstr "Review note"
@@ -13505,9 +13621,20 @@ msgid "Rule / reason"
 msgstr "Rule / reason"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule accepted"
 msgstr "Rule accepted"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Rule activated"
+msgstr "Rule activated"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Rule activated — {generated} deadlines generated"
+msgstr "Rule activated — {generated} deadlines generated"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Rule activated — 1 deadline generated"
+msgstr "Rule activated — 1 deadline generated"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Rule allows extension"
@@ -13616,7 +13743,6 @@ msgstr "Rule updated"
 msgid "Rule version"
 msgstr "Rule version"
 
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
@@ -14026,12 +14152,10 @@ msgid "Select {displayTitle} for batch review"
 msgstr "Select {displayTitle} for batch review"
 
 #. placeholder {0}: alert.title
-#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Select alert: {0}"
 msgstr "Select alert: {0}"
 
-#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/onboarding/state-rule-activation-selector.tsx
 #: src/routes/rules.library.tsx
@@ -14082,10 +14206,6 @@ msgstr "Select category…"
 #: src/routes/obligations.tsx
 msgid "Select client"
 msgstr "Select client"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Select clients and apply again."
-msgstr "Select clients and apply again."
 
 #: src/components/primitives/iso-date-picker.tsx
 msgid "Select date"
@@ -14291,6 +14411,10 @@ msgstr "Services"
 #: src/routes/settings.profile.tsx
 msgid "Session revoked"
 msgstr "Session revoked"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Set an internal target date to file."
+msgstr "Set an internal target date to file."
 
 #: src/routes/obligations.tsx
 msgid "Set extension date"
@@ -15384,6 +15508,7 @@ msgstr "Temporary rule"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/rules/states-rail.tsx
 #: src/routes/route-summary.ts
+#: src/routes/rules.library.tsx
 #: src/routes/rules.temporary.tsx
 msgid "Temporary rules"
 msgstr "Temporary rules"
@@ -15500,6 +15625,10 @@ msgstr "The dates below were extracted by AI from the source notice. Open the of
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "The extended filing deadline must be after the original deadline."
+msgstr "The extended filing deadline must be after the original deadline."
+
 #: src/features/obligations/queue/components/panels.tsx
 msgid "The filing deadline is the hard date the IRS or state enforces. The internal target is the firm's earlier goal — work toward it to keep a safety buffer."
 msgstr "The filing deadline is the hard date the IRS or state enforces. The internal target is the firm's earlier goal — work toward it to keep a safety buffer."
@@ -15511,6 +15640,10 @@ msgstr "The firm's running tally of client-provided documents, signatures, and c
 #: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open deadlines for the chosen window — work these first."
 msgstr "The highest-risk open deadlines for the chosen window — work these first."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "The internal target must be on or before the extended filing deadline."
+msgstr "The internal target must be on or before the extended filing deadline."
 
 #. placeholder {0}: pendingInvitationCancel.inviteeLabel
 #: src/features/members/members-page.tsx
@@ -16006,6 +16139,10 @@ msgstr "Tomorrow"
 msgid "Too many requests. Please try again in a moment."
 msgstr "Too many requests. Please try again in a moment."
 
+#: src/routes/rules.library.tsx
+msgid "Tools"
+msgstr "Tools"
+
 #: src/features/concepts/concept-help.tsx
 msgid "Top deadlines by risk"
 msgstr "Top deadlines by risk"
@@ -16085,6 +16222,7 @@ msgstr "Try again in a moment."
 #: src/features/dashboard/add-menu.tsx
 #: src/features/dashboard/create-choice-cards.tsx
 #: src/features/dashboard/merged-brief-card.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
@@ -16274,6 +16412,7 @@ msgstr "Unconfirm {0}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -16621,6 +16760,11 @@ msgstr "verified"
 msgid "Verified"
 msgstr "Verified"
 
+#. placeholder {0}: formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Verified {0}"
+msgstr "Verified {0}"
+
 #: src/routes/two-factor.tsx
 msgid "Verify & continue"
 msgstr "Verify & continue"
@@ -16777,6 +16921,10 @@ msgstr "View deadlines due this week"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "View deadlines from this rule"
 msgstr "View deadlines from this rule"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "View decision in audit log"
+msgstr "View decision in audit log"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "View extension rules"
@@ -16998,6 +17146,10 @@ msgstr "What does your practice focus on?"
 #: src/features/obligations/queue/components/panels.tsx
 msgid "What is the internal target?"
 msgstr "What is the internal target?"
+
+#: src/features/obligations/queue/components/panels.tsx
+msgid "What should the preparer fix or double-check?"
+msgstr "What should the preparer fix or double-check?"
 
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"
@@ -17420,6 +17572,10 @@ msgstr "Your morning read — what's due, what changed overnight, and who needs 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Your name, contact details, and display preferences."
 msgstr "Your name, contact details, and display preferences."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Your note from Add deadline — deadlines can't store notes yet, so copy it where it belongs. It only lasts this browser session."
+msgstr "Your note from Add deadline — deadlines can't store notes yet, so copy it where it belongs. It only lasts this browser session."
 
 #: src/features/migration/WizardShell.tsx
 msgid "Your pasted data and unsaved edits will be discarded."

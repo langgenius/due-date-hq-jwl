@@ -101,10 +101,16 @@ to copy); in-shell 404; keyboard help.
 
 ## Fix waves
 
-- **Wave 1 (this pass):** mechanical high-certainty fixes — status URL, source-chip
-  spread order, crumb filter preservation, drawer Back semantics (push on open),
-  see-all/pill filter carry, sync feedback, priorities empty-state link, aria plural,
-  onCreated wiring, notes preservation (or honest disable), blank-pane ref guard.
+- **Wave 1 — SHIPPED 2026-07-02** (see docs/dev-log/ux-flow-wave1-fixes-2026-07-02.md):
+  alert undo/restore (+ repo guard fix + key-repeat double-dismiss), history bulk
+  chrome removal, pager buttons, /today source-chip + inline-dismiss + bucket links
+  + onCreated + sync feedback, snooze P0 (return+undo+dated toast), crumb filters,
+  malformed-ref guard, leave-note dialog, bulk-confirm honesty, extension hint,
+  create-notes P0 (session draft), status URL, refetchOnWindowFocus, palette
+  honesty, 2 console warnings, rules accept closure + review-next + bulk default +
+  ready markers + decision rail + Tools menu. Investigations: notification-id P0
+  disproven (was the snoozed row); practice-save revert = demo-only
+  (ensureDemoIdentities). Drawer Back semantics moved to wave 2.
 - **Wave 2:** shared query-error/retry primitive (S1); undo/closure convention rollout
   (S2: dismiss undo + history restore, snooze visibility + unsnooze, bulk confirms);
   rule-accept closure + next-candidate + bulk-modal default; leave-note dialog;
