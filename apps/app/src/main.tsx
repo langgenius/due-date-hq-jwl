@@ -13,7 +13,10 @@ import './styles/globals.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 60_000, refetchOnWindowFocus: false },
+    // staleTime keeps in-session navigation cheap; refetchOnWindowFocus:true
+    // covers the multi-user case — a second viewer returning to their tab
+    // sees fresh data instead of up-to-60s-stale detail.
+    queries: { staleTime: 60_000, refetchOnWindowFocus: true },
   },
 })
 

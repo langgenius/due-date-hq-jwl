@@ -91,7 +91,7 @@ function EntryShellFooter() {
           opens in a new tab so the entry surface (often mid-login) isn't
           lost. */}
       <a
-        href="https://status.duedatehq.com"
+        href="https://duedatehq.com/status"
         target="_blank"
         rel="noreferrer noopener"
         className="inline-flex items-center gap-1.5 rounded-sm hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"

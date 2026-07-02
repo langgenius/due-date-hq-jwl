@@ -200,6 +200,11 @@ function AlertsNotificationsBell() {
             <Button
               variant="ghost"
               size="icon-xs"
+              // Rendering a <Link> (an <a>), not a native <button> — tell
+              // Base UI so it applies role/keyboard semantics instead of
+              // warning ("nativeButton prop is true" console error on every
+              // popover open).
+              nativeButton={false}
               render={
                 <Link
                   to="/notifications"

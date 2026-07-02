@@ -72,8 +72,12 @@ type NavEntry = {
 }
 
 // Pill = a top-level scope filter shown under the input. `All` clears
-// the filter; the others narrow results to one entity/area.
-type PillId = 'all' | 'clients' | 'deadlines' | 'alerts' | 'rules' | 'pages'
+// the filter; the others narrow results to one entity/area. Only pills
+// with a real search source behind them are offered — Clients (entity
+// rows via clients.listByFirm) and Pages (nav entries). Deadlines /
+// Alerts / Rules pills return once a search endpoint exists for them
+// (see the TODO(data) note below).
+type PillId = 'all' | 'clients' | 'pages'
 
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
@@ -115,10 +119,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   // client-side via `clients.listByFirm` (the same query the title
   // switcher + cycle arrows use). We only fetch while the palette is
   // open. Deadlines / Alerts / Rules have no equivalent client-side
-  // list query wired into the shell yet — those pills narrow the Pages
-  // group to their area instead (see PILL_SCOPE). TODO(data): a
-  // unified `search.global` endpoint indexing deadlines / alerts /
-  // rules would let those pills return entity rows too.
+  // list query wired into the shell yet, so they get no pill.
+  // TODO(data): a unified `search.global` endpoint indexing deadlines /
+  // alerts / rules would let those pills return entity rows.
   const clientsQuery = useQuery({
     ...orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }),
     enabled: open,
@@ -302,23 +305,17 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       [
         { id: 'all', label: t`All` },
         { id: 'clients', label: t`Clients` },
-        { id: 'deadlines', label: t`Deadlines` },
-        { id: 'alerts', label: t`Alerts` },
-        { id: 'rules', label: t`Rules` },
         { id: 'pages', label: t`Pages` },
       ] satisfies Array<{ id: PillId; label: string }>,
     [t],
   )
 
   // Which nav scopes a pill reveals. `all` + `pages` show everything;
-  // the entity pills narrow the Pages list to their area.
+  // the Clients pill narrows the Pages list to client-area pages.
   const navScopesForPill: Record<PillId, NavScope[] | 'all'> = {
     all: 'all',
     pages: 'all',
     clients: ['clients'],
-    deadlines: ['deadlines'],
-    alerts: ['alerts'],
-    rules: ['rules'],
   }
 
   function close() {
@@ -427,9 +424,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         />
 
         {/* Filter pills (Pencil v4WcY8). Scope the results to one
-            entity / area. `Clients` is real entity search; the
-            Deadlines / Alerts / Rules pills narrow the Pages list to
-            their area (no entity backend wired here yet). */}
+            entity / area. `Clients` is real entity search; `Pages`
+            scopes to nav entries. Only pills with a real search source
+            are shown. */}
         <div className="flex flex-wrap gap-1.5 border-b border-divider-subtle px-4 py-2.5">
           {pills.map((entry) => {
             const active = pill === entry.id

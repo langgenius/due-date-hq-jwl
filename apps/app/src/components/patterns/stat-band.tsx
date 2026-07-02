@@ -185,8 +185,10 @@ export function StatBand({
         </CapsFieldLabel>
         <span
           // Remount on bumpKey change so the once-only pulse re-fires; static
-          // (no key) when the caller doesn't opt in.
-          {...(bumpKey != null ? { key: bumpKey } : {})}
+          // (undefined key = no key) when the caller doesn't opt in. `key`
+          // must be passed directly — spreading an object containing `key`
+          // trips React 19's key-spread warning (same class as TaxCodeBadge).
+          key={bumpKey ?? undefined}
           className={cn(
             'text-stat-value font-semibold tracking-tight tabular-nums',
             stat.valueClass ?? 'text-text-primary',
@@ -345,7 +347,8 @@ export function StatSummaryStrip({
         const body = (
           <>
             <span
-              {...(bumpKey != null ? { key: bumpKey } : {})}
+              // Direct `key` (never spread — React 19 key-spread warning).
+              key={bumpKey ?? undefined}
               className={cn(
                 'font-medium tabular-nums text-text-primary',
                 stat.valueClass,
