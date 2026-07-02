@@ -143,10 +143,14 @@ export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-wrap items-center gap-2.5">
           <span>© {new Date().getFullYear()} DueDateHQ</span>
+          {/* Absolute marketing-site URLs: relative hrefs resolve against
+              app.duedatehq.com, where these pages don't exist — pre-login
+              clicks then bounce through /login?redirectTo and land on the
+              in-shell 404 after sign-in. New tab so the login flow survives. */}
           {[
-            { label: 'Terms', href: '/terms' },
-            { label: 'Privacy', href: '/privacy' },
-            { label: 'Security', href: '/security' },
+            { label: 'Terms', href: 'https://duedatehq.com/terms' },
+            { label: 'Privacy', href: 'https://duedatehq.com/privacy' },
+            { label: 'Security', href: 'https://duedatehq.com/security' },
           ].map((item) => (
             <span key={item.label} className="flex items-center gap-2.5">
               <span aria-hidden className="text-text-muted">
@@ -154,6 +158,8 @@ export function AuthFooter({ showTrust = false }: { showTrust?: boolean }) {
               </span>
               <a
                 href={item.href}
+                target="_blank"
+                rel="noreferrer noopener"
                 className="transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {item.label}
