@@ -280,6 +280,12 @@ export function LoginRoute() {
                   <Trans>No password — one-time links expire in 10 minutes.</Trans>
                 </span>
               </p>
+              {/* New-visitor reassurance: every acquisition CTA lands here and the
+                  heading says "Sign in" — passwordless means signup IS sign-in, so
+                  say it once, quietly, instead of a separate "Create account" path. */}
+              <p className="text-xs font-medium text-text-tertiary">
+                <Trans>New here? Entering your email creates your account.</Trans>
+              </p>
               {/* "Open it now" focuses the email field — a magic link is a URL the
                   user opens from their inbox; there's no separate paste surface. */}
               <p className="flex items-center justify-center gap-1.5 text-sm">

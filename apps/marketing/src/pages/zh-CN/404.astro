@@ -1,0 +1,168 @@
+---
+/**
+ * /zh-CN/404 — Simplified-Chinese mirror of the navigation-recovery page.
+ * Same composition as the EN 404 (lead + route-status card); copy comes from
+ * the zh-CN i18n notFound block. Emitted as dist/zh-CN/404.html so Cloudflare
+ * Workers Static Assets (`not_found_handling = "404-page"`) serves the nearest
+ * 404.html — zh visitors on /zh-CN/* misses get this page; everything else
+ * still falls back to the root /404.html (per 12-Marketing-Architecture §4.1).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import zhCN from '../../i18n/zh-CN'
+import { getStartedHref } from '../../lib/app-url'
+
+const t = zhCN
+const ctaHref = getStartedHref('zh-CN')
+// published escape hatches — driven entirely by the i18n notFound.routes so the
+// list stays a single source of truth; the 'app' href sentinel resolves to ctaHref.
+const routes = t.notFound.routes.map((route) =>
+  route.href === 'app' ? { label: route.label, href: ctaHref } : route,
+)
+---
+
+<BaseLayout
+  lang="zh-CN"
+  pathname="/zh-CN/404"
+  title={t.notFound.meta.title}
+  description={t.notFound.meta.description}
+  ogImage={t.notFound.meta.ogImage}
+  noindex
+>
+  <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" />
+  <main>
+    <section class="m-section nf">
+      <div class="nf__lead">
+        <p class="m-eyebrow">{t.notFound.eyebrow}</p>
+        <h1 class="m-page-title">{t.notFound.title}</h1>
+        <p class="m-page-lead">{t.notFound.body}</p>
+        <div class="nf__btns">
+          <a class="m-btn m-btn--primary" href="/zh-CN">{t.notFound.primaryCta}</a>
+          <a class="m-btn m-btn--secondary" href="/zh-CN/pricing">{t.notFound.secondaryCta}</a>
+        </div>
+      </div>
+
+      <aside class="nf__card">
+        <div class="nf__cardhead">
+          <span class="nf__status">{t.notFound.statusLabel}</span>
+          <span class="nf__code">404</span>
+        </div>
+        <p class="nf__statusval">{t.notFound.statusValue}</p>
+        <p class="nf__routeslabel">{t.notFound.routesLabel}</p>
+        <ul class="nf__routes">
+          {
+            routes.map((route) => (
+              <li>
+                <a class="nf__route" href={route.href}>
+                  <span>{route.label}</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </section>
+  </main>
+  <Footer locale="zh-CN" />
+</BaseLayout>
+
+<style>
+  .nf {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--m-col-gap);
+    gap: clamp(32px, 5vw, 56px);
+    align-items: center;
+    min-height: min(72vh, 640px);
+  }
+  .nf__lead {
+    grid-column: span 7;
+  }
+  .nf__btns {
+    margin-top: clamp(28px, 3vw, 40px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .nf__card {
+    grid-column: span 5;
+    padding: clamp(20px, 2vw, 26px);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+  }
+  .nf__cardhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .nf__status {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    letter-spacing: var(--m-ls-eyebrow);
+    color: var(--m-faint);
+  }
+  .nf__code {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    color: var(--m-accent);
+  }
+  .nf__statusval {
+    margin-top: 18px;
+    font-size: var(--m-text-lg);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .nf__routeslabel {
+    margin-top: 6px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    letter-spacing: var(--m-ls-eyebrow);
+    color: var(--m-faint);
+  }
+  .nf__routes {
+    margin-top: 16px;
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+  .nf__route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 8px;
+    background: var(--m-canvas);
+    font-size: var(--m-text-sm);
+    color: var(--m-ink-2);
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+  .nf__route:hover {
+    border-color: var(--m-muted);
+    color: var(--m-ink);
+    background: var(--m-section);
+  }
+  .nf__route span[aria-hidden] {
+    color: var(--m-faint);
+  }
+  @media (max-width: 900px) {
+    .nf {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    .nf__lead,
+    .nf__card {
+      grid-column: auto;
+    }
+  }
+</style>
