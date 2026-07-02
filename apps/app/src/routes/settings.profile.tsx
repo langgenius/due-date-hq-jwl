@@ -80,6 +80,11 @@ import {
   type PendingTwoFactorSetup,
 } from './account-security-two-factor-setup'
 
+// How many sessions render before the "Show all N" expander takes over.
+// Ten covers every realistic multi-device setup; beyond that the list is
+// an archive the user opts into, not a wall they scroll past.
+const SESSIONS_PREVIEW_COUNT = 10
+
 function useDisplayPreferenceSwitch(): {
   displayPreferences: DisplayPreferences
   switchDateFormatPreference: (next: DateFormatPreference) => void
@@ -126,6 +131,11 @@ export function SettingsProfileRoute() {
     createdAt: string
     isCurrent: boolean
   } | null>(null)
+  // Sessions list cap (ux-flow audit 2026-07-02): long-lived accounts
+  // accumulate dozens of sessions (~90 in the demo firm) and the list
+  // rendered them ALL, burying the rest of the page. Show the most
+  // recent few and put the remainder behind an honest "Show all N".
+  const [showAllSessions, setShowAllSessions] = useState(false)
 
   const user = session.data?.user
   const displayName = user?.name ?? ''
@@ -246,6 +256,17 @@ export function SettingsProfileRoute() {
   }
 
   const status = statusQuery.data
+  // Current device pinned first (it must never hide behind the cap),
+  // then newest sessions first — the order a "is this login mine?"
+  // review actually reads in.
+  const orderedSessions = [...(status?.sessions ?? [])].sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
+    return b.createdAt.localeCompare(a.createdAt)
+  })
+  const visibleSessions = showAllSessions
+    ? orderedSessions
+    : orderedSessions.slice(0, SESSIONS_PREVIEW_COUNT)
+  const hiddenSessionCount = orderedSessions.length - visibleSessions.length
 
   return (
     <SettingsShell>
@@ -433,12 +454,12 @@ export function SettingsProfileRoute() {
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-section">
-                  {status.sessions.map((s, idx) => (
+                  {visibleSessions.map((s, idx) => (
                     <div
                       key={s.id}
                       className={cn(
                         'flex items-center gap-3.5 px-4 py-3',
-                        idx < status.sessions.length - 1 && 'border-b border-divider-subtle',
+                        idx < visibleSessions.length - 1 && 'border-b border-divider-subtle',
                       )}
                     >
                       <span
@@ -492,6 +513,27 @@ export function SettingsProfileRoute() {
                       )}
                     </div>
                   ))}
+                  {/* Honest expander — names the real total instead of
+                      rendering ~90 rows by default (ux-flow audit
+                      2026-07-02). Collapse affordance mirrors it so the
+                      list isn't a one-way door. */}
+                  {hiddenSessionCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSessions(true)}
+                      className="flex w-full items-center justify-center border-t border-divider-subtle px-4 py-2.5 text-sm text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
+                      <Trans>Show all {orderedSessions.length} sessions</Trans>
+                    </button>
+                  ) : showAllSessions && orderedSessions.length > SESSIONS_PREVIEW_COUNT ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSessions(false)}
+                      className="flex w-full items-center justify-center border-t border-divider-subtle px-4 py-2.5 text-sm text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
+                      <Trans>Show fewer</Trans>
+                    </button>
+                  ) : null}
                 </div>
               </>
             ) : null}

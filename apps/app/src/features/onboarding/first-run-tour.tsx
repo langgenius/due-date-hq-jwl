@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -57,6 +58,7 @@ function measure(href: string): Rect | null {
 
 export function FirstRunTour() {
   const { t } = useLingui()
+  const navigate = useNavigate()
 
   const steps = useMemo<TourStep[]>(
     () => [
@@ -127,6 +129,15 @@ export function FirstRunTour() {
     markSeen()
     setActive(false)
   }, [])
+
+  // 2026-07-02 (ux-flow audit): the last step SAYS "activate the states you
+  // file in" but the only button used to be "Done" (close overlay) — a dead
+  // instruction. The final CTA now actually goes to the Rule library; the
+  // quiet left-side dismiss stays for users who just want out.
+  const finishToRuleLibrary = useCallback(() => {
+    finish()
+    void navigate('/rules/library')
+  }, [finish, navigate])
 
   const next = useCallback(() => {
     let n = index + 1
@@ -227,7 +238,7 @@ export function FirstRunTour() {
 
         <div className="flex items-center justify-between gap-2 pt-1">
           <TextLink variant="muted" onClick={finish} className="text-sm">
-            {t`Skip`}
+            {isLast ? t`Done` : t`Skip`}
           </TextLink>
           <div className="flex items-center gap-2">
             {index > 0 ? (
@@ -235,8 +246,8 @@ export function FirstRunTour() {
                 {t`Back`}
               </Button>
             ) : null}
-            <Button size="sm" onClick={isLast ? finish : next}>
-              {isLast ? t`Done` : t`Next`}
+            <Button size="sm" onClick={isLast ? finishToRuleLibrary : next}>
+              {isLast ? t`Open Rule library` : t`Next`}
             </Button>
           </div>
         </div>

@@ -7,6 +7,22 @@ import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 // meaning mid-hop. nuqs parseAsArrayOf encodes arrays comma-separated.
 const OPEN_STATUS_PARAM = OPEN_OBLIGATION_STATUSES.join(',')
 
+// RESIDUAL (2026-07-02 ux-flow audit): assignee deep-links are keyed by
+// display NAME because that is all the pipeline supports end-to-end — the
+// /deadlines `assignee`/`assignees` params map to `assigneeName(s)` in the
+// queue contract, and the DB filter matches the denormalized
+// `clients.assignee_name` text column (packages/db/src/repo/
+// obligation-queue.ts). There is no id-keyed filter param, and
+// WorkloadOwnerRow carries no assigneeId either. Until the contract + repo
+// grow an assigneeId filter, every producer of these links MUST go through
+// the helpers below so the name-keying lives in exactly one place — a
+// member rename then breaks one helper, not N scattered URLs.
+
+/** Canonical /deadlines link for one teammate's deadlines (all statuses). */
+export function assigneeDeadlinesHref(assigneeName: string): string {
+  return obligationQueueHref({ assignee: assigneeName })
+}
+
 export function obligationQueueHref(
   params: Record<string, string | number | null | undefined>,
 ): string {

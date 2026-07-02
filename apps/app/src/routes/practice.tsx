@@ -67,6 +67,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { deadlineDetailPath } from '@/features/obligations/deadline-detail-url'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import {
   PermissionInlineNotice,
@@ -76,10 +77,7 @@ import { orpc } from '@/lib/rpc'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
-import {
-  UnsavedChangesGuardDialog,
-  useUnsavedChangesGuard,
-} from '@/lib/use-unsaved-changes-guard'
+import { UnsavedChangesGuardDialog, useUnsavedChangesGuard } from '@/lib/use-unsaved-changes-guard'
 import { formatDate } from '@/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
@@ -1216,7 +1214,17 @@ function PriorityPreviewTable({
                 <TableCell className="text-right">
                   <TextLink
                     variant="accent"
-                    render={<Link to={`/deadlines/${row.obligationId}`} />}
+                    // 2026-07-02 (ux-flow audit): the raw obligation UUID is
+                    // NOT a valid /deadlines/:ref segment (the route resolves
+                    // 12-char refs) — deadlineDetailPath derives the canonical
+                    // ref; route state carries the id as the fast-path the
+                    // deadline table rows use.
+                    render={
+                      <Link
+                        to={deadlineDetailPath(row.obligationId)}
+                        state={{ obligationId: row.obligationId }}
+                      />
+                    }
                     className="inline-flex items-center gap-1 text-xs"
                   >
                     <Trans>Why this rank?</Trans>

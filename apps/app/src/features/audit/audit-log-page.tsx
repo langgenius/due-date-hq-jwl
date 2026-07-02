@@ -74,6 +74,7 @@ import {
   categoryToInput,
   formatAuditActionLabel,
   formatAuditEntityTypeLabel,
+  getAuditEntityDisplay,
   getAuditExportUnavailableReason,
   isAuditCategoryOption,
   isAuditRange,
@@ -316,9 +317,15 @@ function AuditKpiStrip({
     },
     {
       key: 'system',
-      label: <Trans>System</Trans>,
+      // "Other", not "System" — this tile is the TIMELINE-type catch-all
+      // (decision + everything without a filing/amendment/access shape),
+      // which is a different taxonomy from the Category filter's "System"
+      // option (actions with no domain prefix). Sharing the word "System"
+      // made "SYSTEM 50" sit next to a Category filter reading "System 0"
+      // (ux-flow audit 2026-07-02).
+      label: <Trans>Other</Trans>,
       value: value(countsByType.system + countsByType.decision),
-      sub: <Trans>auto-recorded and manual decisions</Trans>,
+      sub: <Trans>decisions and system events</Trans>,
     },
   ]
   return <StatBand stats={stats} bumpKey={bumpKey} loading={loading} />
@@ -441,6 +448,14 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
   const packagesQuery = useQuery({
     ...orpc.audit.listEvidencePackages.queryOptions({ input: { limit: 5 } }),
     enabled: open && canExport,
+    // An export in flight (pending/running) should resolve into "Download
+    // latest" on its own — poll while one is preparing so the dialog reflects
+    // real progress instead of freezing on "Request export" (ux-flow audit
+    // 2026-07-02). Only ticks while the dialog is open (`enabled` above).
+    refetchInterval: (query) => {
+      const status = query.state.data?.packages[0]?.status
+      return status === 'pending' || status === 'running' ? 4000 : false
+    },
   })
   const requestPackage = useMutation(
     orpc.audit.requestEvidencePackage.mutationOptions({
@@ -549,6 +564,14 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                 {latest.failureReason ? (
                   <p className="text-text-destructive">{latest.failureReason}</p>
                 ) : null}
+                {latest.status === 'pending' || latest.status === 'running' ? (
+                  <p className="text-text-secondary">
+                    <Trans>
+                      We're preparing the evidence package — the download appears here when it's
+                      ready.
+                    </Trans>
+                  </p>
+                ) : null}
               </>
             ) : (
               <p className="text-text-secondary">
@@ -571,6 +594,18 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
                   className="animate-spin motion-reduce:animate-none"
                 />
                 <Trans>Loading…</Trans>
+              </Button>
+            ) : latest?.status === 'pending' || latest?.status === 'running' ? (
+              // An export is already being prepared server-side — reflect it
+              // instead of offering a second "Request export" that would just
+              // queue a duplicate. The list query above polls while this state
+              // holds, so the button flips to "Download latest" by itself.
+              <Button disabled aria-busy>
+                <Loader2Icon
+                  data-icon="inline-start"
+                  className="animate-spin motion-reduce:animate-none"
+                />
+                <Trans>Preparing export…</Trans>
               </Button>
             ) : latest?.status === 'ready' ? (
               <Button
@@ -780,6 +815,23 @@ export function AuditLogPage() {
   const hasPreviousPage = currentPageIndex > 0
   const hasNextPage = hasLoadedNextPage || auditQuery.hasNextPage
   const selectedEvent = events.find((event) => event.id === query.event) ?? null
+  // Scoped-arrival banner subject — when the page is entity-scoped
+  // (?entity=<id>), name WHAT record the history belongs to instead of
+  // "a single record" (ux-flow audit 2026-07-02). The server already
+  // filtered the events to that entity, so any loaded event carries the
+  // entity's name/type in its payload. No events loaded → fall back to
+  // the shortened id so the banner is still anchored to something real.
+  const scopedEntityDisplay = useMemo(() => {
+    if (!entityIdFilter) return null
+    // Every loaded event already matches the entity filter server-side,
+    // so the first event is a safe fallback for id-format mismatches.
+    const sample = events.find((event) => event.entityId === entityIdFilter) ?? events[0]
+    if (!sample) return null
+    return getAuditEntityDisplay(
+      sample,
+      formatAuditEntityTypeLabel(sample.entityType, entityTypeLabels),
+    )
+  }, [entityIdFilter, events, entityTypeLabels])
   const filtersActive =
     query.q !== '' ||
     query.category !== 'all' ||
@@ -1090,8 +1142,27 @@ export function AuditLogPage() {
               (?entity=<id>). Names the scope and clears back to the full log. */}
           {entityIdFilter ? (
             <div className="flex items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
-              <span className="text-sm text-text-secondary">
-                <Trans>Showing the full history of a single record.</Trans>
+              <span className="min-w-0 truncate text-sm text-text-secondary">
+                {scopedEntityDisplay ? (
+                  // Name the record the history belongs to — "a single
+                  // record" left the reader guessing which one (ux-flow
+                  // audit 2026-07-02). primary = entity name (or type
+                  // when unnamed); secondary = type · short id.
+                  <Trans>
+                    Showing the full history of{' '}
+                    <span className="font-medium text-text-primary">
+                      {scopedEntityDisplay.primary}
+                    </span>{' '}
+                    <span className="text-text-tertiary">({scopedEntityDisplay.secondary})</span>
+                  </Trans>
+                ) : (
+                  <Trans>
+                    Showing the full history of record{' '}
+                    <span className="font-medium text-text-primary">
+                      {shortenAuditId(entityIdFilter)}
+                    </span>
+                  </Trans>
+                )}
               </span>
               <Button
                 type="button"

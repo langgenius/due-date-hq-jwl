@@ -54,7 +54,10 @@ function auditEntityHref(entityType: string, entityId: string): string | null {
     case 'obligation_rule':
       return `/rules/library?rule=${encodeURIComponent(entityId)}`
     case 'rule_source':
-      return '/rules/sources'
+      // Scoped to the specific source (2026-07-02 ux-flow audit) — the
+      // sources tab filters its table to `?source=<id>`, so the jump lands
+      // on the row that changed instead of the full registry list.
+      return `/rules/sources?source=${encodeURIComponent(entityId)}`
     case 'pulse_alert':
     case 'pulse_firm_alert':
     case 'pulse_application':

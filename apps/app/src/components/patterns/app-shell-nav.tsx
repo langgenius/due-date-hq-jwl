@@ -292,10 +292,20 @@ function SidebarSystemStatus() {
   // Source health is an internal/dev concern — which government sites we scrape
   // and whether one is throwing a bot-challenge or a 5xx isn't something a CPA
   // firm can act on, and surfacing it as a red "N sources need attention" only
-  // erodes trust. The rail pill stays a positive reassurance: a steady-tone dot
-  // and the monitoring SCOPE ("what are we watching"). Failures are handled
-  // out-of-band (ops alerts + the weekly source-health workflow).
-  const dotToneClass = 'bg-text-success'
+  // erodes trust. The rail pill stays a reassurance about SCOPE ("what are we
+  // watching"); failures are handled out-of-band (ops alerts + the weekly
+  // source-health workflow).
+  //
+  // 2026-07-02 (ux-flow audit): the dot's TONE is no longer unconditionally
+  // green. A success-green dot sat right next to /rules/sources reading
+  // "Fetched last 24h: 0 · Last checked May 1" — the rail claimed a freshness
+  // the data page disproved. Green now means "a sweep completed in the last
+  // 24h"; anything older (or never swept) drops to a neutral dot, and the
+  // tooltip names the real last-swept time either way. Still never red —
+  // stale is a quiet fact, not an alarm the CPA can act on.
+  const sweptWithin24h =
+    lastChecked !== null && Date.now() - new Date(lastChecked).getTime() < 24 * 60 * 60 * 1000
+  const dotToneClass = sweptWithin24h ? 'bg-text-success' : 'bg-text-tertiary'
 
   const scopeLabel = (
     <Plural
@@ -347,9 +357,19 @@ function SidebarSystemStatus() {
           </span>
           {relativeChecked ? (
             <span>
-              <Trans>Last swept {relativeChecked}</Trans>
+              {sweptWithin24h ? (
+                <Trans>Last swept {relativeChecked}</Trans>
+              ) : (
+                // Stale sweep — say so plainly instead of letting the scope
+                // line imply live coverage (ux-flow audit 2026-07-02).
+                <Trans>No sweep in the last 24h — last swept {relativeChecked}</Trans>
+              )}
             </span>
-          ) : null}
+          ) : (
+            <span>
+              <Trans>No sweep recorded yet</Trans>
+            </span>
+          )}
           <span className="text-components-tooltip-text/80">
             <Trans>Click to open Sources.</Trans>
           </span>

@@ -273,7 +273,13 @@ export function BillingRoute() {
       return t`Trial ends ${formatDate(activeSubscription.trialEnd)}`
     }
     if (activeSubscription.periodEnd) {
-      return t`Renews ${formatDate(activeSubscription.periodEnd)}`
+      // "Renews <date>" is a promise about the future — never claim it for a
+      // date that already passed (stale webhook data or a stale demo seed
+      // showed "Renews 2026-06-01" weeks after the fact; ux-flow audit
+      // 2026-07-02). A past period end is reported as the fact it is.
+      return new Date(activeSubscription.periodEnd).getTime() >= Date.now()
+        ? t`Renews ${formatDate(activeSubscription.periodEnd)}`
+        : t`Period ended ${formatDate(activeSubscription.periodEnd)}`
     }
     return null
   })()
@@ -352,7 +358,35 @@ export function BillingRoute() {
           <AlertTitle>
             <Trans>Billing portal couldn't open</Trans>
           </AlertTitle>
-          <AlertDescription>{portalMutation.error.message}</AlertDescription>
+          {/* Non-circular recovery path (ux-flow audit 2026-07-02): the page's
+              only billing affordance IS the portal, so an error that just
+              restated the failure sent the user back to the same button.
+              Offer a retry and a route that doesn't depend on the portal. */}
+          <AlertDescription className="flex flex-col gap-2">
+            <span>{portalMutation.error.message}</span>
+            <span className="flex flex-wrap items-center gap-2">
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={() => portalMutation.mutate()}
+                disabled={portalMutation.isPending}
+              >
+                <Trans>Try again</Trans>
+              </Button>
+              <span>
+                <Trans>
+                  If it keeps failing, email{' '}
+                  <a
+                    className="underline underline-offset-2"
+                    href="mailto:support@duedatehq.com?subject=Billing%20portal%20error"
+                  >
+                    support@duedatehq.com
+                  </a>{' '}
+                  and we'll handle the billing change with you directly.
+                </Trans>
+              </span>
+            </span>
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -719,6 +753,16 @@ function PlanOption({
   const current = samePlan && interval === currentInterval
   const lowerThanCurrent = currentPlan ? PLAN_RANK[plan.id] < PLAN_RANK[currentPlan] : false
   const disabled = plan.disabled || current || lowerThanCurrent || !owner
+  // Every disabled card states WHY (ux-flow audit 2026-07-02) — a dead
+  // button with no reason reads as broken. Mirrors the disable conditions
+  // above, most actionable first: non-owners can't change plans at all;
+  // owners see the downgrade route. `current` needs no caption — the button
+  // itself already reads "Current plan".
+  const disabledReason: ReactNode = !disabled ? null : current ? null : !owner ? (
+    <Trans>Only {requiredRolesLabel('billing.update')} can change plans.</Trans>
+  ) : lowerThanCurrent ? (
+    <Trans>Lower tier than your current plan — downgrade through Manage billing.</Trans>
+  ) : null
   const highlighted = plan.id === 'pro'
   const priceKind = plan.priceKind ?? 'numeric'
   const actionLabel =
@@ -833,9 +877,16 @@ function PlanOption({
             <ArrowRightIcon data-icon="inline-end" />
           </Link>
         ) : (
-          <Button disabled className="w-full" variant="outline">
-            {current ? <Trans>Current plan</Trans> : plan.cta}
-          </Button>
+          <>
+            <Button disabled className="w-full" variant="outline">
+              {current ? <Trans>Current plan</Trans> : plan.cta}
+            </Button>
+            {disabledReason ? (
+              <p className="mt-2 text-center text-xs leading-4 text-text-tertiary">
+                {disabledReason}
+              </p>
+            ) : null}
+          </>
         )}
       </CardFooter>
     </Card>

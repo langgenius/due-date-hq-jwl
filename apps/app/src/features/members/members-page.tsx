@@ -77,6 +77,7 @@ import {
 } from '@/components/patterns/keyboard-shell/hooks'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
+import { assigneeDeadlinesHref } from '@/features/workload/workload-links'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -1038,12 +1039,13 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
           tooltip; aria metadata lives on the avatar so the sibling text-name
           reads naturally and the avatar stays decorative. */}
       <AssigneeAvatar name={member.name} image={member.image} size="sm" title={member.name} />
-      {/* The name links to this teammate's deadlines (assignee filter is keyed
-          by name — see /deadlines `assignees` param). Turns the roster into a
-          jump-off to "what is this person working on", the team↔work link the
-          members page was missing. */}
+      {/* The name links to this teammate's deadlines. Built via the shared
+          assigneeDeadlinesHref helper so the (name-keyed — see the residual
+          note in workload-links.ts) filter param is encoded in exactly one
+          place. Turns the roster into a jump-off to "what is this person
+          working on", the team↔work link the members page was missing. */}
       <Link
-        to={`/deadlines?assignee=${encodeURIComponent(member.name)}`}
+        to={assigneeDeadlinesHref(member.name)}
         title={t`View ${member.name}'s deadlines`}
         className={cn(
           'truncate rounded-sm text-xs font-medium underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',

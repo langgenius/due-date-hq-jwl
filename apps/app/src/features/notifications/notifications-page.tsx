@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -64,6 +64,7 @@ export function NotificationsPage() {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   // Notifications inbox is text-heavy (title + body free-text), capped at 50
   // rows. SearchInput is wired to a `q` URL param so a shared
   // `/notifications?q=Section%20199A` deep-link lands the recipient on the
@@ -333,12 +334,34 @@ export function NotificationsPage() {
             // Unread is signaled by the leading dot inside CardContent (not
             // a card left-rail). role="article" preserves the document
             // landmark for SR users (Card renders a <div> only).
+            //
+            // 2026-07-02 (ux-flow audit): the whole card is clickable when the
+            // notification has a destination — the bell popover's rows already
+            // navigate, and these page cards silently didn't. Same handoff as
+            // the Open button (track + mark read + navigate); clicks on the
+            // explicit controls (Open / Mark read) keep their own behavior via
+            // the closest('a, button') guard — the queue-table row idiom. The
+            // Open button stays as the keyboard/AT path.
             <Card
               key={item.id}
               role="article"
               size="sm"
               radius="md"
               aria-label={item.readAt ? t`Read: ${item.title}` : t`Unread: ${item.title}`}
+              {...(item.href
+                ? {
+                    className: 'cursor-pointer transition-colors hover:bg-background-subtle',
+                    onClick: (event: React.MouseEvent) => {
+                      if (!item.href) return
+                      if (event.target instanceof Element && event.target.closest('a, button')) {
+                        return
+                      }
+                      track(ANALYTICS_EVENTS.notificationOpened, { type: item.type })
+                      if (!item.readAt) markRead.mutate({ id: item.id })
+                      void navigate(item.href)
+                    },
+                  }
+                : {})}
             >
               <CardContent className="grid gap-2">
                 <div className="flex items-start justify-between gap-3">
