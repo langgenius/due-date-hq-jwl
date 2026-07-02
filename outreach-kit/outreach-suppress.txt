@@ -1,0 +1,3 @@
+# Suppression list — one email per line. The sender script skips these on ALL touches.
+# Add anyone who: replied "no thanks"/unsubscribe, asked to stop, or hard-bounced.
+# Add BEFORE running touch 2 (≈2026-07-06) and touch 3 (≈2026-07-12).
