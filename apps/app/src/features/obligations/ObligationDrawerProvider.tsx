@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import type { ObligationQueueDetailTab } from '@duedatehq/contracts'
 
@@ -46,6 +46,7 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
 export function ObligationDrawerProvider({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [localObligationId, setLocalObligationId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ObligationQueueDetailTab>('readiness')
 
@@ -66,6 +67,14 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
   const isClientDetailRoute = location.pathname.startsWith('/clients/')
   const routeOwnsPanel = isQueueRoute || isClientDetailRoute
 
+  // On client detail the open obligation lives in the URL
+  // (`?obligation=<id>`) instead of local state, so the panel is
+  // deep-linkable AND browser Back closes the panel and returns to
+  // client detail rather than exiting to /clients (ux-flow-audit
+  // 2026-07-02 S3, QA P1-3). Off client detail the param is ignored.
+  const urlObligationId = isClientDetailRoute ? searchParams.get('obligation') : null
+  const obligationId = urlObligationId ?? localObligationId
+
   const openDrawer = useCallback(
     (obligationId: string) => {
       if (isQueueRoute) {
@@ -78,10 +87,24 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       }
       if (routeOwnsPanel) {
         // Client detail mounts its own
-        // `<ObligationQueueDetailDrawer mode="panel" />`. Just set
-        // local state — the panel reads `obligationId` from context.
+        // `<ObligationQueueDetailDrawer mode="panel" />`. Drive the
+        // `?obligation=` URL param — the panel reads `obligationId`
+        // from context (derived from the URL here).
+        //
+        // History semantics (mirrors alerts DrawerProvider): OPENING
+        // (no obligation currently open) pushes a history entry so
+        // browser Back closes the panel and keeps the client page;
+        // SWITCHING row-to-row keeps `replace` so hopping between
+        // deadlines doesn't spam history.
         setActiveTab('readiness')
-        setLocalObligationId(obligationId)
+        setSearchParams(
+          (current) => {
+            const next = new URLSearchParams(current)
+            next.set('obligation', obligationId)
+            return next
+          },
+          { replace: urlObligationId !== null },
+        )
         return
       }
       // Route doesn't own a panel mount. Navigate to the canonical
@@ -89,22 +112,35 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       // never as a floating Sheet.
       void navigate(deadlineDetailHref({ obligationId }), { state: { obligationId } })
     },
-    [isQueueRoute, location.search, navigate, routeOwnsPanel],
+    [isQueueRoute, location.search, navigate, routeOwnsPanel, setSearchParams, urlObligationId],
   )
 
   const closeDrawer = useCallback(() => {
     setLocalObligationId(null)
-  }, [])
+    if (urlObligationId) {
+      // Close keeps `replace` — ✕ / Esc / click-away dismissals don't
+      // add history entries; the pushed "open" entry simply becomes
+      // the closed page.
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current)
+          next.delete('obligation')
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [setSearchParams, urlObligationId])
 
   const value = useMemo<ObligationDrawerContextValue>(
     () => ({
       openDrawer,
       closeDrawer,
-      obligationId: localObligationId,
+      obligationId,
       activeTab,
       setActiveTab,
     }),
-    [openDrawer, closeDrawer, localObligationId, activeTab],
+    [openDrawer, closeDrawer, obligationId, activeTab],
   )
 
   // No Sheet fallback. Every consumer either renders its own panel

@@ -20,6 +20,7 @@ import {
   ListRailTitle,
   useRailArrival,
 } from '@/components/patterns/list-rail'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
@@ -130,6 +131,7 @@ export function DeadlineNavigatorRail({
   hasMore,
   isLoadingMore,
   onLoadMore,
+  loadError = null,
 }: {
   rows: readonly ObligationQueueRow[]
   /** The page URL's search string (`location.search`) — threaded into each row's
@@ -143,6 +145,11 @@ export function DeadlineNavigatorRail({
   hasMore: boolean
   isLoadingMore: boolean
   onLoadMore: () => void
+  /** S1 (ux-flow audit 2026-07-02): when the backing `obligations.list`
+   * query FAILED, the rail must not read "No deadlines match." — that copy
+   * claims an empty result the server never returned. Non-null = show the
+   * shared inline error + Retry instead of the empty state. */
+  loadError?: { error: unknown; onRetry: () => void; retrying: boolean } | null
 }) {
   const { t } = useLingui()
   // v2 merged labels: in_progress/review/extended → "In review", done/paid →
@@ -227,15 +234,27 @@ export function DeadlineNavigatorRail({
     })
   }, [filteredRows, sortKey])
 
-  // The rail count reads "28 active" at rest and flips to "5 shown" only while
-  // a search/status filter is narrowing the list — so the count is always
-  // informative and we drop the standalone "N shown" line that just restated
-  // the title chip when nothing was filtered (Yuqi 2026-06-16).
+  // The rail count flips to "5 shown" only while a search/status filter is
+  // narrowing the list — so the count is always informative and we drop the
+  // standalone "N shown" line that just restated the title chip when nothing
+  // was filtered (Yuqi 2026-06-16).
+  //
+  // 2026-07-02 (ux-flow S4 count drift): the resting label used to read
+  // "N active", but this rail's rows are the table's own list query — ALL
+  // statuses, filed and not-started included — and `totalCount` is only the
+  // LOADED slice, so "27 active" sat beside the /deadlines header's "28" and
+  // the sidebar's "12 open" as a third unexplained scope. Per the
+  // data-consistency contract the chip now names its real source: "N in
+  // list" once fully loaded (the same set + filters the table shows),
+  // "N loaded" while more pages remain (an honest partial, never a fake
+  // total).
   const isRailFiltered = search.trim().length > 0 || effectiveStatusFilter !== 'all'
   const countChipLabel = isRailFiltered
     ? t`${sortedRows.length} shown`
     : totalCount !== null
-      ? t`${totalCount} active`
+      ? hasMore
+        ? t`${totalCount} loaded`
+        : t`${totalCount} in list`
       : null
 
   return (
@@ -368,7 +387,17 @@ export function DeadlineNavigatorRail({
 
       {/* ListBody */}
       <ListRailBody>
-        {sortedRows.length === 0 ? (
+        {loadError && rows.length === 0 ? (
+          // Failure ≠ empty: the list query errored, so "No deadlines match."
+          // would be fiction. Shared inline error + Retry (refetches the list).
+          <QueryErrorState
+            size="inline"
+            what={<Trans>deadlines</Trans>}
+            error={loadError.error}
+            onRetry={loadError.onRetry}
+            retrying={loadError.retrying}
+          />
+        ) : sortedRows.length === 0 ? (
           // Zero-results is a recovery moment, not a dead-end: offer a one-click
           // way back to the full list (matches the page-level empties + the
           // sibling ObligationListRail / AlertListRail treatment).

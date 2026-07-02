@@ -473,7 +473,15 @@ function useNavItems(firm: FirmPublic): NavConfig {
             ? {
                 badge: obligationsBadge,
                 badgeTone: 'inventory' as const,
-                badgeTooltip: t`${firm.openObligationCount} open deadlines`,
+                // S4 count drift (ux-flow audit 2026-07-02): this badge counts
+                // OPEN statuses only (OPEN_OBLIGATION_STATUSES: pending /
+                // in progress / waiting / review / blocked) while the
+                // /deadlines header pill counts ALL tracked deadlines
+                // including filed + extended — so "12" here and "28" there are
+                // both true. Per the data-consistency contract, a count whose
+                // scope differs from its destination must NAME that scope, so
+                // the tooltip/aria spells out what "open" excludes.
+                badgeTooltip: t`${firm.openObligationCount} open deadlines (not counting filed or extended)`,
               }
             : {}),
         },

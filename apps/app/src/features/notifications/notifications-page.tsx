@@ -14,7 +14,6 @@ import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
 import type { NotificationType } from '@duedatehq/contracts'
-import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import {
@@ -26,6 +25,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { NewBadge } from '@/components/primitives/new-badge'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -167,10 +167,15 @@ export function NotificationsPage() {
   return (
     // 2026-06-16 (audit): mx-auto + max-w-page-wide cap (was full-bleed).
     <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-12 md:px-6">
-      {/* "Notifications" matches the route title, breadcrumb, nav, and the
-          sibling "Notification preferences" — the H1 was the lone "Inbox". */}
+      {/* "Inbox" — ONE name across the surface family (2026-07-02 audit).
+          The bell popover, its header, "View all in Inbox" footer, and the
+          G-I shortcut all say Inbox; this full page is that same inbox in
+          page form, so it takes the same name (route summary + command
+          palette follow). The sibling settings page keeps "Notification
+          preferences" — it configures notification CHANNELS, not this
+          surface. */}
       <PageHeader
-        title={<Trans>Notifications</Trans>}
+        title={<Trans>Inbox</Trans>}
         description={
           <Trans>
             Mentions, deadline reminders, and assignment changes — everything that needs you, in one
@@ -260,15 +265,17 @@ export function NotificationsPage() {
             the user the same word twice. */}
         <CardContent className="grid gap-3 pt-6">
           {notificationsQuery.isError ? (
-            <Alert variant="destructive">
-              <AlertTitle>
-                <Trans>Couldn't load notifications</Trans>
-              </AlertTitle>
-              <AlertDescription>
-                {rpcErrorMessage(notificationsQuery.error) ??
-                  t`Try again in a moment. If it keeps failing, contact support.`}
-              </AlertDescription>
-            </Alert>
+            // S1: shared QueryErrorState with a WIRED Retry (the old Alert
+            // offered no recovery affordance); the empty states below are
+            // gated on !isError so a failed load can never also read as an
+            // empty inbox.
+            <QueryErrorState
+              what={<Trans>notifications</Trans>}
+              error={notificationsQuery.error}
+              onRetry={() => void notificationsQuery.refetch()}
+              retrying={notificationsQuery.isFetching}
+              frameless
+            />
           ) : null}
 
           {/* Skeleton rows match the rest of the app's list-loading rhythm. */}
@@ -286,6 +293,7 @@ export function NotificationsPage() {
           ) : null}
 
           {!notificationsQuery.isLoading &&
+          !notificationsQuery.isError &&
           filteredNotifications.length === 0 &&
           !hasActiveFilter ? (
             /* A one-liner description so the empty state teaches the surface —
@@ -306,6 +314,7 @@ export function NotificationsPage() {
               BOTH the search and the type filter (either or both can cause it)
               and offers one button to reset them. */}
           {!notificationsQuery.isLoading &&
+          !notificationsQuery.isError &&
           filteredNotifications.length === 0 &&
           hasActiveFilter ? (
             <EmptyState

@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from 'react'
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -8,6 +8,7 @@ import {
   CalendarClockIcon,
   CheckIcon,
   ClipboardListIcon,
+  Loader2Icon,
   MailIcon,
   MessageSquareIcon,
   SendIcon,
@@ -46,6 +47,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { useSession } from '@/lib/auth'
@@ -137,6 +139,19 @@ export function NotificationPreferencesPage() {
   // Reuse the query's own key (not a fresh `.queryKey(...)` call) so the
   // optimistic cache write below targets exactly the entry `useQuery` reads.
   const preferencesQueryKey = preferencesQueryOptions.queryKey
+  // 2026-07-02 (audit): the page autosaves but confirmed nothing — a toggle
+  // could be persisting or silently failing and the UI looked identical.
+  // `savedTick` bumps on every successful write; the header shows a quiet
+  // transient "Saved" (and "Saving…" while in flight). Failures already roll
+  // back + toast via onError below.
+  const [savedTick, setSavedTick] = useState(0)
+  const [showSaved, setShowSaved] = useState(false)
+  useEffect(() => {
+    if (savedTick === 0) return undefined
+    setShowSaved(true)
+    const timer = window.setTimeout(() => setShowSaved(false), 2000)
+    return () => window.clearTimeout(timer)
+  }, [savedTick])
   const updatePreferences = useMutation(
     orpc.notifications.updatePreferences.mutationOptions({
       // Optimistic write: the Switch/matrix bind to the cached preference, so
@@ -162,6 +177,7 @@ export function NotificationPreferencesPage() {
         return { previous }
       },
       onSuccess: () => {
+        setSavedTick((tick) => tick + 1)
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
       },
       onError: (error, _patch, context) => {
@@ -208,7 +224,7 @@ export function NotificationPreferencesPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
         breadcrumbs={[
-          { label: t`Notifications`, to: '/notifications' },
+          { label: t`Inbox`, to: '/notifications' },
           { label: t`Notification preferences` },
         ]}
         title={<Trans>Notification preferences</Trans>}
@@ -219,18 +235,38 @@ export function NotificationPreferencesPage() {
         // toggle persists optimistically, so an explicit Save re-fired
         // already-saved state and falsely implied unsaved changes. Changes
         // save automatically; the per-control optimistic write is the feedback.
+        // 2026-07-02 (audit): …except nothing said the write LANDED. The
+        // actions slot carries a quiet autosave status: "Saving…" while a
+        // write is in flight, a transient "Saved ✓" for 2s after it commits.
+        // aria-live so screen readers hear the confirmation too.
+        actions={
+          <span
+            aria-live="polite"
+            className="flex h-8 items-center gap-1.5 text-xs font-medium text-text-tertiary"
+          >
+            {updatePreferences.isPending ? (
+              <>
+                <Loader2Icon className="size-3.5 animate-spin" aria-hidden />
+                <Trans>Saving…</Trans>
+              </>
+            ) : showSaved ? (
+              <>
+                <CheckIcon className="size-3.5 text-text-success" aria-hidden />
+                <Trans>Saved</Trans>
+              </>
+            ) : null}
+          </span>
+        }
       />
 
       {preferencesQuery.isError ? (
-        <EmptyState
-          icon={TriangleAlertIcon}
-          title={<Trans>Couldn't load your preferences</Trans>}
-          description={<Trans>Something went wrong fetching your notification settings.</Trans>}
-          cta={
-            <Button variant="outline" onClick={() => void preferencesQuery.refetch()}>
-              <Trans>Try again</Trans>
-            </Button>
-          }
+        // S1: the shared QueryErrorState (error was previously dressed as an
+        // EmptyState — the failure sibling now carries the message + Retry).
+        <QueryErrorState
+          what={<Trans>your notification preferences</Trans>}
+          error={preferencesQuery.error}
+          onRetry={() => void preferencesQuery.refetch()}
+          retrying={preferencesQuery.isFetching}
         />
       ) : preferencesQuery.isLoading || !preferences ? (
         <div className="grid gap-5" aria-busy="true">

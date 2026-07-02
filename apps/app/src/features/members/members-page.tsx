@@ -66,6 +66,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountPill } from '@/components/primitives/count-pill'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
@@ -145,15 +146,16 @@ export function MembersPageRoute() {
   }
 
   if (membersQuery.isError) {
+    // S1: shared QueryErrorState with a WIRED Retry — the old Alert said
+    // "Retry." but offered no way to actually retry.
     return (
       <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
-        <Alert variant="destructive">
-          <TriangleAlertIcon />
-          <AlertTitle>
-            <Trans>We couldn't load your team. Retry.</Trans>
-          </AlertTitle>
-          <AlertDescription>{membersQuery.error.message}</AlertDescription>
-        </Alert>
+        <QueryErrorState
+          what={<Trans>your team</Trans>}
+          error={membersQuery.error}
+          onRetry={() => void membersQuery.refetch()}
+          retrying={membersQuery.isFetching}
+        />
       </div>
     )
   }
@@ -217,9 +219,28 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
 
   const updateRoleMutation = useMutation(
     orpc.members.updateRole.mutationOptions({
-      onSuccess: (next) => {
+      onSuccess: (next, variables) => {
         setPendingRoleChange(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        // 2026-07-02 (audit): role changes landed with zero confirmation in
+        // either direction — the Select just sat there. Quiet success toast
+        // names who changed and what they are now, mirroring the sibling
+        // suspend/resend/remove toasts.
+        const updatedMember = next.members.find((member) => member.id === variables.memberId)
+        const memberName = updatedMember?.name
+        const newRoleLabel = roleLabel(variables.role)
+        toast.success(
+          memberName
+            ? t`Role updated — ${memberName} is now ${newRoleLabel}`
+            : t`Role updated to ${newRoleLabel}`,
+        )
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't update role`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Try again in a moment. If it keeps failing, contact support.`,
+        })
       },
     }),
   )

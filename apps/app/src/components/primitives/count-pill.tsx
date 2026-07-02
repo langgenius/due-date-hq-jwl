@@ -51,6 +51,7 @@ export function CountPill({
   tone = 'destructive',
   dot,
   className,
+  title,
 }: {
   children: ReactNode
   tone?: CountPillTone
@@ -60,11 +61,21 @@ export function CountPill({
    */
   dot?: boolean
   className?: string
+  /**
+   * Optional scope label (data-consistency contract): when a bare number sits
+   * next to OTHER numbers with different filters (e.g. the /deadlines header
+   * "28" vs the sidebar's "12 open"), the pill must NAME what it counts.
+   * Rendered as the native tooltip + the SR label, so hover and screen
+   * readers both get "28 deadlines tracked across all statuses" instead of a
+   * naked digit.
+   */
+  title?: string
 }) {
   const t = TONE[tone]
   const showDot = dot ?? tone !== 'neutral'
   return (
     <span
+      {...(title !== undefined ? { title, 'aria-label': title } : {})}
       className={cn(
         // `leading-none` so the pill keeps its own ~22px height instead of
         // inheriting the line-height of whatever title it sits beside — next to

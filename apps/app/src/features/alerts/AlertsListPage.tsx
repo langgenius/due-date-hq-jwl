@@ -42,6 +42,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatRelativeTime } from '@/lib/utils'
 import { BulkConfirmDialog, BulkConfirmList } from '@/components/patterns/bulk-confirm-dialog'
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
@@ -195,10 +196,28 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   // /today's "Alerts" brief pill targets `?queue=review` so it always opens
   // the review queue rather than relying on the unspoken default. Anything
   // other than 'active' falls back to review.
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [workQueue, setWorkQueue] = useState<'active' | 'review'>(() =>
     searchParams.get('queue') === 'active' ? 'active' : 'review',
   )
+  // `?origin=catchup` deep-link scope — the /today brief's "N changes already
+  // in effect" line lands here. Catch-up rows carry months-old published
+  // dates, so on the unscoped board they sort to the bottom (or off the
+  // 50-row first page entirely) and the promise reads as broken. The scope
+  // swaps the list query to the dedicated catchup origin (same cache entry
+  // the brief's count reads) and announces itself via a dismissible banner.
+  // Reactive (not lazy-init) so dismissing updates in place.
+  const catchupScope = searchParams.get('origin') === 'catchup'
+  const clearCatchupScope = () => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('origin')
+        return next
+      },
+      { replace: true },
+    )
+  }
   // One-shot guard for the open-alert → queue-tab sync below: tracks the alert
   // id we've already synced the queue for, so the sync fires exactly once per
   // OPEN and never fights a manual toggle. A ref (not state) — it must not
@@ -305,13 +324,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     : null
 
   // A flat 50-item query per surface. Client-side filters + sort below
-  // operate on the loaded set; no pagination chrome. No origin filter:
-  // catch-up rows (origin='catchup', materialized at signup for changes
-  // published before the firm joined) render as the SAME cards in the same
-  // stream and split into Review/Active with everyone else — they just never
-  // count as "new" (splash/brief) and never email, which the backend's origin
-  // semantics already guarantee.
-  const alertsQuery = useQuery(useAlertsListQueryOptions(50))
+  // operate on the loaded set; no pagination chrome. Default = no origin
+  // filter: catch-up rows (origin='catchup', materialized at signup for
+  // changes published before the firm joined) render as the SAME cards in the
+  // same stream and split into Review/Active with everyone else — they just
+  // never count as "new" (splash/brief) and never email, which the backend's
+  // origin semantics already guarantee. The `?origin=catchup` deep-link narrows
+  // to the catchup band only (see `catchupScope` above).
+  const alertsQuery = useQuery(useAlertsListQueryOptions(50, catchupScope ? 'catchup' : undefined))
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
@@ -322,6 +342,27 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const sourceErrorCount = sourceHealth.filter(
     (s) => s.healthStatus === 'degraded' || s.healthStatus === 'failing',
   ).length
+
+  // Catch-up deep-link queue sync — the scoped band's rows may all live in
+  // ONE work queue (relief windows are typically due-date overlays → Active),
+  // and the default tab is Review, so a `?origin=catchup` landing could show
+  // an empty tab under a banner promising N changes. One-shot: once the
+  // scoped set loads, if the current queue is empty and the other holds rows,
+  // flip to it. Never fights a later manual toggle (ref fires once).
+  const catchupQueueSynced = useRef(false)
+  useEffect(() => {
+    if (!catchupScope || catchupQueueSynced.current || alerts.length === 0) return
+    catchupQueueSynced.current = true
+    const activeCount = alerts.filter((alert) => isActiveAlert(alert)).length
+    const reviewCount = alerts.length - activeCount
+    setWorkQueue((prev) =>
+      prev === 'review' && reviewCount === 0 && activeCount > 0
+        ? 'active'
+        : prev === 'active' && activeCount === 0 && reviewCount > 0
+          ? 'review'
+          : prev,
+    )
+  }, [catchupScope, alerts])
 
   // 2026-06-12 (Yuqi "if it is active already, you should land in the right
   // tab"): opening an alert (deep link from /today, URL share, prev/next
@@ -546,7 +587,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
     setSearchQuery('')
   }
 
-  const isEmpty = !alertsQuery.isLoading && alerts.length === 0
+  // S1: a FAILED load must never read as "you're caught up" — the empty
+  // states are gated on !isError (the error state above the list owns the
+  // failed render, with Retry).
+  const isEmpty = !alertsQuery.isLoading && !alertsQuery.isError && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
     (morningSweep?.active ?? false) ||
@@ -673,7 +717,10 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
           title={
             <span className="inline-flex items-center gap-2">
               <Trans>Alerts</Trans>
-              {!alertsQuery.isLoading ? (
+              {alertsQuery.data ? (
+                // Chips only render off REAL data — while loading OR after a
+                // failed load, "0 ongoing" would be a confident claim the
+                // server never made (S1).
                 // The count chip + the LIVE chip are a matched PAIR: both
                 // ride the Badge primitive at `size="lg"` (h-6) so they
                 // sit at the exact same height, and both use the quiet
@@ -788,29 +835,14 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
       ) : null}
 
       {alertsQuery.isError ? (
-        <Alert variant="destructive">
-          <CircleAlertIcon />
-          <AlertTitle>
-            <Trans>Couldn't load alerts</Trans>
-          </AlertTitle>
-          <AlertDescription>
-            {rpcErrorMessage(alertsQuery.error) ??
-              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
-            {/* Canonical `<Button variant="link">` — Dashboard / clients
-                / obligations Retry buttons all use this exact shape (it
-                carries the focus-visible ring + accent color a
-                hand-rolled underline lacks). */}
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto p-0 align-baseline"
-              onClick={() => void alertsQuery.refetch()}
-            >
-              <Trans>Retry</Trans>
-            </Button>
-          </AlertDescription>
-        </Alert>
+        // S1: the shared QueryErrorState — one failure surface app-wide,
+        // with the same wired Retry the old inline Alert carried.
+        <QueryErrorState
+          what={<Trans>alerts</Trans>}
+          error={alertsQuery.error}
+          onRetry={() => void alertsQuery.refetch()}
+          retrying={alertsQuery.isFetching}
+        />
       ) : null}
 
       {/* Split-column wrapper: ALWAYS a row-flex with min-h-0/flex-1, and
@@ -873,6 +905,28 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
             // even at zero data (a new firm isn't left with just a banner
             // and no filter row / view-mode toggle / dropdowns).
             <>
+              {/* Catch-up scope banner — mirrors the rules-library
+                  source-filter chip (?source=): names the narrowed scope and
+                  offers the way out. Rendered above the toolbar so the scope
+                  is announced before any filter chrome; "Show all" clears the
+                  URL param and the list falls back to the full board. */}
+              {catchupScope ? (
+                <div className="flex shrink-0 items-center gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
+                  <span className="text-sm text-text-secondary">
+                    <Trans>Showing changes already in effect</Trans>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ml-auto h-7 shrink-0"
+                    onClick={clearCatchupScope}
+                  >
+                    <Trans>Show all</Trans>
+                  </Button>
+                </div>
+              ) : null}
+
               {/* No framed container around the filter row. The cards
               below already sit on the page surface without a frame —
               wrapping just the filters in a `border + bg + p-3` container

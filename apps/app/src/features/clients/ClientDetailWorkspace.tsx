@@ -18,6 +18,8 @@ import {
   MapPinIcon,
   MegaphoneIcon,
   EllipsisIcon,
+  Loader2Icon,
+  PencilIcon,
   PhoneIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -49,6 +51,14 @@ import {
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@duedatehq/ui/components/ui/dialog'
+import { Input } from '@duedatehq/ui/components/ui/input'
+import { Label } from '@duedatehq/ui/components/ui/label'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -265,6 +275,26 @@ export function ClientDetailWorkspace({
   // deadline" CTA into compact icon-only modes so they don't ellipsize
   // or wrap (audit L9).
   const panelOpen = activeObligationId !== null
+  // Esc closes the obligation panel — the close-interaction policy
+  // says panels close via ✕ / Esc / breadcrumb, and this in-route
+  // panel isn't a base-ui Sheet so nothing wires Esc for free
+  // (ux-flow-audit 2026-07-02 S3, QA P1-3). Mirrors /deadlines'
+  // route-level Escape hotkey: gated on `shortcutsBlocked` so it
+  // stays quiet while typing or while a dialog/drawer layer is up,
+  // and `conflictBehavior: 'allow'` because multiple context-scoped
+  // Escape handlers ship across the app.
+  useAppHotkey('Escape', () => closeObligationPanel(), {
+    enabled: panelOpen && !shortcutsBlocked,
+    requireReset: true,
+    conflictBehavior: 'allow',
+    meta: {
+      id: 'clients.detail.close-obligation-panel',
+      name: 'Close deadline panel',
+      description: 'Close the open deadline detail panel.',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
   // Activity-tab-only fetches: risk summary + audit log are consumed
   // exclusively inside the Activity tab body, so gate them on
   // `activeTab === 'activity'`. Saves ~2 round-trips on every detail
@@ -528,6 +558,41 @@ export function ClientDetailWorkspace({
     [changeStatusMutation],
   )
 
+  // Rename state + mutation. Restores the capability-gap P1 rename path
+  // (`clients.rename`, originally shipped 2026-06-30 on claude/polish-wave-3
+  // but never merged). Live QA 2026-07-02 found the kebab offered only
+  // audit-log + delete, so the entry point is a "Rename client" item there.
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState('')
+  const renameMutation = useMutation(
+    orpc.clients.rename.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Client renamed`)
+        setRenameOpen(false)
+        // The name is denormalized across the detail header, the client
+        // list, the deadlines queue (clientName), and the dashboard brief —
+        // invalidate all of them so no surface keeps the stale name.
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't rename client`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const renameTrimmed = renameValue.trim()
+  const submitRename = useCallback(() => {
+    if (renameTrimmed.length === 0 || renameTrimmed === client.name) return
+    if (renameMutation.isPending) return
+    renameMutation.mutate({ id: client.id, name: renameTrimmed })
+  }, [renameTrimmed, renameMutation, client.id, client.name])
+
   // Delete state + mutation. The server still performs the compliance-safe
   // `deletedAt` write; active deadline/dashboard queries filter the client out
   // while audit history remains available.
@@ -746,6 +811,14 @@ export function ClientDetailWorkspace({
                   clientId={client.id}
                   clientName={client.name}
                   canReadAudit={canReadAudit}
+                  onRename={
+                    canUpdateClient
+                      ? () => {
+                          setRenameValue(client.name)
+                          setRenameOpen(true)
+                        }
+                      : undefined
+                  }
                   onDelete={() => setDeleteOpen(true)}
                 />
                 <CreateObligationDialog
@@ -1306,6 +1379,60 @@ export function ClientDetailWorkspace({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Rename dialog — small single-field edit. `protectInput` per the
+          close-interaction policy: a half-typed name shouldn't vanish on a
+          stray outside click. */}
+      <Dialog protectInput open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Rename client</Trans>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="client-rename-input">
+              <Trans>Client name</Trans>
+            </Label>
+            <Input
+              id="client-rename-input"
+              value={renameValue}
+              onChange={(event) => setRenameValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  submitRename()
+                }
+              }}
+              maxLength={200}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setRenameOpen(false)}
+              disabled={renameMutation.isPending}
+            >
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              type="button"
+              disabled={
+                renameTrimmed.length === 0 ||
+                renameTrimmed === client.name ||
+                renameMutation.isPending
+              }
+              onClick={submitRename}
+            >
+              {renameMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              <Trans>Save</Trans>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Inline batch flow for the "Needs facts" / "Add filing
           state" chip — same sheet the /clients list page mounts,
           scoped to this client only. Opens when the H1 chip is
@@ -1667,22 +1794,22 @@ function ClientActiveAlertsExtensionCard({
  * Overflow menu (`···`) in the header action cluster. Hosts the
  * lower-priority actions that don't belong on the primary button row.
  *
- * There's one real action: **View audit log** (routes to `/audit`
- * filtered by this client). No "coming soon" affordances live here —
- * only working actions belong in the menu.
- *
- * If the user can't read audit logs the whole dropdown collapses
- * (returns `null`) so we don't render an empty `···` button.
+ * Real actions only (no "coming soon" affordances): **Rename client**
+ * (write-gated — `onRename` is undefined for read-only roles), **View
+ * audit log** (routes to `/audit` filtered by this client), and the
+ * destructive **Delete client**.
  */
 function ClientHeaderOverflowMenu({
   clientId,
   clientName,
   canReadAudit,
+  onRename,
   onDelete,
 }: {
   clientId: string
   clientName: string
   canReadAudit: boolean
+  onRename?: (() => void) | undefined
   onDelete: () => void
 }) {
   const { t } = useLingui()
@@ -1701,6 +1828,12 @@ function ClientHeaderOverflowMenu({
         }
       />
       <DropdownMenuContent align="end" className="min-w-[220px]">
+        {onRename ? (
+          <DropdownMenuItem onClick={onRename} aria-label={t`Rename ${clientName}`}>
+            <PencilIcon className="size-4" aria-hidden />
+            <Trans>Rename client</Trans>
+          </DropdownMenuItem>
+        ) : null}
         {canReadAudit ? (
           <DropdownMenuItem
             // `entity=<id>` scopes the audit log to THIS client (the page now

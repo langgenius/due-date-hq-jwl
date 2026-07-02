@@ -16,6 +16,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
+  AlarmClockIcon,
   ChevronsUpDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
@@ -160,6 +161,7 @@ import { type TableFilterOption } from '@/components/patterns/table-header-filte
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import {
   FloatingActionBar,
   FLOATING_ACTION_BAR_SCROLL_PADDING,
@@ -1528,6 +1530,47 @@ export function ObligationQueueRoute() {
     // filter transitions.
     placeholderData: (previous) => previous,
   })
+
+  // 2026-07-02 (ux-flow wave-2 "snoozed rows are invisible"): a quiet
+  // firm-wide lens over currently-snoozed deadlines. Wave-1 made snooze
+  // survivable (toast + undo + return date) but a snoozed row still
+  // couldn't be FOUND until it returned. This query powers a subdued
+  // one-line notice above the table; the default view stays unchanged
+  // (snoozed rows remain hidden from the main list). Deliberately
+  // unfiltered — the notice reports the firm's snoozed set, not the
+  // current filter view — and shares the `obligations.list` key root, so
+  // every existing snooze/status invalidation refreshes it for free.
+  const snoozedQuery = useQuery(
+    orpc.obligations.list.queryOptions({
+      input: {
+        snoozed: 'only',
+        sort: 'due_asc',
+        limit: 100,
+        ...(asOf ? { asOfDate: asOf } : {}),
+      },
+    }),
+  )
+  const snoozedRows = snoozedQuery.data?.rows ?? EMPTY_OBLIGATION_QUEUE_ROWS
+  const [showSnoozed, setShowSnoozed] = useState(false)
+  // Un-snooze straight from the revealed list — same `snoozedUntil: null`
+  // contract the drawer's Un-snooze and the wave-1 undo toast use.
+  const unsnoozeMutation = useMutation(
+    orpc.obligations.snooze.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Snooze cleared`, {
+          description: t`The deadline is back in the queue.`,
+        })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't clear the snooze`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
 
   const updateStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
@@ -2993,6 +3036,32 @@ export function ObligationQueueRoute() {
     .filter((selectedRow) => !selectedRow.confirmed)
     .map((selectedRow) => selectedRow.id)
   const thisWeekFilterActive = isThisWeekFilterActive(daysMin, daysMax)
+  // Single flag for "any search / status / facet / date filter is set". It
+  // drives the toolbar's "Reset filters" affordance AND (ux-flow audit
+  // 2026-07-02, P2-3) the header count + summary strip below, which must
+  // reflect the FILTERED set on a filtered arrival instead of quoting global
+  // totals beside a 13-row table. Declared up here (not beside the toolbar)
+  // because the statBand memos read it.
+  const queueFiltersActive =
+    searchInput !== '' ||
+    statusQuery.length > 0 ||
+    due !== null ||
+    thisWeekFilterActive ||
+    evidence !== null ||
+    Boolean(awaitingSignature) ||
+    Boolean(projected) ||
+    stateQuery.length > 0 ||
+    countyQuery.length > 0 ||
+    taxTypeQuery.length > 0 ||
+    assigneeQuery.length > 0 ||
+    obligationQuery.length > 0 ||
+    ruleQuery.length > 0 ||
+    clientQuery.length > 0 ||
+    assigneeNameQuery !== null ||
+    owner !== null ||
+    minDaysUntilDue !== undefined ||
+    maxDaysUntilDue !== undefined ||
+    asOf !== null
   // Stripe-style scope tabs across the top of the queue. Each tab maps
   // to a single lifecycle v2 status. Counts come from the facets RPC's
   // `statuses` field (a status-aware GROUP BY across the firm's
@@ -3056,6 +3125,38 @@ export function ObligationQueueRoute() {
     )
     return `${weekday} ${monthDay}`.toUpperCase()
   }, [asOf])
+  // Filtered-arrival aggregates (ux-flow audit 2026-07-02, P2-3): with any
+  // filter active the summary strip + header count must describe the FILTERED
+  // set — `/deadlines?assignee=Parker` showing 13 rows under a global
+  // "12 Overdue · 10 In review" strip presented firm-wide numbers as if they
+  // were Parker's. Computed from the table's own loaded rows (the one list
+  // query the rows render from — data-consistency contract: same source, same
+  // number), with the SAME terminal-status + 0–7-day window semantics as
+  // `deadlinesNarrative` above so the two modes never disagree on definitions.
+  // Null when no filter is active (global facets/glance stay authoritative —
+  // they aren't capped by pagination).
+  const filteredSummary = useMemo(() => {
+    if (!queueFiltersActive) return null
+    let overdue = 0
+    let dueThisWeek = 0
+    let inReview = 0
+    let filed = 0
+    for (const r of rows) {
+      const terminal =
+        r.status === 'done' ||
+        r.status === 'paid' ||
+        r.status === 'completed' ||
+        r.status === 'not_applicable'
+      const days = daysUntilEffectiveInternalDueDate(r)
+      if (!terminal && days < 0) overdue++
+      if (!terminal && days >= 0 && days <= 7) dueThisWeek++
+      if ((LIFECYCLE_V2_STATUS_SETS.review as readonly ObligationStatus[]).includes(r.status))
+        inReview++
+      if ((LIFECYCLE_V2_STATUS_SETS.done as readonly ObligationStatus[]).includes(r.status))
+        filed++
+    }
+    return { overdue, dueThisWeek, inReview, filed, total: rows.length }
+  }, [queueFiltersActive, rows])
   // Portfolio summary cells for the shared StatBand (the same "card summary"
   // component on /clients, /rules/sources, /rules/library, /alerts/history).
   // It sits ALONGSIDE the narrative banner: the banner reads ONE editorial
@@ -3064,21 +3165,23 @@ export function ObligationQueueRoute() {
   // and the In review / Filed counts come from the same status facets that
   // drive the scope tabs (LIFECYCLE_V2_STATUS_SETS so merged stages count
   // their full raw-status set, never just the canonical one); overdue + due
-  // this week come from the same glance aggregates as the banner.
+  // this week come from the same glance aggregates as the banner. When a
+  // filter is active, `filteredSummary` swaps every cell to the filtered
+  // set's aggregates so the strip describes the rows on screen.
   const statBandCells = useMemo<StatBandItem[]>(() => {
     const sumStatuses = (statuses: readonly ObligationStatus[]) =>
       statuses.reduce((n, s) => n + (statusFacetCounts.get(s) ?? 0), 0)
-    const inReview = sumStatuses(LIFECYCLE_V2_STATUS_SETS.review)
-    const filed = sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
-    const { overdue, dueThisWeek } = deadlinesNarrative
+    const inReview = filteredSummary?.inReview ?? sumStatuses(LIFECYCLE_V2_STATUS_SETS.review)
+    const filed = filteredSummary?.filed ?? sumStatuses(LIFECYCLE_V2_STATUS_SETS.done)
+    const { overdue, dueThisWeek } = filteredSummary ?? deadlinesNarrative
     return [
       {
         key: 'tracked',
-        label: t`Total tracked`,
-        value: scopeTotal,
+        label: filteredSummary ? t`Matching` : t`Total tracked`,
+        value: filteredSummary?.total ?? scopeTotal,
         // Anchor stat — orients, never an always-on accent (StatBand color
         // budget: a "Total" stays neutral). Click resets every filter.
-        sub: t`all deadlines`,
+        sub: filteredSummary ? t`current filters` : t`all deadlines`,
         onClick: () => void setObligationQueueQuery(null),
         ariaLabel: t`Show all deadlines`,
       },
@@ -3136,7 +3239,7 @@ export function ObligationQueueRoute() {
         ariaLabel: t`Filter to filed deadlines`,
       },
     ]
-  }, [statusFacetCounts, deadlinesNarrative, scopeTotal, t, setObligationQueueQuery])
+  }, [statusFacetCounts, deadlinesNarrative, filteredSummary, scopeTotal, t, setObligationQueueQuery])
   // 2026-06-29 (Yuqi "还是太零碎" / still too fragmented): the compact strip leads
   // with the ACTIONABLE states only. "Total tracked" is already the title pill
   // ("Deadlines · N"), and a zero segment ("0 Due this week") is just noise — both
@@ -3438,29 +3541,9 @@ export function ObligationQueueRoute() {
     setRowSelection({})
   }
 
-  // Single flag for the "Reset filters" affordance in the toolbar overflow
-  // (kebab) menu — true whenever any search / status / facet / date filter is
-  // set.
-  const queueFiltersActive =
-    searchInput !== '' ||
-    statusQuery.length > 0 ||
-    due !== null ||
-    thisWeekFilterActive ||
-    evidence !== null ||
-    Boolean(awaitingSignature) ||
-    Boolean(projected) ||
-    stateQuery.length > 0 ||
-    countyQuery.length > 0 ||
-    taxTypeQuery.length > 0 ||
-    assigneeQuery.length > 0 ||
-    obligationQuery.length > 0 ||
-    ruleQuery.length > 0 ||
-    clientQuery.length > 0 ||
-    assigneeNameQuery !== null ||
-    owner !== null ||
-    minDaysUntilDue !== undefined ||
-    maxDaysUntilDue !== undefined ||
-    asOf !== null
+  // `queueFiltersActive` (the "any filter set" flag this block used to
+  // declare) moved up beside `thisWeekFilterActive` so the header-count +
+  // summary-strip memos can read it too.
 
   function changeSelectedStatus(status: ObligationStatus, reason?: string) {
     if (selectedIds.length === 0) return
@@ -3588,10 +3671,18 @@ export function ObligationQueueRoute() {
       )}
     >
       {/* Title carries the scope total alongside it ("Deadlines · 247"),
-          matching /clients and /rules/library. Uses scopeTotal (the unfiltered
-          count of the active status scope) so the number is stable as the user
-          types in the search/filter chips — what the count represents
-          shouldn't change mid-typing. */}
+          matching /clients and /rules/library.
+
+          2026-07-02 (ux-flow audit P2-3, S4 count drift): the pill used to pin
+          scopeTotal (global, all statuses) even on a filtered arrival, so
+          `/deadlines?assignee=Parker` showed 13 rows under "Deadlines 28" —
+          and the bare "28" also sat unexplained beside the sidebar's "12 open"
+          badge. Now: with any filter active the pill counts the FILTERED set
+          (the table's own loaded rows; a trailing "+" while more pages
+          remain), and in both modes the pill's title/aria names its scope so
+          none of the page's numbers is a naked digit. Stability-while-typing
+          is preserved well enough by the debounced search input — the count
+          only moves when the results themselves move. */}
       <PageHeader
         // Sync status line above the title — a calm "we're live and how much
         // we track" signal: "Synced just now [glyph] · N deadlines tracked".
@@ -3616,7 +3707,18 @@ export function ObligationQueueRoute() {
           // /rules/library).
           <span className="inline-flex items-center gap-2">
             <Trans>Deadlines</Trans>
-            {scopeTotal > 0 ? <CountPill tone="neutral">{scopeTotal}</CountPill> : null}
+            {scopeTotal > 0 ? (
+              <CountPill
+                tone="neutral"
+                title={
+                  queueFiltersActive
+                    ? t`${rows.length}${hasNextPage ? '+' : ''} deadlines match the current filters (${scopeTotal} tracked in total)`
+                    : t`${scopeTotal} deadlines tracked across all statuses, filed included`
+                }
+              >
+                {queueFiltersActive ? `${rows.length}${hasNextPage ? '+' : ''}` : scopeTotal}
+              </CountPill>
+            ) : null}
           </span>
         }
         actions={
@@ -3820,6 +3922,17 @@ export function ObligationQueueRoute() {
             onSelect={(id) => openQueueDetail(id, activeDetailTab)}
             hasNextPage={hasNextPage}
             onLoadMore={() => void fetchNextPage()}
+            loadError={
+              // S1: a failed list under the open panel used to leave the rail
+              // saying "No deadlines match." — surface the error + Retry.
+              isError
+                ? {
+                    error: listQuery.error,
+                    onRetry: () => void listQuery.refetch(),
+                    retrying: listQuery.isFetching,
+                  }
+                : null
+            }
           />
         ) : null}
         <div
@@ -4536,6 +4649,78 @@ export function ObligationQueueRoute() {
             ) : null}
           </AnimatePresence>
 
+          {/* Snoozed notice (2026-07-02 ux-flow wave-2). Demote-don't-delete:
+              snoozed rows stay out of the main table, but this subdued
+              one-liner keeps them findable. "Show" reveals a quiet list with
+              each row's return date + an Unsnooze affordance (the same
+              `snoozedUntil: null` path as the drawer). Renders nothing when
+              the firm has no snoozed deadlines — the common case. */}
+          {snoozedRows.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1.5 text-sm text-text-tertiary">
+                <AlarmClockIcon className="size-3.5 shrink-0" aria-hidden />
+                <span>
+                  <Plural
+                    value={snoozedRows.length}
+                    one="# deadline snoozed until later"
+                    other="# deadlines snoozed until later"
+                  />
+                </span>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-sm"
+                  onClick={() => setShowSnoozed((previous) => !previous)}
+                >
+                  {showSnoozed ? <Trans>Hide</Trans> : <Trans>Show</Trans>}
+                </Button>
+              </div>
+              {showSnoozed ? (
+                <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-subtle">
+                  {snoozedRows.map((snoozedRow) => (
+                    <div
+                      key={snoozedRow.id}
+                      className="flex items-center gap-3 border-b border-divider-subtle px-4 py-2.5 text-sm last:border-b-0"
+                    >
+                      <span className="min-w-0 flex-1 truncate">
+                        <span className="font-medium text-text-secondary">
+                          {snoozedRow.clientName}
+                        </span>
+                        <span className="text-text-tertiary">
+                          {' · '}
+                          {formatTaxCode(snoozedRow.taxType)}
+                          {' · '}
+                          <Trans>
+                            due{' '}
+                            {formatDatePretty(snoozedRow.currentDueDate, { alwaysShowYear: true })}
+                          </Trans>
+                        </span>
+                      </span>
+                      {snoozedRow.snoozedUntil ? (
+                        <span className="shrink-0 text-text-tertiary">
+                          <Trans>Returns {formatDatePretty(snoozedRow.snoozedUntil)}</Trans>
+                        </span>
+                      ) : null}
+                      {canUpdateObligationStatus ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 shrink-0"
+                          disabled={unsnoozeMutation.isPending}
+                          onClick={() =>
+                            unsnoozeMutation.mutate({ id: snoozedRow.id, snoozedUntil: null })
+                          }
+                        >
+                          <Trans>Unsnooze</Trans>
+                        </Button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {isInitialLoading ? (
             // Skeleton rows match the rest of the app's loading rhythm;
             // role=status + aria-live for SR announce. Table-shaped skeleton —
@@ -4574,26 +4759,15 @@ export function ObligationQueueRoute() {
               ))}
             </div>
           ) : isError ? (
-            // Step 6 cont Q1.2: Alert primitive + Button-link retry
-            // with `disabled={isFetching}` so double-clicks don't
-            // double-fire.
-            <Alert variant="destructive">
-              <AlertTitle>
-                <Trans>Couldn't load deadlines.</Trans>
-              </AlertTitle>
-              <AlertDescription className="flex items-center gap-2">
-                <Trans>Try again in a moment.</Trans>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0"
-                  onClick={() => void listQuery.refetch()}
-                  disabled={listQuery.isFetching}
-                >
-                  <Trans>Retry</Trans>
-                </Button>
-              </AlertDescription>
-            </Alert>
+            // S1: the shared QueryErrorState (error ≠ empty — the
+            // ObligationQueueEmptyState below only renders in the success
+            // branch, so a failed load can never read as "no deadlines").
+            <QueryErrorState
+              what={<Trans>deadlines</Trans>}
+              error={listQuery.error}
+              onRetry={() => void listQuery.refetch()}
+              retrying={listQuery.isFetching}
+            />
           ) : (
             // The deadline queue is the registry TABLE (row view) — the card
             // view + its toggle were removed 2026-06-24 (Yuqi: "remove the card

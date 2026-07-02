@@ -25,7 +25,8 @@ export const routeSummaries = {
   // subscriptions; it is not a calendar view.
   calendarSync: { eyebrow: msg`Deadlines`, title: msg`Calendar sync` },
   workload: { eyebrow: msg`Practice`, title: msg`Team workload` },
-  notifications: { eyebrow: msg`Operations`, title: msg`Notifications` },
+  // "Inbox" matches the page H1 + the bell popover family (one name rule).
+  notifications: { eyebrow: msg`Operations`, title: msg`Inbox` },
   notificationPreferences: { eyebrow: msg`Settings`, title: msg`Notification preferences` },
   reminders: { eyebrow: msg`Settings`, title: msg`Reminder emails` },
   clients: { eyebrow: msg`Clients`, title: msg`Clients` },

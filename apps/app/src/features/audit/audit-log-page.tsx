@@ -17,7 +17,6 @@ import { toast } from 'sonner'
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
 import { AUDIT_FILTER_MAX_LENGTH, DEFAULT_AUDIT_RANGE } from '@duedatehq/contracts'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
-import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -58,6 +57,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
 import { PageHeader } from '@/components/patterns/page-header'
@@ -265,52 +265,63 @@ function AuditKpiStrip({
   totalCaption,
   countsByType,
   bumpKey,
+  loading = false,
+  failed = false,
 }: {
   totalLoaded: number
   totalCaption: ReactNode
   countsByType: Record<AuditTimelineType, number>
   /** Active-filter signature — when it changes, the values pulse once. */
   bumpKey: string
+  /** Query in flight — render the band-shaped skeleton, never "EVENTS 0". */
+  loading?: boolean
+  /** Query FAILED — render em-dashes, never confident zeros (S1). */
+  failed?: boolean
 }) {
   // Canonical <StatBand> — this strip was the last bespoke fork of the
   // shared summary band (mono/bold caps labels + bordered card while the
   // other five surfaces share one sentence-case hairline band). Same
   // pattern, audit content.
+  //
+  // S1 (ux-flow audit 2026-07-02): a failed/loading events query used to
+  // render hard zeros ("EVENTS 0") — a confident claim the server never
+  // made. Failed → the canonical em-dash "no data" mark per column.
+  const value = (n: number): string => (failed ? '—' : n.toLocaleString())
   const stats: StatBandItem[] = [
     {
       key: 'total',
       // "Events · last 30 days", not "Total loaded · in this view" —
       // label what the number means to a CPA, not how it got fetched.
       label: <Trans>Events</Trans>,
-      value: totalLoaded.toLocaleString(),
+      value: value(totalLoaded),
       sub: totalCaption,
     },
     {
       key: 'filing',
       label: <Trans>Filings</Trans>,
-      value: countsByType.filing.toLocaleString(),
+      value: value(countsByType.filing),
       sub: <Trans>filed or e-filed</Trans>,
     },
     {
       key: 'amendment',
       label: <Trans>Amendments</Trans>,
-      value: countsByType.amendment.toLocaleString(),
+      value: value(countsByType.amendment),
       sub: <Trans>amended with reason</Trans>,
     },
     {
       key: 'access',
       label: <Trans>Access</Trans>,
-      value: countsByType.access.toLocaleString(),
+      value: value(countsByType.access),
       sub: <Trans>logins and exports</Trans>,
     },
     {
       key: 'system',
       label: <Trans>System</Trans>,
-      value: (countsByType.system + countsByType.decision).toLocaleString(),
+      value: value(countsByType.system + countsByType.decision),
       sub: <Trans>auto-recorded and manual decisions</Trans>,
     },
   ]
-  return <StatBand stats={stats} bumpKey={bumpKey} />
+  return <StatBand stats={stats} bumpKey={bumpKey} loading={loading} />
 }
 
 function AuditSkeleton() {
@@ -890,6 +901,10 @@ export function AuditLogPage() {
           filtersActive ? <Trans>matching current filters</Trans> : rangeCaptions[query.range]
         }
         countsByType={countsByType}
+        // S1: never claim "EVENTS 0" while the query is loading (skeleton) or
+        // after it failed (em-dashes + the error state on the table below).
+        loading={auditQuery.isLoading}
+        failed={auditQuery.isError}
         // The active-filter signature — when any facet changes, the KPI values
         // recompute and pulse once. Search `q` is included so a narrowed query
         // also bumps the counts.
@@ -1092,15 +1107,15 @@ export function AuditLogPage() {
           {auditQuery.isLoading ? <AuditSkeleton /> : null}
 
           {auditQuery.isError ? (
-            <Alert variant="destructive">
-              <AlertTitle>
-                <Trans>Couldn't load audit events</Trans>
-              </AlertTitle>
-              <AlertDescription>
-                {rpcErrorMessage(auditQuery.error) ??
-                  t`Try again in a moment. If it keeps failing, contact support.`}
-              </AlertDescription>
-            </Alert>
+            // S1: shared QueryErrorState with a WIRED Retry (the old Alert
+            // offered no recovery affordance at all).
+            <QueryErrorState
+              what={<Trans>audit events</Trans>}
+              error={auditQuery.error}
+              onRetry={() => void auditQuery.refetch()}
+              retrying={auditQuery.isFetching}
+              frameless
+            />
           ) : null}
 
           {/* One AnimatePresence over the mutually-exclusive empty ↔ table

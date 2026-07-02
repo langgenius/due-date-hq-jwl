@@ -44,13 +44,20 @@ export function AlertDrawerProvider({ children }: AlertDrawerProviderProps) {
         // On /alerts or /alerts/history — drive the URL
         // param so the in-route panel picks it up and so the
         // alert is deep-linkable.
+        //
+        // History semantics (ux-flow-audit 2026-07-02 S3): OPENING the
+        // panel (no alert currently open) pushes a history entry so
+        // browser Back closes the panel instead of skipping past the
+        // page. SWITCHING alert-to-alert (rail hops, prev/next) keeps
+        // `replace` so paging through alerts doesn't spam history —
+        // one Back always closes the panel, a second leaves the page.
         setSearchParams(
           (current) => {
             const next = new URLSearchParams(current)
             next.set('alert', id)
             return next
           },
-          { replace: true },
+          { replace: urlAlertId !== null },
         )
         return
       }
@@ -59,7 +66,7 @@ export function AlertDrawerProvider({ children }: AlertDrawerProviderProps) {
       // overlay on other pages.
       void navigate(`/alerts?alert=${encodeURIComponent(id)}`)
     },
-    [navigate, routeOwnsPanel, setSearchParams],
+    [navigate, routeOwnsPanel, setSearchParams, urlAlertId],
   )
   const closeDrawer = useCallback(() => {
     setLocalAlertId(null)

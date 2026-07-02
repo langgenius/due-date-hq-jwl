@@ -36,6 +36,8 @@ import {
   CommandList,
 } from '@duedatehq/ui/components/ui/command'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
@@ -150,7 +152,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'notifications',
-        label: t`Notifications`,
+        label: t`Inbox`,
         description: t`Open your personal notification inbox.`,
         scope: 'core',
         group: 'navigate',
@@ -443,9 +445,45 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             {/* Only the empty branch fades in — the results list re-renders per
                 keystroke and must stay instant. */}
             <motion.div {...fadeMotion}>
-              <Trans>No results found.</Trans>
+              {clientsQuery.isError && showClients ? (
+                // S1: the client search source FAILED — "No results found."
+                // would claim the search ran and matched nothing. Name the
+                // failure and offer Retry (refetches the client list).
+                <span className="inline-flex flex-wrap items-center justify-center gap-1.5">
+                  <Trans>Search failed — try again.</Trans>
+                  <TextLink
+                    variant="accent"
+                    size="sm"
+                    onClick={() => void clientsQuery.refetch()}
+                    className={cn(clientsQuery.isFetching && 'pointer-events-none opacity-50')}
+                    aria-disabled={clientsQuery.isFetching || undefined}
+                  >
+                    <Trans>Retry</Trans>
+                  </TextLink>
+                </span>
+              ) : (
+                <Trans>No results found.</Trans>
+              )}
             </motion.div>
           </CommandEmpty>
+
+          {/* Client search failed but nav rows still match: keep the pages
+              usable and surface a quiet inline notice (distinct from
+              no-results) so a typed client name isn't silently missing. */}
+          {clientsQuery.isError && showClients && hasQuery && visibleNav.length > 0 ? (
+            <div className="flex items-center justify-center gap-1.5 border-b border-divider-subtle px-4 py-2.5 text-xs text-text-tertiary">
+              <Trans>Client search failed.</Trans>
+              <TextLink
+                variant="accent"
+                size="sm"
+                onClick={() => void clientsQuery.refetch()}
+                className={cn(clientsQuery.isFetching && 'pointer-events-none opacity-50')}
+                aria-disabled={clientsQuery.isFetching || undefined}
+              >
+                <Trans>Retry</Trans>
+              </TextLink>
+            </div>
+          ) : null}
 
           {clientResults.length > 0 ? (
             <CommandGroup heading={t`Clients`}>

@@ -3,7 +3,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, CircleAlertIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import type { DashboardTopRow } from '@duedatehq/contracts'
+import type { DashboardBriefScope, DashboardTopRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -29,7 +29,7 @@ import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { formatDatePretty } from '@/lib/utils'
-import { useCurrentUserId } from '@/lib/use-current-user-name'
+import { useCurrentUserId, useCurrentUserName } from '@/lib/use-current-user-name'
 import { ExtensionChip } from './extension-chip'
 
 /**
@@ -70,6 +70,7 @@ export function MergedBriefCard({
   counts,
   rows,
   asOfDate,
+  scope = 'firm',
   isLoading = false,
   isError = false,
   onRetry,
@@ -79,6 +80,12 @@ export function MergedBriefCard({
   counts: MergedBriefCounts
   rows: readonly DashboardTopRow[]
   asOfDate: string | null
+  // The /today page scope (My work / Everyone). `counts` above come from the
+  // scope-aware dashboard facets, so the "See all N" links must carry the
+  // same scope to /deadlines or the quoted N won't match the arrival
+  // (ux-flow S4: scoped count → unscoped destination). Defaults to 'firm'
+  // (unscoped links) so existing callers stay unchanged.
+  scope?: DashboardBriefScope
   // While the dashboard query loads, render the column-aligned skeleton —
   // without it the zero counts masquerade as "Nothing here. You're clear."
   isLoading?: boolean
@@ -149,12 +156,23 @@ export function MergedBriefCard({
   // the bare list (scoped-count → unscoped-destination mismatch, UX audit
   // 2026-07-02). `due=overdue` / `dueWithin=N` are the real /deadlines params
   // (routes/obligations.tsx parsers; dueWithin caps at 30).
+  //
+  // Wave 2 (same audit): the bucket filter alone still mismatched on SCOPE —
+  // at "My work" the counts are viewer-scoped but the link landed firm-wide.
+  // Append the viewer's `?assignee=` (name-keyed facet param) at scope='me'.
+  // Known residual gap: 'me' also counts UNASSIGNED rows and the queue can't
+  // express "mine OR unassigned", so the arrival may run slightly under the
+  // quoted N when unassigned rows exist — still strictly closer than
+  // firm-wide.
+  const currentUserName = useCurrentUserName()
+  const scopeSearch =
+    scope === 'me' && currentUserName ? `&assignee=${encodeURIComponent(currentUserName)}` : ''
   const seeAllTo =
     selected === 'overdue'
-      ? '/deadlines?due=overdue'
+      ? `/deadlines?due=overdue${scopeSearch}`
       : selected === 'week'
-        ? '/deadlines?dueWithin=7'
-        : '/deadlines?dueWithin=30'
+        ? `/deadlines?dueWithin=7${scopeSearch}`
+        : `/deadlines?dueWithin=30${scopeSearch}`
 
   // One-line deterministic summary — the lede of the brief. It surfaces the
   // docs blocker the count chips can't, so it says something they don't.

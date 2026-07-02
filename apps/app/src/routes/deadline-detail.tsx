@@ -7,6 +7,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 
 import {
   cleanDeadlineDetailSearch,
@@ -101,6 +102,18 @@ export function DeadlineDetailRoute() {
   // obligationId — a blank white pane. An invalid ref can never resolve, so
   // it's not-found immediately, no list settling required.
   const invalidRef = routeRef === null && Boolean(params.obligationRef)
+  // S1 (ux-flow audit 2026-07-02): a failed list query used to leave the rail
+  // saying "No deadlines match." and this pane BLANK (null obligationId falls
+  // through to the drawer). Failure is its own state — rail + pane both show
+  // the shared error + Retry, never the empty/not-found fictions.
+  const listLoadError = listQuery.isError
+    ? {
+        error: listQuery.error,
+        onRetry: () => void listQuery.refetch(),
+        retrying: listQuery.isFetching,
+      }
+    : null
+  const detailLoadFailed = listQuery.isError && !obligationId
   const detailNotFound =
     invalidRef ||
     (routeRef !== null &&
@@ -162,6 +175,7 @@ export function DeadlineDetailRoute() {
         hasMore={listQuery.hasNextPage}
         isLoadingMore={listQuery.isFetchingNextPage}
         onLoadMore={() => void listQuery.fetchNextPage()}
+        loadError={listLoadError}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         {/* 2026-06-10 (Yuqi alert↔deadline parity #1): the breadcrumb +
@@ -170,7 +184,19 @@ export function DeadlineDetailRoute() {
             BackStrip inside the body). Prev/Next paging is the rail + the
             drawer's ▲▼ keyboard handler now, so the route no longer
             renders a separate crumb bar above the panel. */}
-        {detailNotFound ? (
+        {detailLoadFailed && listLoadError ? (
+          // The list query failed and the ref can't resolve — an error pane
+          // with Retry, not the blank drawer / "not found" fiction.
+          <div className="flex flex-1 items-center justify-center p-8">
+            <QueryErrorState
+              what={<Trans>this deadline</Trans>}
+              error={listLoadError.error}
+              onRetry={listLoadError.onRetry}
+              retrying={listLoadError.retrying}
+              frameless
+            />
+          </div>
+        ) : detailNotFound ? (
           <EmptyState
             variant="prominent"
             iconTone="neutral"

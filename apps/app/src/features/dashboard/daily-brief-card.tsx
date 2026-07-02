@@ -26,6 +26,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { formatRelativeTime } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useAlertsListQueryOptions } from '@/features/alerts/api'
+import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
@@ -294,7 +295,7 @@ export function DailyBriefCard({
           twin elsewhere on /today. Self-hiding at zero. Alerts + Overdue pills
           were removed 2026-06-18 (they duplicated the Needs-attention section
           and Priorities overdue bucket directly around this card). */}
-        <BriefActionPills counts={todayCounts} />
+        <BriefActionPills counts={todayCounts} scope={scope} />
 
         {/* Failure footnote — a quiet caption, never the headline. */}
         {aiEnabled && brief?.status === 'failed' && !brief.text ? (
@@ -367,8 +368,17 @@ function DeterministicBriefTeaser({
  * its jump stays. (The row is kept as a list so a future real signal can slot
  * back in without restructuring.)
  */
-function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
+function BriefActionPills({
+  counts,
+  scope,
+}: {
+  counts: DailyBriefTodayCounts
+  scope: DashboardBriefScope
+}) {
   const { t } = useLingui()
+  // Needed for the scope-faithful destination below; the layout's member
+  // cache makes this a no-fetch read.
+  const currentUserName = useCurrentUserName()
 
   const pills: Array<{
     key: string
@@ -380,6 +390,20 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
     ariaLabel: string
   }> = []
   if (counts.waitingOnClientCount > 0) {
+    // 2026-07-02 (ux-flow S4: scoped pill → unscoped destination): the count
+    // comes from the dashboard facets, which follow the page's My-work /
+    // Everyone toggle — but the link used to land on the FIRM-WIDE
+    // waiting-on-client queue, so a "3" pill could open a 9-row list. At
+    // scope='me' we now carry the viewer's assignee filter (`?assignee=` is
+    // the /deadlines name-keyed facet param). Known residual gap: 'me' also
+    // counts UNASSIGNED deadlines (so unclaimed work never disappears), and
+    // the queue can't express "mine OR unassigned" — the assignee-filtered
+    // arrival may show slightly fewer rows than the pill when unassigned
+    // waiting rows exist. Still strictly closer than firm-wide.
+    const waitingTo =
+      scope === 'me' && currentUserName
+        ? `/deadlines?status=waiting_on_client&assignee=${encodeURIComponent(currentUserName)}`
+        : '/deadlines?status=waiting_on_client'
     pills.push({
       key: 'waiting',
       icon: ClockIcon,
@@ -392,7 +416,7 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       // the pill counts waiting-on-client deadlines, so landing on an
       // unfiltered list would lose the user's place. (`waiting_on_client`
       // is a canonical ?status= literal — see status-control ALL_STATUSES.)
-      to: '/deadlines?status=waiting_on_client',
+      to: waitingTo,
       // Count ternary, not plural()+i18n._ — the repo pattern for pluralized
       // strings outside JSX (a bare `1 deadlines` read wrong to SR users).
       ariaLabel:
@@ -443,7 +467,12 @@ function CatchupLine() {
   if (count === 0) return null
   return (
     <p className="min-w-0 text-sm text-text-primary">
-      <TextLink variant="accent" size="sm" render={<Link to="/alerts" />}>
+      {/* Deep-links the SCOPED board (?origin=catchup), not bare /alerts —
+          catch-up rows carry months-old published dates and sort to the
+          bottom (or off the first page) of the unscoped stream, so the bare
+          link broke the promise this line makes. The scoped landing shows
+          exactly these rows plus a dismissible "Show all" banner. */}
+      <TextLink variant="accent" size="sm" render={<Link to="/alerts?origin=catchup" />}>
         <Plural
           value={count}
           one="# change already in effect affects your clients"

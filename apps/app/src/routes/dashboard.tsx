@@ -603,6 +603,10 @@ export function DashboardRoute() {
             }}
             rows={data?.topRows ?? []}
             asOfDate={data?.asOfDate ?? null}
+            // The counts above follow the page scope; the card threads it into
+            // its "See all N" links so a My-work count never lands on the
+            // firm-wide queue (ux-flow S4).
+            scope={scope}
             // While the dashboard query loads, the card renders a column-aligned
             // skeleton instead of masquerading as "Nothing here. You're clear."
             isLoading={dashboardQuery.isLoading}

@@ -12,6 +12,7 @@ import {
   ListRailSection,
   useRailArrival,
 } from '@/components/patterns/list-rail'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
@@ -39,19 +40,37 @@ export function ObligationListRail({
   onSelect,
   hasNextPage = false,
   onLoadMore,
+  loadError = null,
 }: {
   rows: readonly ObligationQueueRow[]
   activeId: string | null
   onSelect: (obligationId: string) => void
   hasNextPage?: boolean
   onLoadMore?: () => void
+  /** S1: non-null when the backing list query FAILED — the rail shows the
+   * shared inline error + Retry instead of "No deadlines match." */
+  loadError?: { error: unknown; onRetry: () => void; retrying: boolean } | null
 }) {
   const { t } = useLingui()
   const [search, setSearch] = useState('')
 
   // "N overdue" carries the one urgent cue; if nothing is overdue the chip
   // shows the neutral total instead (inventory count, not a call to action).
-  const overdueCount = useMemo(() => rows.filter((r) => r.daysUntilDue < 0).length, [rows])
+  // Overdue = past due AND still actionable — terminal rows (filed / paid /
+  // completed / N-A) can't be "overdue" (same terminal set as the queue's
+  // narrative banner), so this chip never contradicts the page's Overdue cell.
+  const overdueCount = useMemo(
+    () =>
+      rows.filter(
+        (r) =>
+          r.daysUntilDue < 0 &&
+          r.status !== 'done' &&
+          r.status !== 'paid' &&
+          r.status !== 'completed' &&
+          r.status !== 'not_applicable',
+      ).length,
+    [rows],
+  )
 
   const query = search.trim().toLowerCase()
   const visible = useMemo(
@@ -77,8 +96,13 @@ export function ObligationListRail({
             <Plural value={overdueCount} one="# overdue" other="# overdue" />
           </CountPill>
         ) : (
+          // 2026-07-02 (ux-flow S4 count drift): this fallback used to say
+          // "N open", but `rows` is the table's loaded list — every status,
+          // filed included — so "open" over-claimed a scope the number never
+          // had. "N in list" names the real source (same wording as the
+          // detail navigator rail's resting chip).
           <span className="text-sm font-medium text-text-tertiary tabular-nums">
-            <Plural value={rows.length} one="# open" other="# open" />
+            <Plural value={rows.length} one="# in list" other="# in list" />
           </span>
         )}
       </ListRailHead>
@@ -96,7 +120,17 @@ export function ObligationListRail({
 
       {/* ListBody — compact items, the open one accented. */}
       <ListRailBody>
-        {visible.length === 0 ? (
+        {loadError && rows.length === 0 ? (
+          // Failure ≠ empty: the list query errored, so "No deadlines match."
+          // would claim an empty result the server never returned.
+          <QueryErrorState
+            size="inline"
+            what={<Trans>deadlines</Trans>}
+            error={loadError.error}
+            onRetry={loadError.onRetry}
+            retrying={loadError.retrying}
+          />
+        ) : visible.length === 0 ? (
           // Zero-results is a recovery moment, not a dead-end: when a filter is
           // narrowing the list to nothing, offer a one-click way back to the
           // full list (matches the page-level alerts/audit/notifications empties).

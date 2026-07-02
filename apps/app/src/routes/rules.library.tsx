@@ -83,6 +83,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { KbdHint } from '@/components/patterns/kbd'
 import {
@@ -1384,6 +1385,11 @@ export function RulesLibraryRoute() {
     void sourcesQuery.refetch()
     void temporaryQuery.refetch()
   }
+  const coreQueriesRetrying =
+    rulesQuery.isFetching ||
+    coverageQuery.isFetching ||
+    sourcesQuery.isFetching ||
+    temporaryQuery.isFetching
 
   const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data])
   const rulesById = useMemo(() => new Map(rules.map((rule) => [rule.id, rule])), [rules])
@@ -1993,9 +1999,15 @@ export function RulesLibraryRoute() {
         filing_type: rule.taxType,
         tier: rule.ruleTier,
       })
-      void setRuleId(rule.id)
+      // History semantics (ux-flow-audit 2026-07-02 S3): OPENING the
+      // rule detail (none currently open) pushes a history entry so
+      // browser Back closes the panel instead of exiting the page.
+      // SWITCHING rule-to-rule ("Review next") keeps `replace` so
+      // paging through a review queue doesn't spam history. Close
+      // paths keep nuqs' default `replace`.
+      void setRuleId(rule.id, { history: ruleId ? 'replace' : 'push' })
     },
-    [setRuleId],
+    [ruleId, setRuleId],
   )
 
   // Recent-changes "View all changes" → the audit log, the canonical
@@ -2705,6 +2717,17 @@ export function RulesLibraryRoute() {
           search={railSearch}
           onSearchChange={setRailSearch}
           temporary={railTemporary}
+          // S1: a failed catalog load must not render as "Overview 0 /
+          // 0 jurisdictions" — the rail shows the shared error + Retry.
+          loadError={
+            coreQueryError
+              ? {
+                  error: coreQueryError,
+                  onRetry: refetchCoreQueries,
+                  retrying: coreQueriesRetrying,
+                }
+              : null
+          }
           // Narrower than the shared 380px ListRail default — jurisdiction
           // names ("District of Columbia" being the longest) + count fit
           // comfortably at 300px, giving the rule table more room.
@@ -2819,30 +2842,16 @@ export function RulesLibraryRoute() {
               progress meter, scope tabs, entity/search filters, and the
               rule table. */}
             {coreQueryError ? (
-              // Any core query failing renders ONE error banner + retry here,
-              // above the empty/content render below — otherwise the `?? []`
-              // fallbacks make a failed load look like an empty catalog.
-              // Mirrors the canonical AlertsListPage list error (destructive
-              // Alert + message + Button-link Retry).
-              <Alert variant="destructive">
-                <TriangleAlertIcon />
-                <AlertTitle>
-                  <Trans>Couldn't load rules</Trans>
-                </AlertTitle>
-                <AlertDescription>
-                  {rpcErrorMessage(coreQueryError) ??
-                    t`Try again in a moment. If it keeps failing, contact support.`}{' '}
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0 align-baseline"
-                    onClick={refetchCoreQueries}
-                  >
-                    <Trans>Retry</Trans>
-                  </Button>
-                </AlertDescription>
-              </Alert>
+              // Any core query failing renders ONE shared error state + retry
+              // here, above the empty/content render below — otherwise the
+              // `?? []` fallbacks make a failed load look like an empty
+              // catalog (S1 failure-as-empty).
+              <QueryErrorState
+                what={<Trans>rules</Trans>}
+                error={coreQueryError}
+                onRetry={refetchCoreQueries}
+                retrying={coreQueriesRetrying}
+              />
             ) : selectedGroup || isSearching || sourceParam ? (
               <>
                 {/* KPI strip — 4-stat band (Total / Effective / Pending /

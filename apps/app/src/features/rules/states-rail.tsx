@@ -15,6 +15,7 @@ import {
   ListRailSection,
   ListRailTitle,
 } from '@/components/patterns/list-rail'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -73,6 +74,7 @@ export function JurisdictionRail({
   search,
   onSearchChange,
   temporary,
+  loadError = null,
   className,
 }: {
   items: readonly RailJurisdiction[]
@@ -88,6 +90,10 @@ export function JurisdictionRail({
    * (Sources moved to a button on the Overview header.)
    */
   temporary?: { activeCount: number; totalCount: number; obligationCount: number } | undefined
+  /** S1 (ux-flow audit 2026-07-02): non-null when the catalog queries FAILED —
+   * the rail shows the shared inline error + Retry instead of the fiction of
+   * "Overview 0 / 0 jurisdictions". */
+  loadError?: { error: unknown; onRetry: () => void; retrying: boolean } | null
   className?: string
 }) {
   const { t } = useLingui()
@@ -201,6 +207,17 @@ export function JurisdictionRail({
           rail uses). `px-3 py-2` so each row's left edge + trailing count
           column settle under the head's `px-[18px]` (body px-3 + row px-3). */}
       <ListRailBody className="px-3 py-2">
+        {loadError && items.length === 0 ? (
+          // Failure ≠ empty: the catalog queries errored, so "Overview 0" +
+          // an empty states list would be fiction. Shared inline error + Retry.
+          <QueryErrorState
+            size="inline"
+            what={<Trans>jurisdictions</Trans>}
+            error={loadError.error}
+            onRetry={loadError.onRetry}
+            retrying={loadError.retrying}
+          />
+        ) : (
         <div className="flex flex-col gap-0.5">
           {/* Overview — the All-jurisdictions surface, always first. */}
           {!query ? (
@@ -282,6 +299,7 @@ export function JurisdictionRail({
             </p>
           ) : null}
         </div>
+        )}
       </ListRailBody>
 
       {/* Footer — a plain total (#16). The list isn't paginated (every
@@ -290,7 +308,9 @@ export function JurisdictionRail({
           honest count, same divider rhythm as the head/search rows above. */}
       <div className="flex shrink-0 items-center border-t border-divider-subtle px-[18px] py-3">
         <span className="text-xs font-medium text-text-tertiary tabular-nums">
-          {t`${items.length} jurisdictions`}
+          {/* Never claim "0 jurisdictions" when the load failed — the em-dash
+              is the canonical "no data" mark (EmptyCellMark semantics). */}
+          {loadError && items.length === 0 ? '—' : t`${items.length} jurisdictions`}
         </span>
       </div>
     </ListRail>
