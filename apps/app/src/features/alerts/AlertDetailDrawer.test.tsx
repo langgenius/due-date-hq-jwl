@@ -146,10 +146,11 @@ function clickButton(label: string) {
 function renderDrawerActions({
   onMarkReviewed = vi.fn(),
   alertStatus = 'matched',
+  ...overrides
 }: {
   onMarkReviewed?: () => void
   alertStatus?: PulseFirmAlertStatus
-}) {
+} & Partial<Parameters<typeof DrawerActions>[0]>) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -181,6 +182,8 @@ function renderDrawerActions({
           onRequestReview={() => {}}
           onCopyDraft={() => {}}
           onDismiss={() => {}}
+          onClose={() => {}}
+          {...overrides}
         />
       </AppI18nProvider>,
     )
@@ -203,6 +206,49 @@ describe('DrawerActions direct footer actions', () => {
     expect(buttonLabels).not.toContain('Snooze 24h')
     expect(document.querySelector('#pulse-reason-text')).toBeNull()
     expect(document.body.textContent).not.toContain('Reason')
+  })
+
+  it('post-apply success state persists with Review next / Copy draft / Close (no auto-close)', () => {
+    // 2026-07-02 UX-flow audit: apply used to auto-close the panel in ~600ms,
+    // swallowing the follow-ups. The success state now stays until the user acts.
+    const onReviewNext = vi.fn()
+    const onClose = vi.fn()
+    const onCopyDraft = vi.fn()
+
+    renderDrawerActions({
+      applied: true,
+      appliedCount: 3,
+      alertStatus: 'applied',
+      onReviewNext,
+      onClose,
+      onCopyDraft,
+    })
+
+    expect(document.body.textContent).toContain('Applied to 3 clients')
+    clickButton('Copy client email draft')
+    expect(onCopyDraft).toHaveBeenCalledTimes(1)
+    clickButton('Review next alert')
+    expect(onReviewNext).toHaveBeenCalledTimes(1)
+    clickButton('Close')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('post-apply success state on the last alert offers Close as the forward action', () => {
+    const onClose = vi.fn()
+
+    renderDrawerActions({
+      applied: true,
+      appliedCount: 1,
+      alertStatus: 'applied',
+      onReviewNext: null,
+      onClose,
+    })
+
+    expect(document.body.textContent).toContain('Applied to 1 client')
+    const labels = Array.from(document.querySelectorAll('button')).map((b) => b.textContent?.trim())
+    expect(labels).not.toContain('Review next alert')
+    clickButton('Close')
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('shows a disabled "Reviewed" state (not an actionable "Mark reviewed") for an already-reviewed alert', () => {

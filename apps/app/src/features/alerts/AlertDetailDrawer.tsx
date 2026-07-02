@@ -1,4 +1,13 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { Link } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -890,11 +899,6 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
   )
 }
 
-// Apply-success celebration hold: how long the footer shows the green "Applied"
-// confirmation before the drawer closes. ~600ms reads as a deliberate beat of
-// recognition (the catalog's "win moment") without making the user wait.
-const APPLIED_CELEBRATION_MS = 600
-
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
 // evidence + email outbox in one transaction (see packages/db/src/repo/pulse.ts).
@@ -1054,20 +1058,23 @@ export function AlertDetailDrawer({
   const [confirmReviewOpen, setConfirmReviewOpen] = useState(false)
   const [reviewVerified, setReviewVerified] = useState(false)
 
-  // Apply-success celebration — the one-click Apply is the product's signature
-  // win, but it used to close the drawer instantly with only a toast. On success
-  // we flip the footer to a green "Applied" confirmation, hold briefly so the
-  // firm-wide win registers, then close. `applied` is reset by the render-time
-  // reset blocks below (alert change / close); the timer is cleared on unmount.
+  // Apply-success state — the one-click Apply is the product's signature win,
+  // but it used to auto-close the drawer ~600ms after success, swallowing the
+  // natural follow-ups (2026-07-02 UX-flow audit: "killing next-alert rhythm +
+  // copy-client-email"). On success the footer now flips to a PERSISTENT green
+  // "Applied" confirmation with the real next actions (Review next alert / Copy
+  // client email draft / Close); the panel stays until the user moves on.
+  // `applied` is reset by the render-time reset blocks below (alert change /
+  // close). `appliedReviewNextRef` snapshots the list-threaded `onNext` pager at
+  // success time: the success invalidation refetches the alerts list, the
+  // applied alert leaves the active rail, and the live `onNext` prop evaporates
+  // a beat later — the captured pager still opens the alert that was next.
   const [applied, setApplied] = useState(false)
   const [appliedCount, setAppliedCount] = useState(0)
-  const appliedCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(
-    () => () => {
-      if (appliedCloseTimer.current) clearTimeout(appliedCloseTimer.current)
-    },
-    [],
-  )
+  const appliedReviewNextRef = useRef<(() => void) | null>(null)
+  // Keyboard flow: the apply-verification dialog's `finalFocus` lands here (the
+  // success footer's primary button) so Enter keeps the triage moving.
+  const appliedPrimaryRef = useRef<HTMLButtonElement | null>(null)
 
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
@@ -1247,13 +1254,16 @@ export function AlertDetailDrawer({
             },
           },
         )
-        // Hold a brief green "Applied" confirmation in the footer before
-        // closing, so the firm-wide win registers (motion catalog). The timer
-        // is cleared on unmount; `applied` is reset by the render-time reset
-        // blocks when the alert changes or the drawer closes.
+        // Persistent success state — the panel STAYS OPEN (the old 600ms
+        // auto-close swallowed the follow-ups). Snapshot the next-alert pager
+        // before the list refetch drops this alert from the active rail.
+        appliedReviewNextRef.current = onNext ?? null
         setAppliedCount(result.appliedCount)
         setApplied(true)
-        appliedCloseTimer.current = setTimeout(() => onClose(), APPLIED_CELEBRATION_MS)
+        // The verification gate has served its purpose — dismiss it over the
+        // success footer (it used to piggyback on the drawer's own close).
+        setApplyVerificationOpen(false)
+        setApplyVerified(false)
       },
       onError: (err) => {
         const description = i18n._(alertErrorDescriptor(err)) || (rpcErrorMessage(err) ?? '')
@@ -1404,7 +1414,11 @@ export function AlertDetailDrawer({
             },
           },
         )
-        onClose()
+        // Same persistent success state as the primary Apply — closure stays
+        // in the user's hands (Review next / Copy draft / Close).
+        appliedReviewNextRef.current = onNext ?? null
+        setAppliedCount(result.appliedCount)
+        setApplied(true)
       },
       onError: (err) => {
         toast.error(t`Couldn't apply reviewed set`, {
@@ -1446,9 +1460,9 @@ export function AlertDetailDrawer({
   // The verification dialog stays open during the mutation so the
   // user retains context if the request fails (server-side conflict,
   // network blip). On success the upstream `applyMutation.onSuccess`
-  // calls `onClose()` which closes the drawer; the close-handler
-  // reset block clears `applyVerificationOpen` + `applyVerified` so
-  // the next alert opens with a fresh gate.
+  // closes the gate itself and flips the footer to the persistent
+  // "Applied" success state (the drawer stays open); its `finalFocus`
+  // hands focus to the success footer's primary action.
   const runApply = () => {
     if (!detail) return
     if (!canApplyAlertDeadline(detail)) return
@@ -1519,7 +1533,10 @@ export function AlertDetailDrawer({
       ) {
         return
       }
-      if (event.metaKey || event.ctrlKey || event.altKey || isMutating) return
+      // `applied` — during the post-apply success state the alert is resolved
+      // server-side but the refetched status may not have landed yet; a
+      // keyboard D/A in that window would fire a doomed mutation.
+      if (event.metaKey || event.ctrlKey || event.altKey || isMutating || applied) return
       // Ignore key auto-repeat: a HELD `D` fires repeated keydowns ~30ms apart,
       // faster than `isMutating` can re-render to true — the 2026-07-02 audit
       // log shows the same alert dismissed twice in one second, and the second
@@ -1566,6 +1583,7 @@ export function AlertDetailDrawer({
     open,
     detail,
     isMutating,
+    applied,
     canDismiss,
     canApply,
     alertResolved,
@@ -2759,6 +2777,12 @@ export function AlertDetailDrawer({
                     <DrawerActions
                       applied={applied}
                       appliedCount={appliedCount}
+                      // Success-state follow-ups: the pager snapshot taken at
+                      // apply time (the live onNext prop evaporates once the
+                      // applied alert leaves the refetched rail) + manual close.
+                      onReviewNext={applied ? appliedReviewNextRef.current : null}
+                      onClose={onClose}
+                      successPrimaryRef={appliedPrimaryRef}
                       alertStatus={detail.alert.status}
                       sourceStatus={detail.alert.sourceStatus}
                       selectionCount={stats?.selectedCount ?? 0}
@@ -2844,6 +2868,11 @@ export function AlertDetailDrawer({
         }
       }}
       onConfirm={runApply}
+      // After a successful apply the gate closes over the success footer —
+      // hand focus to its primary ("Review next alert" / "Close") so Enter
+      // keeps the triage moving. On a plain Cancel the ref is unmounted
+      // (null), so Base UI falls back to its default focus restore.
+      finalFocus={() => appliedPrimaryRef.current ?? true}
     />
   ) : null
 
@@ -2974,6 +3003,9 @@ export function AlertDetailDrawer({
 export function DrawerActions({
   applied = false,
   appliedCount = 0,
+  onReviewNext = null,
+  onClose,
+  successPrimaryRef,
   alertStatus,
   sourceStatus,
   selectionCount,
@@ -2998,10 +3030,16 @@ export function DrawerActions({
   onCopyDraft,
   onDismiss,
 }: {
-  /** True during the brief post-apply success hold — shows a green confirmation. */
+  /** True in the persistent post-apply success state — shows the green confirmation + follow-up actions. */
   applied?: boolean
   /** Number of clients the apply just landed on — shown in the confirmation. */
   appliedCount?: number
+  /** Snapshot of the next-alert pager taken at apply time (null when this was the last alert). */
+  onReviewNext?: (() => void) | null
+  /** Manual close for the success state — closure belongs to the user, not a timer. */
+  onClose: () => void
+  /** The success state's primary button — the apply gate's finalFocus target. */
+  successPrimaryRef?: RefObject<HTMLButtonElement | null>
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
@@ -3036,15 +3074,18 @@ export function DrawerActions({
   onDismiss: () => void
 }) {
   const { t } = useLingui()
-  // Apply-success celebration — while the parent holds before closing, replace
-  // the whole action cluster with a brief green "Applied" confirmation that
-  // fades in. Reduced-motion is handled globally by <MotionConfig>.
+  // Apply-success state — PERSISTENT (2026-07-02 UX-flow audit: the 600ms
+  // auto-close broke the triage rhythm and swallowed "copy client email").
+  // The action cluster becomes the green "Applied to N clients" confirmation
+  // plus the real follow-ups: copy the client email draft, review the next
+  // alert (the pager snapshot), or close — the user decides when to move on.
+  // Reduced-motion is handled globally by <MotionConfig>.
   if (applied) {
     return (
-      <div className="flex w-full items-center justify-end">
+      <div className="flex w-full flex-nowrap items-center justify-between gap-3">
         <motion.div
           {...fadeMotion}
-          className="flex items-center gap-2 text-sm font-medium text-text-success"
+          className="flex min-w-0 items-center gap-2 text-sm font-medium text-text-success"
         >
           {/* The check stamps down like an audit seal — scale + slight rotate
               settling to rest — over the row's fade. The client count gives the
@@ -3059,6 +3100,33 @@ export function DrawerActions({
           </motion.span>
           <Plural value={appliedCount} one="Applied to # client" other="Applied to # clients" />
         </motion.div>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Copy client email draft — the natural post-apply follow-up the
+              auto-close used to swallow. Same handler as the pre-apply footer
+              button (clipboard draft from the applied selection). */}
+          <Button variant="ghost" size="sm" onClick={onCopyDraft}>
+            <MailIcon data-icon="inline-start" />
+            <Trans>Copy client email draft</Trans>
+          </Button>
+          {onReviewNext ? (
+            <>
+              <Button variant="outline" size="sm" onClick={onClose}>
+                <Trans>Close</Trans>
+              </Button>
+              {/* Primary — keeps the triage rhythm; the apply gate's finalFocus
+                  lands here so Enter advances. */}
+              <Button ref={successPrimaryRef} onClick={onReviewNext}>
+                <Trans>Review next alert</Trans>
+                <ArrowRightIcon data-icon="inline-end" />
+              </Button>
+            </>
+          ) : (
+            // Last alert in the rail — closing is the forward action.
+            <Button ref={successPrimaryRef} onClick={onClose}>
+              <Trans>Close</Trans>
+            </Button>
+          )}
+        </div>
       </div>
     )
   }
@@ -3404,6 +3472,7 @@ function AlertApplyVerificationDialog({
   onChangeVerified,
   onOpenChange,
   onConfirm,
+  finalFocus,
 }: {
   open: boolean
   detail: PulseDetail
@@ -3413,6 +3482,9 @@ function AlertApplyVerificationDialog({
   onChangeVerified: (next: boolean) => void
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
+  /** Where focus lands when the gate closes — the drawer points this at the
+   * post-apply success footer so keyboard triage survives the apply. */
+  finalFocus?: ComponentProps<typeof DialogContent>['finalFocus']
 }) {
   const { t } = useLingui()
   const originalDate = detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`
@@ -3422,7 +3494,7 @@ function AlertApplyVerificationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[560px]" finalFocus={finalFocus}>
         <form
           className="grid gap-5"
           onSubmit={(event) => {

@@ -331,17 +331,34 @@ export function AffectedClientsTable({
                         alert's "who is affected" → "open that client" path.
                         stopPropagation (click + Enter/Space) so the row's own
                         select / open-deadline handler doesn't also fire. The
-                        hover-arrow still owns the open-deadline path. */}
+                        hover-arrow still owns the open-deadline path.
+                        In the APPLY variant the link opens a NEW TAB
+                        (2026-07-02 UX-flow audit: in-tab navigation destroyed
+                        the curated Confirm/Exclude selection mid-apply); the
+                        inline ↗ is the canonical open-out affordance
+                        (icon-vocabulary.md). The read-only 'review' variant
+                        keeps normal in-tab navigation — it has no working
+                        selection to lose. */}
                       <Link
                         to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                        {...(isReview ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => {
                           if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
                         }}
                         title={row.clientName}
+                        aria-label={
+                          isReview ? undefined : t`Open ${row.clientName} in a new tab`
+                        }
                         className="block w-fit max-w-full break-words rounded-sm text-sm font-medium leading-tight text-text-primary underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         {row.clientName}
+                        {isReview ? null : (
+                          <ArrowUpRightIcon
+                            className="mb-0.5 ml-1 inline size-3 shrink-0 text-text-tertiary"
+                            aria-hidden
+                          />
+                        )}
                       </Link>
                     </TableCell>
                     {/* ENTITY — humanized entity type (Sole prop / LLC / …). */}
@@ -373,22 +390,24 @@ export function AffectedClientsTable({
                     )}
                     {isReview ? null : (
                       <TableCell className="relative">
-                        {/* The hover-arrow is an actual button — click
-                        navigates to the deadline detail. The row click
-                        toggles the checkbox (dominant action); the arrow
-                        handles the secondary "open deadline detail" path.
-                        Surfaces on row hover via group/affected-row. */}
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
-                          }}
-                          aria-label={t`Open ${row.clientName} in deadlines`}
+                        {/* The hover-arrow opens the deadline detail in a NEW
+                        TAB (2026-07-02 UX-flow audit: the old in-tab navigate()
+                        destroyed the curated Confirm/Exclude selection
+                        mid-apply — the working set now survives the side
+                        trip). The row click toggles the checkbox (dominant
+                        action); the arrow handles the secondary "open deadline
+                        detail" path. Surfaces on row hover via
+                        group/affected-row. */}
+                        <Link
+                          to={deadlineDetailHref({ obligationId: row.obligationId })}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                          aria-label={t`Open ${row.clientName} in deadlines in a new tab`}
                           className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
                         >
                           <ArrowUpRightIcon className="size-3.5" aria-hidden />
-                        </button>
+                        </Link>
                         <div className="flex flex-col items-start gap-1.5">
                           <MatchStatusBadge row={row} />
                           {/* Confirm-applies is a real outline button with
