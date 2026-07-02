@@ -309,6 +309,7 @@ function buildScoped(firmId: string, rows: Row[]) {
     async updateSourceDetails() {},
     async updateClassification() {},
     async updateNotes() {},
+    async updateName() {},
     async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},

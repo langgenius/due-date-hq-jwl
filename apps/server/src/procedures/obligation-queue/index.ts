@@ -550,6 +550,7 @@ function toRepoListInput(
   if (input.awaitingSignature !== undefined) repoInput.awaitingSignature = input.awaitingSignature
   if (input.confirmed !== undefined) repoInput.confirmed = input.confirmed
   if (input.pinned !== undefined) repoInput.pinned = input.pinned
+  if (input.snoozed !== undefined) repoInput.snoozed = input.snoozed
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor

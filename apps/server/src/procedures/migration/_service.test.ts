@@ -249,6 +249,7 @@ function buildScopedRepo(
     async updateSourceDetails() {},
     async updateClassification() {},
     async updateNotes() {},
+    async updateName() {},
     async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},

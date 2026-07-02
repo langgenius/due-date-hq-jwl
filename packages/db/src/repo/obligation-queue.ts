@@ -68,6 +68,7 @@ export interface ObligationQueueListInput {
   awaitingSignature?: boolean
   confirmed?: boolean
   pinned?: boolean
+  snoozed?: 'include' | 'only'
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null
@@ -884,9 +885,18 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         // Snoozed deadlines drop out of the default queue until the snooze
         // instant passes (Pencil HuYeb). Deep-links via listByIds are
         // unaffected, so a snoozed row can still be opened directly.
-        .filter((row) =>
-          row.snoozedUntil ? row.snoozedUntil.getTime() <= getAsOfDate(input).getTime() : true,
-        )
+        // `input.snoozed` opts in (2026-07-02 ux-flow wave-2 "snoozed rows
+        // are invisible"): 'only' returns just the currently-snoozed rows —
+        // powers the /deadlines snoozed notice — and 'include' disables the
+        // snooze filter entirely.
+        .filter((row) => {
+          const isSnoozed =
+            row.snoozedUntil != null &&
+            row.snoozedUntil.getTime() > getAsOfDate(input).getTime()
+          if (input.snoozed === 'only') return isSnoozed
+          if (input.snoozed === 'include') return true
+          return !isSnoozed
+        })
         .filter((row) => isWithinDueFilter(row, input))
         .filter((row) => isWithinDaysRange(row, input))
         .filter((row) =>

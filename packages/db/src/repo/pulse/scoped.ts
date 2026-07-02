@@ -1442,6 +1442,12 @@ export function makePulseRepo(db: Db, firmId: string) {
           reviewedAt: pulse.reviewedAt,
           isSample: pulse.isSample,
           duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
+          // Lifecycle timestamps — history rows carry them so the archive can
+          // group/sort by the HANDLED date (a just-dismissed alert files under
+          // "this week", not its months-old publish month). Same pair the
+          // detail query selects; toAlert maps them.
+          dismissedAt: pulseFirmAlert.dismissedAt,
+          appliedAt: firstAppliedAtForPulse(firmId),
         })
         .from(pulseFirmAlert)
         .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))

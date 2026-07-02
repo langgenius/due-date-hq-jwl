@@ -318,6 +318,30 @@ describe('makeObligationQueueRepo.list', () => {
     expect(result.rows.map((row) => row.id)).toEqual(['target-obligation'])
   })
 
+  it('hides snoozed rows by default and surfaces them via the snoozed lens', async () => {
+    const fake = createFakeDb([
+      makeRow({ id: 'active-row' }),
+      makeRow({ id: 'snoozed-row', snoozedUntil: new Date('2026-05-01T00:00:00.000Z') }),
+    ])
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    // Default view: the snoozed row stays hidden until its return instant.
+    const defaultView = await repo.list({ asOfDate: '2026-04-01' })
+    expect(defaultView.rows.map((row) => row.id)).toEqual(['active-row'])
+
+    // 'only' lens: just the currently-snoozed rows (the /deadlines notice).
+    const snoozedOnly = await repo.list({ asOfDate: '2026-04-01', snoozed: 'only' })
+    expect(snoozedOnly.rows.map((row) => row.id)).toEqual(['snoozed-row'])
+
+    // 'include' lens: snooze filter disabled entirely.
+    const everything = await repo.list({ asOfDate: '2026-04-01', snoozed: 'include' })
+    expect(everything.rows.map((row) => row.id).toSorted()).toEqual(['active-row', 'snoozed-row'])
+
+    // A lapsed snooze returns to the default view with no flag needed.
+    const afterReturn = await repo.list({ asOfDate: '2026-05-02' })
+    expect(afterReturn.rows.map((row) => row.id).toSorted()).toEqual(['active-row', 'snoozed-row'])
+  })
+
   it('falls back statutory split dates to the tax authority source-backed date', async () => {
     const baseDueDate = new Date('2026-04-15T00:00:00.000Z')
     const fake = createFakeDb([

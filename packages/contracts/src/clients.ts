@@ -406,6 +406,14 @@ export const ClientNotesUpdateOutputSchema = z.object({
 })
 export type ClientNotesUpdateOutput = z.infer<typeof ClientNotesUpdateOutputSchema>
 
+// Rename a client — the one core identity field with no edit path today.
+// Reuses the notes-update output shape ({ client, auditId }).
+export const ClientRenameInputSchema = z.object({
+  id: EntityIdSchema,
+  name: z.string().trim().min(1).max(200),
+})
+export type ClientRenameInput = z.infer<typeof ClientRenameInputSchema>
+
 export const ClientRiskSummaryInputSchema = z.object({ clientId: EntityIdSchema })
 export type ClientRiskSummaryInput = z.infer<typeof ClientRiskSummaryInputSchema>
 
@@ -474,6 +482,7 @@ export const clientsContract = oc.router({
     .input(ClassificationRecomputeApplyInputSchema)
     .output(ClassificationRecomputeApplyOutputSchema),
   updateNotes: oc.input(ClientNotesUpdateSchema).output(ClientNotesUpdateOutputSchema),
+  rename: oc.input(ClientRenameInputSchema).output(ClientNotesUpdateOutputSchema),
   getRiskSummary: oc.input(ClientRiskSummaryInputSchema).output(AiInsightPublicSchema),
   requestRiskSummaryRefresh: oc
     .input(ClientRiskSummaryRefreshInputSchema)

@@ -36,6 +36,10 @@ export interface ObligationQueueListInput {
   // Pinned lens (/today Pinned section). `true` returns only starred
   // deadlines. Applied as an equality predicate in the repo's list().
   pinned?: boolean
+  // Snoozed lens. Omitted = snoozed rows stay hidden until their return
+  // instant. 'only' returns just the currently-snoozed rows (the /deadlines
+  // snoozed notice); 'include' disables the snooze filter entirely.
+  snoozed?: 'include' | 'only'
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null

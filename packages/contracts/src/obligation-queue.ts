@@ -89,6 +89,11 @@ export const ObligationQueueListInputSchema = z.object({
   // Pinned lens. `true` returns only deadlines the CPA has starred — powers the
   // dashboard "Pinned" section. Omitted = no pin filter.
   pinned: z.boolean().optional(),
+  // Snoozed lens. Omitted = default behavior (snoozed rows stay hidden until
+  // their return instant). 'only' returns just the currently-snoozed rows —
+  // powers the /deadlines "N snoozed" notice so a snoozed deadline can still
+  // be FOUND before it returns. 'include' disables the snooze filter entirely.
+  snoozed: z.enum(['include', 'only']).optional(),
   asOfDate: z.iso.date().optional(),
   sort: ObligationQueueSortSchema.default('smart_priority').optional(),
   cursor: z.string().nullable().optional(),

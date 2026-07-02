@@ -97,6 +97,7 @@ export const ClientAuditActions = [
   'client.deleted',
   'client.filing_profiles.replaced',
   'client.jurisdiction.updated',
+  'client.name.updated',
   'client.obligations.reclassified',
   'client.risk_profile.updated',
   'client.source_details.updated',
