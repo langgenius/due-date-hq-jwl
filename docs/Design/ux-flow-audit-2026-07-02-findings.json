@@ -1,0 +1,586 @@
+[
+  {
+    "surface": "today",
+    "severity": "P1",
+    "issue": "dead-end",
+    "title": "Internal notes typed while adding a deadline are silently discarded, with a toast that claims they can still be saved",
+    "where": "apps/app/src/features/obligations/CreateObligationDialog.tsx:986-995 (reached from /today first-run 'Add a deadline' card, apps/app/src/features/dashboard/create-choice-cards.tsx:278-282)",
+    "fix": "Until obligations.addReviewNote ships: (a) give the toast a real action — toast.info(..., { action: { label: 'Open deadline', onClick: () => openObligationDrawer(obligation.id) } }) — and (b) preserve the draft (e.g. sessionStorage keyed by obligation.id, prefilled into the drawer's notes field) instead of form.reset() dropping it. If neither is feasible, disable/hide the notes textarea rather than accepting text that will be discarded."
+  },
+  {
+    "surface": "today",
+    "severity": "P1",
+    "issue": "no-arrival-confirm",
+    "title": "First-run 'Add a deadline' ends in a toast on a dashboard that can still read 'All clear' — the created entity is never shown",
+    "where": "apps/app/src/features/dashboard/create-choice-cards.tsx:278-282 (/today first-run) + apps/app/src/features/dashboard/merged-brief-card.tsx:100-108",
+    "fix": "Wire onCreated on the /today chooser (and ideally everywhere the dialog mounts): onCreated={(id) => openObligationDrawer(id)} — the provider already routes /today to /deadlines/<short-ref> with the arrival wash, so the user lands on the deadline they just made. Alternatively keep them on /today but make the success toast's action open the deadline."
+  },
+  {
+    "surface": "today",
+    "severity": "P2",
+    "issue": "visual-misalign",
+    "title": "'See all 7 deadlines' quotes the selected bucket's scoped count but lands on the unfiltered firm-wide queue",
+    "where": "apps/app/src/features/dashboard/merged-brief-card.tsx:512-519 and :420-425 (/today Priorities footer + empty-shortlist link)",
+    "fix": "Carry the bucket into the link using params /deadlines already parses (routes/obligations.tsx:663-664 DUE_FILTERS=['overdue'], dueWithin: parseAsInteger consumed at :1479): overdue → /deadlines?due=overdue, week → /deadlines?dueWithin=7, month → /deadlines?dueWithin=30. If a bucket can't be expressed, drop the number from the label ('See all deadlines') so the link never promises a count the destination contradicts."
+  },
+  {
+    "surface": "today",
+    "severity": "P2",
+    "issue": "visual-misalign",
+    "title": "'Waiting on client N' pill counts at the page's My-work scope but its destination is firm-wide — arriving count won't match",
+    "where": "apps/app/src/features/dashboard/daily-brief-card.tsx:382-397 (/today Daily Brief action pill); count fed from apps/app/src/routes/dashboard.tsx:570-572",
+    "fix": "Either compute the pill count from firm-scope facets regardless of the toggle (one number, matches the destination), or extend /deadlines to accept an owner=me literal (OWNER_FILTERS already exists) and append it when scope==='me' — the same choice applies to the Priorities 'See all' links so the whole page hands off consistently."
+  },
+  {
+    "surface": "today",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "Catch-up line promises 'N changes already in effect' but its destination sorts those rows to the bottom or off the first page — no way to find them",
+    "where": "apps/app/src/features/dashboard/daily-brief-card.tsx:435-450 (CatchupLine on /today) → /alerts",
+    "fix": "Make the destination able to honor the promise: add an origin=catchup (or a 'Already in effect' quick filter) search param to /alerts that AlertsListPage parses and passes to useAlertsListQueryOptions(50, 'catchup'), then link the CatchupLine to /alerts?origin=catchup. Minimum viable: badge catchup rows ('In effect') in the /alerts list so they are at least identifiable on arrival."
+  },
+  {
+    "surface": "today",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "/today alert-card click navigates away mid-sweep; the card's own comment promises an in-place drawer and the provider's fallback Sheet is unreachable dead code",
+    "where": "apps/app/src/features/alerts/DrawerProvider.tsx:57-60 + :91, contradicted by apps/app/src/features/dashboard/needs-attention-card.tsx:124-136 (/today Alerts section)",
+    "fix": "Pick one story and align code + comment. If navigation is the intent (canonical-workspace rule), delete the stale comment and the dead fallback Sheet, and have /alerts opened via ?alert= from /today render a 'Back to Today' breadcrumb (it already knows via location.state or document.referrer-style state flag). If the sweep is the intent, restore in-place: on non-alert routes set setLocalAlertId(id) so the existing fallback AlertDetailDrawer opens over /today."
+  },
+  {
+    "surface": "today",
+    "severity": "P3",
+    "issue": "no-back",
+    "title": "Priorities bucket selection is local state — lost on every return to /today, while the URL infrastructure for it sits unused",
+    "where": "apps/app/src/features/dashboard/merged-brief-card.tsx:134-138 + apps/app/src/routes/dashboard.tsx:89-91 (/today Priorities Segmented)",
+    "fix": "Back the bucket Segmented with the existing triage URL param (map week/month/overdue onto TRIAGE_TAB_KEYS or replace the enum) via setDashboardParams with the same REPLACE_HISTORY_OPTIONS the scope toggle uses — returning from a deadline then restores the bucket for free, and the state becomes shareable."
+  },
+  {
+    "surface": "today",
+    "severity": "P3",
+    "issue": "no-next-step",
+    "title": "SetupProgressCard checklist rows carry an href that is never rendered as a link — only the single CTA is clickable",
+    "where": "apps/app/src/features/dashboard/SetupProgressCard.tsx:82-103 (/today needs-rules state; steps declared in routes/dashboard.tsx:514-527)",
+    "fix": "Render each step label as <TextLink render={<Link to={step.href} />}> (muted variant for done steps, primary weight for the next step) so every row is the shortcut its own href already declares — the FunIconButton CTA stays as the emphasized path."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P1",
+    "issue": "broken-flow",
+    "title": "Dismissed alerts cannot be restored from Alert history, despite the UI promising exactly that",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:3024 + apps/app/src/features/alerts/lib/alert-permissions.ts:17 (/alerts/history)",
+    "fix": "In DrawerActions, extend the Reactivate branch to dismissed alerts: `const showReactivate = alertStatus === 'reverted' || alertStatus === 'dismissed'` (the backend `pulse.reactivate` already accepts just-dismissed alerts — the list toast Undo uses it), relabeling the Button 'Restore to active' for the dismissed case. Optionally add a row-level Restore TextLink on Dismissed rows in AlertHistoryView. Until then the bulk-dismiss dialog copy is a false promise."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P1",
+    "issue": "dead-end",
+    "title": "Alert history bulk selection is a dead end — checkboxes and a bulk bar with zero actions",
+    "where": "apps/app/src/features/alerts/AlertHistoryView.tsx:264-285 (/alerts/history)",
+    "fix": "Either wire real bulk actions into the bar — 'Restore N to active' looping/batching `orpc.pulse.reactivate` over selected dismissed/reverted rows (mirror the active board's BulkConfirmDialog pattern), and/or 'Export selected' reusing the CSV builder in routes/alerts.history.tsx:68 — or delete the checkboxes and bar entirely. A selection affordance with no verbs is worse than none."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P1",
+    "issue": "no-closure",
+    "title": "Dismiss from the detail panel (button or D hotkey) has no Undo — unlike the identical action on the list row",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:1298-1321 (/alerts, open detail)",
+    "fix": "Add the same Undo action to the drawer's dismiss toast: `action: { label: t`Undo`, onClick: () => reactivateMutation.mutate({ alertId }) }` — the `reactivateMutation` already exists in this component (line 1206). Capture the alertId in a variable before `onNext()` advances the panel."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P2",
+    "issue": "no-arrival-confirm",
+    "title": "Apply success: the verification modal stays open over the celebration, with a re-armed 'Apply deadline shift' button",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:1224-1252 + 2786-2795 (/alerts, apply flow)",
+    "fix": "First line of `applyMutation.onSuccess`: `setApplyVerificationOpen(false); setApplyVerified(false)`. The celebration footer then actually shows during the 600ms hold, and the re-armed submit button can't be clicked twice."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "After Apply there is no next step — no 'view updated deadlines', and no advance-to-next like Dismiss/Mark-reviewed do",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:1251 vs 1283/1312, and 1388 (/alerts, apply flow)",
+    "fix": "Add a second toast action or replace the description link: 'View updated deadlines' → navigate to an affected client's deadline (`deadlineDetailHref` is already imported in AffectedClientsTable) or /deadlines. After the 600ms celebration, follow the same triage grammar as the other two resolutions: `if (onNext) onNext(); else onClose()`. Give applyReviewed the same `setApplied(true)` hold as apply."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Affected-client → deadline/client navigation loses the whole triage context on return (filters, sort, sweep, N-of-M)",
+    "where": "apps/app/src/features/alerts/components/AffectedClientsTable.tsx:298-301, 335-345, 383-386 (/alerts open detail → /deadlines/:ref)",
+    "fix": "Persist the load-bearing facets in the URL the way `?queue=` already is (AlertsListPage.tsx:198-201 shows the pattern): at minimum `sort`, `range` and `state` as search params with replace:true, and have MorningSweep read/write a param. Alternatively stash the filter state in sessionStorage keyed by route. Then browser-Back restores the exact rail the user left."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "'Reviewed' alerts are invisible in Alert history's tabs and stats — reachable only by scrolling 'All'",
+    "where": "apps/app/src/features/alerts/AlertHistoryView.tsx:64-70, 90-97, 113-123 (/alerts/history)",
+    "fix": "Add `{ id: 'reviewed', label: <Trans>Reviewed</Trans> }` to TABS, `if (tab === 'reviewed') return status === 'reviewed'` to matchesTab, a `reviewed` count to the stats memo + Segmented count wiring, and (optionally) a Reviewed StatBand item — review_only is the DEFAULT work queue, so reviewed is likely the single most common terminal status in this archive."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P3",
+    "issue": "visual-misalign",
+    "title": "History row says 'Expired' but opening it shows 'Needs your decision' with a live Apply CTA",
+    "where": "apps/app/src/features/alerts/AlertHistoryView.tsx:87 vs apps/app/src/features/alerts/AlertDetailDrawer.tsx:1861-1866 (/alerts/history → sheet drawer)",
+    "fix": "Thread an `expired` view of matched-with-passed-deadline into the drawer (same predicate listHistory uses): swap the eyebrow to a secondary 'Expired — action window passed' chip, include it in `alertResolved` so A/D and Dismiss disarm, and let the footer state why Apply is closed (mirroring the 'Undo window closed' quiet-line pattern at 3061-3065) rather than presenting an armed CTA."
+  },
+  {
+    "surface": "alerts",
+    "severity": "P3",
+    "issue": "no-arrival-confirm",
+    "title": "Toggling the rail's Review/Active queue while a detail is open orphans the selection and drops 'N of M'",
+    "where": "apps/app/src/features/alerts/AlertsListPage.tsx:1358-1378 + 838-846 (/alerts, panel open)",
+    "fix": "When the open alert falls out of the visible queue, show an explicit anchor instead of silence — e.g. keep a pinned 'Currently open (Review queue)' row at the top of the rail, or auto-advance the panel to the first alert of the newly selected queue (the same `openDrawer(sortedAlerts[0].id)` the J hotkey uses)."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Breadcrumb 'Deadlines' drops all active filters while the ✕ close preserves them — two back affordances in the same bar disagree",
+    "where": "apps/app/src/features/obligations/detail/DeadlineCrumbBar.tsx:52 (/deadlines/:ref)",
+    "fix": "Thread the filter-preserving href into the crumb: give DeadlineCrumbBar a `backTo` prop and have DeadlineDetailRoute pass `/deadlines${cleanDeadlineDetailSearch(location.search)}` (the same expression handleClose already builds), so `<Link to={backTo}>` and the ✕ land in the identical place. Same treatment for the drawer's panel-mode crumb Link at ObligationQueueDetailDrawer.tsx:1994."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Closing the deadline detail returns to the table with no row highlight and no scroll restore — the CPA loses their place in a long queue",
+    "where": "apps/app/src/routes/deadline-detail.tsx:118 + apps/app/src/routes/obligations.tsx:2076 (/deadlines)",
+    "fix": "On close, carry the anchor back: handleClose navigates to `/deadlines?...&row=${obligationId}` (the `row` param and its highlight already exist as a primitive), and ObligationQueueRoute calls the existing `scrollObligationRowIntoView(row)` once on mount when the `row` param is set and the row is in the loaded pages. Optionally reuse the rail's one-time arrival wash class for parity."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "'Mark as filed' under a status filter silently kills prev/next paging, the 'N of M' read-out, and the rail selection — journey just stops",
+    "where": "apps/app/src/routes/deadline-detail.tsx:124 (/deadlines/:ref)",
+    "fix": "Snapshot prev/next before the row leaves the filtered set: when the active obligation is no longer in `rows` but was previously, keep offering 'Next' pointing at the row that occupied currentIndex+1 in the pre-refetch order (memoize last-known index). Cheaper variant: add a 'Next deadline' action to the Mark-as-filed success toast (the toast-action primitive is already used for Undo) that calls the existing goToRow(nextRow.id) captured at click time."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "Workflow task 'Send the final package to the client' routes to the Record tab, which has no send/deliver affordance at all",
+    "where": "apps/app/src/features/obligations/queue/components/panels.tsx:1950 (/deadlines/:ref/evidence)",
+    "fix": "Stop promising an action the product can't perform: change the task to `flavor: 'manual'` (the existing non-interactive reminder shape in StageActions.tsx:108-121, e.g. '· Send the final package to the client outside the app'), or keep routing but retitle it to what the Record tab actually answers ('Review filing evidence'). If delivery is planned, gate it behind the NET-NEW eng-brief path instead."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "Penalty-inputs dialog is unreachable from every surface — onNeedsInput is a dead prop since the Risk-tab removal",
+    "where": "apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx:356 (/deadlines, /clients/:id)",
+    "fix": "Re-expose an entry point where penalty context lives: add an 'Edit penalty inputs' ghost button on the Status tab's penalty/payment card that calls the drawer's own dialog (move PenaltyInputDialog from route-local obligations.tsx into the drawer, or resurrect onNeedsInput by actually invoking it there). If penalties are intentionally deferred, delete the dead dialog (both copies: obligations.tsx:6290 and queue/dialogs.tsx:1035), the state, and the prop across the 4 call sites so the codepath stops pretending."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "Panel-mode breadcrumb inside /clients/:id reads 'Deadlines / {client} / {form}' and clicking it teleports to the global /deadlines table, abandoning the client workspace",
+    "where": "apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx:1994 (/clients/:id, obligation panel)",
+    "fix": "Make the crumb reflect the host route: pass the host's path into the drawer (e.g. `crumbRoot={{ label: <Trans>Clients</Trans>, to: clientDetailPath(...) }}` from ClientDetailWorkspace, defaulting to Deadlines for the /deadlines legacy panel), or in panel mode make the root segment call onClose (close panel, stay on page) instead of a hard `/deadlines` Link."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "'Confirm projected' is always enabled in the bulk bar — confirming a selection with zero projected rows ends in a '0 deadlines confirmed' toast",
+    "where": "apps/app/src/routes/obligations.tsx:4432 (/deadlines bulk bar)",
+    "fix": "Match the sibling pattern: disable the button with a title when the selection contains no projected rows (selection rows are client-side, so the count is known), or have the toast report `t`${confirmed} confirmed · ${skipped} already confirmed`` and switch to toast.info when confirmedCount === 0."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "Bulk 'Set status' has no Undo while the single-row status change does — a mis-picked status on 28 rows has no one-click recovery",
+    "where": "apps/app/src/routes/obligations.tsx:1624 (/deadlines bulk bar)",
+    "fix": "Have the bulk RPC return the per-row previous statuses (it already computes them for the transition matrix) and attach an Undo action that replays them via a `bulkRestoreStatus` call — or minimally re-select the affected ids on Undo so the user can re-apply the correct status in one step."
+  },
+  {
+    "surface": "deadlines",
+    "severity": "P3",
+    "issue": "no-back",
+    "title": "Client chip in the deadline hero is a button+navigate, not a Link — no cmd/middle-click, and the pivot to /clients offers no in-app way back",
+    "where": "apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx:2332 (/deadlines/:ref hero)",
+    "fix": "Render the chip as a real anchor via the existing pattern: `<Link to={clientDetailPath(...)}>` (or Button `render={<Link .../>}` per the primitive vocabulary), keeping the same chip styling — new-tab and history semantics come free, and the deadline detail URL stays one Back away with its tab + filters intact."
+  },
+  {
+    "surface": "clients",
+    "severity": "P1",
+    "issue": "dead-end",
+    "title": "Delete client is irreversible from the UI — soft-delete backend but no undo toast, no archived view, no restore procedure",
+    "where": "apps/app/src/features/clients/ClientDetailWorkspace.tsx:535-556, 1281-1308 (/clients/:clientKey)",
+    "fix": "The data survives server-side (deletedAt) but the CPA has zero recovery path: a mis-click on the red menu item permanently loses the client from every surface. Add `clients.restore` (clear deletedAt) + `toast.success('Client deleted', { action: { label: 'Undo', onClick: () => restoreMutation.mutate({ id }) } })`. Longer term, an 'Archived' toggle on /clients listing soft-deleted rows with a Restore row action. Also align the verb: dialog says Delete while analytics tracks clientArchived — pick one."
+  },
+  {
+    "surface": "clients",
+    "severity": "P0",
+    "issue": "dead-end",
+    "title": "\"Add deadline\" success discards the typed internal notes, then tells the user to go save them",
+    "where": "apps/app/src/features/obligations/CreateObligationDialog.tsx:986-998 (Add deadline CTA on /clients/:clientKey and /deadlines)",
+    "fix": "This is real data loss with a false-closure toast. Either (a) pass the notes through onCreated and open the created deadline's panel with the note prefilled in its notes field, (b) copy the text to clipboard and say so ('Notes copied — paste them in the deadline drawer'), or (c) per the no-fiction rule, don't render a notes textarea the create endpoint can't persist."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Breadcrumb back to Clients drops the CPA's filters, search, and view context",
+    "where": "apps/app/src/features/clients/ClientDetailWorkspace.tsx:604 (/clients/:clientKey → /clients)",
+    "fix": "When handleOpenClientDetail writes the cycle list, also stash location.search (sessionStorage sibling key or router state), and build the breadcrumb as `/clients${savedSearch}` so back-with-context matches what J/K cycling already preserves. Cheapest variant: navigate(clientDetailPath(client), { state: { fromSearch: location.search } }) and read it in the breadcrumb."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Filing-row title click ejects to /deadlines/:ref with no way back to the client — the from:'client' state it sends is never read",
+    "where": "apps/app/src/features/obligations/queue/components/DeadlineRow.tsx:126, 274, 398, 597 → routes/deadline-detail.tsx (/clients/:clientKey Filing plan → /deadlines/:ref)",
+    "fix": "Consume the already-sent state: when location.state.from === 'client' (extend it to carry clientId/name), render the DeadlineCrumbBar's back link as '‹ {Client name}' → clientDetailPath(client) instead of '‹ Deadlines'. The wiring intent exists — finish it."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "⌘/Ctrl-click on a client row or portfolio card cannot open in a new tab — modifier is swallowed into same-tab navigation",
+    "where": "apps/app/src/features/clients/ClientFactsWorkspace.tsx:1227-1236 (table row) and 1345-1355 (ClientPortfolioCard) (/clients)",
+    "fix": "Mirror DeadlineRow: in the row/card click handler, if (event.metaKey || event.ctrlKey) { writeClientCycleList(...); window.open(clientDetailPath(client), '_blank', 'noopener,noreferrer'); return } before the same-tab navigate."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "Table view's filtered-empty state offers no Clear-filters action (card view has one)",
+    "where": "apps/app/src/features/clients/ClientFactsWorkspace.tsx:2038-2053 ClientTableEmptyRow (/clients, table view)",
+    "fix": "Pass onClearAllFilters (and hasActiveFilters) into ClientTableEmptyRow and render the same `<Button variant=\"link\">Clear filters</Button>` the card grid uses — matching the search-UX canon's zero-state recovery rule."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "?expanded= filing deep-link is write-orphaned — no UI ever sets it, and the same row click means two different things depending on entry path",
+    "where": "apps/app/src/features/clients/ClientDetailWorkspace.tsx:201-204, 998-1007 (/clients/:clientKey?expanded=)",
+    "fix": "Pick one model: have openObligationPanel also write ?expanded=<id> (making the panel state deep-linkable/refresh-safe and the param real), or delete the expandedFilingId plumbing + inline-expand branch on this surface so the row click has exactly one meaning (open panel)."
+  },
+  {
+    "surface": "clients",
+    "severity": "P2",
+    "issue": "no-closure",
+    "title": "Duplicate deadline create shows a success toast saying \"Deadline added\" when nothing was added",
+    "where": "apps/app/src/features/obligations/CreateObligationDialog.tsx:980-985 (Add deadline on /clients/:clientKey)",
+    "fix": "Branch the toast: length === 0 → toast.info(t`Already tracked`, { description: t`That deadline already exists for this client and tax year.` }) and ideally scroll/highlight the existing row (openObligationPanel on the existing obligation id if the RPC returns it)."
+  },
+  {
+    "surface": "clients",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "Owner/status change toasts confirm with a truncated audit hash instead of anything actionable",
+    "where": "apps/app/src/features/clients/ClientDetailWorkspace.tsx:443-445 (owner) and 512-514 (status) (/clients/:clientKey)",
+    "fix": "Description = the human fact (client name / new owner name), and if the audit trail matters, make it a toast action: { label: t`View audit`, onClick: () => navigate(`/audit?entity=${client.id}`) } — reusing the already-wired ?entity= scope."
+  },
+  {
+    "surface": "clients",
+    "severity": "P3",
+    "issue": "broken-flow",
+    "title": "Peek card's \"Open full page\" skips the cycle-list write, so prev/next arrows + J/K arrive stale or missing",
+    "where": "apps/app/src/features/clients/ClientPeekHoverCard.tsx:209 vs ClientFactsWorkspace.tsx:435-448 (/clients → /clients/:clientKey)",
+    "fix": "Give ClientPeekHoverCard an onNavigate callback (or the filtered id list) and call writeClientCycleList in the Link's onClick before navigation, same as the row handler — one seeding rule for every path into client detail."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "Accepting a rule closes the detail modal with only a toast — the user never sees what it generated, and no next candidate is offered",
+    "where": "apps/app/src/routes/rules.library.tsx:4699 + apps/app/src/features/rules/rule-detail-drawer.tsx:1239-1247 (/rules/library?rule=<id>)",
+    "fix": "Keep the impactQuery count that's already in scope and give the success toast an action: `toast.success(t`Rule accepted`, { description: t`~${estimatedObligations} deadlines generated`, action: { label: t`View deadlines`, onClick: () => navigate(`/deadlines?rule=${rule.id}`) } })`. Alternatively (or additionally) have RuleDetailPanel's onActionComplete NOT close but swap the decision rail for a small \"Accepted — View deadlines from this rule · Review next pending rule\" confirmation using the existing TextLink primitives; the route already knows the remaining review queue (allReviewableRuleIds) to offer the next candidate."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P1",
+    "issue": "no-next-step",
+    "title": "\"Rule created\" (custom rule) activates + generates deadlines immediately, but the flow ends in a bare toast — the promised \"refine it from the rule's detail view\" step is never offered",
+    "where": "apps/app/src/routes/rules.library.tsx:5872-5897 (/rules/library, NewRuleModal)",
+    "fix": "In onSuccess, open the rule the modal promised: call `void setRuleId(ruleId)` (lift the created id up via an onCreated callback from NewRuleModal), so the existing ?rule= detail panel opens with the \"View deadlines from this rule\" links visible; or add a toast action { label: t`View rule`, onClick: () => setRuleId(ruleId) }. This uses the page's existing ?rule= mechanism — no new surface."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "Bulk accept reports \"M skipped for individual review\" then clears the selection and closes — the skipped rules are lost and must be manually re-found",
+    "where": "apps/app/src/routes/rules.library.tsx:5119-5128 + 3066-3069 (/rules/library, BulkReviewListModal)",
+    "fix": "On partial success, keep the skipped ids selected instead of clearing: `onComplete(skippedRuleIds)` → route does `setSelectedRuleIds(new Set(skippedRuleIds))` so the existing BulkReviewBar reappears reading \"M rules selected\", one click from re-opening them; and/or give the toast an action { label: t`Review skipped`, onClick } that re-selects them. Only fully-clean batches should clearSelection()."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "Opening a rule from the bulk-review modal destroys the typed shared review note (modal unmounts, note state is local)",
+    "where": "apps/app/src/routes/rules.library.tsx:3062-3065 + 4962 (/rules/library, BulkReviewListModal → onOpenRule)",
+    "fix": "Lift `note` (and `excluded`) up to the route next to bulkListOpen/selectedRuleIds so they survive the open-rule detour, resetting them only in onComplete/clearSelection; or render the rule detail Dialog stacked over the bulk modal instead of closing it (the detail is already an independent ?rule= Dialog)."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "visual-misalign",
+    "title": "\"View deadlines from this rule\" lands on /deadlines with a filter chip showing the raw rule id, not the rule name the user just left",
+    "where": "apps/app/src/routes/obligations.tsx:7282-7294 (/deadlines?rule=<id>)",
+    "fix": "Resolve the label: obligations rows already carry their rule linkage server-side — either include ruleTitle in the facet/queue payload and map `label: ruleTitleById.get(value) ?? value`, or cheaply reuse `orpc.rules.listRules` (warm cache from the library) in ObligationFilterChips to map id→title, falling back to the id."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "Overview \"View all changes\" dumps the user into the unscoped firm-wide audit log instead of rule changes",
+    "where": "apps/app/src/routes/rules.library.tsx:1964-1971 (/rules/library overview → /audit)",
+    "fix": "Navigate scoped: `void navigate('/audit?entityType=rule')` (param name verified against auditLogSearchParamsParsers). The audit page already renders a removable entityType filter chip, giving the user both arrival confirmation and an obvious way to widen."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "dead-end",
+    "title": "A stale or unknown ?rule= deep link (the URL the row menu's \"Copy link\" produces) silently does nothing — no drawer, no not-found notice",
+    "where": "apps/app/src/routes/rules.library.tsx:1865-1868 + 3036-3042 (/rules/library?rule=<id>)",
+    "fix": "Add a guard effect: once rulesQuery has settled (`rulesQuery.isSuccess`), if `ruleId && !selectedRule` show `toast.error(t`Rule ${ruleId} not found — it may have been rejected or removed`)` and `void setRuleId(null)` to clean the URL, mirroring the recovery pattern the search-UX canon uses for zero-states."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "Sources table: clicking anywhere on a row throws the user out to an external government site — the only registry table in the app whose row-click exits the product",
+    "where": "apps/app/src/features/rules/sources-tab.tsx:503-533 (/rules/sources)",
+    "fix": "Drop the row-level `onClick={openSource}`/role=link and keep external-open on the two explicit anchors (title + trailing icon), which already stopPropagation. If a row-click target is wanted, point it at the existing in-app path — the \"Feeds N rules\" library filter (`/rules/library?source=<id>`) — or a future source detail pane, matching the app-wide row→detail convention."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P3",
+    "issue": "broken-flow",
+    "title": "The signature coverage tilegram (RuleCoverageMap) is orphaned dead code — the documented \"tilegram state click → drill-in\" journey doesn't exist, and its comment cites a flag that isn't in the route",
+    "where": "apps/app/src/features/rules/RuleCoverageMap.tsx:28-30 (/rules/library overview)",
+    "fix": "Either re-wire it (render RuleCoverageMap in the overview with `onSelect={(code) => setJurisdictionScope(code)}` — the drill-in handler already exists) or delete the component + fix the stale cross-references in PulseAlertsMap.tsx:29,78,90 and us-jurisdiction-tiles.ts:8, and update the design doc that names it the page's signature view."
+  },
+  {
+    "surface": "rules-sources",
+    "severity": "P3",
+    "issue": "dead-end",
+    "title": "Header \"New rule\" opens a modal that says you can't create a rule here — the primary CTA lands on an explainer",
+    "where": "apps/app/src/routes/rules.library.tsx:5989-6003 (/rules/library, NewRuleModal needsPicker branch)",
+    "fix": "Cheapest honest fix: keep the modal but make its guidance actionable in place — a jurisdiction picker (Combobox of the 52 groups, reusing the rail data) + entity picker that fills the seed and reveals the existing form; or change the header button to a menu: \"New rule… → pick a coverage gap\" that sets scope='missing' (`setScope('missing')`) so the user lands directly on the gap rows with '+ Add rule' buttons."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "Smart Priority \"Why this rank?\" links to a blank deadline pane (full UUID vs 12-char ref)",
+    "where": "apps/app/src/routes/practice.tsx:1205 (/practice → /deadlines/:ref)",
+    "fix": "Use the canonical helper: `render={<Link to={deadlineDetailPath(row.obligationId)} />}` (import from @/features/obligations/deadline-detail-url). Optionally also harden deadline-detail.tsx: when `params.obligationRef` is present but `normalizeDeadlineRef` returns null, treat it as detailNotFound so future raw-UUID links degrade to the recoverable empty state instead of a blank pane."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "no-closure",
+    "title": "Audit \"Request export\" promises a download 'here shortly' but the dialog never updates (no polling) and still offers Request again",
+    "where": "apps/app/src/features/audit/audit-log-page.tsx:430-433, 442-444, 580-594 (/audit)",
+    "fix": "Add `refetchInterval: (q) => (open && ['pending','processing'].includes(q.state.data?.packages[0]?.status ?? '') ? 2500 : false)` (mirror use-billing-data.ts's 2500ms poll pattern). While latest.status is pending, render the footer CTA as a disabled aria-busy 'Preparing…' button (Loader2Icon) instead of 'Request export', and flip to 'Download latest' when the poll sees 'ready'."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P1",
+    "issue": "broken-flow",
+    "title": "Dirty settings forms (incl. the Smart Priority tuner with its own 'Unsaved changes' footer) are silently discarded on nav-away",
+    "where": "apps/app/src/routes/practice.tsx:394-408, 884-892 (/practice; pattern app-wide)",
+    "fix": "Add a `useBlocker` (react-router) guard on /practice keyed to `dirty || priorityDirty` that opens the existing AlertDialog primitive ('Discard unsaved changes?' with Keep editing / Discard), plus a `beforeunload` listener for hard reloads. Extract as a `useUnsavedChangesGuard(dirty)` hook so /reminders and any future settings form can reuse it."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "Audit drawer 'View Alert' on pulse.apply events deep-links a pulse_application id as an alert id → 'alert not found'",
+    "where": "apps/app/src/features/audit/audit-event-drawer.tsx:58-62 (/audit → /alerts?alert=…)",
+    "fix": "pulse.apply audit rows carry `afterJson.pulseId` and `afterJson.obligationId`; either return null for 'pulse_application' (match the stated no-dead-links policy), or better, link to the affected deadline via `deadlineDetailHref({ obligationId: afterJson.obligationId })` — the drawer already has the event payload in scope."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "no-arrival-confirm",
+    "title": "Audit drawer 'View Rule source' dumps the user on the full /rules/sources list with no source selected or highlighted",
+    "where": "apps/app/src/features/audit/audit-event-drawer.tsx:56-57 (/audit → /rules/sources)",
+    "fix": "Add a `?source=<id>` param to SourcesTab that scrolls the matching row into view with the existing arrival-wash pattern (useRailArrival in patterns/list-rail.tsx), then have auditEntityHref emit `/rules/sources?source=${entityId}`. Cheaper interim: derive the source's domain from the audit payload and reuse the existing `?domain=` filter so at least the list narrows to the right source."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "no-arrival-confirm",
+    "title": "Entity-scoped audit banner says 'a single record' but never names which record is scoped",
+    "where": "apps/app/src/features/audit/audit-log-page.tsx:1076-1091 (/audit?entity=…)",
+    "fix": "Resolve the scoped entity's display label from the first loaded event (`getAuditEntityDisplay` + `formatAuditEntityTypeLabel` are already imported in this file) and render 'Showing the full history of {entityTypeLabel} · {entityDisplay.primary}'. Fall back to `shortenAuditId(entityIdFilter)` when no events match."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P2",
+    "issue": "dead-end",
+    "title": "Billing plan cards go dead-disabled with no stated reason for non-owners and for lower tiers (permanent disabled 'Get started')",
+    "where": "apps/app/src/routes/billing.tsx:721, 836-839 (/billing)",
+    "fix": "Follow the practice.tsx disabled-with-reason pattern: give the disabled Button a `title`/visible caption — `!owner` → 'Only the practice owner can change plans'; `lowerThanCurrent` → 'Downgrade via Manage billing' (and consider linking that text to the portal mutation); keep 'Current plan' as-is."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P3",
+    "issue": "no-next-step",
+    "title": "Members 'View audit log' loses team context — lands on the unfiltered firm-wide log",
+    "where": "apps/app/src/features/members/members-page.tsx:325-327 (/members → /audit)",
+    "fix": "Link to `/audit?category=team` so arrival is pre-scoped to member/role/invite events; the audit page's Category pill then visibly confirms the scope and 'Clear filters' offers the way out to the full log."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "Role upgrades apply instantly from the row dropdown with no success confirmation (every sibling action toasts)",
+    "where": "apps/app/src/features/members/members-page.tsx:218-225, 449-459 (/members)",
+    "fix": "Add `toast.success(t`${member.name} is now ${roleLabel(role)}`)` in updateRoleMutation.onSuccess (member name is already found before mutate at :438), matching the closure grammar of the adjacent suspend/remove/resend mutations."
+  },
+  {
+    "surface": "settings-team-audit",
+    "severity": "P3",
+    "issue": "no-next-step",
+    "title": "Signature-loop backfill toast reports 'Entered N returns' but offers no way to see them",
+    "where": "apps/app/src/routes/practice.tsx:295-310 (/practice)",
+    "fix": "When `result.enteredCount > 0`, add a toast action: `{ action: { label: t`View them`, onClick: () => navigate('/deadlines?awaitingSignature=true') } }` (sonner toasts elsewhere in the repo already use action buttons, e.g. the alert apply undo)."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P2",
+    "issue": "dead-end",
+    "title": "Command palette offers Deadlines/Alerts/Rules scope pills but typing any entity query under them dead-ends at a bare \"No results found.\"",
+    "where": "apps/app/src/components/patterns/keyboard-shell/CommandPalette.tsx:315-322, 426-451 (global ⌘K, every route)",
+    "fix": "Make the empty state pill-aware and actionable: when pill ∈ {deadlines, alerts, rules} and hasQuery, render copy like \"Deadline search isn't available here yet\" plus a CommandItem that carries the query to the owning surface (navigate(`/deadlines?q=${search}`) — /deadlines, /alerts and /rules/library all already have URL-synced filter inputs). Same pattern per pill. Longer term, the TODO(data) unified search.global endpoint. Keeps the existing CommandItem/CommandEmpty primitives."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P2",
+    "issue": "broken-flow",
+    "title": "Inbox bell badge counts ALL unread (server-side) but the popover's default \"Unread\" tab only scans the latest 20 notifications — badge can say \"5\" over an empty \"Nothing here.\" list",
+    "where": "apps/app/src/components/patterns/alerts-notifications-bell.tsx:76-94, 249-252 (sidebar footer bell, every route)",
+    "fix": "Drive the popover list query with the active filter: input { status: filter, limit: 20 } (two cache entries, both invalidated by the existing orpc.notifications.list.key() invalidate). The Unread tab then always shows real unread items up to 20, matching the badge. Also give the \"Nothing here.\" branch a \"View all in Inbox\" TextLink (the footer link exists but the empty branch should point at it) for the >20 case."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P2",
+    "issue": "visual-misalign",
+    "title": "Full-page Notifications rows are not clickable — the popover trains whole-row click, the page silently ignores it",
+    "where": "apps/app/src/features/notifications/notifications-page.tsx:323-401 (/notifications) vs apps/app/src/components/patterns/alerts-notifications-bell.tsx:306-346",
+    "fix": "Make the page card body a link to item.href (wrap title block in <Link> or add a stretched-link overlay on the Card) firing the same onClick (track notificationOpened + markRead) as the existing Open button; keep the explicit \"Mark read\" button for read-without-leaving. No new primitive needed — reuse the Open button's Link + handler."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P2",
+    "issue": "no-next-step",
+    "title": "First-run tour's last step tells the user to activate states in the Rule library, then \"Done\" just closes the overlay — no way to go do it",
+    "where": "apps/app/src/features/onboarding/first-run-tour.tsx:79-82, 126-129, 184-185, 238-240 (mounted on /today via routes/dashboard.tsx:612)",
+    "fix": "On the last step, make the primary CTA \"Open Rule library\" → markSeen(); setActive(false); navigate('/rules/library') (add useNavigate), keeping a secondary \"Done\" TextLink. Alternatively cut a click-through hole in the click-catcher over the spotlighted row so clicking the highlighted nav item finishes the tour and navigates."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P2",
+    "issue": "unfamiliar-endpoint",
+    "title": "One notification surface, three names: \"Inbox\" (bell), \"Notifications\" (page/route/palette), \"What's new\" (G-then-I shortcut)",
+    "where": "apps/app/src/components/patterns/keyboard-shell/navigation-shortcuts.ts:30-36 (+ alerts-notifications-bell.tsx:151-153,170-172; notifications-page.tsx:172-173)",
+    "fix": "Pick one name (page + route already say \"Notifications\") and apply it to the shortcut meta (name: 'Go to Notifications') and the bell trigger/popover header (or, if \"Inbox\" is the keeper, rename the page/route summary). Reword the shortcut description to avoid the word \"Alerts\" — e.g. 'reminders, mentions, and system notifications' — so it can't be confused with /alerts."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P3",
+    "issue": "no-next-step",
+    "title": "No keyboard shortcut to Alerts — the #2 stop in the sidebar's own \"morning routine\" ordering — while Workload and Clients get one",
+    "where": "apps/app/src/components/patterns/keyboard-shell/navigation-shortcuts.ts:12-53",
+    "fix": "Add { id: 'nav.alerts', sequence: ['G','A'], path: '/alerts', name: 'Go to Alerts', description: 'Navigate to Alerts.', displayKeys: 'G then A' } to NAVIGATION_SHORTCUTS — it auto-registers in the ? help dialog via the existing NavigationHotkeyBinding loop in KeyboardProvider.tsx:172-176."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "\"Mark all read\" closure is inconsistent between the two Inbox forms: bell popover toasts success, full page completes silently",
+    "where": "apps/app/src/features/notifications/notifications-page.tsx:110-123 vs apps/app/src/components/patterns/alerts-notifications-bell.tsx:111-119",
+    "fix": "Add the same toast.success(t`All notifications marked read`) to the page's markAllRead onSuccess (one line, mirrors the bell), or remove it from the bell — either way one closure pattern for the same action."
+  },
+  {
+    "surface": "global-shell",
+    "severity": "P3",
+    "issue": "visual-misalign",
+    "title": "Sidebar system-status pill is hard-coded green (\"positive-only\") while the product's own Sources page and Alerts now surface per-source failures — the shell contradicts its destination",
+    "where": "apps/app/src/components/patterns/app-shell-nav.tsx:292-298 (sidebar footer, every route)",
+    "fix": "Either honor the destination: tone the dot warning when any enabled source is unhealthy (reuse the same needs-attention predicate /rules/sources uses, keep copy neutral — \"Monitoring N jurisdictions · 2 need attention\"), or honor the policy consistently by removing the needs-attention emphasis from the CPA-facing Sources page. Product-owner call; today the two surfaces disagree."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P1",
+    "issue": "broken-flow",
+    "title": "J3 breaks fundamentally: rules never apply to clients created (or facts fixed) after acceptance — while the UI promises automatic generation",
+    "where": "apps/server/src/procedures/clients/index.ts:261-320,435 + apps/app/src/features/clients/ClientWorkPlanPanel.tsx:362-372 + apps/app/src/features/clients/FixNeedsFactsSheet.tsx:101-105 (/clients/:id)",
+    "fix": "Server: on clients.create and clients.updateJurisdiction (also updateFacts if it exists), run the existing generateObligationsForAcceptedRules for the firm's active rules scoped to that clientId (the function already dedupes via keyForGenerated), return the real recalculatedObligationCount, and put it in the create/save toast ('Client created — 6 deadlines generated'). Until the backend lands, soften the two copy strings to the real path (Add deadline → pick a rule via CreateObligationDialog) so the UI stops promising fiction (no-fiction-on-canvas rule)."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P1",
+    "issue": "no-back",
+    "title": "J1 data loss: clicking a client/deadline inside the alert's affected-clients table navigates away in-tab and wipes the CPA's curated apply selection",
+    "where": "apps/app/src/features/alerts/components/AffectedClientsTable.tsx:298-302,335-345,381-386 + AlertDetailDrawer.tsx:1018-1021,1081-1101 (/alerts?alert=<id>)",
+    "fix": "Either (a) persist the drawer's selection/excluded/confirmed sets in the URL (extra search params next to ?alert=) or sessionStorage keyed by alert id so back-navigation restores them, or (b) make the three affordances non-destructive: client name opens ClientPeekHoverCard (already exists) / target=_blank, and the deadline arrow opens the obligation drawer in an overlay rather than a route swap. (a) is the smaller change and matches the existing ?alert= URL-state pattern."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P1",
+    "issue": "no-next-step",
+    "title": "J4 stops at the win: accepting a rule closes the modal with a bare 'Rule accepted' toast — no path to the ~N deadlines it just generated",
+    "where": "apps/app/src/features/rules/rule-detail-drawer.tsx:1239-1247 + apps/app/src/routes/rules.library.tsx:4699,5121-5128 (/rules/library)",
+    "fix": "Add a toast action to both accept paths, mirroring the apply-alert toast's Undo pattern: `action: { label: t`View deadlines`, onClick: () => navigate(`/deadlines?rule=${rule.id}`) }` with description `${generatedObligationCount} deadlines generated` (single accept already gets the real count back from the mutation result; bulk can link `/deadlines?projected=…` or the multi-rule filter)."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P3",
+    "issue": "no-closure",
+    "title": "J5 confirmation fails: reassigning (or filing) from the deadline detail drawer never invalidates workload.load — /workload shows stale numbers for up to 60s",
+    "where": "apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx:703-713,1009-1027 (/deadlines/:ref → /workload)",
+    "fix": "Add `void queryClient.invalidateQueries({ queryKey: orpc.workload.load.key() })` inside invalidateDetail() in ObligationQueueDetailDrawer.tsx (one line covers assign, snooze, status, and every other mutation routed through it), matching the queue route's existing bulk-assign invalidation set."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P1",
+    "issue": "no-next-step",
+    "title": "J1's signature action ends the triage rhythm: Apply auto-closes the panel in 600ms — dropping both the next-alert advance and the 'Copy client email draft' notify step",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:894,1251 vs 1283-1284,1312-1313; footer 3080-3085 (/alerts)",
+    "fix": "Two options consistent with existing primitives: (a) make Apply's close follow the reviewed/dismiss contract — after the green celebration, `if (onNext) onNext() else onClose()`; (b) instead of auto-closing, hold the applied state with a small next-step cluster (Copy client email draft · Next alert) and add `Copy email draft` as a second toast action alongside Undo. Either restores the loop; (b) also fixes the notify amputation."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P2",
+    "issue": "dead-end",
+    "title": "New client's 'No deadlines yet' empty state names the fix ('Setup') but offers no click — dead-end copy on the exact next hop of J3",
+    "where": "apps/app/src/features/clients/ClientWorkPlanPanel.tsx:362-372 (/clients/:id Filing plan tab)",
+    "fix": "Add `cta={<Button variant=\"outline\" size=\"sm\" onClick={() => onOpenSetupTab()}>Open Setup</Button>}` (thread the workspace's existing tab setter down, or Link to `?tab=info`). If the client's facts are already complete, swap the copy/CTA to the real gap — 'Activate filing rules' → /rules/library — using the same activeRuleTotal signal /today's SetupProgressCard reads (dashboard.tsx:214-220)."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P2",
+    "issue": "no-closure",
+    "title": "Undo-apply drops the alert into a void: toast says 'Reverted N clients' but the alert vanishes from the active queue with no pointer to where it went",
+    "where": "apps/app/src/features/alerts/AlertDetailDrawer.tsx:1185-1197 (/alerts)",
+    "fix": "Match the dismiss/reviewed toast contract: `toast.success(…Reverted…, { description: t`Moved to Alert history — Reverted.`, action: { label: t`View`, onClick: () => navigate(`/alerts/history?alert=${result.alert.id}`) } })`. The history route already owns the ?alert panel mount (DrawerProvider.tsx:35), so the deep link works today."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P2",
+    "issue": "no-back",
+    "title": "Picker→workspace hops are one-way: every /today triage click strands the CPA in /alerts or /deadlines with no in-UI way back, and the deadline rail reorders her queue",
+    "where": "apps/app/src/features/obligations/ObligationDrawerProvider.tsx:87-91 + features/alerts/DrawerProvider.tsx:57-60 + features/obligations/detail/DeadlineCrumbBar.tsx:52-57 + routes/deadline-detail.tsx:118-120 (/today → /alerts, /deadlines/:ref)",
+    "fix": "Carry origin: pass `state: { from: 'today' }` (or a `?from=today` param) on picker navigations and have DeadlineCrumbBar/alert top bar render the crumb as 'Today' → `/today` (with ✕ keeping its workspace close). Optionally serialize /today's priority order into the rail input (a `sort=priority` param railListInputFromSearch understands) so 'N of M' matches what the CPA just left."
+  },
+  {
+    "surface": "cross-journey",
+    "severity": "P3",
+    "issue": "broken-flow",
+    "title": "Workload/member → deadlines links are keyed by display NAME, so renames and duplicate names silently break or conflate the J5 drill-down",
+    "where": "apps/app/src/features/workload/workload-links.ts:23-25 + features/members/members-page.tsx:1020-1025 (/workload, /members → /deadlines)",
+    "fix": "Filter by assigneeId: the roster already carries `assigneeId` (assignableMembers in the drawer, members list), and obligations rows carry assigneeId — add an `assigneeIds` param to the queue's parser + list input alongside the name-based one (kept for backward compat), and switch workloadRowHref/members-page links to emit ids while the chip renders the resolved display name."
+  }
+]
