@@ -42,24 +42,22 @@ Two tracks. Don't mix them — the ask and the tone are different.
 
 Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}` *(OPTIONAL — must be a true, verifiable fact, e.g. "saw you're running sponsor reads with Canopy and Soraban"; never a fabricated readership claim. If nothing true to say, delete the line)*, `{{link}}`
 
-**Subject options:**
-- sponsoring an issue of {{newsletter_name}}?
-- a tool for the firms who read you
+**Subject:** Sponsorship inquiry — DueDateHQ
+*(transactional and honest; must match what the body actually references — don't name their newsletter/show in the subject unless the body talks about it)*
 
 **Body:**
 
 > Hi {{first_name}},
 >
-> {{personal_line}}
+> I'm the co-founder of DueDateHQ. {{personal_line}}
 >
-> I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA, and the moment a filing deadline moves, we show you which of your clients it hits — with the official notice behind it. It's built for the small US firms who read you.
+> We watch the IRS, all 50 states, and FEMA, and the moment a filing deadline moves, we show you which of your clients it hits — with the official notice behind it. It's built for the small US firms who read you.
 >
-> Would you consider a sponsored mention? I'd rather you try it before deciding — happy to set you up free, no strings.
+> Would you consider a sponsored mention? I'd rather you try it before deciding — it's free while we're in beta.
 >
-> Either way, thanks for the work you put into the newsletter.
->
-> Gigi
-> https://duedatehq.com/
+> No worries if not — thanks for your time.
+
+*(Gmail send-as signature carries the sign-off — don't type "Gigi" in the body. "It's free while we're in beta" replaced "happy to set you up free": the product is free for everyone right now, so a personal-favor framing would overstate the offer. Closing thanks them for their time, not "the work you put in" — that only made sense when the email claimed readership.)*
 
 ---
 
@@ -88,15 +86,17 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 **RULE (Yuqi, 2026-07-02): no fabricated personal lines.** Never claim to read/listen to something unless it's true. Openers must be verifiable facts (e.g. "saw you're running sponsor reads") or omitted entirely — going straight to "I'm the co-founder" is fine.
 
-**Jason Staats** — to jason@jasononfirms.com
+**Jason Staats** — to jason@jasononfirms.com · **Subject:** Sponsorship inquiry — DueDateHQ *(FINAL, locked with Yuqi 2026-07-02)*
 
 > Hi Jason,
 >
-> I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes, and show you which clients each one hits. Every date links to its official notice, or we hold it back — no guessing. It's built for the small firms who read you.
+> I'm the co-founder of DueDateHQ. Saw you're running sponsor reads with Canopy and Soraban, so I'll get straight to it.
 >
-> Would you consider a sponsored mention or classified? I'd rather you try it first — happy to set you up free.
+> We watch the IRS, all 50 states, and FEMA for filing-deadline changes, and show you which clients each one hits. Every date links to its official notice, or we hold it back — no guessing. It's built for the small firms who read you.
 >
-> Thanks for the work you put in, either way.
+> Would you consider a sponsored mention or classified? I'd rather you try it before deciding — it's free while we're in beta.
+>
+> No worries if not — thanks for your time.
 >
 > Gigi
 > https://duedatehq.com/
@@ -107,9 +107,9 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 >
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes and flag which clients each one hits — one less thing your readers have to track by hand.
 >
-> Would you consider a sponsored mention? Happy to set you up free to try first.
+> Would you consider a sponsored mention? I'd rather you try it before deciding — it's free while we're in beta.
 >
-> Thanks for the newsletter.
+> No worries if not — thanks for your time.
 >
 > Gigi
 > https://duedatehq.com/
@@ -120,7 +120,7 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 >
 > I'm the co-founder of DueDateHQ. We watch the IRS, all 50 states, and FEMA for filing-deadline changes, and show you which clients each one hits, with the official notice behind it. It's built for the small firms who listen to you.
 >
-> I'd love to run a classified or sponsored read — could you point me to rates? Happy to set you up free first.
+> I'd love to run a classified or sponsored read — could you point me to rates? It's free while we're in beta if you want to try it before deciding.
 >
 > Thanks,
 > Gigi
@@ -132,10 +132,10 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 - **Timing:** Tuesday–Thursday, mid-morning in the recipient's time zone lands best for B2B. Avoid Mondays/Fridays. Most of these are US (Oregon, Montreal, Scottsdale, NY) — target ~9–11am ET/PT.
 - **Avoid busy season for the ask itself** — creators are slammed Jan–Apr. Sending in July is a good window to lock in fall placements.
-- **One follow-up** after ~5–7 days if no reply, then stop. Keep it to one line: "Just floating this back up — happy to send a free account whenever's useful."
+- **One follow-up** after ~5–7 days if no reply, then stop. Keep it to one line: "Just floating this back up — the beta's free to poke at whenever's useful."
 - **Link is set:** all bodies point to https://duedatehq.com/. For per-newsletter attribution, swap in a tracked variant per recipient (e.g. `?utm_source=jasoncpa`) so you can see which list drives signups.
 - **Still to fill:** sender name if not "Gigi," and the `{{personal_line}}` for anyone beyond the top 3.
-- **Free-account offer is the strongest lever** with creators — it lets them vet the product, which is exactly the trust posture (Jason especially) their audiences expect.
+- **Try-before-deciding is the strongest lever** with creators — it lets them vet the product, which is exactly the trust posture (Jason especially) their audiences expect. Phrase it as "it's free while we're in beta" (a fact), NOT "happy to set you up free" (sounds like a personal favor when everyone gets it free).
 - **Clean email targets for the batch:** jason@jasononfirms.com, adsales@aicpa-cima.com, editor@cpapracticeadvisor.com. Everyone else (Future Firm, Blake Oliver, CPA Trendlines, Going Concern, Accounting Today) is a form or media-kit submission — handle manually.
 - **Product copy matches the live site (duedatehq.com, read 2 Jul 2026):** positioned as a deadline-*change monitor* (not a tracker you maintain), US-only (IRS + 50 states + DC + FEMA), for solo/small CPA firms priced out of Bloomberg/Checkpoint/CCH. Tagline "Never the last to know"; trust hook is glass-box sourcing. Public offer is 3 months of the Team plan free; contact on the site is hello@duedatehq.com.
 - **US-only caveat for Ryan (Future Firm):** the product covers US jurisdictions only, and Ryan operates from Montreal. His readership skews US small firms, so he still fits — but any Canadian readers can't use it. Fine for a sponsorship; just know the audience isn't a 100% match.

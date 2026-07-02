@@ -24,3 +24,14 @@ Send path decided: the three batch emails go manually from Gmail
 (gigi@duedatehq.com send-as, signature covers the sign-off), not via the
 Resend API — one-to-one inquiries, better deliverability, replies thread
 in the watched inbox.
+
+**Second revision pass (Yuqi, same day) — Jason email locked FINAL:**
+subject "Sponsorship inquiry — DueDateHQ" (old subject named his newsletter
+while the body talks podcast sponsor reads — mismatched, and "an issue of"
+implied familiarity); opener fact-line ends "so I'll get straight to it"
+(not "I'd like to be on that list" — ambiguous, reads as joining his
+mailing list); offer is "it's free while we're in beta" (not "happy to set
+you up free" — everyone gets it free, favor-framing overstates); closing
+"No worries if not — thanks for your time" (not "thanks for the work you
+put in" — unanchored once the readership claim was cut). Ryan/Blake
+versions and the follow-up line aligned to the same wording.
