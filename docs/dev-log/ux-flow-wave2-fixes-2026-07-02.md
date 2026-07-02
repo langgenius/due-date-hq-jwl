@@ -15,6 +15,7 @@ coherent non-overlapping groups (clusters interleave the same files, so strict
 per-cluster staging wasn't possible without partial hunks).
 
 ## Shared query-error primitive — S1 (components/patterns + 12 surfaces)
+
 - New `QueryErrorState` (block + inline sizes): warning glyph + "Couldn't load
   {what}" + the server's message (when short) + **Retry wired to the query's
   `refetch`**. Sibling to `EmptyState` so a failed load can never again
@@ -28,6 +29,7 @@ per-cluster staging wasn't possible without partial hunks).
   zeros while loading/failed.
 
 ## Back / close semantics — S3 (drawer providers, rules.library, client detail)
+
 - Alert `DrawerProvider`, rule drawer (`?rule`), and the client-detail obligation
   drawer (`?obligation`) all switch to **push-on-first-open / replace-on-switch**:
   browser Back now closes the panel instead of skipping past the page; paging
@@ -36,6 +38,7 @@ per-cluster staging wasn't possible without partial hunks).
   gained Esc-to-close (it had violated the app's own close policy).
 
 ## Count reconciliation — S4 (obligations, dashboard, app-shell)
+
 - /deadlines: when any filter is active the header pill + StatBand cells swap to
   the **filtered** count ("N matching" / scopeTotal "tracked in total"); the rail
   chip is relabeled "N in list" so it names its real source instead of implying
@@ -50,6 +53,7 @@ per-cluster staging wasn't possible without partial hunks).
   "overdue").
 
 ## Snoozed-row visibility + client rename (obligations, clients backend+UI)
+
 - Repo `listQueue` gains an opt-in mode (default hide / `only` / `include`);
   port + contract + procedure updated to match; new repo test asserts snoozed
   rows appear only when opted in (incl. lapsed snoozes). /deadlines shows a quiet
@@ -65,6 +69,7 @@ per-cluster staging wasn't possible without partial hunks).
   identity field whose only neighbor was Delete now has a safe edit path.
 
 ## Settings / dirty-form closure — C (lib guard, practice, settings, 2FA, prefs)
+
 - New `useUnsavedChangesGuard` (react-router `useBlocker` + AlertDialog +
   `beforeunload`): editing a form then clicking a sidebar link now prompts
   "Discard changes? / Keep editing" instead of silently dropping edits. Wired to
@@ -75,6 +80,7 @@ per-cluster staging wasn't possible without partial hunks).
   being silent; role change confirms with a toast naming member + new role.
 
 ## Misc closure batch — F (alert history, sources, naming, migration)
+
 - Alert history groups/sorts by the **handled** date, not publish date: pulse
   `listHistory` now selects the lifecycle timestamps (`dismissedAt`/`appliedAt`)
   so a just-dismissed alert files under "this week", not its months-old publish
@@ -89,11 +95,13 @@ per-cluster staging wasn't possible without partial hunks).
   a target-guard so the nested trigger doesn't toggle the row.
 
 ## Excluded from these commits
+
 `.claude/launch.json` (local dev-server scaffolding) and
 `outreach-kit/send-newsletter-test.mjs` (unrelated outreach track) left
 uncommitted by design.
 
 ## Deferred (wave 3 — needs product/backend decisions, tracked in the audit doc)
+
 J3 retroactive rule application (rules never apply to later-created clients —
 core promise gap), alert Apply 600ms auto-close pacing, affected-clients list on
 review-only alerts, rollover Missing-rule unlock path, zh-CN marketing 404,

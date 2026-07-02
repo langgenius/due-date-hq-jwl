@@ -111,11 +111,27 @@ to copy); in-shell 404; keyboard help.
   ready markers + decision rail + Tools menu. Investigations: notification-id P0
   disproven (was the snoozed row); practice-save revert = demo-only
   (ensureDemoIdentities). Drawer Back semantics moved to wave 2.
-- **Wave 2:** shared query-error/retry primitive (S1); undo/closure convention rollout
-  (S2: dismiss undo + history restore, snooze visibility + unsnooze, bulk confirms);
-  rule-accept closure + next-candidate + bulk-modal default; leave-note dialog;
-  dirty-form guard; palette honesty; count reconciliation (S4).
-- **Wave 3 (needs product decisions / backend):** J3 retroactive rule application;
-  client archive; alert Apply pacing; affected-clients on review-only alerts;
-  rollover missing-rule path; practice-save persistence (backend); notification
-  entity-ref freshness (seed + generation).
+- **Wave 2 — SHIPPED 2026-07-02** (see docs/dev-log/ux-flow-wave2-fixes-2026-07-02.md):
+  shared query-error/retry primitive (S1, 12 surfaces); drawer back semantics
+  (S3, push-on-open); count reconciliation (S4); snoozed-row visibility +
+  unsnooze; client rename (backend chain + kebab dialog); dirty-form guard +
+  2FA cancel; history handled-date grouping; Inbox naming; migration back/DOM.
+- **Wave 3 — SHIPPED 2026-07-02** (see docs/dev-log/ux-flow-wave3-fixes-2026-07-02.md):
+  J3 retroactive rule application (create/jurisdiction/profile hooks + the
+  empty-taxTypes root cause); alert Apply persistent success state +
+  review-only affected-clients (backend list builder) + new-tab selection
+  preservation; client archive/restore (`archived_at`, truth-guarded surfaces,
+  delete's "Archive instead"); rollover missing-rule action links; zh-CN
+  marketing 404 + login create-account line; P2 sweep (materials selection bar,
+  billing honesty, audit "Other" tile + named arrival banner, monitoring-pill
+  recency, sessions cap, sort-affordance hover fix); residual nav/closure batch
+  (duplicate-create "View deadline", rank-link ref fix, tour CTA, scoped source
+  links, stale ?rule guard, rule-scoped audit link, bulk-review note survival,
+  accept-toast "View deadlines", ?row= return highlight, rule filter chip
+  title, export pending polling, clickable notification rows, billing disable
+  reasons); rule deep-link filter contract fix (uuid gate rejected catalog ids
+  — every rule filter was a silent no-op). A completeness cross-check
+  classified all 73 findings (10/10 shipped-claim spot-checks verified).
+- **Wave 4 (backend residuals, tracked):** id-keyed assignee filtering;
+  `markUnread` endpoint; Phase-1 `rule_id` FK; "mine OR unassigned" scope;
+  demo-seed avatar/roster cosmetics.
