@@ -79,49 +79,94 @@ export class ObligationQueuePage {
     await this.statusScopeButton(name).click()
   }
 
-  // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s`.
-  // The Columns entry is a Base UI submenu trigger. Depending on browser timing
-  // it may open from real hover, keyboard ArrowRight, or click, so try the same
-  // user-level paths Playwright can drive and stop as soon as the submenu appears.
-  async openColumnsMenu() {
-    await this.viewMenuButton.click()
-    const columnsTrigger = this.page.getByRole('menuitem', { name: /^Columns\b/ })
-    await columnsTrigger.waitFor({ state: 'visible' })
-    const firstCheckbox = this.page.getByRole('menuitemcheckbox').first()
-
-    const openSubmenu = async () => {
-      if (await firstCheckbox.isVisible().catch(() => false)) {
-        return true
-      }
-      await columnsTrigger.hover().catch(() => undefined)
-      if (await firstCheckbox.isVisible().catch(() => false)) {
-        return true
-      }
-      await columnsTrigger.press('ArrowRight').catch(() => undefined)
-      if (await firstCheckbox.isVisible().catch(() => false)) {
-        return true
-      }
-      await columnsTrigger.press('Enter').catch(() => undefined)
-      if (await firstCheckbox.isVisible().catch(() => false)) {
-        return true
-      }
-      await columnsTrigger.click().catch(() => undefined)
-      if (await firstCheckbox.isVisible().catch(() => false)) {
-        return true
-      }
-      await this.page.keyboard.press('ArrowRight').catch(() => undefined)
-      return firstCheckbox.isVisible().catch(() => false)
-    }
-
-    await expect.poll(openSubmenu, { timeout: 10_000 }).toBe(true)
+  columnsSubmenuTrigger() {
+    return this.page.getByRole('menuitem', { name: /^Columns\b/ })
   }
 
-  // Toggle one column checkbox inside the open Columns submenu. Same
-  // stability story as `openColumnsMenu` — dispatch the click directly.
+  // Opens View so callers can work with the Columns submenu trigger.
+  // Base UI submenus can briefly open and then close on slower CI runners, so
+  // column helpers own keeping the target option visible through the action.
+  async openColumnsMenu() {
+    await this.viewMenuButton.click()
+    const columnsTrigger = this.columnsSubmenuTrigger()
+    await columnsTrigger.waitFor({ state: 'visible' })
+  }
+
+  async revealColumnOption(option: Locator) {
+    if (await option.isVisible().catch(() => false)) {
+      return
+    }
+
+    const columnsTrigger = this.columnsSubmenuTrigger()
+    await columnsTrigger.hover().catch(() => undefined)
+    if (await option.isVisible().catch(() => false)) {
+      return
+    }
+
+    await columnsTrigger.press('ArrowRight').catch(() => undefined)
+    if (await option.isVisible().catch(() => false)) {
+      return
+    }
+
+    await columnsTrigger.press('Enter').catch(() => undefined)
+    if (await option.isVisible().catch(() => false)) {
+      return
+    }
+
+    await columnsTrigger.click().catch(() => undefined)
+    if (await option.isVisible().catch(() => false)) {
+      return
+    }
+
+    await this.page.keyboard.press('ArrowRight').catch(() => undefined)
+  }
+
+  async columnOptionChecked(option: Locator) {
+    await option.waitFor({ state: 'visible', timeout: 1_000 })
+    const checked = await option.getAttribute('aria-checked', { timeout: 1_000 })
+    if (checked !== 'true' && checked !== 'false') {
+      throw new Error(`Expected column option to expose aria-checked, received ${checked}`)
+    }
+    return checked === 'true'
+  }
+
+  // Toggle one column checkbox inside View -> Columns. Keep submenu reveal and
+  // click in one retry block so CI cannot pass on a transiently visible submenu.
   async toggleColumn(name: string) {
     const option = this.columnVisibilityOption(name)
-    await option.waitFor({ state: 'visible' })
-    await option.dispatchEvent('click')
+    await expect(async () => {
+      if (
+        !(await this.columnsSubmenuTrigger()
+          .isVisible()
+          .catch(() => false))
+      ) {
+        await this.openColumnsMenu()
+      }
+      await this.revealColumnOption(option)
+      const checked = await this.columnOptionChecked(option)
+      await option.dispatchEvent('click')
+      await expect.poll(() => this.columnOptionChecked(option), { timeout: 1_000 }).toBe(!checked)
+    }).toPass({ timeout: 10_000 })
+  }
+
+  async setColumnVisible(name: string, visible: boolean) {
+    const option = this.columnVisibilityOption(name)
+    await expect(async () => {
+      if (
+        !(await this.columnsSubmenuTrigger()
+          .isVisible()
+          .catch(() => false))
+      ) {
+        await this.openColumnsMenu()
+      }
+      await this.revealColumnOption(option)
+      const checked = await this.columnOptionChecked(option)
+      if (checked === visible) {
+        return
+      }
+      await option.dispatchEvent('click')
+      await expect.poll(() => this.columnOptionChecked(option), { timeout: 1_000 }).toBe(visible)
+    }).toPass({ timeout: 10_000 })
   }
 
   // Close whatever menu/submenu is open with an outside click. Escape is

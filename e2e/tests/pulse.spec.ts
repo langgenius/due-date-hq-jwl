@@ -49,11 +49,7 @@ test.describe('seeded Pulse alerts', () => {
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
     await expect(arborRow).toBeVisible({ timeout: 20_000 })
     await expect(arborRow).toContainText('in 128d', { timeout: 20_000 })
-    await obligationQueuePage.openColumnsMenu()
-    const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
-    if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
-      await obligationQueuePage.toggleColumn('Evidence')
-    }
+    await obligationQueuePage.setColumnVisible('Evidence', true)
     await obligationQueuePage.dismissMenus()
     const arborEvidenceButton = obligationQueuePage.rowFor('Arbor & Vale LLC').getByRole('button', {
       name: 'Open 1 evidence sources for Arbor & Vale LLC',

@@ -159,13 +159,11 @@ test.describe('seeded obligations', () => {
     // toggle from this test.
     await obligationQueuePage.goto()
 
-    await obligationQueuePage.openColumnsMenu()
-    await obligationQueuePage.toggleColumn('Assignee')
+    await obligationQueuePage.setColumnVisible('Assignee', false)
     await obligationQueuePage.dismissMenus()
     await expect(authenticatedPage).toHaveURL(/hide=[^&]*assigneeName/)
 
-    await obligationQueuePage.openColumnsMenu()
-    await obligationQueuePage.toggleColumn('Assignee')
+    await obligationQueuePage.setColumnVisible('Assignee', true)
     await obligationQueuePage.dismissMenus()
     await expect(authenticatedPage).not.toHaveURL(/hide=[^&]*assigneeName/)
 
