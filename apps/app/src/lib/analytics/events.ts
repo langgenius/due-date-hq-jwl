@@ -80,6 +80,7 @@ export const ANALYTICS_EVENTS = {
   clientClassificationImpactPreviewed: 'Client Classification Impact Previewed',
   clientArchived: 'Client Archived',
   clientRestored: 'Client Restored',
+  clientDeleted: 'Client Deleted',
 
   // ── Rules & Sources ──
   rulesLibraryViewed: 'Rules Library Viewed',

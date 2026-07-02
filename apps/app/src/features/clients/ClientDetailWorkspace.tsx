@@ -6,6 +6,8 @@ import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
+  ArchiveIcon,
+  ArchiveRestoreIcon,
   TriangleAlertIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -39,6 +41,7 @@ import type {
   ObligationInstancePublic,
   ObligationQueueRow,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -593,15 +596,76 @@ export function ClientDetailWorkspace({
     renameMutation.mutate({ id: client.id, name: renameTrimmed })
   }, [renameTrimmed, renameMutation, client.id, client.name])
 
+  // Archive/restore — the reversible lifecycle pair (client.archived /
+  // client.restored). Archive hides the client + its deadlines from active
+  // surfaces (directory, Deadlines, Today, calendar feeds, reminder emails)
+  // and the plan's client count; nothing is deleted and Restore brings it all
+  // back. Both invalidate the same surfaces delete does, plus clients.get so
+  // this page's archived banner flips immediately.
+  const isArchived = Boolean(client.archivedAt)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const invalidateLifecycleQueries = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.usage.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+  }, [queryClient])
+  const archiveMutation = useMutation(
+    orpc.clients.archive.mutationOptions({
+      onSuccess: () => {
+        track(ANALYTICS_EVENTS.clientArchived, {})
+        invalidateLifecycleQueries()
+        toast.success(t`Client archived`, {
+          description: t`${client.name} moved to Archived. Restore it anytime.`,
+          // Deep-link to the /clients archived drawer so "where did it go?"
+          // has a one-click answer.
+          action: {
+            label: t`View archived`,
+            onClick: () => void navigate('/clients?archived=open'),
+          },
+        })
+        setArchiveOpen(false)
+        setDeleteOpen(false)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't archive client`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+  const restoreMutation = useMutation(
+    orpc.clients.restore.mutationOptions({
+      onSuccess: () => {
+        track(ANALYTICS_EVENTS.clientRestored, {})
+        invalidateLifecycleQueries()
+        toast.success(t`Client restored`, {
+          description: t`${client.name} is back in the client list.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't restore client`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+
   // Delete state + mutation. The server still performs the compliance-safe
   // `deletedAt` write; active deadline/dashboard queries filter the client out
-  // while audit history remains available.
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  // while audit history remains available. (`deleteOpen` state is declared
+  // with the archive pair above — archive's onSuccess closes this dialog too
+  // for the "Archive instead" path.)
   const deleteMutation = useMutation(
     orpc.clients.delete.mutationOptions({
       onSuccess: () => {
-        // Soft-delete is the compliance-safe `deletedAt` archive write.
-        track(ANALYTICS_EVENTS.clientArchived, {})
+        track(ANALYTICS_EVENTS.clientDeleted, {})
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
@@ -811,6 +875,7 @@ export function ClientDetailWorkspace({
                   clientId={client.id}
                   clientName={client.name}
                   canReadAudit={canReadAudit}
+                  isArchived={isArchived}
                   onRename={
                     canUpdateClient
                       ? () => {
@@ -818,6 +883,10 @@ export function ClientDetailWorkspace({
                           setRenameOpen(true)
                         }
                       : undefined
+                  }
+                  onArchive={canUpdateClient ? () => setArchiveOpen(true) : undefined}
+                  onRestore={
+                    canUpdateClient ? () => restoreMutation.mutate({ id: client.id }) : undefined
                   }
                   onDelete={() => setDeleteOpen(true)}
                 />
@@ -847,6 +916,39 @@ export function ClientDetailWorkspace({
               </>
             }
           />
+
+          {/* Archived state banner — persistent (not dismissable) while the
+              client is archived. States exactly what archive did and offers
+              the one-click way back. Restore is write-gated like archive. */}
+          {isArchived ? (
+            <Alert>
+              <ArchiveIcon aria-hidden />
+              <AlertTitle>
+                <Trans>This client is archived</Trans>
+              </AlertTitle>
+              <AlertDescription>
+                <span>
+                  <Trans>
+                    It's hidden from the client list, Deadlines, Today, calendar feeds, and reminder
+                    emails, and doesn't count toward your plan's client limit. Its deadlines and
+                    history are kept unchanged.
+                  </Trans>{' '}
+                  {canUpdateClient ? (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 align-baseline"
+                      disabled={restoreMutation.isPending}
+                      onClick={() => restoreMutation.mutate({ id: client.id })}
+                    >
+                      <Trans>Restore client</Trans>
+                    </Button>
+                  ) : null}
+                </span>
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
           {/* Body — client-context content. The outer xl:flex-row
             split (one wrapper above) already separates this from the
@@ -1351,6 +1453,43 @@ export function ClientDetailWorkspace({
         </aside>
       </div>
 
+      {/* Archive confirm — every claim below is backed by a real query guard
+          (repo listByFirm/countActiveClients + the archivedAt filters on the
+          deadline queue, dashboard, calendar feed, and reminder/digest jobs).
+          Nothing is deleted; restore reverses all of it. */}
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Archive {client.name}?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                Archiving hides this client and its deadlines from the client list, Deadlines,
+                Today, calendar feeds, and reminder emails, and it stops counting toward your plan's
+                client limit. Nothing is deleted — deadlines keep their statuses and the audit
+                history stays. You can restore it anytime from the Archived view on Clients.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiveMutation.isPending}>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archiveMutation.isPending}
+              onClick={() => archiveMutation.mutate({ id: client.id })}
+            >
+              {archiveMutation.isPending ? (
+                <Loader2Icon data-icon="inline-start" className="animate-spin" />
+              ) : (
+                <ArchiveIcon data-icon="inline-start" />
+              )}
+              <Trans>Archive client</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1360,17 +1499,38 @@ export function ClientDetailWorkspace({
             <AlertDialogDescription className="text-text-destructive-secondary">
               <Trans>
                 This removes the client and its deadlines from active lists, Deadlines, and Today.
-                Audit history stays retained for compliance records.
+                Audit history stays retained for compliance records, but there's no undo in the app.
+                If you might need this client again, archive it instead — archiving is fully
+                reversible.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
+            <AlertDialogCancel disabled={deleteMutation.isPending || archiveMutation.isPending}>
               <Trans>Cancel</Trans>
             </AlertDialogCancel>
+            {/* Recommended safe alternative — runs the same archive mutation
+                as the kebab action; its onSuccess closes this dialog too.
+                Hidden when the client is already archived (nothing to offer)
+                or the user can't write. */}
+            {canUpdateClient && !isArchived ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={deleteMutation.isPending || archiveMutation.isPending}
+                onClick={() => archiveMutation.mutate({ id: client.id })}
+              >
+                {archiveMutation.isPending ? (
+                  <Loader2Icon data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <ArchiveIcon data-icon="inline-start" />
+                )}
+                <Trans>Archive instead</Trans>
+              </Button>
+            ) : null}
             <AlertDialogAction
               variant="destructive-primary"
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || archiveMutation.isPending}
               onClick={() => deleteMutation.mutate({ id: client.id })}
             >
               <Trash2Icon data-icon="inline-start" />
@@ -1795,21 +1955,28 @@ function ClientActiveAlertsExtensionCard({
  * lower-priority actions that don't belong on the primary button row.
  *
  * Real actions only (no "coming soon" affordances): **Rename client**
- * (write-gated — `onRename` is undefined for read-only roles), **View
- * audit log** (routes to `/audit` filtered by this client), and the
- * destructive **Delete client**.
+ * (write-gated — `onRename` is undefined for read-only roles), **Archive
+ * client** / **Restore client** (write-gated reversible lifecycle pair —
+ * which one shows depends on `isArchived`), **View audit log** (routes to
+ * `/audit` filtered by this client), and the destructive **Delete client**.
  */
 function ClientHeaderOverflowMenu({
   clientId,
   clientName,
   canReadAudit,
+  isArchived,
   onRename,
+  onArchive,
+  onRestore,
   onDelete,
 }: {
   clientId: string
   clientName: string
   canReadAudit: boolean
+  isArchived: boolean
   onRename?: (() => void) | undefined
+  onArchive?: (() => void) | undefined
+  onRestore?: (() => void) | undefined
   onDelete: () => void
 }) {
   const { t } = useLingui()
@@ -1845,6 +2012,22 @@ function ClientHeaderOverflowMenu({
             <Trans>View audit log</Trans>
           </DropdownMenuItem>
         ) : null}
+        {/* Reversible lifecycle pair — exactly one shows: Archive for active
+            clients, Restore for archived ones. Both write-gated (undefined
+            for read-only roles), matching the onRename convention. */}
+        {!isArchived && onArchive ? (
+          <DropdownMenuItem onClick={onArchive} aria-label={t`Archive ${clientName}`}>
+            <ArchiveIcon className="size-4" aria-hidden />
+            <Trans>Archive client</Trans>
+          </DropdownMenuItem>
+        ) : null}
+        {isArchived && onRestore ? (
+          <DropdownMenuItem onClick={onRestore} aria-label={t`Restore ${clientName}`}>
+            <ArchiveRestoreIcon className="size-4" aria-hidden />
+            <Trans>Restore client</Trans>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={onDelete}
           aria-label={t`Delete ${clientName}`}

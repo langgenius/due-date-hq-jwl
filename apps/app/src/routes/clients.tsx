@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleAlertIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
+import { ArchiveIcon, CircleAlertIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -16,6 +16,10 @@ import { InfoBanner } from '@/components/patterns/info-banner'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { CountPill } from '@/components/primitives/count-pill'
+import {
+  ArchivedClientsDrawer,
+  ARCHIVED_CLIENTS_LIST_INPUT,
+} from '@/features/clients/ArchivedClientsDrawer'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -146,12 +150,20 @@ export function ClientsRoute() {
       pulse: alertFilter,
       owner: ownerFilter,
       importHistory,
+      archived: archivedDrawer,
     },
     setClientsQuery,
   ] = useQueryStates(clientsSearchParamsParsers)
 
   const clientsQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
+  // Archived clients (separate `archived: 'only'` query — the default list
+  // above excludes them server-side). The count gates the quiet "Archived"
+  // header entry point; the drawer shares this cache key.
+  const archivedClientsQuery = useQuery(
+    orpc.clients.listByFirm.queryOptions({ input: ARCHIVED_CLIENTS_LIST_INPUT }),
+  )
+  const archivedCount = archivedClientsQuery.data?.length ?? 0
   const factsModel = useMemo(() => buildClientFactsModel(clients), [clients])
   const obligationsListQuery = useQuery(
     orpc.obligations.list.queryOptions({ input: OBLIGATIONS_LIST_INPUT }),
@@ -399,6 +411,21 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
+  const handleArchivedDrawerOpenChange = useCallback(
+    (next: boolean) => {
+      void setClientsQuery({ archived: next ? 'open' : null })
+    },
+    [setClientsQuery],
+  )
+
+  const handleViewArchivedClient = useCallback(
+    (client: ClientPublic) => {
+      void setClientsQuery({ archived: null })
+      void navigate(clientDetailPath(client))
+    },
+    [navigate, setClientsQuery],
+  )
+
   const handleViewImportedClient = useCallback(
     (clientId: string) => {
       const client = clients.find((candidate) => candidate.id === clientId)
@@ -491,6 +518,20 @@ export function ClientsRoute() {
                 <Trans>Remove sample data</Trans>
               </Button>
             ) : null}
+            {/* Quiet archived-clients entry point — renders only once the
+                firm actually has archived clients, so a firm that never
+                archives never sees it. Opens the side drawer (a directory
+                tab would fight the portfolio-grid page design). */}
+            {archivedCount > 0 ? (
+              <Button
+                variant="outline"
+                onClick={() => handleArchivedDrawerOpenChange(true)}
+                aria-label={t`Archived clients`}
+              >
+                <ArchiveIcon data-icon="inline-start" />
+                <Trans>Archived ({archivedCount})</Trans>
+              </Button>
+            ) : null}
             {/* The button opens migration import history, not client
                 archival. Keep the visible label aligned with the drawer
                 title so "Archive" does not read as a destructive client
@@ -561,6 +602,12 @@ export function ClientsRoute() {
         open={importHistory === 'open'}
         onOpenChange={handleImportHistoryOpenChange}
         onViewClient={handleViewImportedClient}
+      />
+      <ArchivedClientsDrawer
+        open={archivedDrawer === 'open'}
+        onOpenChange={handleArchivedDrawerOpenChange}
+        onViewClient={handleViewArchivedClient}
+        entityLabels={entityLabels}
       />
       <ClientFactsWorkspace
         clients={clients}

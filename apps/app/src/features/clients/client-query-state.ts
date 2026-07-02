@@ -36,6 +36,10 @@ export const clientsSearchParamsParsers = {
     .withOptions(REPLACE_HISTORY_OPTIONS),
   owner: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
   importHistory: parseAsStringLiteral(['open']).withOptions(REPLACE_HISTORY_OPTIONS),
+  // Archived-clients drawer (`?archived=open`) — deep-linkable like
+  // importHistory so the archive toast's "View archived" action can land
+  // straight on the drawer.
+  archived: parseAsStringLiteral(['open']).withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 
 export function normalizeClientsQueryFilters(input: {
