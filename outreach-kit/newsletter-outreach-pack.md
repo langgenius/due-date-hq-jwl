@@ -174,9 +174,9 @@ Sign-off block for all four:
 
 ---
 
-## Rate benchmarks (media kits received 2026-07-02)
+## Rate benchmarks (media kits downloaded from their sites, 2026-07-02)
 
-Both kits are enterprise-priced (their sponsor rosters: Intuit, Thomson Reuters, Wolters Kluwer, Canopy…). Decision: hold all publication buys until (a) Jason's creator quote arrives as the real benchmark, (b) UTM-tagged links exist, (c) one placement proves signups.
+Rate cards are PUBLIC on both sites — no form submission needed for AT or CPA Trendlines (and skipping the form keeps us off their sales follow-up lists). Remaining manual inquiries: Future Firm form + Going Concern only. Both kits are enterprise-priced (their sponsor rosters: Intuit, Thomson Reuters, Wolters Kluwer, Canopy…). Decision: hold all publication buys until (a) Jason's creator quote arrives as the real benchmark, (b) UTM-tagged links exist, (c) one placement proves signups.
 
 **Accounting Today 2026** (Arizent · contact Alexandria Alati, alexandria.alati@arizent.com, 201-341-5989):
 - Newsletters, banner or text ad per week: First Look $3,700 · Accounting Tech $4,200 · Tax Pro Today $5,300 · Daily Briefing $9,400 · newsletter takeovers (IRS Watch/Audit & Accounting/Best of the Week) $6,500
