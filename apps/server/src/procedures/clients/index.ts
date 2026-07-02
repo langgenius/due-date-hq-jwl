@@ -5,6 +5,7 @@ import type {
   ClientFilingProfileInput,
 } from '@duedatehq/contracts'
 import { ErrorCodes } from '@duedatehq/contracts'
+import { inferTaxTypes } from '@duedatehq/core/default-matrix'
 import { planClientLimit, type BillingPlan } from '@duedatehq/core/plan-entitlements'
 import type {
   ClientFilingProfileInput as ClientFilingProfileRepoInput,
@@ -19,6 +20,8 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
+import { listActiveCoreRules } from '../rules'
+import { generateObligationsForClientList } from '../rules/_obligation-generation'
 import { runClassificationRecompute } from './_classification-recompute'
 import {
   SAMPLE_CLIENTS,
@@ -130,6 +133,24 @@ function normalizeStringList(values: readonly string[] | undefined): string[] {
   )
 }
 
+/**
+ * Default-matrix tax types for a bare-state filing profile — the same
+ * intake inference migration commit uses (see _commit-plan buildProfileFacts),
+ * so a manually created client matches the same active rules as the identical
+ * imported client. Drops the bare `federal` placeholder and `_state_*`
+ * pseudo-codes: non-forms with no canonical return (same filter as the
+ * classification recompute).
+ */
+function inferredProfileTaxTypes(input: {
+  entityType: Parameters<typeof inferTaxTypes>[0]
+  state: string
+  taxClassification?: NonNullable<Parameters<typeof inferTaxTypes>[2]>['taxClassification']
+}): string[] {
+  return inferTaxTypes(input.entityType, input.state, {
+    taxClassification: input.taxClassification ?? null,
+  }).taxTypes.filter((taxType) => taxType !== 'federal' && !taxType.startsWith('_'))
+}
+
 function buildFilingProfileRows(
   clientId: string,
   input: {
@@ -137,6 +158,8 @@ function buildFilingProfileRows(
     county?: string | null | undefined
     migrationBatchId?: string | null | undefined
     filingProfiles?: ClientFilingProfileInput[] | undefined
+    entityType: Parameters<typeof inferTaxTypes>[0]
+    taxClassification?: NonNullable<Parameters<typeof inferTaxTypes>[2]>['taxClassification']
   },
 ): ClientFilingProfileRepoInput[] {
   const explicit = input.filingProfiles ?? []
@@ -148,6 +171,15 @@ function buildFilingProfileRows(
             {
               state: input.state,
               counties: input.county ? [input.county] : [],
+              // Bare-state quick create carries no tax types, and rule
+              // generation matches on profile tax types — without this
+              // inference the client would never be covered by any rule
+              // (imported clients get the same matrix inference at commit).
+              taxTypes: inferredProfileTaxTypes({
+                entityType: input.entityType,
+                state: input.state,
+                taxClassification: input.taxClassification ?? null,
+              }),
               isPrimary: true,
             },
           ]
@@ -258,6 +290,75 @@ async function assertClientCapacity(
   }
 }
 
+/**
+ * Rule-coverage cascade. Accept-time generation only covers clients that
+ * exist when a rule is accepted; clients created or re-scoped afterwards
+ * silently missed the "active rules keep you covered" promise. After any
+ * client write that can change rule applicability (create, jurisdiction,
+ * filing profiles), apply the firm's ACTIVE rules to the affected clients
+ * through the same generation kernel + dedup keys the accept path uses
+ * (the seen-set is seeded from existing DB rows, so re-running never
+ * double-generates). Cascade-created deadlines land exactly as accept-time
+ * generation would have landed them: `pending`, or `review` when the rule
+ * requires CPA confirmation.
+ *
+ * Best-effort by design: the client rows are already committed when this
+ * runs, so a generation failure logs and returns 0 instead of failing the
+ * client write and stranding a half-created client.
+ */
+async function applyActiveRulesToClients(input: {
+  scoped: ReturnType<typeof requireTenant>['scoped']
+  tenant: { internalDeadlineOffsetDays: number; monitoringStartDate: string }
+  userId: string
+  // The generation kernel's own client type (ports ClientRow) — repo reads
+  // hand these back directly, so forward the kernel's expectation instead of
+  // re-declaring it against the serializer-local row shape.
+  clients: Parameters<typeof generateObligationsForClientList>[0]['clients']
+  /** Client action recorded as after.reason on the obligation.batch_created audit row. */
+  trigger:
+    | 'client.created'
+    | 'client.batch_created'
+    | 'client.jurisdiction.updated'
+    | 'client.filing_profiles.replaced'
+}): Promise<number> {
+  try {
+    if (input.clients.length === 0) return 0
+    const rules = await listActiveCoreRules(input.scoped)
+    if (rules.length === 0) return 0
+    const generated = await generateObligationsForClientList({
+      scoped: input.scoped,
+      userId: input.userId,
+      clients: input.clients,
+      rules,
+      internalDeadlineOffsetDays: input.tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: input.tenant.monitoringStartDate,
+      auditReason: input.trigger,
+      reason: 'Generated from active practice rules after a client change.',
+    })
+    if (generated.createdObligationIds.length > 0) {
+      // Same staleness fix as acceptTemplateRule: approved pulses'
+      // matchedCount is point-in-time and nothing recomputes it on
+      // obligation creation. Best-effort — never fails the cascade.
+      try {
+        await input.scoped.pulse.refreshMatchedCountsForObligations(generated.createdObligationIds)
+      } catch (err) {
+        console.error('[clients] cascade pulse matchedCount recompute failed', {
+          firmId: input.scoped.pulse.firmId,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+    return generated.createdCount
+  } catch (err) {
+    console.error('[clients] active-rule cascade failed', {
+      trigger: input.trigger,
+      clientIds: input.clients.map((client) => client.id),
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return 0
+  }
+}
+
 const create = os.clients.create.handler(async ({ input, context }) => {
   const { members, tenant, userId } = await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
   const { scoped } = requireTenant(context)
@@ -314,6 +415,14 @@ const create = os.clients.create.handler(async ({ input, context }) => {
     entityType: 'client',
     entityId: id,
     action: 'client.created',
+  })
+
+  await applyActiveRulesToClients({
+    scoped,
+    tenant,
+    userId,
+    clients: [row],
+    trigger: 'client.created',
   })
 
   return toClientPublic(row, { filingProfiles })
@@ -378,6 +487,16 @@ const createBatch = os.clients.createBatch.handler(async ({ input, context }) =>
     scoped.filingProfiles.listByClients(ids),
   ])
 
+  await applyActiveRulesToClients({
+    scoped,
+    tenant,
+    userId,
+    // Serializer-local rows mark archivedAt optional (fixture convenience);
+    // the kernel's ports row requires it — normalize instead of asserting.
+    clients: rows.map((row) => ({ ...row, archivedAt: row.archivedAt ?? null })),
+    trigger: 'client.batch_created',
+  })
+
   return {
     clients: rows.map((row) =>
       toClientPublic(row, { filingProfiles: filingProfilesByClientId(profilesByClient, row.id) }),
@@ -397,7 +516,12 @@ const get = os.clients.get.handler(async ({ input, context }) => {
 
 const listByFirm = os.clients.listByFirm.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
-  const rows = await scoped.clients.listByFirm(input?.limit ? { limit: input.limit } : {})
+  const rows = await scoped.clients.listByFirm({
+    ...(input?.limit ? { limit: input.limit } : {}),
+    // Omitted = active only (repo default 'exclude'); 'only' backs the
+    // /clients Archived view; 'all' returns both.
+    ...(input?.archived ? { archived: input.archived } : {}),
+  })
   const profilesByClient = await scoped.filingProfiles.listByClients(rows.map((row) => row.id))
   const hideDollars = await shouldHideDollars(context)
   return rows.map((row) =>
@@ -426,13 +550,25 @@ const updateJurisdiction = os.clients.updateJurisdiction.handler(async ({ input,
           {
             state: input.state,
             counties: input.county ? [input.county] : [],
+            // replaceForClient archives every prior profile, so carry the
+            // curated tax types forward when the state is unchanged; a NEW
+            // state gets the same default-matrix inference as intake —
+            // without tax types the state change could never generate the
+            // deadlines the rule library promises.
+            taxTypes:
+              beforeProfiles.find((profile) => profile.state === input.state?.trim().toUpperCase())
+                ?.taxTypes ??
+              inferredProfileTaxTypes({
+                entityType: before.entityType,
+                state: input.state,
+                taxClassification: before.taxClassification,
+              }),
             isPrimary: true,
             source: 'manual',
           },
         ]
       : [],
   )
-  const recalculatedObligationCount = 0
   const [after, afterProfiles] = await Promise.all([
     scoped.clients.findById(input.id),
     scoped.filingProfiles.listByClient(input.id),
@@ -442,6 +578,13 @@ const updateJurisdiction = os.clients.updateJurisdiction.handler(async ({ input,
       message: 'Updated client could not be re-read.',
     })
   }
+  const recalculatedObligationCount = await applyActiveRulesToClients({
+    scoped,
+    tenant,
+    userId,
+    clients: [after],
+    trigger: 'client.jurisdiction.updated',
+  })
 
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
@@ -511,13 +654,23 @@ const replaceFilingProfiles = os.clients.replaceFilingProfiles.handler(
       input.id,
       buildReplacementProfiles(input.profiles),
     )
-    const recalculatedObligationCount = 0
     const after = await scoped.clients.findById(input.id)
     if (!after) {
       throw new ORPCError('INTERNAL_SERVER_ERROR', {
         message: 'Updated client could not be re-read.',
       })
     }
+    // Newly added states/tax types may now match active rules — generate
+    // their deadlines so the profile editor's promise is kept. Removals are
+    // deliberately NOT auto-deleted here; deadline removal stays an explicit
+    // reviewed action (see classification recompute).
+    const recalculatedObligationCount = await applyActiveRulesToClients({
+      scoped,
+      tenant,
+      userId,
+      clients: [after],
+      trigger: 'client.filing_profiles.replaced',
+    })
 
     const { id: auditId } = await scoped.audit.write({
       actorId: userId,
@@ -1074,6 +1227,107 @@ const rename = os.clients.rename.handler(async ({ input, context }) => {
   }
 })
 
+// Archive — the reversible client lifecycle write. Role-gated like delete,
+// idempotent (archiving an archived client is a no-op with auditId ''), and
+// blocked for deleted rows (findById already filters those). The repo write
+// plus the query guards added alongside it make the dialog copy true: the
+// client drops out of the directory, deadline queue, Today, calendar feeds,
+// reminder emails, and the plan's client count; its deadline rows and
+// statuses are untouched and everything returns on restore.
+const archive = os.clients.archive.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+  const hideDollars = await shouldHideDollars(context)
+  if (before.archivedAt) {
+    const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
+    return {
+      client: toClientPublic(before, { hideDollars, filingProfiles }),
+      auditId: '' as string,
+    }
+  }
+  await scoped.clients.archive(input.id)
+  const [after, filingProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Archived client could not be re-read.',
+    })
+  }
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.archived',
+    before: { name: before.name, archivedAt: null },
+    after: { archivedAt: after.archivedAt?.toISOString() ?? null },
+  })
+  // Dashboard brief counts active clients/deadlines — refresh so it doesn't
+  // keep quoting the archived client's numbers.
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'client_facts_change',
+  }).catch(() => false)
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles }),
+    auditId,
+  }
+})
+
+// Restore — clears archivedAt and returns the client (and its deadlines) to
+// every active surface. Mirrors archive: role-gated, idempotent, audited.
+const restore = os.clients.restore.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+  const hideDollars = await shouldHideDollars(context)
+  if (!before.archivedAt) {
+    const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
+    return {
+      client: toClientPublic(before, { hideDollars, filingProfiles }),
+      auditId: '' as string,
+    }
+  }
+  await scoped.clients.restore(input.id)
+  const [after, filingProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Restored client could not be re-read.',
+    })
+  }
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.restored',
+    before: { name: before.name, archivedAt: before.archivedAt.toISOString() },
+    after: { archivedAt: null },
+  })
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'client_facts_change',
+  }).catch(() => false)
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles }),
+    auditId,
+  }
+})
+
 type ClientHistoryScope = ReturnType<typeof requireTenant>['scoped']
 
 // Compact, drift-free humanization of an audit action key, e.g.
@@ -1356,6 +1610,8 @@ export const clientsHandlers = {
   applyClassificationRecompute,
   updateNotes,
   rename,
+  archive,
+  restore,
   getRiskSummary,
   requestRiskSummaryRefresh,
   bulkUpdateAssignee,

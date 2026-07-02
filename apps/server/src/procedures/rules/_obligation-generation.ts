@@ -28,6 +28,18 @@ interface GenerateForAcceptedRulesInput {
   reason?: string | null
 }
 
+interface GenerateForClientListInput extends GenerateForAcceptedRulesInput {
+  /** The clients to (re)cover — the accept path passes the whole firm. */
+  clients: readonly ClientRow[]
+  /**
+   * Machine-readable trigger recorded as `after.reason` on the
+   * obligation.batch_created audit row. The accept path writes
+   * 'rules.accepted'; the client cascade writes the client action that
+   * triggered it (e.g. 'client.created').
+   */
+  auditReason?: string
+}
+
 interface GenerateForAcceptedRulesSummary {
   candidateCount: number
   createdCount: number
@@ -405,6 +417,27 @@ export async function persistGeneratedObligations(input: {
 export async function generateObligationsForAcceptedRules(
   input: GenerateForAcceptedRulesInput,
 ): Promise<GenerateForAcceptedRulesSummary> {
+  const clients = await input.scoped.clients.listByFirm()
+  return generateObligationsForClientList({ ...input, clients })
+}
+
+/**
+ * Apply verified rules to an EXPLICIT client list. Shared engine behind two
+ * coverage paths:
+ *
+ *  - Rule accept (generateObligationsForAcceptedRules): newly accepted rules
+ *    × every firm client.
+ *  - Client cascade (clients.create / jurisdiction / filing-profile writes):
+ *    every active rule × the client(s) that just appeared or changed scope —
+ *    without this, clients created AFTER accept were silently uncovered.
+ *
+ * Idempotent by construction: `seenGeneratedKeys` is seeded from the DB rows
+ * for these clients before anything is emitted, so re-running only counts
+ * duplicates and never double-generates.
+ */
+export async function generateObligationsForClientList(
+  input: GenerateForClientListInput,
+): Promise<GenerateForAcceptedRulesSummary> {
   const now = input.now ?? new Date()
   const rules = input.rules.filter((rule) => rule.status === 'verified')
   const emptySummary: GenerateForAcceptedRulesSummary = {
@@ -418,7 +451,7 @@ export async function generateObligationsForAcceptedRules(
   }
   if (rules.length === 0) return emptySummary
 
-  const clients = await input.scoped.clients.listByFirm()
+  const clients = input.clients
   if (clients.length === 0) return emptySummary
 
   const profilesByClient = await input.scoped.filingProfiles.listByClients(
@@ -506,7 +539,7 @@ export async function generateObligationsForAcceptedRules(
     entityId: ids[0] ?? 'empty',
     action: 'obligation.batch_created',
     after: {
-      reason: 'rules.accepted',
+      reason: input.auditReason ?? 'rules.accepted',
       ruleIds: rules.map((rule) => rule.id),
       createdCount: ids.length,
       duplicateCount,

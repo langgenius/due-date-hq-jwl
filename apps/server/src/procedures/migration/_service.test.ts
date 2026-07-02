@@ -253,6 +253,8 @@ function buildScopedRepo(
     async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
+    async archive() {},
+    async restore() {},
     async deleteByBatch() {
       return 0
     },

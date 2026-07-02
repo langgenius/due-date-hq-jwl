@@ -1088,6 +1088,12 @@ export async function acceptTemplateRule(input: {
     reviewedBy: input.reviewedBy,
     reviewedAt: input.reviewedAt,
   })
+  // ACTUAL rows written by this accept — the accept toast reports this, not
+  // previewRuleImpact's estimate. The two diverge whenever a client has no
+  // filing profile (the estimate matches on client.state, generation iterates
+  // profiles), so asserting the estimate made "N deadlines generated" fiction
+  // for profile-less clients (journey-QA J3, 2026-07-02).
+  let generatedObligationCount = 0
   if (input.generateObligations ?? true) {
     const generated = await generateObligationsForAcceptedRules({
       scoped,
@@ -1098,6 +1104,7 @@ export async function acceptTemplateRule(input: {
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
+    generatedObligationCount = generated.createdObligationIds.length
     if (generated.createdObligationIds.length > 0) {
       // A firm that activated this state AFTER an approved pulse changed its
       // deadline had the pulse's matchedCount stuck at its point-in-time (0)
@@ -1124,7 +1131,7 @@ export async function acceptTemplateRule(input: {
       }
     }
   }
-  return task
+  return { ...task, generatedObligationCount }
 }
 
 export async function rejectTemplateRule(input: {
@@ -2095,8 +2102,12 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
   // Verifying a candidate from the alert's rule modal is the review action —
   // clear its source drift so the adoption gate reopens for every firm.
   await scoped.rules.clearRuleSourceDrift({ ruleId: base.id, clearedBy: userId })
-  void task
-  return toReviewDecision(row)
+  return {
+    ...toReviewDecision(row),
+    // Surface the ACTUAL generated count from the accept path so the verify
+    // toast can report reality (same journey-QA J3 fix as acceptTemplate).
+    generatedObligationCount: task.generatedObligationCount,
+  }
 })
 
 const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ input, context }) => {

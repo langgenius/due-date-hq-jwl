@@ -191,6 +191,7 @@ async function buildDigestPayload(
         eq(obligationInstance.firmId, recipient.firmId),
         inArray(obligationInstance.status, OPEN_STATUSES),
         isNull(client.deletedAt),
+        isNull(client.archivedAt),
       ),
     )
     .orderBy(asc(obligationInstance.currentDueDate))

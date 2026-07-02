@@ -433,21 +433,29 @@ async function createManualObligationsFromRuleSelections(input: {
     clientIds: [client.id],
     taxYears,
   })
-  const seenGeneratedKeys = new Set(
+  // key → EXISTING obligation id, so a duplicate hit can point the caller at
+  // the row that already tracks this deadline (create-dialog "View deadline").
+  const existingObligationIdByGeneratedKey = new Map(
     duplicateRows
       .filter((row) => row.ruleId && row.taxYear !== null && row.rulePeriod)
-      .map((row) =>
-        keyForGenerated({
-          clientId: row.clientId,
-          jurisdiction: row.jurisdiction,
-          ruleId: row.ruleId!,
-          taxYear: row.taxYear,
-          rulePeriod: row.rulePeriod!,
-        }),
+      .map(
+        (row) =>
+          [
+            keyForGenerated({
+              clientId: row.clientId,
+              jurisdiction: row.jurisdiction,
+              ruleId: row.ruleId!,
+              taxYear: row.taxYear,
+              rulePeriod: row.rulePeriod!,
+            }),
+            row.id,
+          ] as const,
       ),
   )
+  const seenGeneratedKeys = new Set(existingObligationIdByGeneratedKey.keys())
 
   let duplicateCount = 0
+  const duplicateObligationIds: string[] = []
   const createInputs = selectedRules.flatMap((selectedRule) => {
     const matchingProfile =
       selectedRule.jurisdiction === 'FED'
@@ -497,6 +505,8 @@ async function createManualObligationsFromRuleSelections(input: {
       })
       if (seenGeneratedKeys.has(key)) {
         duplicateCount += 1
+        const existingId = existingObligationIdByGeneratedKey.get(key)
+        if (existingId) duplicateObligationIds.push(existingId)
         return []
       }
       seenGeneratedKeys.add(key)
@@ -516,7 +526,7 @@ async function createManualObligationsFromRuleSelections(input: {
   })
 
   if (createInputs.length === 0) {
-    return { obligations: [], duplicateCount }
+    return { obligations: [], duplicateCount, duplicateObligationIds }
   }
 
   const now = new Date()
@@ -592,6 +602,7 @@ async function createManualObligationsFromRuleSelections(input: {
   return {
     obligations: rows.map((row) => toObligationPublic(row, { client, asOfDate })),
     duplicateCount,
+    duplicateObligationIds,
   }
 }
 

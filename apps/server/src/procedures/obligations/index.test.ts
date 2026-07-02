@@ -297,6 +297,8 @@ function makeContext(input: {
     updateAssigneeMany: null!,
     updateClassification: null!,
     softDelete: null!,
+    archive: null!,
+    restore: null!,
     deleteByBatch: null!,
   }
   const filingProfiles: ScopedRepo['filingProfiles'] = {
@@ -888,6 +890,7 @@ describe('obligations.createFromRule', () => {
   })
 
   it('skips duplicate selected-rule periods', async () => {
+    const existingObligationId = '55555555-5555-4555-8555-555555555555'
     const duplicate = rowFromInput(
       {
         clientId: CLIENT_ID,
@@ -898,7 +901,7 @@ describe('obligations.createFromRule', () => {
         jurisdiction: 'FED',
         baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
       },
-      'existing_obligation',
+      existingObligationId,
     )
     const { context, createBatch } = makeContext({ duplicates: [duplicate] })
 
@@ -908,7 +911,13 @@ describe('obligations.createFromRule', () => {
       { context },
     )
 
-    expect(result).toMatchObject({ obligations: [], duplicateCount: 1 })
+    // duplicateObligationIds points at the ALREADY-TRACKED row so the create
+    // dialog can offer "View deadline" instead of dead-ending.
+    expect(result).toMatchObject({
+      obligations: [],
+      duplicateCount: 1,
+      duplicateObligationIds: [existingObligationId],
+    })
     expect(createBatch).not.toHaveBeenCalled()
   })
 

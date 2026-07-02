@@ -4,7 +4,10 @@ import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-prof
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { generateObligationsForAcceptedRules } from './_obligation-generation'
+import {
+  generateObligationsForAcceptedRules,
+  generateObligationsForClientList,
+} from './_obligation-generation'
 
 const FIRM_ID = 'firm_123'
 const USER_ID = 'user_123'
@@ -67,6 +70,7 @@ function makeClient(overrides: Partial<ClientRow> = {}): ClientRow {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
+    archivedAt: null,
     ...overrides,
   }
 }
@@ -132,7 +136,20 @@ function makeScoped(input: {
       listByClients: vi.fn(async () => profiles),
     },
     obligations: {
-      listGeneratedByClientAndTaxYears: vi.fn(async () => input.duplicates ?? []),
+      // Reflects rows created earlier through THIS double, so calling the
+      // generator twice against the same scoped exercises real idempotency
+      // (the second run must dedup against the first run's rows).
+      listGeneratedByClientAndTaxYears: vi.fn(async () => [
+        ...(input.duplicates ?? []),
+        ...createdInputs.map((row, index) => ({
+          id: `obligation_${index + 1}`,
+          clientId: row.clientId,
+          jurisdiction: row.jurisdiction ?? null,
+          ruleId: row.ruleId ?? null,
+          taxYear: row.taxYear ?? null,
+          rulePeriod: row.rulePeriod ?? null,
+        })),
+      ]),
       createBatch,
     },
     evidence: {
@@ -728,5 +745,104 @@ describe('generateObligationsForAcceptedRules', () => {
         }),
       }),
     ])
+  })
+})
+
+// Client cascade (J3): the same kernel, but scoped to an explicit client list
+// so clients created AFTER a rule went active still get its deadlines.
+describe('generateObligationsForClientList', () => {
+  it('covers a client created after the rule was accepted', async () => {
+    const lateClient = makeClient({ migrationBatchId: null })
+    const { scoped, createdInputs, writeAudit } = makeScoped({
+      clients: [lateClient],
+      profiles: new Map([[CLIENT_ID, [makeProfile({ migrationBatchId: null })]]]),
+    })
+
+    const result = await generateObligationsForClientList({
+      scoped,
+      userId: USER_ID,
+      clients: [lateClient],
+      rules: [mustRule('ca.llc.annual_tax.2026')],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+      auditReason: 'client.created',
+    })
+
+    expect(result).toMatchObject({
+      candidateCount: 1,
+      createdCount: 1,
+      duplicateCount: 0,
+      clientCount: 1,
+    })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        ruleId: 'ca.llc.annual_tax.2026',
+        taxType: 'ca_llc_annual_tax',
+        // Cascade canon: obligations land in pending, exactly as accept-time
+        // generation would have landed them.
+        status: 'pending',
+      }),
+    ])
+    // The firm-wide client list must NOT be consulted — only the given clients.
+    expect(scoped.clients.listByFirm).not.toHaveBeenCalled()
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'obligation.batch_created',
+        after: expect.objectContaining({
+          reason: 'client.created',
+          createdCount: 1,
+        }),
+      }),
+    )
+  })
+
+  it('does not generate for a client whose profile no active rule matches', async () => {
+    const nonMatching = makeClient({ state: 'TX', migrationBatchId: null })
+    const { scoped, createBatch, writeAudit } = makeScoped({
+      clients: [nonMatching],
+      profiles: new Map([
+        [CLIENT_ID, [makeProfile({ state: 'TX', taxTypes: ['tx_franchise'] })]],
+      ]),
+    })
+
+    const result = await generateObligationsForClientList({
+      scoped,
+      userId: USER_ID,
+      clients: [nonMatching],
+      rules: [mustRule('ca.llc.annual_tax.2026')],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+      auditReason: 'client.created',
+    })
+
+    expect(result).toMatchObject({ createdCount: 0, duplicateCount: 0 })
+    expect(createBatch).not.toHaveBeenCalled()
+    expect(writeAudit).not.toHaveBeenCalled()
+  })
+
+  it('is idempotent — re-running for the same client creates nothing new', async () => {
+    const client = makeClient({ migrationBatchId: null })
+    const { scoped, createBatch } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [makeProfile({ migrationBatchId: null })]]]),
+    })
+    const run = () =>
+      generateObligationsForClientList({
+        scoped,
+        userId: USER_ID,
+        clients: [client],
+        rules: [mustRule('ca.llc.annual_tax.2026')],
+        internalDeadlineOffsetDays: 14,
+        now: new Date('2026-05-06T00:00:00.000Z'),
+        auditReason: 'client.created',
+      })
+
+    const first = await run()
+    const second = await run()
+
+    expect(first).toMatchObject({ createdCount: 1, duplicateCount: 0 })
+    expect(second).toMatchObject({ createdCount: 0, duplicateCount: 1 })
+    expect(createBatch).toHaveBeenCalledTimes(1)
   })
 })

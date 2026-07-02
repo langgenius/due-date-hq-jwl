@@ -72,6 +72,8 @@ export const router = os.router({
     applyClassificationRecompute: clientsHandlers.applyClassificationRecompute,
     updateNotes: clientsHandlers.updateNotes,
     rename: clientsHandlers.rename,
+    archive: clientsHandlers.archive,
+    restore: clientsHandlers.restore,
     getRiskSummary: clientsHandlers.getRiskSummary,
     requestRiskSummaryRefresh: clientsHandlers.requestRiskSummaryRefresh,
     bulkUpdateAssignee: clientsHandlers.bulkUpdateAssignee,

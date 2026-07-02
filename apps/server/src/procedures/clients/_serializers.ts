@@ -80,6 +80,9 @@ export interface ClientRow {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  // Reversible archive marker — distinct from deletedAt's purge path.
+  // Optional so existing ClientRow test fixtures don't all need updating.
+  archivedAt?: Date | null
 }
 
 export interface ClientCreateInputForRepo {
@@ -198,5 +201,6 @@ export function toClientPublic(
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     deletedAt: row.deletedAt ? row.deletedAt.toISOString() : null,
+    archivedAt: row.archivedAt ? row.archivedAt.toISOString() : null,
   }
 }

@@ -187,6 +187,7 @@ async function loadOpenObligations(env: Env, firmId: string): Promise<Obligation
         // emails for an unconfirmed future-year deadline.
         eq(obligationInstance.confirmed, true),
         isNull(client.deletedAt),
+        isNull(client.archivedAt),
       ),
     )
 }
