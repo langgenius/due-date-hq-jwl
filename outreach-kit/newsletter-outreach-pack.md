@@ -174,6 +174,24 @@ Sign-off block for all four:
 
 ---
 
+## Rate benchmarks (media kits received 2026-07-02)
+
+Both kits are enterprise-priced (their sponsor rosters: Intuit, Thomson Reuters, Wolters Kluwer, Canopy…). Decision: hold all publication buys until (a) Jason's creator quote arrives as the real benchmark, (b) UTM-tagged links exist, (c) one placement proves signups.
+
+**Accounting Today 2026** (Arizent · contact Alexandria Alati, alexandria.alati@arizent.com, 201-341-5989):
+- Newsletters, banner or text ad per week: First Look $3,700 · Accounting Tech $4,200 · Tax Pro Today $5,300 · Daily Briefing $9,400 · newsletter takeovers (IRS Watch/Audit & Accounting/Best of the Week) $6,500
+- Dedicated/co-branded e-blast $470 CPM, $5k min · display $70–185 CPM · custom article $5,000 · Advances in Tech Demo Day $7,000 · homepage takeover $15,000/wk · press-release pack of 10 $8,000
+- Audience: 964k total reach but broad — 24% owner/partner, 38% firms of 1–10 employees; editorial team (Daniel Hood et al.) is separate from ad sales → free news-pitch path stays open
+- 2026 editorial calendar: July=Automation, Sep=Cybersecurity, Oct=Integrating AI, Nov=Tech & Advisory + "Getting Ready for Tax Season" (Nov 12) — the natural DueDateHQ slots
+
+**CPA Trendlines** (v25.08.26 · contact Rick Telberg, rickt@cpatrendlines.com, calendly.com/telberg):
+- Newsletters: weekly/3x-week/monthly titles $2,950–4,250 (claimed 108–148k subs each) · Today's Headlines daily $7,500/wk, $22,500/mo
+- Streaming: audio podcast marquee $2,000 per 25k engagements · video $8,000 · full premier package $48,000/mo · editorial webinar (non-exclusive) $3,500 · lead-gen program $2,500 start-up + CPL TBD
+- Audience claims: 300k+ subscribers, 70% founders/partners, 94% tax/accounting — better profile fit than AT, BUT all numbers self-reported (typos in the kit, "engagements" includes auto-plays, ActiveCampaign counts); discount accordingly
+- Cheapest credible tests if we ever buy: Trendlines weekly banner $2,950 or AT First Look $3,700 — both rank BEHIND Jason's read and Blake's classified
+
+---
+
 ## Sending notes
 
 - **Timing:** Tuesday–Thursday, mid-morning in the recipient's time zone lands best for B2B. Avoid Mondays/Fridays. Most of these are US (Oregon, Montreal, Scottsdale, NY) — target ~9–11am ET/PT.

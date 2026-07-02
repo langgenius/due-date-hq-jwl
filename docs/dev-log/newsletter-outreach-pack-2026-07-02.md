@@ -43,3 +43,11 @@ inquiry targets (Future Firm, CPA Trendlines, Accounting Today, Going
 Concern) — inquiries go out now to lock fall placements; only the Blake
 Oliver classified (a self-serve purchase) waits for rate benchmarks and
 UTM links.
+
+**Media kits landed same day** (Accounting Today 2026, CPA Trendlines
+v25.08.26): rates extracted into the pack's new "Rate benchmarks"
+section. Both enterprise-priced — cheapest viable slots $2,950–3,700/wk.
+Decision: hold all publication buys until Jason's creator quote, UTM
+links, and one proven placement. AT editorial calendar noted (Nov
+"Getting Ready for Tax Season" is the natural fit); free editorial
+pitch paths kept separate from ad sales.
