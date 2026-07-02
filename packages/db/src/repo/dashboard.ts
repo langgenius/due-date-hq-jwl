@@ -982,7 +982,12 @@ export function makeDashboardRepo(db: Db, firmId: string) {
           .select({ value: count() })
           .from(client)
           .where(
-            and(eq(client.firmId, firmId), isNull(client.deletedAt), gte(client.createdAt, since)),
+            and(
+              eq(client.firmId, firmId),
+              isNull(client.deletedAt),
+              isNull(client.archivedAt),
+              gte(client.createdAt, since),
+            ),
           ),
         db
           .select({ value: count() })
@@ -1020,6 +1025,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
               eq(obligationInstance.firmId, firmId),
               isNull(obligationInstance.supersededAt),
               isNull(client.deletedAt),
+              isNull(client.archivedAt),
               inArray(obligationInstance.status, OPEN_STATUSES),
               gte(obligationInstance.currentDueDate, input.now),
               lte(obligationInstance.currentDueDate, weekEnd),
@@ -1079,6 +1085,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
             eq(obligationInstance.firmId, firmId),
             eq(client.firmId, firmId),
             isNull(client.deletedAt),
+            isNull(client.archivedAt),
             inArray(obligationInstance.status, OPEN_STATUSES),
             isNull(obligationInstance.supersededAt),
           ),

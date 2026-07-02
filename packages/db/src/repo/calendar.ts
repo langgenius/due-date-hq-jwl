@@ -199,6 +199,7 @@ export function makeCalendarFeedRepo(db: Db) {
         gte(obligationInstance.currentDueDate, input.startDate),
         lte(obligationInstance.currentDueDate, input.endDate),
         isNull(client.deletedAt),
+        isNull(client.archivedAt),
         isNull(obligationInstance.supersededAt),
       ]
 

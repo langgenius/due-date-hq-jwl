@@ -136,6 +136,13 @@ export const client = sqliteTable(
     // Soft-delete per PRD §8.1; 30d grace then Cron hard-delete cascades
     // to obligation_instance.
     deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
+    // Archive lifecycle — reversible, deliberately distinct from deletedAt
+    // (deleted rows belong to the §8.1 purge path; archived rows are kept
+    // indefinitely and restorable). Archived clients drop out of default
+    // lists, counts, deadline queues, calendar feeds, and reminder sends;
+    // their obligation rows are untouched. Mirrors
+    // clientFilingProfile.archivedAt.
+    archivedAt: integer('archived_at', { mode: 'timestamp_ms' }),
   },
   (table) => [
     // Dashboard / Clients page primary listing by firm, newest first.

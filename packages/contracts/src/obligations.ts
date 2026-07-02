@@ -113,6 +113,11 @@ export type ObligationCreateFromRulesInput = z.infer<typeof ObligationCreateFrom
 export const ObligationCreateFromRuleOutputSchema = z.object({
   obligations: z.array(ObligationInstancePublicSchema),
   duplicateCount: z.number().int().min(0),
+  // 2026-07-02 (ux-flow audit): ids of the ALREADY-TRACKED rows that blocked
+  // creation. The create dialog uses these to close the duplicate dead-end —
+  // "already exists" toast gains a "View deadline" action pointing at the
+  // existing row instead of leaving the user to hunt for it.
+  duplicateObligationIds: z.array(EntityIdSchema),
 })
 export type ObligationCreateFromRuleOutput = z.infer<typeof ObligationCreateFromRuleOutputSchema>
 

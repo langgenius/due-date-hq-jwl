@@ -564,6 +564,10 @@ export const RuleReviewDecisionSchema = z.object({
   reviewNote: z.string().nullable(),
   reviewedBy: z.string().min(1),
   reviewedAt: z.string().datetime(),
+  // Same contract as RuleReviewTaskSchema.generatedObligationCount: the ACTUAL
+  // rows the verify-accept wrote (verifyCandidate delegates to the accept
+  // path). Optional: read paths don't carry it.
+  generatedObligationCount: z.number().int().min(0).optional(),
 })
 export type RuleReviewDecision = z.infer<typeof RuleReviewDecisionSchema>
 
@@ -588,6 +592,13 @@ export const RuleReviewTaskSchema = z.object({
   reviewedAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  // 2026-07-02 (journey-QA J3): the ACTUAL number of deadlines this accept
+  // wrote — populated by the accept paths only. The accept toast previously
+  // asserted previewRuleImpact's ESTIMATE (client.state-based) while
+  // generation iterates client_filing_profile rows, so profile-less clients
+  // made "N deadlines generated" pure fiction. Optional: list/read paths
+  // don't carry it.
+  generatedObligationCount: z.number().int().min(0).optional(),
 })
 export type RuleReviewTask = z.infer<typeof RuleReviewTaskSchema>
 

@@ -439,6 +439,85 @@ export function makePulseRepo(db: Db, firmId: string) {
     }))
   }
 
+  // Review-only regulatory changes that carry a parsed scope but no linked
+  // library rules — filing_requirement / applicability_scope / form_instruction
+  // and friends. The "affected clients" are the firm's clients with an OPEN
+  // obligation inside the alert's parsed scope (jurisdiction + forms
+  // [+ entity types] [+ counties]) — the same match basis `listCandidateRows`
+  // uses for overlays, minus the due-date requirements a review-only change
+  // doesn't have. Without this list the drawer showed the impact count three
+  // times (row, lifecycle strip, timeline) but could never show WHO
+  // (2026-07-02 UX-flow audit). Deliberately NOT gated on the stored counts:
+  // the scan itself is the no-fiction guarantee (rows are real open
+  // obligations in scope), and gating on counts deadlocked 0/0 alerts —
+  // their table could never recover even when matching obligations existed,
+  // because the count heal below also only ran when counts were already
+  // positive (journey-QA J1, 2026-07-02). All rows are informational
+  // (`needs_review`, no newDueDate) — review_only alerts never shift dates.
+  async function listReviewScopeAffectedRows(
+    alert: AlertJoinedRow,
+  ): Promise<PulseAffectedClientRow[]> {
+    const forms = alert.parsedForms
+    if (forms.length === 0) return []
+    const entityTypes = toClientEntityTypes(alert.parsedEntityTypes)
+
+    const rows = await db
+      .select({
+        obligationId: obligationInstance.id,
+        clientId: client.id,
+        clientName: client.name,
+        state: obligationInstance.jurisdiction,
+        county: client.county,
+        counties: clientFilingProfile.countiesJson,
+        entityType: client.entityType,
+        taxType: obligationInstance.taxType,
+        currentDueDate: obligationInstance.currentDueDate,
+        status: obligationInstance.status,
+      })
+      .from(obligationInstance)
+      .innerJoin(client, eq(obligationInstance.clientId, client.id))
+      .leftJoin(
+        clientFilingProfile,
+        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+      )
+      .where(
+        and(
+          eq(obligationInstance.firmId, firmId),
+          eq(client.firmId, firmId),
+          eq(obligationInstance.jurisdiction, alert.parsedJurisdiction),
+          inArray(obligationInstance.taxType, forms),
+          // Entity scope is optional for review-only extractions — an empty
+          // list means "all entity types", not "no clients".
+          ...(entityTypes.length > 0 ? [inArray(client.entityType, entityTypes)] : []),
+          inArray(obligationInstance.status, OPEN_STATUSES),
+          // Exclude soft-deleted clients (see listCandidateRows).
+          isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
+        ),
+      )
+      .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
+
+    // County scoping mirrors listCandidateRows: a definite miss drops the row;
+    // a match or an unknown client county stays (the CPA confirms it).
+    const counties = new Set(alert.parsedCounties.map(normalizeCountyName))
+    return (rows as CandidateRow[])
+      .filter((row) => counties.size === 0 || rowMatchesCounty(row, counties) !== 'miss')
+      .map((row) => ({
+        obligationId: row.obligationId,
+        clientId: row.clientId,
+        clientName: row.clientName,
+        state: row.state,
+        county: displayCounty(row),
+        entityType: row.entityType,
+        taxType: row.taxType,
+        currentDueDate: row.currentDueDate,
+        status: row.status,
+        newDueDate: null,
+        matchStatus: 'needs_review',
+        reason: 'This change covers this filing — review the source and confirm what it means.',
+      }))
+  }
+
   // Review-only protective-claim windows: surface this firm's clients whose
   // covered-year FED obligations (income / payroll / info) make them candidates
   // for a protective refund claim. Mirrors the rough scan that computes the
@@ -873,6 +952,17 @@ export function makePulseRepo(db: Db, firmId: string) {
     if (alert.changeKind === 'protective_claim_window') {
       for (const row of await listProtectiveClaimAffectedRows(alert)) {
         if (!affected.has(row.obligationId)) affected.set(row.obligationId, row)
+      }
+    }
+    // Remaining review-only alerts (filing_requirement / applicability_scope /
+    // form_instruction …) that claim client impact but produced no rows via the
+    // branches above: resolve WHO from the alert's parsed scope, so the
+    // affected-clients table the counts promise is actually reachable
+    // (2026-07-02 UX-flow audit). Application rows above still win — once
+    // anything was applied, that record is the truth.
+    if (!isDueDateOverlayAlert(alert) && affected.size === 0) {
+      for (const row of await listReviewScopeAffectedRows(alert)) {
+        affected.set(row.obligationId, row)
       }
     }
     const affectedClients = Array.from(affected.values()).toSorted(compareAffected)
@@ -1543,6 +1633,36 @@ export function makePulseRepo(db: Db, firmId: string) {
       // (affected-client) definition the apply-readiness gate would wrongly zero.
       if (alert.actionMode === 'due_date_overlay') {
         const counts = liveAlertCounts(detail, alert)
+        if (
+          counts.matchedCount !== alert.matchedCount ||
+          counts.needsReviewCount !== alert.needsReviewCount
+        ) {
+          await persistAlertCounts(alertId, counts)
+          return { ...detail, alert: { ...detail.alert, ...counts } }
+        }
+      } else if (
+        // Scope-matched review-only alerts (no linked rules, not protective):
+        // the detail above resolved their affected clients live from the parsed
+        // scope, so heal the point-in-time fan-out/seed counts to the same
+        // definition — DISTINCT clients pending review, matching both the list
+        // card's "Affects N clients" and the reverify fan-out's client-count
+        // basis. Heals BOTH directions while the alert awaits a decision: up
+        // from a stale 0/0 when the scan finds real rows (the old counts>0
+        // gate deadlocked those alerts — journey-QA J1 2026-07-02), and down
+        // to 0 when the scan finds nothing (count said "1 affected", table
+        // was empty). Resolved alerts keep their historical numbers.
+        alert.alertStatus === 'matched' &&
+        alert.reverifyRuleIds.length === 0 &&
+        alert.changeKind !== 'protective_claim_window'
+      ) {
+        const counts = {
+          matchedCount: 0,
+          needsReviewCount: new Set(
+            detail.affectedClients
+              .filter((row) => row.matchStatus === 'needs_review')
+              .map((row) => row.clientId),
+          ).size,
+        }
         if (
           counts.matchedCount !== alert.matchedCount ||
           counts.needsReviewCount !== alert.needsReviewCount

@@ -208,9 +208,11 @@ export type {
   ClientPenaltyInputsUpdateInput,
   ClientPenaltyInputsUpdateOutput,
   ClientPublic,
+  ClientArchiveInput,
   ClientNotesUpdateInput,
   ClientNotesUpdateOutput,
   ClientRenameInput,
+  ClientRestoreInput,
   ClientRiskProfileUpdateInput,
   ClientRiskProfileUpdateOutput,
   ClientRiskSummaryInput,
@@ -223,6 +225,7 @@ export type {
   ClientsContract,
 } from './clients'
 export {
+  ClientArchiveInputSchema,
   ClientBulkAssigneeUpdateInputSchema,
   ClientBulkAssigneeUpdateOutputSchema,
   ClientCreateInputSchema,
@@ -241,6 +244,7 @@ export {
   ClientPenaltyInputsUpdateSchema,
   ClientPublicSchema,
   ClientRenameInputSchema,
+  ClientRestoreInputSchema,
   ClientRiskProfileUpdateOutputSchema,
   ClientRiskProfileUpdateSchema,
   ClientRiskSummaryInputSchema,

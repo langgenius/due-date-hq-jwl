@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import type { Db } from '../client'
 import {
   client,
@@ -198,21 +198,43 @@ export function makeClientsRepo(db: Db, firmId: string) {
       })
     },
 
-    async listByFirm(opts: { includeDeleted?: boolean; limit?: number } = {}): Promise<Client[]> {
-      const where = opts.includeDeleted
-        ? eq(client.firmId, firmId)
-        : and(eq(client.firmId, firmId), isNull(client.deletedAt))
-      const q = db.select().from(client).where(where).orderBy(desc(client.createdAt))
+    async listByFirm(
+      opts: {
+        includeDeleted?: boolean
+        // Archive visibility: 'exclude' (default — active clients only),
+        // 'only' (the /clients Archived view), 'all' (active + archived).
+        archived?: 'exclude' | 'only' | 'all'
+        limit?: number
+      } = {},
+    ): Promise<Client[]> {
+      const archived = opts.archived ?? 'exclude'
+      const filters = [eq(client.firmId, firmId)]
+      if (!opts.includeDeleted) filters.push(isNull(client.deletedAt))
+      if (archived === 'exclude') filters.push(isNull(client.archivedAt))
+      if (archived === 'only') filters.push(isNotNull(client.archivedAt))
+      const q = db
+        .select()
+        .from(client)
+        .where(and(...filters))
+        .orderBy(desc(client.createdAt))
       return opts.limit ? await q.limit(opts.limit) : await q
     },
 
-    // Active (non-deleted) client count for the firm. Backs the plan
-    // clientLimit gate (forward-only at create) and the usage meter.
+    // Active (non-deleted, non-archived) client count for the firm. Backs the
+    // plan clientLimit gate (forward-only at create) and the usage meter.
+    // Archived clients don't count — the archive dialog promises this.
     async countActiveClients(): Promise<number> {
       const [row] = await db
         .select({ value: count() })
         .from(client)
-        .where(and(eq(client.firmId, firmId), isNull(client.deletedAt), eq(client.isSample, false)))
+        .where(
+          and(
+            eq(client.firmId, firmId),
+            isNull(client.deletedAt),
+            isNull(client.archivedAt),
+            eq(client.isSample, false),
+          ),
+        )
       return row?.value ?? 0
     },
 
@@ -415,6 +437,31 @@ export function makeClientsRepo(db: Db, firmId: string) {
         .update(client)
         .set({ deletedAt: new Date() })
         .where(and(eq(client.firmId, firmId), eq(client.id, id)))
+    },
+
+    // Archive — reversible removal from active lists/counts/queues. Guarded
+    // on deletedAt so a deleted client can't be resurfaced via archive, and
+    // on archivedAt so the write is idempotent (first archive timestamp wins).
+    async archive(id: string): Promise<void> {
+      await db
+        .update(client)
+        .set({ archivedAt: new Date() })
+        .where(
+          and(
+            eq(client.firmId, firmId),
+            eq(client.id, id),
+            isNull(client.deletedAt),
+            isNull(client.archivedAt),
+          ),
+        )
+    },
+
+    // Restore — clears archivedAt, returning the client to active lists.
+    async restore(id: string): Promise<void> {
+      await db
+        .update(client)
+        .set({ archivedAt: null })
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 
     /**

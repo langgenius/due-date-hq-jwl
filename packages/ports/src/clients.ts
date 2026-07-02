@@ -41,6 +41,10 @@ export interface ClientRow {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  // Reversible archive marker — distinct from deletedAt (purge path).
+  // Optional like `isSample` so existing ClientRow fixtures keep compiling;
+  // the Drizzle row always carries it.
+  archivedAt?: Date | null
 }
 
 export interface ClientCreateInput {
@@ -88,8 +92,13 @@ export interface ClientsRepo {
   createBatch(inputs: ClientCreateInput[]): Promise<{ ids: string[] }>
   findById(id: string): Promise<ClientRow | undefined>
   findManyByIds(ids: string[]): Promise<ClientRow[]>
-  listByFirm(opts?: { includeDeleted?: boolean; limit?: number }): Promise<ClientRow[]>
-  /** Active (non-deleted, non-sample) client count — backs the plan clientLimit gate + usage meter. */
+  listByFirm(opts?: {
+    includeDeleted?: boolean
+    /** Archive visibility: 'exclude' (default), 'only' (Archived view), 'all'. */
+    archived?: 'exclude' | 'only' | 'all'
+    limit?: number
+  }): Promise<ClientRow[]>
+  /** Active (non-deleted, non-archived, non-sample) client count — backs the plan clientLimit gate + usage meter. */
   countActiveClients(): Promise<number>
   /** Onboarding sample clients (isSample=true) for this firm. */
   listSampleClients(): Promise<ClientRow[]>
@@ -160,5 +169,9 @@ export interface ClientsRepo {
     input: { assigneeId: string | null; assigneeName: string | null },
   ): Promise<void>
   softDelete(id: string): Promise<void>
+  /** Archive — reversible removal from active lists/counts/queues. Idempotent; no-op on deleted rows. */
+  archive(id: string): Promise<void>
+  /** Restore — clears archivedAt, returning the client to active lists. No-op on deleted rows. */
+  restore(id: string): Promise<void>
   deleteByBatch(batchId: string): Promise<number>
 }

@@ -1,6 +1,7 @@
+import { and, eq, isNotNull, isNull } from 'drizzle-orm'
 import { describe, expect, it, vi } from 'vitest'
 import type { Db } from '../client'
-import type { Client } from '../schema/clients'
+import { client, type Client } from '../schema/clients'
 import { makeClientsRepo } from './clients'
 
 function createFakeDb(selectResponses: Client[][]) {
@@ -73,6 +74,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
     deletedAt: overrides.deletedAt ?? null,
+    archivedAt: overrides.archivedAt ?? null,
   }
 }
 
@@ -150,5 +152,87 @@ describe('makeClientsRepo.updateTaxYearProfile', () => {
       fiscalYearEndMonth: null,
       fiscalYearEndDay: null,
     })
+  })
+})
+
+describe('makeClientsRepo archive lifecycle', () => {
+  it('archive stamps archivedAt, guarded to non-deleted non-archived rows', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.archive('client_1')
+
+    expect(fake.update).toHaveBeenCalledTimes(1)
+    expect(fake.set).toHaveBeenCalledWith({ archivedAt: expect.any(Date) })
+    // Tenant scope + deletedAt/archivedAt guards: a deleted client can't be
+    // resurfaced via archive and re-archiving keeps the original timestamp.
+    expect(fake.where).toHaveBeenCalledWith(
+      and(
+        eq(client.firmId, 'firm_1'),
+        eq(client.id, 'client_1'),
+        isNull(client.deletedAt),
+        isNull(client.archivedAt),
+      ),
+    )
+  })
+
+  it('restore clears archivedAt for non-deleted rows', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.restore('client_1')
+
+    expect(fake.set).toHaveBeenCalledWith({ archivedAt: null })
+    expect(fake.where).toHaveBeenCalledWith(
+      and(eq(client.firmId, 'firm_1'), eq(client.id, 'client_1'), isNull(client.deletedAt)),
+    )
+  })
+})
+
+describe('makeClientsRepo.listByFirm archive filtering', () => {
+  function createFakeListDb(rows: Client[]) {
+    const limit = vi.fn(async () => rows)
+    const orderBy = vi.fn(() => Object.assign(Promise.resolve(rows), { limit }))
+    const where = vi.fn(() => ({ orderBy }))
+    const from = vi.fn(() => ({ where }))
+    const select = vi.fn(() => ({ from }))
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
+      db: { select } as unknown as Db,
+      where,
+    }
+  }
+
+  it('excludes archived (and deleted) clients by default', async () => {
+    const fake = createFakeListDb([makeClient()])
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.listByFirm()
+
+    expect(fake.where).toHaveBeenCalledWith(
+      and(eq(client.firmId, 'firm_1'), isNull(client.deletedAt), isNull(client.archivedAt)),
+    )
+  })
+
+  it("returns only archived clients for archived: 'only'", async () => {
+    const fake = createFakeListDb([makeClient({ archivedAt: new Date() })])
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.listByFirm({ archived: 'only' })
+
+    expect(fake.where).toHaveBeenCalledWith(
+      and(eq(client.firmId, 'firm_1'), isNull(client.deletedAt), isNotNull(client.archivedAt)),
+    )
+  })
+
+  it("skips the archive filter for archived: 'all'", async () => {
+    const fake = createFakeListDb([makeClient()])
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.listByFirm({ archived: 'all' })
+
+    expect(fake.where).toHaveBeenCalledWith(
+      and(eq(client.firmId, 'firm_1'), isNull(client.deletedAt)),
+    )
   })
 })

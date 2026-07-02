@@ -687,6 +687,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         eq(obligationInstance.firmId, firmId),
         eq(client.firmId, firmId),
         isNull(client.deletedAt),
+        isNull(client.archivedAt),
         isNull(obligationInstance.supersededAt),
       ]
       const clientCountySql = sql<
@@ -891,8 +892,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         // snooze filter entirely.
         .filter((row) => {
           const isSnoozed =
-            row.snoozedUntil != null &&
-            row.snoozedUntil.getTime() > getAsOfDate(input).getTime()
+            row.snoozedUntil != null && row.snoozedUntil.getTime() > getAsOfDate(input).getTime()
           if (input.snoozed === 'only') return isSnoozed
           if (input.snoozed === 'include') return true
           return !isSnoozed
@@ -1026,6 +1026,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
                 eq(obligationInstance.firmId, firmId),
                 eq(client.firmId, firmId),
                 isNull(client.deletedAt),
+                isNull(client.archivedAt),
                 inArray(obligationInstance.id, chunk),
               ),
             ),
@@ -1064,6 +1065,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             eq(obligationInstance.firmId, firmId),
             eq(client.firmId, firmId),
             isNull(client.deletedAt),
+            isNull(client.archivedAt),
             isNull(obligationInstance.supersededAt),
           ),
         )

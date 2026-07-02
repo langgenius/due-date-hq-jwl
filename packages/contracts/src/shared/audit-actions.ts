@@ -90,6 +90,7 @@ export const ReadinessAuditActions = [
 ] as const
 
 export const ClientAuditActions = [
+  'client.archived',
   'client.assignee.updated',
   'client.batch_created',
   'client.classification.updated',
@@ -99,6 +100,7 @@ export const ClientAuditActions = [
   'client.jurisdiction.updated',
   'client.name.updated',
   'client.obligations.reclassified',
+  'client.restored',
   'client.risk_profile.updated',
   'client.source_details.updated',
   'client.tax_year_profile.updated',

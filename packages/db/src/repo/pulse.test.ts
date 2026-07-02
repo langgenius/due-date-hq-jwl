@@ -257,6 +257,134 @@ describe('makePulseRepo', () => {
     expect(detail.affectedClients[1]!.reason).toContain('county is missing')
   })
 
+  it('resolves scope-matched affected clients for review-only alerts that claim impact', async () => {
+    // 2026-07-02 UX-flow audit: a review_only filing_requirement /
+    // applicability_scope alert showed its impact count three times but the
+    // affected-clients list was unreachable (buildDetail only listed rows for
+    // overlays, reverify rules, and protective claims). The detail now resolves
+    // WHO from the alert's parsed scope, and getDetail heals the stale
+    // point-in-time counts to the same distinct-client definition.
+    const reviewScopeAlert = {
+      ...ALERT,
+      changeKind: 'filing_requirement' as const,
+      actionMode: 'review_only' as const,
+      matchedCount: 2,
+      needsReviewCount: 1,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      reverifyRuleIds: [],
+    }
+    const { db, directStatements } = fakeDb([
+      [reviewScopeAlert], // getAlert
+      [], // listApplicationRows
+      [
+        // listReviewScopeAffectedRows — scope query result. County scoping:
+        // parsedCounties = ['Los Angeles County'], so a definite miss drops,
+        // an unknown client county stays for the CPA to confirm.
+        ELIGIBLE, // county: Los Angeles → match
+        NEEDS_REVIEW, // county: null → unknown, kept
+        {
+          ...ELIGIBLE,
+          obligationId: 'oi-orange',
+          clientId: 'client-orange',
+          clientName: 'Orange County LLC',
+          county: 'Orange', // definite miss → dropped
+        },
+      ],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const detail = await repo.getDetail('alert-1')
+
+    expect(detail.affectedClients.map((row) => [row.obligationId, row.matchStatus])).toEqual([
+      ['oi-eligible', 'needs_review'],
+      ['oi-review', 'needs_review'],
+    ])
+    // review_only alerts never shift dates — the rows are informational.
+    expect(detail.affectedClients.every((row) => row.newDueDate === null)).toBe(true)
+    // The stale seeded counts (2 matched / 1 needs review) heal to the live
+    // distinct-client tally so every surface shows the same number as the list.
+    expect(detail.alert.matchedCount).toBe(0)
+    expect(detail.alert.needsReviewCount).toBe(2)
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') &&
+          statementHasValue(statement, { matchedCount: 0, needsReviewCount: 2 }),
+      ),
+    ).toBe(true)
+  })
+
+  it('shows an honest empty list (and no count write) when the scope scan finds nothing', async () => {
+    // The no-fiction guarantee lives in the SCAN, not in a stored-count gate:
+    // rows are real open obligations in the alert's parsed scope. When the
+    // scan finds nothing, the list is empty and the (already-zero) counts are
+    // left untouched — no fabricated rows, no needless persist.
+    const zeroImpactAlert = {
+      ...ALERT,
+      changeKind: 'form_instruction' as const,
+      actionMode: 'review_only' as const,
+      matchedCount: 0,
+      needsReviewCount: 0,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      reverifyRuleIds: [],
+    }
+    const { db, directStatements } = fakeDb([
+      [zeroImpactAlert], // getAlert
+      [], // listApplicationRows
+      [], // listReviewScopeAffectedRows — scan runs, matches nothing
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const detail = await repo.getDetail('alert-1')
+
+    expect(detail.affectedClients).toEqual([])
+    expect(detail.alert.matchedCount).toBe(0)
+    expect(detail.alert.needsReviewCount).toBe(0)
+    expect(directStatements).toHaveLength(0)
+  })
+
+  it('recovers a stale 0/0 review-only alert when the scope scan finds real rows', async () => {
+    // Journey-QA J1 (2026-07-02): gating the scan on stored counts deadlocked
+    // alerts whose counts had drifted to 0/0 — the affected-clients table
+    // could never surface again even though matching open obligations existed.
+    // The scan now always runs and the heal brings the counts back UP to the
+    // live distinct-client tally.
+    const deadlockedAlert = {
+      ...ALERT,
+      changeKind: 'filing_requirement' as const,
+      actionMode: 'review_only' as const,
+      matchedCount: 0,
+      needsReviewCount: 0,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      reverifyRuleIds: [],
+    }
+    const { db, directStatements } = fakeDb([
+      [deadlockedAlert], // getAlert
+      [], // listApplicationRows
+      [ELIGIBLE, NEEDS_REVIEW], // listReviewScopeAffectedRows — real matches
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const detail = await repo.getDetail('alert-1')
+
+    expect(detail.affectedClients.map((row) => [row.obligationId, row.matchStatus])).toEqual([
+      ['oi-eligible', 'needs_review'],
+      ['oi-review', 'needs_review'],
+    ])
+    expect(detail.alert.matchedCount).toBe(0)
+    expect(detail.alert.needsReviewCount).toBe(2)
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') &&
+          statementHasValue(statement, { matchedCount: 0, needsReviewCount: 2 }),
+      ),
+    ).toBe(true)
+  })
+
   it('listAlertsForRule matches a rule by jurisdiction + form scope', async () => {
     const { db } = fakeDb([[{ id: 'alert-1' }], [ALERT]])
     const repo = makePulseRepo(db, 'firm-1')

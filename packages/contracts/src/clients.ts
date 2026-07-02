@@ -139,6 +139,10 @@ export const ClientPublicSchema = ClientIdentitySchema.extend({
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   deletedAt: z.iso.datetime().nullable(),
+  // Reversible archive marker (distinct from deletedAt's purge path). Like
+  // `isSample`: always set by the serializer, optional here so existing
+  // ClientPublic test fixtures don't all need updating.
+  archivedAt: z.iso.datetime().nullable().optional(),
 })
 
 export const ClientPenaltyInputsUpdateSchema = z.object({
@@ -439,6 +443,16 @@ export const ClientBulkAssigneeUpdateOutputSchema = z.object({
 })
 export type ClientBulkAssigneeUpdateOutput = z.infer<typeof ClientBulkAssigneeUpdateOutputSchema>
 
+// Archive / restore — the reversible client lifecycle pair. Archive hides
+// the client from active lists, counts, deadline queues, calendar feeds,
+// and reminder sends; restore brings it back. Both reuse the notes-update
+// output shape ({ client, auditId }), like `rename`.
+export const ClientArchiveInputSchema = z.object({ id: EntityIdSchema })
+export type ClientArchiveInput = z.infer<typeof ClientArchiveInputSchema>
+
+export const ClientRestoreInputSchema = z.object({ id: EntityIdSchema })
+export type ClientRestoreInput = z.infer<typeof ClientRestoreInputSchema>
+
 export const ClientDeleteInputSchema = z.object({ id: EntityIdSchema })
 export type ClientDeleteInput = z.infer<typeof ClientDeleteInputSchema>
 
@@ -455,7 +469,17 @@ export const clientsContract = oc.router({
     .output(z.object({ clients: z.array(ClientPublicSchema) })),
   get: oc.input(z.object({ id: EntityIdSchema })).output(ClientPublicSchema.nullable()),
   listByFirm: oc
-    .input(z.object({ limit: z.number().int().min(1).max(500).optional() }).optional())
+    .input(
+      z
+        .object({
+          limit: z.number().int().min(1).max(500).optional(),
+          // Archive visibility. Omitted = active clients only (the default
+          // everywhere); 'only' backs the /clients Archived view; 'all'
+          // returns both.
+          archived: z.enum(['only', 'all']).optional(),
+        })
+        .optional(),
+    )
     .output(z.array(ClientPublicSchema)),
   updatePenaltyInputs: oc
     .input(ClientPenaltyInputsUpdateSchema)
@@ -483,6 +507,8 @@ export const clientsContract = oc.router({
     .output(ClassificationRecomputeApplyOutputSchema),
   updateNotes: oc.input(ClientNotesUpdateSchema).output(ClientNotesUpdateOutputSchema),
   rename: oc.input(ClientRenameInputSchema).output(ClientNotesUpdateOutputSchema),
+  archive: oc.input(ClientArchiveInputSchema).output(ClientNotesUpdateOutputSchema),
+  restore: oc.input(ClientRestoreInputSchema).output(ClientNotesUpdateOutputSchema),
   getRiskSummary: oc.input(ClientRiskSummaryInputSchema).output(AiInsightPublicSchema),
   requestRiskSummaryRefresh: oc
     .input(ClientRiskSummaryRefreshInputSchema)

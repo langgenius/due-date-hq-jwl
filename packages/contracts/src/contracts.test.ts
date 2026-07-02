@@ -2053,10 +2053,12 @@ describe('@duedatehq/contracts', () => {
       ObligationCreateFromRuleOutputSchema.parse({
         obligations: [],
         duplicateCount: 1,
+        duplicateObligationIds: ['44444444-4444-4444-8444-444444444444'],
       }),
     ).toEqual({
       obligations: [],
       duplicateCount: 1,
+      duplicateObligationIds: ['44444444-4444-4444-8444-444444444444'],
     })
   })
 })
