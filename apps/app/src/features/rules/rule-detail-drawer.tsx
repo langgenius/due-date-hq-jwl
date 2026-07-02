@@ -387,6 +387,7 @@ export function RuleDetailCompact({
   splitRail = false,
   header,
   onActionComplete,
+  onReviewNext,
   reviewReason,
 }: {
   rule: ObligationRule
@@ -421,6 +422,9 @@ export function RuleDetailCompact({
       it's the accept gate. */
   hideReviewAids?: boolean
   onActionComplete?: () => void | Promise<void>
+  /** Accept-success toast "Review next" action — opens the next reviewable
+      candidate in the caller's current filtered list. */
+  onReviewNext?: () => void
 }) {
   const { t } = useLingui()
   const sourceLookup = useSourceLookup()
@@ -631,6 +635,7 @@ export function RuleDetailCompact({
       confirmImpact={confirmImpact}
       {...(reviewReason !== undefined ? { reviewReason } : {})}
       {...(onActionComplete ? { onActionComplete } : {})}
+      {...(onReviewNext ? { onReviewNext } : {})}
     />
   )
 
@@ -697,8 +702,14 @@ export function RuleDetailCompact({
               chrome="flat"
               {...(reviewReason !== undefined ? { reviewReason } : {})}
               {...(onActionComplete ? { onActionComplete } : {})}
+              {...(onReviewNext ? { onReviewNext } : {})}
             />
-          ) : null}
+          ) : (
+            // Past-review rules (active/verified/rejected/archived): the rail
+            // used to render nothing under its "Your decision" eyebrow — a
+            // blank white panel. Show the decision that was recorded instead.
+            <RecordedDecisionRail rule={rule} />
+          )}
         </aside>
       </div>
     )
@@ -747,6 +758,92 @@ export function RuleDetailCompact({
       {beforeAcceptCard}
       {decisionCard}
     </div>
+  )
+}
+
+/**
+ * `RecordedDecisionRail` — the decision rail's body for rules PAST review
+ * (active / verified / rejected / archived / deprecated). No re-review flow is
+ * fabricated; the panel answers "what was decided, by whom, when" from the
+ * fields the rule actually carries (`reviewedAt` / `reviewedByName`), and
+ * links the two follow-through paths: the audit trail (the canonical decision
+ * record) and, for live rules, the deadlines this rule generated (the same
+ * `/deadlines?rule=` links ApplicabilitySection exposes in the inline view —
+ * the split-rail modal previously had no path to them at all).
+ */
+function RecordedDecisionRail({ rule }: { rule: ObligationRule }) {
+  const practiceTimezone = usePracticeTimezone()
+  const isLive = rule.status === 'active' || rule.status === 'verified'
+  const isRejected = rule.status === 'rejected'
+  return (
+    <section className="flex min-w-0 flex-col gap-3">
+      <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-text-primary">
+          {isLive ? (
+            <>
+              <CheckIcon className="size-4 shrink-0 text-text-success" aria-hidden />
+              <Trans>Accepted — this rule is live</Trans>
+            </>
+          ) : isRejected ? (
+            <>
+              <BanIcon className="size-4 shrink-0 text-text-destructive" aria-hidden />
+              <Trans>Rejected</Trans>
+            </>
+          ) : (
+            <Trans>No longer in effect ({formatEnumLabel(rule.status)})</Trans>
+          )}
+        </span>
+        {rule.reviewedAt ? (
+          <span className="text-xs text-text-tertiary">
+            {rule.reviewedByName ? (
+              <Trans>
+                By {rule.reviewedByName} ·{' '}
+                {formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)}
+              </Trans>
+            ) : (
+              formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)
+            )}
+          </span>
+        ) : (
+          <span className="text-xs text-text-tertiary">
+            <Trans>Verified {formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}</Trans>
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        {isLive ? (
+          <>
+            <TextLink
+              variant="accent"
+              size="sm"
+              render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}`} />}
+            >
+              <SquareChartGanttIcon className="size-3.5" aria-hidden />
+              <Trans>View deadlines from this rule</Trans>
+              <ArrowUpRightIcon className="size-3.5" aria-hidden />
+            </TextLink>
+            <TextLink
+              variant="accent"
+              size="sm"
+              render={<Link to={`/deadlines?rule=${encodeURIComponent(rule.id)}&group=client`} />}
+            >
+              <UsersIcon className="size-3.5" aria-hidden />
+              <Trans>View affected clients</Trans>
+              <ArrowUpRightIcon className="size-3.5" aria-hidden />
+            </TextLink>
+          </>
+        ) : null}
+        <TextLink
+          variant="accent"
+          size="sm"
+          render={<Link to={`/audit?entity=${encodeURIComponent(rule.id)}`} />}
+        >
+          <ShieldCheckIcon className="size-3.5" aria-hidden />
+          <Trans>View decision in audit log</Trans>
+          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+        </TextLink>
+      </div>
+    </section>
   )
 }
 
@@ -1118,6 +1215,7 @@ export function CandidateReviewSection({
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   onActionComplete,
+  onReviewNext,
   chrome = 'card',
   confirmImpact = false,
   reviewReason,
@@ -1128,6 +1226,9 @@ export function CandidateReviewSection({
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
+  /** When provided, the accept-success toast offers a "Review next" action
+      that opens the next reviewable candidate in the caller's current list. */
+  onReviewNext?: () => void
   /**
    * When true, the Accept action first opens a "Confirm impact" dialog
    * (Pencil `jpoZx`) summarizing the real downstream deadline impact
@@ -1157,6 +1258,7 @@ export function CandidateReviewSection({
       confirmImpact={confirmImpact}
       {...(reviewReason !== undefined ? { reviewReason } : {})}
       {...(onActionComplete ? { onActionComplete } : {})}
+      {...(onReviewNext ? { onReviewNext } : {})}
     />
   )
 }
@@ -1167,6 +1269,7 @@ function CandidateReviewForm({
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   onActionComplete,
+  onReviewNext,
   chrome = 'card',
   confirmImpact = false,
 }: {
@@ -1176,6 +1279,7 @@ function CandidateReviewForm({
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
+  onReviewNext?: () => void
   chrome?: 'card' | 'flat'
   confirmImpact?: boolean
 }) {
@@ -1237,7 +1341,26 @@ function CandidateReviewForm({
   }
 
   function handleAcceptSuccess() {
-    toast.success(t`Rule accepted`, acceptToastOptions({ style: ACCEPT_RULE_SUCCESS_TOAST_STYLE }))
+    // Closure with the real impact numbers the confirm dialog already showed
+    // ("Rule activated — N deadlines generated"), plus the next step: with a
+    // 400+ candidate queue, "Review next" keeps the loop moving instead of
+    // dead-stopping the reviewer back at the list after every accept.
+    const generated = impactQuery.data?.estimatedObligationCount ?? null
+    const message =
+      generated !== null && generated > 0
+        ? generated === 1
+          ? t`Rule activated — 1 deadline generated`
+          : t`Rule activated — ${generated} deadlines generated`
+        : t`Rule activated`
+    toast.success(
+      message,
+      acceptToastOptions({
+        style: ACCEPT_RULE_SUCCESS_TOAST_STYLE,
+        ...(onReviewNext
+          ? { action: { label: t`Review next`, onClick: () => onReviewNext() } }
+          : {}),
+      }),
+    )
     track(ANALYTICS_EVENTS.ruleAccepted, {
       jurisdiction: rule.jurisdiction,
       filing_type: rule.taxType,

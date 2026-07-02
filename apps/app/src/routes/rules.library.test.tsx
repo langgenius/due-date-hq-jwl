@@ -1197,7 +1197,10 @@ describe('RulesLibraryRoute', () => {
 
     await waitForAssertion(() => {
       expect(toastMocks.success).toHaveBeenCalledWith(
-        'Rule accepted',
+        // Accept closure copy (2026-07-02 ux-flow audit): "activated" +
+        // the real generated-deadline count from the impact preview the
+        // confirm dialog already showed (mock preview reports 1).
+        'Rule activated — 1 deadline generated',
         expect.objectContaining({
           id: 'accept-rule-toast',
           style: expect.objectContaining({
@@ -1207,7 +1210,7 @@ describe('RulesLibraryRoute', () => {
         }),
       )
     })
-    expect(document.body.textContent).not.toContain('Rule accepted')
+    expect(document.body.textContent).not.toContain('Rule activated')
   })
 
   it('bulk accepts the selected rules from the review list modal and refreshes the catalog', async () => {

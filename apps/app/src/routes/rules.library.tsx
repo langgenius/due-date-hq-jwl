@@ -59,6 +59,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
@@ -1899,6 +1905,37 @@ export function RulesLibraryRoute() {
     return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
   }, [concreteDraftByTarget, selectedRule])
 
+  // Next candidate after the open rule in the CURRENT filtered list — powers
+  // the accept-success toast's "Review next" action so a 455-item queue keeps
+  // moving instead of dead-stopping after every accept. Uses whichever list
+  // the user is actually looking at (jurisdiction table / search results /
+  // source-filtered / full catalog); picks the first reviewable rule after
+  // the open one's position, wrapping to the top when the open rule is last.
+  const reviewNextRule = useMemo(() => {
+    if (!selectedRule) return null
+    const list: readonly ObligationRule[] = selectedGroup
+      ? jurisdictionTableRules
+      : isSearching
+        ? matchedRules
+        : sourceParam
+          ? sourceMatchedRules
+          : rules
+    const isReviewable = (r: ObligationRule) =>
+      (r.status === 'candidate' || r.status === 'pending_review') && r.id !== selectedRule.id
+    const index = list.findIndex((r) => r.id === selectedRule.id)
+    const after = index >= 0 ? list.slice(index + 1).find(isReviewable) : undefined
+    return after ?? list.find(isReviewable) ?? null
+  }, [
+    selectedRule,
+    selectedGroup,
+    jurisdictionTableRules,
+    isSearching,
+    matchedRules,
+    sourceParam,
+    sourceMatchedRules,
+    rules,
+  ])
+
   // "Where to start" backlog, ranked + triage meta. Lives here (not up with the
   // other overview derivations) because `readyCount` reads the same AI-draft
   // gate as `draftGatedPendingCount` — a pending rule is "ready to accept now"
@@ -2049,6 +2086,24 @@ export function RulesLibraryRoute() {
       if (!entry?.draft) n += 1
     }
     return n
+  }, [rules, concreteDraftByTarget])
+
+  // The inverse per-rule set: pending candidates whose Accept is NOT
+  // draft-gated (not source-defined, or an AI concrete draft already exists).
+  // Same structural gate as `draftGatedPendingCount` / the drawer's accept
+  // lock — drives the Review table's Readiness column so the acceptable rows
+  // are visible at a glance instead of hidden among draft-gated ones.
+  const acceptReadyRuleIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const rule of rules) {
+      if (rule.status !== 'candidate' && rule.status !== 'pending_review') continue
+      const target = concreteDraftTargetForRule(rule)
+      const drafted = target
+        ? Boolean(concreteDraftByTarget.get(concreteDraftTargetKey(target))?.draft)
+        : true
+      if (drafted) ids.add(rule.id)
+    }
+    return ids
   }, [rules, concreteDraftByTarget])
 
   // Ordered list of selected rules that are still in needs-review
@@ -2305,6 +2360,47 @@ export function RulesLibraryRoute() {
         <PlusIcon data-icon="inline-start" />
         <Trans>Add rule</Trans>
       </Button>
+      {/* Tools — quiet entry points to the library's two sibling surfaces,
+          which were otherwise unreachable in-product (their breadcrumbs said
+          "Rule library" but no library control linked out to them). A menu,
+          not two more buttons: they're occasional destinations, and the
+          header keeps its lean one-primary cluster. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button type="button" variant="outline">
+              <Trans>Tools</Trans>
+              <ChevronDownIcon data-icon="inline-end" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-[240px]">
+          <DropdownMenuItem
+            onClick={() => void navigate('/rules/preview')}
+            className="h-auto items-start gap-2.5 py-2"
+          >
+            <CalendarClockIcon className="mt-0.5 size-4" aria-hidden />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <Trans>Annual rollover</Trans>
+              <span className="text-caption text-text-tertiary">
+                <Trans>Preview next year's generated deadlines</Trans>
+              </span>
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => void navigate('/rules/temporary')}
+            className="h-auto items-start gap-2.5 py-2"
+          >
+            <ClockIcon className="mt-0.5 size-4" aria-hidden />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <Trans>Temporary rules</Trans>
+              <span className="text-caption text-text-tertiary">
+                <Trans>Overrides created by applied alerts</Trans>
+              </span>
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   )
 
@@ -2848,6 +2944,7 @@ export function RulesLibraryRoute() {
                         scope={selectedJurisdictionScope}
                         showGaps={selectedJurisdictionScope === 'missing'}
                         tierLabels={tierLabels}
+                        acceptReadyRuleIds={acceptReadyRuleIds}
                         selectedRuleIds={selectedRuleIds}
                         onToggleRuleSelection={toggleRuleSelection}
                         onToggleRulesSelection={toggleRulesSelection}
@@ -3038,6 +3135,9 @@ export function RulesLibraryRoute() {
           rule={selectedRule}
           concreteDraft={selectedConcreteDraft}
           onClose={() => void setRuleId(null)}
+          {...(reviewNextRule
+            ? { onReviewNext: () => handleRuleClick(reviewNextRule) }
+            : {})}
         />
       ) : null}
       {/* Floating bulk-review bar — appears at the bottom of the
@@ -4651,10 +4751,14 @@ function RuleDetailPanel({
   rule,
   concreteDraft,
   onClose,
+  onReviewNext,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
   onClose: () => void
+  /** Accept-success toast "Review next" action — opens the next reviewable
+      candidate in the current filtered list (undefined when none exists). */
+  onReviewNext?: () => void
 }) {
   const { t } = useLingui()
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
@@ -4697,6 +4801,7 @@ function RuleDetailPanel({
             </>
           }
           onActionComplete={onClose}
+          {...(onReviewNext ? { onReviewNext } : {})}
         />
       </DialogContent>
     </Dialog>
@@ -4960,7 +5065,31 @@ function BulkReviewListModal({
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const [note, setNote] = useState('')
-  const [excluded, setExcluded] = useState<ReadonlySet<string>>(() => new Set())
+  // Default selection respects the accept batch cap: when more rules arrive
+  // than one batch can accept, preselect a cap-sized batch instead of
+  // everything — an all-selected batch of 454 opened with Accept dead-locked
+  // behind the cap, turning "Start review" into a disabled primary button.
+  // Accept-ready rules (not draft-gated — the same structural gate the
+  // drawer's Accept lock uses) fill the batch first: the first-100-by-list-
+  // order alternative routinely picked 100 draft-gated rows ("Accept 0",
+  // another dead end). Every row stays listed and re-tickable ("Select all"
+  // still selects all — Reject has no cap), and the over-cap gate caption
+  // still explains itself if the user re-selects past the cap.
+  const cappedDefaultSelection = rules.length > BULK_ACCEPT_BATCH_MAX
+  const [excluded, setExcluded] = useState<ReadonlySet<string>>(() => {
+    if (!cappedDefaultSelection) return new Set()
+    const ready: string[] = []
+    const gated: string[] = []
+    for (const rule of rules) {
+      const target = concreteDraftTargetForRule(rule)
+      const drafted = target
+        ? Boolean(concreteDraftByTarget.get(concreteDraftTargetKey(target))?.draft)
+        : true
+      ;(drafted ? ready : gated).push(rule.id)
+    }
+    const preselected = new Set([...ready, ...gated].slice(0, BULK_ACCEPT_BATCH_MAX))
+    return new Set(rules.filter((r) => !preselected.has(r.id)).map((r) => r.id))
+  })
   const [rejecting, setRejecting] = useState(false)
   // Two-step arm for mass reject (see REJECT_CONFIRM_THRESHOLD).
   const [rejectArmed, setRejectArmed] = useState(false)
@@ -5288,6 +5417,15 @@ function BulkReviewListModal({
             <Trans>
               {included.length} of {rules.length} selected
             </Trans>
+            {cappedDefaultSelection ? (
+              // Why not everything: Accept caps at 100 per batch, so a
+              // cap-sized batch comes preselected, ready-to-accept rules
+              // first (the footer gate explains the cap if the user
+              // re-selects past it).
+              <span className="ml-1.5 font-normal text-text-tertiary">
+                <Trans>· {BULK_ACCEPT_BATCH_MAX} preselected — Accept's per-batch cap</Trans>
+              </span>
+            ) : null}
           </span>
           <div className="flex items-center gap-2 text-xs">
             <TextLink

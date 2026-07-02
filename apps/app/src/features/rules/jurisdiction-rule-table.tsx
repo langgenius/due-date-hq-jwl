@@ -373,6 +373,7 @@ export function JurisdictionRuleTable({
   onRuleClick,
   onAddRule,
   scope,
+  acceptReadyRuleIds,
 }: {
   rules: readonly ObligationRule[]
   jurisdictionLabel: string
@@ -391,6 +392,10 @@ export function JurisdictionRuleTable({
   /** Active view scope — drives which columns show. Accepts the catalog-only
       `missing` scope (gap rows) in addition to the four filter-bar scopes. */
   scope: RuleScope | 'missing'
+  /** Candidates that can be accepted right now (not draft-gated). Drives the
+      Review scope's Readiness column so the acceptable rows are visible at a
+      glance instead of hidden among draft-gated ones. */
+  acceptReadyRuleIds?: ReadonlySet<string>
 }) {
   const { t } = useLingui()
   // In the Review scope every row is a pending candidate, so the Status
@@ -400,7 +405,14 @@ export function JurisdictionRuleTable({
   const reviewScope = scope === 'review'
   const showLastModified = !reviewScope
   const showStatus = !reviewScope
-  const bodyColSpan = 5 + (showLastModified ? 1 : 0) + (showStatus ? 1 : 0)
+  // Review scope trades the Status column for a Readiness column: which of
+  // these candidates can be accepted NOW ("Ready") vs which need an AI
+  // concrete draft generated first. Mirrors the drawer's accept gate + the
+  // bulk modal's per-row readiness flags, so the reviewer opens the right
+  // rules first.
+  const showReadiness = reviewScope && acceptReadyRuleIds !== undefined
+  const bodyColSpan =
+    5 + (showLastModified ? 1 : 0) + (showStatus ? 1 : 0) + (showReadiness ? 1 : 0)
 
   // Selectable (needs-review) rule IDs in view — drives the header
   // select-all checkbox tri-state.
@@ -473,6 +485,11 @@ export function JurisdictionRuleTable({
                 <Trans>Status</Trans>
               </TableHead>
             ) : null}
+            {showReadiness ? (
+              <TableHead className="w-[130px] px-2">
+                <Trans>Readiness</Trans>
+              </TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -505,6 +522,8 @@ export function JurisdictionRuleTable({
                     focused={focusedRowId === `rule:${rule.id}`}
                     showLastModified={showLastModified}
                     showStatus={showStatus}
+                    showReadiness={showReadiness}
+                    acceptReady={acceptReadyRuleIds?.has(rule.id) ?? false}
                     animateExit={reviewScope}
                     onSelectChange={() => onToggleRuleSelection(rule.id)}
                     onClick={onRuleClick}
@@ -540,6 +559,8 @@ function JurisdictionRuleRow({
   focused,
   showLastModified,
   showStatus,
+  showReadiness = false,
+  acceptReady = false,
   animateExit = false,
   onSelectChange,
   onClick,
@@ -553,6 +574,10 @@ function JurisdictionRuleRow({
   focused: boolean
   showLastModified: boolean
   showStatus: boolean
+  /** Review scope — render the Readiness cell (Ready vs Needs AI draft). */
+  showReadiness?: boolean
+  /** True when this candidate can be accepted now (accept isn't draft-gated). */
+  acceptReady?: boolean
   /** Review scope only — render as a motion row so it can slide+fade out when
       the candidate is accepted and drops from the list. */
   animateExit?: boolean
@@ -704,6 +729,25 @@ function JurisdictionRuleRow({
       {showStatus ? (
         <TableCell className="px-2 py-3 align-middle">
           <Badge variant={statusVariant}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
+        </TableCell>
+      ) : null}
+
+      {/* Readiness (Review scope only) — quiet "Ready" chip on candidates
+          that can be accepted now; draft-gated ones say what unlocks them.
+          Vocabulary matches the bulk modal's flags + the drawer's gate copy
+          ("Generate the AI draft above to unlock Accept"). */}
+      {showReadiness ? (
+        <TableCell className="px-2 py-3 align-middle">
+          {acceptReady ? (
+            <Badge variant="success" className="gap-1">
+              <CircleCheckIcon className="size-3" aria-hidden />
+              <Trans>Ready</Trans>
+            </Badge>
+          ) : (
+            <span className="text-sm text-text-tertiary">
+              <Trans>Needs AI draft</Trans>
+            </span>
+          )}
         </TableCell>
       ) : null}
     </RowComp>
