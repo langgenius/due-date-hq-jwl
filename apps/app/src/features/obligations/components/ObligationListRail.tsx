@@ -10,6 +10,7 @@ import {
   ListRailBody,
   ListRailHead,
   ListRailSection,
+  useRailArrival,
 } from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -156,6 +157,12 @@ function RailItem({
   onSelect: () => void
 }) {
   const { t } = useLingui()
+  // Arrival: scroll the opened deadline into view on the rail's first paint +
+  // play the one-time arrival wash (shared `useRailArrival`, parity with
+  // AlertListRail + DeadlineNavigatorRail) — opening a deadline from deep in
+  // the table used to leave the rail scrolled to the top with the selection
+  // off-screen.
+  const { ref, arrived } = useRailArrival<HTMLButtonElement>(active)
   const dueLabel = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -165,6 +172,7 @@ function RailItem({
 
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onSelect}
       aria-pressed={active}
@@ -177,6 +185,7 @@ function RailItem({
         'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
+        arrived && 'animate-arrival-wash',
       )}
     >
       {/* Due column (64px). Dims on unselected items so the open deadline's

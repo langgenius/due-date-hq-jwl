@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -99,4 +99,36 @@ export function ListRailSection({
 /** The scrolling list body — fills remaining height, scrolls on overflow. */
 export function ListRailBody({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={cn('min-h-0 flex-1 overflow-y-auto', className)}>{children}</div>
+}
+
+/**
+ * Arrival behavior for a rail row — the destination's answer to "did I land on
+ * the thing I clicked?" when a /today card, a citation chip, a table row, or a
+ * shared URL opens a master-detail view.
+ *
+ * On the row's FIRST paint as the selection it (a) scrolls to the top of the
+ * list viewport so the selected item leads the list, and (b) returns
+ * `arrived: true` once so the caller can play the one-time
+ * `animate-arrival-wash` accent wash (globals.css) that settles into the
+ * steady `bg-state-base-hover` selection fill. Later activations (in-rail
+ * clicks, ↑/↓ paging) scroll `'nearest'` and never wash — a click target was
+ * already visible and chosen by the user, so re-confirming it is noise.
+ *
+ * Extracted from AlertListRail's scroll effect (2026-06-12, Yuqi "…go to the
+ * alert detail WITH THAT ALERT SELECTED AND SCROLLED TO THE TOP") so all three
+ * rails (alerts, deadlines navigator, /deadlines in-page) confirm arrival
+ * identically.
+ */
+export function useRailArrival<T extends HTMLElement>(active: boolean) {
+  const ref = useRef<T | null>(null)
+  const hasPainted = useRef(false)
+  const [arrived, setArrived] = useState(false)
+  useEffect(() => {
+    if (active) {
+      ref.current?.scrollIntoView({ block: hasPainted.current ? 'nearest' : 'start' })
+      if (!hasPainted.current) setArrived(true)
+    }
+    hasPainted.current = true
+  }, [active])
+  return { ref, arrived }
 }

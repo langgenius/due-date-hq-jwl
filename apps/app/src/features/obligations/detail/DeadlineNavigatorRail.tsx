@@ -18,6 +18,7 @@ import {
   ListRailHead,
   ListRailSection,
   ListRailTitle,
+  useRailArrival,
 } from '@/components/patterns/list-rail'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SingleSelectFilter } from '@/components/patterns/single-select-filter'
@@ -446,6 +447,11 @@ function DeadlineNavigatorRow({
 }) {
   const relative = relativeDueLabel(row)
   const showRelative = !RELATIVE_SUPPRESSED_STATUSES.has(row.status)
+  // Arrival: scroll the opened deadline into view on the rail's first paint +
+  // play the one-time arrival wash — parity with AlertListRail, so landing
+  // here from /today (priority row, citation chip) or a shared URL always
+  // shows WHICH row you arrived on (the rail used to leave it off-screen).
+  const { ref, arrived } = useRailArrival<HTMLAnchorElement>(active)
   // Title is the plain-English description (e.g. "Individual income tax return"),
   // not the form code — the code already shows in the TaxCodeBadge above, so
   // repeating "Form 1040" as both badge AND title was redundant (Yuqi). Mirrors
@@ -454,6 +460,7 @@ function DeadlineNavigatorRow({
 
   return (
     <Link
+      ref={ref}
       to={deadlineDetailHref({ obligationId: row.id, tab: activeTab, search: routeSearch })}
       state={{ obligationId: row.id }}
       aria-current={active ? 'page' : undefined}
@@ -464,6 +471,7 @@ function DeadlineNavigatorRow({
         'group/rail flex gap-3 border-b border-divider-subtle px-[18px] py-4 outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
+        arrived && 'animate-arrival-wash',
       )}
     >
       {/* TimeColumn (rzzww `wdyv4`) — w-64 + text-sm date to match the alert

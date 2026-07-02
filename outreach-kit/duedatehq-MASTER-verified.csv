@@ -1,0 +1,284 @@
+Tier,State,Type,Firm,City,Decision-maker,Contact,Fit,Notes
+Shortlist (multi-state),GA,Individual,Wester & Company CPA,Waycross,J.B. Brantley Wester,brantley@westercpa.com,Business-entity,SSL cert mismatch (deliverability)
+Shortlist (multi-state),GA,Individual,Harris & Company PC,Blackshear/Jesup,Cale Harris,cale@harriscocpas.com,Business-entity,stale Tanner & Wester page title
+Shortlist (multi-state),GA,Individual,Accounting Technology Solutions,Columbus,Allison Stitcher,allison@accountinghelpnow.net,Business-entity,multi-state not on own site
+Shortlist (multi-state),GA,Firm,Rogers & Associates CPAs PC,Cumming,Kenneth Rogers,Admin@RRCPAsFirm.com,Multi-state,confirmed all states
+Shortlist (multi-state),GA,Firm,Taxperts Accounting Services,Johns Creek,Nishita Changela,NishitaChangela@taxpertsga.com,Multi-state,MS appears in testimonial only
+Shortlist (multi-state),GA,Firm,McGee Collins PC,Richmond Hill,Betsy Collins,contact form,Multi-state,claimed office@ NOT on site
+Shortlist (multi-state),GA,Individual,David R. Dingus CPA,Savannah,David Dingus,info@drdcpa.com,Business-entity,multi-state not on site
+Shortlist (multi-state),GA,Firm,Trinity Accounting Group,Watkinsville,Dustin David (3 shareholders),info@tag-cpa.com,Multi-state,domain->trinityaccountinggroup.com
+Shortlist (multi-state),GA,Firm,"Jordan, Kinsey & Jordan CPAs",Newnan,Trey Kinsey,trey@jordankinseyjordan.com,Business-entity,S/C-corp+partnership
+Shortlist (multi-state),CA,Firm,Safe Harbor LLP,San Francisco,Chun Wong,contact form,Multi-state,claimed info@ NOT on site
+Shortlist (multi-state),CA,Individual,Equifirst,San Francisco,Olha Krushevska EA,info@equifirstinc.com,Multi-state,
+Shortlist (multi-state),CA,Firm,The John Ellis Company,Long Beach,John Ellis,contact form,Multi-state,SALT consulting
+Shortlist (multi-state),CA,Firm,CA Accounting,Glendale,Farshid Khosravi EA,contact form,Multi-state,nexus
+Shortlist (multi-state),CA,Firm,Folkers & Associates CPAs,Irvine,Timothy Folkers,contact form,Business-entity,multi-state NOT on site (regrade)
+Shortlist (multi-state),CA,Firm,Friedman & Company CPAs,Irvine,Brett Friedman,brett@brettfriedmancpa.com,Multi-state,nexus (sub-page)
+Shortlist (multi-state),CA,Firm,The CPA Corner Inc,Irvine,Nick Pham,contact form,Multi-state,weak signal (other-states)
+Shortlist (multi-state),CA,Firm,NetSave Tax & Accounting,San Diego,Ben Karki,team@netsavetax.com,Multi-state,nationwide
+Shortlist (multi-state),CA,Individual,Mark R. Green CPA,Folsom,Mark Green,contact form,Multi-state,dozens of other states
+Shortlist (multi-state),CA,Individual,Sandoval Tax CPAs,Bakersfield,Joel Sandoval,support@sandovaltax.com,Multi-state,all 50 states
+Shortlist (multi-state),CA,Firm,Carothers & Associates,Roseville,Charles Carothers,cbc@carotherscpa.com,Multi-state,
+Shortlist (multi-state),CA,Firm,Catalyst CPA,Moreno Valley,Adham Abadier,Info@catalyst-cpa.com,Multi-state,nexus/apportionment
+Shortlist (multi-state),CA,Firm,MBS Accountancy,Fresno,Cassidy Jakovickas,contact form,Multi-state,SALT; owner not named
+Shortlist (multi-state),NY,Firm,ETCPA (Edward Torres CPA),Manhattan/Forest Hills,Edward Torres,file@etcpa.com,Multi-state,nexus
+Shortlist (multi-state),NY,Firm,Haque CPA,Manhattan,Morshedul Haque,mhaque@nyc-cpafirm.com,Multi-state,SALT/nexus
+Shortlist (multi-state),NY,Individual,Herman P. Ortiz CPA,Melville,Herman Ortiz,info@hpocpa.com,Multi-state,represents NJ+CT
+Shortlist (multi-state),NY,Firm,James Castaldo CPA & Associates,Melville/Hauppauge,James Castaldo,contact form,Multi-state,3 offices; nexus study
+Shortlist (multi-state),NY,Individual,Sheldon L. Richards CPA,Manhattan,Sheldon Richards,contact form,Multi-state,NYC & nationwide
+Shortlist (multi-state),NY,Individual,212 Tax & Accounting,Manhattan,Anil Melwani,212tax@gmail.com,Multi-state,multi-office NY/FL/NC
+Shortlist (multi-state),NY,Firm,LaRuffa & Danylchuk LLP,Manhattan,Vincent LaRuffa/Joseph Danylchuk,info@ldtaxadvisors.com,Business-entity,location fix (NOT Staten Island); MS not on site
+Shortlist (multi-state),NY,Firm,Bucknam & Conley CPAs,Saratoga Springs,Melinda Bucknam/Carissa Conley,info@bucknamconleycpas.com,Multi-state,MS in testimonial
+Shortlist (multi-state),NY,Firm,Lawler & Witkowski CPAs,Williamsville,Lawrence Lawler/John Witkowski,contact form,Multi-state,
+Shortlist (multi-state),NY,Firm,"Cuomo, Winters & Schmidt CPAs",East Syracuse,Mark Schmidt/Mark Strong,contact form,Multi-state,Cuomo/Winters retired; use www.cpacws.com
+Shortlist (multi-state),NY,Firm,"Johnson, Lauder & Savidge LLP",Binghamton,Brandon Sunderlin,jls@jlscpa.com,Multi-state,MS inferred from NY+PA offices
+Shortlist (multi-state),TX,Firm,J. Rosio Tax Services,Plano,Joseph Rosio + Alex Bonello EA,contact form,Multi-state,TX/NY/GA licensed
+Shortlist (multi-state),TX,Firm,Jeff Pickering CPA,Plano,Jeff Pickering,contact form,Multi-state,SSL cert expired
+Shortlist (multi-state),TX,Firm,JAG CPA & Co,Houston,Joe Gallegos,info@jagcpa.com,Business-entity,MS=payroll-narrow
+Shortlist (multi-state),TX,Firm,Nguyen Accounting Group,Sugar Land,Thuy Nguyen,tnguyen@nguyencpa.com,Business-entity,Texas-only on site (regrade)
+Shortlist (multi-state),TX,Firm,MT Bachani CPA PLLC,Katy,Amin Bachani,info@mtbcpa.us,Multi-state,confirmed 15+ states; owner name unverified
+Shortlist (multi-state),TX,Individual,Myres CPA PLLC,San Antonio,Trevor Myres,contact form,Business-entity,multi-state not on site
+Shortlist (multi-state),TX,Firm,Chandler & Knowles CPAs,Flower Mound,Rochelle Chandler,contact form,Multi-state,
+Shortlist (multi-state),TX,Firm,Green Group Advisors PC,Arlington,Tanya Merlino,contact form,Multi-state,sales/franchise
+Shortlist (multi-state),TX,Firm,Atkins & Associates (ATX.TAX),Austin,Trey Atkins/Mark Lee,contact form,Multi-state,CA/NY/HI experience NOT licensure (TX-licensed)
+Shortlist (multi-state),FL,Firm,KB Smith CPA,Tampa,Katherine Smith,ksmith@cpanewtampa.com,Multi-state,
+Shortlist (multi-state),FL,Firm,"George, Cintron & Co CPA",Coral Gables,Jonathan George/Awilda Cintron,awilda@gctaxcpa.com,Multi-state,
+Shortlist (multi-state),FL,Individual,Oren Gulasa CPA,Aventura,Oren Gulasa,oren@ogcpaservices.com,Multi-state,email on ogcpaservices.com (cross-domain)
+Shortlist (multi-state),FL,Individual,Jaime Santiago CPA,Orlando,Jaime Santiago,contact form,Multi-state,nexus
+Shortlist (multi-state),FL,Firm,Bette Hochberger CPA CGMA,Ft Lauderdale,Bette Hochberger,bette@bettehochberger.com,Multi-state,all 50 states
+Shortlist (multi-state),FL,Individual,Gary M. Kaplan CPA PA,Boca Raton,Gary Kaplan,contact@gkaplancpa.com,Multi-state,licensed FL/NY/MD/DC/UT
+Shortlist (multi-state),FL,Firm,Mazer & Associates,Boca Raton,Tony Mazer,Tony@mazerandco.com,Multi-state,over a dozen states
+Shortlist (multi-state),FL,Individual,Joel E. Berman CPA,Largo,Joel Berman,contact form,Business-entity,MS in testimonial only (soft)
+Shortlist (multi-state),FL,Firm,Felsing LLC,Winter Park,Carol Felsing,info@felsingcpa.com,Business-entity,S-corp+partnership
+Shortlist (multi-state),AZ,Firm,Foley & Giolitto CPA,Scottsdale,Ryan Giolitto,contact form,Multi-state,all 50 states
+Shortlist (multi-state),AZ,Firm,Partridge & Associate CPAs,Scottsdale,Joy Partridge,cpas@partridgecpas.com,Business-entity,MS overstated (only clients nationally)
+Shortlist (multi-state),AZ,Firm,Accuracy CPA PLLC,Gilbert,Fresia 'Liza' Garcia,info@accuracycpa.com,Multi-state,apportionment/all 50
+Shortlist (multi-state),AZ,Firm,Griffin Tax & Accounting PC,Glendale,Leanna Griffin EA,leanna@baker-griffin.com,Multi-state,nexus studies
+Shortlist (multi-state),AZ,Individual,Phoenix Tax Planning LLC,Peoria,Gary J. Deardorff,gdeardorff@phxtaxplan.com,Multi-state,
+Shortlist (multi-state),AZ,Firm,Cailean CPA PLLC,Peoria,Marius Cailean,cpa@caileancpa.com,Multi-state,throughout the US
+Shortlist (multi-state),AZ,Individual,IMI Tax Advisors LLC,Peoria,Ioana Iuras EA,info@imitaxadvisors.com,Business-entity,multi-state not on site (regrade)
+Shortlist (multi-state),AZ,Firm,AZSWCPA Services PLLC,Tucson,Thomas Rooney,info@azswcpa.com,Multi-state,generic (not AZ/CA-specific)
+Shortlist (multi-state),WA,Firm,Sound Northwest Tax LLP,Ballard/Seattle,Justin Donoghue (+3 Rozis),info@soundnwtax.com,Multi-state,4 partners (not sole owner)
+Shortlist (multi-state),WA,Firm,Aldaris CPA Group,West Seattle,Edwin del Carpio,contact form,Multi-state,site 403s bots; WA/CA/TX
+Shortlist (multi-state),WA,Firm,Jeff Baker & Associates PS,Puyallup,Jeff Baker,cpa@jbacpa.net,Multi-state,MS=part-year/non-resident
+Shortlist (multi-state),WA,Firm,Thrive Business Group,Bellingham,Siobhan Murphy,admin@thrivebusinessgroup.com,Multi-state,principal=Siobhan (not Brianna)
+Shortlist (multi-state),WA,Firm,M4 CPA LLC,Spokane,Matt Cronrath,inquiry@m4cpa.com,Multi-state,most other states
+Shortlist (multi-state),WA,Firm,Lewis Group CPAs PC,Vancouver,Chris Lewis,contact form,Multi-state,STRONGEST (WA B&O + OR CAT nexus page)
+Shortlist (multi-state),WA,Firm,Tri-Cities Tax and Accounting,Kennewick,Darren Szendre,darren@tctaxcpa.com,Business-entity,multi-national is bio not service
+Shortlist (multi-state),WA,Firm,Fleck Jurenka LLP,Issaquah,Dave Fleck,dave@fjcpas.com,Multi-state,all 50 states
+Shortlist (multi-state),WA,Firm,Nelson CPA PLLC,Redmond,Stephen Nelson,contact form,Multi-state,multistate + international
+Shortlist (multi-state),WA,Individual,Linda M. Teachout CPA,Shoreline,Linda Teachout,linda@lmt-cpa.com,Business-entity,no multi-state claim (solo)
+OK-tier,GA,Individual,Cheryl M. Williams CPA,Milledgeville,Cheryl Williams,CWilliamsCPA@windstream.net,Business-entity,site fetch-blocked (dir-corroborated)
+OK-tier,GA,Firm,Sav-Tax (Kay Stacks EA),Macon,Kay Stacks,info@savtaxmacon.com,Business-entity,EA all-50 capable
+OK-tier,GA,Firm,The McClendon Group CPA,Newnan,Rhonda McClendon,contact form,Business-entity,
+OK-tier,GA,Firm,Chapman & Chapman CPAs,Perry,C. Snyder Chapman,info@chapmanandchapmancpa.com,Business-entity,
+OK-tier,GA,Firm,CLH CPAs LLC,Warner Robins,(not named),EmailUs@CLHCPAGA.com,Business-entity,
+OK-tier,GA,Firm,Rivers CPA LLC,Warner Robins,James/Terry,info@riverscpa.com,Business-entity,
+OK-tier,GA,Firm,Stevens & Keesling PC,Valdosta,Ginger Keesling,cpa@skcpafirm.com,Business-entity,
+OK-tier,GA,Firm,Simmons Mills & Simmons PC,Thomasville,Darrell Mills/Michael Simmons,contact form,Business-entity,don't claim rose.net directory email
+OK-tier,GA,Firm,Gill & Associates CPAs,Albany,Ellis Gill,contact form,Business-entity,2 offices
+OK-tier,GA,Firm,Business & Tax Services,Moultrie,Richard Winston CPA,office@businessandtaxservice.net,Business-entity,ag/H-2A niche
+OK-tier,GA,Firm,Paragon Accounting & Tax,Woodstock,John Drawdy,info@paragonat.com,Business-entity,
+OK-tier,GA,Firm,Markwalter & Whatley CPAs,Martinez,Elizabeth Markwalter/Jennifer Whatley,ekm@mandwcpas.com,Business-entity,+expat; also jwhatley@mandwcpas.com
+OK-tier,GA,Individual,Norman H. Smith CPA,Suwanee,Norman Smith,norm@nsmithcpa.com,Business-entity,
+OK-tier,GA,Individual,Reno M. Borgognoni CPA,Lawrenceville,Reno Borgognoni,reno@rmbcpa.biz,Business-entity,entity formation/CFO
+OK-tier,GA,Individual,Brittany L. Montrois CPA,Stockbridge,Brittany Montrois,contact form,Multi-state,nationwide
+OK-tier,GA,Individual,Darlene S. Stone CPA,Douglasville,Darlene Stone,info@darlenestonecpa.com,Multi-state,all states + expat
+OK-tier,GA,Individual,Philip L. Manley CPA,Buford,Philip Manley,contact form,Business-entity,don't claim directory email
+OK-tier,GA,Individual,Cory L. Robinson CPA,Buford,Cory Robinson,cory@coryrobinsoncpa.com,Business-entity,
+OK-tier,GA,Firm,Ahart & Cardon CPAs,Fayetteville,George Cardon,tammy@ahartcardon.com,Multi-state,across the US
+OK-tier,GA,Firm,Professional Accounting & Tax Svcs,Duluth,Keith K. Eum,keitheum@taxga.com,Business-entity,
+OK-tier,GA,Firm,Middle Georgia Accounting & Tax,Stockbridge,Rhonda Jones,rjones@middlegatax.com,Business-entity,
+OK-tier,GA,Firm,Barefoot Accounting,Peachtree City,Debbie,debbie@barefootacct.com,Business-entity,
+OK-tier,GA,Firm,Halsey & Associates,Conyers,David Halsey,dhalsey@halseyandassociates.com,Business-entity,healthcare niche
+OK-tier,GA,Firm,Right Choice Accounting,Duluth,Albert C. Hurston Jr.,info@rightchoiceaccountingsolutions.com,Multi-state,nationwide
+OK-tier,GA,Firm,MyGeorgiaAccountant (Shurek),Buford,Harry Shurek,info@mygeorgiaaccountant.com,Multi-state,all-50 e-file
+OK-tier,GA,Individual,Vincent Keith Everson CPA,Alpharetta,Vincent Everson,Vincent@VincentKeithEversonCPALLC.com,Business-entity,re-verified
+OK-tier,GA,Individual,Marcus L. Dorsey CPA,Roswell,Marcus Dorsey,client.services@dorsey.cpa,Business-entity,re-verified
+OK-tier,GA,Individual,Ellen Springer CPA,Kennesaw,Ellen Springer,espringer@springercpa.com,Business-entity,re-verified
+OK-tier,GA,Individual,Thomas Bowen CPA,Roswell,Thomas Bowen,clientservice@bowencpa.net,Business-entity,re-verified
+OK-tier,GA,Individual,J. Lunsford CPA,Kennesaw,J. Lunsford,jlunsford@cpa.com,Business-entity,re-verified
+OK-tier,GA,Individual,William Costley LLC,Woodstock,William Costley,hello@williamcostleyllc.com,Business-entity,re-verified
+OK-tier,GA,Individual,Jack Milner CPA PC,Johns Creek,Jack Milner,contact form,Multi-state,re-verified; multi-state on site
+OK-tier,GA,Individual,Shelly S. Bykat CPA,Sandy Springs,Shelly Bykat,shelly@bykatcpa.com,Business-entity,reassigned from CA (is GA)
+OK-tier,FL,Individual,Richard Rust CPA,Jacksonville,Richard Rust,Richr@rrustcpa.com,Multi-state,multi-office/multi-member LLC
+OK-tier,FL,Firm,Next Level CPA,Jacksonville,Mark Cook,mark.cook@nextlevelcpa.co,Business-entity,
+OK-tier,FL,Firm,The CPA Group of Naples,Naples,Julie Pisarri,contact@cpaofnaples.com,Multi-state,
+OK-tier,FL,Firm,Davidson & Nick CPAs,Naples,Paul Nick/Jim Davidson,contact form,Business-entity,
+OK-tier,FL,Firm,Soldavini & Caldwell,Naples,Brigid Soldavini,tax@naples-cpa.com,Business-entity,
+OK-tier,FL,Firm,Johnson CPA LLC,Naples,J. Johnson,jjohnson@johnsoncpa-llc.com,Multi-state,2 offices IL+FL
+OK-tier,FL,Firm,Solomon & Hoover CPAs,Fort Myers,Gene Solomon/Michele Hoover,contact form,Business-entity,
+OK-tier,FL,Firm,Keller & Koczara CPAs,Cape Coral,Keller/Koczara,info@kellerkoczara.com,Business-entity,
+OK-tier,FL,Firm,Howard & Company CPAs,Jacksonville,P. Howard,phoward@howard-cpa.com,Business-entity,
+OK-tier,FL,Firm,LKC Group CPAs,Jacksonville,Lisa Campbell,lcampbell@lkpgroupcpa.com,Business-entity,domain lkp not lkc
+OK-tier,FL,Firm,Drage CPA PLLC,Coral Gables,Jon Drage,info@drage.com,Business-entity,state residency
+OK-tier,FL,Firm,A&G CPA Firm,Coral Gables,Marcela Gomez EA,m.gomez@agcpafirm.com,International,
+OK-tier,FL,Firm,Rodriguez & Sastre CPAs,Miami,Mark/Dianelys Sastre,rodriguezandsastre@gmail.com,Business-entity,virtual S-corp/LLC
+OK-tier,FL,Firm,Mermelstein Hidalgo LLP,Coral Gables,Mermelstein/Hidalgo,partner@mh-cpa.com,Business-entity,
+OK-tier,FL,Individual,Antonio Lemus CPA,Altamonte Springs,Antonio Lemus,tony@alemuscpa.com,Business-entity,
+OK-tier,FL,Individual,Wesley R. Howell CPA,Altamonte Springs,Wesley Howell,whowell@cpa.com,Business-entity,
+OK-tier,FL,Individual,Edward Coamey CPA,Winter Park,Edward Coamey,ec@c2pa.com,Business-entity,
+OK-tier,FL,Individual,Robert Staats CPA,Lake Mary,Robert Staats,robert@staatscpa.com,Business-entity,
+OK-tier,FL,Firm,Dean Hall CPA,Lake Mary,Dean Hall,deanhall@deanhallcpa.com,Business-entity,
+OK-tier,FL,Firm,Kane & Associates,Winter Park,G. Kane,gkane@kane-cpa.com,Business-entity,
+OK-tier,FL,Firm,Falconetti & Groomes CPA,Altamonte Springs,Falconetti/Groomes,shawn@fandgcpas.com,Business-entity,
+OK-tier,FL,Firm,Don Thomas CPA,Maitland,Don Thomas,don@donthomascpa.com,Business-entity,explicit S-corp pricing
+OK-tier,FL,Firm,Caraway Gardner CPA,Lake Mary,Michael,info@cgacpa.com,Business-entity,
+OK-tier,FL,Firm,Clearwater CPA,Clearwater,Andrew Dycus,hello@ClearwaterCPA.com,Business-entity,S-corp/partnership
+OK-tier,FL,Firm,Farnsworth & Mullins,Lakeland,Farnsworth/Mullins,contact@fmcpas.com,Business-entity,
+OK-tier,FL,Firm,Jeffrey D. Ressler CPA,Boca Raton,Jeffrey Ressler,info@jrcpa.net,Business-entity,
+OK-tier,FL,Firm,Pereira CPAs,Boca Raton,Jay/Stephanie Pereira,info@pereiracpas.com,Business-entity,
+OK-tier,FL,Firm,Garber & Garber CPAs,Boca Raton,Alan/Scott Garber,info@garberandgarbercpa.com,Business-entity,1120/1120S/1065
+OK-tier,FL,Firm,Elizabeth A. Dunn CPA,Boca Raton,Elizabeth Dunn,EDunn@TaxSolutionsGroup.Biz,Multi-state,FL+NY
+OK-tier,FL,Firm,Boca Tax Prep,Boca Raton,Brian Isrow,find manually,Multi-state,email obfuscated
+OK-tier,FL,Firm,DuVal Fields CPA Group,Green Cove Springs,DuVal/Fields,info@duvalfields.com,Business-entity,SIZE FLAG (15 staff)
+OK-tier,FL,Firm,Davis & Associates CPAs,Fort Myers,John Davis/Stephen Minosky,jdavis@johndaviscpa.com,Multi-state,SIZE FLAG (3 offices)
+OK-tier,FL,Firm,CCG CPAs,Naples,Steven Phillips,Sphillips@ccgcpas.com,Business-entity,SIZE FLAG (2 offices+merger)
+OK-tier,FL,Firm,Ennis Pellum & Associates,Jacksonville,Kevin Algee,info@jaxcpa.com,Multi-state,SIZE FLAG (6 partners)
+OK-tier,FL,Firm,Famiglio & Associates,Sarasota,George Famiglio,contact form,Business-entity,SIZE FLAG (regional)
+OK-tier,CA,Firm,Holmes & Associates,Long Beach,Larry Holmes,lholmes@holmescpa.com,Multi-state,UPGRADE (full entity+MS)
+OK-tier,CA,Firm,The Taxation Experts,Torrance,Chris Aprahamian,info@thetaxationexperts.com,Multi-state,2 offices
+OK-tier,CA,Firm,Ignition Tax,Encinitas,Tim Martin,info@ignitiontax.com,Multi-state,sales-tax all US
+OK-tier,CA,Firm,CoreCPAs,Irvine,Hugo Gonzalez,contact form,Multi-state,every state
+OK-tier,CA,Firm,Tax Experts of OC,Santa Ana,Amin Memon,info@taxexpertsofoc.com,Multi-state,all 50
+OK-tier,CA,Firm,Mehdiani Financial Mgmt,Encino,Alan Mehdiani,contact form,Business-entity,2 offices
+OK-tier,CA,Firm,Brilliant Tax & Accounting,Glendale,Varos Babakhanians,varoscpa@brillianttax.com,Business-entity,2 offices
+OK-tier,CA,Firm,LACPA Partners Inc,Burbank,Erendira Sanchez,contact form,Business-entity,~10 (ceiling)
+OK-tier,CA,Individual,Amir & Associates CPA,Torrance,Amir Mujahid,amir@amircpas.com,Business-entity,
+OK-tier,CA,Firm,Pacific Accounting Group,Pasadena,Chris Frankian,chris@pacificgroupla.com,Business-entity,
+OK-tier,CA,Individual,John Weldon CPA,El Segundo,John Weldon,contact form,Business-entity,
+OK-tier,CA,Firm,LineUp CPAs,Oakland,Scott Kim,info@lineupcpa.com,Business-entity,full entity range
+OK-tier,CA,Firm,Tony Quach & Co,San Francisco,Tony Quach,contact@tonyquach.com,Business-entity,
+OK-tier,CA,Individual,David Kirst CPA,San Jose,David Kirst,kirst.david@yahoo.com,Business-entity,
+OK-tier,CA,Individual,Michael Fitzsimmons CPA,San Diego,Michael Fitzsimmons,info@fitz-cpa.com,Business-entity,
+OK-tier,CA,Individual,Thomas Huckabee CPA,La Jolla,Thomas Huckabee,thomas.huckabee@tehcpa.net,Business-entity,light MS
+OK-tier,CA,Firm,Meza CPAs,Ontario,Jose Meza,jose@meza.cpa,Business-entity,
+OK-tier,CA,Firm,California Tax Boutique,Sacramento,Tracie Baiz,info@doesmytaxes.com,Business-entity,individuals-lean; credential AFSP not EA
+OK-tier,CA,Firm,Lindstrom Accountancy,Stockton,Gordon Lindstrom,contact form,Business-entity,
+OK-tier,NY,Firm,I&U CPA LLC,Manhattan,Ihsan Ugurlu,contact form,Multi-state,owner not on own site
+OK-tier,NY,Firm,Charles A. Kerner CPA,Manhattan,Charles Kerner,contact form,Business-entity,
+OK-tier,NY,Firm,MEDOWS CPA PLLC,Manhattan,Jonathan Medows,contact form,Business-entity,freelancer-tilt (weak)
+OK-tier,NY,Firm,Mei CPA PC,Brooklyn,Paul Mei/Glenn Ambinder,contact form,Business-entity,+NJ
+OK-tier,NY,Individual,Frank J. DeCandido CPA,Staten Island,Frank DeCandido,frankd@fjd-cpa.com,Business-entity,
+OK-tier,NY,Individual,John Acello CPA,Forest Hills,John Acello,jacello@gmail.com,Business-entity,email fix (not john@)
+OK-tier,NY,Firm,SCL Tax Services,Bronx,Susan Letizia EA,contact form,Business-entity,
+OK-tier,NY,Firm,Sandra Spencer CPA,Syracuse,Sandra Spencer,secretary@sandraspencercpa.com,Business-entity,
+OK-tier,NY,Individual,Buffalo Tax Strategies,Buffalo,Michael Knapp EA,buffalotaxstrategies@gmail.com,Business-entity,email fix (not info@)
+OK-tier,NY,Firm,SG Accounting CPA,Mineola,Gautam Sanghavi,gautamcpa@gmail.com,Multi-state,NY+GA dual-licensed; site nytaxoffice.com
+OK-tier,NY,Individual,Frank J. Scarano CPA,New Rochelle,Frank Scarano,mjpisani@scaranocpa.com,Business-entity,
+OK-tier,NY,Firm,Colasanti & Iurato LLP,White Plains,Colasanti/Iurato,info@cicpallp.com,Multi-state,NY/NJ/CT + 1120S/1065
+OK-tier,NY,Firm,Vernon Accounting CPA,White Plains,Nick Vernon,contact form,Business-entity,partnership allocation
+OK-tier,NY,Firm,Strebel Planning Group,Ithaca,Leslie Strebel,results@strebelcpa.com,Business-entity,RIA-first (weak)
+OK-tier,TX,Individual,Marci Shafto CPA,Austin,Marci Shafto,marci@MarciShaftoCPA.com,Business-entity,
+OK-tier,TX,Individual,Chris Green CPA,Fort Worth,Chris Green,chrisg@chrisgreencpa.com,Business-entity,healthcare/law niche
+OK-tier,TX,Individual,Michael Gray CPA,Lago Vista,Michael Gray,mike@gray.cpa,Business-entity,S-corp; city=Lago Vista
+OK-tier,TX,Individual,Justin Piepgrass CPA,Arlington,Justin Piepgrass,contact form,Business-entity,email j@ not on site
+OK-tier,TX,Firm,David Tucker CPA,Austin,David Tucker,info@dtuckercpa.com,Business-entity,entity+1065/1120
+OK-tier,TX,Individual,Linda Liu CPA,Cedar Park,Linda Liu,staff@lindacpaaustin.com,Business-entity,intl; city=Cedar Park
+OK-tier,TX,Firm,Stuart Hill CPA,Fort Worth,Stuart Hill Jr,contact form,Business-entity,entity selection
+OK-tier,TX,Firm,Sam Wilson CPA,Fort Worth,Sam Wilson,sam@samwilsoncpa.com,Business-entity,
+OK-tier,TX,Firm,Barg & Henson CPAs,Fort Worth,"Andrew Barg (owner); vgarnica@=Veronica Garnica, office mgr",vgarnica@barg-henson.com,Business-entity,staff email
+OK-tier,TX,Firm,Alex Tong CPA & Assoc,Plano,Alex Tong,info@cpataxinfo.com,Business-entity,
+OK-tier,TX,Firm,Carter Group Tax,Richardson,Steven Carter EA,contact form,Business-entity,domain cartergrouptax.com; no email
+OK-tier,TX,Firm,Hawk Tax Solutions,McKinney,Kirker/Ashley Davis EA,info@hawktaxsolutions.com,Business-entity,state+foreign filings
+OK-tier,TX,Firm,Carrell & Co CPAs,McKinney,Peter Carrell,find manually,Business-entity,email obfuscated
+OK-tier,TX,Firm,Temiz CPA PLLC,Richardson,Mustafa Temiz,temizcpa@temizcpa.com,Multi-state,intl
+OK-tier,TX,Firm,Ramdas Accounting,The Woodlands,Rahul Ramdas,info@RamdasAccounting.com,Business-entity,
+OK-tier,TX,Firm,Reynolds & Reese,The Woodlands,Roger Reese,contact form,Multi-state,UPGRADE (multi-state+intl)
+OK-tier,TX,Firm,Freese Peralez & Assoc (FPA),The Woodlands,Tim Freese,contact form,Multi-state,~9; mbeck@ not on own site
+OK-tier,TX,Individual,H. James Clark CPA,San Antonio,Jim Clark,jim@jimclarkcpa.com,Business-entity,bookkeeping tilt
+OK-tier,TX,Individual,Crowley & Co (Sean Crowley EA),El Paso,Sean Crowley,sean.crowley@crowleyandco.net,Business-entity,
+OK-tier,TX,Firm,Abraham Valenzuela CPA,El Paso,Abraham Valenzuela,contact form,Multi-state,cross-border/intl
+OK-tier,TX,Individual,Richard J. Garcia CPA,San Antonio,Richard Garcia,richardjgarciacpa@sbcglobal.net,Business-entity,
+OK-tier,TX,Firm,Ray CPA,San Antonio,Roger Ray,rray@raycpallc.com,Business-entity,expat; site thesanantoniocpa.com
+OK-tier,TX,Individual,Raul Torres CPA,Corpus Christi,Raul Torres,raul@raultorrescpa.com,Business-entity,email fix (raul@ not info@)
+OK-tier,TX,Firm,James Hiebert CPA,McAllen,Jim Hiebert,jim@cpa-jh.com,Business-entity,local
+OK-tier,TX,Firm,The Gonzales Group,San Antonio,Jared Gonzales,jared@cpatx.com,Business-entity,site gonzalesgroupcpa.com
+OK-tier,TX,Firm,Tanya Stokes CPA,Austin,Tanya Stokes,tanya@cpa-in-austin.com,Business-entity,~10; bookkeeping-heavy
+OK-tier,AZ,Firm,Schneider & Stone PLC,Chandler,Dawn Schneider/Ryan Stone,info@chandleraccountant.com,Business-entity,
+OK-tier,AZ,Firm,Law and Reed CPA,Mesa,Michael Law/Jeremy Reed,contact form,Business-entity,AZ-local (MS claim dropped)
+OK-tier,AZ,Firm,K&R Strategic Partners,Mesa,Jennifer Layon (Dir. Tax Svcs; Lowry=legacy),general@krtaxes.com,Multi-state,all 50
+OK-tier,AZ,Firm,MATS (Master Accounting & Tax),Tempe,Bill Mease,bill@masteracct.com,Multi-state,AZ+NM
+OK-tier,AZ,Individual,Whyte CPA,Gilbert,Devin Whyte,devin@whytecpapc.com,Business-entity,
+OK-tier,AZ,Individual,William A. Kamp CPA EA,Mesa,William Kamp,wkampcpa@gmail.com,Business-entity,
+OK-tier,AZ,Individual,K.A. Lindow CPA,Phoenix,Ken Lindow,ken@lindowcpa.com,Multi-state,nationwide-virtual
+OK-tier,AZ,Firm,Simply Taxes CPA,Glendale,Erin Barry,contact form,Multi-state,all 50; ~9; email obfuscated
+OK-tier,AZ,Individual,Larry B. Betts CPA,Phoenix,Larry Betts,contact form,Business-entity,
+OK-tier,AZ,Firm,Jansen & Company CPAs,Tucson,Mikala Jansen,taxes@jansencpa.com,Multi-state,
+OK-tier,AZ,Firm,Classic Accounting Inc,Yuma,(no named CPA),contact form,Multi-state,+Canadian; no named CPA (verify)
+OK-tier,AZ,Firm,Lauzon & Lauzon CPAs,Flagstaff,Robert Lauzon/Sarah Lauzon-Jones,contact form,Business-entity,weak MS
+OK-tier,WA,Individual,Gary T. Irvin CPA,Bothell,Gary Irvin,gary@irvincpa.com,Business-entity,
+OK-tier,WA,Firm,Alpine P.S. CPAs,Bellevue,Josh Solomon,Josh@AlpineCPAs.com,Business-entity,6 staff
+OK-tier,WA,Firm,Visse & Company,Bellevue,Michael Visse,admin@visse-cpas.com,Business-entity,domain visse-cpas.com
+OK-tier,WA,Firm,Pitch CPA,Bothell,Tyler Kowal,tyler@pitchcpa.com,Business-entity,
+OK-tier,WA,Firm,Moos Tax & Accounting,Kirkland,Steven Moos II,contact form,Multi-state,nearly every US jurisdiction
+OK-tier,WA,Firm,Accounting & Tax Professionals,Bellevue,(not named),info@taxprofessionalsnw.com,Business-entity,WA-only
+OK-tier,WA,Individual,Reena Gupta (Anaya Associates),Sammamish,Reena Gupta,contactanaya@gmail.com,Business-entity,email fix (now published)
+OK-tier,WA,Firm,Full Potential Accounting,Bothell,Justin Dagna,office@fullpotentialcpa.com,Business-entity,
+OK-tier,WA,Firm,Greenbridge CPA,Tacoma,Daniel Dickson,contact form,Business-entity,light MS
+OK-tier,WA,Firm,The Nash Group,Fircrest,Chris Nash,firm@nashgroupcpas.com,Business-entity,
+OK-tier,WA,Firm,Olympia CPA,Olympia,Ben Anderson,contact form,Business-entity,domain olycpa.com
+OK-tier,WA,Firm,Sherwood & Co,Olympia,Brenda Sherwood,info@sherwoodandcompany.com,Business-entity,9 staff
+OK-tier,WA,Firm,PorterKinney,Kennewick,Chris Porter,info@porterkinney.com,Business-entity,
+OK-tier,WA,Firm,Walker Garrett Bourn (WGB),Seattle,Walker/Garrett/Bourn,office@wgb.cpa,Business-entity,entity depth
+OK-tier,WA,Firm,Seattle CPA Professionals,Seattle,Eric Kauppila,find manually,Business-entity,no email on site
+OK-tier,WA,Firm,Seattle Tax Group,Seattle,Brian,brian@seattletaxgroup.com,Business-entity,
+OK-tier,WA,Firm,CPA Seattle PS,Shoreline,Derek Morse,info@cpaseattle.com,Business-entity,owner fix
+OK-tier,WA,Firm,Raymond Lyle CPA,West Seattle,Raymond Lyle,andrew@raymondlylecpa.com,Business-entity,
+OK-tier,WA,Firm,Bliss & Tuttle CPAs,Olympia,Jaime Tuttle/Bill Knight,contact form,Business-entity,SIZE FLAG (12 staff)
+OK-tier,WA,Firm,Herrin & Company,Sammamish,Patrick/Teresa Herrin,find manually,Business-entity,site unreachable - verify email
+OK-tier,WA,Firm,Goodsell & Associates,Everett,Neil Goodsell,find manually,Business-entity,site unreachable - verify email
+Solo (individual),FL,Individual,David L. Wrubel CPA PA,Miami Beach,David L. Wrubel,DAVID@CPA-FL.COM,International,solo pass
+Solo (individual),FL,Individual,Bruce A. Rosenthal PA CPA,Boca Raton,Bruce A. Rosenthal,info@cpabruce.com,Multi-state,solo pass
+Solo (individual),FL,Individual,Michael C. Huckins CPA PA,Boca Raton,Michael C. Huckins,contact form,Business-entity,solo pass
+Solo (individual),FL,Individual,Mangrove Tax & Accounting,St. Petersburg,Lisa Ann Scopel EA,lisa@mangrovefinancialgroup.com,Business-entity,solo pass
+Solo (individual),FL,Individual,Jonathan Sena CPA,Orlando,Jonathan Sena,jonathan@jonathansenacpa.com,Multi-state,solo pass
+Solo (individual),FL,Individual,Sas Prinzivalli CPA PA,Fort Lauderdale,Sas Prinzivalli,info@sasprinzivallicpa.com,Business-entity,solo pass
+Solo (individual),FL,Individual,Brian Sullivan CPA PA,Tampa,Brian Sullivan,bsullivan@sullivancpatampa.com,Business-entity,solo pass
+Solo (individual),FL,Individual,George A. Spencer CPA PA,Jacksonville,George A. Spencer,gspencer@spencer-cpa.com,Business-entity,solo pass
+Solo (individual),CA,Individual,Harris Tax & Financial Solutions,Los Angeles,Trish Harris EA,trish@harristaxandfinancials.com,Business-entity,solo pass
+Solo (individual),CA,Individual,Angel Zhen CPA,Pasadena,Angel Zhen,zhencpa@gmail.com,Multi-state,solo pass
+Solo (individual),CA,Individual,Oren Hen EA Inc,Los Angeles,Oren Hen EA,info@orenhenea.com,Business-entity,solo pass
+Solo (individual),CA,Individual,Mike Habib EA,Whittier,Mike Habib EA,contact form,Multi-state,solo pass
+Solo (individual),CA,Individual,Boulanger CPA,Orange,Marc Boulanger,marc@boulangercpa.com,Multi-state,solo pass
+Solo (individual),CA,Individual,Natalie C. Papagni CPA,La Jolla,Natalie Papagni,service@lajollataxcpa.com,Business-entity,solo pass
+Solo (individual),CA,Individual,Didi's 1040 & More,San Diego,Didi EA,contact form,Business-entity,solo pass
+Solo (individual),CA,Individual,Martin Lowe CPA,San Jose,Martin Lowe,info@martinlowecpa.com,Business-entity,solo pass
+Solo (individual),CA,Individual,George J. Laning CPA,Palo Alto,George J. Laning,george@gjlcpa.com,Business-entity,solo pass
+Solo (individual),NY,Individual,Michael Verderosa CPA PC,Patchogue,Michael Verderosa,Michael@verderosacpas.com,Business-entity,solo pass
+Solo (individual),NY,Individual,Peter Burgos CPA,Long Island City,Peter A. Burgos,info@pburgoscpa.com,Business-entity,solo pass
+Solo (individual),NY,Individual,Robert J. Klein CPA,Bayside,Robert J. Klein,admin@robertjkleincpa.com,Multi-state,solo pass
+Solo (individual),NY,Individual,Edwin Vicente Jr CPA PC,Woodbury,Edwin Vicente Jr EA,EVicente@vicentecpa.com,Business-entity,solo pass
+Solo (individual),NY,Individual,Nasir Faizi CPA PLLC,Brooklyn,Nasir Faizi EA,nasir.faizi@cpa.com,Multi-state,solo pass
+Solo (individual),NY,Individual,Robert A. Woloshen CPA PC,New York,Robert A. Woloshen,bob@rawcpa.com,Multi-state,solo pass
+Solo (individual),NY,Individual,David Beck CPA,New York,David Beck,dbeck@davidbeck.tax,Multi-state,solo pass
+Solo (individual),NY,Individual,Gary B. Carbo CPA,Queens,Gary B. Carbo,contact form,Business-entity,solo pass
+Solo (individual),NY,Individual,John Fall CPA LLC,Mamaroneck,John Fall,info@johnfallcpa.com,Business-entity,solo pass
+Solo (individual),WA,Individual,Dana C. Maher CPA PS,Olympia,Dana C. Maher,dana@danamahercpa.com,Business-entity,solo pass
+Solo (individual),WA,Individual,Marlys Bourm CPA PS,Bellingham,Marlys Bourm,marlys@bourmcpa.com,Business-entity,solo pass
+Solo (individual),WA,Individual,Gregory J. Campbell CPA,Bellingham,Greg J. Campbell,mail@everybeancounts.net,Business-entity,solo pass
+Solo (individual),WA,Individual,Premier Tax & Resolution,Vancouver,Grant Silva EA,info@premiertaxres.com,Multi-state,solo pass
+Solo (individual),WA,Individual,RLP Tax & Accounting PLLC,Bellevue,Raj CPA EA,raj@rlptax.com,Business-entity,solo pass
+Solo (individual),WA,Individual,Olympia Tax Service,Olympia,Jim Gerner EA,team@olytax.com,Business-entity,solo pass
+Solo (individual),WA,Individual,McKinley Tax Service,Tacoma,Travis Reynolds,contact form,Business-entity,solo pass
+Solo (individual),WA,Individual,David Green CPA PLLC,Spokane,David Green,find manually,Multi-state,solo pass
+Solo (individual),WA,Individual,Akhmerova Advisory,Seattle,Diana Akhmerova,contact form,Business-entity,solo pass
+Solo (individual),TX,Individual,Skyline Financial Management,Houston,Zahra Samji,info@skylinefinancialcpa.com,Business-entity,solo pass
+Solo (individual),TX,Individual,Jerry Cooper CPA PC,Houston,Jerry Cooper,contact form,Business-entity,solo pass
+Solo (individual),TX,Individual,Terry L. Barker CPA PC,Cypress,Terry Barker,terrybarker58@gmail.com,Business-entity,solo pass
+Solo (individual),TX,Individual,Tax & Business Solutions,Houston,Blaga Beleva EA,bveleva@tbsolutions.us,Business-entity,solo pass
+Solo (individual),TX,Individual,Jason M. Tyra PLLC,Plano,Jason M. Tyra,contact form,Multi-state,solo pass
+Solo (individual),TX,Individual,John Wucinski CPA,Dallas,John Wucinski,contact form,Business-entity,solo pass
+Solo (individual),TX,Individual,Jaclyn J. McGuinness CPA,Wylie,Jaclyn McGuinness,contact form,Business-entity,solo pass
+Solo (individual),TX,Individual,Timothy R. Rossmiller CPA PC,Austin,Timothy Rossmiller,tim@rossmillercpa.com,Business-entity,solo pass
+Solo (individual),TX,Individual,S Patricia White CPA PC,Round Rock,Patricia White,contact form,Business-entity,solo pass
+Solo (individual),TX,Individual,Mateo E. Jungman EA CPA,San Antonio,Mateo Jungman,mateo@mateo.cpa,Business-entity,solo pass
+Solo (individual),AZ,Individual,David Oase CPA,Tucson,David Oase,contact@tucsoncpa.com,Business-entity,solo pass
+Solo (individual),AZ,Individual,Michael Salomon CPA,Tucson,Michael Salomon,mike@msalomoncpa.com,Multi-state,solo pass
+Solo (individual),AZ,Individual,Thomas S Holly CPA PLLC,Phoenix,Thomas S. Holly,tholly@hollycpa.com,Business-entity,solo pass
+Solo (individual),AZ,Individual,M&M Accounting LLC,Mesa,Nancy Stillings EA,info@mmaccountingaz.com,Business-entity,solo pass
+Solo (individual),AZ,Individual,Craig L. Elggren CPA PC,Gilbert,Craig L. Elggren,craig@clecpa.com,Business-entity,solo pass
+Solo (individual),AZ,Individual,Tolonen Tax,Gilbert,Jeff Tolonen,jeff@tolonentax.com,Business-entity,solo pass
+Solo (individual),AZ,Individual,Phoenix Tax Guy,Phoenix,Andy Ibarra,contact form,Business-entity,solo pass
+Solo (individual),AZ,Individual,Steven M. Vogt CPA EA,Chandler,Steven M. Vogt,contact form,Business-entity,solo pass
+Solo (individual),AZ,Individual,Responsive Tax & Accounting LLC,Chandler,Marcy Vizzerra EA,info@responsivetax.com,Business-entity,solo pass

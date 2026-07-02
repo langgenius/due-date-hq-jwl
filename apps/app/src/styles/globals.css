@@ -209,6 +209,36 @@ a[href]:where(:not([data-slot='button']):not([data-slot='sidebar-menu-button']))
   animation: ddhq-stat-bump 150ms ease-out 1;
 }
 
+/* Arrival wash — a one-time accent wash on the rail row the user navigated TO
+   (from a /today card, a citation chip, a table row, or a shared URL). Starts
+   at the focus-ring tint (--state-accent-active-alt, 14% navy) with a short
+   hold so the eye can catch it, then settles into the steady neutral selection
+   fill (--state-base-hover) the active row already carries — so the wash ends
+   exactly where the selection class begins, no jump. Fired once per rail mount
+   via `useRailArrival` (list-rail.tsx); never on in-rail clicks. Accent is OK
+   here precisely because it's transient: steady selection stays neutral
+   (Yuqi: accent isn't the steady-selection colour). */
+@keyframes ddhq-arrival-wash {
+  0%,
+  35% {
+    background-color: var(--state-accent-active-alt);
+  }
+
+  100% {
+    background-color: var(--state-base-hover);
+  }
+}
+
+.animate-arrival-wash {
+  animation: ddhq-arrival-wash 1.4s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-arrival-wash {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pulse-strip-breathing::before {
     opacity: 0.2;

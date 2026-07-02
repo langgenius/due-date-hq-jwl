@@ -1,0 +1,31 @@
+=== WAVE 1a: Track A (Thu Jul  2 12:21:05 BST 2026) ===
+
+Due Date HQ outreach · touch 1 · SEND · csv=duedatehq-OUTREACH-sequence.csv · limit=5
+
+✓ sent brantley@westercpa.com  (Wester & Company CPA)  id=facb23e6-6c20-49b6-90a0-8beee4cea393
+✓ sent cale@harriscocpas.com  (Harris & Company PC)  id=5bfa7bc6-185d-474a-a62c-84149b8c7990
+
+Done. sent=2  skipped=281  failed=0
+=== WAVE 1b: Track B (Thu Jul  2 12:21:23 BST 2026) ===
+
+Due Date HQ outreach · touch 1 · SEND · csv=duedatehq-OUTREACH-sequence.csv · limit=70
+
+✓ sent Admin@RRCPAsFirm.com  (Rogers & Associates CPAs PC)  id=5b8887c2-e2db-4570-9c6d-9cd424f90262
+✓ sent NishitaChangela@taxpertsga.com  (Taxperts Accounting Services)  id=e86f9c2a-bc2c-474d-90c9-d5c82eca603d
+✓ sent info@tag-cpa.com  (Trinity Accounting Group)  id=04a8609f-cc05-4fa9-8937-a6b5d0de9f93
+✓ sent info@equifirstinc.com  (Equifirst)  id=f6aa184e-a3d6-47ae-ad29-360105e94b3f
+✓ sent brett@brettfriedmancpa.com  (Friedman & Company CPAs)  id=5d3ba661-071d-4afa-988f-22002371652a
+✓ sent team@netsavetax.com  (NetSave Tax & Accounting)  id=13ef6ef4-57f8-4020-838b-928019a7db27
+✓ sent support@sandovaltax.com  (Sandoval Tax CPAs)  id=a0b32225-7047-457e-9667-d71d4eb406d6
+✓ sent cbc@carotherscpa.com  (Carothers & Associates)  id=b661718b-4294-468e-9bb4-9a262e4e18d4
+✓ sent Info@catalyst-cpa.com  (Catalyst CPA)  id=93175cdc-23cf-4a78-b65a-24c55138ce3d
+✓ sent file@etcpa.com  (ETCPA (Edward Torres CPA))  id=90b0f7f8-ccac-4814-9c56-d606ef86e6d0
+✓ sent mhaque@nyc-cpafirm.com  (Haque CPA)  id=e9b4f6e3-eee8-4b6b-9feb-ef1057bb65b4
+✓ sent info@hpocpa.com  (Herman P. Ortiz CPA)  id=fff1c831-8fb9-4296-b54c-d9b5e52ef607
+✓ sent 212tax@gmail.com  (212 Tax & Accounting)  id=115ef02f-6882-443f-813b-60322ed46a19
+✓ sent info@bucknamconleycpas.com  (Bucknam & Conley CPAs)  id=a6613ed0-ab62-4e93-8acd-7233aa8e7812
+✓ sent jls@jlscpa.com  (Johnson, Lauder & Savidge LLP)  id=a4f8b690-8548-4fa8-8b4b-9234ecc3d0ea
+✓ sent info@mtbcpa.us  (MT Bachani CPA PLLC)  id=46954588-78aa-498f-8f29-9b820ac94ee8
+✓ sent ksmith@cpanewtampa.com  (KB Smith CPA)  id=a27a04be-4693-4ee3-a7e8-c1156e9cf952
+✓ sent awilda@gctaxcpa.com  (George, Cintron & Co CPA)  id=86d4cd22-f793-49b3-80bd-6b531c51f9bf
+✓ sent oren@ogcpaservices.com  (Oren Gulasa CPA)  id=3cba14ed-35c3-4fa6-8579-9e218c7373e8

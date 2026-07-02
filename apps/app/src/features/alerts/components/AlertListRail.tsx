@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { UsersIcon } from 'lucide-react'
 
@@ -15,6 +15,7 @@ import {
   ListRailBody,
   ListRailHead,
   ListRailSection,
+  useRailArrival,
 } from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
@@ -244,19 +245,14 @@ function RailItem({
   const { t } = useLingui()
 
   // 2026-06-12 (Yuqi "…go to the alert detail WITH THAT ALERT SELECTED AND
-  // SCROLLED TO THE TOP"): on the rail's first paint the selected item
-  // scrolls to the TOP of the list viewport (arriving from /today or a
-  // shared URL, the selection is visible immediately, leading the list).
-  // Later activations (↑/↓ paging) use 'nearest' so the rail never
-  // teleports under an in-rail click — a click target is already visible.
-  const itemRef = useRef<HTMLButtonElement | null>(null)
-  const hasPainted = useRef(false)
-  useEffect(() => {
-    if (active) {
-      itemRef.current?.scrollIntoView({ block: hasPainted.current ? 'nearest' : 'start' })
-    }
-    hasPainted.current = true
-  }, [active])
+  // SCROLLED TO THE TOP"): on the rail's first paint the selected item scrolls
+  // to the TOP of the list viewport and plays the one-time arrival wash —
+  // arriving from a /today card or a shared URL, the selection is visible AND
+  // visually confirmed immediately. Later activations (↑/↓ paging) scroll
+  // 'nearest' with no wash so the rail never teleports or re-flashes under an
+  // in-rail click. Shared `useRailArrival` — same behavior as both deadline
+  // rails.
+  const { ref: itemRef, arrived } = useRailArrival<HTMLButtonElement>(active)
 
   const published = new Date(alert.publishedAt)
   const dateLabel = new Intl.DateTimeFormat('en-US', {
@@ -323,6 +319,7 @@ function RailItem({
         // reads as the most present without being dark. No accent (steady
         // selection isn't the action color), no left bar (rail has its edge).
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
+        arrived && 'animate-arrival-wash',
       )}
     >
       {/* Time column (60px). When another alert is the selected one, the date
