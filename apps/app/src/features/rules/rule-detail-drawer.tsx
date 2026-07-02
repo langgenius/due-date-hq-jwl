@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -1285,6 +1285,7 @@ function CandidateReviewForm({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [acceptCompleting, setAcceptCompleting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   // Accept-mutation error surface (Pencil `DGeuG`). On failure the loading
@@ -1340,12 +1341,22 @@ function CandidateReviewForm({
     })()
   }
 
-  function handleAcceptSuccess() {
-    // Closure with the real impact numbers the confirm dialog already showed
-    // ("Rule activated — N deadlines generated"), plus the next step: with a
+  function handleAcceptSuccess(accepted: { generatedObligationCount?: number | undefined }) {
+    // Closure with the ACTUAL generation result, plus the next step: with a
     // 400+ candidate queue, "Review next" keeps the loop moving instead of
     // dead-stopping the reviewer back at the list after every accept.
-    const generated = impactQuery.data?.estimatedObligationCount ?? null
+    // "View deadlines" (sonner's second button slot) is the other real
+    // follow-up: the queue filtered to what this rule just generated — the
+    // same ?rule= deep-link the decision rail's "View deadlines from this
+    // rule" uses (ux-flow audit 2026-07-02).
+    //
+    // The count comes from the mutation RESULT, not previewRuleImpact's
+    // estimate: the estimate matches on client.state while generation
+    // iterates filing profiles, so for profile-less clients "N deadlines
+    // generated" was fiction and "View deadlines" landed on an empty list
+    // (journey-QA J3, 2026-07-02). When nothing was written we say so and
+    // drop the dead-end link.
+    const generated = accepted.generatedObligationCount ?? null
     const message =
       generated !== null && generated > 0
         ? generated === 1
@@ -1356,6 +1367,14 @@ function CandidateReviewForm({
       message,
       acceptToastOptions({
         style: ACCEPT_RULE_SUCCESS_TOAST_STYLE,
+        ...(generated !== null && generated > 0
+          ? {
+              cancel: {
+                label: t`View deadlines`,
+                onClick: () => void navigate(`/deadlines?rule=${encodeURIComponent(rule.id)}`),
+              },
+            }
+          : {}),
         ...(onReviewNext
           ? { action: { label: t`Review next`, onClick: () => onReviewNext() } }
           : {}),

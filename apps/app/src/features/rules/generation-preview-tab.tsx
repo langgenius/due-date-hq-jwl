@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   CalendarDaysIcon,
@@ -718,7 +719,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           />
           <RolloverColumnHeader
             label={t`Deadlines`}
-            description={t`Opens the existing duplicate deadline or the newly created deadline after Generate succeeds.`}
+            description={t`Opens the existing duplicate deadline or the newly created deadline after Generate succeeds. Skipped rows link to the rule library or client record where the gap can be fixed.`}
             align="right"
           />
         </CapsFieldLabel>
@@ -764,9 +765,44 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                     >
                       <Trans>Open</Trans>
                     </Button>
+                  ) : row.skippedReason === 'no_verified_rule_for_target_year' ? (
+                    // The gap is a rule that isn't active for the target
+                    // year — the library filtered to this tax type shows
+                    // the matching templates/candidates to accept.
+                    <Button
+                      nativeButton={false}
+                      variant="ghost"
+                      size="xs"
+                      render={<Link to={ruleLibrarySearchHref(row.taxType)} />}
+                    >
+                      <Trans>Find rule</Trans>
+                    </Button>
+                  ) : row.skippedReason === 'client_state_missing' ? (
+                    // The gap is on the client: no filing state, so no rule
+                    // can ever match. Fixed on the client record.
+                    <Button
+                      nativeButton={false}
+                      variant="ghost"
+                      size="xs"
+                      render={<Link to={`/clients/${row.clientId}`} />}
+                    >
+                      <Trans>Add state</Trans>
+                    </Button>
+                  ) : row.disposition === 'missing_due_date' && row.preview ? (
+                    // A matched rule without a concrete due date — review
+                    // it in the library (opens the rule drawer).
+                    <Button
+                      nativeButton={false}
+                      variant="ghost"
+                      size="xs"
+                      render={<Link to={ruleLibraryRuleHref(row.preview.ruleId)} />}
+                    >
+                      <Trans>Review rule</Trans>
+                    </Button>
                   ) : (
                     // EmptyCellMark gives the canonical text-text-tertiary
-                    // tone + screen-reader label.
+                    // tone + screen-reader label. Only rows with nothing to
+                    // act on land here (e.g. the source client was deleted).
                     <EmptyCellMark />
                   )}
                 </span>
@@ -927,38 +963,54 @@ function obligationQueueHref(obligationId: string): string {
   return `/deadlines?${new URLSearchParams({ obligation: obligationId }).toString()}`
 }
 
+// Rule library filtered to the gap: `q` matches rule taxType (see the
+// library's matchedRules filter), so a "Missing rule" row lands on the
+// templates/candidates that would close it.
+function ruleLibrarySearchHref(taxType: string): string {
+  return `/rules/library?${new URLSearchParams({ q: taxType }).toString()}`
+}
+
+// Opens the library with the rule drawer on this rule (`rule` URL state).
+function ruleLibraryRuleHref(ruleId: string): string {
+  return `/rules/library?${new URLSearchParams({ rule: ruleId }).toString()}`
+}
+
 function rolloverCreatedIds(result: AnnualRolloverOutput | undefined): string[] {
   return (
     result?.rows.flatMap((row) => (row.createdObligationId ? [row.createdObligationId] : [])) ?? []
   )
 }
 
+// These label helpers receive `t` as a PARAMETER, so the lingui macro can't
+// transform their tagged templates (a shadowed `t` is invisible to the
+// plugin — same footgun family as plural()+i18n._). They must go through
+// `msg` descriptors + t(descriptor); bare t`…` here silently renders ''.
 function targetStatusLabel(status: 'pending' | 'review', t: ReturnType<typeof useLingui>['t']) {
-  return status === 'pending' ? t`Pending` : t`Review`
+  return status === 'pending' ? t(msg`Pending`) : t(msg`Review`)
 }
 
 // Vocabulary from packages/core/src/rules `buildReviewReasons` — every code
 // gets a plain-words chip; unknown/free-text reasons fall back to a
 // de-snake-cased sentence.
 function reviewReasonLabel(reason: string, t: ReturnType<typeof useLingui>['t']): string {
-  if (reason === 'rule_requires_applicability_review') return t`Needs applicability review`
-  if (reason === 'rule_tier_applicability_review') return t`Applicability-review tier`
-  if (reason === 'coverage_manual') return t`Manual coverage`
-  if (reason === 'coverage_partial') return t`Partial coverage`
-  if (reason === 'local_fact_requirements_missing') return t`Missing local client facts`
-  if (reason === 'due_date_requires_review') return t`Due-date logic needs review`
+  if (reason === 'rule_requires_applicability_review') return t(msg`Needs applicability review`)
+  if (reason === 'rule_tier_applicability_review') return t(msg`Applicability-review tier`)
+  if (reason === 'coverage_manual') return t(msg`Manual coverage`)
+  if (reason === 'coverage_partial') return t(msg`Partial coverage`)
+  if (reason === 'local_fact_requirements_missing') return t(msg`Missing local client facts`)
+  if (reason === 'due_date_requires_review') return t(msg`Due-date logic needs review`)
   const words = reason.replace(/_/g, ' ')
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
 function skippedReasonLabel(reason: string | null, t: ReturnType<typeof useLingui>['t']): string {
-  if (reason === 'client_state_missing') return t`Client state missing`
-  if (reason === 'client_not_found') return t`Client not found`
-  if (reason === 'no_verified_rule_for_target_year') return t`No active target-year rule`
-  if (reason === 'target_obligation_already_exists') return t`Target deadline already exists`
-  if (reason === 'before_monitoring_start_date') return t`Before monitoring start`
-  if (reason === 'verified_rule_has_no_concrete_due_date') return t`No concrete due date`
-  return reason ?? t`No rule matched`
+  if (reason === 'client_state_missing') return t(msg`Client state missing`)
+  if (reason === 'client_not_found') return t(msg`Client no longer exists`)
+  if (reason === 'no_verified_rule_for_target_year') return t(msg`No active target-year rule`)
+  if (reason === 'target_obligation_already_exists') return t(msg`Target deadline already exists`)
+  if (reason === 'before_monitoring_start_date') return t(msg`Before monitoring start`)
+  if (reason === 'verified_rule_has_no_concrete_due_date') return t(msg`No concrete due date`)
+  return reason ?? t(msg`No rule matched`)
 }
 
 function TaxYearCalendarSelect({

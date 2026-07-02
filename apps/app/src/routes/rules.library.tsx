@@ -1326,6 +1326,12 @@ export function RulesLibraryRoute() {
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
   // The bulk-review list modal (Pencil `Oaey3`) — the default bulk surface.
   const [bulkListOpen, setBulkListOpen] = useState(false)
+  // The modal's shared review note lives HERE (route level), not inside the
+  // modal: opening a rule from within the modal unmounts it, and a typed
+  // note used to be silently destroyed (ux-flow audit 2026-07-02). Now the
+  // note survives the open-rule → close → "Review N" round trip; it clears
+  // with the selection (batch committed or explicitly cleared).
+  const [bulkReviewNote, setBulkReviewNote] = useState('')
   // Review-prompt collapse. The needs-review banner can be tucked into a
   // small pill (still present, never gone) so the CPA can dismiss the nag
   // without losing the entry point. Sticky per-user via localStorage —
@@ -1878,6 +1884,19 @@ export function RulesLibraryRoute() {
     () => (ruleId ? (rules.find((r) => r.id === ruleId) ?? null) : null),
     [ruleId, rules],
   )
+  // Stale/unknown `?rule=<id>` deep-link guard (ux-flow audit 2026-07-02):
+  // an id that doesn't exist in the loaded catalog used to fail SILENTLY —
+  // no detail, no feedback, and the dead param stuck around in the URL.
+  // Once the catalog has actually loaded (never while it's still fetching,
+  // so a slow load can't false-positive), say so quietly and clear the param.
+  useEffect(() => {
+    if (!ruleId || !rulesQuery.isSuccess) return
+    if (rules.some((r) => r.id === ruleId)) return
+    toast.info(t`That rule link doesn't resolve`, {
+      description: t`The rule may have been removed or replaced.`,
+    })
+    void setRuleId(null)
+  }, [ruleId, rules, rulesQuery.isSuccess, setRuleId, t])
   const concreteDraftInputs = useMemo(() => {
     const seen = new Set<string>()
     const inputs: RuleConcreteDraftTarget[] = []
@@ -2013,10 +2032,13 @@ export function RulesLibraryRoute() {
   // Recent-changes "View all changes" → the audit log, the canonical
   // full history of rule edits (Pencil O0pyRO `pyrzT`). The overview no
   // longer hosts a grouped table to filter, so the link points at the
-  // real changes feed rather than a scope toggle.
+  // real changes feed rather than a scope toggle. Scoped to rule events
+  // (?entityType=obligation_rule — the audit page's real filter param):
+  // the unscoped firm-wide feed buried the rule changes this card was
+  // promising under logins/exports/client edits (ux-flow audit 2026-07-02).
   const navigate = useNavigate()
   const handleViewAllChanges = useCallback(() => {
-    void navigate('/audit')
+    void navigate('/audit?entityType=obligation_rule')
   }, [navigate])
   const handleMonitorSources = useCallback(() => {
     void navigate('/rules/sources')
@@ -2053,6 +2075,9 @@ export function RulesLibraryRoute() {
 
   const clearSelection = useCallback(() => {
     setSelectedRuleIds(new Set())
+    // The shared bulk-review note belongs to the selection — no selection,
+    // no batch to annotate.
+    setBulkReviewNote('')
   }, [])
 
   // All needs-review rule IDs across the whole catalog. Powers the
@@ -3144,9 +3169,7 @@ export function RulesLibraryRoute() {
           rule={selectedRule}
           concreteDraft={selectedConcreteDraft}
           onClose={() => void setRuleId(null)}
-          {...(reviewNextRule
-            ? { onReviewNext: () => handleRuleClick(reviewNextRule) }
-            : {})}
+          {...(reviewNextRule ? { onReviewNext: () => handleRuleClick(reviewNextRule) } : {})}
         />
       ) : null}
       {/* Floating bulk-review bar — appears at the bottom of the
@@ -3167,6 +3190,8 @@ export function RulesLibraryRoute() {
         <BulkReviewListModal
           rules={selectedReviewRules}
           concreteDraftByTarget={concreteDraftByTarget}
+          note={bulkReviewNote}
+          onNoteChange={setBulkReviewNote}
           onClose={() => setBulkListOpen(false)}
           onOpenRule={(rule) => {
             setBulkListOpen(false)
@@ -5055,6 +5080,8 @@ function BulkMetric({
 function BulkReviewListModal({
   rules,
   concreteDraftByTarget,
+  note,
+  onNoteChange,
   onClose,
   onOpenRule,
   onComplete,
@@ -5065,6 +5092,10 @@ function BulkReviewListModal({
    *  ready draft be bulk-accepted here via `bulkVerifyCandidates`, instead of being
    *  blanket-gated as "needs AI draft review". */
   concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
+  /** Shared review note — lifted to the route so opening a rule from inside
+   *  the modal (which unmounts it) doesn't destroy the typed text. */
+  note: string
+  onNoteChange: (next: string) => void
   onClose: () => void
   /** Open one rule's full detail (takeover) — closes this modal. */
   onOpenRule: (rule: ObligationRule) => void
@@ -5073,7 +5104,6 @@ function BulkReviewListModal({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const [note, setNote] = useState('')
   // Default selection respects the accept batch cap: when more rules arrive
   // than one batch can accept, preselect a cap-sized batch instead of
   // everything — an all-selected batch of 454 opened with Accept dead-locked
@@ -5557,7 +5587,7 @@ function BulkReviewListModal({
             value={note}
             onChange={(event) => {
               setRejectArmed(false) // note changed — re-confirm a mass reject
-              setNote(event.target.value)
+              onNoteChange(event.target.value)
             }}
             maxLength={1000}
             disabled={busy}

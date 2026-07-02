@@ -53,6 +53,11 @@ export function SourcesTab() {
   const { t } = useLingui()
   const [searchParams, setSearchParams] = useSearchParams()
   const domainFilter = searchParams.get('domain')
+  // `?source=<id>` scopes the table to one registry source — the audit
+  // drawer's "View Rule source" jump lands on the row that changed instead
+  // of the full list (2026-07-02 ux-flow audit). Same deep-link-param shape
+  // as `?domain`, and "Clear filters" clears it the same way.
+  const sourceIdFilter = searchParams.get('source')
   const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
   const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>(() => {
     const jurisdiction = searchParams.get('jur')
@@ -134,9 +139,18 @@ export function SourcesTab() {
           matchesSelected(source.jurisdiction, jurisdictionFilters) &&
           matchesSelected(source.sourceType, sourceTypeFilters) &&
           matchesSelected(source.cadence, cadenceFilters) &&
-          (!domainFilter || source.domains.some((domain) => domain === domainFilter)),
+          (!domainFilter || source.domains.some((domain) => domain === domainFilter)) &&
+          (!sourceIdFilter || source.id === sourceIdFilter),
       ),
-    [cadenceFilters, domainFilter, healthFilter, jurisdictionFilters, rows, sourceTypeFilters],
+    [
+      cadenceFilters,
+      domainFilter,
+      healthFilter,
+      jurisdictionFilters,
+      rows,
+      sourceIdFilter,
+      sourceTypeFilters,
+    ],
   )
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / SOURCE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, pageCount - 1)
@@ -188,7 +202,8 @@ export function SourcesTab() {
     jurisdictionFilters.length > 0 ||
     sourceTypeFilters.length > 0 ||
     cadenceFilters.length > 0 ||
-    Boolean(domainFilter)
+    Boolean(domainFilter) ||
+    Boolean(sourceIdFilter)
 
   const clearFilters = useCallback(() => {
     setHealthFilter('all')
@@ -201,6 +216,7 @@ export function SourcesTab() {
         const next = new URLSearchParams(prev)
         next.delete('jur')
         next.delete('domain')
+        next.delete('source')
         return next
       },
       { replace: true },

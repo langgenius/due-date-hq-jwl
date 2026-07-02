@@ -218,87 +218,87 @@ export function JurisdictionRail({
             retrying={loadError.retrying}
           />
         ) : (
-        <div className="flex flex-col gap-0.5">
-          {/* Overview — the All-jurisdictions surface, always first. */}
-          {!query ? (
-            <>
-              <RailRow
-                icon={LayoutDashboardIcon}
-                label={t`Overview`}
-                count={totalRuleCount}
-                reviewCount={0}
-                selected={selected === null}
-                onSelect={() => onSelect(null)}
-              />
-              {/* Render whenever ANY override exists (active or expired) —
+          <div className="flex flex-col gap-0.5">
+            {/* Overview — the All-jurisdictions surface, always first. */}
+            {!query ? (
+              <>
+                <RailRow
+                  icon={LayoutDashboardIcon}
+                  label={t`Overview`}
+                  count={totalRuleCount}
+                  reviewCount={0}
+                  selected={selected === null}
+                  onSelect={() => onSelect(null)}
+                />
+                {/* Render whenever ANY override exists (active or expired) —
                   the page is the audit trail of past deadline overrides, and
                   an audit trail that disappears when its content expires is
                   unreachable exactly when a CPA needs to prove it existed. */}
-              {temporary && temporary.totalCount > 0 ? (
-                <RailNavRow
-                  icon={TimerIcon}
-                  label={t`Temporary rules`}
-                  href="/rules/temporary"
-                  inlineMeta={
-                    temporary.activeCount > 0 ? (
-                      <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-warning">
-                        {t`${temporary.activeCount} active`}
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-tertiary">
-                        {t`${temporary.totalCount} expired`}
-                      </span>
-                    )
-                  }
-                  subtext={
-                    temporary.activeCount > 0
-                      ? t`Applied to ${temporary.obligationCount} obligations`
-                      : t`Past deadline overrides`
-                  }
-                />
-              ) : null}
-            </>
-          ) : null}
+                {temporary && temporary.totalCount > 0 ? (
+                  <RailNavRow
+                    icon={TimerIcon}
+                    label={t`Temporary rules`}
+                    href="/rules/temporary"
+                    inlineMeta={
+                      temporary.activeCount > 0 ? (
+                        <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-warning">
+                          {t`${temporary.activeCount} active`}
+                        </span>
+                      ) : (
+                        <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-tertiary">
+                          {t`${temporary.totalCount} expired`}
+                        </span>
+                      )
+                    }
+                    subtext={
+                      temporary.activeCount > 0
+                        ? t`Applied to ${temporary.obligationCount} obligations`
+                        : t`Past deadline overrides`
+                    }
+                  />
+                ) : null}
+              </>
+            ) : null}
 
-          {federalVisible ? (
-            <>
-              <RailSectionLabel>{t`Federal`}</RailSectionLabel>
-              <RailRow
-                code="FED"
-                label={federalVisible.label}
-                count={federalVisible.ruleCount}
-                reviewCount={federalVisible.reviewCount}
-                highCount={federalVisible.highCount}
-                selected={selected === 'FED'}
-                onSelect={() => onSelect('FED')}
-              />
-            </>
-          ) : null}
-
-          {visibleStates.length > 0 ? (
-            <>
-              <RailSectionLabel>{t`States`}</RailSectionLabel>
-              {visibleStates.map((it) => (
+            {federalVisible ? (
+              <>
+                <RailSectionLabel>{t`Federal`}</RailSectionLabel>
                 <RailRow
-                  key={it.jurisdiction}
-                  code={it.jurisdiction}
-                  label={it.label}
-                  count={it.ruleCount}
-                  reviewCount={it.reviewCount}
-                  highCount={it.highCount}
-                  selected={selected === it.jurisdiction}
-                  onSelect={() => onSelect(it.jurisdiction)}
+                  code="FED"
+                  label={federalVisible.label}
+                  count={federalVisible.ruleCount}
+                  reviewCount={federalVisible.reviewCount}
+                  highCount={federalVisible.highCount}
+                  selected={selected === 'FED'}
+                  onSelect={() => onSelect('FED')}
                 />
-              ))}
-            </>
-          ) : null}
+              </>
+            ) : null}
 
-          {query && shownStateCount === 0 && !federalVisible ? (
-            <p className="px-3 py-6 text-center text-xs text-text-tertiary">
-              {t`No jurisdictions match "${search}"`}
-            </p>
-          ) : null}
-        </div>
+            {visibleStates.length > 0 ? (
+              <>
+                <RailSectionLabel>{t`States`}</RailSectionLabel>
+                {visibleStates.map((it) => (
+                  <RailRow
+                    key={it.jurisdiction}
+                    code={it.jurisdiction}
+                    label={it.label}
+                    count={it.ruleCount}
+                    reviewCount={it.reviewCount}
+                    highCount={it.highCount}
+                    selected={selected === it.jurisdiction}
+                    onSelect={() => onSelect(it.jurisdiction)}
+                  />
+                ))}
+              </>
+            ) : null}
+
+            {query && shownStateCount === 0 && !federalVisible ? (
+              <p className="px-3 py-6 text-center text-xs text-text-tertiary">
+                {t`No jurisdictions match "${search}"`}
+              </p>
+            ) : null}
+          </div>
         )}
       </ListRailBody>
 
