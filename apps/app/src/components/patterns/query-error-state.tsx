@@ -92,7 +92,9 @@ export function QueryErrorState({
       <p
         className={cn(
           'max-w-[42ch]',
-          isInline ? 'text-xs text-text-tertiary' : 'text-description leading-5 text-text-secondary',
+          isInline
+            ? 'text-xs text-text-tertiary'
+            : 'text-description leading-5 text-text-secondary',
         )}
       >
         {message ?? <Trans>Try again in a moment. If it keeps failing, contact support.</Trans>}

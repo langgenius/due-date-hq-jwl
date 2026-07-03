@@ -150,9 +150,7 @@ export function AlertHistoryView() {
         // cursor), but this page is titled "handled alerts" — a just-dismissed
         // alert must file at the top under THIS WEEK, not under its months-old
         // publish month halfway down the archive.
-        .toSorted(
-          (a, b) => new Date(handledAt(b)).getTime() - new Date(handledAt(a)).getTime(),
-        ),
+        .toSorted((a, b) => new Date(handledAt(b)).getTime() - new Date(handledAt(a)).getTime()),
     [alerts, tab, query],
   )
 
@@ -255,26 +253,28 @@ export function AlertHistoryView() {
             ariaLabel={t`Filter handled alerts`}
             value={tab}
             onValueChange={setTab}
-            options={TABS.map((entry) => ({
-              value: entry.id,
-              label: entry.label,
-              // Counts only when the archive actually loaded — "All 0" from a
-              // loading/failed query is the same confident-zero fiction (S1).
-              ...(historyQuery.data
-                ? {
-                    count:
-                      entry.id === 'all'
-                        ? stats.handled
-                        : entry.id === 'applied'
-                          ? stats.applied
-                          : entry.id === 'dismissed'
-                            ? stats.dismissed
-                            : entry.id === 'reverted'
-                              ? stats.reverted
-                              : stats.expired,
-                  }
-                : {}),
-            }))}
+            options={TABS.map((entry) =>
+              Object.assign(
+                {
+                  value: entry.id,
+                  label: entry.label,
+                },
+                historyQuery.data
+                  ? {
+                      count:
+                        entry.id === 'all'
+                          ? stats.handled
+                          : entry.id === 'applied'
+                            ? stats.applied
+                            : entry.id === 'dismissed'
+                              ? stats.dismissed
+                              : entry.id === 'reverted'
+                                ? stats.reverted
+                                : stats.expired,
+                    }
+                  : {},
+              ),
+            )}
           />
           {/* Canonical SearchInput so rest/hover/focus/placeholder + the
               clear-(×)/Esc affordance match every other page search. */}

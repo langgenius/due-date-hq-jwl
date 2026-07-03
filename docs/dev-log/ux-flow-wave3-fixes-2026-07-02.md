@@ -41,6 +41,7 @@ defects in the wave-3 work itself, both fixed + live re-verified before commit:
 Root cause was two-layered: generation only ran at rule-accept time, AND
 manually created clients got filing profiles with empty `taxTypes` (only the
 migration wizard inferred them), so no cascade could ever have matched.
+
 - Generation kernel extracted to `generateObligationsForClientList` (accept path
   delegates to it; same dedup-key seeding → idempotent by construction).
 - Hooked into `clients.create`, `createBatch`, `updateJurisdiction`,

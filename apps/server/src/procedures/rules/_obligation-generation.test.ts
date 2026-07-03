@@ -125,12 +125,13 @@ function makeScoped(input: {
 
   const clients = input.clients ?? [makeClient()]
   const profiles = input.profiles ?? new Map([[CLIENT_ID, [makeProfile()]]])
+  const listByFirm = vi.fn(async () => clients)
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused service test double implements only repos used by rule obligation generation.
   const scoped = {
     firmId: FIRM_ID,
     clients: {
-      listByFirm: vi.fn(async () => clients),
+      listByFirm,
     },
     filingProfiles: {
       listByClients: vi.fn(async () => profiles),
@@ -166,6 +167,7 @@ function makeScoped(input: {
   return {
     scoped,
     createdInputs,
+    listByFirm,
     createBatch,
     writeEvidenceBatch,
     writeAudit,
@@ -753,7 +755,7 @@ describe('generateObligationsForAcceptedRules', () => {
 describe('generateObligationsForClientList', () => {
   it('covers a client created after the rule was accepted', async () => {
     const lateClient = makeClient({ migrationBatchId: null })
-    const { scoped, createdInputs, writeAudit } = makeScoped({
+    const { scoped, createdInputs, listByFirm, writeAudit } = makeScoped({
       clients: [lateClient],
       profiles: new Map([[CLIENT_ID, [makeProfile({ migrationBatchId: null })]]]),
     })
@@ -785,7 +787,7 @@ describe('generateObligationsForClientList', () => {
       }),
     ])
     // The firm-wide client list must NOT be consulted — only the given clients.
-    expect(scoped.clients.listByFirm).not.toHaveBeenCalled()
+    expect(listByFirm).not.toHaveBeenCalled()
     expect(writeAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'obligation.batch_created',
@@ -801,9 +803,7 @@ describe('generateObligationsForClientList', () => {
     const nonMatching = makeClient({ state: 'TX', migrationBatchId: null })
     const { scoped, createBatch, writeAudit } = makeScoped({
       clients: [nonMatching],
-      profiles: new Map([
-        [CLIENT_ID, [makeProfile({ state: 'TX', taxTypes: ['tx_franchise'] })]],
-      ]),
+      profiles: new Map([[CLIENT_ID, [makeProfile({ state: 'TX', taxTypes: ['tx_franchise'] })]]]),
     })
 
     const result = await generateObligationsForClientList({

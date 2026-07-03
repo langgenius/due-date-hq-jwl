@@ -8,6 +8,7 @@ translations) and committed per cluster. All fixes live-verified with Playwright
 against the demo stack before commit.
 
 ## Alert action closure (features/alerts + db pulse repo)
+
 - Dismiss / Mark-reviewed toasts now carry **Undo**; history drawer gains
   **Restore to queue**. Root fix: `pulse.reactivate`'s repo guard only allowed
   `reverted`, so NO restore path (incl. the list row's existing Undo) worked —
@@ -21,6 +22,7 @@ against the demo stack before commit.
 - "N of M" pager gains real ▲/▼ buttons reusing the rail's prev/next.
 
 ## /today handoffs (features/dashboard, routes/dashboard)
+
 - Source chip on alert cards: `{...props}` spread AFTER custom handlers let Base
   UI overwrite onClick — chip navigated to the alert instead of opening the
   source. Spread reordered; card click still opens the alert (stopPropagation).
@@ -34,6 +36,7 @@ against the demo stack before commit.
 - aria plural fix ("1 deadline waiting…").
 
 ## Deadline flow closure (features/obligations, routes)
+
 - **Snooze P0**: page-mode snooze navigated into its own "not found" pane. Now
   returns to the filtered queue; toast names the return date + working Undo
   (`obligations.snooze` already accepted `snoozedUntil: null`). A "Snoozed"
@@ -55,6 +58,7 @@ against the demo stack before commit.
   endpoint yet.
 
 ## Global shell (patterns, auth, main)
+
 - status.duedatehq.com (NO DNS record) → https://duedatehq.com/status on
   auth-chrome + entry-layout (onboarding/2FA/invite/migration/readiness).
 - `refetchOnWindowFocus: true` (multi-user: second viewer no longer stale ≤60s;
@@ -63,12 +67,13 @@ against the demo stack before commit.
   behind them — honesty over chrome).
 - Console warnings fixed at root: bell popover `Button render={<Link/>}` needed
   `nativeButton={false}`; StatBand's conditional `key` spread → `key={bumpKey ??
-  undefined}`.
+undefined}`.
 - Investigations: notification "wrong id" P0 disproven (target was QA-snoozed —
   collapses into snooze P0); practice-save revert is demo-only
   (`ensureDemoIdentities` resets demo firms on every demo-login).
 
 ## Rules review closure (features/rules, rules.library)
+
 - Accept success: toast "Rule activated — N deadlines generated" (real impact
   count) + **Review next** action (current filtered order, wraps).
 - "Start review" bulk modal preselects a cap-sized batch (100, accept-ready
@@ -83,6 +88,7 @@ against the demo stack before commit.
   (/rules/preview) + Temporary rules (/rules/temporary).
 
 ## Deferred (wave 2+, tracked in the audit doc)
+
 Drawer back semantics (replaceState), shared query-error/retry state (S1),
 settings dirty-form guard, count reconciliation (S4), snoozed-rows filter,
 client rename reachability + archive, J3 retroactive rule application, alert

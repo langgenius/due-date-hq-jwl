@@ -54,9 +54,9 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
     [
       'Today',
       'Deadlines',
+      'Inbox',
       'Reminder emails',
       'Calendar sync',
-      'Notifications',
       'Team workload',
       'Clients',
       'Practice profile',

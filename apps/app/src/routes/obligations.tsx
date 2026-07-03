@@ -5219,8 +5219,7 @@ export function ObligationQueueRoute() {
                                   // One-time arrival wash on the return-trip /
                                   // deep-linked ?row= target (see the
                                   // pendingArrivalRowRef effect above).
-                                  tableRow.original.id === arrivedRowId &&
-                                    'animate-arrival-wash',
+                                  tableRow.original.id === arrivedRowId && 'animate-arrival-wash',
                                   // Within-group rows lose their bottom border so
                                   // same-client filings weld into a single block.
                                   // The last row of each group keeps the divider,

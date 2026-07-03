@@ -13,7 +13,7 @@ detail surface with no visual link back to what you clicked — "不知道是真
   URL, the row you opened was routinely **off-screen** in the rail
   (verified live: the target sat 1932px below the fold).
 - `ObligationListRail` (/deadlines in-page master-detail) had the same gap.
-- `AlertListRail` scrolled (2026-06-12) but nothing *confirmed* the row.
+- `AlertListRail` scrolled (2026-06-12) but nothing _confirmed_ the row.
 
 ## Fix
 

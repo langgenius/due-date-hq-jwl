@@ -347,9 +347,7 @@ export function AffectedClientsTable({
                           if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
                         }}
                         title={row.clientName}
-                        aria-label={
-                          isReview ? undefined : t`Open ${row.clientName} in a new tab`
-                        }
+                        aria-label={isReview ? undefined : t`Open ${row.clientName} in a new tab`}
                         className="block w-fit max-w-full break-words rounded-sm text-sm font-medium leading-tight text-text-primary underline-offset-2 outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         {row.clientName}

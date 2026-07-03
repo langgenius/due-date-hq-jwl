@@ -76,9 +76,7 @@ export function UnsavedChangesGuardDialog({
             <Trans>Discard changes?</Trans>
           </AlertDialogTitle>
           <AlertDialogDescription>
-            <Trans>
-              You have unsaved changes on this page. If you leave now, they'll be lost.
-            </Trans>
+            <Trans>You have unsaved changes on this page. If you leave now, they'll be lost.</Trans>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

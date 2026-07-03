@@ -259,7 +259,7 @@ export function SettingsProfileRoute() {
   // Current device pinned first (it must never hide behind the cap),
   // then newest sessions first — the order a "is this login mine?"
   // review actually reads in.
-  const orderedSessions = [...(status?.sessions ?? [])].sort((a, b) => {
+  const orderedSessions = [...(status?.sessions ?? [])].toSorted((a, b) => {
     if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
     return b.createdAt.localeCompare(a.createdAt)
   })

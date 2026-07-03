@@ -4,6 +4,7 @@
 Waves C1/C2 (70 + 70) complete the 205.
 
 ## The send path (script, not Mailmeteor)
+
 Everything sends via `send-outreach.mjs` (Resend API, from `Gigi from DueDateHQ <gigi@duedatehq.com>`).
 Touch 1 renders the locked **v11 template** in code — serif hero question, product-faithful GA
 alert card (IRS/GEORGIA comparison, Clinch/Echols/Brantley counties, card links to
@@ -29,6 +30,7 @@ node send-outreach.mjs --touch 3 --send --limit 75 --delay 8000   # ≈ 2026-07-
 Dry-run by default — add `--send` only when you mean it.
 
 ## Operating rules
+
 - **Before every touch:** add repliers, "no thanks", and bounces to `outreach-suppress.txt`
   (one email per line). The script skips them.
 - `.outreach-state.json` is the campaign's memory (who got which touch, when). Commit it
@@ -38,6 +40,7 @@ Dry-run by default — add `--send` only when you mean it.
   `re: DueDateHQ`), threading under touch 1.
 
 ## Files
+
 - `duedatehq-MASTER-verified.csv` — 283 verified targets (205 emailable + 78 contact-form)
 - `duedatehq-OUTREACH-sequence.csv` — per-target 3-touch bodies (touch 1 superseded by v11 in code)
 - `ALL-track{A,B,C}*.csv` — wave lists · `ramp-day*.csv` — legacy ramp plan (unused)

@@ -33,12 +33,12 @@ proven in-repo, just not applied uniformly.
 
 ## P0
 
-| # | Finding | Where |
-|---|---|---|
-| 1 | Snooze = black hole: detail → "not found", absent from table/rail/filters, no undo, no unsnooze | obligations snooze flow |
-| 2 | Add-deadline internal notes silently discarded; toast tells user to save text that no longer exists | CreateObligationDialog onSuccess |
-| 3 | Practice profile save: success toast + 200 echo, but value reverts on reload (mock-firm write?) | /practice ↔ firms.updateCurrent |
-| 4 | Notification deep-link → "Deadline not found" (stale seeded obligation id) | notifications seed / entity refs |
+| #   | Finding                                                                                             | Where                            |
+| --- | --------------------------------------------------------------------------------------------------- | -------------------------------- |
+| 1   | Snooze = black hole: detail → "not found", absent from table/rail/filters, no undo, no unsnooze     | obligations snooze flow          |
+| 2   | Add-deadline internal notes silently discarded; toast tells user to save text that no longer exists | CreateObligationDialog onSuccess |
+| 3   | Practice profile save: success toast + 200 echo, but value reverts on reload (mock-firm write?)     | /practice ↔ firms.updateCurrent  |
+| 4   | Notification deep-link → "Deadline not found" (stale seeded obligation id)                          | notifications seed / entity refs |
 
 ## P1 (merged, deduped; ✓✓ = confirmed by both tracks)
 
@@ -104,13 +104,13 @@ to copy); in-shell 404; keyboard help.
 - **Wave 1 — SHIPPED 2026-07-02** (see docs/dev-log/ux-flow-wave1-fixes-2026-07-02.md):
   alert undo/restore (+ repo guard fix + key-repeat double-dismiss), history bulk
   chrome removal, pager buttons, /today source-chip + inline-dismiss + bucket links
-  + onCreated + sync feedback, snooze P0 (return+undo+dated toast), crumb filters,
-  malformed-ref guard, leave-note dialog, bulk-confirm honesty, extension hint,
-  create-notes P0 (session draft), status URL, refetchOnWindowFocus, palette
-  honesty, 2 console warnings, rules accept closure + review-next + bulk default +
-  ready markers + decision rail + Tools menu. Investigations: notification-id P0
-  disproven (was the snoozed row); practice-save revert = demo-only
-  (ensureDemoIdentities). Drawer Back semantics moved to wave 2.
+  - onCreated + sync feedback, snooze P0 (return+undo+dated toast), crumb filters,
+    malformed-ref guard, leave-note dialog, bulk-confirm honesty, extension hint,
+    create-notes P0 (session draft), status URL, refetchOnWindowFocus, palette
+    honesty, 2 console warnings, rules accept closure + review-next + bulk default +
+    ready markers + decision rail + Tools menu. Investigations: notification-id P0
+    disproven (was the snoozed row); practice-save revert = demo-only
+    (ensureDemoIdentities). Drawer Back semantics moved to wave 2.
 - **Wave 2 — SHIPPED 2026-07-02** (see docs/dev-log/ux-flow-wave2-fixes-2026-07-02.md):
   shared query-error/retry primitive (S1, 12 surfaces); drawer back semantics
   (S3, push-on-open); count reconciliation (S4); snoozed-row visibility +

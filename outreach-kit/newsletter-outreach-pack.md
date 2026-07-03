@@ -12,23 +12,23 @@ Two tracks. Don't mix them — the ask and the tone are different.
 
 ## Contact sheet
 
-| Target | Track | Contact path | Emailable? | Notes |
-|---|---|---|---|---|
-| **Jason Staats** — Jason On Firms (jasononfirms.com) | Creator | **jason@jasononfirms.com** (direct). Site: jasononfirms.com | ✅ direct email | Highest buyer-intent match. Running heavy sponsor reads across his podcast right now (Canopy, Soraban, Financial Cents, etc.) — actively taking sponsors. Mirror his demo/promo-code format. |
-| **Ryan Lazanis** — Future Firm (futurefirm.co) | Creator | Form: futurefirm.co/contact · or DM linkedin.com/in/ryanlazanis | ❌ form/LinkedIn only | ~7,600 firm-owner subscribers, 2x/week. |
-| **Blake Oliver** — The Accounting Podcast / Earmark | Creator | Sponsor form via accounting.show ("sponsor" link) · self-serve classified: cloudacctpod.link/RunClassifiedAd | ❌ form only | Classified link is the fastest path. Podcast-led audience. |
-| **CPA Practice Advisor** | Publication | cpapracticeadvisor.com/advertise · editor@cpapracticeadvisor.com | ✅ | Best trade-pub fit for a SaaS tool. |
-| **The Tax Adviser / AICPA** | Publication | adsales@aicpa-cima.com | ✅ | Tightest audience match — the AICPA Tax Section. |
-| **CPA Trendlines** | Publication | Media-kit page at cpatrendlines.com | ❌ request kit | 300k+ subscribers, 47% mid-market decision-makers. |
-| **Going Concern** | Publication | Editorial/tip line at goingconcern.com · sponsored content via Accountingfly | ❌ inquiry | Big, informal, younger practitioner base. |
-| **Accounting Today** | Publication | Ad sales via accountingtoday.com | ❌ request kit | Widest reach (300k+), broadest/least targeted. |
+| Target                                               | Track       | Contact path                                                                                                 | Emailable?            | Notes                                                                                                                                                                                        |
+| ---------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Jason Staats** — Jason On Firms (jasononfirms.com) | Creator     | **jason@jasononfirms.com** (direct). Site: jasononfirms.com                                                  | ✅ direct email       | Highest buyer-intent match. Running heavy sponsor reads across his podcast right now (Canopy, Soraban, Financial Cents, etc.) — actively taking sponsors. Mirror his demo/promo-code format. |
+| **Ryan Lazanis** — Future Firm (futurefirm.co)       | Creator     | Form: futurefirm.co/contact · or DM linkedin.com/in/ryanlazanis                                              | ❌ form/LinkedIn only | ~7,600 firm-owner subscribers, 2x/week.                                                                                                                                                      |
+| **Blake Oliver** — The Accounting Podcast / Earmark  | Creator     | Sponsor form via accounting.show ("sponsor" link) · self-serve classified: cloudacctpod.link/RunClassifiedAd | ❌ form only          | Classified link is the fastest path. Podcast-led audience.                                                                                                                                   |
+| **CPA Practice Advisor**                             | Publication | cpapracticeadvisor.com/advertise · editor@cpapracticeadvisor.com                                             | ✅                    | Best trade-pub fit for a SaaS tool.                                                                                                                                                          |
+| **The Tax Adviser / AICPA**                          | Publication | adsales@aicpa-cima.com                                                                                       | ✅                    | Tightest audience match — the AICPA Tax Section.                                                                                                                                             |
+| **CPA Trendlines**                                   | Publication | Media-kit page at cpatrendlines.com                                                                          | ❌ request kit        | 300k+ subscribers, 47% mid-market decision-makers.                                                                                                                                           |
+| **Going Concern**                                    | Publication | Editorial/tip line at goingconcern.com · sponsored content via Accountingfly                                 | ❌ inquiry            | Big, informal, younger practitioner base.                                                                                                                                                    |
+| **Accounting Today**                                 | Publication | Ad sales via accountingtoday.com                                                                             | ❌ request kit        | Widest reach (300k+), broadest/least targeted.                                                                                                                                               |
 
-*No personal email guesses for the creators — the reply-to and form paths above are the ones they actually intend for these inquiries.*
+_No personal email guesses for the creators — the reply-to and form paths above are the ones they actually intend for these inquiries._
 
 ### Subscribe / follow links (get on their lists first)
 
 - Jason Staats — jasononfirms.com/newsletter
-- Ryan Lazanis / Future Firm — futurefirm.co/newsletter *(Montreal-based; US audience)*
+- Ryan Lazanis / Future Firm — futurefirm.co/newsletter _(Montreal-based; US audience)_
 - Blake Oliver — accounting.show (podcast + newsletter) · earmarkcpe.com
 - CPA Practice Advisor — cpapracticeadvisor.com/subscribe
 - The Tax Adviser (AICPA) — thetaxadviser.com (free on-site alerts)
@@ -40,10 +40,10 @@ Two tracks. Don't mix them — the ask and the tone are different.
 
 ## Template A — Creator sponsorship inquiry (Track 1)
 
-Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}` *(OPTIONAL — must be a true, verifiable fact, e.g. "saw you're running sponsor reads with Canopy and Soraban"; never a fabricated readership claim. If nothing true to say, delete the line)*, `{{link}}`
+Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}` _(OPTIONAL — must be a true, verifiable fact, e.g. "saw you're running sponsor reads with Canopy and Soraban"; never a fabricated readership claim. If nothing true to say, delete the line)_, `{{link}}`
 
 **Subject:** Sponsorship inquiry — DueDateHQ
-*(transactional and honest; must match what the body actually references — don't name their newsletter/show in the subject unless the body talks about it)*
+_(transactional and honest; must match what the body actually references — don't name their newsletter/show in the subject unless the body talks about it)_
 
 **Body:**
 
@@ -57,7 +57,7 @@ Tokens: `{{first_name}}`, `{{newsletter_name}}`, `{{personal_line}}` *(OPTIONAL 
 >
 > No worries if not — thanks for your time.
 
-*(Gmail send-as signature carries the sign-off — don't type "Gigi" in the body. "It's free while we're in beta" replaced "happy to set you up free": the product is free for everyone right now, so a personal-favor framing would overstate the offer. Closing thanks them for their time, not "the work you put in" — that only made sense when the email claimed readership.)*
+_(Gmail send-as signature carries the sign-off — don't type "Gigi" in the body. "It's free while we're in beta" replaced "happy to set you up free": the product is free for everyone right now, so a personal-favor framing would overstate the offer. Closing thanks them for their time, not "the work you put in" — that only made sense when the email claimed readership.)_
 
 ---
 
@@ -86,7 +86,7 @@ Tokens: `{{team}}`, `{{publication}}`, `{{link}}`
 
 **RULE (Yuqi, 2026-07-02): no fabricated personal lines.** Never claim to read/listen to something unless it's true. Openers must be verifiable facts (e.g. "saw you're running sponsor reads") or omitted entirely — going straight to "I'm the co-founder" is fine.
 
-**Jason Staats** — to jason@jasononfirms.com · **Subject:** Sponsorship inquiry — DueDateHQ *(FINAL, locked with Yuqi 2026-07-02)*
+**Jason Staats** — to jason@jasononfirms.com · **Subject:** Sponsorship inquiry — DueDateHQ _(FINAL, locked with Yuqi 2026-07-02)_
 
 > Hi Jason,
 >
@@ -179,12 +179,14 @@ Sign-off block for all four:
 Rate cards are PUBLIC on both sites — no form submission needed for AT or CPA Trendlines (and skipping the form keeps us off their sales follow-up lists). Remaining manual inquiries: Future Firm form + Going Concern only. Both kits are enterprise-priced (their sponsor rosters: Intuit, Thomson Reuters, Wolters Kluwer, Canopy…). Decision: hold all publication buys until (a) Jason's creator quote arrives as the real benchmark, (b) UTM-tagged links exist, (c) one placement proves signups.
 
 **Accounting Today 2026** (Arizent · contact Alexandria Alati, alexandria.alati@arizent.com, 201-341-5989):
+
 - Newsletters, banner or text ad per week: First Look $3,700 · Accounting Tech $4,200 · Tax Pro Today $5,300 · Daily Briefing $9,400 · newsletter takeovers (IRS Watch/Audit & Accounting/Best of the Week) $6,500
 - Dedicated/co-branded e-blast $470 CPM, $5k min · display $70–185 CPM · custom article $5,000 · Advances in Tech Demo Day $7,000 · homepage takeover $15,000/wk · press-release pack of 10 $8,000
 - Audience: 964k total reach but broad — 24% owner/partner, 38% firms of 1–10 employees; editorial team (Daniel Hood et al.) is separate from ad sales → free news-pitch path stays open
 - 2026 editorial calendar: July=Automation, Sep=Cybersecurity, Oct=Integrating AI, Nov=Tech & Advisory + "Getting Ready for Tax Season" (Nov 12) — the natural DueDateHQ slots
 
 **CPA Trendlines** (v25.08.26 · contact Rick Telberg, rickt@cpatrendlines.com, calendly.com/telberg):
+
 - Newsletters: weekly/3x-week/monthly titles $2,950–4,250 (claimed 108–148k subs each) · Today's Headlines daily $7,500/wk, $22,500/mo
 - Streaming: audio podcast marquee $2,000 per 25k engagements · video $8,000 · full premier package $48,000/mo · editorial webinar (non-exclusive) $3,500 · lead-gen program $2,500 start-up + CPL TBD
 - Audience claims: 300k+ subscribers, 70% founders/partners, 94% tax/accounting — better profile fit than AT, BUT all numbers self-reported (typos in the kit, "engagements" includes auto-plays, ActiveCampaign counts); discount accordingly
@@ -201,6 +203,6 @@ Rate cards are PUBLIC on both sites — no form submission needed for AT or CPA 
 - **Still to fill:** sender name if not "Gigi," and the `{{personal_line}}` for anyone beyond the top 3.
 - **Try-before-deciding is the strongest lever** with creators — it lets them vet the product, which is exactly the trust posture (Jason especially) their audiences expect. Phrase it as "it's free while we're in beta" (a fact), NOT "happy to set you up free" (sounds like a personal favor when everyone gets it free).
 - **Clean email targets for the batch:** jason@jasononfirms.com, adsales@aicpa-cima.com, editor@cpapracticeadvisor.com. Everyone else (Future Firm, Blake Oliver, CPA Trendlines, Going Concern, Accounting Today) is a form or media-kit submission — handle manually.
-- **Product copy matches the live site (duedatehq.com, read 2 Jul 2026):** positioned as a deadline-*change monitor* (not a tracker you maintain), US-only (IRS + 50 states + DC + FEMA), for solo/small CPA firms priced out of Bloomberg/Checkpoint/CCH. Tagline "Never the last to know"; trust hook is glass-box sourcing. Public offer is 3 months of the Team plan free; contact on the site is hello@duedatehq.com.
+- **Product copy matches the live site (duedatehq.com, read 2 Jul 2026):** positioned as a deadline-_change monitor_ (not a tracker you maintain), US-only (IRS + 50 states + DC + FEMA), for solo/small CPA firms priced out of Bloomberg/Checkpoint/CCH. Tagline "Never the last to know"; trust hook is glass-box sourcing. Public offer is 3 months of the Team plan free; contact on the site is hello@duedatehq.com.
 - **US-only caveat for Ryan (Future Firm):** the product covers US jurisdictions only, and Ryan operates from Montreal. His readership skews US small firms, so he still fits — but any Canadian readers can't use it. Fine for a sponsorship; just know the audience isn't a 100% match.
 - **Verified current as of 2 Jul 2026.** Not re-confirmed that day: subscriber counts (Future Firm ~7,600, CPA Trendlines 300k+, both from mid-2025 data) and the AICPA/CPAPA contact emails (2025 sources). Worth a quick check before relying on the numbers in a pitch.

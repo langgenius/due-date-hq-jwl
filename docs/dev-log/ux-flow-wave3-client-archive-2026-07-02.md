@@ -10,7 +10,7 @@ or reverse it.
 Reusing `deletedAt` as "archive" was considered and rejected:
 
 - `deleted_at` is contractually the PRD §8.1 purge path (30d grace → hard
-  delete). The purge cron doesn't exist *yet*, but conflating the two states
+  delete). The purge cron doesn't exist _yet_, but conflating the two states
   would make archived clients purge-eligible the day it ships.
 - `client.deleted` audit rows must keep meaning "removed", not "parked".
 - `client_filing_profile.archived_at` was already the in-house archive
