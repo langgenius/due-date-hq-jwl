@@ -16,6 +16,24 @@ type FlushRowResult = 'sent' | 'failed' | 'skipped'
 type PulseDigestEvent = 'pulse_approved' | 'pulse_applied'
 const STALE_SENDING_MS = 15 * 60 * 1000
 
+// Resend rejects the whole send when a tag value strays outside
+// [A-Za-z0-9_-]; externalId uses ':' separators, which failed every
+// tagged outbox send until 2026-07-05.
+function resendTagValue(value: string): string {
+  return value.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 256)
+}
+
+// Transient Resend outcomes go back to 'pending' for a later flush tick
+// instead of terminally failing the row — the per-row idempotency key makes
+// the retry safe. Everything else (validation, bad from address, quota) is
+// treated as permanent.
+const RETRYABLE_RESEND_ERRORS = new Set<string>([
+  'rate_limit_exceeded',
+  'concurrent_idempotent_requests',
+  'application_error',
+  'internal_server_error',
+])
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -163,12 +181,19 @@ async function processOutboxRow(
             ? pulseDigestText(row.payloadJson)
             : genericText(row.payloadJson, 'You have a new DueDateHQ notification.'),
         tags: [
-          { name: 'outbox_id', value: row.id },
-          { name: 'external_id', value: row.externalId },
+          { name: 'outbox_id', value: resendTagValue(row.id) },
+          { name: 'external_id', value: resendTagValue(row.externalId) },
         ],
       },
       { idempotencyKey: `email-outbox/${row.id}` },
     )
+    if (error && RETRYABLE_RESEND_ERRORS.has(error.name)) {
+      await db
+        .update(emailOutbox)
+        .set({ status: 'pending', failureReason: `Will retry: ${error.message}` })
+        .where(eq(emailOutbox.id, row.id))
+      return 'skipped'
+    }
     if (error) throw new Error(error.message)
     await db
       .update(emailOutbox)
@@ -231,7 +256,12 @@ export async function flushEmailOutbox(
   if (rows.length === 0) return { sent: 0, failed: 0, skipped: 0 }
 
   const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
-  const results = await Promise.all(rows.map((row) => processOutboxRow(db, resend, env, row)))
+  // Sequential on purpose: a 10-wide Promise.all tripped Resend's
+  // requests-per-second limit whenever a digest fan-out filled the batch.
+  const results: FlushRowResult[] = []
+  for (const row of rows) {
+    results.push(await processOutboxRow(db, resend, env, row))
+  }
 
   const output = {
     sent: results.filter((result) => result === 'sent').length,

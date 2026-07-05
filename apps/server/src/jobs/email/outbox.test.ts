@@ -202,4 +202,109 @@ describe('flushEmailOutbox', () => {
       { idempotencyKey: 'email-outbox/outbox_3' },
     )
   })
+
+  it('sanitizes tag values to Resend-safe characters', async () => {
+    dbMocks.setRows([
+      {
+        id: 'outbox_4',
+        firmId: 'firm_1',
+        externalId: 'morning-digest:firm.1:user_1:2026-07-03',
+        type: 'morning_digest',
+        status: 'pending',
+        payloadJson: { recipients: ['owner@example.com'] },
+        createdAt: new Date('2026-07-03T11:00:00.000Z'),
+        sentAt: null,
+        failedAt: null,
+        failureReason: null,
+      },
+    ])
+
+    const result = await flushEmailOutbox({
+      DB: {} as D1Database,
+      EMAIL_FROM: 'noreply@example.com',
+      RESEND_API_KEY: 're_test',
+    } satisfies Pick<Env, 'DB' | 'EMAIL_FROM' | 'RESEND_API_KEY'>)
+
+    expect(result).toEqual({ sent: 1, failed: 0, skipped: 0 })
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: [
+          { name: 'outbox_id', value: 'outbox_4' },
+          { name: 'external_id', value: 'morning-digest_firm_1_user_1_2026-07-03' },
+        ],
+      }),
+      { idempotencyKey: 'email-outbox/outbox_4' },
+    )
+  })
+
+  it('defers rate-limited sends back to pending instead of failing them', async () => {
+    dbMocks.setRows([
+      {
+        id: 'outbox_5',
+        firmId: 'firm_1',
+        externalId: 'morning-digest:firm_1:user_1:2026-07-03',
+        type: 'morning_digest',
+        status: 'pending',
+        payloadJson: { recipients: ['owner@example.com'] },
+        createdAt: new Date('2026-07-03T11:00:00.000Z'),
+        sentAt: null,
+        failedAt: null,
+        failureReason: null,
+      },
+    ])
+    sendMock.mockResolvedValueOnce({
+      data: null,
+      error: {
+        name: 'rate_limit_exceeded',
+        message: 'Too many requests. You can only make 10 requests per second.',
+      },
+    } as never)
+
+    const result = await flushEmailOutbox({
+      DB: {} as D1Database,
+      EMAIL_FROM: 'noreply@example.com',
+      RESEND_API_KEY: 're_test',
+    } satisfies Pick<Env, 'DB' | 'EMAIL_FROM' | 'RESEND_API_KEY'>)
+
+    expect(result).toEqual({ sent: 0, failed: 0, skipped: 1 })
+    expect(dbMocks.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'pending',
+        failureReason: expect.stringContaining('Will retry'),
+      }),
+    )
+    expect(dbMocks.set).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }))
+  })
+
+  it('permanently fails sends Resend rejects as invalid', async () => {
+    dbMocks.setRows([
+      {
+        id: 'outbox_6',
+        firmId: 'firm_1',
+        externalId: 'morning-digest:firm_1:user_1:2026-07-04',
+        type: 'morning_digest',
+        status: 'pending',
+        payloadJson: { recipients: ['owner@example.com'] },
+        createdAt: new Date('2026-07-04T11:00:00.000Z'),
+        sentAt: null,
+        failedAt: null,
+        failureReason: null,
+      },
+    ])
+    sendMock.mockResolvedValueOnce({
+      data: null,
+      error: { name: 'validation_error', message: 'Invalid `from` field.' },
+    } as never)
+
+    const result = await flushEmailOutbox({
+      DB: {} as D1Database,
+      EMAIL_FROM: 'noreply@example.com',
+      RESEND_API_KEY: 're_test',
+    } satisfies Pick<Env, 'DB' | 'EMAIL_FROM' | 'RESEND_API_KEY'>)
+
+    expect(result).toEqual({ sent: 0, failed: 1, skipped: 0 })
+    expect(dbMocks.set).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'failed', failureReason: 'Invalid `from` field.' }),
+    )
+  })
 })
