@@ -1,0 +1,361 @@
+Greeting,Flag,Decision-maker,Firm,Channel,Contact
+Hi Angela,ok,Angela Brothers,Brothers CPA PC,Email,angela@brotherscpa.com
+Hi George,partner,George A. Henry III & Jeffrey D. Brown,Henry & Brown LLC,Email,info@henryandbrown.com
+Hi Kennith,ok,J. Kennith Brown,Brown & Congo LLC,Email,info@browncongo.com
+Hi there,fallback,,Carver DeWitt and Palm CPAs LLC,Email,advisors@cdp-cpas.com
+Hi Terry,ok,Terry L. Horn,Terry L. Horn CPA,Email,terry@terrylhorncpa.com
+Hi Julie,ok,Julie Merritt,Merritt LLC,Email,julie@jkmerrittcpa.com
+Hi there,fallback,,"Cooper, Hill & LeCroix CPAs",Email,info@chl-cpas.com
+Hi Ray,ok,Ray (partner),Alford McKenzie & Breeden PC,Email,ray@ambcpa.com
+Hi Rhonda,ok,Rhonda Murray Shirazi,Rhonda M Shirazi CPA LLC,Email,rhonda@shirazicpa.com
+Hi Angie,ok,Angie,Boatner & Pugh CPAs (Southeastern Business Professionals),Email,angie@sbp.tax
+Hi Stephen,ok,Stephen D. Madeley,Madeley CPA LLC,Find manually,find manually
+Hi there,fallback,,"Grant, Sanders & Taylor Inc",Email,firm@grantsanderstaylor.com
+Hi there,surname?,Mr. Jackson,Jackson & Smith CPA Group PC,Email,echo@jacksonsmithcpa.com
+Hi there,surname?,C. Sweatmon (partner),"Fricke, Sweatmon & Co PC",Email,csweatmon@frswcpa.com
+Hi John,ok,John O. Bowden (partner),"Brunson, Wilkerson, Bowden & Associates PC",Email,jgarrett@bwb.cpa
+Hi Lisa,partner,Lisa Crosby Patterson & Rita Massey Prince,Patterson Prince & Associates PC,Find manually,find manually
+Hi Richard,ok,Richard Younger,Montgomery CPA Associates LLC,Find manually,find manually
+Hi Joe,partner,Joe Gary & James Carmichael,"Diamond, Carmichael & Gary PA",Find manually,find manually
+Hi Laurence,ok,Laurence Scott Barringer III,Barringer CPA LLC,Contact form,contact form
+Hi there,surname?,Priddy/Holifield/Ables (partners),"PHA CPA, PA",Email,info@phacpa.com
+Hi there,fallback,,LSM CPAs,Email,team@lsmcpas.com
+Hi Rebecca,ok,Rebecca Boss,"Rebecca Boss, CPA, PLLC",Email,rebecca@rebeccabosscpa.com
+Hi there,surname?,E. Harris,Harris CPAs LLC,Email,eharris@harriscpasllc.com
+Hi there,fallback,,"Widner-Penter Company, P.A.",Email,support@w-pcpas.com
+Hi Kathy,ok,Kathy Turner,Kathy Turner CPA PLLC,Email,kathy.turner@turnercpaconway.com
+Hi Thomas,ok,Thomas Simmons,"Simmons & Associates, PLLC",Email,accountants1@simmonsaccounting.com
+Hi Jimmy,ok,Jimmy D. Hall,"Jimmy D. Hall & Associates, CPA's",Email,groberts@jdhall.net
+Hi Sarah,ok,Sarah Berry,"Sarah Berry, CPA, PLLC",Email,sarah@sarahberrycpa.com
+Hi there,surname?,Miller / Rose (partners),"Miller & Rose, P.A.",Email,robin@mr.cpa
+Hi Brooke,ok,Brooke Horvath,Salt Creek Consulting & CPA,Email,brooke@saltcreekcpa.com
+Hi there,surname?,H. Ward,"Meyer & Ward, CPAs, P.A.",Email,hward@meyerwardcpas.com
+Hi Paul,ok,Paul Byrd,"Byrd & Massey, Inc.",Email,info@byrdandmassey.com
+Hi Shannon,ok,Shannon Nelke,Shannon Nelke and Associates CPA,Email,info@snelkecpa.com
+Hi there,surname?,Hoover,"Hoover & Company, P.C.",Email,info@hooverandcompany.com
+Hi Curtis,ok,Curtis Williams Jr,"Curtis Williams, Jr, CPA, P.A.",Find manually,find manually
+Hi there,fallback,,"Dowd & Company, PLLC, CPAs",Contact form,contact form
+Hi Eric,ok,Eric Longenbaugh,"Wilber & Longenbaugh, PLLC",Email,elongenbaugh@mwwcpa.com
+Hi Chuck,ok,Chuck Martin,Chuck Martin CPA,Email,chuck@cmartin-associates.com
+Hi Tim,ok,Tim (partner),"Andersen & Sarnowski, P.C.",Email,tim@ascpacg.com
+Hi David,ok,David F. Rogers,"David F. Rogers, CPA, PLLC",Email,info@davidrogerscpa.com
+Hi Robert,ok,Robert V. Ramirez,"Robert V. Ramirez CPA, PLLC",Email,robert@rvrcpa.com
+Hi Michael,ok,Michael Squires,Sierra Vista CPA,Email,ms@sierravistacpa.com
+Hi there,surname?,J. Heath,H & H Accounting and Business Services CPAs PC,Email,jheath@hhaccountingcpas.com
+Hi Andrew,ok,Andrew S. Campbell,NSC Certified Public Accountants LLC,Email,andrew@nscaccounting.com
+Hi there,surname?,Cindy M.,A & E Services LHC & PLLC,Email,cindym@aeserviceslhc.com
+Hi Jeffery,ok,Jeffery S. Chadd,"Jeffery S. Chadd, CPA, PC",Email,info@chaddcpa.com
+Hi Mari,ok,Mari Rimple,Rimple CPA LLC,Email,tax@rimplecpa.com
+Hi Dan,ok,Dan Weaver (EA),Konexus Accounting,Email,hello@konexusaccounting.com
+Hi Nick,ok,Nick Herb,Nick Herb Accounting Services PC,Email,nick@prescottcpa.com
+Hi Dan,ok,Dan Kuchan,"Dan Kuchan, CPA",Contact form,contact form
+Hi Rodney,ok,Rodney Wilson,"Rodney Wilson, CPA",Find manually,find manually
+Hi Marie,ok,Marie Fairbanks,Fairbanks CPA & Advisory Services,Email,marie@reddingcpa.com
+Hi Dennis,ok,Dennis Fritz,Dennis Fritz CPA,Email,dfritzcpa@sbcglobal.net
+Hi Holly,ok,Holly B. Pladson,Holly B. Pladson CPA,Email,holly@hpladsoncpa.com
+Hi Dolores,ok,Dolores Mika LaVelle,"Dolores Mika LaVelle, CPA",Email,dolores@here4u.biz
+Hi Michele,ok,Michele Brambrink,Napa Tax Inc,Email,michele@napatax.net
+Hi Richard,ok,Richard M. Lopez (Managing Partner),"The Lopez Group, LLP",Email,rlopez@lopezllp.com
+Hi there,fallback,,Copeland Benner & Associates,Email,info@temeculacpa.com
+Hi there,fallback,,"Tax City, LLC",Email,info@taxcityllc.com
+Hi Jessica,ok,Jessica Follett,"PKC Kuebler, APC",Email,jessica.follett@pkckuebler.com
+Hi David,ok,David H. Kim,"David H. Kim, CPA",Email,info@davidkimcpa.com
+Hi Rafael,ok,Rafael (principal),Lantan and Associates,Email,info@laa-cpa.com
+Hi there,fallback,,"CAL Accounting, P.C.",Email,info@cal-cpa.com
+Hi Timothy,ok,Timothy Imbrie,Timothy Imbrie CPA MBA,Email,imbriecpa@gmail.com
+Hi Imtiaz,ok,Imtiaz Ahmad,"Imtiaz Ahmad CPA, Inc.",Email,imtiaz@imtiazcpa.com
+Hi Hajira,ok,Hajira Durrani,Durrani CPA Services,Email,hajira@durranicpa.com
+Hi Metin,partner,Metin Oruc (EA/founder),Rantax,Email,metin@rantax.com
+Hi there,surname?,B. Chisenga,BLC CPA Services,Email,bchisenga@blccpaservices.com
+Hi Donna,ok,Donna L. Stern,Donna L. Stern CPA,Contact form,contact form
+Hi Maura,ok,Maura Matera,"Maura Matera, CPA",Find manually,find manually
+Hi Chad,ok,Chad Gilman,Gilman & Co. CPAs,Email,info@gilmanandcompany.com
+Hi Thomas,ok,Thomas E. Healy,Thomas E. Healy CPA PhD,Email,tom@tomhealycpa.com
+Hi Lori,ok,Lori,Cahill & Associates PC,Email,lori@cahill-cpa.com
+Hi Jaime,ok,Jaime Heveron,Heveron Tax (Jaime Heveron CPA),Email,jaime@heverontax.com
+Hi there,fallback,,Sikora CPA,Email,cpa@sikoracpa.net
+Hi Kristi,ok,Kristi L. Hattig,Kristi L. Hattig CPA LLC,Email,info@hattigcpa.com
+Hi Megan,partner,Megan & Brandon Lockhart,Lockhart & Company CPAs,Email,reception@lockhart.cpa
+Hi there,fallback,,Patterson Tax & Accounting,Email,info@pattersontaxcpa.com
+Hi there,fallback,,Tonsfeldt & Company CPAs,Email,reception@mtcpasllc.com
+Hi Mark,ok,Mark G. Paczosa,Paczosa & Associates PC,Email,mark@paczosacpa.com
+Hi there,fallback,,The Fort CPA Group,Email,info@thefortcpa.com
+Hi Nathan,ok,Nathan Moore,Nielsen & Moore CPA,Email,admin@djncpa.com
+Hi Sheldon,ok,Sheldon I. Brown,Sheldon I. Brown CPA,Email,sheldon@sheldonbrowncpa.com
+Hi Ryan,ok,Ryan Barrett,Ryan Barrett CPA,Email,rqbcpa@gmail.com
+Hi there,fallback,,"Ingalls Associates, PA, CPAs",Email,cpas@ingallscpa.com
+Hi Ed,ok,Ed Thacher,Thacher PA / Love & Company CPAs,Email,ed@thachercpa.com
+Hi Anthony,ok,Anthony Hueston III,"Hueston & Company CPA, LLC",Email,info@ahuestoncpa.com
+Hi Jim,ok,Jim Gay,"Jim Gay, CPA",Email,office@jimgaycpa.com
+Hi there,fallback,,"BMJ, CPA, PLC",Email,info@bmjcpa.com
+Hi there,surname?,D. CiNicolo,"Keyes, Stange & Wooten CPA Firm, LLC",Email,dcinicolo@kswcpafirm.com
+Hi Michele,ok,Michele A Bourcy Nelson,"Michele A Bourcy Nelson, CPA",Contact form,contact form
+Hi there,surname?,Cablish / Gentile,"Cablish and Gentile, CPAs, LLC",Contact form,contact form
+Hi Jeff,ok,Jeff Turner,Turner CPA Advisors PA,Email,jeff@pensacola-cpa.com
+Hi Sean,ok,Sean K. Quigley,"Sean K. Quigley, CPA",Contact form,contact form
+Hi Frederick,ok,Frederick Carroll III,Carroll and Company,Email,cpas@ccrcpa.com
+Hi James,ok,James F. Thielen,Thielen+ Tax & Business Consulting,Contact form,contact form
+Hi Nancy,ok,Nancy Watson,"Watson & Mann, CPAs",Email,nancy@watsonmann.com
+Hi Joseph,ok,Joseph L. Susi,"Joseph L. Susi, CPA, P.A.",Email,joe@yourgainesvillecpa.com
+Hi Carolyn,ok,Carolyn Goddard,"Carolyn Goddard, CPA",Email,cgoddard@cpaofc.com
+Hi Michael,partner,Michael P. DeMeola / Angela Temple,DeMeola Temple CPA Group LLC,Email,info@dtcpagroup.com
+Hi there,fallback,,Howell Martin & Wilson,Find manually,find manually
+Hi there,fallback,,"McIntosh & Rouse, LLC",Find manually,find manually
+Hi Alan,ok,M. Alan Perry (managing partner),"Seymour & Perry, LLC",Email,cseymour@athenscpa.net
+Hi Eddie,ok,Eddie Patat (partner),"Turner and Patat, PC",Email,info@turnerandpatat.com
+Hi there,fallback,,Elite Accounting Services LLC,Email,office@easgeorgia.com
+Hi Josue,ok,Josue Garcia,"Josue Garcia, CPA, LLC",Email,jgarcia@jgcpallc.com
+Hi there,fallback,,Rhoden C.P.A. Firm,Email,angela@rhodencpa.com
+Hi Frank,partner,Frank Denmark & Steve Brown (partners),"Denmark & Brown, P.C.",Email,info@denmarkbrowncpa.com
+Hi Cynthia,ok,Cynthia Glisson (owner),"Glisson Accounting & Tax Group, P.C.",Email,cglisson@planters.net
+Hi John,ok,"John C. Dills, Jr.","John C. Dills, Jr., CPA, P.C.",Email,john@johndillscpa.com
+Hi James,ok,W. James Barrs Jr. (Managing Member),"Barrs, Coiner & Lumpkin, LLC",Email,jim@bcl-cpa.com
+Hi Trish,ok,Trish Anderson,"Trish Anderson CPA, LLC",Email,trishandersoncpa@gmail.com
+Hi there,fallback,,"Thaw & Company, P.C., CPAs",Find manually,find manually
+Hi Scott,ok,R. Scott Moore,"R. Scott Moore, CPA, P.C.",Email,smoore@rsmcpa.net
+Hi Sanford,ok,T. Sanford Roberts,"T. Sanford Roberts, P.C.",Find manually,find manually
+Hi Susan,ok,Susan Ely Padgett (Partner),"McLain, Calhoun, McCullough, Clark & Co., P.C.",Email,contact@mclaincalhoun.com
+Hi there,fallback,,Harper CPA and Advisors,Contact form,contact form
+Hi there,fallback,,"Herring CPA Group, P.C.",Contact form,contact form
+Hi Alan,partner,Alan M. Talley (President/Senior Partner),"Talley, Mullins & Co., P.C.",Email,alan@talleymullinscpa.com
+Hi Kevin,ok,Kevin Harris,Kevin Harris CPA,Email,kevin.harris@kevinharriscpa.com
+Hi Meredith,ok,Meredith (contact listed),"Howse, Rice & Brown CPAs, PC",Email,meredith@howseandrice.com
+Hi Allison,ok,Allison Hooks,Hooks CPA,Email,admin@hookscpa.com
+Hi JoDee,ok,JoDee Bowen,JoDee Bowen CPA,Email,jodee@jodeebowencpa.com
+Hi Leonard,ok,Leonard G. Nelms,"Leonard G. Nelms, CPA, P.C.",Contact form,contact form
+Hi Hubert,ok,Hubert Pereira,"Pereira and Company, CPA",Contact form,contact form
+Hi Hani,ok,Hani Mahmoud (Principal CPA),Accountable Consulting LLC,Find manually,find manually
+Hi there,fallback,,"Michael & Company, P.C.",Find manually,find manually
+Hi Richard,ok,Richard F. Jones,Richard F. Jones CPA PLLC,Email,Rick@RichardFJones.com
+Hi Joe,ok,Joe W. Taylor,Joe W. Taylor CPAs,Email,charles@joewtaylorcpas.com
+Hi Linda,ok,Linda A. Miller,L.A. Miller & Associates Inc,Email,admin@lamillercpa.com
+Hi Scott,ok,T. Scott Taylor,Taylor Group PLLC,Email,scott@taylorgrouppllc.com
+Hi Dean,ok,M. Dean Owen,M Dean Owen CPA PSC,Email,Dean@OwenCPA.com
+Hi there,surname?,M. Hinton,Hinton CPA Inc,Email,mhinton@hintoncpa.com
+Hi Dana,ok,Dana C. Overall,Dana C Overall CPA PSC,Email,dana@danaoverallcpa.com
+Hi John,ok,John Ackerman,Ackerman CPAs,Find manually,find manually
+Hi Robert,partner,Robert E. Faesy Jr / III,Faesy Layman & Mills CPAs,Find manually,find manually
+Hi there,fallback,,Wathen & Sellars,Contact form,contact form
+Hi Tony,ok,Tony L. Page,Page & Stubblefield CPAs (Tony L. Page),Contact form,contact form
+Hi Michael,ok,Michael Murphy,Baker Business & Tax Solutions,Contact form,contact form
+Hi Mark,ok,Mark E. Clark,Mark E. Clark CPA PSC,Contact form,contact form
+Hi Brent,ok,Brent R. King,Brent R. King CPA PLLC,Contact form,contact form
+Hi Katherine,ok,Katherine M. Johnson,Katherine M. Johnson CPA,Contact form,contact form
+Hi Catherine,ok,Catherine,Cowart Roe CPA LLC,Email,catherine@cowartroecpa.com
+Hi Charles,ok,Charles F. Muller,Charles F. Muller CPA,Email,charlie@cmullercpa.com
+Hi Creighton,ok,Creighton R. Hodges,Hodges & Wreyford LLC,Email,crh@hfwcpa.com
+Hi Devyn,ok,Devyn Bertrand,Bertrand CPA LLC,Email,info@bertrand.cpa
+Hi there,fallback,,"Frazer & Persac, LLC",Email,rennea@fpcpa.com
+Hi there,fallback,,"Arsement Redd Gardner Benoit, LLC",Email,jardoin@argb.cpa
+Hi there,fallback,,Langston & Associates,Email,info@langstoncpa.com
+Hi there,fallback,,"Guidry & Guidry, CPAs",Email,info@guidryandguidrycpas.com
+Hi there,fallback,,Langley Williams & Company LLC,Email,clouviere@lwcpafirm.com
+Hi there,surname?,Whitelaw / Rice,"Whitelaw, Rice and Associates, CPAs, LLC",Email,info@wracpallc.com
+Hi Dona,ok,Dona Manuel,Dona Manuel CPA PLLC,Email,cpa@donamanuelcpa.com
+Hi Gordon,ok,"Gordon F. Schafer, Jr.","Gordon F. Schafer, Jr., CPA, CGMA",Email,gschafer8@cox.net
+Hi Bobbie,ok,Bobbie L. Howard,"Bobbie L. Howard, CPA (PAC)",Email,bobbielhoward@blhcpas.com
+Hi Tabby,ok,Tabby LeMay,"LeMay Tax & Accounting, LLC",Email,tabby@lemaytax.com
+Hi Chris,ok,Chris Naquin,Wayfinder CPA,Contact form,contact form
+Hi Dale,ok,Dale Moore,DMJ Accounting & Tax Service LLC,Contact form,contact form
+Hi Anthony,ok,Anthony B. Baglio,"Anthony B. Baglio, CPA",Contact form,contact form
+Hi there,surname?,Taylor / Matthews,"Taylor & Matthews CPAs, APAC",Contact form,contact form
+Hi Michelle,ok,Michelle Wade,Michelle Wade CPA,Find manually,find manually
+Hi Theresa,ok,Theresa Arndt,Arndt Company CPAs,Email,arndt@arndtcpas.com
+Hi Terry,ok,Terry L. McCullough (Managing Partner),"McCullough & Associates, LLC",Email,TerryM@mca-cpa.net
+Hi Cheryl,ok,Cheryl Edington,Cheryl Edington CPA LLC,Email,Cheryl@edingtoncpa.com
+Hi Robin,ok,Robin Wassman,Wassman CPA Services LLC,Email,Rwassman@wassmancpaservices.com
+Hi Paul,ok,Paul Schermann,Schermann & Associates,Email,paul@schermanncpa.com
+Hi there,fallback,Partners (Begley/Young/Unterreiner/White),Begley Young Unterreiner White LLC,Email,paula@begleycpa.com
+Hi Amy,ok,Amy Hillin,"Hillin & Company, P.C.",Email,amy@hillinandcompany.com
+Hi David,ok,David A. Turk,"David A. Turk, CPA, LLC",Email,John@turkcpas.com
+Hi there,fallback,,"Evers & Company, CPA's, LLC",Email,info@everscpas.com
+Hi Curt,ok,Curt Moellenbeck,Moellenbeck CPA,Email,cmoellenbeck@moellenbeckcpa.com
+Hi Mila,ok,Mila Samsonov,"Mila Samsonov, CPA",Email,office@msamsonovcpa.com
+Hi John,ok,John Hoff,"John Hoff CPA, PC",Email,info@johnhoffcpa.com
+Hi Glennda,ok,Glennda Sutton,"Hometown Accounting, LLC",Email,info@hometownaccounting.com
+Hi Kenneth,ok,Kenneth R. Strough,Strough and Associates,Email,info@krsaccounting.com
+Hi Brandon,ok,Brandon Davis (Owner),Davis CPA Group LLC,Contact form,contact form
+Hi Aric,ok,Aric Schreiner (Managing Member),"Columbia CPA Group, LLC",Contact form,contact form
+Hi Erin,ok,Erin Palmer,"Erin Palmer, CPA",Contact form,contact form
+Hi there,fallback,,Goff Accounting & Tax Services LLC,Contact form,contact form
+Hi Nhung,ok,Nhung Scarbrough,"Culumber, Harvey & Associates, PA",Email,ntscarbrough@cfhpa.com
+Hi Sande,ok,Sande Hentges,"Wright, Ward, Hatten & Guel, PLLC",Email,office@wwhgcpa.com
+Hi Michelle,ok,Michelle Oppie Gist,"Wolfe, McDuff & Oppie, P.A.",Email,michelle@wmocpas.com
+Hi Scott,ok,Scott A. Hodges,"Tann, Brown & Russ Co., PLLC",Email,sahodges@tbr.cpa
+Hi Kristi,ok,Kristi Thompson,"Barlow & Company, PLLC",Email,kthompson@brandoncpas.com
+Hi Tom,ok,Tom Windham,"Windham and Lacey, PLLC",Email,tom@windhamandlacey.com
+Hi Carolyn,ok,Carolyn DuPre,"Carolyn DuPre, CPA",Email,chintoncpa@aol.com
+Hi Charles,ok,Charles L. Shivers,"Charles L Shivers, CPA LLC",Email,charleslshiverscpa@gmail.com
+Hi Mark,ok,Mark Biggs,Corbin & Biggs PLLC,Email,mark.biggs@corbinbiggs.com
+Hi David,ok,"David Ewing, Jr.","Brown, Ewing & Co., CPA's",Email,dewing@be-cpa.com
+Hi Charles,ok,Charles R. Lindsay,"Matthews, Cutrer & Lindsay, PA",Email,charles.lindsay@mcl.cpa
+Hi Michelle,ok,Michelle Emrick,"Collins, Barr & Hembree, Ltd.",Email,memrick@cbhcpas.com
+Hi Barry,ok,Barry D. McKenzie,"McKenzie CPA, PLLC",Email,barrymckenzie@mckenziecpapllc.com
+Hi Jonathan,ok,Jonathan Dungan,"JD CPA, PLLC",Email,jonathan@jdcpapllc.com
+Hi Angela,ok,Angela Mire,"Novum Advisory, PLLC",Email,amire@novum.cpa
+Hi Joel,ok,Joel B. Cunningham III,"Cunningham CPAs, PLLC",Email,joel@cunninghamcpas.com
+Hi Sharon,ok,Sharon Payn,"Lowery, Payn, Leggett & Bellipanni, CPAs",Email,sharon@lplcpas.com
+Hi Keith,ok,Keith Evans,"Rea, Shaw, Giffin & Stuart, LLP",Email,kevans@rsgscpa.com
+Hi Ronnie,ok,Ronnie S. Windham,"Ronnie S. Windham, CPA, PLLC",Email,rwindham@ronniewindham.com
+Hi Trent,ok,Trent Yeatman,"T. E. Lott & Company, P.A.",Email,tyeatman@telott.com
+Hi Michael,ok,Michael Little,"Jarrell Group, PLLC",Email,mlittle@jarrellgroupcpa.com
+Hi Joe,ok,Joe Cash,"M.M. Winkler & Associates, PLLC",Email,joecash@mmwinkler.com
+Hi Christy,ok,Christy Waggoner,"Silas Simmons, LLP",Email,cwaggoner@silassimmons.com
+Hi John,ok,John Christian,Gillon Christian Mosby PLLC,Email,schristian@gcm-cpa.com
+Hi Brandi,ok,Brandi Conico,"Bridgers, Goodman, Baird & Clarke, PLLC",Email,brandi.conico@bridgerscpas.com
+Hi Paige,ok,Paige Johnson,TMH,Email,paige@tmhcpas.com
+Hi Douglas,ok,Douglas A. King,King CPA PLLC,Email,dking@kingcpagroup.com
+Hi Randy,ok,J. Randy Scrivner,"Watkins, Ward and Stafford, PLLC - Starkville",Email,randy.scrivner@wws.cpa
+Hi there,surname?,J.D. Lutz,Boyd Tax,Email,jd@boydincometax.com
+Hi Jon,ok,Jon Lund,Norton Collar Lund Lilley PLLC,Email,contact@ncllcpa.com
+Hi JP,ok,JP Roney,"JP Roney, CPA PLLC",Email,joe@roneycpa.com
+Hi Jean,ok,Jean Holliday,Edgington & Holliday PLLC,Email,admin@hollidaypllc.com
+Hi Grant,ok,A. Grant Mangum,"A. Grant Mangum & Company, Inc.",Email,admin@agmangum.com
+Hi Jeffrey,ok,Jeffrey C. Cooper,Steward Ingram & Cooper PLLC,Contact form,contact form
+Hi Lehman,ok,Lehman B. Pollard,"Nelson & Company, P.A.",Find manually,find manually
+Hi James,ok,James D. Heyward,Heyward CPA,Find manually,find manually
+Hi there,surname?,S. Mitchell,"Mitchell CPA, PLLC",Email,smitchell@mitchellcpapllc.com
+Hi Patricia,ok,Patricia C. Fleming,"Patricia C Fleming, CPA, PLLC",Email,pfleming@pflemingcpa.com
+Hi Ryan,ok,Ryan C. Blair,"Ryan C. Blair, CPA, PLLC",Email,info@ryanblaircpa.com
+Hi Jodi,ok,Jodi Davis,"Salem, Smith, Register & Knott, PLLC",Email,jdavis@salemcpa.net
+Hi Barbara,ok,Barbara E. McNary,"Barbara E. McNary, CPA",Email,info@mcnarycpa.com
+Hi Mark,ok,Mark A. Stephens,Mark A Stephens CPA PA,Email,support@markstephenscpa.com
+Hi Frank,partner,R. Frank Lewis / David J. Cone,Lewis & Cone PLLC,Email,info@lewisconecpa.com
+Hi Alex,ok,Alex Pappas,Alex Pappas CPA,Email,alex@pappascpa.com
+Hi Todd,ok,Todd Greene,Todd Greene CPA,Email,info@toddgreenecpa.com
+Hi John,ok,John E. Nichols,John E. Nichols PLLC,Email,office@wilmingtoncpas.com
+Hi Tracy,ok,Tracy Harvey,Pisgah Tax & Accounting,Email,tracy@pisgahtax.com
+Hi Stephen,ok,Stephen Priestley,"Stephen Priestley, CPA PLLC",Email,spp@priestleycpa.com
+Hi Willie,ok,Willie Cooper Jr.,"Willie Cooper, Jr., CPA",Email,wcooper@wcpajr.com
+Hi Teri,ok,Teri J. Henderson,"Teri J. Henderson, CPA",Email,teri@terihendersoncpa.com
+Hi Alfred,ok,Alfred Jones,Alfred Jones CPA,Email,alfredjones@alfredjonescpa.com
+Hi Terry,ok,Terry V. Aaseby,"Terry V. Aaseby, CPA, PLLC",Email,info@aasebycpa.com
+Hi David,ok,David N. Wurst,"David N. Wurst, CPA, PA",Email,info@davidwurstcpa.com
+Hi there,fallback,,Suggs and Company P.A.,Email,info@suggscpa.com
+Hi Pam,ok,Pam Helton,"Pam Helton, CPA, PLLC",Contact form,contact form
+Hi there,fallback,,"Everhart & Grant Associates, PA",Contact form,contact form
+Hi Wayne,ok,Wayne Spransy,"Scharf Pera & Co., PLLC",Find manually,find manually
+Hi Christopher,ok,Christopher D'Allaird,Christopher D'Allaird CPA,Email,chris@dallairdcpa.com
+Hi there,fallback,,"Sicilia & Associates, P.C.",Email,siciliacpas@gmail.com
+Hi Beth,ok,Beth A. Grasso,"Grasso & Kayser, C.P.A.s PC",Email,beth@kayser.cpa
+Hi Mark,ok,Mark D. Witecki,"Mark D. Witecki, CPA",Email,mdwitecki@hotmail.com
+Hi Dave,ok,Dave Wojeski,Wojeski & Company CPAs,Email,dwojeski@wojeskico.com
+Hi there,fallback,,"Staff Ciampino & Company, P.C.",Contact form,contact form
+Hi Jill,ok,Jill M. Flinton,Jill M. Flinton CPA PLLC,Contact form,contact form
+Hi David,ok,David Zastenchik,Zastenchik & Co. CPAs,Email,info@HudsonValleyCPAs.com
+Hi Steven,partner,Steven Trast / Suzanne Gyenes (EA),"Trast & Gyenes, Inc.",Email,info@tgaccountants.com
+Hi there,fallback,,Merck CPAs & Consultants,Email,office@merckcpas.com
+Hi Alfonso,ok,Alfonso Solorzano,APB Professional Business,Email,alsprobusiness@yahoo.com
+Hi Phil,ok,Phil Roventini,Roventini CPA PC,Contact form,contact form
+Hi Emilio,ok,Emilio A. D'Argenio,Kall D'Argenio CPAs LLP,Email,Emilio@kd.cpa
+Hi Michael,ok,Michael J. DePietro,"Fitzgerald, DePietro & Wojnas CPAs, P.C.",Email,miked@fdwcpa.net
+Hi Elizabeth,ok,Elizabeth Gilroy Kearns,Elizabeth Gilroy Kearns CPA,Email,egkcpa@aol.com
+Hi there,fallback,,"Crowley and Halloran CPAs, P.C.",Email,info@crowleyhalloran.com
+Hi David,ok,David G. Young,Young & Company CPAs LLP,Contact form,contact form
+Hi there,fallback,,Heveron & Company CPAs,Email,mail@heveroncpa.com
+Hi there,fallback,,Martindale Keysor & Co PLLC,Contact form,contact form
+Hi there,fallback,,"Boulrice & Wood CPAs, PC",Contact form,contact form
+Hi there,fallback,,Smith & Harding Associates,Contact form,contact form
+Hi Cynthia,ok,Cynthia Pogue Baker,"Cynthia Pogue Baker, CPA, PC",Email,cindy@tulsacpa.com
+Hi Jacki,ok,Jacki Trotter,"Copeland, Trotter & Norman, PC",Email,contact@taxcpas.net
+Hi David,ok,David R. Mathieson,"David R. Mathieson CPA, PLLC",Email,contactmathiesoncpa@gmail.com
+Hi Warren,ok,Warren C. Fisher,"Warren C. Fisher, CPA & Associates, PC",Email,cheryl@wcfishercpa.com
+Hi Paul,ok,Paul Muret,"Muret CPA, PLLC",Email,paul@muretcpa.com
+Hi Christopher,ok,Christopher C. Papin,"Papin CPA, PLLC",Email,chris@papincpa.com
+Hi Dan,ok,Dan Duncan (EA),"Duncan, Onley & Watkins, P.C.",Email,dan@dow-tax.com
+Hi there,surname?,Hann / Plummer,"Hann Plummer, PLLC",Email,cpas@hannplummer.com
+Hi John,ok,John B. Stambaugh,"John B. Stambaugh, P.C.",Email,john@stambaughpc.com
+Hi there,surname?,Hatch / Croke,"Hatch, Croke & Associates, PC",Email,info@hcacpas.com
+Hi Jodie,ok,Jodie A. Douglass,"Jodie A. Douglass, CPA Inc.",Email,jodiecpa@jodiedouglasscpa.com
+Hi James,ok,James Dee Johnson,James Dee Johnson & Company CPA's P.C.,Email,taxquestions@jdjcpa.net
+Hi Doreen,ok,Doreen H. Abbott (MSA),Small Business & Accounting Solutions of OK,Email,sbasok2019@gmail.com
+Hi Rusty,partner,Rusty Hale / Robert R. Hale,Hale & Company Inc,Email,info@halecpa.com
+Hi there,fallback,,Professional Business Systems,Email,info@pbsok.com
+Hi there,surname?,Klingeman (former IRS manager),Klingeman CPAs,Contact form,contact form
+Hi James,ok,James Reynolds (Managing Partner),"Gibson & Reynolds, PC",Contact form,contact form
+Hi Sarah,ok,Sarah Woods,"Woods Accounting Services, PC",Contact form,contact form
+Hi Cody,ok,Cody Martin (partner),Patrick Casey & Co. LLP,Email,info@patrickandcasey.com
+Hi Michelle,partner,Michelle Hanus / Patti Mode,Mode Hanus LLP,Email,info@bendtax.com
+Hi Todd,ok,Todd Hokinson (owner),Hokinson CPA P.C.,Email,info@cpamedford.com
+Hi Fairlight,ok,Fairlight Fehrenbacher (owner),TenPoint CPA PC,Email,info@tenpointcpa.com
+Hi there,surname?,Nagel / Padilla (partners),Nagel & Padilla LLC,Email,info@nagelpadilla.com
+Hi Randy,ok,Randy K. Jentzsch (owner),Randy K. Jentzsch & Co.,Email,info@rkjcpa.com
+Hi William,ok,William Witt (principal),Witt Consulting Inc,Email,info@wittconsulting.com
+Hi Bob,ok,Bob M. Keller (owner),Bob M. Keller CPA,Email,staff@bobkellercpa.com
+Hi Julie,ok,Julie Want (founder),Want CPA PC,Email,office@wantcpa.com
+Hi there,surname?,Boehme (partner),Boehme + Running CPAs LLC,Email,jboehme@albanyorcpa.com
+Hi Melinda,ok,Melinda Handy (owner),Melinda Handy CPA LLC,Email,info@melindahandycpa.com
+Hi there,surname?,Foster (owner),"Foster & Associates, CPA, LLC",Email,firm@fostercpas.com
+Hi Laurie,partner,Laurie K. Miller / Sean S. Kim,SKCPA & Co. (Miller & Kim CPAs),Email,info@skcpa.company
+Hi Stan,partner,Stan Turel / Patti King (co-owners),Columbia Pacific Tax Service LLC,Contact form,contact form
+Hi there,fallback,,Twenty20 Tax and Consulting,Contact form,contact form
+Hi Michael,ok,Michael Schapiro (owner),Schapiro CPA LLC,Contact form,contact form
+Hi John,ok,John A. Warekois (owner),John A. Warekois CPA LLC,Contact form,contact form
+Hi there,fallback,,Byzick and Company,Contact form,contact form
+Hi Shawn,ok,Shawn Eichner (owner),"Shawn Eichner, CPA",Contact form,contact form
+Hi there,fallback,,Tideline CPAs (Tideline CPA Group LLC),Email,office@TidelineCPAs.com
+Hi there,fallback,,Moody & O'Neal CPAs LLC,Email,info@moodycpas.com
+Hi Gregory,ok,Gregory Toohey,"Toohey & Diez, CPA's, LLC",Email,grtooheycpa@gregorytooheycpa.com
+Hi Deborah,ok,Deborah M. Weir,"Deborah M. Weir, CPA, LLC",Email,deborah@myrtlebeach-cpa.com
+Hi Mark,ok,Mark Xu,XU CPA LLC,Email,mark@mygreenvillecpa.com
+Hi Brian,ok,Brian Ange,Brian Ange CPA LLC,Email,info@brianangecpa.com
+Hi Brandon,ok,Brandon,Integrity Tax & Business Solutions LLC,Email,brandon@ichoseintegrity.com
+Hi Bharti,ok,Bharti Mathur,"Upstate CPAs, PA",Email,office@upstatecpas.com
+Hi James,ok,James D. Rogers,"Rogers CPA Firm, LLC",Email,info@rogerscpafirm.com
+Hi Mark,ok,Mark L. Schmitt,"Mark L. Schmitt, CPA, P.C.",Email,mark@schmittcpa.net
+Hi Karen,ok,Karen J. Skiff,Karen J Skiff CPA LLC,Email,info@karenjskiffcpa.com
+Hi Anne,ok,Anne Marie Hanna,"Anne Marie Hanna CPA, LLC",Email,admin@amhannacpa.com
+Hi there,fallback,,"Holt & Holt, CPA",Email,contact@holtcpas.com
+Hi William,ok,William R. Barefoot,William R. Barefoot CPA LLC,Email,info@wrbarefootcpa.com
+Hi James,ok,James M. Lopez,"James M. Lopez CPA, LLC",Email,james.lopez@jmlcpallc.com
+Hi Jatin,ok,Jatin J. Patel,"Patel & Company, CPA, PC",Email,info@beaufortcpa.com
+Hi Rudolph,ok,Rudolph M. O'Neal III,"Rudolph M O'Neal III, CPA LLC",Find manually,find manually
+Hi Michael,ok,"Michael J. Costigan, Sr.","Michael J. Costigan, Sr., CPA, LLC",Find manually,find manually
+Hi Trey,ok,Trey Judd,"Judd & Associates, CPAs",Email,webrequest@juddcpas.com
+Hi Paul,ok,Paul Johnson III,Johnson Murphey and Wright,Email,info@jmw-cpa.com
+Hi Perry,ok,Perry T. Sherrell,Sherrell & Shelley CPAs,Email,info@cpasofchattanooga.com
+Hi Stephanie,ok,Stephanie Callison,Callison CPA,Email,contact@callisoncpa.com
+Hi Ryan,ok,Ryan J. Hood,"Hood, CPA & Associates",Email,rhood@cpahood.com
+Hi there,fallback,,"Rowland & Carter, CPAs, PLLC",Email,bjc@rowlandandcarter.com
+Hi Tom,ok,Tom Carson Jones,Steele Martin Jones CPAs,Email,firm@steelemartin.com
+Hi Gina,ok,Gina Page,Page Accounting & Tax Service,Email,mail@pageaccounting-cpa.com
+Hi Leisa,ok,Leisa Loftis,Loftis CPA,Email,info@loftis.cpa
+Hi Tracy,ok,Tracy L. Carico,Tracy L. Carico CPA,Email,admin@tracylcaricocpa.com
+Hi Evan,ok,Evan Hutcheson,"Evan Hutcheson, CPA, LLC",Email,evan@evanhcpa.com
+Hi Dimeta,ok,Dimeta Smith,"DSCPA, LLC (Dimeta Smith CPA)",Email,support@dimetasmithcpa.com
+Hi Josh,ok,Josh Culbert,Culbert CPA,Email,info@culbertcpa.com
+Hi Donna,ok,Donna B. Walker,"Donna B. Walker, CPA",Email,admin@dbwalkercpa.com
+Hi Chris,ok,Chris Mussard,Chris Mussard CPA,Find manually,find manually
+Hi there,fallback,,"Hall, Weaver & Associates, PLLC",Email,info@longviewcpa.com
+Hi Saleem,ok,Saleem Lakhani,Saleem Lakhani CPA PLLC,Email,saleem@slakcpa.com
+Hi Marc,ok,Marc Garcia,Marc Garcia & Associates,Email,info@garciallp.com
+Hi Jonathan,ok,Jonathan Wyman,Jonathan Wyman CPA LLC,Email,jonathan@wymancpa.com
+Hi Adam,ok,Adam H. Baucom,Baucom CPA PLLC,Email,info@baucom.cpa
+Hi Jerry,ok,Jerry Love,Jerry Love CPA,Email,jerry@jerrylovecpa.com
+Hi Gayla,ok,Gayla Fullerton,Fullerton & Associates PLLC,Email,info@facpatx.com
+Hi there,fallback,,"Traplena, Sullivan & Reinke, PC",Email,jason@tsr-cpa.com
+Hi Katherine,ok,Katherine Overbeck Maxwell,Katherine Overbeck Maxwell CPA PLLC,Email,katherine@overbeckmaxwellcpa.com
+Hi Mario,ok,Mario Jordan,Jordan & Rullan CPAs PLLC,Email,mario@jordanrullancpa.com
+Hi Robert,ok,Robert L Perkins III,Robert L Perkins III CPA,Email,edgar@rlperkinscpa.com
+Hi Randell,ok,Randell M. Naquin,Randell M. Naquin CPA PLLC,Email,randell@rmncpa.com
+Hi there,fallback,,Abbey Tax Group Inc.,Email,info@abbeytaxgroup.com
+Hi David,ok,David G. Barr,David G. Barr CPA,Email,admin@dgbarrcpa.com
+Hi there,fallback,,JES Accounting LLC,Email,jsrour@jesaccounting.cpa
+Hi Tamara,ok,Tamara LaBombard,Tamara LaBombard CPA LLC,Email,info@cpataxprepkilleen.com
+Hi Janie,ok,Janie A. Barry,Janie A. Barry CPA,Email,info@janiebarry.com
+Hi there,fallback,,Goetz Bailey & Yale P.S.,Email,info@gbycpas.com
+Hi there,fallback,,Northwest CPA Group,Email,office@nwcpagroup.com
+Hi Eric,ok,J. Eric Kimball,J. Eric Kimball CPA,Email,eric@erickimballcpa.com
+Hi Brian,ok,Brian Godfrey,Brian Godfrey CPA EA,Email,brian@briangodfreycpa.com
+Hi Bradley,ok,Bradley W. Orser,Bradley W. Orser CPA Inc PS,Email,brad@orsercpa.com
+Hi there,fallback,,Clarke Whitney CPA Group LLC,Email,bremertonadmin@clarkewhitney.com
+Hi Ward,partner,Ward Scott / John Nelson,Scott & Nelson PLLC,Email,info@scottandnelsoncpas.com
+Hi Sumeet,ok,Sumeet Bedi,Sumeet Bedi CPA,Email,sbedi@sumeetcpa.com
+Hi there,surname?,Heggerness / Bronk,Heggerness and Bronk CPA Group,Email,office@gigharborcpa.com
+Hi Cory,ok,Cory Garnaas,Cory Garnaas CPA,Email,gigharborcpa@gmail.com
+Hi there,fallback,,Furin & Company PS,Email,furin@furincpa.com
+Hi there,fallback,,Rhodes & Associates CPAs,Email,pra@rhodescpa.com
+Hi there,fallback,,Vargas & Associates,Email,office.tvacpa@gmail.com
+Hi John,partner,John D. Weinstein / Shawn J. Schwab,Weinstein & Schwab PLLC,Contact form,contact form
+Hi Cindy,partner,Cindy Brado / Anne DeFrancisco,DeFrancisco Lampitt & Brado PS,Find manually,find manually
+Hi there,fallback,,Yakima CPA Group,Contact form,contact form
