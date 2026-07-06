@@ -1,0 +1,55 @@
+---
+/**
+ * /works-with-your-stack — the complement-not-replace hub. Lists the tools a US
+ * CPA practice already runs and the source-backed deadline-monitoring layer
+ * DueDateHQ adds on top. Doubles as SEO/GEO content and a sales page. Content
+ * lives in components/WorksWithStackPage.astro + lib/stack-tools.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import WorksWithStackPage from '../components/WorksWithStackPage.astro'
+import { getStartedHref } from '../lib/app-url'
+import { stackStructuredData } from '../lib/stack-structured-data'
+
+const ctaHref = getStartedHref()
+const pathname = '/works-with-your-stack'
+const title = 'DueDateHQ — the deadline layer that works with your CPA stack'
+const description =
+  'DueDateHQ layers source-backed IRS and state deadline-change monitoring on top of the tools US CPA firms already run — TaxDome, Canopy, Karbon, UltraTax, QuickBooks, and more. Complement, not replacement.'
+const faqForSchema = [
+  {
+    question: 'Does DueDateHQ replace my current software?',
+    answer:
+      'No. It is a monitoring layer that sits on top of your practice suite, tax software, or ledger. You keep doing the work in your own tools — DueDateHQ only catches the deadline and rule changes at the official source and shows which clients are affected.',
+  },
+  {
+    question: 'How does it connect to my tools?',
+    answer:
+      'DueDateHQ watches the official IRS and state sources, not your software — so it is tool-agnostic and does not need a per-platform integration to catch a change. It reads your client context and maps each change to the specific clients on your list.',
+  },
+  {
+    question: 'What if the tool I use is not on this list?',
+    answer:
+      'It still applies. The groups are common examples. Because the monitoring is of the official sources rather than any one platform, the deadline and rule-change signal is the same whatever software you run.',
+  },
+  {
+    question: 'Is this tax advice?',
+    answer:
+      'No. DueDateHQ supports evidence-backed review; it is not tax advice or a filing system.',
+  },
+]
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/stack.en.png"
+  structuredData={stackStructuredData('en', title, description, faqForSchema)}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <WorksWithStackPage locale="en" ctaHref={ctaHref} />
+  <Footer />
+</BaseLayout>

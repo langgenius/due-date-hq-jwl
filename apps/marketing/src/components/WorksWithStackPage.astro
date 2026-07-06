@@ -1,0 +1,387 @@
+---
+/**
+ * WorksWithStackPage — the "works with your stack" hub, shared by the EN and
+ * zh-CN routes. Lists the tools a US CPA practice already runs (grouped by job)
+ * and the single layer DueDateHQ adds on top of each: source-backed monitoring
+ * of IRS/state deadline & rule changes, routed to the clients it affects.
+ *
+ * Positioning is complement-not-replace by design (docs: only-show-shipped +
+ * compare-page policy). The DueDateHQ side states shipped capability only; the
+ * tool side cites public positioning only. Data lives in lib/stack-tools.ts.
+ */
+import { STACK_GROUPS, stackToolLink } from '../lib/stack-tools'
+import FaqAccordion from './FaqAccordion.astro'
+
+interface Props {
+  locale?: 'en' | 'zh-CN'
+  ctaHref: string
+}
+const { locale = 'en', ctaHref } = Astro.props
+const zh = locale === 'zh-CN'
+const base = zh ? '/zh-CN' : ''
+
+const c = zh
+  ? {
+      eyebrow: '兼容你的工具栈',
+      title: '为你已有的工具栈补上截止日那一层。',
+      lead: 'DueDateHQ 不替换你的 practice suite、报税软件或账本。它叠加在上面，补上大多数工具当初并非为此而建的那一层：监控官方 IRS 与各州来源的截止日与规则变化，并把每条变化路由到受影响的客户——附上来源。',
+      promiseEyebrow: '一句话',
+      promise: '保留你在用的工具。让 DueDateHQ 负责监控。',
+      promiseBody:
+        '你的团队已经在某处运行 job、报税和记账。缺的很少是又一个工作流——而是当 IRS 或某个州调整日期时，第一时间知道，并知道这牵动了名单上的哪些客户。这正是 DueDateHQ 做的一件事。',
+      adds: '叠加方式',
+      roleLabel: '它是做什么的',
+      faqEyebrow: 'FAQ',
+      faqTitle: '关于并用的常见问题。',
+      ctaTitle: '在你已有的工具之上，加一层截止日监控。',
+      ctaBody: '不迁移、不替换。DueDateHQ 监控官方来源，并显示每条变化影响到哪些客户。',
+      ctaPrimary: '开始使用',
+      ctaSecondary: '查看工作原理',
+      missingNote:
+        '没看到你用的工具？监控层与工具无关——DueDateHQ 监控的是官方来源，不依赖你运行哪套软件。',
+    }
+  : {
+      eyebrow: 'Works with your stack',
+      title: 'The deadline layer for the stack you already run.',
+      lead: "DueDateHQ doesn't replace your practice suite, tax software, or ledger. It layers on top and adds the one thing most of them weren't built for: watching the official IRS and state sources for deadline and rule changes, and routing each to the clients it affects — with the source attached.",
+      promiseEyebrow: 'In one line',
+      promise: 'Keep the tools you use. Let DueDateHQ do the watching.',
+      promiseBody:
+        'Your team already runs jobs, returns, and books somewhere. What is usually missing is not another workflow — it is knowing the moment the IRS or a state moves a date, and knowing which clients on your list that change touches. That is the one job DueDateHQ does.',
+      adds: 'How it layers on',
+      roleLabel: 'What it does',
+      faqEyebrow: 'FAQ',
+      faqTitle: 'Questions about running them together.',
+      ctaTitle: 'Add a deadline-monitoring layer over the tools you already have.',
+      ctaBody:
+        'No migration, no replacement. DueDateHQ watches the official sources and shows which clients each change affects.',
+      ctaPrimary: 'Get started',
+      ctaSecondary: 'See how it works',
+      missingNote:
+        "Don't see your tool? The monitoring layer is tool-agnostic — DueDateHQ watches the official sources, not whichever software you run.",
+    }
+
+const faq = zh
+  ? [
+      {
+        question: 'DueDateHQ 会替换我现在的软件吗？',
+        answer:
+          '不会。它是监控层，叠加在你现有的 practice suite、报税软件或账本之上。你仍在自己的工具里完成工作——DueDateHQ 只负责捕捉官方来源的截止日与规则变化，并显示受影响的客户。',
+      },
+      {
+        question: '它和我的工具是怎么“连接”的？',
+        answer:
+          'DueDateHQ 监控的是<b>官方 IRS 与各州来源</b>，不是你的软件——所以它与工具无关，不需要每个平台都做集成就能捕捉变化。它读取你的客户上下文，把每条变化映射到名单上的具体客户。',
+      },
+      {
+        question: '如果我用的工具不在这个列表上呢？',
+        answer:
+          '一样适用。上面的分组只是常见示例。因为监控的是官方来源而非某个平台，无论你运行哪套软件，截止日与规则变化的信号都一致。',
+      },
+      {
+        question: '这算税务建议吗？',
+        answer: '不算。DueDateHQ 支持基于证据的复核；它不是税务建议，也不是报税系统。',
+      },
+    ]
+  : [
+      {
+        question: 'Does DueDateHQ replace my current software?',
+        answer:
+          'No. It is a monitoring layer that sits on top of your practice suite, tax software, or ledger. You keep doing the work in your own tools — DueDateHQ only catches the deadline and rule changes at the official source and shows which clients are affected.',
+      },
+      {
+        question: 'How does it "connect" to my tools?',
+        answer:
+          'DueDateHQ watches the <b>official IRS and state sources</b>, not your software — so it is tool-agnostic and does not need a per-platform integration to catch a change. It reads your client context and maps each change to the specific clients on your list.',
+      },
+      {
+        question: 'What if the tool I use is not on this list?',
+        answer:
+          'It still applies. The groups above are common examples. Because the monitoring is of the official sources rather than any one platform, the deadline and rule-change signal is the same whatever software you run.',
+      },
+      {
+        question: 'Is this tax advice?',
+        answer:
+          'No. DueDateHQ supports evidence-backed review; it is not tax advice or a filing system.',
+      },
+    ]
+---
+
+<main class="wws">
+  <section class="m-section m-page-hero" id="hero">
+    <p class="m-eyebrow">{c.eyebrow}</p>
+    <h1 class="m-page-title">{c.title}</h1>
+    <p class="m-page-lead">{c.lead}</p>
+  </section>
+
+  <section class="m-section wws-promise">
+    <p class="m-eyebrow">{c.promiseEyebrow}</p>
+    <p class="wws-promise__line">{c.promise}</p>
+    <p class="wws-promise__body">{c.promiseBody}</p>
+  </section>
+
+  {
+    STACK_GROUPS.map((group) => (
+      <section class="m-section m-page-block wws-group" id={group.id}>
+        <div class="wws-group__head">
+          <h2 class="m-page-h2">{zh ? group.titleZh : group.title}</h2>
+          <p class="wws-group__gap">{zh ? group.gapZh : group.gap}</p>
+        </div>
+        <p class="wws-group__adds">
+          <span class="wws-group__addstag">{c.adds}</span>
+          {zh ? group.layersOnZh : group.layersOn}
+        </p>
+        <ul class="wws-tools">
+          {group.tools.map((tool) => {
+            const link = stackToolLink(tool, locale)
+            const Card = link ? 'a' : 'div'
+            return (
+              <li>
+                <Card class="wws-tool" href={link ? link.href : undefined}>
+                  <p class="wws-tool__name">{tool.name}</p>
+                  <p class="wws-tool__role">{zh ? tool.roleZh : tool.role}</p>
+                  {link && (
+                    <span class="wws-tool__link">
+                      {link.label}
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M5 12h14M13 6l6 6-6 6"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </Card>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+    ))
+  }
+
+  <section class="m-section wws-note">
+    <p>{c.missingNote}</p>
+  </section>
+
+  <section class="m-section m-page-block wws-faq" id="faq">
+    <p class="m-eyebrow">{c.faqEyebrow}</p>
+    <h2 class="m-page-h2">{c.faqTitle}</h2>
+    <div class="wws-faq__list">
+      <FaqAccordion items={faq} />
+    </div>
+  </section>
+
+  <section class="m-section wws-cta" id="cta">
+    <div class="wws-cta__inner">
+      <h2 class="wws-cta__title">{c.ctaTitle}</h2>
+      <p class="wws-cta__body">{c.ctaBody}</p>
+      <div class="wws-cta__actions">
+        <a class="wws-cta__primary" href={ctaHref}>{c.ctaPrimary}</a>
+        <a class="wws-cta__secondary" href={`${base}/how-it-works`}>{c.ctaSecondary}</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  /* promise strip — the single honest framing, once, before the tool groups */
+  .wws-promise {
+    padding-block: clamp(8px, 2vw, 20px) clamp(24px, 4vw, 40px);
+  }
+  .wws-promise__line {
+    max-width: 24ch;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .wws-promise__body {
+    margin-top: 18px;
+    max-width: 62ch;
+    font-size: clamp(16px, 1.3vw, 18px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+
+  .wws-group__head {
+    max-width: var(--m-measure);
+  }
+  .wws-group__gap {
+    margin-top: 12px;
+    font-size: var(--m-text-md);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-muted);
+  }
+  /* the additive value — a quiet accent-tinted panel, not a bordered card per
+     the "clear sections not boxes" note, but distinct enough to read as the
+     DueDateHQ side of the story */
+  .wws-group__adds {
+    margin-top: 20px;
+    max-width: var(--m-measure);
+    padding: 16px 18px;
+    border-radius: var(--m-radius-lg);
+    background: var(--m-accent-tint);
+    font-size: var(--m-text-md);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-ink-2);
+  }
+  .wws-group__addstag {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-tracking-wide);
+    text-transform: uppercase;
+    color: var(--m-accent-strong);
+  }
+
+  .wws-tools {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+  }
+  @media (max-width: 900px) {
+    .wws-tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .wws-tools {
+      grid-template-columns: 1fr;
+    }
+  }
+  .wws-tool {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: var(--m-radius-lg);
+    background: var(--m-surface);
+    text-decoration: none;
+  }
+  a.wws-tool {
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  a.wws-tool:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .wws-tool__name {
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .wws-tool__role {
+    font-size: var(--m-text-sm);
+    line-height: 1.5;
+    color: var(--m-muted);
+  }
+  .wws-tool__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .wws-tool__link svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+
+  .wws-note {
+    padding-block: clamp(4px, 1.5vw, 12px);
+  }
+  .wws-note p {
+    max-width: var(--m-measure);
+    padding-left: 16px;
+    border-left: 2px solid var(--m-hairline);
+    font-size: var(--m-text-sm);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-faint);
+  }
+
+  .wws-faq__list {
+    margin-top: 24px;
+    max-width: 820px;
+  }
+
+  .wws-cta__inner {
+    padding: clamp(32px, 5vw, 56px);
+    border-radius: var(--m-radius-lg);
+    background: var(--m-section);
+    text-align: center;
+  }
+  .wws-cta__title {
+    max-width: 22ch;
+    margin-inline: auto;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(26px, 3.2vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .wws-cta__body {
+    margin: 16px auto 0;
+    max-width: 54ch;
+    font-size: var(--m-text-md);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .wws-cta__actions {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+  .wws-cta__primary,
+  .wws-cta__secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 22px;
+    border-radius: var(--m-radius-pill);
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      transform var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease),
+      border-color var(--m-dur-fast) var(--m-ease);
+  }
+  .wws-cta__primary {
+    background: var(--m-accent);
+    color: var(--m-on-accent);
+  }
+  .wws-cta__primary:hover {
+    background: var(--m-accent-strong);
+    transform: translateY(-2px);
+  }
+  .wws-cta__secondary {
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
+    color: var(--m-ink);
+  }
+  .wws-cta__secondary:hover {
+    border-color: var(--m-accent);
+    color: var(--m-accent);
+    transform: translateY(-2px);
+  }
+</style>
