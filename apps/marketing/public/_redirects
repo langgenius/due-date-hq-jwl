@@ -1,4 +1,0 @@
-# www serves identical content at 200 today, which splits Google's crawl
-# budget across two hosts and surfaces "Alternate page with proper canonical
-# tag" in GSC. Collapse it onto the apex with a permanent redirect.
-https://www.duedatehq.com/* https://duedatehq.com/:splat 301
