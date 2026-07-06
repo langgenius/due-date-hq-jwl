@@ -13,6 +13,10 @@ import {
 } from './organization-hooks'
 import { buildDatabaseHooks } from './session-hooks'
 
+type WaitUntilContext = {
+  waitUntil(promise: Promise<unknown>): void
+}
+
 function absoluteUrl(env: ServerEnv, pathOrUrl: string): string {
   return new URL(pathOrUrl, env.APP_URL).toString()
 }
@@ -109,7 +113,7 @@ function createEmailSender(env: ServerEnv): AuthEmailSender {
   }
 }
 
-export function createWorkerAuth(runtimeEnv: Env, ctx?: ExecutionContext) {
+export function createWorkerAuth(runtimeEnv: Env, ctx?: WaitUntilContext) {
   const env = validateServerEnv(runtimeEnv)
   const db = createDb(runtimeEnv.DB)
   const email = createEmailSender(env)

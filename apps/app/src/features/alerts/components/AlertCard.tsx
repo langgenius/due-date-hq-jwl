@@ -36,6 +36,7 @@ import {
 } from './pulse-alert-chrome'
 
 const VISIBLE_CLIENT_NAMES = 3
+const EMPTY_AFFECTED_CLIENTS: PulseAffectedClient[] = []
 
 interface AlertCardProps {
   alert: PulseAlertPublic
@@ -95,7 +96,7 @@ interface AlertCardProps {
 export function AlertCard({
   alert,
   onReview,
-  affectedClients = [],
+  affectedClients = EMPTY_AFFECTED_CLIENTS,
   onDismiss,
   onArchive,
   compact = false,

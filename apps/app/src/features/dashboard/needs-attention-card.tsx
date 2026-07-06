@@ -68,6 +68,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 // resulting card is shorter than this floor, the empty-state /
 // chip row pushes to the bottom edge via the parent's `justify-between`.
 const CARD_MIN_HEIGHT_CLASS = 'min-h-[120px]'
+const EMPTY_AFFECTED_CLIENTS: PulseAffectedClient[] = []
 
 // Returns the FULL deduplicated list of affected client names so the
 // Meta row's tooltip can render every name on hover (the card shows a
@@ -77,7 +78,7 @@ const CARD_MIN_HEIGHT_CLASS = 'min-h-[120px]'
 
 function NeedsAttentionCard({
   alert,
-  affectedClients = [],
+  affectedClients = EMPTY_AFFECTED_CLIENTS,
   onReview,
 }: {
   alert: PulseAlertPublic

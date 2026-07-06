@@ -31,6 +31,23 @@ type SummaryCell = {
   ariaLabel?: string
 }
 
+function summaryNumber(value: number) {
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={value}
+        {...fadeMotion}
+        className={cn(
+          'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
+          value > 0 ? 'text-text-primary' : 'text-text-tertiary',
+        )}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
+  )
+}
+
 /**
  * ClientSummaryStrip — the /clients/[id] hero fact strip: Jurisdictions ·
  * Blocked · Open · Filed · Next due.
@@ -84,32 +101,6 @@ export function ClientSummaryStrip({
     return <Skeleton className="h-[84px] w-full rounded-xl" />
   }
 
-  // KPI numeral — `text-lg` 16px (Yuqi "change to 16px"), sans, semibold,
-  // tabular-nums. All counts share ONE neutral colour (Yuqi "why are
-  // the numbers inconsistent?" — the old per-count amber/green made the band read
-  // as four mismatched numbers). The band's single chromatic accent is the
-  // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
-  // here", not a loud signal.
-  // Cross-fade the numeral on refetch instead of a hard snap. `tabular-nums`
-  // keeps the width stable so the swap is pure opacity, no jitter. Keyed on the
-  // value so only a changed count animates.
-  const num = (value: number) => (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.span
-        key={value}
-        {...fadeMotion}
-        className={cn(
-          // 500 (font-medium), NOT 600: KPI numerals are key DATA, and 600 is
-          // reserved for titles (type-weight canon). Size unchanged (16px).
-          'text-lg leading-none font-medium tracking-tight tabular-nums whitespace-nowrap',
-          value > 0 ? 'text-text-primary' : 'text-text-tertiary',
-        )}
-      >
-        {value}
-      </motion.span>
-    </AnimatePresence>
-  )
-
   const cells: SummaryCell[] = [
     {
       key: 'jurisdictions',
@@ -135,7 +126,7 @@ export function ClientSummaryStrip({
     {
       key: 'blocked',
       label: t`Blocked`,
-      value: num(blockedCount),
+      value: summaryNumber(blockedCount),
       ...(blockedCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}&status=blocked`),
@@ -146,7 +137,7 @@ export function ClientSummaryStrip({
     {
       key: 'open',
       label: t`Open`,
-      value: num(openCount),
+      value: summaryNumber(openCount),
       ...(openCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}`),
@@ -157,7 +148,7 @@ export function ClientSummaryStrip({
     {
       key: 'filed',
       label: t`Filed`,
-      value: num(filedCount),
+      value: summaryNumber(filedCount),
       ...(filedCount > 0
         ? {
             onClick: () =>

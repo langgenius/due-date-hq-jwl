@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router'
 
-import type { DashboardBriefScope, DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
+import type { DashboardBriefScope, DashboardTopRow } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableRow } from '@duedatehq/ui/components/ui/table'
@@ -807,7 +807,7 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
       </span>
       <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">
         {LIFECYCLE_CELLS.map((cell, index) => {
-          const count = counts.get(cell.key as ObligationStatus) ?? 0
+          const count = counts.get(cell.key) ?? 0
           return (
             <LifecycleStripCell
               key={cell.key}

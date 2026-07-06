@@ -145,9 +145,9 @@ export function DeadlineDetailRoute() {
     // first, so this is the only writer.
     const cleaned = cleanDeadlineDetailSearch(location.search)
     if (obligationId) {
-      const params = new URLSearchParams(cleaned.startsWith('?') ? cleaned.slice(1) : cleaned)
-      params.set('row', obligationId)
-      void navigate(`/deadlines?${params.toString()}`)
+      const closeParams = new URLSearchParams(cleaned.startsWith('?') ? cleaned.slice(1) : cleaned)
+      closeParams.set('row', obligationId)
+      void navigate(`/deadlines?${closeParams.toString()}`)
       return
     }
     void navigate(`/deadlines${cleaned}`)

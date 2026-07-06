@@ -407,7 +407,7 @@ describe('urgency band derivation', () => {
           currentDueDate: '2026-08-01',
           daysUntilDue: 60,
           extensionInternalTargetDate: '2026-06-02',
-          status: 'pending' as ObligationStatus,
+          status: 'pending',
         },
         '2026-06-01',
       ),

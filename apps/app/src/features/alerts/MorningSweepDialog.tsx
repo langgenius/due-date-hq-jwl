@@ -52,6 +52,13 @@ type Briefing = {
   windowAlerts: PulseAlertPublic[]
 }
 
+function tierRank(alert: PulseAlertPublic): number {
+  const level = alertImpactLevel(alert)
+  if (level === 'high') return 3
+  if (level === 'medium') return 2
+  return 1
+}
+
 /**
  * Compose the client-side mock briefing. Pure function for ease of
  * test + swap-to-server later.
@@ -71,12 +78,6 @@ function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): B
   const windowAlerts = alerts.filter(
     (a) => now - new Date(a.publishedAt).getTime() <= TWENTY_FOUR_HOURS_MS,
   )
-  const tierRank = (a: PulseAlertPublic): number => {
-    const level = alertImpactLevel(a)
-    if (level === 'high') return 3
-    if (level === 'medium') return 2
-    return 1
-  }
   const ranked = [...windowAlerts].toSorted((a, b) => {
     const diff = tierRank(b) - tierRank(a)
     if (diff !== 0) return diff

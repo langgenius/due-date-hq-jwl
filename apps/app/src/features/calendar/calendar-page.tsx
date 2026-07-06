@@ -744,7 +744,7 @@ function IntegrationNote({
       <ol className="grid gap-1.5">
         {steps.map((step, i) => (
           // Step list: numbered counter, calm tertiary text
-          <li key={i} className="flex items-start gap-2 text-xs text-text-secondary">
+          <li key={step} className="flex items-start gap-2 text-xs text-text-secondary">
             <span className="mt-px shrink-0 tabular-nums text-text-tertiary">{i + 1}.</span>
             <span>{step}</span>
           </li>

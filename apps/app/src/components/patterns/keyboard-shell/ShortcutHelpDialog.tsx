@@ -19,12 +19,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { Kbd } from '@/components/patterns/kbd'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 
-import {
-  RESERVED_SHORTCUTS,
-  type AppHotkeyMeta,
-  type ShortcutCategory,
-  type ShortcutScope,
-} from './types'
+import { RESERVED_SHORTCUTS, type ShortcutCategory, type ShortcutScope } from './types'
 import { formatShortcutForDisplay, formatShortcutSequenceForDisplay } from './display'
 
 interface ShortcutHelpDialogProps {
@@ -92,7 +87,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
   const items = useMemo<ShortcutHelpItem[]>(() => {
     const registeredHotkeys = hotkeys
       .map((registration): ShortcutHelpItem | null => {
-        const meta = registration.options.meta as AppHotkeyMeta | undefined
+        const meta = registration.options.meta
         if (!meta?.name) return null
         return {
           id: meta.id ?? registration.id,
@@ -108,7 +103,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
 
     const registeredSequences = sequences
       .map((registration): ShortcutHelpItem | null => {
-        const meta = registration.options.meta as AppHotkeyMeta | undefined
+        const meta = registration.options.meta
         if (!meta?.name) return null
         return {
           id: meta.id ?? registration.id,

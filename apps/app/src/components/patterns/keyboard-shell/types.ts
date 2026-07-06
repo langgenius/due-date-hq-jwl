@@ -30,6 +30,10 @@ export interface AppHotkeyMeta {
   disabledReason?: string
 }
 
+declare module '@tanstack/react-hotkeys' {
+  interface HotkeyMeta extends AppHotkeyMeta {}
+}
+
 interface ReservedShortcut {
   id: string
   keys: string

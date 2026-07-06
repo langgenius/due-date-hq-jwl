@@ -52,7 +52,11 @@ export function MigrationNewRoute() {
   // so fall back to Today.
   const location = useLocation()
   const goBack = () => {
-    const historyIdx = (window.history.state as { idx?: number } | null)?.idx
+    const historyState: unknown = window.history.state
+    const historyIdx =
+      typeof historyState === 'object' && historyState !== null && 'idx' in historyState
+        ? historyState.idx
+        : undefined
     const hasInAppHistory =
       location.key !== 'default' && typeof historyIdx === 'number' && historyIdx > 0
     if (hasInAppHistory) void navigate(-1)

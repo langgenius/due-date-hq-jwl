@@ -293,7 +293,7 @@ export function createPoliteFetch(
   // waits never count against the request's own budget.
   const timedFetch = withFetchTimeout(fetchImpl)
 
-  return (async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+  return async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const url =
       input instanceof Request ? new URL(input.url) : input instanceof URL ? input : new URL(input)
     // robots.txt probes are tiny and 24h-cached per host — never spend a slot.
@@ -305,7 +305,7 @@ export function createPoliteFetch(
     state.nextSlotAt.set(url.host, slot + RATE_LIMIT.minIntervalMs)
     if (slot > now) await new Promise((resolve) => setTimeout(resolve, slot - now))
     return timedFetch(input, init)
-  }) as typeof fetch
+  }
 }
 
 /**

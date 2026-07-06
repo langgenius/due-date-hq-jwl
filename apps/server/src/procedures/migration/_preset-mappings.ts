@@ -259,7 +259,7 @@ export function buildPresetMappings(
   const now = new Date().toISOString()
 
   return headers.map((header) => {
-    const target = dict[normalizePresetHeader(header)] ?? ('IGNORE' as MappingTarget)
+    const target = dict[normalizePresetHeader(header)] ?? 'IGNORE'
     const isHit = target !== 'IGNORE'
     return {
       id: crypto.randomUUID(),
@@ -369,8 +369,7 @@ const GENERIC_HEADER_MAPPINGS: Record<string, MappingTarget> = {
 export function buildHeuristicMappings(headers: readonly string[], batchId: string): MappingRow[] {
   const now = new Date().toISOString()
   return headers.map((header) => {
-    const target =
-      GENERIC_HEADER_MAPPINGS[normalizePresetHeader(header)] ?? ('IGNORE' as MappingTarget)
+    const target = GENERIC_HEADER_MAPPINGS[normalizePresetHeader(header)] ?? 'IGNORE'
     const isHit = target !== 'IGNORE'
     return {
       id: crypto.randomUUID(),
@@ -400,7 +399,7 @@ export function buildAllIgnoreMappings(headers: readonly string[], batchId: stri
     id: crypto.randomUUID(),
     batchId,
     sourceHeader: header,
-    targetField: 'IGNORE' as MappingTarget,
+    targetField: 'IGNORE',
     confidence: null,
     reasoning: 'No AI mapping available and no preset selected — please map manually.',
     userOverridden: false,

@@ -1143,7 +1143,7 @@ const updateNotes = os.clients.updateNotes.handler(async ({ input, context }) =>
     const hideDollars = await shouldHideDollars(context)
     return {
       client: toClientPublic(before, { hideDollars, filingProfiles }),
-      auditId: '' as string,
+      auditId: '',
     }
   }
 
@@ -1200,7 +1200,7 @@ const rename = os.clients.rename.handler(async ({ input, context }) => {
     const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
     return {
       client: toClientPublic(before, { hideDollars, filingProfiles }),
-      auditId: '' as string,
+      auditId: '',
     }
   }
   await scoped.clients.updateName(input.id, nextName)
@@ -1248,7 +1248,7 @@ const archive = os.clients.archive.handler(async ({ input, context }) => {
     const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
     return {
       client: toClientPublic(before, { hideDollars, filingProfiles }),
-      auditId: '' as string,
+      auditId: '',
     }
   }
   await scoped.clients.archive(input.id)
@@ -1297,7 +1297,7 @@ const restore = os.clients.restore.handler(async ({ input, context }) => {
     const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
     return {
       client: toClientPublic(before, { hideDollars, filingProfiles }),
-      auditId: '' as string,
+      auditId: '',
     }
   }
   await scoped.clients.restore(input.id)
