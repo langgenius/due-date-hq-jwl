@@ -70,6 +70,7 @@ const { sendMock, dbMocks } = vi.hoisted(() => {
       whereSelect,
       orderBy,
       limit,
+      insertValues,
       setRows: (nextRows: typeof rows) => {
         rows = nextRows
       },
@@ -306,5 +307,58 @@ describe('flushEmailOutbox', () => {
     expect(dbMocks.set).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'failed', failureReason: 'Invalid `from` field.' }),
     )
+  })
+
+  it('keeps a row sent when the client-reminder audit write throws', async () => {
+    dbMocks.setRows([
+      {
+        id: 'outbox_7',
+        firmId: 'firm_1',
+        externalId: 'reminder:firm_1:client_1:1',
+        type: 'deadline_reminder',
+        status: 'pending',
+        payloadJson: { recipients: ['client@example.com'] },
+        createdAt: new Date('2026-07-04T11:00:00.000Z'),
+        sentAt: null,
+        failedAt: null,
+        failureReason: null,
+      },
+    ])
+    // First `.where()` call is the outbox poll (chains .orderBy().limit());
+    // second is reminderLinkageByOutboxId, awaited directly — resolve it with
+    // one linked client reminder so auditClientReminderOutcome's insert runs.
+    dbMocks.whereSelect
+      .mockReturnValueOnce(Object.assign(Promise.resolve([]), { orderBy: dbMocks.orderBy }))
+      .mockReturnValueOnce(
+        Object.assign(
+          Promise.resolve([
+            {
+              id: 'reminder_1',
+              firmId: 'firm_1',
+              clientId: 'client_1',
+              obligationInstanceId: 'obligation_1',
+              recipientKind: 'client',
+              recipientEmail: 'client@example.com',
+              channel: 'email',
+              offsetDays: 3,
+              templateId: null,
+              clickedAt: null,
+            },
+          ]),
+          { orderBy: dbMocks.orderBy },
+        ),
+      )
+    // Simulate a stale firm_id FK (or any transient D1 error) on the audit insert.
+    dbMocks.insertValues.mockRejectedValueOnce(new Error('FOREIGN KEY constraint failed'))
+
+    const result = await flushEmailOutbox({
+      DB: {} as D1Database,
+      EMAIL_FROM: 'noreply@example.com',
+      RESEND_API_KEY: 're_test',
+    } satisfies Pick<Env, 'DB' | 'EMAIL_FROM' | 'RESEND_API_KEY'>)
+
+    expect(result).toEqual({ sent: 1, failed: 0, skipped: 0 })
+    expect(dbMocks.set).toHaveBeenCalledWith(expect.objectContaining({ status: 'sent' }))
+    expect(dbMocks.set).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }))
   })
 })

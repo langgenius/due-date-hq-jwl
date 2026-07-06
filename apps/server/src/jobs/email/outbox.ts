@@ -131,6 +131,30 @@ async function auditClientReminderOutcome(
   }
 }
 
+// Audit inserts carry a firm_id FK (onDelete: 'restrict'); a stale link or a
+// transient D1 write error must not take down email delivery for the row —
+// worse, if it threw from inside the send try block it would re-mark an
+// already-sent row 'failed'. The audit trail is best-effort, not load-bearing.
+async function safeAuditOutcome(
+  db: ReturnType<typeof createDb>,
+  outboxId: string,
+  outcome: 'sent' | 'failed',
+  failureReason: string | null,
+): Promise<void> {
+  try {
+    await auditClientReminderOutcome(db, outboxId, outcome, failureReason)
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        type: 'email_outbox.audit_failed',
+        outboxId,
+        outcome,
+        error: error instanceof Error ? error.message : 'Audit write failed.',
+      }),
+    )
+  }
+}
+
 async function processOutboxRow(
   db: ReturnType<typeof createDb>,
   resend: Resend | null,
@@ -161,7 +185,7 @@ async function processOutboxRow(
         .set({ status: 'failed', failureReason })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
-    await auditClientReminderOutcome(db, row.id, 'failed', failureReason)
+    await safeAuditOutcome(db, row.id, 'failed', failureReason)
     return 'failed'
   }
 
@@ -210,8 +234,6 @@ async function processOutboxRow(
         .set({ status: 'sent', sentAt: new Date(), failureReason: null })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
-    await auditClientReminderOutcome(db, row.id, 'sent', null)
-    return 'sent'
   } catch (error) {
     const failureReason = error instanceof Error ? error.message : 'Resend send failed.'
     await db
@@ -233,9 +255,11 @@ async function processOutboxRow(
         .set({ status: 'failed', failureReason })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
-    await auditClientReminderOutcome(db, row.id, 'failed', failureReason)
+    await safeAuditOutcome(db, row.id, 'failed', failureReason)
     return 'failed'
   }
+  await safeAuditOutcome(db, row.id, 'sent', null)
+  return 'sent'
 }
 
 export async function flushEmailOutbox(
