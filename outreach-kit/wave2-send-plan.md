@@ -45,8 +45,8 @@ touch-2; … through Day 4 touch-2 is exhausted (~198), Days 5–6 finish the ne
 - **De-dupes** from `.outreach-state.json` — never re-sends a touch to the same address.
 - **Honors `outreach-suppress.txt`** on every touch.
 - **Dry-run by default** — nothing sends without `--send`.
-- Touch-1 HTML is the locked v11 template (rebuilt in code); touch-2/3 are the plain-text bodies
-  from the sequence CSV.
+- Touch-1 is the v12 **light Inbox template** (rebuilt in code — plain, no card/image); touch-2/3
+  are the plain-text bodies from the sequence CSV.
 
 ## 4. Caveats
 

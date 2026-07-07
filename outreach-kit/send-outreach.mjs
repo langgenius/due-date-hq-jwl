@@ -156,14 +156,9 @@ function withFooter(text) {
   return `${text}\n\nP.S. Not useful? Just reply "no thanks" and I won't write again.\nDueDateHQ · ${FOOTER_ADDRESS}`
 }
 
-// ---- Touch-1 template (v11 FINAL, locked 2026-07-02): serif hero question +
-// product-faithful GA alert card (white 12px card, gray header band, IRS/GEORGIA
-// comparison table, counties line, whole card links to the app pinned ?lng=en) +
-// morning-close + logo signature (cid-embedded wordmark). Approved by Yuqi.
-import { Buffer } from 'node:buffer'
-const WORDMARK_B64 = fs.existsSync(new URL('./wordmark-2x.png', import.meta.url))
-  ? Buffer.from(fs.readFileSync(new URL('./wordmark-2x.png', import.meta.url))).toString('base64')
-  : null
+// ---- Touch-1 template (v12 light, 2026-07-07): plain, personal, Inbox-friendly —
+// no card/table/image (the v11 card landed in Promotions). Full loop copy:
+// monitor IRS/state/FEMA -> who's affected -> one-click apply -> official source.
 function trackOf(r) {
   if (/wildfire/i.test(r.Subject1 || '')) return 'A'
   if (/S-corps/i.test(r.Subject1 || '') || /S-corps and partnerships/.test(r.Email1 || ''))
@@ -176,39 +171,32 @@ function firstNameOf(r) {
 }
 function buildTouch1(r) {
   const first = firstNameOf(r)
-  const track = trackOf(r)
-  const touchesLine =
-    track === 'C'
-      ? 'know exactly which of your S-corps and partnerships it touches'
-      : 'know exactly which clients it touches'
-  const touchesHtml =
-    track === 'C'
-      ? 'know exactly which of your <b>S-corps and partnerships</b> it touches'
-      : 'know exactly which clients it touches'
-  const footerHtml = FOOTER_ADDRESS
-    ? `<p style="margin:26px 0 0;font-size:11px;color:#9aa0a6">Not useful? Just reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
-    : ''
-  const subject = r.Subject1
-  const text =
-    "Hi ${first},\nA deadline just moved. Do you know who it hits?\n\nThat's the question DueDateHQ (duedatehq.com) answers \u2014 it watches the IRS, all 50 states, and FEMA around the clock. The moment a filing date moves, you see who it hits \u2014 and the official notice behind it. Like this one, live right now:\n\n  GEORGIA \u00b7 WILDFIRE RELIEF (IRS GA-2026-03 \u00b7 May 2026)\n  IRS pushed everything to Aug 20. Georgia didn't conform:\n                     IRS      GEORGIA\n  Estimates          Aug 20   Oct 13\n  Payroll returns    Aug 20   Oct 28\n  Extended returns   Aug 20   Feb 12\n  Hits clients in Clinch, Echols & Brantley counties \u2014 see which of yours: app.duedatehq.com/?lng=en\n\nIt's free while we're in beta. The next time a state quietly moves a date, you'll know that morning \u2014 and ${touchesLine}.\n\nGigi\nCo-Founder of DueDateHQ\nA new product from Dify (dify.ai) \u00b7 duedatehq.com"
-      .replaceAll('${first}', first)
-      .replaceAll('${touchesLine}', touchesLine)
-  const html =
-    '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#202124;max-width:560px"><p style="margin:0 0 16px">Hi ${first},</p><p style="margin:0 0 16px;font-family:Georgia,\'Times New Roman\',serif;font-size:19px;line-height:1.35;color:#1F315C">A deadline just moved. Do you know <i>who</i> it hits?</p><p style="margin:0 0 16px">That&#39;s the question <a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> answers \u2014 it watches the IRS, all 50 states, and FEMA around the clock. The moment a filing date moves, you see who it hits \u2014 and the official notice behind it. Like this one, live right now:</p><table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:separate;margin:0 0 16px"><tr><td style="background:#FFFFFF;border:1px solid #EAECF0;border-radius:12px">\n<a href="https://app.duedatehq.com/?lng=en" style="display:block;text-decoration:none;color:inherit">\n<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:separate"><tr>\n<td style="background:#F9FAFB;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:7px 14px"><span style="font-size:11px;letter-spacing:0.1em;font-weight:bold;color:#2E368C">GEORGIA&nbsp;\u00b7&nbsp;WILDFIRE RELIEF</span></td>\n<td align="right" style="background:#F9FAFB;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:7px 14px"><span style="font-size:11px;color:#98A2B3">IRS GA-2026-03&nbsp;\u00b7&nbsp;May 2026</span></td>\n</tr></table>\n<div style="padding:10px 14px">\n<div style="font-size:14px;font-weight:500;color:#101828">IRS pushed everything to Aug 20.</div>\n<div style="font-size:13px;color:#475467;margin-top:2px">Georgia didn&#39;t conform \u2014 the state runs on its own dates:</div>\n<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;margin-top:6px">\n<tr>\n<td style="padding:0 0 3px;border-bottom:1px solid #EAECF0"></td>\n<td align="right" style="padding:0 0 3px;border-bottom:1px solid #EAECF0"><span style="font-size:11px;letter-spacing:0.08em;font-weight:500;color:#98A2B3">IRS</span></td>\n<td align="right" style="padding:0 0 3px 36px;border-bottom:1px solid #EAECF0"><span style="font-size:11px;letter-spacing:0.08em;font-weight:500;color:#98A2B3">GEORGIA</span></td>\n</tr>\n<tr>\n<td style="padding:6px 0;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;color:#101828">Estimates</span></td>\n<td align="right" style="padding:6px 0;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;color:#98A2B3;font-variant-numeric:tabular-nums">Aug 20</span></td>\n<td align="right" style="padding:6px 0 6px 36px;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;font-weight:500;color:#101828;font-variant-numeric:tabular-nums">Oct 13</span></td>\n</tr>\n<tr>\n<td style="padding:6px 0;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;color:#101828">Payroll returns</span></td>\n<td align="right" style="padding:6px 0;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;color:#98A2B3;font-variant-numeric:tabular-nums">Aug 20</span></td>\n<td align="right" style="padding:6px 0 6px 36px;border-bottom:1px solid #F2F4F7;"><span style="font-size:13px;font-weight:500;color:#101828;font-variant-numeric:tabular-nums">Oct 28</span></td>\n</tr>\n<tr>\n<td style="padding:6px 0;"><span style="font-size:13px;color:#101828">Extended returns</span></td>\n<td align="right" style="padding:6px 0;"><span style="font-size:13px;color:#98A2B3;font-variant-numeric:tabular-nums">Aug 20</span></td>\n<td align="right" style="padding:6px 0 6px 36px;"><span style="font-size:13px;font-weight:500;color:#101828;font-variant-numeric:tabular-nums">Feb 12</span></td>\n</tr>\n</table>\n<div style="font-size:12px;color:#475467;margin-top:7px;padding-top:7px;border-top:1px solid #EAECF0">Hits clients in <span style="font-weight:500;color:#101828">Clinch, Echols &amp; Brantley counties</span> \u2014 <span style="color:#2E368C;font-weight:500">see which of yours \u2192</span></div>\n</div>\n</a>\n</td></tr></table><p style="margin:0 0 24px">It&#39;s free while we&#39;re in beta. The next time a state quietly moves a date, you&#39;ll know that morning \u2014 and ${touchesHtml}.</p><div style="font-size:14px;font-weight:bold;color:#202124">Gigi</div><div style="font-size:12px;color:#9aa0a6;margin-top:1px">Co-Founder of DueDateHQ</div><div style="margin-top:10px"><a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="132" height="17" alt="DueDateHQ" style="display:block;border:0"></a></div><div style="font-size:12px;color:#5f6368;margin-top:8px">A new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>${footerHtml}</div>'
-      .replaceAll('${first}', first)
-      .replaceAll('${touchesHtml}', touchesHtml)
-      .replaceAll('${footerHtml}', footerHtml)
-  const attachments = WORDMARK_B64
-    ? [
-        {
-          filename: 'duedatehq.png',
-          content: WORDMARK_B64,
-          content_id: 'wordmark',
-          content_type: 'image/png',
-        },
-      ]
-    : []
-  return { subject, text, html, attachments }
+  // v12 light Inbox template (2026-07-07, approved by Yuqi): plain, personal, no
+  // card/table/image (those landed the v11 card in Promotions). Full loop:
+  // monitor IRS/state/FEMA -> who's affected -> one-click apply -> source.
+  // The plain-text footer is appended by withFooter() in sendOne; HTML footer inline.
+  return {
+    subject: 'DueDateHQ — deadline monitoring for US CPAs, and who it hits',
+    text:
+      `Hi ${first},\n` +
+      `When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.\n` +
+      `DueDateHQ watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.\n` +
+      `Paste your client list; first sourced deadline in ~10 minutes. Want in?\n` +
+      `Gigi\nCo-Founder, DueDateHQ\nduedatehq.com`,
+    html:
+      `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.62;color:#1f2430">` +
+      `<p style="margin:0 0 14px">Hi ${first},</p>` +
+      `<p style="margin:0 0 14px;text-wrap:pretty">When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.</p>` +
+      `<p style="margin:0 0 14px;text-wrap:pretty"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:none;border-bottom:1px solid #c9cdec">DueDateHQ</a> watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.</p>` +
+      `<p style="margin:0 0 22px;text-wrap:pretty">Paste your client list; first sourced deadline in ~10 minutes. Want in?</p>` +
+      `<div style="font-weight:600;color:#111827">Gigi</div>` +
+      `<div style="color:#6b7280;font-size:13px;margin-top:2px">Co-Founder · DueDateHQ</div>` +
+      (FOOTER_ADDRESS
+        ? `<p style="margin:20px 0 0;padding-top:13px;border-top:1px solid #ecedf2;font-size:12px;color:#9aa0a6;text-wrap:pretty">Not useful? Just reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
+        : '') +
+      `</div>`,
+    attachments: [],
+  }
 }
 
 async function sendOne(to, subject, text, html, attachments) {
