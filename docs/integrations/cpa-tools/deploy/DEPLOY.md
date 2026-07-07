@@ -3,6 +3,7 @@
 Static single-page site. The `deploy/` folder is the entire site — nothing to build.
 
 Files:
+
 - `index.html` — full standalone document (head + meta/OG/JSON-LD + favicon). This is the built page; edit the Artifact source `../cpa-tools-directory.html` and re-run the build if you change content.
 - `robots.txt`, `sitemap.xml` — SEO/crawl.
 - `vercel.json` — clean URLs + security headers + HTML revalidation.
@@ -40,8 +41,8 @@ The `<head>` already has commented placeholder tags. Fastest path:
 2. **Bing Webmaster Tools** (bing.com/webmasters) → add site → **Meta tag** → copy the token. (Or just "Import from GSC" once Google is verified.)
 3. In `index.html` `<head>`, uncomment and fill:
    ```html
-   <meta name="google-site-verification" content="YOUR_GOOGLE_TOKEN">
-   <meta name="msvalidate.01" content="YOUR_BING_TOKEN">
+   <meta name="google-site-verification" content="YOUR_GOOGLE_TOKEN" />
+   <meta name="msvalidate.01" content="YOUR_BING_TOKEN" />
    ```
 4. Redeploy (`vercel --prod`), click **Verify** in each console.
 5. In each console → **Sitemaps** → submit `https://cpafieldguide.com/sitemap.xml`. Then **Request indexing** for the homepage.
