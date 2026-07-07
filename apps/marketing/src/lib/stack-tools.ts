@@ -47,7 +47,8 @@ export const STACK_GROUPS: StackGroup[] = [
     title: 'Practice management & workflow suites',
     titleZh: 'Practice management 与工作流套件',
     gap: 'These run your jobs, tasks, and client work. Watching official IRS and state sources for the deadline and rule changes that move those jobs is not their focus.',
-    gapZh: '这类工具负责运行你的任务、job 和客户工作。而监控官方 IRS 与各州来源、捕捉会牵动这些 job 的截止日与规则变化，并不是它们的重点。',
+    gapZh:
+      '这类工具负责运行你的任务、job 和客户工作。而监控官方 IRS 与各州来源、捕捉会牵动这些 job 的截止日与规则变化，并不是它们的重点。',
     layersOn:
       'DueDateHQ sits above your suite: it monitors the official sources, and when a deadline or rule changes it shows exactly which clients are affected — with the source attached — so you can act inside whatever workflow you already run.',
     layersOnZh:
@@ -102,7 +103,8 @@ export const STACK_GROUPS: StackGroup[] = [
     title: 'Tax preparation software',
     titleZh: '报税软件',
     gap: 'These prepare and file the returns. Monitoring the source-side deadline and rule changes that decide what is due, and when, is not their focus.',
-    gapZh: '这类工具负责准备和提交申报表。而监控来源侧的截止日与规则变化——决定什么该报、何时报——并不是它们的重点。',
+    gapZh:
+      '这类工具负责准备和提交申报表。而监控来源侧的截止日与规则变化——决定什么该报、何时报——并不是它们的重点。',
     layersOn:
       'DueDateHQ is the monitoring layer, not a filing engine: it catches the federal and state deadline and rule changes at the official source and routes each to the affected clients, so nothing reaches your prep software as a surprise.',
     layersOnZh:
@@ -140,7 +142,8 @@ export const STACK_GROUPS: StackGroup[] = [
     title: 'Bookkeeping & general ledger',
     titleZh: '记账与总账',
     gap: 'These hold the books and the client roster. Turning an official deadline change into "here are the clients it affects" is not their focus.',
-    gapZh: '这类工具承载账本和客户名册。而把一次官方截止日变化转成“这是受影响的客户”，并不是它们的重点。',
+    gapZh:
+      '这类工具承载账本和客户名册。而把一次官方截止日变化转成“这是受影响的客户”，并不是它们的重点。',
     layersOn:
       'DueDateHQ reads your client context and maps each source-side change to the specific clients on your list — so a QuickBooks or Xero roster becomes a triage queue when the IRS or a state moves a date.',
     layersOnZh:
@@ -164,7 +167,8 @@ export const STACK_GROUPS: StackGroup[] = [
     title: 'Narrow deadline trackers',
     titleZh: '窄范围截止日跟踪器',
     gap: 'These track due dates from lists you maintain. Watching the official sources for changes to those dates — and attaching the evidence — is not their focus.',
-    gapZh: '这类工具从你维护的清单里跟踪截止日。而监控官方来源、捕捉这些日期的变化并附上证据，并不是它们的重点。',
+    gapZh:
+      '这类工具从你维护的清单里跟踪截止日。而监控官方来源、捕捉这些日期的变化并附上证据，并不是它们的重点。',
     layersOn:
       'DueDateHQ starts one step upstream: instead of a date list you keep current by hand, it watches the IRS and state sources for the change itself, attaches the source excerpt, and routes it to the affected clients for review.',
     layersOnZh:

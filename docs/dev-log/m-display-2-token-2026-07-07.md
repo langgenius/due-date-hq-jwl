@@ -8,6 +8,7 @@ The "works with your stack" hub had two mid-page editorial serif headings (the
 from the marketing semantic scale.
 
 Extracted them into a canonical primitive in `styles/marketing.css`:
+
 - token `--m-display-2-size: clamp(26px, 3.2vw, 40px)` — one size for secondary
   serif display, a clear tier below `--m-page-title-size` (the page H1).
 - class `.m-display-2` — same voice as `.m-page-title` (Instrument Serif · 400 ·
