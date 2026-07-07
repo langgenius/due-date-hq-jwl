@@ -76,13 +76,16 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
   const obligationId = urlObligationId ?? localObligationId
 
   const openDrawer = useCallback(
-    (obligationId: string) => {
+    (nextObligationId: string) => {
       if (isQueueRoute) {
         // Drive the queue's URL state directly so its own drawer +
         // active-row highlight + J/K hotkeys stay coherent.
-        void navigate(deadlineDetailHref({ obligationId, search: location.search }), {
-          state: { obligationId },
-        })
+        void navigate(
+          deadlineDetailHref({ obligationId: nextObligationId, search: location.search }),
+          {
+            state: { obligationId: nextObligationId },
+          },
+        )
         return
       }
       if (routeOwnsPanel) {
@@ -100,7 +103,7 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
         setSearchParams(
           (current) => {
             const next = new URLSearchParams(current)
-            next.set('obligation', obligationId)
+            next.set('obligation', nextObligationId)
             return next
           },
           { replace: urlObligationId !== null },
@@ -110,7 +113,9 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       // Route doesn't own a panel mount. Navigate to the canonical
       // surface so the obligation always renders in a route layout,
       // never as a floating Sheet.
-      void navigate(deadlineDetailHref({ obligationId }), { state: { obligationId } })
+      void navigate(deadlineDetailHref({ obligationId: nextObligationId }), {
+        state: { obligationId: nextObligationId },
+      })
     },
     [isQueueRoute, location.search, navigate, routeOwnsPanel, setSearchParams, urlObligationId],
   )

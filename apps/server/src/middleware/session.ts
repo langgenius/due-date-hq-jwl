@@ -78,7 +78,7 @@ export async function restoreSessionActiveFirm(input: {
  */
 export const sessionMiddleware = createMiddleware<{ Bindings: Env; Variables: ContextVars }>(
   async (c, next) => {
-    let executionCtx: ExecutionContext | undefined
+    let executionCtx: Parameters<typeof createWorkerAuth>[1]
     try {
       executionCtx = c.executionCtx
     } catch {

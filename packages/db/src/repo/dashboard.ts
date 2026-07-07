@@ -611,6 +611,13 @@ function normalizeBrief(
   }
 }
 
+function briefScopePredicate(scope: DashboardBriefScope, userId?: string | null) {
+  if (scope === 'me') {
+    return userId ? eq(dashboardBrief.userId, userId) : isNull(dashboardBrief.userId)
+  }
+  return isNull(dashboardBrief.userId)
+}
+
 export function makeDashboardRepo(db: Db, firmId: string) {
   async function loadSmartPriorityProfile() {
     const [row] = await db
@@ -803,13 +810,6 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       dueDateMovedCount: dueDateMoved?.value ?? 0,
       remindersSentCount: remindersSent?.value ?? 0,
     }
-  }
-
-  function briefScopePredicate(scope: DashboardBriefScope, userId?: string | null) {
-    if (scope === 'me') {
-      return userId ? eq(dashboardBrief.userId, userId) : isNull(dashboardBrief.userId)
-    }
-    return isNull(dashboardBrief.userId)
   }
 
   async function findLatestBrief(input: {

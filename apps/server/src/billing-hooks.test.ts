@@ -58,7 +58,7 @@ describe('buildBillingHooks', () => {
         sessionId: 'session_1',
         activeOrganizationId: 'firm_1',
         referenceId: 'firm_1',
-        action: 'list-subscription' as never,
+        action: 'list-subscription',
       }),
     ).resolves.toBe(true)
   })
@@ -91,7 +91,7 @@ describe('buildBillingHooks', () => {
         sessionId: 'session_1',
         activeOrganizationId: 'firm_1',
         referenceId: 'firm_1',
-        action: 'upgrade-subscription' as never,
+        action: 'upgrade-subscription',
       }),
     ).resolves.toBe(false)
   })
@@ -106,7 +106,7 @@ describe('buildBillingHooks', () => {
         sessionId: 'session_1',
         activeOrganizationId: 'firm_1',
         referenceId: 'firm_2',
-        action: 'list-subscription' as never,
+        action: 'list-subscription',
       }),
     ).resolves.toBe(false)
     expect(limit).not.toHaveBeenCalled()
@@ -122,7 +122,7 @@ describe('buildBillingHooks', () => {
       seatLimit: 1,
       stripeCustomerId: 'cus_123',
       stripeSubscriptionId: undefined,
-      status: 'canceled' as never,
+      status: 'canceled',
     })
 
     expect(set).toHaveBeenCalledWith(
@@ -145,7 +145,7 @@ describe('buildBillingHooks', () => {
       seatLimit: 10,
       stripeCustomerId: 'cus_team',
       stripeSubscriptionId: 'sub_team',
-      status: 'active' as never,
+      status: 'active',
     })
 
     expect(set).toHaveBeenCalledWith(
@@ -168,7 +168,7 @@ describe('buildBillingHooks', () => {
       seatLimit: 1,
       stripeCustomerId: 'cus_123',
       stripeSubscriptionId: undefined,
-      status: 'canceled' as never,
+      status: 'canceled',
     })
 
     expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: 'suspended' }))

@@ -347,6 +347,25 @@ function DeadlineTopActions({
   )
 }
 
+function sectionDataChip(
+  label: ReactNode,
+  options?: { accent?: boolean; ariaLabel?: string },
+): ReactNode {
+  return (
+    <span
+      aria-label={options?.ariaLabel}
+      className={cn(
+        'inline-flex items-center gap-1 rounded px-1.5 font-mono text-caption-xs font-semibold uppercase tracking-wide',
+        options?.accent
+          ? 'bg-state-accent-hover text-text-accent'
+          : 'bg-background-subtle text-text-tertiary',
+      )}
+    >
+      {label}
+    </span>
+  )
+}
+
 export function ObligationQueueDetailDrawer({
   obligationId,
   activeTab,
@@ -1703,27 +1722,6 @@ export function ObligationQueueDetailDrawer({
   const extensionSaved = Boolean(row?.extensionDecidedAt)
   const evidenceCount = detail?.evidence.length ?? 0
   const auditCount = detail?.auditEvents.length ?? 0
-  // The mono uppercase data-chip pill shared by the nav items and the section
-  // headers (NrQaI). One recipe — `rounded` (4) `bg-background-subtle` pill,
-  // `font-mono text-caption-xs font-semibold uppercase tracking-wide
-  // text-text-tertiary` — so a section's count/state reads identically wherever
-  // it appears. Accent ✓ variant for the boolean Extension "decided" state.
-  const sectionDataChip = (
-    label: ReactNode,
-    options?: { accent?: boolean; ariaLabel?: string },
-  ): ReactNode => (
-    <span
-      aria-label={options?.ariaLabel}
-      className={cn(
-        'inline-flex items-center gap-1 rounded px-1.5 font-mono text-caption-xs font-semibold uppercase tracking-wide',
-        options?.accent
-          ? 'bg-state-accent-hover text-text-accent'
-          : 'bg-background-subtle text-text-tertiary',
-      )}
-    >
-      {label}
-    </span>
-  )
   // Per-section data-chip nodes (NrQaI). Materials → outstanding count; Record →
   // workpaper count; Audit → event count; Extension → decided ✓ / not filed.
   // Status carries no chip (the workflow stage IS its own headline). Each is the

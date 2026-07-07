@@ -336,7 +336,7 @@ function mapStatusFilter(status: RuleStatus | undefined): ObligationRule['status
   if (!status) return undefined
   if (status === 'verified') return 'active'
   if (status === 'candidate') return 'pending_review'
-  return status as ObligationRule['status']
+  return status
 }
 
 function pendingContractRule(rule: CoreObligationRule): ObligationRule {

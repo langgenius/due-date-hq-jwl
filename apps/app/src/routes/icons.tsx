@@ -360,6 +360,13 @@ const ICONS: ReadonlyArray<{ name: string; Icon: LucideIcon }> = [
   { name: 'XIcon', Icon: XIcon },
 ]
 
+function copyName(name: string) {
+  void navigator.clipboard?.writeText(name).then(
+    () => toast.success(`Copied ${name}`),
+    () => toast.error("Couldn't copy"),
+  )
+}
+
 export function IconsRoute() {
   const [query, setQuery] = useState('')
   const filtered = useMemo(() => {
@@ -367,13 +374,6 @@ export function IconsRoute() {
     if (!needle) return ICONS
     return ICONS.filter((entry) => entry.name.toLowerCase().includes(needle))
   }, [query])
-
-  function copyName(name: string) {
-    void navigator.clipboard?.writeText(name).then(
-      () => toast.success(`Copied ${name}`),
-      () => toast.error("Couldn't copy"),
-    )
-  }
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-6 py-10">

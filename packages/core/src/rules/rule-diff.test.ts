@@ -201,9 +201,7 @@ describe('isDateOnlyDueDateLogicChange', () => {
     }
     expect(isDateOnlyDueDateLogicChange(base, dateOnly)).toBe(true)
     expect(isDateOnlyDueDateLogicChange(base, added)).toBe(false)
-    expect(
-      isDateOnlyDueDateLogicChange(base, { ...base, frequency: 'monthly' } as DueDateLogic),
-    ).toBe(false)
+    expect(isDateOnlyDueDateLogicChange(base, { ...base, frequency: 'monthly' })).toBe(false)
   })
 
   it('source_defined_calendar description change is substantive', () => {

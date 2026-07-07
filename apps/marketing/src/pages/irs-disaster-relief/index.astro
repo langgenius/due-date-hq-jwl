@@ -1,0 +1,627 @@
+---
+/**
+ * /irs-disaster-relief — the hub + interactive "pick your state" lookup.
+ *
+ * The newsjack play: a CPA who just saw an IRS disaster notice for their state
+ * Googles "[state] IRS disaster relief 2026 deadline". This page ranks for that,
+ * answers it from the ONE verified dataset (lib/disaster-notices.ts), and converts
+ * to the open app signup. The lookup is a small progressive-enhancement island:
+ * a native <select> filters the same dataset the static pages are built from. With
+ * no JS the full sourced roster below is still crawlable + usable.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import FaqList from '../../components/FaqList.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import {
+  DISASTER_NOTICES,
+  FILING_TYPE_META,
+  getNoticeStates,
+  getNoticeStatus,
+} from '../../lib/disaster-notices'
+import { disasterHubStructuredData } from '../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief'
+// Open signup (app.duedatehq.com/?lng=en) — same target + analytics as the leaves.
+const ctaHref = getCtaHref('en')
+
+const title = 'IRS Disaster Tax Relief 2026 — Postponed Deadlines by State | DueDateHQ'
+const description =
+  'Current IRS disaster tax-relief notices for 2026: postponed filing and payment deadlines by state, the affected areas, and which of your clients each one hits. Sourced to irs.gov.'
+
+const states = getNoticeStates()
+
+// Newest deadline first so the freshest, most-searched notices lead the roster.
+const notices = [...DISASTER_NOTICES].sort((a, b) => (a.deadline < b.deadline ? 1 : -1))
+
+// Compact, serializable rows for the client lookup — the SAME facts as the cards
+// below, so the island never invents anything the server didn't already render.
+const lookupData = notices.map((n) => ({
+  slug: n.slug,
+  code: n.code,
+  state: n.state,
+  event: n.event,
+  status: getNoticeStatus(n),
+  deadlineLabel: n.deadlineLabel,
+  affectedArea: n.affectedArea,
+  returns: n.affectedReturns.map((r) => FILING_TYPE_META[r].label),
+  sourceHref: n.sourceHref,
+}))
+
+const faq = [
+  {
+    question: 'How does IRS disaster tax relief work?',
+    answer:
+      'When FEMA issues a major disaster declaration, the IRS typically postpones filing and payment deadlines for taxpayers in the covered area. The relief is applied automatically based on the address of record — most eligible taxpayers do not need to contact the IRS. Each notice names the exact area, the new deadline, and which returns are covered.',
+  },
+  {
+    question: 'Which of my clients does a disaster notice affect?',
+    answer:
+      'Any client who resides or has a business in the affected county, tribe, or territory named in the notice — for the return types the notice covers. DueDateHQ matches each notice to the clients in your book it actually touches, so you are not cross-referencing a county list against your roster by hand.',
+  },
+  {
+    question: 'Are these deadlines official?',
+    answer:
+      'Every notice on this page is transcribed from the official IRS news release, and each card links straight back to its irs.gov source. Deadlines can be updated by the IRS after a release — always confirm against the linked source before you rely on it.',
+  },
+  {
+    question: 'A notice just dropped for my state and it is not here yet — what do I do?',
+    answer:
+      'This page covers a set of verified 2026 notices. For the live, complete list, check the IRS disaster-relief index. Inside DueDateHQ, a new postponement for your clients surfaces automatically the morning it is published — you do not have to watch the newsroom yourself.',
+  },
+]
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  structuredData={disasterHubStructuredData(t, 'en', pathname, title, description, faq)}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">IRS disaster relief</p>
+      <h1 class="m-page-title">IRS disaster tax relief 2026 — postponed deadlines by state</h1>
+      <p class="m-page-lead">
+        When the IRS postpones filing deadlines after a disaster, the question is always the same:
+        which of my clients does this hit, and by when? Pick your state to see the current relief —
+        the new deadline, the affected area, and the returns it covers — each one sourced to irs.gov.
+      </p>
+    </section>
+
+    <!-- Interactive lookup island: pick a state → its current relief or an empty
+         state with the app CTA. Progressive enhancement — hidden until the script
+         wires it (see [hidden] below), so no-JS visitors go straight to the roster. -->
+    <section class="m-section m-page-block dr-lookup" id="lookup" data-dr-lookup hidden>
+      <div class="dr-lookup__head">
+        <label class="dr-lookup__label" for="dr-state">Your state or territory</label>
+        <div class="dr-lookup__control">
+          <select id="dr-state" class="dr-lookup__select" data-dr-select>
+            <option value="">Select a state…</option>
+            {states.map((s) => <option value={s.state}>{s.state}</option>)}
+          </select>
+          <span class="dr-lookup__chev" aria-hidden="true">▾</span>
+        </div>
+      </div>
+      <div class="dr-lookup__out" data-dr-out aria-live="polite">
+        <p class="dr-lookup__hint">
+          Choose a state above to see whether the IRS has active federal relief there right now.
+        </p>
+      </div>
+    </section>
+
+    <!-- Full sourced roster: every verified notice, newest deadline first. Always
+         rendered (crawlable + the no-JS fallback for the lookup). -->
+    <section class="m-section m-page-block" aria-labelledby="dr-roster-h">
+      <p class="m-eyebrow">Current notices</p>
+      <h2 class="m-page-h2" id="dr-roster-h">Verified 2026 IRS disaster-relief notices</h2>
+      <ul class="dr-roster">
+        {
+          notices.map((n) => {
+            const status = getNoticeStatus(n)
+            return (
+              <li>
+                <a class="dr-card" href={`/irs-disaster-relief/${n.slug}`}>
+                  <div class="dr-card__top">
+                    <span class="dr-card__code">{n.code}</span>
+                    <span
+                      class:list={['dr-card__status', status === 'expired' && 'dr-card__status--expired']}
+                    >
+                      {status === 'live' && <span class="dr-card__dot" aria-hidden="true" />}
+                      {status === 'live' ? 'Active' : 'Closed'}
+                    </span>
+                  </div>
+                  <h3 class="dr-card__title">
+                    {n.state} — {n.event}
+                  </h3>
+                  <p class="dr-card__area">{n.affectedArea}</p>
+                  <p class="dr-card__deadline">
+                    <span class="dr-card__deadline-k">Postponed to</span>
+                    <span class="dr-card__deadline-v">{n.deadlineLabel}</span>
+                  </p>
+                </a>
+              </li>
+            )
+          })
+        }
+      </ul>
+      <p class="dr-roster__foot">
+        Every date above is transcribed from the official IRS news release linked on each notice
+        page. For the complete live list, see the{' '}
+        <a
+          class="dr-roster__irs"
+          href="https://www.irs.gov/newsroom/tax-relief-in-disaster-situations"
+          rel="nofollow noopener"
+          target="_blank">IRS disaster-relief index ↗</a
+        >.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="IRS disaster relief questions" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">Know the morning a postponement hits your clients</h2>
+          <p class="m-page-cta__body">
+            DueDateHQ watches IRS, state tax-agency, and FEMA sources around the clock. When relief
+            like this drops, it matches the change to the clients in your book it affects — with the
+            source on every date — so you are not the one refreshing the newsroom.
+          </p>
+          <p class="dr-cta__note">No card to start</p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.disaster-hub.cta">
+            Start free
+          </a>
+          <a class="m-btn m-btn--secondary" href="/state-coverage">See state coverage</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+
+  <!-- The verified dataset, handed to the lookup island. Same facts as the cards. -->
+  <script type="application/json" data-dr-data set:html={JSON.stringify(lookupData)}></script>
+</BaseLayout>
+
+<script>
+  // "Pick your state" lookup — a small progressive-enhancement island. Reads the
+  // JSON dataset the server emitted (identical facts to the rendered cards),
+  // filters by the selected state, and renders that state's current relief or an
+  // empty state with the same app CTA + analytics event as the rest of the page.
+  // Re-inits on every astro:page-load so it survives View-Transition swaps.
+  interface DrRow {
+    slug: string
+    code: string
+    state: string
+    event: string
+    status: 'live' | 'expired'
+    deadlineLabel: string
+    affectedArea: string
+    returns: string[]
+    sourceHref: string
+  }
+
+  function ctaTarget(): string {
+    // The nav CTA points at the open signup with ?lng — reuse it so the lookup's
+    // CTA hits the exact same URL (and the delegated Amplitude click listener).
+    const nav = document.querySelector<HTMLAnchorElement>('.nav__cta')
+    return nav?.getAttribute('href') ?? 'https://app.duedatehq.com/?lng=en'
+  }
+
+  function esc(s: string): string {
+    const d = document.createElement('div')
+    d.textContent = s
+    return d.innerHTML
+  }
+
+  function renderRelief(rows: DrRow[]): string {
+    return rows
+      .map((r) => {
+        const statusCls = r.status === 'expired' ? ' dr-res__status--expired' : ''
+        const statusLabel = r.status === 'live' ? 'Active relief' : 'Relief window closed'
+        const dot = r.status === 'live' ? '<span class="dr-res__dot" aria-hidden="true"></span>' : ''
+        const chips = r.returns
+          .map((t) => `<span class="dr-res__chip">${esc(t)}</span>`)
+          .join('')
+        return `
+        <article class="dr-res">
+          <div class="dr-res__top">
+            <span class="dr-res__code">${esc(r.code)}</span>
+            <span class="dr-res__status${statusCls}">${dot}${statusLabel}</span>
+          </div>
+          <p class="dr-res__event">${esc(r.event)}</p>
+          <dl class="dr-res__facts">
+            <div><dt>Postponed to</dt><dd class="dr-res__deadline">${esc(r.deadlineLabel)}</dd></div>
+            <div><dt>Affected area</dt><dd>${esc(r.affectedArea)}</dd></div>
+          </dl>
+          <div class="dr-res__returns">
+            <span class="dr-res__returns-k">Covers</span>
+            <div class="dr-res__chips">${chips}</div>
+          </div>
+          <a class="dr-res__link" href="/irs-disaster-relief/${esc(r.slug)}">
+            See which of your clients this hits →
+          </a>
+        </article>`
+      })
+      .join('')
+  }
+
+  function renderEmpty(state: string): string {
+    const href = ctaTarget()
+    return `
+      <div class="dr-empty">
+        <p class="dr-empty__title">No active federal relief for ${esc(state)} right now.</p>
+        <p class="dr-empty__body">
+          That is the good news — and the hard part. The morning the IRS <em>does</em> postpone a
+          deadline for ${esc(state)}, you want to know which of your clients it hits before they call
+          you. That is exactly what DueDateHQ watches for.
+        </p>
+        <a class="m-btn m-btn--primary dr-empty__cta" href="${href}" data-event="marketing.disaster-lookup.cta">
+          Start free — get notified the day one drops
+        </a>
+      </div>`
+  }
+
+  function initDisasterLookup() {
+    const root = document.querySelector<HTMLElement>('[data-dr-lookup]')
+    const select = document.querySelector<HTMLSelectElement>('[data-dr-select]')
+    const out = document.querySelector<HTMLElement>('[data-dr-out]')
+    const dataEl = document.querySelector<HTMLScriptElement>('[data-dr-data]')
+    if (!root || !select || !out || !dataEl) return
+
+    let data: DrRow[] = []
+    try {
+      data = JSON.parse(dataEl.textContent ?? '[]') as DrRow[]
+    } catch {
+      return // leave the crawlable roster as the fallback
+    }
+
+    // Reveal the island now that JS can drive it.
+    root.hidden = false
+
+    const update = () => {
+      const state = select.value
+      if (!state) {
+        out.innerHTML =
+          '<p class="dr-lookup__hint">Choose a state above to see whether the IRS has active federal relief there right now.</p>'
+        return
+      }
+      const rows = data.filter((r) => r.state === state)
+      out.innerHTML = rows.length ? renderRelief(rows) : renderEmpty(state)
+    }
+
+    select.addEventListener('change', update)
+    // Deep-link support: /irs-disaster-relief?state=Hawaii preselects + renders.
+    const param = new URLSearchParams(location.search).get('state')
+    if (param && data.some((r) => r.state === param)) {
+      select.value = param
+      update()
+    }
+  }
+
+  document.addEventListener('astro:page-load', initDisasterLookup)
+</script>
+
+<style>
+  /* ---- lookup island ---- */
+  .dr-lookup {
+    padding: clamp(22px, 3vw, 34px);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+  }
+  .dr-lookup__label {
+    display: block;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin-bottom: 10px;
+  }
+  .dr-lookup__control {
+    position: relative;
+    max-width: 420px;
+  }
+  .dr-lookup__select {
+    appearance: none;
+    width: 100%;
+    padding: 13px 40px 13px 16px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 10px;
+    background: var(--m-canvas);
+    font-size: var(--m-text-base);
+    font-weight: 500;
+    color: var(--m-ink);
+    cursor: pointer;
+    transition: border-color var(--m-dur-fast) var(--m-ease);
+  }
+  .dr-lookup__select:hover {
+    border-color: var(--m-faint);
+  }
+  .dr-lookup__select:focus-visible {
+    outline: var(--m-focus-width) solid var(--m-focus-ring);
+    outline-offset: var(--m-focus-offset);
+    border-color: var(--m-accent);
+  }
+  .dr-lookup__chev {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--m-muted);
+    font-size: var(--m-text-sm);
+  }
+  .dr-lookup__out {
+    margin-top: 22px;
+  }
+  .dr-lookup__hint {
+    font-size: var(--m-text-md);
+    color: var(--m-muted);
+  }
+
+  /* result card(s) rendered by the island (global — injected via innerHTML) */
+  .dr-lookup__out :global(.dr-res) {
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-canvas);
+    padding: 20px 22px;
+  }
+  .dr-lookup__out :global(.dr-res + .dr-res) {
+    margin-top: 14px;
+  }
+  .dr-lookup__out :global(.dr-res__top) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dr-lookup__out :global(.dr-res__code) {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .dr-lookup__out :global(.dr-res__status) {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-ok);
+  }
+  .dr-lookup__out :global(.dr-res__status--expired) {
+    color: var(--m-muted);
+  }
+  .dr-lookup__out :global(.dr-res__dot) {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 18%, transparent);
+  }
+  .dr-lookup__out :global(.dr-res__event) {
+    margin-top: 12px;
+    font-size: var(--m-text-lg);
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .dr-lookup__out :global(.dr-res__facts) {
+    margin: 16px 0 0;
+    display: grid;
+    gap: 12px;
+  }
+  .dr-lookup__out :global(.dr-res__facts dt) {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .dr-lookup__out :global(.dr-res__facts dd) {
+    margin: 3px 0 0;
+    font-size: var(--m-text-base);
+    color: var(--m-ink-2);
+    line-height: 1.5;
+  }
+  .dr-lookup__out :global(.dr-res__deadline) {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    color: var(--m-accent) !important;
+  }
+  .dr-lookup__out :global(.dr-res__returns) {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .dr-lookup__out :global(.dr-res__returns-k) {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .dr-lookup__out :global(.dr-res__chips) {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .dr-lookup__out :global(.dr-res__chip) {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: var(--m-text-xs);
+    font-weight: 500;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+  }
+  .dr-lookup__out :global(.dr-res__link) {
+    margin-top: 18px;
+    display: inline-flex;
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .dr-lookup__out :global(.dr-res__link:hover) {
+    color: var(--m-accent-strong);
+  }
+
+  /* empty state */
+  .dr-lookup__out :global(.dr-empty) {
+    padding: 22px 24px;
+    border: 1px dashed var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-section);
+  }
+  .dr-lookup__out :global(.dr-empty__title) {
+    font-size: var(--m-text-lg);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .dr-lookup__out :global(.dr-empty__body) {
+    margin-top: 10px;
+    max-width: 60ch;
+    font-size: var(--m-text-md);
+    line-height: 1.6;
+    color: var(--m-muted);
+  }
+  .dr-lookup__out :global(.dr-empty__cta) {
+    margin-top: 18px;
+  }
+
+  /* ---- roster ---- */
+  .dr-roster {
+    margin-top: clamp(20px, 2.5vw, 28px);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    list-style: none;
+    padding: 0;
+  }
+  @media (max-width: 900px) {
+    .dr-roster {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .dr-roster {
+      grid-template-columns: 1fr;
+    }
+  }
+  .dr-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 18px 20px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    transition:
+      border-color var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
+  }
+  .dr-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .dr-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .dr-card__code {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .dr-card__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-ok);
+  }
+  .dr-card__status--expired {
+    color: var(--m-muted);
+  }
+  .dr-card__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 16%, transparent);
+  }
+  .dr-card__title {
+    margin-top: 14px;
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--m-ink);
+  }
+  .dr-card__area {
+    margin-top: 6px;
+    font-size: var(--m-text-sm);
+    line-height: 1.5;
+    color: var(--m-muted);
+    /* keep cards even: clamp the (sometimes long) county list to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .dr-card__deadline {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .dr-card__deadline-k {
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+  .dr-card__deadline-v {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-base);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .dr-roster__foot {
+    margin-top: 20px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm);
+    line-height: 1.6;
+    color: var(--m-muted);
+  }
+  .dr-roster__irs {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .dr-cta__note {
+    margin-top: 16px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+</style>

@@ -120,11 +120,12 @@ for (const c of chunk(
 }
 
 type Bucket = 'high_trust' | 'low_confidence' | 'fuzzy_excerpt' | 'unparseable' | 'no_draft'
-const perTarget = targets.map((t) => {
+type TargetYield = (typeof targets)[number] & { bucket: Bucket; confidence: number | null }
+const perTarget = targets.map((t): TargetYield => {
   const row = latestByRef.get(t.contextRef)
-  if (!row) return { ...t, bucket: 'no_draft' as Bucket, confidence: null as number | null }
+  if (!row) return { ...t, bucket: 'no_draft', confidence: null }
   const draft = parseCachedConcreteDraft(row.output_text)
-  if (!draft) return { ...t, bucket: 'unparseable' as Bucket, confidence: null }
+  if (!draft) return { ...t, bucket: 'unparseable', confidence: null }
   const issue = concreteDraftBulkTrustIssue({
     confidence: draft.confidence,
     sourceExcerpt: draft.sourceExcerpt,

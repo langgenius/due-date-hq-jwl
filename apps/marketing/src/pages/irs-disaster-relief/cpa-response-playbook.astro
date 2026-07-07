@@ -1,0 +1,496 @@
+---
+/**
+ * /irs-disaster-relief/cpa-response-playbook — a vendor-NEUTRAL editorial guide
+ * to the CPA workflow when the IRS postpones deadlines after a disaster.
+ *
+ * Tone: genuinely useful, product-neutral. NO hero CTA, NO product chrome — this
+ * reads as an article, not a DueDateHQ sales page. DueDateHQ appears exactly once,
+ * factually, in step 4 (identify affected clients) as ONE option alongside the
+ * honest non-DueDateHQ ways firms actually do this. Ownership stays discoverable:
+ * the page uses the site's normal BaseLayout + Footer (no fake author / no fake
+ * third-party identity). Every IRS fact is a real, cited example from the ONE
+ * verified dataset (lib/disaster-notices.ts) — nothing fabricated.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import FaqList from '../../components/FaqList.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { getNoticeBySlug } from '../../lib/disaster-notices'
+import { disasterPlaybookStructuredData } from '../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief/cpa-response-playbook'
+const slug = 'cpa-response-playbook'
+const reviewedOn = getContentDates('cpa-response-playbook').reviewedOn
+
+// Real, cited examples pulled from the verified dataset — a county-list notice
+// (Georgia) and a tribal-area notice (Arizona). No fabricated facts.
+const ga = getNoticeBySlug('georgia-southeast-wildfires')
+const az = getNoticeBySlug('arizona-san-carlos-apache-tribe-severe-storms-flooding')
+
+const title =
+  'IRS Disaster Relief: The CPA Response Playbook — How to Handle a Deadline Postponement | DueDateHQ'
+const description =
+  'A vendor-neutral, step-by-step guide for CPAs when the IRS postpones deadlines after a disaster: confirm the notice, check state conformity, map the covered area, identify which of your clients are affected, adjust and document deadlines, and notify clients.'
+
+// The visible steps ARE the HowTo JSON-LD steps — one source, no drift. `text`
+// is the plain-text HowTo summary; `body` is the richer on-page prose (may hold
+// the cited example + the neutral option list). `id` anchors the section.
+const steps: {
+  id: string
+  name: string
+  text: string
+  body: string
+  list?: { lead: string; items: string[] }
+  extra?: string
+}[] = [
+  {
+    id: 'confirm-notice',
+    name: 'Confirm the IRS notice and the postponed dates',
+    text: 'Find the IRS disaster-relief news release for the event. Note the relief code, the incident start date, and the new postponed filing and payment deadline — and re-check it, since the IRS sometimes updates a release to move the date.',
+    body: 'Start at the source, not a secondhand summary. Every postponement has an IRS news release with a relief code (for example, the Southeast Georgia wildfires release is coded ' +
+      (ga ? `<b>${ga.code}</b>, which moved affected deadlines to <b>${ga.deadlineLabel}</b>` : 'GA-2026-03') +
+      '). Record the relief code, the incident start date, and the exact postponed deadline. Read it twice: the IRS periodically updates a release to change the deadline after publication, so the date you half-remember from a first alert may already be stale.',
+  },
+  {
+    id: 'state-conformity',
+    name: 'Check whether your state conforms to the federal postponement',
+    text: 'A federal postponement does not automatically move state deadlines. Check the state tax agency: some states automatically conform to the IRS disaster relief, some announce their own matching relief, and some do neither.',
+    body: 'This is the step firms skip and regret. The IRS postponement covers federal returns and payments; it says nothing about the state. Some states automatically conform to federal disaster relief, some issue their own parallel announcement, and some do not move at all. Confirm on the state tax agency’s own page for the affected state before you tell a client a state return is safe to defer — federal relief is not a state answer.',
+  },
+  {
+    id: 'covered-area',
+    name: 'Determine the covered area (the FEMA/IRS locality list)',
+    text: 'Read the exact list of covered localities in the IRS release — usually specific counties, or a tribal area or territory. Relief applies to taxpayers who reside or have a business in that list, not the whole state.',
+    body: 'Relief is geographic and specific. The IRS release names the exact covered localities, and it is almost never “the whole state.” Sometimes it is a short county list — ' +
+      (ga ? `${ga.code} covers ${ga.affectedArea}` : 'a handful of counties') +
+      '. Sometimes it is a tribal area or a territory — ' +
+      (az ? `${az.code} covers ${az.affectedArea.replace(/^The /, 'the ')}` : 'a specific tribe or territory') +
+      '. The test the IRS applies is whether the taxpayer resides or has a business in that named area, so the locality list — not the state — is what you match your clients against.',
+  },
+  {
+    id: 'identify-clients',
+    name: 'Identify which of your clients fall in the covered area',
+    text: 'Match your client list against the covered locality list. Firms do this by manually cross-referencing client addresses to the county list, filtering client lists in practice-management software, pulling IRS transcripts, or using a deadline-monitoring service that flags covered clients automatically.',
+    body: 'This is the real work, and there is no single right way to do it — only trade-offs. Pick the approach that fits your book’s size and how your data is organized:',
+    list: {
+      lead: 'How firms actually match clients to a covered area:',
+      items: [
+        '<b>Manual cross-reference.</b> Pull the covered county/locality list from the IRS release and go down your client roster by address. Reliable for a small book; slow and error-prone once you have hundreds of clients across many counties.',
+        '<b>Filter in your practice-management software.</b> If your PM or tax software stores client addresses cleanly, filter or run a report by county/ZIP to surface everyone in the covered area. Only as good as your address data hygiene.',
+        '<b>Pull IRS transcripts.</b> For edge cases — a client who moved, or whose address of record differs from where they actually operate — an IRS transcript confirms the address the IRS will use to apply relief automatically.',
+        '<b>Use a deadline-monitoring service.</b> Some services watch IRS, state, and FEMA sources and automatically flag which of your clients sit in a newly covered area. <b>DueDateHQ</b> is one such option — it matches a new postponement to the clients in your book it affects, with the source on each date. Other practice-management and tax-workflow tools offer their own deadline or disaster-tracking features; evaluate any of them against how your client data is already stored.',
+      ],
+    },
+    extra:
+      'Whichever method you use, the output should be the same: a concrete list of affected clients and the return types the relief covers for each.',
+  },
+  {
+    id: 'adjust-document',
+    name: 'Adjust the calendar and document the change for the file',
+    text: 'Update the due dates for each affected client and return to the postponed deadline, and write down the basis for the change — the IRS relief code and covered area — in the engagement file so the deferral is defensible later.',
+    body: 'Move the affected due dates to the postponed deadline in whatever calendar or workflow you run — and, just as important, document why. Note the IRS relief code, the covered area, and the returns affected in the client file. A deferral you cannot later explain is a deferral you cannot defend if the postponement is ever questioned, so treat the paper trail as part of the task, not an afterthought.',
+  },
+  {
+    id: 'notify-clients',
+    name: 'Notify the affected clients',
+    text: 'Tell affected clients their federal deadline moved, what the new date is, and whether the state deadline moved too. Set expectations on what you still need from them and by when.',
+    body: 'Close the loop with the people it affects. Tell each affected client plainly: your federal deadline moved to the new date, here is whether the state moved with it, and here is what I still need from you and by when. Clear, early communication here is what turns a disaster postponement from a scramble into a routine — and it is the part clients actually remember.',
+  },
+]
+
+// FAQPage — the intent queries this page targets, answered neutrally.
+const faq = [
+  {
+    question: 'Does an IRS disaster postponement also move my clients’ state deadlines?',
+    answer:
+      'Not automatically. A federal postponement covers federal returns and payments. Whether the state deadline moves depends on the state — some conform to the federal relief automatically, some announce their own matching relief, and some do not move at all. Always confirm on the state tax agency’s page for the affected state.',
+  },
+  {
+    question: 'How do I find out exactly which counties or areas are covered?',
+    answer:
+      'The IRS news release for the relief names the covered localities — usually specific counties, or a tribal area or territory. Relief applies to taxpayers who reside or have a business in that named area, so match your clients against the locality list, not the whole state.',
+  },
+  {
+    question: 'What is the fastest way to identify which of my clients are affected?',
+    answer:
+      'It depends on how your client data is stored. Options range from manually cross-referencing addresses against the covered county list, to filtering client lists in your practice-management software, to pulling IRS transcripts for edge cases, to using a deadline-monitoring service that flags covered clients automatically. Larger books tend to move from manual matching toward filtering or automated flagging.',
+  },
+  {
+    question: 'Do affected taxpayers need to contact the IRS to get the relief?',
+    answer:
+      'In most cases, no. The IRS applies disaster relief automatically based on the address of record in the covered area. Taxpayers who moved into the area, or whose records show an address outside it, may need to contact the IRS — which is where pulling a transcript helps.',
+  },
+]
+
+const howToSteps = steps.map((s) => ({ name: s.name, text: s.text }))
+const howToName = 'How CPAs respond when the IRS postpones deadlines after a disaster'
+const howToDescription =
+  'The six-step workflow a CPA firm runs when the IRS issues a disaster-relief postponement: confirm the notice, check state conformity, determine the covered area, identify affected clients, adjust and document deadlines, and notify clients.'
+
+// Sign-in target for the nav (ownership/navigation only — NOT a page CTA).
+const ctaHref = getCtaHref('en')
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/resources.en.png"
+  ogType="article"
+  structuredData={disasterPlaybookStructuredData(
+    t,
+    'en',
+    pathname,
+    slug,
+    title,
+    description,
+    howToName,
+    howToDescription,
+    howToSteps,
+    faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main class="pb">
+    <article class="pb-article">
+      <header class="m-section pb-head">
+        <nav class="pb-bc" aria-label="Breadcrumb">
+          <a href="/irs-disaster-relief" class="m-page-back">
+            <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+          </a>
+        </nav>
+        <p class="m-eyebrow">Practice guide</p>
+        <h1 class="pb-title">
+          When the IRS postpones deadlines after a disaster — the CPA’s response playbook
+        </h1>
+        <p class="pb-standfirst">
+          A federal disaster postponement lands as a single news release — and then it is your job to
+          turn it into the right answer for each client. This is the workflow firms run, start to
+          finish: confirm the notice, check the state, map the covered area, find your affected
+          clients, adjust and document the dates, and tell the people it touches. It is written to be
+          useful whatever tools you use.
+        </p>
+        <p class="pb-meta">
+          Last reviewed: <time datetime={reviewedOn}>{reviewedOn}</time> · A practice guide from
+          DueDateHQ
+        </p>
+      </header>
+
+      <section class="m-section pb-body">
+        <p class="pb-lead-note">
+          Throughout, the examples are real IRS notices linked to their official irs.gov source. Use
+          them as a template for reading whatever notice lands on your desk — deadlines and covered
+          areas differ for every disaster, and the IRS can revise a release after it publishes.
+        </p>
+
+        <ol class="pb-steps">
+          {
+            steps.map((step, i) => (
+              <li class="pb-step" id={step.id}>
+                <div class="pb-step__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</div>
+                <div class="pb-step__content">
+                  <h2 class="pb-step__title">{step.name}</h2>
+                  <p class="pb-step__body" set:html={step.body} />
+                  {step.list && (
+                    <div class="pb-optlist">
+                      <p class="pb-optlist__lead">{step.list.lead}</p>
+                      <ul>
+                        {step.list.items.map((item) => (
+                          <li set:html={item} />
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {step.extra && <p class="pb-step__body pb-step__extra">{step.extra}</p>}
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <aside class="pb-example">
+          <p class="pb-example__k">A worked example to read against</p>
+          <p class="pb-example__body">
+            {
+              ga ? (
+                <>
+                  For the Southeast Georgia wildfires, the IRS issued relief <b>{ga.code}</b>, moving
+                  affected filing and payment deadlines to <b>{ga.deadlineLabel}</b> for taxpayers in{' '}
+                  {ga.affectedArea}. That is the shape every notice takes — a code, a new date, and a
+                  covered-area list you match your clients against.
+                </>
+              ) : (
+                <>Read each notice for its relief code, new deadline, and covered-area list.</>
+              )
+            }
+          </p>
+          {
+            ga && (
+              <a class="pb-example__src" href={ga.sourceHref} rel="nofollow noopener" target="_blank">
+                Read the official IRS release ({ga.code}) ↗
+              </a>
+            )
+          }
+        </aside>
+      </section>
+
+      <section class="m-section pb-faq">
+        <FaqList eyebrow="FAQ" title="Common questions" items={faq} />
+      </section>
+
+      <section class="m-section pb-more">
+        <p class="pb-more__k">Related</p>
+        <ul class="pb-more__list">
+          <li>
+            <a href="/irs-disaster-relief">
+              Current IRS disaster-relief notices by state <span aria-hidden="true">→</span>
+            </a>
+          </li>
+          <li>
+            <a href="/state-coverage">
+              State-by-state deadline coverage <span aria-hidden="true">→</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Editorial article — single measured column, no product hero/CTA chrome.
+     Reuses .m-section (gutters + rhythm) + .m-eyebrow + .m-page-back only. */
+  .pb-article {
+    /* the whole article reads as one column, not the split page kit */
+  }
+  .pb-head {
+    padding-top: clamp(28px, 5vw, 56px);
+  }
+  .pb-bc {
+    margin-bottom: 20px;
+  }
+  .pb-bc .m-page-back {
+    margin-bottom: 0;
+  }
+  .pb-title {
+    max-width: 20ch;
+    margin-top: 12px;
+    font-family: var(--m-font-display);
+    font-weight: 400;
+    font-size: clamp(30px, 4.4vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--m-ink);
+  }
+  .pb-standfirst {
+    max-width: 62ch;
+    margin-top: 20px;
+    font-size: clamp(17px, 1.5vw, 20px);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .pb-meta {
+    margin-top: 20px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+
+  .pb-body {
+    padding-top: clamp(20px, 3vw, 32px);
+  }
+  .pb-lead-note {
+    max-width: 66ch;
+    padding: 16px 20px;
+    border-left: 2px solid var(--m-hairline);
+    font-size: var(--m-text-md);
+    line-height: 1.65;
+    color: var(--m-muted);
+  }
+
+  /* numbered steps — an editorial ol, not cards */
+  .pb-steps {
+    margin: clamp(28px, 4vw, 44px) 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: pb;
+  }
+  .pb-step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 20px 24px;
+    padding: clamp(26px, 3.5vw, 40px) 0;
+    max-width: 78ch;
+  }
+  .pb-step + .pb-step {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .pb-step__num {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    color: var(--m-accent);
+    padding-top: 4px;
+  }
+  .pb-step__title {
+    font-size: clamp(20px, 2vw, 26px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--m-ink);
+  }
+  .pb-step__body {
+    margin-top: 14px;
+    font-size: var(--m-text-lg);
+    line-height: 1.7;
+    color: var(--m-ink-2);
+  }
+  .pb-step__body :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .pb-step__extra {
+    color: var(--m-muted);
+    font-size: var(--m-text-md);
+  }
+
+  /* the honest option list in step 4 — a plain, balanced list, not a pitch box */
+  .pb-optlist {
+    margin-top: 20px;
+    padding: 20px 22px;
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline-2);
+    border-radius: 12px;
+  }
+  .pb-optlist__lead {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .pb-optlist ul {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 14px;
+  }
+  .pb-optlist li {
+    position: relative;
+    padding-left: 22px;
+    font-size: var(--m-text-md);
+    line-height: 1.65;
+    color: var(--m-ink-2);
+  }
+  .pb-optlist li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-faint);
+  }
+  .pb-optlist li :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+
+  /* worked-example aside — sourced, restrained; NOT a CTA */
+  .pb-example {
+    margin-top: clamp(28px, 4vw, 44px);
+    max-width: 72ch;
+    padding: clamp(20px, 2.6vw, 28px);
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+  }
+  .pb-example__k {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .pb-example__body {
+    margin-top: 12px;
+    font-size: var(--m-text-md);
+    line-height: 1.7;
+    color: var(--m-ink-2);
+  }
+  .pb-example__body :global(b) {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+  .pb-example__src {
+    margin-top: 14px;
+    display: inline-flex;
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pb-example__src:hover {
+    color: var(--m-accent-strong);
+  }
+
+  .pb-faq {
+    padding-top: clamp(20px, 3vw, 32px);
+  }
+
+  .pb-more {
+    padding-top: clamp(16px, 2vw, 24px);
+    padding-bottom: clamp(32px, 5vw, 64px);
+  }
+  .pb-more__k {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .pb-more__list {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    max-width: 60ch;
+  }
+  .pb-more__list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .pb-more__list a span {
+    transition: transform var(--m-dur-fast) var(--m-ease);
+  }
+  .pb-more__list a:hover span {
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 640px) {
+    .pb-step {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .pb-step__num {
+      padding-top: 0;
+    }
+  }
+</style>

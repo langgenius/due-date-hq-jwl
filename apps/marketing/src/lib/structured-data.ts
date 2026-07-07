@@ -495,6 +495,118 @@ export function statePageStructuredData(
   ])
 }
 
+// ---- IRS disaster-relief pages (/irs-disaster-relief[/slug]) --------------
+// English-only v1. These pages are built from lib/disaster-notices.ts (the ONE
+// verified dataset), not from i18n copy, so the structured-data builders take
+// plain title/description/faq args plus the site LandingCopy for the base graph.
+
+export function disasterHubStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  title: string,
+  description: string,
+  faq: FaqItemCopy[],
+): JsonLdDocument {
+  const labels: Record<Locale, string> = {
+    en: 'IRS disaster relief',
+    'zh-CN': 'IRS 灾害减免',
+  }
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    { ...webPageNode(pathname, title, description, lang), '@type': 'CollectionPage' },
+    faqNode(faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: labels[lang], pathname },
+    ]),
+  ])
+}
+
+export function disasterNoticeStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  slug: string,
+  title: string,
+  description: string,
+  leafCrumb: string,
+  faq: FaqItemCopy[],
+): JsonLdDocument {
+  const hubLabels: Record<Locale, string> = {
+    en: 'IRS disaster relief',
+    'zh-CN': 'IRS 灾害减免',
+  }
+  const hubPath = lang === 'zh-CN' ? '/zh-CN/irs-disaster-relief' : '/irs-disaster-relief'
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, title, description, lang, slug),
+    articleNode(pathname, title, description, lang, slug),
+    faqNode(faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: hubLabels[lang], pathname: hubPath },
+      { name: leafCrumb, pathname },
+    ]),
+  ])
+}
+
+// Generic HowTo node for editorial guides that supply their own steps (unlike
+// the fixed how-it-works HowTo). Used by the disaster-relief CPA playbook.
+function genericHowToNode(
+  lang: Locale,
+  name: string,
+  description: string,
+  steps: { name: string; text: string }[],
+): JsonLdDocument {
+  return {
+    '@type': 'HowTo',
+    name,
+    description,
+    inLanguage: lang,
+    step: steps.map((s, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  }
+}
+
+// The neutral editorial playbook (/irs-disaster-relief/cpa-response-playbook):
+// an Article + a HowTo (the real CPA workflow) + FAQPage + breadcrumb. Reuses
+// the shared helpers; steps/faq come from the page (English-only v1).
+export function disasterPlaybookStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  slug: string,
+  title: string,
+  description: string,
+  howToName: string,
+  howToDescription: string,
+  steps: { name: string; text: string }[],
+  faq: FaqItemCopy[],
+): JsonLdDocument {
+  const hubLabels: Record<Locale, string> = {
+    en: 'IRS disaster relief',
+    'zh-CN': 'IRS 灾害减免',
+  }
+  const hubPath = lang === 'zh-CN' ? '/zh-CN/irs-disaster-relief' : '/irs-disaster-relief'
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, title, description, lang, slug),
+    articleNode(pathname, title, description, lang, slug),
+    genericHowToNode(lang, howToName, howToDescription, steps),
+    faqNode(faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: hubLabels[lang], pathname: hubPath },
+      { name: 'CPA response playbook', pathname },
+    ]),
+  ])
+}
+
 export function trustPageStructuredData(
   siteCopy: LandingCopy,
   page: TrustPageCopy,

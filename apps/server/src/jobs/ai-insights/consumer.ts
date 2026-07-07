@@ -117,7 +117,7 @@ function humanizeAuditAction(action: string): string {
 
 function statusOf(value: unknown): string | null {
   if (value && typeof value === 'object' && 'status' in value) {
-    const status = (value as { status: unknown }).status
+    const status = value.status
     return typeof status === 'string' ? status : null
   }
   return null

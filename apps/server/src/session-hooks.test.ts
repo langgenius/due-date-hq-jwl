@@ -50,7 +50,7 @@ describe('buildDatabaseHooks.session.create.before', () => {
     const before = hooks.session?.create?.before
     expect(before).toBeDefined()
 
-    const result = await before!(baseSession('user_1') as never, null)
+    const result = await before!(baseSession('user_1'), null)
 
     expect(limitSpy).toHaveBeenCalledTimes(2)
     expect(innerJoinSpy).toHaveBeenCalledTimes(1)
@@ -69,7 +69,7 @@ describe('buildDatabaseHooks.session.create.before', () => {
     })
     const hooks = buildDatabaseHooks(db, 'secret')
 
-    const result = await hooks.session!.create!.before!(baseSession('user_1') as never, null)
+    const result = await hooks.session!.create!.before!(baseSession('user_1'), null)
 
     expect(innerJoinSpy).toHaveBeenCalledTimes(1)
     expect(result).toMatchObject({
@@ -80,7 +80,7 @@ describe('buildDatabaseHooks.session.create.before', () => {
   it('still stamps MFA state when the user has no active memberships yet', async () => {
     const { db, limitSpy } = makeFakeDb({ membershipRows: [] })
     const hooks = buildDatabaseHooks(db, 'secret')
-    const result = await hooks.session!.create!.before!(baseSession('user_new') as never, null)
+    const result = await hooks.session!.create!.before!(baseSession('user_new'), null)
 
     expect(limitSpy).toHaveBeenCalledTimes(2)
     expect(result).toMatchObject({
@@ -94,7 +94,7 @@ describe('buildDatabaseHooks.session.create.before', () => {
       membershipRows: [{ organizationId: 'firm_1' }],
     })
     const hooks = buildDatabaseHooks(db, 'secret')
-    const result = await hooks.session!.create!.before!(baseSession('user_1') as never, null)
+    const result = await hooks.session!.create!.before!(baseSession('user_1'), null)
 
     expect(result).toMatchObject({
       data: { activeOrganizationId: 'firm_1', twoFactorVerified: false, userId: 'user_1' },
@@ -104,7 +104,7 @@ describe('buildDatabaseHooks.session.create.before', () => {
   it('returns undefined without hitting the db when userId is missing', async () => {
     const { db, limitSpy } = makeFakeDb({})
     const hooks = buildDatabaseHooks(db, 'secret')
-    const result = await hooks.session!.create!.before!(baseSession(undefined) as never, null)
+    const result = await hooks.session!.create!.before!(baseSession(undefined), null)
 
     expect(limitSpy).not.toHaveBeenCalled()
     expect(result).toBeUndefined()

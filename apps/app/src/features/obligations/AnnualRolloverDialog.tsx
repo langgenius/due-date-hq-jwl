@@ -109,6 +109,10 @@ function ruleChangeText(row: AnnualRolloverRow): string | null {
   return reasons.length > 0 ? reasons.join(' · ') : null
 }
 
+function formatDueDate(value: string | null | undefined): string {
+  return value ? formatDate(value) : '—'
+}
+
 export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: number }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -158,10 +162,6 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
     }
     return [...byClient.entries()].filter(([, safe]) => safe).map(([clientId]) => clientId)
   }, [rows])
-
-  function formatDueDate(value: string | null | undefined): string {
-    return value ? formatDate(value) : '—'
-  }
 
   const pending = createMutation.isPending
   const totalCount = summary?.seedObligationCount ?? 0

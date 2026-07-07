@@ -96,6 +96,7 @@ interface AffectedClientsTableProps {
 // expander appears ("Show all 9" would be sillier than 9 rows).
 const COLLAPSE_THRESHOLD = 10
 const VISIBLE_COLLAPSED = 8
+const EMPTY_EXCLUDED_IDS = new Set<string>()
 
 // Humanized entity-type labels (Pencil KwfpP ENTITY column). The contract
 // carries the snake_case enum; this maps each to its display form.
@@ -123,7 +124,7 @@ export function AffectedClientsTable({
   rows,
   selection,
   confirmedReviewIds,
-  excludedIds = new Set(),
+  excludedIds = EMPTY_EXCLUDED_IDS,
   onChangeSelection,
   onToggleNeedsReviewConfirmation,
   onToggleExcluded,

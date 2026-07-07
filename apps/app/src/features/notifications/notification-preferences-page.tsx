@@ -171,7 +171,7 @@ export function NotificationPreferencesPage() {
             Object.entries(patch).filter(([, value]) => value !== undefined),
           )
           queryClient.setQueryData<NotificationPreferencePublic>(preferencesQueryKey, (current) =>
-            current ? ({ ...current, ...definedPatch } as NotificationPreferencePublic) : current,
+            current ? { ...current, ...definedPatch } : current,
           )
         }
         return { previous }

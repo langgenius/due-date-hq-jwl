@@ -1,8 +1,6 @@
 import { and, desc, eq, isNull, or } from 'drizzle-orm'
 import type {
-  ReminderChannel,
   ReminderDeliveryStatus,
-  ReminderRecipientKind,
   ReminderTemplateKind,
   ReminderTemplatePatch,
   ReminderTemplateRow,
@@ -348,9 +346,9 @@ export function makeRemindersRepo(db: Db, firmId: string) {
         clientId: row.clientId,
         clientName: row.clientName,
         taxType: row.taxType,
-        recipientKind: row.recipientKind as ReminderRecipientKind,
+        recipientKind: row.recipientKind,
         recipientEmail: row.recipientEmail,
-        channel: row.channel as ReminderChannel,
+        channel: row.channel,
         offsetDays: row.offsetDays,
         scheduledFor: row.scheduledFor,
         deliveryStatus: deliveryStatus({

@@ -49,6 +49,7 @@ export default defineConfig({
       'typescript/no-explicit-any': 'error',
       // React 19's new JSX transform doesn't need React in scope.
       'react/react-in-jsx-scope': 'off',
+      'react/no-unstable-nested-components': ['error', { allowAsProps: true }],
       // `import './styles.css'` side-effect imports are intentional.
       'import/no-unassigned-import': 'off',
       // Empty-by-design scaffolding files are acceptable during Phase 0.
@@ -206,6 +207,12 @@ export default defineConfig({
         // `__dirname` ESM shim is the standard Node idiom — both rules off here.
         files: ['apps/marketing/scripts/**'],
         rules: { 'no-await-in-loop': 'off', 'no-underscore-dangle': 'off' },
+      },
+      {
+        // Outreach sends are deliberately sequential to preserve rate limiting
+        // and write per-recipient state after each accepted send.
+        files: ['outreach-kit/**'],
+        rules: { 'no-await-in-loop': 'off' },
       },
       {
         // Test stubs legitimately use `as unknown as X` casts and locally

@@ -107,7 +107,6 @@ import type {
   CandidateRow,
   DeadlineSelectionReviewSnapshot,
   EffectiveCandidateRow,
-  PriorityReviewJoinedRow,
   PulseAffectedClientRow,
   PulseAlertRow,
   PulseApplyResult,
@@ -179,6 +178,77 @@ function liveAlertCounts(
   }
 }
 
+function rowHasRelevantDueDate(row: EffectiveCandidateRow, alert: AlertJoinedRow): boolean {
+  return (
+    sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate) ||
+    sameTimestamp(row.baseCurrentDueDate, alert.parsedOriginalDueDate) ||
+    sameTimestamp(row.currentDueDate, alert.parsedNewDueDate)
+  )
+}
+
+function rowAlreadyHasOverlay(row: EffectiveCandidateRow, alert: AlertJoinedRow): boolean {
+  return (
+    !sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate) &&
+    (sameTimestamp(row.baseCurrentDueDate, alert.parsedOriginalDueDate) ||
+      sameTimestamp(row.currentDueDate, alert.parsedNewDueDate))
+  )
+}
+
+function assertPriorityReviewableAlert(alert: AlertJoinedRow): void {
+  if (
+    alert.pulseStatus === 'source_revoked' ||
+    alert.alertStatus === 'applied' ||
+    alert.alertStatus === 'dismissed' ||
+    alert.alertStatus === 'reverted'
+  ) {
+    throw new PulseRepoError('conflict')
+  }
+}
+
+function validatePrioritySelection(
+  detail: PulseDetailRow,
+  input: {
+    selectedObligationIds: readonly string[]
+    confirmedObligationIds?: readonly string[]
+    excludedObligationIds?: readonly string[]
+  },
+): {
+  selectedObligationIds: string[]
+  confirmedObligationIds: string[]
+  excludedObligationIds: string[]
+} {
+  const selectedObligationIds = uniqueStrings(input.selectedObligationIds)
+  const confirmedObligationIds = uniqueStrings(input.confirmedObligationIds)
+  const excludedObligationIds = uniqueStrings(input.excludedObligationIds)
+  if (selectedObligationIds.length === 0) throw new PulseRepoError('no_eligible')
+
+  const affectedById = new Map(detail.affectedClients.map((row) => [row.obligationId, row]))
+  const selectedSet = new Set(selectedObligationIds)
+  for (const obligationId of excludedObligationIds) {
+    if (!affectedById.has(obligationId) || selectedSet.has(obligationId)) {
+      throw new PulseRepoError('conflict')
+    }
+  }
+  for (const obligationId of confirmedObligationIds) {
+    const row = affectedById.get(obligationId)
+    if (!row || !selectedSet.has(obligationId) || row.matchStatus !== 'needs_review') {
+      throw new PulseRepoError('conflict')
+    }
+  }
+
+  const confirmedSet = new Set(confirmedObligationIds)
+  for (const obligationId of selectedObligationIds) {
+    const row = affectedById.get(obligationId)
+    if (!row || (row.matchStatus !== 'eligible' && row.matchStatus !== 'needs_review')) {
+      throw new PulseRepoError('conflict')
+    }
+    if (row.matchStatus === 'needs_review' && !confirmedSet.has(obligationId)) {
+      throw new PulseRepoError('conflict')
+    }
+  }
+  return { selectedObligationIds, confirmedObligationIds, excludedObligationIds }
+}
+
 export function makePulseRepo(db: Db, firmId: string) {
   async function getAlert(
     alertId: string,
@@ -247,22 +317,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       baseCurrentDueDate: row.currentDueDate,
       currentDueDate: overlays.get(row.obligationId) ?? row.currentDueDate,
     }))
-  }
-
-  function rowHasRelevantDueDate(row: EffectiveCandidateRow, alert: AlertJoinedRow): boolean {
-    return (
-      sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate) ||
-      sameTimestamp(row.baseCurrentDueDate, alert.parsedOriginalDueDate) ||
-      sameTimestamp(row.currentDueDate, alert.parsedNewDueDate)
-    )
-  }
-
-  function rowAlreadyHasOverlay(row: EffectiveCandidateRow, alert: AlertJoinedRow): boolean {
-    return (
-      !sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate) &&
-      (sameTimestamp(row.baseCurrentDueDate, alert.parsedOriginalDueDate) ||
-        sameTimestamp(row.currentDueDate, alert.parsedNewDueDate))
-    )
   }
 
   async function listCandidateRows(alert: AlertJoinedRow): Promise<PulseAffectedClientRow[]> {
@@ -1050,18 +1104,7 @@ export function makePulseRepo(db: Db, firmId: string) {
       .where(and(eq(pulsePriorityReview.firmId, firmId), eq(pulsePriorityReview.alertId, alertId)))
       .limit(1)
 
-    return rows[0] ? toPriorityReview(rows[0] as PriorityReviewJoinedRow) : null
-  }
-
-  function assertPriorityReviewableAlert(alert: AlertJoinedRow): void {
-    if (
-      alert.pulseStatus === 'source_revoked' ||
-      alert.alertStatus === 'applied' ||
-      alert.alertStatus === 'dismissed' ||
-      alert.alertStatus === 'reverted'
-    ) {
-      throw new PulseRepoError('conflict')
-    }
+    return rows[0] ? toPriorityReview(rows[0]) : null
   }
 
   async function upsertPriorityReview(
@@ -1134,51 +1177,6 @@ export function makePulseRepo(db: Db, firmId: string) {
     const review = await getPriorityReview(alert.alertId)
     if (!review) throw new PulseRepoError('not_found')
     return review
-  }
-
-  function validatePrioritySelection(
-    detail: PulseDetailRow,
-    input: {
-      selectedObligationIds: readonly string[]
-      confirmedObligationIds?: readonly string[]
-      excludedObligationIds?: readonly string[]
-    },
-  ): {
-    selectedObligationIds: string[]
-    confirmedObligationIds: string[]
-    excludedObligationIds: string[]
-  } {
-    const selectedObligationIds = uniqueStrings(input.selectedObligationIds)
-    const confirmedObligationIds = uniqueStrings(input.confirmedObligationIds)
-    const excludedObligationIds = uniqueStrings(input.excludedObligationIds)
-    if (selectedObligationIds.length === 0) throw new PulseRepoError('no_eligible')
-
-    const affectedById = new Map(detail.affectedClients.map((row) => [row.obligationId, row]))
-    const selectedSet = new Set(selectedObligationIds)
-    for (const obligationId of excludedObligationIds) {
-      if (!affectedById.has(obligationId) || selectedSet.has(obligationId)) {
-        throw new PulseRepoError('conflict')
-      }
-    }
-    for (const obligationId of confirmedObligationIds) {
-      const row = affectedById.get(obligationId)
-      if (!row || !selectedSet.has(obligationId) || row.matchStatus !== 'needs_review') {
-        throw new PulseRepoError('conflict')
-      }
-    }
-
-    const confirmedSet = new Set(confirmedObligationIds)
-    for (const obligationId of selectedObligationIds) {
-      const row = affectedById.get(obligationId)
-      if (!row || (row.matchStatus !== 'eligible' && row.matchStatus !== 'needs_review')) {
-        throw new PulseRepoError('conflict')
-      }
-      if (row.matchStatus === 'needs_review' && !confirmedSet.has(obligationId)) {
-        throw new PulseRepoError('conflict')
-      }
-    }
-
-    return { selectedObligationIds, confirmedObligationIds, excludedObligationIds }
   }
 
   return {

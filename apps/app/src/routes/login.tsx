@@ -68,17 +68,6 @@ const AUTH_FIELD_SKIN =
 // Auth buttons match the taller field (h-11) so field + CTA align.
 const AUTH_BTN_H = 'h-11'
 
-type AuthCapabilities = {
-  providers: {
-    google: boolean
-    microsoft: boolean
-    emailOtp: boolean
-  }
-  publicClientIds?: {
-    google?: string
-  }
-}
-
 function isInAppPath(value: string | null): value is string {
   return !!value && value.startsWith('/') && !value.startsWith('//')
 }
@@ -103,7 +92,7 @@ export function LoginRoute() {
   const { t } = useLingui()
   const capabilitiesQuery = useQuery({
     queryKey: ['auth-capabilities'],
-    queryFn: authCapabilities as () => Promise<AuthCapabilities>,
+    queryFn: authCapabilities,
     staleTime: 60_000,
   })
   const microsoftEnabled = capabilitiesQuery.data?.providers.microsoft ?? false

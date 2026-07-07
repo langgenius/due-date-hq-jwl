@@ -24,8 +24,12 @@ const products = [
 ]
 
 // mark vocabulary, per product:
-//   yes · no · partial (technically, but…) · manual
-type Mark = 'yes' | 'no' | 'partial' | 'manual'
+//   yes · no · partial (technically, but…) · manual · na (not advertised)
+// `na` is used for NAMED third-party products on a capability their own public
+// materials don't mention — we render the same neutral dash but the accessible
+// label says "Not advertised", never a bare "No". This keeps us out of unsourced-
+// negative / trade-libel territory (see the dated disclaimer under the table).
+type Mark = 'yes' | 'no' | 'partial' | 'manual' | 'na'
 
 // Two honest groups. Group 1: the change-monitoring job — our ground.
 // Group 2: full practice management — their ground, narrow by design for us.
@@ -35,11 +39,11 @@ const groups: { label: string; rows: { feature: string; marks: Mark[] }[] }[] = 
         label: '我们替你盯着的事',
         rows: [
           { feature: '记录已知截止日', marks: ['manual', 'yes', 'yes', 'yes'] },
-          { feature: '7×24 盯着来源', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'AI 读懂变化', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: '标出受影响客户', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: '一键应用新日期', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: '每个日期附来源', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: '7×24 盯着来源', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: 'AI 读懂变化', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: '标出受影响客户', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: '一键应用新日期', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: '每个日期附来源', marks: ['no', 'na', 'na', 'yes'] },
         ],
       },
       {
@@ -57,11 +61,11 @@ const groups: { label: string; rows: { feature: string; marks: Mark[] }[] }[] = 
         label: 'What we watch for you',
         rows: [
           { feature: 'Tracks deadlines you know', marks: ['manual', 'yes', 'yes', 'yes'] },
-          { feature: 'Watches sources 24/7', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'Reads what changed', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'Flags affected clients', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'One-click apply', marks: ['no', 'no', 'no', 'yes'] },
-          { feature: 'Source on every date', marks: ['no', 'no', 'no', 'yes'] },
+          { feature: 'Watches sources 24/7', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: 'Reads what changed', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: 'Flags affected clients', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: 'One-click apply', marks: ['no', 'na', 'na', 'yes'] },
+          { feature: 'Source on every date', marks: ['no', 'na', 'na', 'yes'] },
         ],
       },
       {
@@ -86,9 +90,11 @@ const t = zh
       legendYes: '内建',
       legendPartial: '技术上能，但不监测变化',
       footnote: '套件管事务所，我们盯截止日变化——两者并不冲突。',
+      disclaimer:
+        '依据各厂商公开材料，截至 2026 年 7 月；功能会变。破折号表示对方未公开宣传该能力，并非一定做不到。灾情变更由 DueDateHQ 自动识别并起草、经你审核后一键应用（Pro 套餐，owner/partner/manager 角色）。',
       compareLink: '查看与 File In Time 的完整对比 →',
       ariaSummary:
-        '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。只有 DueDateHQ 7×24 盯着官方来源看变化、用 AI 读懂变化、精确标出受影响客户、一键应用并为每个日期保留来源；而完整的事务所管理、开票、文档存储是套件的强项，我们刻意不做，只装在它们之上。',
+        '对比 Excel + Outlook、File In Time、TaxDome 与 DueDateHQ。在 7×24 盯官方来源看变化、AI 读懂变化、标出受影响客户、一键应用、为每个日期保留来源这几项上，只有 DueDateHQ 内建；其余产品的公开材料未提及这些能力（不等于一定做不到）。完整的事务所管理、开票、文档存储是套件的强项，DueDateHQ 刻意不做，只装在它们之上。',
     }
   : {
       eyebrow: 'How it compares',
@@ -101,15 +107,17 @@ const t = zh
       legendYes: 'Built in',
       legendPartial: 'Technically, but no change monitoring',
       footnote: 'Your suite runs the practice; we watch the deadlines — not in competition.',
+      disclaimer:
+        'Based on each vendor’s public materials as of July 2026; features change. A dash means the capability isn’t advertised, not that it’s impossible. DueDateHQ detects and drafts disaster changes for your review; one-click apply is on Pro plans for owner/partner/manager roles.',
       compareLink: 'See the full File In Time comparison →',
       ariaSummary:
-        'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. Only DueDateHQ watches official sources 24/7 for changes, has AI read what changed, flags exactly who is affected, applies in one click, and keeps a source on every date. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
+        'Comparison of Excel + Outlook, File In Time, TaxDome and DueDateHQ. On watching official sources 24/7 for changes, AI-reading what changed, flagging who is affected, one-click apply, and keeping a source on every date, only DueDateHQ has it built in; the other products’ public materials don’t mention these capabilities, which is not the same as being unable to. Full practice management, billing and document storage are the suites’ strength; DueDateHQ deliberately stays out of those and instead layers on top of them.',
     }
 // accessible value per mark — the cell's name (svg/dash are decorative); a real
 // table announces "<feature>, <product>, <value>" so each cell just needs its word
 const markLabel: Record<Mark, string> = zh
-  ? { yes: '内建', no: '不支持', partial: '勉强', manual: '手动' }
-  : { yes: 'Yes', no: 'No', partial: 'Partial', manual: 'Manual' }
+  ? { yes: '内建', no: '不支持', partial: '勉强', manual: '手动', na: '未标明' }
+  : { yes: 'Yes', no: 'No', partial: 'Partial', manual: 'Manual', na: 'Not advertised' }
 ---
 
 <section class="m-section compare" aria-labelledby="cmp-h" data-reveal>
@@ -157,7 +165,7 @@ const markLabel: Record<Mark, string> = zh
                         </svg>
                       </span>
                     )}
-                    {m === 'no' && <span class="no" aria-hidden="true" />}
+                    {(m === 'no' || m === 'na') && <span class="no" aria-hidden="true" />}
                     {m === 'partial' && (
                       <span class="cmp__partial" aria-hidden="true">{t.partial}</span>
                     )}
@@ -175,6 +183,7 @@ const markLabel: Record<Mark, string> = zh
   </div>
 
   <p class="compare__foot">{t.footnote}</p>
+  <p class="compare__foot compare__foot--fine">{t.disclaimer}</p>
   <p class="compare__cta">
     <a class="compare__link" href={`${base}/compare/file-in-time-alternative`}>{t.compareLink}</a>
   </p>
@@ -331,6 +340,13 @@ const markLabel: Record<Mark, string> = zh
     font-size: var(--m-text-base);
     line-height: 1.6;
     color: var(--m-muted);
+  }
+  /* dated public-materials disclaimer — small print so it frames the matrix
+     without competing with the footnote statement above it */
+  .compare__foot--fine {
+    margin-top: 8px;
+    font-size: var(--m-text-xs);
+    color: var(--m-faint);
   }
   .compare__cta {
     margin-top: 12px;

@@ -554,9 +554,7 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       // Non-breaking: consumers reading the row just see an extra prop.
       return Object.assign(after, {
         previousOrigin: before.origin,
-      }) as ObligationReadinessChecklistItem & {
-        previousOrigin: ReadinessDocumentChecklistItemOrigin
-      }
+      })
     },
 
     async deleteDocumentChecklistItem(input: {

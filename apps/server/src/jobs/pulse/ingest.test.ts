@@ -1007,7 +1007,7 @@ describe('createBrowserlessFetch', () => {
 describe('createPoliteFetch', () => {
   it('does not spend the per-host crawl delay on robots.txt checks', async () => {
     const fetchImpl = vi.fn(async () => new Response('ok'))
-    const politeFetch = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+    const politeFetch = createPoliteFetch(fetchImpl)
 
     await politeFetch('https://comptroller.texas.gov/robots.txt')
     await politeFetch('https://comptroller.texas.gov/about/media-center/news/')
@@ -1019,7 +1019,7 @@ describe('createPoliteFetch', () => {
     vi.useFakeTimers()
     try {
       const fetchImpl = vi.fn(async () => new Response('ok'))
-      const politeFetch = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+      const politeFetch = createPoliteFetch(fetchImpl)
 
       const first = politeFetch('https://tax.example.gov/a')
       const second = politeFetch('https://tax.example.gov/b')
@@ -1039,8 +1039,8 @@ describe('createPoliteFetch', () => {
     try {
       const fetchImpl = vi.fn(async () => new Response('ok'))
       const shared = createPoliteHostState()
-      const politeA = createPoliteFetch(fetchImpl as unknown as typeof fetch, shared)
-      const politeB = createPoliteFetch(fetchImpl as unknown as typeof fetch, shared)
+      const politeA = createPoliteFetch(fetchImpl, shared)
+      const politeB = createPoliteFetch(fetchImpl, shared)
 
       const first = politeA('https://tax.example.gov/a')
       const second = politeB('https://tax.example.gov/b')
@@ -1060,10 +1060,7 @@ describe('createPoliteFetch', () => {
     vi.useFakeTimers()
     try {
       const fetchImpl = vi.fn(async () => new Response('ok'))
-      const politeFetch = createPoliteFetch(
-        fetchImpl as unknown as typeof fetch,
-        createPoliteHostState(),
-      )
+      const politeFetch = createPoliteFetch(fetchImpl, createPoliteHostState())
 
       const first = politeFetch('https://tax.ny.gov/a')
       const second = politeFetch('https://www.ftb.ca.gov/b')
@@ -1079,8 +1076,8 @@ describe('createPoliteFetch', () => {
     vi.useFakeTimers()
     try {
       const fetchImpl = vi.fn(async () => new Response('ok'))
-      const politeA = createPoliteFetch(fetchImpl as unknown as typeof fetch)
-      const politeB = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+      const politeA = createPoliteFetch(fetchImpl)
+      const politeB = createPoliteFetch(fetchImpl)
 
       const first = politeA('https://tax.example.gov/a')
       const second = politeB('https://tax.example.gov/b')
