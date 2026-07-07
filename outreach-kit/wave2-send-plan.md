@@ -11,9 +11,10 @@
 2. **Env** (only you have the key): `RESEND_API_KEY`, `FROM="Gigi from DueDateHQ <gigi@duedatehq.com>"`,
    `REPLY_TO=gigi@dify.ai`, `FOOTER_ADDRESS="548 Market St PMB 60083, San Francisco, CA 94104"`.
 3. **Commit the suppress-list bounces** (`outreach-suppress.txt`) so they're skipped.
-4. **Reconfirm or drop the 4 listing-only wave-2 emails** before their batch day (they're in these
-   files): `John@turkcpas.com` (MO Turk), `info@janiebarry.com` (TX Janie Barry),
-   `bobbielhoward@blhcpas.com` (LA Bobbie Howard), `tabby@lemaytax.com` (LA LeMay).
+4. **Listing-only emails — re-verified 2026-07-07:** Turk (`John@turkcpas.com`), Bobbie Howard
+   (`bobbielhoward@blhcpas.com`), LeMay (`tabby@lemaytax.com`) all **confirmed on the firms' own
+   sites — keep**. Janie Barry (`info@janiebarry.com`) was **directory-guessed / unconfirmed →
+   dropped**: removed from `wave2-ramp-day6.csv` and added to `outreach-suppress.txt`.
 5. Optional but wise: mail-tester / seed-inbox check before Day 1.
 
 ## 1. Files
