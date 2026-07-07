@@ -116,7 +116,7 @@ const faq = zh
 
   <section class="m-section wws-promise">
     <p class="m-eyebrow">{c.promiseEyebrow}</p>
-    <p class="wws-promise__line">{c.promise}</p>
+    <p class="m-display-2 wws-promise__line">{c.promise}</p>
     <p class="wws-promise__body">{c.promiseBody}</p>
   </section>
 
@@ -177,7 +177,7 @@ const faq = zh
 
   <section class="m-section wws-cta" id="cta">
     <div class="wws-cta__inner">
-      <h2 class="wws-cta__title">{c.ctaTitle}</h2>
+      <h2 class="m-display-2 wws-cta__title">{c.ctaTitle}</h2>
       <p class="wws-cta__body">{c.ctaBody}</p>
       <div class="wws-cta__actions">
         <a class="wws-cta__primary" href={ctaHref}>{c.ctaPrimary}</a>
@@ -192,20 +192,15 @@ const faq = zh
   .wws-promise {
     padding-block: clamp(8px, 2vw, 20px) clamp(24px, 4vw, 40px);
   }
+  /* type comes from .m-display-2; this rule owns layout only */
   .wws-promise__line {
     max-width: 24ch;
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: clamp(24px, 3vw, 36px);
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-    color: var(--m-ink);
   }
   .wws-promise__body {
     margin-top: 18px;
     max-width: 62ch;
-    font-size: clamp(16px, 1.3vw, 18px);
-    line-height: 1.6;
+    font-size: var(--m-text-lg);
+    line-height: var(--m-leading-normal);
     color: var(--m-ink-2);
   }
 
@@ -328,15 +323,10 @@ const faq = zh
     background: var(--m-section);
     text-align: center;
   }
+  /* type comes from .m-display-2; this rule owns layout only */
   .wws-cta__title {
     max-width: 22ch;
     margin-inline: auto;
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: clamp(26px, 3.2vw, 40px);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: var(--m-ink);
   }
   .wws-cta__body {
     margin: 16px auto 0;
