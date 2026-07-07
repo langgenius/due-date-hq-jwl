@@ -62,6 +62,10 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   },
   // Neutral editorial CPA response-playbook guide added 2026-07-06.
   'cpa-response-playbook': { publishedOn: '2026-07-06', reviewedOn: '2026-07-06' },
+  // "Works with your stack" complement hub added 2026-07-07. Its JSON-LD
+  // dateModified is set independently in lib/stack-structured-data.ts; this entry
+  // aligns the sitemap lastmod to the real publish date.
+  'works-with-your-stack': { publishedOn: '2026-07-07', reviewedOn: '2026-07-07' },
 }
 
 export interface ContentDates {
