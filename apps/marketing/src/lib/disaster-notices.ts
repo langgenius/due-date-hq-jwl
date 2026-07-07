@@ -232,12 +232,7 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     incidentStart: 'Dec. 9, 2025',
     affectedArea:
       'Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania and Wahkiakum counties (plus listed Washington tribal nations)',
-    affectedReturns: [
-      'individual',
-      'payroll-excise',
-      'estimated',
-      'retirement-hsa',
-    ],
+    affectedReturns: ['individual', 'payroll-excise', 'estimated', 'retirement-hsa'],
     femaDeclaration: '3629-EM',
     sourceHref:
       'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026',
@@ -360,9 +355,7 @@ function affectedReturnsSentence(notice: DisasterNotice): string {
   return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`
 }
 
-export function getNoticeFaq(
-  notice: DisasterNotice,
-): { question: string; answer: string }[] {
+export function getNoticeFaq(notice: DisasterNotice): { question: string; answer: string }[] {
   const status = getNoticeStatus(notice)
   const faq: { question: string; answer: string }[] = [
     {
@@ -378,12 +371,12 @@ export function getNoticeFaq(
       answer: `The relief covers ${affectedReturnsSentence(notice)} returns and payments with an original or extended due date in the postponement window. All of them move to ${notice.deadlineLabel}.`,
     },
     {
-      question: status === 'live'
-        ? `Is this relief still in effect?`
-        : `Has this relief window closed?`,
-      answer: status === 'live'
-        ? `Yes — as of the last review, the ${notice.deadlineLabel} deadline had not yet passed. Always confirm against the official IRS release before relying on it.`
-        : `The ${notice.deadlineLabel} deadline has passed, so the postponement window for ${notice.code} has closed. This page is kept for reference; check the IRS disaster-relief index for current notices.`,
+      question:
+        status === 'live' ? `Is this relief still in effect?` : `Has this relief window closed?`,
+      answer:
+        status === 'live'
+          ? `Yes — as of the last review, the ${notice.deadlineLabel} deadline had not yet passed. Always confirm against the official IRS release before relying on it.`
+          : `The ${notice.deadlineLabel} deadline has passed, so the postponement window for ${notice.code} has closed. This page is kept for reference; check the IRS disaster-relief index for current notices.`,
     },
   ]
   return faq

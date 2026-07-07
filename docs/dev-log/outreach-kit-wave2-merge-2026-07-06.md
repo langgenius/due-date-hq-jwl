@@ -4,6 +4,7 @@
 **Area:** `outreach-kit/` (cold-email campaign)
 
 ## What
+
 Sourced a second wave of verified, emailable US CPA / accounting-firm contacts and merged them
 into both the verified master roster and the send sequence.
 
@@ -16,6 +17,7 @@ into both the verified master roster and the send sequence.
 - Sourcing notes + method + per-state breakdown: `wave2-sourcing-notes.md`.
 
 ## Merges
+
 - **Master roster** `duedatehq-MASTER-verified.csv`: 289 → **649 rows**. Existing rows preserved
   byte-for-byte (append only).
 - **Send sequence** `duedatehq-OUTREACH-sequence.csv`: 289 → **649 rows**. Generated the wider
@@ -31,6 +33,7 @@ into both the verified master roster and the send sequence.
     safe "Hi there,"**. Full extraction audit: `wave2-sequence-greeting-review.csv`.
 
 ## Verification
+
 - Programmatic dedupe: **0 email collisions** vs the 211 existing master emails, **0 internal
   duplicates**, **0 firm-name overlaps**. (12 states are brand-new; the 7 existing states were
   deduped during research — researchers pre-dropped ~14, incl. Springer & Company.)
@@ -42,12 +45,14 @@ into both the verified master roster and the send sequence.
 - Row integrity: every sequence row parses to 16 columns; every master row to 9. No malformed rows.
 
 ## Not done here (deliberate)
+
 - **Nothing sent.** The sender stays dry-run by default; touch gating + suppress list unchanged.
 - Did not touch `.outreach-state.json`, `send-outreach.mjs`, or the suppress list.
 - 4 listing-only emails are flagged in `wave2-sourcing-notes.md` §8 to reconfirm before a send
   (MO Turk `John@`, TX Janie Barry, LA Bobbie Howard + LeMay).
 
 ## Provenance
+
 `duedatehq-MASTER-verified-wave2.csv` is retained as the wave-2 provenance record alongside the
 merged master. Pre-merge backups were taken at `/tmp/master-backup-premerge.csv` and
 `/tmp/sequence-backup-premerge.csv`.

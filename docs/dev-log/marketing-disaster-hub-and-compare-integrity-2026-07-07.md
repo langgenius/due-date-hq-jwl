@@ -4,8 +4,10 @@
 **Area:** `apps/marketing/` (Astro)
 
 ## 1. IRS disaster-relief content hub — new
+
 Three SEO/top-of-funnel surfaces driven from ONE verified dataset (`src/lib/disaster-notices.ts`,
 every notice cited to its irs.gov release):
+
 - **Per-notice/state pages** — `src/pages/irs-disaster-relief/[slug].astro` + `DisasterNoticePage.astro`,
   targeting "[state] IRS disaster relief 2026 deadline / affected filings". JSON-LD Article + FAQ + Breadcrumb.
 - **Pick-your-state lookup** — `src/pages/irs-disaster-relief/index.astro` hub + interactive island: select a
@@ -22,6 +24,7 @@ content-metadata helpers added. Verified: `astro check` clean; all three surface
 lookup interaction confirmed.
 
 ## 2. Homepage compare-matrix integrity fix — `components/home/Compare.astro`
+
 A capability + competitor audit (competitor claims sourced from vendors' own public materials; DueDateHQ column
 code-audited as genuinely shipped) flagged a **P0 on the live homepage matrix**: the named vendors **File In
 Time** and **TaxDome** were hard-coded `'no'` on five monitoring rows (watches sources 24/7, reads what changed,
@@ -30,6 +33,7 @@ vendors' materials — not confirmed absent — so a bare product-named "No" is 
 risk.
 
 Fix (keeps the design, the vendor names, and the "DueDateHQ is the only ✓" rhetoric):
+
 - New `na` mark ("Not advertised") for the two named vendors on those five rows. Renders the same neutral dash;
   the accessible label now says "Not advertised" instead of "No". (Excel + Outlook stays `no` — a spreadsheet
   genuinely doesn't monitor; not a vendor.)
@@ -45,6 +49,7 @@ safe (hedged category phrasing, shipped-only claims) and were NOT modified.
 Verified: `astro check` — 0 errors.
 
 ## Notes
+
 - Nothing here touches the app, server, outreach-kit, or send machinery.
 - Related research this session (not shipped as claims): IRS-vs-state **conformity-divergence detection is
   NET-NEW** (the product tracks federal + state independently and does not compute the divergence) — so
