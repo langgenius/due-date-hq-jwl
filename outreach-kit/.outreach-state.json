@@ -1,106 +1,139 @@
 {
   "sent": {
     "brantley@westercpa.com": {
-      "t1": 1782991266758
+      "t1": 1782991266758,
+      "t2": 1783433484979
     },
     "cale@harriscocpas.com": {
-      "t1": 1782991275178
+      "t1": 1782991275178,
+      "t2": 1783433495221
     },
     "admin@rrcpasfirm.com": {
-      "t1": 1782991283669
+      "t1": 1782991283669,
+      "t2": 1783433513820
     },
     "nishitachangela@taxpertsga.com": {
-      "t1": 1782991292096
+      "t1": 1782991292096,
+      "t2": 1783433523680
     },
     "info@tag-cpa.com": {
-      "t1": 1782991300482
+      "t1": 1782991300482,
+      "t2": 1783433542502
     },
     "info@equifirstinc.com": {
       "t1": 1782991308907
     },
     "brett@brettfriedmancpa.com": {
-      "t1": 1782991317370
+      "t1": 1782991317370,
+      "t2": 1783433560996
     },
     "team@netsavetax.com": {
-      "t1": 1782991325836
+      "t1": 1782991325836,
+      "t2": 1783433569903
     },
     "support@sandovaltax.com": {
-      "t1": 1782991334243
+      "t1": 1782991334243,
+      "t2": 1783433579844
     },
     "cbc@carotherscpa.com": {
-      "t1": 1782991342761
+      "t1": 1782991342761,
+      "t2": 1783433588712
     },
     "info@catalyst-cpa.com": {
-      "t1": 1782991351211
+      "t1": 1782991351211,
+      "t2": 1783433597841
     },
     "file@etcpa.com": {
-      "t1": 1782991359643
+      "t1": 1782991359643,
+      "t2": 1783433606727
     },
     "mhaque@nyc-cpafirm.com": {
-      "t1": 1782991368024
+      "t1": 1782991368024,
+      "t2": 1783433615494
     },
     "info@hpocpa.com": {
-      "t1": 1782991376437
+      "t1": 1782991376437,
+      "t2": 1783433626662
     },
     "212tax@gmail.com": {
-      "t1": 1782991384852
+      "t1": 1782991384852,
+      "t2": 1783433635710
     },
     "info@bucknamconleycpas.com": {
-      "t1": 1782991393257
+      "t1": 1782991393257,
+      "t2": 1783433653366
     },
     "jls@jlscpa.com": {
-      "t1": 1782991401691
+      "t1": 1782991401691,
+      "t2": 1783433662474
     },
     "info@mtbcpa.us": {
-      "t1": 1782991410245
+      "t1": 1782991410245,
+      "t2": 1783433690554
     },
     "ksmith@cpanewtampa.com": {
-      "t1": 1782991418651
+      "t1": 1782991418651,
+      "t2": 1783433700549
     },
     "awilda@gctaxcpa.com": {
-      "t1": 1782991427196
+      "t1": 1782991427196,
+      "t2": 1783433709398
     },
     "oren@ogcpaservices.com": {
-      "t1": 1782991435772
+      "t1": 1782991435772,
+      "t2": 1783433718527
     },
     "bette@bettehochberger.com": {
-      "t1": 1782991444225
+      "t1": 1782991444225,
+      "t2": 1783433727351
     },
     "contact@gkaplancpa.com": {
-      "t1": 1782991459155
+      "t1": 1782991459155,
+      "t2": 1783433736215
     },
     "tony@mazerandco.com": {
-      "t1": 1782991467546
+      "t1": 1782991467546,
+      "t2": 1783433745043
     },
     "info@accuracycpa.com": {
-      "t1": 1782991475936
+      "t1": 1782991475936,
+      "t2": 1783433771937
     },
     "leanna@baker-griffin.com": {
-      "t1": 1782991484516
+      "t1": 1782991484516,
+      "t2": 1783433782097
     },
     "gdeardorff@phxtaxplan.com": {
-      "t1": 1782991492928
+      "t1": 1782991492928,
+      "t2": 1783433792240
     },
     "cpa@caileancpa.com": {
-      "t1": 1782991501481
+      "t1": 1782991501481,
+      "t2": 1783433805609
     },
     "info@azswcpa.com": {
-      "t1": 1782991510025
+      "t1": 1782991510025,
+      "t2": 1783433825025
     },
     "info@soundnwtax.com": {
-      "t1": 1782991518415
+      "t1": 1782991518415,
+      "t2": 1783433837702
     },
     "cpa@jbacpa.net": {
-      "t1": 1782991527025
+      "t1": 1782991527025,
+      "t2": 1783433849457
     },
     "admin@thrivebusinessgroup.com": {
-      "t1": 1782991535507
+      "t1": 1782991535507,
+      "t2": 1783433858720
     },
     "inquiry@m4cpa.com": {
-      "t1": 1782991543939
+      "t1": 1782991543939,
+      "t2": 1783433869230
     },
     "dave@fjcpas.com": {
-      "t1": 1782991552322
+      "t1": 1782991552322,
+      "t2": 1783433887367
     },
     "info@darlenestonecpa.com": {
       "t1": 1782991560721
@@ -196,40 +229,52 @@
       "t1": 1782991814648
     },
     "allison@accountinghelpnow.net": {
-      "t1": 1782996566672
+      "t1": 1782996566672,
+      "t2": 1783433504673
     },
     "info@drdcpa.com": {
-      "t1": 1782996575156
+      "t1": 1782996575156,
+      "t2": 1783433533626
     },
     "trey@jordankinseyjordan.com": {
-      "t1": 1782996583582
+      "t1": 1782996583582,
+      "t2": 1783433551321
     },
     "info@felsingcpa.com": {
-      "t1": 1782996592126
+      "t1": 1782996592126,
+      "t2": 1783433753881
     },
     "cpas@partridgecpas.com": {
-      "t1": 1782996600533
+      "t1": 1782996600533,
+      "t2": 1783433762690
     },
     "info@imitaxadvisors.com": {
-      "t1": 1782996609020
+      "t1": 1782996609020,
+      "t2": 1783433814949
     },
     "cwilliamscpa@windstream.net": {
-      "t1": 1782996617624
+      "t1": 1782996617624,
+      "t2": 1783433908268
     },
     "info@savtaxmacon.com": {
-      "t1": 1782996626025
+      "t1": 1782996626025,
+      "t2": 1783433917793
     },
     "info@chapmanandchapmancpa.com": {
-      "t1": 1782996634463
+      "t1": 1782996634463,
+      "t2": 1783433928655
     },
     "emailus@clhcpaga.com": {
-      "t1": 1782996642886
+      "t1": 1782996642886,
+      "t2": 1783433938344
     },
     "info@riverscpa.com": {
-      "t1": 1782996651277
+      "t1": 1782996651277,
+      "t2": 1783433947525
     },
     "cpa@skcpafirm.com": {
-      "t1": 1782996659691
+      "t1": 1782996659691,
+      "t2": 1783433958109
     },
     "office@businessandtaxservice.net": {
       "t1": 1782996668098
@@ -406,19 +451,24 @@
       "t1": 1782997160982
     },
     "info@ldtaxadvisors.com": {
-      "t1": 1782997169565
+      "t1": 1782997169565,
+      "t2": 1783433644566
     },
     "info@jagcpa.com": {
-      "t1": 1782997178091
+      "t1": 1782997178091,
+      "t2": 1783433671881
     },
     "tnguyen@nguyencpa.com": {
-      "t1": 1782997186748
+      "t1": 1782997186748,
+      "t2": 1783433680989
     },
     "darren@tctaxcpa.com": {
-      "t1": 1782997195201
+      "t1": 1782997195201,
+      "t2": 1783433878348
     },
     "linda@lmt-cpa.com": {
-      "t1": 1782997203630
+      "t1": 1782997203630,
+      "t2": 1783433899354
     },
     "reno@rmbcpa.biz": {
       "t1": 1782997212399
@@ -614,6 +664,156 @@
     },
     "mateo@mateo.cpa": {
       "t1": 1782997758981
+    },
+    "angela@brotherscpa.com": {
+      "t1": 1783432983890
+    },
+    "info@henryandbrown.com": {
+      "t1": 1783433019681
+    },
+    "info@browncongo.com": {
+      "t1": 1783433028774
+    },
+    "advisors@cdp-cpas.com": {
+      "t1": 1783433037872
+    },
+    "terry@terrylhorncpa.com": {
+      "t1": 1783433047601
+    },
+    "julie@jkmerrittcpa.com": {
+      "t1": 1783433056861
+    },
+    "info@chl-cpas.com": {
+      "t1": 1783433066501
+    },
+    "ray@ambcpa.com": {
+      "t1": 1783433075939
+    },
+    "rhonda@shirazicpa.com": {
+      "t1": 1783433085645
+    },
+    "angie@sbp.tax": {
+      "t1": 1783433095867
+    },
+    "firm@grantsanderstaylor.com": {
+      "t1": 1783433104823
+    },
+    "echo@jacksonsmithcpa.com": {
+      "t1": 1783433114899
+    },
+    "csweatmon@frswcpa.com": {
+      "t1": 1783433123739
+    },
+    "jgarrett@bwb.cpa": {
+      "t1": 1783433132884
+    },
+    "info@phacpa.com": {
+      "t1": 1783433142884
+    },
+    "team@lsmcpas.com": {
+      "t1": 1783433151718
+    },
+    "rebecca@rebeccabosscpa.com": {
+      "t1": 1783433161585
+    },
+    "eharris@harriscpasllc.com": {
+      "t1": 1783433170863
+    },
+    "support@w-pcpas.com": {
+      "t1": 1783433179715
+    },
+    "kathy.turner@turnercpaconway.com": {
+      "t1": 1783433188618
+    },
+    "accountants1@simmonsaccounting.com": {
+      "t1": 1783433197418
+    },
+    "groberts@jdhall.net": {
+      "t1": 1783433206515
+    },
+    "sarah@sarahberrycpa.com": {
+      "t1": 1783433216268
+    },
+    "robin@mr.cpa": {
+      "t1": 1783433225314
+    },
+    "brooke@saltcreekcpa.com": {
+      "t1": 1783433234133
+    },
+    "hward@meyerwardcpas.com": {
+      "t1": 1783433242984
+    },
+    "info@byrdandmassey.com": {
+      "t1": 1783433252550
+    },
+    "info@snelkecpa.com": {
+      "t1": 1783433261397
+    },
+    "info@hooverandcompany.com": {
+      "t1": 1783433270245
+    },
+    "elongenbaugh@mwwcpa.com": {
+      "t1": 1783433280320
+    },
+    "chuck@cmartin-associates.com": {
+      "t1": 1783433289130
+    },
+    "tim@ascpacg.com": {
+      "t1": 1783433298636
+    },
+    "info@davidrogerscpa.com": {
+      "t1": 1783433309809
+    },
+    "robert@rvrcpa.com": {
+      "t1": 1783433319106
+    },
+    "ms@sierravistacpa.com": {
+      "t1": 1783433330204
+    },
+    "jheath@hhaccountingcpas.com": {
+      "t1": 1783433340434
+    },
+    "andrew@nscaccounting.com": {
+      "t1": 1783433350753
+    },
+    "cindym@aeserviceslhc.com": {
+      "t1": 1783433359987
+    },
+    "info@chaddcpa.com": {
+      "t1": 1783433369188
+    },
+    "tax@rimplecpa.com": {
+      "t1": 1783433381230
+    },
+    "hello@konexusaccounting.com": {
+      "t1": 1783433390397
+    },
+    "nick@prescottcpa.com": {
+      "t1": 1783433399588
+    },
+    "marie@reddingcpa.com": {
+      "t1": 1783433408878
+    },
+    "dfritzcpa@sbcglobal.net": {
+      "t1": 1783433419230
+    },
+    "holly@hpladsoncpa.com": {
+      "t1": 1783433428451
+    },
+    "dolores@here4u.biz": {
+      "t1": 1783433439578
+    },
+    "michele@napatax.net": {
+      "t1": 1783433448442
+    },
+    "rlopez@lopezllp.com": {
+      "t1": 1783433457245
+    },
+    "info@temeculacpa.com": {
+      "t1": 1783433466298
+    },
+    "info@taxcityllc.com": {
+      "t1": 1783433476076
     }
   }
 }

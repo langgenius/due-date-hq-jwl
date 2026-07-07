@@ -317,7 +317,7 @@ export function getNoticeBySlug(slug: string): DisasterNotice | undefined {
 /** All notices for a given state name (case-insensitive), newest deadline first. */
 export function getNoticesForState(state: string): DisasterNotice[] {
   const key = state.trim().toLowerCase()
-  return DISASTER_NOTICES.filter((n) => n.state.toLowerCase() === key).sort((a, b) =>
+  return DISASTER_NOTICES.filter((n) => n.state.toLowerCase() === key).toSorted((a, b) =>
     a.deadline < b.deadline ? 1 : -1,
   )
 }
@@ -328,7 +328,7 @@ export function getNoticeStates(): { state: string; abbreviation: string }[] {
   for (const n of DISASTER_NOTICES) if (!seen.has(n.state)) seen.set(n.state, n.abbreviation)
   return [...seen.entries()]
     .map(([state, abbreviation]) => ({ state, abbreviation }))
-    .sort((a, b) => a.state.localeCompare(b.state))
+    .toSorted((a, b) => a.state.localeCompare(b.state))
 }
 
 // ---- SEO metadata + FAQ, derived from the same verified facts ---------------
