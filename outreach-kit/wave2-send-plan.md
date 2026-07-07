@@ -3,6 +3,7 @@
 **Date:** 2026-07-07. Sender = `send-outreach.mjs` (dry-run by default; add `--send`).
 
 ## 0. Prerequisites (do these first)
+
 1. **`git pull` the main checkout** (`/Users/yuqi/dev/due-date-hq-jwl`). The 290 wave-2 rows were
    merged into `duedatehq-OUTREACH-sequence.csv` on `origin/main`; this checkout is behind, so
    without the pull the sender won't find them. (Commit/stash the in-flight WIP + your
@@ -16,10 +17,12 @@
 5. Optional but wise: mail-tester / seed-inbox check before Day 1.
 
 ## 1. Files
+
 - `wave2-ramp-day1.csv` … `wave2-ramp-day6.csv` — the 290 new verified emails split 50/50/50/50/50/40,
   one `Email` per line. Used with `--wave` to bound each day's touch-1 send.
 
 ## 2. Daily cadence (keep daily total ≤ ~100–110 to protect the young domain)
+
 Run per day (dry-run first — omit `--send` — then add it):
 
 ```bash
@@ -38,6 +41,7 @@ Suggested schedule: Day 1 = ramp-day1 (50 new) + touch-2 (50 old); Day 2 = ramp-
 touch-2; … through Day 4 touch-2 is exhausted (~198), Days 5–6 finish the new batches.
 
 ## 3. Safeguards built into the sender (no action needed, just know)
+
 - **De-dupes** from `.outreach-state.json` — never re-sends a touch to the same address.
 - **Honors `outreach-suppress.txt`** on every touch.
 - **Dry-run by default** — nothing sends without `--send`.
@@ -45,8 +49,9 @@ touch-2; … through Day 4 touch-2 is exhausted (~198), Days 5–6 finish the ne
   from the sequence CSV.
 
 ## 4. Caveats
+
 - **Touch-2 = the OLD generic follow-up** on `main`. Your upgraded **concierge** touch-2
-  (`buildTouch2`) is on a different branch, *not merged* — if you want that version to go out, land
+  (`buildTouch2`) is on a different branch, _not merged_ — if you want that version to go out, land
   that branch on `main` first.
 - After each send day, commit the updated `.outreach-state.json` + `send-log-*.txt`.
 - The 7 addresses Resend already shows as **Suppressed** (everybeancounts, porterkinney, cpatx,

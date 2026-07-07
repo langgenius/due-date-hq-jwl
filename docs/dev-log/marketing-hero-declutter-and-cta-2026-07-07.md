@@ -6,6 +6,7 @@
 Design pass to calm the hero (it felt overloaded; the right-side panel read as too complex).
 
 ## Hero.astro
+
 - Removed the 4-item proof list under the sub-lead. It restated what's already shown —
   coverage (`IRS · 50 states · DC` stamp), who's-affected + source links (the panel), and
   "3 months free" (the primary CTA).
@@ -16,6 +17,7 @@ Design pass to calm the hero (it felt overloaded; the right-side panel read as t
 - Data (`points`, `filters`, 3rd alert) left in the i18n objects, unused — trivially restorable.
 
 ## marketing.css — `.m-cta--ghost`
+
 - Gave the ghost CTA an outlined pill (`border: 1px solid var(--m-hairline)`, padding 11/22) so it
   has real presence next to the solid primary — a proper secondary button, not bare text.
 - Hover is now color-only: label + icon + ring shift to brand blue (`border-color` → soft accent),
