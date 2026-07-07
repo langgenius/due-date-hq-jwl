@@ -155,6 +155,8 @@ const revealScript = `<script>
 let homeBody = fullBody;
 // inject category nav after topbar
 homeBody = homeBody.replace("<header>", catnav("home") + "\n\n<header>");
+// drop the redundant Category filter row on the homepage (the top catnav already navigates categories)
+homeBody = homeBody.replace(/<span class="clabel">Category<\/span>[\s\S]*?<span class="sep" aria-hidden="true"><\/span>\s*/, "");
 // add "view all" links from each homepage category heading to its page
 for (const c of cats) {
   const secOpenRe = new RegExp(`(<section class="section" data-cat="${c.key}">\\s*<div class="cat-head">)(<h2>[\\s\\S]*?<\\/h2><span class="count">[^<]*<\\/span>)(</div>)`);
