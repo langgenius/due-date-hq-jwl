@@ -4,11 +4,13 @@
 **Area:** `outreach-kit/send-outreach.mjs`
 
 ## Why
+
 The v11 touch-1 email was a rich HTML card (serif hero + Georgia alert table + cid-embedded logo
 image). Live testing showed it lands in Gmail **Promotions**. A plain/light version of the same
 message lands in **Primary/Inbox**. For cold outreach, Inbox placement beats a card nobody sees.
 
 ## Change
+
 `buildTouch1()` now returns a **light template**: system-font, single-column, one subtle brand link,
 a text signature, hairline footer — **no card, no table, no image attachment**. Copy rewritten to
 the full product loop and reader-first:
@@ -26,6 +28,7 @@ the full product loop and reader-first:
   dry-run confirms the new subject on every recipient.
 
 ## Note
+
 Copy accuracy: the loop is monitor (IRS/state/FEMA) → who's affected → one-click apply → source — all
 shipped (code-audited). Honest nuance kept out of the cold email: disaster changes are auto-detected
 then partner-reviewed before apply, and apply is Pro/manager-gated (not "fully automatic").
