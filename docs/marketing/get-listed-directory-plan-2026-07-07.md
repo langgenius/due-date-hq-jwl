@@ -69,7 +69,7 @@ Notes:
 ## Assets checklist (prepare once, reuse everywhere)
 
 - [ ] **Logo** — stacked-bars mark + wordmark (exists: brand-book).
-- [ ] **Screenshots (3–5)** — real product surfaces (alert detail with source, /today triage, affected-client review). _Needed — not yet gathered._
+- [x] **Screenshots (3–5)** — captured (2× real product surfaces) in `listing-assets/`: `/today` triage, alert detail, affected-client review, alert source/evidence. See `listing-assets/README.md` for captions.
 - [ ] **Category selection** — Tax Practice Management · Accounting Practice Management · Tax Compliance · (deadline/workflow).
 - [ ] **Descriptions** — 1-liner / short / long, below.
 - [ ] **Pricing** — plans are "coming soon" (PRICING_COMING_SOON). Represent as **early access / contact**, do not invent a price.
