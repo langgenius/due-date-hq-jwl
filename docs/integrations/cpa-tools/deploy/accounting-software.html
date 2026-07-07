@@ -99,12 +99,15 @@
   .seg { font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--faint); margin-top: 2px; }
   .desc { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.45; color: var(--soft); margin: 2px 0 0;
     min-height: 4.35em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .shot { aspect-ratio: 16 / 9; background: var(--panel); border-top: 1px solid var(--line); overflow: hidden;
-    display: flex; align-items: center; justify-content: center; position: relative; }
-  .shot::after { content: "Screenshot"; font-family: -apple-system, sans-serif; font-size: 11px; letter-spacing: 0.06em; color: #B4B4AE; }
-  .shot::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px);
-    background-size: 100% 13px; opacity: .5; transition: opacity .3s ease, transform .5s ease; }
-  .card:hover .shot::before { opacity: .8; transform: scale(1.05); }
+  .shot { aspect-ratio: 16 / 9; border-top: 1px solid var(--line); overflow: hidden; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(120% 140% at 82% -30%, color-mix(in srgb, var(--tint, #8C8C88) 16%, #fff), transparent 62%),
+      color-mix(in srgb, var(--tint, #8C8C88) 7%, #FFFFFF); }
+  .shot-mark { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 800;
+    font-size: clamp(42px, 8vw, 60px); letter-spacing: -0.03em; line-height: 1; user-select: none;
+    color: color-mix(in srgb, var(--tint, #8C8C88) 34%, transparent); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  .card:hover .shot-mark { transform: scale(1.07); }
   .card-foot { padding: 11px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
   .tag { font-family: -apple-system, sans-serif; font-size: 12px; display: inline-flex; align-items: center; gap: 7px; color: var(--soft); }
   .tag .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
@@ -131,6 +134,12 @@
   footer .wrap { padding: 22px 24px 48px; font-family: -apple-system, sans-serif; }
   footer p { font-size: 12.5px; color: var(--faint); max-width: 66ch; margin: 0; }
 
+  @media (max-width: 640px) {
+    .topbar .kick { display: none; }
+    .brand-text span { display: none; }
+    .head-inner { padding: 24px 0 16px; }
+    h1 { font-size: 25px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
     .reveal { opacity: 1 !important; transform: none !important; }
@@ -217,11 +226,11 @@
       <li>Offer invoicing and/or accounts-payable functions</li>
     </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">QB</span><img class="asset logo-img"></div><div><div class="name">QuickBooks Online</div><div class="seg">Solo · mid</div></div></div><p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">quickbooks.intuit.com</span></div></article>
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#13B5EA;color:#fff;border-color:transparent"><span class="logo-mono">Xe</span><img class="asset logo-img"></div><div><div class="name">Xero</div><div class="seg">Solo · mid</div></div></div><p class="desc">#2 cloud ledger. Self-serve API, up to 25 orgs before certification.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">xero.com</span></div></article>
-      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#14A05A;color:#fff;border-color:transparent"><span class="logo-mono">Bi</span><img class="asset logo-img"></div><div><div class="name">Bill.com</div><div class="seg">Small · mid</div></div></div><p class="desc">AP/AR and payments. The friendliest self-serve API here.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">bill.com</span></div></article>
-      <article class="card" data-seg="small,mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#00A33B;color:#fff;border-color:transparent"><span class="logo-mono">Sa</span><img class="asset logo-img"></div><div><div class="name">Sage</div><div class="seg">Small · enterprise</div></div></div><p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">sage.com</span></div></article>
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">PA</span><img class="asset logo-img"></div><div><div class="name">ProAdvisor</div><div class="seg">Channel</div></div></div><p class="desc">Not a tool — the accountant program around QuickBooks. 500k members.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Partner program</span><span class="visit">quickbooks.intuit.com</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">QB</span><img class="asset logo-img"></div><div><div class="name">QuickBooks Online</div><div class="seg">Solo · mid</div></div></div><p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p></div><div class="shot" style="--tint:#2CA01C"><span class="shot-mark" aria-hidden="true">QB</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">quickbooks.intuit.com</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#13B5EA;color:#fff;border-color:transparent"><span class="logo-mono">Xe</span><img class="asset logo-img"></div><div><div class="name">Xero</div><div class="seg">Solo · mid</div></div></div><p class="desc">#2 cloud ledger. Self-serve API, up to 25 orgs before certification.</p></div><div class="shot" style="--tint:#13B5EA"><span class="shot-mark" aria-hidden="true">Xe</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">xero.com</span></div></article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#14A05A;color:#fff;border-color:transparent"><span class="logo-mono">Bi</span><img class="asset logo-img"></div><div><div class="name">Bill.com</div><div class="seg">Small · mid</div></div></div><p class="desc">AP/AR and payments. The friendliest self-serve API here.</p></div><div class="shot" style="--tint:#14A05A"><span class="shot-mark" aria-hidden="true">Bi</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">bill.com</span></div></article>
+      <article class="card" data-seg="small,mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#00A33B;color:#fff;border-color:transparent"><span class="logo-mono">Sa</span><img class="asset logo-img"></div><div><div class="name">Sage</div><div class="seg">Small · enterprise</div></div></div><p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p></div><div class="shot" style="--tint:#00A33B"><span class="shot-mark" aria-hidden="true">Sa</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">sage.com</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">PA</span><img class="asset logo-img"></div><div><div class="name">ProAdvisor</div><div class="seg">Channel</div></div></div><p class="desc">Not a tool — the accountant program around QuickBooks. 500k members.</p></div><div class="shot" style="--tint:#2CA01C"><span class="shot-mark" aria-hidden="true">PA</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Partner program</span><span class="visit">quickbooks.intuit.com</span></div></article>
     </div>
   </section>
 
