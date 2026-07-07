@@ -20,631 +20,145 @@
 <title>CPA Field Guide — US Tax &amp; Accounting Software Directory (2026)</title>
 <style>
   :root {
-    --bg: #ffffff;
-    --panel: #f4f4f1;
-    --ink: #1a1a1a;
-    --soft: #565654;
-    --faint: #8c8c88;
-    --line: #e7e7e3;
-    --open: #1e7f57;
-    --gated: #9a6206;
-    --zap: #4a4a9a;
-    --closed: #6b6b66;
-    --info: #2e5a87;
+    --bg: #FFFFFF; --panel: #F4F4F1; --ink: #1A1A1A; --soft: #565654; --faint: #8C8C88;
+    --line: #E7E7E3;
+    --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2E5A87;
   }
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-  }
-  .sans {
-    font-family:
-      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  }
-  .wrap {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-  a {
-    color: var(--open);
-  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--open); }
 
   /* masthead */
-  .topbar {
-    border-bottom: 1px solid var(--line);
-  }
-  .topbar .wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 24px;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .brand-mark {
-    display: block;
-    flex: none;
-  }
-  .brand-text {
-    font-family: -apple-system, sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.005em;
-  }
-  .brand-text span {
-    color: var(--faint);
-    font-weight: 500;
-  }
-  .topbar .kick {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    color: var(--faint);
-  }
+  .topbar { border-bottom: 1px solid var(--line); }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark { display: block; flex: none; }
+  .brand-text { font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.005em; }
+  .brand-text span { color: var(--faint); font-weight: 500; }
+  .topbar .kick { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
 
   /* header */
-  header {
-    border-bottom: 2px solid var(--ink);
-  }
-  .head-inner {
-    padding: 34px 0 22px;
-  }
-  h1 {
-    font-size: clamp(27px, 3.4vw, 36px);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.08;
-    margin: 0 0 10px;
-    max-width: 22ch;
-  }
-  .lede {
-    font-family: -apple-system, sans-serif;
-    font-size: 15px;
-    color: var(--soft);
-    margin: 0 0 18px;
-    max-width: 60ch;
-  }
-  .meta {
-    font-family: -apple-system, sans-serif;
-    font-size: 12.5px;
-    color: var(--faint);
-    display: flex;
-    gap: 8px 16px;
-    flex-wrap: wrap;
-    border-top: 1px solid var(--line);
-    padding-top: 13px;
-  }
-  .meta b {
-    color: var(--soft);
-    font-weight: 600;
-  }
+  header { border-bottom: 2px solid var(--ink); }
+  .head-inner { padding: 34px 0 22px; }
+  h1 { font-size: clamp(27px, 3.4vw, 36px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin: 0 0 10px; max-width: 22ch; }
+  .lede { font-family: -apple-system, sans-serif; font-size: 15px; color: var(--soft); margin: 0 0 18px; max-width: 60ch; }
+  .meta { font-family: -apple-system, sans-serif; font-size: 12.5px; color: var(--faint); display: flex; gap: 8px 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 13px; }
+  .meta b { color: var(--soft); font-weight: 600; }
 
   /* controls */
-  .controls {
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    z-index: 5;
-    transition: box-shadow 0.2s ease;
-  }
-  .controls.scrolled {
-    box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.32);
-  }
-  .controls .wrap {
-    padding: 13px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .clabel {
-    font-family: -apple-system, sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--faint);
-    font-weight: 700;
-    margin-right: 2px;
-  }
-  button.chip {
-    font-family: -apple-system, sans-serif;
-    cursor: pointer;
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--soft);
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    transition:
-      border-color 0.15s,
-      color 0.15s,
-      background 0.15s,
-      transform 0.09s;
-  }
-  button.chip:hover {
-    border-color: var(--ink);
-    color: var(--ink);
-  }
-  button.chip[aria-pressed='true'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
-  }
-  button.chip:active {
-    transform: scale(0.95);
-  }
-  button.chip:focus-visible {
-    outline: 2px solid var(--info);
-    outline-offset: 2px;
-  }
-  .sep {
-    width: 1px;
-    height: 18px;
-    background: var(--line);
-    margin: 0 3px;
-  }
+  .controls { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line); z-index: 5; transition: box-shadow .2s ease; }
+  .controls.scrolled { box-shadow: 0 8px 20px -16px rgba(0,0,0,.32); }
+  .controls .wrap { padding: 13px 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .clabel { font-family: -apple-system, sans-serif; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-right: 2px; }
+  button.chip { font-family: -apple-system, sans-serif; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--soft);
+    padding: 5px 12px; border-radius: 6px; font-size: 13px; transition: border-color .15s, color .15s, background .15s, transform .09s; }
+  button.chip:hover { border-color: var(--ink); color: var(--ink); }
+  button.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  button.chip:active { transform: scale(.95); }
+  button.chip:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+  .sep { width: 1px; height: 18px; background: var(--line); margin: 0 3px; }
 
-  main {
-    padding: 8px 0 20px;
-  }
-  .section {
-    margin-top: 40px;
-  }
-  .cat-head {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin: 0 0 8px;
-  }
-  .cat-head h2 {
-    font-size: 23px;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    margin: 0;
-  }
-  .cat-head .count {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    color: var(--faint);
-  }
-  .cat-def {
-    font-family: -apple-system, sans-serif;
-    font-size: 14.5px;
-    color: var(--soft);
-    margin: 0 0 12px;
-    max-width: 74ch;
-  }
+  main { padding: 8px 0 20px; }
+  .section { margin-top: 40px; }
+  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+  .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
+  .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
+  .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
 
-  details.criteria {
-    font-family: -apple-system, sans-serif;
-    margin: 0 0 20px;
-    max-width: 74ch;
-  }
-  details.criteria summary {
-    cursor: pointer;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--info);
-    list-style: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 0;
-  }
-  details.criteria summary::-webkit-details-marker {
-    display: none;
-  }
-  details.criteria summary::before {
-    content: '▸';
-    font-size: 10px;
-    transition: transform 0.15s ease;
-    color: var(--faint);
-  }
-  details.criteria[open] summary::before {
-    transform: rotate(90deg);
-  }
-  .crit-body {
-    border-left: 2px solid var(--line);
-    padding: 6px 0 2px 14px;
-    margin: 8px 0 0;
-  }
-  .crit-body p {
-    font-size: 12.5px;
-    color: var(--faint);
-    margin: 0 0 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-  }
-  .crit-body ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .crit-body li {
-    font-size: 13.5px;
-    color: var(--soft);
-    padding-left: 18px;
-    position: relative;
-  }
-  .crit-body li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--open);
-    font-size: 12px;
-  }
+  details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
+  details.criteria summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--info); list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 0; }
+  details.criteria summary::-webkit-details-marker { display: none; }
+  details.criteria summary::before { content: "▸"; font-size: 10px; transition: transform .15s ease; color: var(--faint); }
+  details.criteria[open] summary::before { transform: rotate(90deg); }
+  .crit-body { border-left: 2px solid var(--line); padding: 6px 0 2px 14px; margin: 8px 0 0; }
+  .crit-body p { font-size: 12.5px; color: var(--faint); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .crit-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .crit-body li { font-size: 13.5px; color: var(--soft); padding-left: 18px; position: relative; }
+  .crit-body li::before { content: "✓"; position: absolute; left: 0; color: var(--open); font-size: 12px; }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-  }
-  .card {
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.2s ease,
-      border-color 0.18s ease;
-  }
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px -18px rgba(20, 20, 18, 0.42);
-    border-color: #d6d6d0;
-  }
-  .card-body {
-    padding: 16px 16px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .card-head {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-  }
-  .logo {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    font-family: -apple-system, sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--soft);
-    transition: transform 0.2s ease;
-  }
-  .card:hover .logo {
-    transform: scale(1.06) rotate(-2deg);
-  }
-  .name {
-    font-weight: 600;
-    font-size: 17px;
-    line-height: 1.15;
-  }
-  .seg {
-    font-family: -apple-system, sans-serif;
-    font-size: 11.5px;
-    color: var(--faint);
-    margin-top: 2px;
-  }
-  .desc {
-    font-family: -apple-system, sans-serif;
-    font-size: 13.5px;
-    line-height: 1.45;
-    color: var(--soft);
-    margin: 2px 0 0;
-    min-height: 4.35em;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .shot {
-    aspect-ratio: 16 / 9;
-    background: var(--panel);
-    border-top: 1px solid var(--line);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-  .shot::after {
-    content: 'Screenshot';
-    font-family: -apple-system, sans-serif;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: #b4b4ae;
-  }
-  .shot::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: linear-gradient(var(--line) 1px, transparent 1px);
-    background-size: 100% 13px;
-    opacity: 0.5;
-    transition:
-      opacity 0.3s ease,
-      transform 0.5s ease;
-  }
-  .card:hover .shot::before {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-  .card-foot {
-    padding: 11px 16px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .tag {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--soft);
-  }
-  .tag .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    flex: none;
-  }
-  .d-open {
-    background: var(--open);
-  }
-  .d-gated {
-    background: var(--gated);
-  }
-  .d-zap {
-    background: var(--zap);
-  }
-  .d-closed {
-    background: var(--closed);
-  }
-  .d-info {
-    background: var(--info);
-  }
-  .visit {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    color: var(--faint);
-    transition: color 0.18s ease;
-  }
-  .visit::after {
-    content: ' \2192';
-    opacity: 0;
-    margin-left: -6px;
-    transition:
-      opacity 0.18s ease,
-      margin-left 0.18s ease;
-  }
-  .card:hover .visit {
-    color: var(--soft);
-  }
-  .card:hover .visit::after {
-    opacity: 1;
-    margin-left: 0;
-  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg);
+    transition: transform .18s ease, box-shadow .2s ease, border-color .18s ease; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -18px rgba(20,20,18,.42); border-color: #D6D6D0; }
+  .card-body { padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .card-head { display: flex; align-items: center; gap: 11px; }
+  .logo { width: 38px; height: 38px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center; flex: none;
+    font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; color: var(--soft); transition: transform .2s ease; }
+  .card:hover .logo { transform: scale(1.06) rotate(-2deg); }
+  .name { font-weight: 600; font-size: 17px; line-height: 1.15; }
+  .seg { font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--faint); margin-top: 2px; }
+  .desc { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.45; color: var(--soft); margin: 2px 0 0;
+    min-height: 4.35em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .shot { aspect-ratio: 16 / 9; background: var(--panel); border-top: 1px solid var(--line); overflow: hidden;
+    display: flex; align-items: center; justify-content: center; position: relative; }
+  .shot::after { content: "Screenshot"; font-family: -apple-system, sans-serif; font-size: 11px; letter-spacing: 0.06em; color: #B4B4AE; }
+  .shot::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 13px; opacity: .5; transition: opacity .3s ease, transform .5s ease; }
+  .card:hover .shot::before { opacity: .8; transform: scale(1.05); }
+  .card-foot { padding: 11px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .tag { font-family: -apple-system, sans-serif; font-size: 12px; display: inline-flex; align-items: center; gap: 7px; color: var(--soft); }
+  .tag .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+  .d-open{background:var(--open)} .d-gated{background:var(--gated)} .d-zap{background:var(--zap)} .d-closed{background:var(--closed)} .d-info{background:var(--info)}
+  .visit { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); transition: color .18s ease; }
+  .visit::after { content: " \2192"; opacity: 0; margin-left: -6px; transition: opacity .18s ease, margin-left .18s ease; }
+  .card:hover .visit { color: var(--soft); }
+  .card:hover .visit::after { opacity: 1; margin-left: 0; }
 
-  .legend {
-    font-family: -apple-system, sans-serif;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
-    font-size: 12px;
-    color: var(--soft);
-    padding: 30px 0 0;
-  }
-  .legend .li {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .legend .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-  }
-  .empty {
-    display: none;
-    font-family: -apple-system, sans-serif;
-    color: var(--faint);
-    font-size: 14px;
-    padding: 24px 0;
-  }
+  .legend { font-family: -apple-system, sans-serif; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--soft); padding: 30px 0 0; }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .dot { width: 8px; height: 8px; border-radius: 999px; }
+  .empty { display: none; font-family: -apple-system, sans-serif; color: var(--faint); font-size: 14px; padding: 24px 0; }
 
   /* methodology */
-  .method {
-    border-top: 2px solid var(--ink);
-    margin-top: 44px;
-    background: var(--panel);
-  }
-  .method .wrap {
-    padding: 30px 24px;
-  }
-  .method h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 6px;
-    letter-spacing: -0.01em;
-  }
-  .method .grid3 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 22px;
-    margin-top: 18px;
-  }
-  .method h3 {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--info);
-    margin: 0 0 6px;
-    font-weight: 700;
-  }
-  .method p {
-    font-family: -apple-system, sans-serif;
-    font-size: 13px;
-    color: var(--soft);
-    margin: 0;
-  }
-  .method .lead {
-    font-family: -apple-system, sans-serif;
-    font-size: 14px;
-    color: var(--soft);
-    max-width: 68ch;
-    margin: 0;
-  }
+  .method { border-top: 2px solid var(--ink); margin-top: 44px; background: var(--panel); }
+  .method .wrap { padding: 30px 24px; }
+  .method h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .method .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-top: 18px; }
+  .method h3 { font-family: -apple-system, sans-serif; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--info); margin: 0 0 6px; font-weight: 700; }
+  .method p { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--soft); margin: 0; }
+  .method .lead { font-family: -apple-system, sans-serif; font-size: 14px; color: var(--soft); max-width: 68ch; margin: 0; }
 
-  footer .wrap {
-    padding: 22px 24px 48px;
-    font-family: -apple-system, sans-serif;
-  }
-  footer p {
-    font-size: 12.5px;
-    color: var(--faint);
-    max-width: 66ch;
-    margin: 0;
-  }
+  footer .wrap { padding: 22px 24px 48px; font-family: -apple-system, sans-serif; }
+  footer p { font-size: 12.5px; color: var(--faint); max-width: 66ch; margin: 0; }
 
   @media (prefers-reduced-motion: reduce) {
-    * {
-      transition: none !important;
-      animation: none !important;
-    }
-    .reveal {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-    .card:hover,
-    .card:hover .logo,
-    .brand:hover .brand-mark,
-    .card:hover .shot::before {
-      transform: none !important;
-    }
+    * { transition: none !important; animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .card:hover, .card:hover .logo, .brand:hover .brand-mark, .card:hover .shot::before { transform: none !important; }
   }
-  .reveal {
-    opacity: 0;
-    transform: translateY(12px);
-    transition:
-      opacity 0.5s ease,
-      transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .reveal.in {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .brand-mark {
-    transition: transform 0.5s cubic-bezier(0.2, 0.85, 0.25, 1);
-    cursor: pointer;
-  }
-  .brand:hover .brand-mark {
-    transform: rotate(-24deg);
-  }
+  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  .brand-mark { transition: transform .5s cubic-bezier(.2,.85,.25,1); cursor: pointer; }
+  .brand:hover .brand-mark { transform: rotate(-24deg); }
 
   /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
-  .logo {
-    position: relative;
-    overflow: hidden;
-  }
-  .logo-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #fff;
-    padding: 5px;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .logo-img.loaded {
-    opacity: 1;
-  }
-  .shot-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 1;
-  }
-  .shot-img.loaded {
-    opacity: 1;
-  }
+  .logo { position: relative; overflow: hidden; }
+  .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; padding: 5px; opacity: 0; transition: opacity .25s ease; }
+  .logo-img.loaded { opacity: 1; }
+  .shot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; z-index: 1; }
+  .shot-img.loaded { opacity: 1; }
 
   /* FAQ (AEO) */
-  .faq {
-    border-top: 2px solid var(--ink);
-  }
-  .faq .wrap {
-    padding: 30px 24px;
-  }
-  .faq h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 14px;
-    letter-spacing: -0.01em;
-  }
-  .faq .qa {
-    border-top: 1px solid var(--line);
-    padding: 15px 0;
-    max-width: 76ch;
-  }
-  .faq h3 {
-    font-family: -apple-system, sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0 0 6px;
-  }
-  .faq p {
-    font-family: -apple-system, sans-serif;
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: var(--soft);
-    margin: 0;
-    max-width: 72ch;
-  }
+  .faq { border-top: 2px solid var(--ink); }
+  .faq .wrap { padding: 30px 24px; }
+  .faq h2 { font-size: 20px; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .faq .qa { border-top: 1px solid var(--line); padding: 15px 0; max-width: 76ch; }
+  .faq h3 { font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .faq p { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.55; color: var(--soft); margin: 0; max-width: 72ch; }
 </style>
 
 <div class="topbar">
   <div class="wrap">
     <div class="brand">
       <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="8" fill="#1A1A1A" />
-        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#22936A" />
-        <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77" />
-        <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9" />
+        <rect width="30" height="30" rx="8" fill="#1A1A1A"/>
+        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#22936A"/>
+        <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77"/>
+        <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9"/>
       </svg>
       <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
     </div>
@@ -655,14 +169,9 @@
 <header>
   <div class="wrap head-inner">
     <h1>The software US CPA firms run on.</h1>
-    <p class="lede">
-      A plain-spoken, independent reference to the tools a US tax and accounting practice actually
-      uses — with a clear definition of each category, honest criteria for what belongs in it, and
-      how open each product is to integration.
-    </p>
+    <p class="lede">A plain-spoken, independent reference to the tools a US tax and accounting practice actually uses — with a clear definition of each category, honest criteria for what belongs in it, and how open each product is to integration.</p>
     <div class="meta">
-      <span><b>26</b> tools</span><span><b>4</b> categories</span
-      ><span><b>Reviewed</b> Jul 2026</span><span>No vendor pays for placement</span>
+      <span><b>26</b> tools</span><span><b>4</b> categories</span><span><b>Reviewed</b> Jul 2026</span><span>No vendor pays for placement</span>
     </div>
   </div>
 </header>
@@ -672,15 +181,9 @@
     <span class="clabel">Category</span>
     <button class="chip" data-filter="cat" data-value="all" aria-pressed="true">All</button>
     <button class="chip" data-filter="cat" data-value="tax" aria-pressed="false">Tax prep</button>
-    <button class="chip" data-filter="cat" data-value="monitor" aria-pressed="false">
-      Deadlines &amp; Monitoring
-    </button>
-    <button class="chip" data-filter="cat" data-value="pm" aria-pressed="false">
-      Practice mgmt
-    </button>
-    <button class="chip" data-filter="cat" data-value="ledger" aria-pressed="false">
-      Bookkeeping
-    </button>
+    <button class="chip" data-filter="cat" data-value="monitor" aria-pressed="false">Deadlines &amp; Monitoring</button>
+    <button class="chip" data-filter="cat" data-value="pm" aria-pressed="false">Practice mgmt</button>
+    <button class="chip" data-filter="cat" data-value="ledger" aria-pressed="false">Bookkeeping</button>
     <span class="sep" aria-hidden="true"></span>
     <span class="clabel">Firm size</span>
     <button class="chip" data-filter="seg" data-value="all" aria-pressed="true">Any</button>
@@ -702,638 +205,84 @@
   -->
 
   <section class="section" data-cat="tax">
-    <div class="cat-head">
-      <h2>Tax Preparation</h2>
-      <span class="count">7 tools</span>
-    </div>
-    <p class="cat-def">
-      Professional tax preparation software lets accountants, CPAs, and enrolled agents prepare,
-      review, and electronically file federal and state returns on behalf of individual and business
-      clients. Unlike consumer products, professional packages handle the full range of entity
-      returns (1040, 1120, 1120-S, 1065, 1041, 990), multi-state filings, and K-1s; run on a
-      preparer-and-reviewer workflow; and carry client data forward year to year. It is the engine a
-      US tax practice is built around — and usually the firm's single largest software decision.
-    </p>
-    <details class="criteria">
-      <summary>How we define this category</summary>
-      <div class="crit-body">
-        <p>To qualify for inclusion in Tax Preparation, a product must:</p>
-        <ul>
-          <li>
-            Prepare and calculate US federal and state income tax returns for multiple entity types
-          </li>
-          <li>Support IRS Modernized e-File (MeF) and the corresponding state e-filing</li>
-          <li>Carry client and return data forward between tax years</li>
-          <li>Provide distinct preparer and reviewer steps for in-firm review</li>
-          <li>Maintain a roster of clients with their entity and return types</li>
-        </ul>
-      </div>
-    </details>
+    <div class="cat-head"><h2>Tax Preparation</h2><span class="count">7 tools</span></div>
+    <p class="cat-def">Professional tax preparation software lets accountants, CPAs, and enrolled agents prepare, review, and electronically file federal and state returns on behalf of individual and business clients. Unlike consumer products, professional packages handle the full range of entity returns (1040, 1120, 1120-S, 1065, 1041, 990), multi-state filings, and K-1s; run on a preparer-and-reviewer workflow; and carry client data forward year to year. It is the engine a US tax practice is built around — and usually the firm's single largest software decision.</p>
+    <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Tax Preparation, a product must:</p><ul>
+      <li>Prepare and calculate US federal and state income tax returns for multiple entity types</li>
+      <li>Support IRS Modernized e-File (MeF) and the corresponding state e-filing</li>
+      <li>Carry client and return data forward between tax years</li>
+      <li>Provide distinct preparer and reviewer steps for in-firm review</li>
+      <li>Maintain a roster of clients with their entity and return types</li>
+    </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="solo">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #0b5cab; color: #fff; border-color: transparent">
-              <span class="logo-mono">Dr</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Drake Tax</div>
-              <div class="seg">Solo</div>
-            </div>
-          </div>
-          <p class="desc">Dominant among sole practitioners. No API; file export.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>File export</span
-          ><span class="visit">drakesoftware.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #0077c5; color: #fff; border-color: transparent">
-              <span class="logo-mono">La</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Lacerte</div>
-              <div class="seg">Small · mid</div>
-            </div>
-          </div>
-          <p class="desc">High-end desktop engine. Local SDK/ODBC can read on-prem.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>Local SDK</span
-          ><span class="visit">intuit.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #0077c5; color: #fff; border-color: transparent">
-              <span class="logo-mono">PC</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ProConnect</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Intuit's cloud prep. No public API yet — "under review."</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>No API yet</span
-          ><span class="visit">intuit.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #0077c5; color: #fff; border-color: transparent">
-              <span class="logo-mono">PS</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ProSeries</div>
-              <div class="seg">Small</div>
-            </div>
-          </div>
-          <p class="desc">Desktop for 1040 volume. No API or SDK; file import.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>File export</span
-          ><span class="visit">intuit.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #e5601f; color: #fff; border-color: transparent">
-              <span class="logo-mono">UT</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">UltraTax CS</div>
-              <div class="seg">Mid · large</div>
-            </div>
-          </div>
-          <p class="desc">Thomson Reuters engine for larger firms. Exports a client list to CSV.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>File export</span
-          ><span class="visit">thomsonreuters.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #0075c9; color: #fff; border-color: transparent">
-              <span class="logo-mono">CC</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">CCH Axcess</div>
-              <div class="seg">Mid · enterprise</div>
-            </div>
-          </div>
-          <p class="desc">
-            The one exception: a real cloud API and marketplace, via a partner program.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>API · partner</span
-          ><span class="visit">wolterskluwer.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #85bc20; color: #fff; border-color: transparent">
-              <span class="logo-mono">AT</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ATX</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Budget forms-based desktop. CSV export only.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>File export</span
-          ><span class="visit">wolterskluwer.com</span>
-        </div>
-      </article>
+      <article class="card" data-seg="solo"><div class="card-body"><div class="card-head"><div class="logo" style="background:#0B5CAB;color:#fff;border-color:transparent"><span class="logo-mono">Dr</span><img class="asset logo-img"></div><div><div class="name">Drake Tax</div><div class="seg">Solo</div></div></div><p class="desc">Dominant among sole practitioners. No API; file export.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>File export</span><span class="visit">drakesoftware.com</span></div></article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#0077C5;color:#fff;border-color:transparent"><span class="logo-mono">La</span><img class="asset logo-img"></div><div><div class="name">Lacerte</div><div class="seg">Small · mid</div></div></div><p class="desc">High-end desktop engine. Local SDK/ODBC can read on-prem.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>Local SDK</span><span class="visit">intuit.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#0077C5;color:#fff;border-color:transparent"><span class="logo-mono">PC</span><img class="asset logo-img"></div><div><div class="name">ProConnect</div><div class="seg">Solo · small</div></div></div><p class="desc">Intuit's cloud prep. No public API yet — "under review."</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>No API yet</span><span class="visit">intuit.com</span></div></article>
+      <article class="card" data-seg="small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#0077C5;color:#fff;border-color:transparent"><span class="logo-mono">PS</span><img class="asset logo-img"></div><div><div class="name">ProSeries</div><div class="seg">Small</div></div></div><p class="desc">Desktop for 1040 volume. No API or SDK; file import.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>File export</span><span class="visit">intuit.com</span></div></article>
+      <article class="card" data-seg="mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#E5601F;color:#fff;border-color:transparent"><span class="logo-mono">UT</span><img class="asset logo-img"></div><div><div class="name">UltraTax CS</div><div class="seg">Mid · large</div></div></div><p class="desc">Thomson Reuters engine for larger firms. Exports a client list to CSV.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>File export</span><span class="visit">thomsonreuters.com</span></div></article>
+      <article class="card" data-seg="mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#0075C9;color:#fff;border-color:transparent"><span class="logo-mono">CC</span><img class="asset logo-img"></div><div><div class="name">CCH Axcess</div><div class="seg">Mid · enterprise</div></div></div><p class="desc">The one exception: a real cloud API and marketplace, via a partner program.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>API · partner</span><span class="visit">wolterskluwer.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#85BC20;color:#fff;border-color:transparent"><span class="logo-mono">AT</span><img class="asset logo-img"></div><div><div class="name">ATX</div><div class="seg">Solo · small</div></div></div><p class="desc">Budget forms-based desktop. CSV export only.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>File export</span><span class="visit">wolterskluwer.com</span></div></article>
     </div>
   </section>
 
   <section class="section" data-cat="monitor">
-    <div class="cat-head">
-      <h2>Deadlines &amp; Monitoring</h2>
-      <span class="count">4 tools</span>
-    </div>
-    <p class="cat-def">
-      Deadline and compliance tracking tools help a firm make sure no client filing is missed. Two
-      approaches exist. <em>Passive trackers</em> record the due dates a firm enters and roll them
-      forward each period. <em>Active monitors</em> additionally watch official sources — the IRS,
-      state tax agencies, and FEMA — and surface when a filing date or rule changes and which
-      clients it affects. In most firms this is a capability inside practice management; a small set
-      of specialist products focus on it, and it is included here as its own list for that reason.
-    </p>
-    <details class="criteria">
-      <summary>How we define this category</summary>
-      <div class="crit-body">
-        <p>To qualify for inclusion in Deadline &amp; Compliance Tracking, a product must:</p>
-        <ul>
-          <li>Track statutory filing due dates and extensions for a firm's clients</li>
-          <li>Roll recurring deadlines forward across periods and tax years</li>
-          <li>Alert or remind the firm ahead of upcoming due dates</li>
-          <li>
-            (Active monitors) detect changes to official filing dates or rules and identify the
-            affected clients
-          </li>
-        </ul>
-      </div>
-    </details>
+    <div class="cat-head"><h2>Deadlines &amp; Monitoring</h2><span class="count">4 tools</span></div>
+    <p class="cat-def">Deadline and compliance tracking tools help a firm make sure no client filing is missed. Two approaches exist. <em>Passive trackers</em> record the due dates a firm enters and roll them forward each period. <em>Active monitors</em> additionally watch official sources — the IRS, state tax agencies, and FEMA — and surface when a filing date or rule changes and which clients it affects. In most firms this is a capability inside practice management; a small set of specialist products focus on it, and it is included here as its own list for that reason.</p>
+    <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Deadline &amp; Compliance Tracking, a product must:</p><ul>
+      <li>Track statutory filing due dates and extensions for a firm's clients</li>
+      <li>Roll recurring deadlines forward across periods and tax years</li>
+      <li>Alert or remind the firm ahead of upcoming due dates</li>
+      <li>(Active monitors) detect changes to official filing dates or rules and identify the affected clients</li>
+    </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #4a6785; color: #fff; border-color: transparent">
-              <span class="logo-mono">FT</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">File In Time</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">
-            Long-standing passive tracker: records due dates and rolls them forward; doesn't watch
-            the regulatory sources.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>Closed</span
-          ><span class="visit">timevalue.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2e368c; color: #fff; border-color: transparent">
-              <span class="logo-mono">DD</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">DueDateHQ</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">
-            Active monitor of the IRS, states, and FEMA — when a date moves, shows which clients it
-            hits. Free in beta.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-info"></span>No public API yet</span
-          ><span class="visit">duedatehq.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #3e5c8a; color: #fff; border-color: transparent">
-              <span class="logo-mono">AC</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ACI TaskTracker</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">
-            Due-date tracker for small firms and tax departments; auto-fills return due and
-            extension dates.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-closed"></span>Closed</span
-          ><span class="visit">acisystems.net</span>
-        </div>
-      </article>
-      <article class="card" data-seg="mid,enterprise">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #e5601f; color: #fff; border-color: transparent">
-              <span class="logo-mono">OC</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ONESOURCE Calendar</div>
-              <div class="seg">Mid · enterprise</div>
-            </div>
-          </div>
-          <p class="desc">
-            Thomson Reuters' enterprise compliance calendar for multi-year deadlines, filings, and
-            extensions.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Suite · gated</span
-          ><span class="visit">thomsonreuters.com</span>
-        </div>
-      </article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#4A6785;color:#fff;border-color:transparent"><span class="logo-mono">FT</span><img class="asset logo-img"></div><div><div class="name">File In Time</div><div class="seg">Solo · small</div></div></div><p class="desc">Long-standing passive tracker: records due dates and rolls them forward; doesn't watch the regulatory sources.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>Closed</span><span class="visit">timevalue.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2E368C;color:#fff;border-color:transparent"><span class="logo-mono">DD</span><img class="asset logo-img"></div><div><div class="name">DueDateHQ</div><div class="seg">Solo · small</div></div></div><p class="desc">Active monitor of the IRS, states, and FEMA — when a date moves, shows which clients it hits. Free in beta.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-info"></span>No public API yet</span><span class="visit">duedatehq.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#3E5C8A;color:#fff;border-color:transparent"><span class="logo-mono">AC</span><img class="asset logo-img"></div><div><div class="name">ACI TaskTracker</div><div class="seg">Solo · small</div></div></div><p class="desc">Due-date tracker for small firms and tax departments; auto-fills return due and extension dates.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>Closed</span><span class="visit">acisystems.net</span></div></article>
+      <article class="card" data-seg="mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#E5601F;color:#fff;border-color:transparent"><span class="logo-mono">OC</span><img class="asset logo-img"></div><div><div class="name">ONESOURCE Calendar</div><div class="seg">Mid · enterprise</div></div></div><p class="desc">Thomson Reuters' enterprise compliance calendar for multi-year deadlines, filings, and extensions.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Suite · gated</span><span class="visit">thomsonreuters.com</span></div></article>
     </div>
   </section>
 
   <section class="section" data-cat="pm">
-    <div class="cat-head">
-      <h2>Practice Management</h2>
-      <span class="count">10 tools</span>
-    </div>
-    <p class="cat-def">
-      Accounting practice management software runs the front- and back-office of a firm that sells
-      accounting, tax, and advisory services. It organizes the firm's catalog of services, tracks
-      delivery through workflows and task management, holds client records and communication,
-      monitors deadlines, and measures billable time — giving a firm one place to see who is doing
-      what, for which client, by when. It is most valuable to independent and small-to-mid firms
-      moving off spreadsheets and email. Deadline and due-date tracking is a core capability
-      <em>within</em> this category, not a separate product class.
-    </p>
-    <details class="criteria">
-      <summary>How we define this category</summary>
-      <div class="crit-body">
-        <p>To qualify for inclusion in Practice Management, a product must:</p>
-        <ul>
-          <li>Maintain the catalog of services the firm offers</li>
-          <li>Manage relationships with clients and prospects</li>
-          <li>Track tasks, deadlines, and activities across the practice</li>
-          <li>Track the status of each engagement and capture billable time</li>
-          <li>Provide a portal or secure channel for client communication</li>
-          <li>Generate invoices for services and track payment</li>
-        </ul>
-      </div>
-    </details>
+    <div class="cat-head"><h2>Practice Management</h2><span class="count">10 tools</span></div>
+    <p class="cat-def">Accounting practice management software runs the front- and back-office of a firm that sells accounting, tax, and advisory services. It organizes the firm's catalog of services, tracks delivery through workflows and task management, holds client records and communication, monitors deadlines, and measures billable time — giving a firm one place to see who is doing what, for which client, by when. It is most valuable to independent and small-to-mid firms moving off spreadsheets and email. Deadline and due-date tracking is a core capability <em>within</em> this category, not a separate product class.</p>
+    <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Practice Management, a product must:</p><ul>
+      <li>Maintain the catalog of services the firm offers</li>
+      <li>Manage relationships with clients and prospects</li>
+      <li>Track tasks, deadlines, and activities across the practice</li>
+      <li>Track the status of each engagement and capture billable time</li>
+      <li>Provide a portal or secure channel for client communication</li>
+      <li>Generate invoices for services and track payment</li>
+    </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #16263d; color: #fff; border-color: transparent">
-              <span class="logo-mono">Ka</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Karbon</div>
-              <div class="seg">Small · mid</div>
-            </div>
-          </div>
-          <p class="desc">Workflow, email and billing. The best public API in the category.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Open API</span
-          ><span class="visit">karbonhq.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2f4bda; color: #fff; border-color: transparent">
-              <span class="logo-mono">TD</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">TaxDome</div>
-              <div class="seg">Solo · mid</div>
-            </div>
-          </div>
-          <p class="desc">
-            All-in-one with client portal. Self-serve API keys; large install base.
-          </p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Open API</span
-          ><span class="visit">taxdome.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #12294d; color: #fff; border-color: transparent">
-              <span class="logo-mono">Ca</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Canopy</div>
-              <div class="seg">Small · mid</div>
-            </div>
-          </div>
-          <p class="desc">CRM, workflow, documents, billing. API is approval-gated.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Gated</span
-          ><span class="visit">getcanopy.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2e9e5b; color: #fff; border-color: transparent">
-              <span class="logo-mono">FC</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Financial Cents</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Recurring workflows and tasks. Open API on the higher plan.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Gated</span
-          ><span class="visit">financial-cents.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2c6ef2; color: #fff; border-color: transparent">
-              <span class="logo-mono">JW</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Jetpack Workflow</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Lightweight deadline &amp; job tracker. Direct API is Enterprise-only.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Gated</span
-          ><span class="visit">jetpackworkflow.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #6d5ae6; color: #fff; border-color: transparent">
-              <span class="logo-mono">Ke</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Keeper</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Bookkeeping close with QuickBooks sync. Zapier only.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-zap"></span>Zapier</span
-          ><span class="visit">keeper.app</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #1b6ec2; color: #fff; border-color: transparent">
-              <span class="logo-mono">F3</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Firm360</div>
-              <div class="seg">Small · mid</div>
-            </div>
-          </div>
-          <p class="desc">Projects, documents, billing, portal. Zapier connector only.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-zap"></span>Zapier</span
-          ><span class="visit">myfirm360.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #6c5ce7; color: #fff; border-color: transparent">
-              <span class="logo-mono">Pi</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Pixie</div>
-              <div class="seg">Solo · small</div>
-            </div>
-          </div>
-          <p class="desc">Simple management, UK-leaning. Integrates via Zapier.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-zap"></span>Zapier</span
-          ><span class="visit">usepixie.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2a3b8f; color: #fff; border-color: transparent">
-              <span class="logo-mono">Ai</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Aiwyn</div>
-              <div class="seg">Mid · enterprise</div>
-            </div>
-          </div>
-          <p class="desc">Billing / revenue-cycle for larger firms. Managed partnerships.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Partner</span
-          ><span class="visit">aiwyn.ai</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #ff5a3c; color: #fff; border-color: transparent">
-              <span class="logo-mono">Ig</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Ignition</div>
-              <div class="seg">Solo · mid</div>
-            </div>
-          </div>
-          <p class="desc">Proposals, engagement letters, billing. Zapier only.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-zap"></span>Zapier</span
-          ><span class="visit">ignitionapp.com</span>
-        </div>
-      </article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#16263D;color:#fff;border-color:transparent"><span class="logo-mono">Ka</span><img class="asset logo-img"></div><div><div class="name">Karbon</div><div class="seg">Small · mid</div></div></div><p class="desc">Workflow, email and billing. The best public API in the category.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">karbonhq.com</span></div></article>
+      <article class="card" data-seg="solo,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2F4BDA;color:#fff;border-color:transparent"><span class="logo-mono">TD</span><img class="asset logo-img"></div><div><div class="name">TaxDome</div><div class="seg">Solo · mid</div></div></div><p class="desc">All-in-one with client portal. Self-serve API keys; large install base.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">taxdome.com</span></div></article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#12294D;color:#fff;border-color:transparent"><span class="logo-mono">Ca</span><img class="asset logo-img"></div><div><div class="name">Canopy</div><div class="seg">Small · mid</div></div></div><p class="desc">CRM, workflow, documents, billing. API is approval-gated.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">getcanopy.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2E9E5B;color:#fff;border-color:transparent"><span class="logo-mono">FC</span><img class="asset logo-img"></div><div><div class="name">Financial Cents</div><div class="seg">Solo · small</div></div></div><p class="desc">Recurring workflows and tasks. Open API on the higher plan.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">financial-cents.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2C6EF2;color:#fff;border-color:transparent"><span class="logo-mono">JW</span><img class="asset logo-img"></div><div><div class="name">Jetpack Workflow</div><div class="seg">Solo · small</div></div></div><p class="desc">Lightweight deadline &amp; job tracker. Direct API is Enterprise-only.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">jetpackworkflow.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#6D5AE6;color:#fff;border-color:transparent"><span class="logo-mono">Ke</span><img class="asset logo-img"></div><div><div class="name">Keeper</div><div class="seg">Solo · small</div></div></div><p class="desc">Bookkeeping close with QuickBooks sync. Zapier only.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-zap"></span>Zapier</span><span class="visit">keeper.app</span></div></article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#1B6EC2;color:#fff;border-color:transparent"><span class="logo-mono">F3</span><img class="asset logo-img"></div><div><div class="name">Firm360</div><div class="seg">Small · mid</div></div></div><p class="desc">Projects, documents, billing, portal. Zapier connector only.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-zap"></span>Zapier</span><span class="visit">myfirm360.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#6C5CE7;color:#fff;border-color:transparent"><span class="logo-mono">Pi</span><img class="asset logo-img"></div><div><div class="name">Pixie</div><div class="seg">Solo · small</div></div></div><p class="desc">Simple management, UK-leaning. Integrates via Zapier.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-zap"></span>Zapier</span><span class="visit">usepixie.com</span></div></article>
+      <article class="card" data-seg="mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2A3B8F;color:#fff;border-color:transparent"><span class="logo-mono">Ai</span><img class="asset logo-img"></div><div><div class="name">Aiwyn</div><div class="seg">Mid · enterprise</div></div></div><p class="desc">Billing / revenue-cycle for larger firms. Managed partnerships.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Partner</span><span class="visit">aiwyn.ai</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#FF5A3C;color:#fff;border-color:transparent"><span class="logo-mono">Ig</span><img class="asset logo-img"></div><div><div class="name">Ignition</div><div class="seg">Solo · mid</div></div></div><p class="desc">Proposals, engagement letters, billing. Zapier only.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-zap"></span>Zapier</span><span class="visit">ignitionapp.com</span></div></article>
     </div>
   </section>
 
   <section class="section" data-cat="ledger">
-    <div class="cat-head">
-      <h2>Accounting &amp; Bookkeeping</h2>
-      <span class="count">5 tools</span>
-    </div>
-    <p class="cat-def">
-      Accounting and bookkeeping software — the general ledger — records a business's financial
-      transactions through bank feeds, invoicing, bills, and reporting. In a CPA context it is
-      usually the client's book of record, which the firm accesses to perform write-up, review,
-      close, and reporting work. Cloud ledgers like QuickBooks Online and Xero dominate the US
-      small-business market, and most firm-facing tools connect back to them, which makes this layer
-      the hub of a firm's integrations.
-    </p>
-    <details class="criteria">
-      <summary>How we define this category</summary>
-      <div class="crit-body">
-        <p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p>
-        <ul>
-          <li>Record and categorize a business's financial transactions in a general ledger</li>
-          <li>Support bank and credit-card feeds and reconciliation</li>
-          <li>Produce core financial statements (profit &amp; loss, balance sheet)</li>
-          <li>Provide an accountant or firm view into client books</li>
-          <li>Offer invoicing and/or accounts-payable functions</li>
-        </ul>
-      </div>
-    </details>
+    <div class="cat-head"><h2>Accounting &amp; Bookkeeping</h2><span class="count">5 tools</span></div>
+    <p class="cat-def">Accounting and bookkeeping software — the general ledger — records a business's financial transactions through bank feeds, invoicing, bills, and reporting. In a CPA context it is usually the client's book of record, which the firm accesses to perform write-up, review, close, and reporting work. Cloud ledgers like QuickBooks Online and Xero dominate the US small-business market, and most firm-facing tools connect back to them, which makes this layer the hub of a firm's integrations.</p>
+    <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p><ul>
+      <li>Record and categorize a business's financial transactions in a general ledger</li>
+      <li>Support bank and credit-card feeds and reconciliation</li>
+      <li>Produce core financial statements (profit &amp; loss, balance sheet)</li>
+      <li>Provide an accountant or firm view into client books</li>
+      <li>Offer invoicing and/or accounts-payable functions</li>
+    </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="solo,small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2ca01c; color: #fff; border-color: transparent">
-              <span class="logo-mono">QB</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">QuickBooks Online</div>
-              <div class="seg">Solo · mid</div>
-            </div>
-          </div>
-          <p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Open API</span
-          ><span class="visit">quickbooks.intuit.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #13b5ea; color: #fff; border-color: transparent">
-              <span class="logo-mono">Xe</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Xero</div>
-              <div class="seg">Solo · mid</div>
-            </div>
-          </div>
-          <p class="desc">#2 cloud ledger. Self-serve API, up to 25 orgs before certification.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Open API</span
-          ><span class="visit">xero.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #14a05a; color: #fff; border-color: transparent">
-              <span class="logo-mono">Bi</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Bill.com</div>
-              <div class="seg">Small · mid</div>
-            </div>
-          </div>
-          <p class="desc">AP/AR and payments. The friendliest self-serve API here.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Open API</span
-          ><span class="visit">bill.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="small,mid,enterprise">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #00a33b; color: #fff; border-color: transparent">
-              <span class="logo-mono">Sa</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">Sage</div>
-              <div class="seg">Small · enterprise</div>
-            </div>
-          </div>
-          <p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-gated"></span>Gated</span
-          ><span class="visit">sage.com</span>
-        </div>
-      </article>
-      <article class="card" data-seg="solo,small,mid">
-        <div class="card-body">
-          <div class="card-head">
-            <div class="logo" style="background: #2ca01c; color: #fff; border-color: transparent">
-              <span class="logo-mono">PA</span><img class="asset logo-img" />
-            </div>
-            <div>
-              <div class="name">ProAdvisor</div>
-              <div class="seg">Channel</div>
-            </div>
-          </div>
-          <p class="desc">Not a tool — the accountant program around QuickBooks. 500k members.</p>
-        </div>
-        <div class="shot"><img class="asset shot-img" /></div>
-        <div class="card-foot">
-          <span class="tag"><span class="dot d-open"></span>Partner program</span
-          ><span class="visit">quickbooks.intuit.com</span>
-        </div>
-      </article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">QB</span><img class="asset logo-img"></div><div><div class="name">QuickBooks Online</div><div class="seg">Solo · mid</div></div></div><p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">quickbooks.intuit.com</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#13B5EA;color:#fff;border-color:transparent"><span class="logo-mono">Xe</span><img class="asset logo-img"></div><div><div class="name">Xero</div><div class="seg">Solo · mid</div></div></div><p class="desc">#2 cloud ledger. Self-serve API, up to 25 orgs before certification.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">xero.com</span></div></article>
+      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#14A05A;color:#fff;border-color:transparent"><span class="logo-mono">Bi</span><img class="asset logo-img"></div><div><div class="name">Bill.com</div><div class="seg">Small · mid</div></div></div><p class="desc">AP/AR and payments. The friendliest self-serve API here.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">bill.com</span></div></article>
+      <article class="card" data-seg="small,mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#00A33B;color:#fff;border-color:transparent"><span class="logo-mono">Sa</span><img class="asset logo-img"></div><div><div class="name">Sage</div><div class="seg">Small · enterprise</div></div></div><p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">sage.com</span></div></article>
+      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">PA</span><img class="asset logo-img"></div><div><div class="name">ProAdvisor</div><div class="seg">Channel</div></div></div><p class="desc">Not a tool — the accountant program around QuickBooks. 500k members.</p></div><div class="shot"><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Partner program</span><span class="visit">quickbooks.intuit.com</span></div></article>
     </div>
   </section>
 
@@ -1350,579 +299,467 @@
 <div class="faq">
   <div class="wrap">
     <h2>Frequently asked questions</h2>
-    <div class="qa">
-      <h3>What is the best tax preparation software for a small CPA firm?</h3>
-      <p>
-        It depends on volume and return complexity. Drake Tax leads among sole practitioners on
-        price and speed; Intuit Lacerte and ProConnect suit small firms with more complex returns;
-        Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess dominate at mid-to-large firms.
-        (2025 AICPA tax software survey.)
-      </p>
-    </div>
-    <div class="qa">
-      <h3>Which CPA practice management software has an open API?</h3>
-      <p>
-        Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an
-        open API on higher plans. Canopy's API is approval-gated. Keeper, Firm360, and Pixie
-        integrate mainly through Zapier rather than a direct API.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>What is the difference between a deadline tracker and a compliance monitor?</h3>
-      <p>
-        A passive tracker such as File In Time records the due dates you enter and rolls them
-        forward each year. An active monitor such as DueDateHQ additionally watches official sources
-        — the IRS, state tax agencies, and FEMA — and flags when a filing date changes and which of
-        your clients it affects.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>How is CPA Field Guide different from G2 or Capterra?</h3>
-      <p>
-        It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and
-        there is no sponsored sort. Every tool is described only by capabilities it has shipped,
-        sourced from the vendor's own documentation, and organized around US tax-practice workflows.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>Which accounting software integrates with QuickBooks Online?</h3>
-      <p>
-        QuickBooks Online offers a self-serve public API and an app store, so most firm tools
-        connect to it — including practice-management platforms like Karbon and Canopy and
-        bookkeeping-workflow tools like Keeper, which offers a two-way sync. Xero provides a
-        comparable open API.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>What tax software do the largest US accounting firms use?</h3>
-      <p>
-        At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead,
-        per the 2025 AICPA survey — both are suite or cloud systems with deeper integration and
-        e-file capacity than the desktop products favored by smaller shops.
-      </p>
-    </div>
+    <div class="qa"><h3>What is the best tax preparation software for a small CPA firm?</h3><p>It depends on volume and return complexity. Drake Tax leads among sole practitioners on price and speed; Intuit Lacerte and ProConnect suit small firms with more complex returns; Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess dominate at mid-to-large firms. (2025 AICPA tax software survey.)</p></div>
+    <div class="qa"><h3>Which CPA practice management software has an open API?</h3><p>Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an open API on higher plans. Canopy's API is approval-gated. Keeper, Firm360, and Pixie integrate mainly through Zapier rather than a direct API.</p></div>
+    <div class="qa"><h3>What is the difference between a deadline tracker and a compliance monitor?</h3><p>A passive tracker such as File In Time records the due dates you enter and rolls them forward each year. An active monitor such as DueDateHQ additionally watches official sources — the IRS, state tax agencies, and FEMA — and flags when a filing date changes and which of your clients it affects.</p></div>
+    <div class="qa"><h3>How is CPA Field Guide different from G2 or Capterra?</h3><p>It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and there is no sponsored sort. Every tool is described only by capabilities it has shipped, sourced from the vendor's own documentation, and organized around US tax-practice workflows.</p></div>
+    <div class="qa"><h3>Which accounting software integrates with QuickBooks Online?</h3><p>QuickBooks Online offers a self-serve public API and an app store, so most firm tools connect to it — including practice-management platforms like Karbon and Canopy and bookkeeping-workflow tools like Keeper, which offers a two-way sync. Xero provides a comparable open API.</p></div>
+    <div class="qa"><h3>What tax software do the largest US accounting firms use?</h3><p>At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead, per the 2025 AICPA survey — both are suite or cloud systems with deeper integration and e-file capacity than the desktop products favored by smaller shops.</p></div>
   </div>
 </div>
 
 <div class="method">
   <div class="wrap">
     <h2>How this guide works</h2>
-    <p class="lead">
-      Most software directories rank by who pays. This one doesn't. It's a plain editorial
-      reference, written to be useful to a working firm rather than to any vendor — including the
-      one that maintains it.
-    </p>
+    <p class="lead">Most software directories rank by who pays. This one doesn't. It's a plain editorial reference, written to be useful to a working firm rather than to any vendor — including the one that maintains it.</p>
     <div class="grid3">
-      <div>
-        <h3>No pay-to-list</h3>
-        <p>
-          No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and no
-          paid badges. Every product that meets a category's criteria can appear.
-        </p>
-      </div>
-      <div>
-        <h3>Only shipped capabilities</h3>
-        <p>
-          Each tool is described only by features it has actually released, sourced from the
-          vendor's own product and developer documentation (reviewed July 2026). Roadmap items are
-          not counted.
-        </p>
-      </div>
-      <div>
-        <h3>Categories a firm recognizes</h3>
-        <p>
-          Categories follow how US practices actually evaluate software, each with a stated
-          definition and inclusion criteria. Deadline tracking is treated as a capability of
-          practice management, with a small specialist list called out.
-        </p>
-      </div>
-      <div>
-        <h3>Who maintains it</h3>
-        <p>
-          CPA Field Guide is written and maintained by the team behind
-          <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in the
-          guide. We describe every product — ours included — by the same standard, and never rank
-          ours above its peers.
-        </p>
-      </div>
+      <div><h3>No pay-to-list</h3><p>No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and no paid badges. Every product that meets a category's criteria can appear.</p></div>
+      <div><h3>Only shipped capabilities</h3><p>Each tool is described only by features it has actually released, sourced from the vendor's own product and developer documentation (reviewed July 2026). Roadmap items are not counted.</p></div>
+      <div><h3>Categories a firm recognizes</h3><p>Categories follow how US practices actually evaluate software, each with a stated definition and inclusion criteria. Deadline tracking is treated as a capability of practice management, with a small specialist list called out.</p></div>
+      <div><h3>Who maintains it</h3><p>CPA Field Guide is written and maintained by the team behind <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in the guide. We describe every product — ours included — by the same standard, and never rank ours above its peers.</p></div>
     </div>
   </div>
 </div>
 
 <footer>
   <div class="wrap">
-    <p>
-      CPA Field Guide is an independent editorial reference to US tax and accounting software. Facts
-      reviewed July 2026 from each vendor's own documentation. Something wrong or missing?
-      Corrections are welcome.
-    </p>
+    <p>CPA Field Guide is an independent editorial reference to US tax and accounting software. Facts reviewed July 2026 from each vendor's own documentation. Something wrong or missing? Corrections are welcome.</p>
   </div>
 </footer>
 
 <script>
-  ;(function () {
-    var state = { cat: 'all', seg: 'all' }
-    var buttons = document.querySelectorAll('button.chip')
-    var sections = document.querySelectorAll('.section')
-    var empty = document.getElementById('empty')
+  (function () {
+    var state = { cat: "all", seg: "all" };
+    var buttons = document.querySelectorAll("button.chip");
+    var sections = document.querySelectorAll(".section");
+    var empty = document.getElementById("empty");
     buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var dim = btn.getAttribute('data-filter')
-        state[dim] = btn.getAttribute('data-value')
-        buttons.forEach(function (b) {
-          if (b.getAttribute('data-filter') === dim)
-            b.setAttribute('aria-pressed', b === btn ? 'true' : 'false')
-        })
-        apply()
-      })
-    })
+      btn.addEventListener("click", function () {
+        var dim = btn.getAttribute("data-filter");
+        state[dim] = btn.getAttribute("data-value");
+        buttons.forEach(function (b) { if (b.getAttribute("data-filter") === dim) b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+        apply();
+      });
+    });
     function apply() {
-      var any = false
+      var any = false;
       sections.forEach(function (sec) {
-        var catMatch = state.cat === 'all' || state.cat === sec.getAttribute('data-cat')
-        var cards = sec.querySelectorAll('.card'),
-          shown = 0
+        var catMatch = state.cat === "all" || state.cat === sec.getAttribute("data-cat");
+        var cards = sec.querySelectorAll(".card"), shown = 0;
         cards.forEach(function (c) {
-          var segMatch =
-            state.seg === 'all' ||
-            (c.getAttribute('data-seg') || '').split(',').indexOf(state.seg) > -1
-          var vis = catMatch && segMatch
-          c.style.display = vis ? '' : 'none'
-          if (vis) shown++
-        })
-        sec.style.display = catMatch && shown > 0 ? '' : 'none'
-        if (catMatch && shown > 0) any = true
-      })
-      empty.style.display = any ? 'none' : 'block'
+          var segMatch = state.seg === "all" || (c.getAttribute("data-seg") || "").split(",").indexOf(state.seg) > -1;
+          var vis = catMatch && segMatch;
+          c.style.display = vis ? "" : "none";
+          if (vis) shown++;
+        });
+        sec.style.display = (catMatch && shown > 0) ? "" : "none";
+        if (catMatch && shown > 0) any = true;
+      });
+      empty.style.display = any ? "none" : "block";
     }
-  })()
-  ;(function () {
-    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (!reduce && 'IntersectionObserver' in window) {
-      var io = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (e) {
-            if (e.isIntersecting) {
-              var c = e.target
-              c.classList.add('in')
-              io.unobserve(c)
-              setTimeout(function () {
-                c.classList.remove('reveal', 'in')
-              }, 650)
-            }
-          })
-        },
-        { rootMargin: '0px 0px -6% 0px' },
-      )
-      document.querySelectorAll('.card').forEach(function (c) {
-        c.classList.add('reveal')
-        io.observe(c)
-      })
+  })();
+
+  (function () {
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce && "IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { var c = e.target; c.classList.add("in"); io.unobserve(c);
+            setTimeout(function () { c.classList.remove("reveal", "in"); }, 650); }
+        });
+      }, { rootMargin: "0px 0px -6% 0px" });
+      document.querySelectorAll(".card").forEach(function (c) { c.classList.add("reveal"); io.observe(c); });
     }
-    var controls = document.querySelector('.controls')
-    if (controls)
-      addEventListener(
-        'scroll',
-        function () {
-          controls.classList.toggle('scrolled', window.scrollY > 8)
-        },
-        { passive: true },
-      )
-  })()
+    var controls = document.querySelector(".controls");
+    if (controls) addEventListener("scroll", function () { controls.classList.toggle("scrolled", window.scrollY > 8); }, { passive: true });
+  })();
 
   // real-asset image slots: reveal when a valid src loads, else keep the placeholder
-  ;(function () {
-    document.querySelectorAll('img.asset').forEach(function (img) {
-      var card = img.closest('.card')
-      var nameEl = card && card.querySelector('.name')
-      var nm = nameEl ? nameEl.textContent.trim() : ''
-      img.alt = nm ? (img.classList.contains('shot-img') ? nm + ' screenshot' : nm + ' logo') : ''
-      if (!img.getAttribute('src')) {
-        img.remove()
-        return
-      }
-      img.addEventListener('load', function () {
-        img.classList.add('loaded')
-      })
-      img.addEventListener('error', function () {
-        img.remove()
-      })
-    })
-  })()
+  (function () {
+    document.querySelectorAll("img.asset").forEach(function (img) {
+      var card = img.closest(".card");
+      var nameEl = card && card.querySelector(".name");
+      var nm = nameEl ? nameEl.textContent.trim() : "";
+      img.alt = nm ? (img.classList.contains("shot-img") ? nm + " screenshot" : nm + " logo") : "";
+      if (!img.getAttribute("src")) { img.remove(); return; }
+      img.addEventListener("load", function () { img.classList.add("loaded"); });
+      img.addEventListener("error", function () { img.remove(); });
+    });
+  })();
 </script>
 
 <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://cpafieldguide.com/#org",
-        "name": "CPA Field Guide",
-        "url": "https://cpafieldguide.com/",
-        "logo": "https://cpafieldguide.com/og.png",
-        "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://cpafieldguide.com/#org",
+      "name": "CPA Field Guide",
+      "url": "https://cpafieldguide.com/",
+      "logo": "https://cpafieldguide.com/og.png",
+      "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://cpafieldguide.com/#website",
+      "name": "CPA Field Guide",
+      "url": "https://cpafieldguide.com/",
+      "inLanguage": "en-US",
+      "publisher": {
+        "@id": "https://cpafieldguide.com/#org"
       },
-      {
-        "@type": "WebSite",
-        "@id": "https://cpafieldguide.com/#website",
-        "name": "CPA Field Guide",
-        "url": "https://cpafieldguide.com/",
-        "inLanguage": "en-US",
-        "publisher": {
-          "@id": "https://cpafieldguide.com/#org"
-        },
-        "description": "An independent, vendor-neutral directory of US tax and accounting software — tax preparation, deadline monitoring, practice management, and bookkeeping — with category definitions, inclusion criteria, and integration openness."
+      "description": "An independent, vendor-neutral directory of US tax and accounting software — tax preparation, deadline monitoring, practice management, and bookkeeping — with category definitions, inclusion criteria, and integration openness."
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://cpafieldguide.com/#webpage",
+      "url": "https://cpafieldguide.com/",
+      "name": "CPA Field Guide — US Tax & Accounting Software Directory (2026)",
+      "isPartOf": {
+        "@id": "https://cpafieldguide.com/#website"
       },
-      {
-        "@type": "WebPage",
-        "@id": "https://cpafieldguide.com/#webpage",
-        "url": "https://cpafieldguide.com/",
-        "name": "CPA Field Guide — US Tax & Accounting Software Directory (2026)",
-        "isPartOf": {
-          "@id": "https://cpafieldguide.com/#website"
-        },
-        "about": "US tax and accounting software for CPA firms",
-        "primaryImageOfPage": "https://cpafieldguide.com/og.png",
-        "inLanguage": "en-US",
-        "datePublished": "2026-07-07",
-        "dateModified": "2026-07-07",
-        "breadcrumb": {
-          "@id": "https://cpafieldguide.com/#breadcrumb"
-        }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "@id": "https://cpafieldguide.com/#breadcrumb",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "CPA Field Guide",
-            "item": "https://cpafieldguide.com/"
-          }
-        ]
-      },
-      {
-        "@type": "ItemList",
-        "name": "US tax & accounting software",
-        "numberOfItems": 26,
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Drake Tax",
-              "url": "https://www.drakesoftware.com",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Lacerte",
-              "url": "https://accountants.intuit.com/tax/lacerte/",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "ProConnect Tax",
-              "url": "https://accountants.intuit.com/tax/proconnect/",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 4,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "ProSeries",
-              "url": "https://accountants.intuit.com/tax/proseries/",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 5,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "UltraTax CS",
-              "url": "https://tax.thomsonreuters.com/us/en/cs-professional-suite/ultratax-cs",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 6,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "CCH Axcess Tax",
-              "url": "https://www.wolterskluwer.com/en/solutions/cch-axcess/tax",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 7,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "ATX",
-              "url": "https://www.wolterskluwer.com/en/solutions/atx",
-              "applicationCategory": "Tax Preparation software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 8,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "File In Time",
-              "url": "https://www.timevalue.com/file-in-time",
-              "applicationCategory": "Deadline & Compliance Tracking software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 9,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "DueDateHQ",
-              "url": "https://duedatehq.com",
-              "applicationCategory": "Deadline & Compliance Tracking software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 10,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "ACI TaskTracker",
-              "url": "https://www.acisystems.net",
-              "applicationCategory": "Deadline & Compliance Tracking software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 11,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "ONESOURCE Calendar",
-              "url": "https://www.thomsonreuters.com",
-              "applicationCategory": "Deadline & Compliance Tracking software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 12,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Karbon",
-              "url": "https://karbonhq.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 13,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "TaxDome",
-              "url": "https://taxdome.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 14,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Canopy",
-              "url": "https://www.getcanopy.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 15,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Financial Cents",
-              "url": "https://financial-cents.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 16,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Jetpack Workflow",
-              "url": "https://jetpackworkflow.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 17,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Keeper",
-              "url": "https://keeper.app",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 18,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Firm360",
-              "url": "https://www.myfirm360.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 19,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Pixie",
-              "url": "https://www.usepixie.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 20,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Aiwyn",
-              "url": "https://www.aiwyn.ai",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 21,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Ignition",
-              "url": "https://www.ignitionapp.com",
-              "applicationCategory": "Practice Management software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 22,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "QuickBooks Online",
-              "url": "https://quickbooks.intuit.com",
-              "applicationCategory": "Accounting & Bookkeeping software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 23,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Xero",
-              "url": "https://www.xero.com",
-              "applicationCategory": "Accounting & Bookkeeping software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 24,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Bill.com",
-              "url": "https://www.bill.com",
-              "applicationCategory": "Accounting & Bookkeeping software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 25,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Sage",
-              "url": "https://www.sage.com",
-              "applicationCategory": "Accounting & Bookkeeping software"
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 26,
-            "item": {
-              "@type": "SoftwareApplication",
-              "name": "Intuit ProAdvisor",
-              "url": "https://quickbooks.intuit.com/accountants/proadvisor/",
-              "applicationCategory": "Accounting & Bookkeeping software"
-            }
-          }
-        ]
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is the best tax preparation software for a small CPA firm?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "It depends on volume and return complexity. Drake Tax leads among sole practitioners on price and speed; Intuit Lacerte and ProConnect suit small firms with more complex returns; Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess dominate at mid-to-large firms. (2025 AICPA tax software survey.)"
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Which CPA practice management software has an open API?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an open API on higher plans. Canopy's API is approval-gated. Keeper, Firm360, and Pixie integrate mainly through Zapier rather than a direct API."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is the difference between a deadline tracker and a compliance monitor?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "A passive tracker such as File In Time records the due dates you enter and rolls them forward each year. An active monitor such as DueDateHQ additionally watches official sources — the IRS, state tax agencies, and FEMA — and flags when a filing date changes and which of your clients it affects."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How is CPA Field Guide different from G2 or Capterra?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and there is no sponsored sort. Every tool is described only by capabilities it has shipped, sourced from the vendor's own documentation, and organized around US tax-practice workflows."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Which accounting software integrates with QuickBooks Online?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "QuickBooks Online offers a self-serve public API and an app store, so most firm tools connect to it — including practice-management platforms like Karbon and Canopy and bookkeeping-workflow tools like Keeper, which offers a two-way sync. Xero provides a comparable open API."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What tax software do the largest US accounting firms use?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead, per the 2025 AICPA survey — both are suite or cloud systems with deeper integration and e-file capacity than the desktop products favored by smaller shops."
-            }
-          }
-        ]
+      "about": "US tax and accounting software for CPA firms",
+      "primaryImageOfPage": "https://cpafieldguide.com/og.png",
+      "inLanguage": "en-US",
+      "datePublished": "2026-07-07",
+      "dateModified": "2026-07-07",
+      "breadcrumb": {
+        "@id": "https://cpafieldguide.com/#breadcrumb"
       }
-    ]
-  }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://cpafieldguide.com/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "CPA Field Guide",
+          "item": "https://cpafieldguide.com/"
+        }
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "name": "US tax & accounting software",
+      "numberOfItems": 26,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Drake Tax",
+            "url": "https://www.drakesoftware.com",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Lacerte",
+            "url": "https://accountants.intuit.com/tax/lacerte/",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "ProConnect Tax",
+            "url": "https://accountants.intuit.com/tax/proconnect/",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "ProSeries",
+            "url": "https://accountants.intuit.com/tax/proseries/",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "UltraTax CS",
+            "url": "https://tax.thomsonreuters.com/us/en/cs-professional-suite/ultratax-cs",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "CCH Axcess Tax",
+            "url": "https://www.wolterskluwer.com/en/solutions/cch-axcess/tax",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 7,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "ATX",
+            "url": "https://www.wolterskluwer.com/en/solutions/atx",
+            "applicationCategory": "Tax Preparation software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 8,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "File In Time",
+            "url": "https://www.timevalue.com/file-in-time",
+            "applicationCategory": "Deadline & Compliance Tracking software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 9,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "DueDateHQ",
+            "url": "https://duedatehq.com",
+            "applicationCategory": "Deadline & Compliance Tracking software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 10,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "ACI TaskTracker",
+            "url": "https://www.acisystems.net",
+            "applicationCategory": "Deadline & Compliance Tracking software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 11,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "ONESOURCE Calendar",
+            "url": "https://www.thomsonreuters.com",
+            "applicationCategory": "Deadline & Compliance Tracking software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 12,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Karbon",
+            "url": "https://karbonhq.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 13,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "TaxDome",
+            "url": "https://taxdome.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 14,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Canopy",
+            "url": "https://www.getcanopy.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 15,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Financial Cents",
+            "url": "https://financial-cents.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 16,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Jetpack Workflow",
+            "url": "https://jetpackworkflow.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 17,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Keeper",
+            "url": "https://keeper.app",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 18,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Firm360",
+            "url": "https://www.myfirm360.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 19,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Pixie",
+            "url": "https://www.usepixie.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 20,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Aiwyn",
+            "url": "https://www.aiwyn.ai",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 21,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Ignition",
+            "url": "https://www.ignitionapp.com",
+            "applicationCategory": "Practice Management software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 22,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "QuickBooks Online",
+            "url": "https://quickbooks.intuit.com",
+            "applicationCategory": "Accounting & Bookkeeping software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 23,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Xero",
+            "url": "https://www.xero.com",
+            "applicationCategory": "Accounting & Bookkeeping software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 24,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Bill.com",
+            "url": "https://www.bill.com",
+            "applicationCategory": "Accounting & Bookkeeping software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 25,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Sage",
+            "url": "https://www.sage.com",
+            "applicationCategory": "Accounting & Bookkeeping software"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 26,
+          "item": {
+            "@type": "SoftwareApplication",
+            "name": "Intuit ProAdvisor",
+            "url": "https://quickbooks.intuit.com/accountants/proadvisor/",
+            "applicationCategory": "Accounting & Bookkeeping software"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the best tax preparation software for a small CPA firm?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It depends on volume and return complexity. Drake Tax leads among sole practitioners on price and speed; Intuit Lacerte and ProConnect suit small firms with more complex returns; Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess dominate at mid-to-large firms. (2025 AICPA tax software survey.)"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which CPA practice management software has an open API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an open API on higher plans. Canopy's API is approval-gated. Keeper, Firm360, and Pixie integrate mainly through Zapier rather than a direct API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between a deadline tracker and a compliance monitor?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A passive tracker such as File In Time records the due dates you enter and rolls them forward each year. An active monitor such as DueDateHQ additionally watches official sources — the IRS, state tax agencies, and FEMA — and flags when a filing date changes and which of your clients it affects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is CPA Field Guide different from G2 or Capterra?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and there is no sponsored sort. Every tool is described only by capabilities it has shipped, sourced from the vendor's own documentation, and organized around US tax-practice workflows."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which accounting software integrates with QuickBooks Online?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "QuickBooks Online offers a self-serve public API and an app store, so most firm tools connect to it — including practice-management platforms like Karbon and Canopy and bookkeeping-workflow tools like Keeper, which offers a two-way sync. Xero provides a comparable open API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What tax software do the largest US accounting firms use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead, per the 2025 AICPA survey — both are suite or cloud systems with deeper integration and e-file capacity than the desktop products favored by smaller shops."
+          }
+        }
+      ]
+    }
+  ]
+}
 </script>
