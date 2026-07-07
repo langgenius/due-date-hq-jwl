@@ -85,12 +85,6 @@
      all read at the same size. Pages must use this, not a per-page clamp. */
   --m-page-title-size: clamp(34px, 4.8vw, 64px);
 
-  /* ONE size for secondary editorial serif display headings that sit BELOW the
-     page H1 — the mid-page "promise"/CTA moments (a clear tier under
-     --m-page-title-size, roughly level with .m-h2's ceiling). Use via the
-     .m-display-2 class, not a per-component clamp. */
-  --m-display-2-size: clamp(26px, 3.2vw, 40px);
-
   /* ---- layout (editorial, marketing-specific) ---- */
   --m-maxw: 1240px; /* one shared container width */
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
@@ -198,17 +192,6 @@ body {
   }
   .m-h2 .ital {
     font-style: italic;
-  }
-  /* Secondary editorial serif display — same voice as .m-page-title (the H1),
-     one tier smaller, for mid-page "promise"/CTA headings. Owns type only;
-     callers add their own layout (max-width, centering, margins). */
-  .m-display-2 {
-    font-family: var(--m-font-display);
-    font-weight: 400;
-    font-size: var(--m-display-2-size);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: var(--m-ink);
   }
   .m-lead {
     max-width: var(--m-measure);
@@ -532,13 +515,17 @@ body {
   .m-cta--primary:hover {
     background: var(--m-accent-strong);
   }
+  /* outlined secondary pill — a hairline ring gives it real presence next to the
+     solid primary, without a fill. */
   .m-cta--ghost {
     color: var(--m-ink);
-    padding: 11px 16px;
+    padding: 11px 22px;
+    border: 1px solid var(--m-hairline);
   }
+  /* hover: ring + label + icon shift to brand blue (no fill) — quiet and precise */
   .m-cta--ghost:hover {
     color: var(--m-accent);
-    background: var(--m-section);
+    border-color: color-mix(in srgb, var(--m-accent) 38%, var(--m-hairline));
   }
   /* on a navy surface: primary → white pill, ghost → white text */
   .m-cta-dark .m-cta--primary {
