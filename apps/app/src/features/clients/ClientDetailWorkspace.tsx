@@ -1180,11 +1180,11 @@ export function ClientDetailWorkspace({
                       // the title still opens the full /deadlines page (escape hatch).
                       onExpandFiling={(id) => openObligationPanel(id)}
                       onCollapseFiling={() => void setExpandedFilingId('')}
-                      // 2026-06-16 (Yuqi): keep the full table — incl. OFFICIAL
-                      // DUE + OWNER — even when the obligation panel is open. The
-                      // DEADLINE column (minmax(0,1fr)) absorbs the squeeze by
-                      // truncating the form name; the fixed columns stay put.
+                      // Keep OFFICIAL DUE + OWNER visible beside the obligation
+                      // panel, but drop the duplicate status column while the
+                      // focused deadline panel already carries status.
                       compact={false}
+                      hideStatus={panelOpen}
                     />
                   </TabsContent>
 
