@@ -72,9 +72,12 @@
 
   main { padding: 8px 0 20px; }
   .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+  .cat-head { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
   .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
   .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
+  .cat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .cat-icon svg { width: 20px; height: 20px; }
   .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
 
   details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
@@ -283,7 +286,7 @@
   -->
 
   <section class="section" data-cat="tax">
-    <div class="cat-head"><h2>Tax Preparation</h2><span class="count">7 tools</span><a class="cat-more" href="/tax-preparation-software">View all 7 &rarr;</a></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h4"/><path d="M9 13h6M9 16.5h4"/></svg></span><h2>Tax Preparation</h2><span class="count">7 tools</span><a class="cat-more" href="/tax-preparation-software">View all 7 &rarr;</a></div>
     <p class="cat-def">Professional tax preparation software prepares, reviews, and e-files federal and state returns for a firm's individual and business clients. Unlike consumer apps, it handles every entity return (1040, 1120, 1120-S, 1065, 1041, 990), multi-state filings, and K-1s, runs on a preparer-and-reviewer workflow, and carries client data forward each year. It's the engine a US tax practice is built on — and usually its largest software decision.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Tax Preparation, a product must:</p><ul>
       <li>Prepare and calculate US federal and state income tax returns for multiple entity types</li>
@@ -304,7 +307,7 @@
   </section>
 
   <section class="section" data-cat="monitor">
-    <div class="cat-head"><h2>Deadlines &amp; Monitoring</h2><span class="count">3 tools</span><a class="cat-more" href="/deadline-monitoring-software">View all 3 &rarr;</a></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><circle cx="12" cy="14.5" r="1.6" fill="currentColor" stroke="none"/></svg></span><h2>Deadlines &amp; Monitoring</h2><span class="count">3 tools</span><a class="cat-more" href="/deadline-monitoring-software">View all 3 &rarr;</a></div>
     <p class="cat-def">These tools make sure no client filing slips. <em>Passive trackers</em> record the due dates you enter and roll them forward each period. <em>Active monitors</em> also watch official sources — the IRS, state tax agencies, and FEMA — and flag when a date or rule changes and which clients it hits. In most firms this lives inside practice management; the specialists below focus on it.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Deadline &amp; Compliance Tracking, a product must:</p><ul>
       <li>Track statutory filing due dates and extensions for a firm's clients</li>
@@ -320,7 +323,7 @@
   </section>
 
   <section class="section" data-cat="pm">
-    <div class="cat-head"><h2>Practice Management</h2><span class="count">10 tools</span><a class="cat-more" href="/practice-management-software">View all 10 &rarr;</a></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9 4.5V3.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M8.8 12.2l1.6 1.6 3.2-3.4"/><path d="M9 17h6"/></svg></span><h2>Practice Management</h2><span class="count">10 tools</span><a class="cat-more" href="/practice-management-software">View all 10 &rarr;</a></div>
     <p class="cat-def">Practice management software runs a firm's front and back office: service catalog, workflows and tasks, client records and communication, deadlines, and billable time — one place to see who's doing what, for which client, by when. Best for solo-to-mid firms leaving spreadsheets and email behind. Deadline tracking is a feature here, not a separate category.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Practice Management, a product must:</p><ul>
       <li>Maintain the catalog of services the firm offers</li>
@@ -345,7 +348,7 @@
   </section>
 
   <section class="section" data-cat="ledger">
-    <div class="cat-head"><h2>Accounting &amp; Bookkeeping</h2><span class="count">5 tools</span><a class="cat-more" href="/accounting-software">View all 5 &rarr;</a></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 18.5z"/><path d="M9 3v17"/><path d="M12.5 8H16M12.5 12H16"/></svg></span><h2>Accounting &amp; Bookkeeping</h2><span class="count">5 tools</span><a class="cat-more" href="/accounting-software">View all 5 &rarr;</a></div>
     <p class="cat-def">The general ledger records a business's transactions — bank feeds, invoicing, bills, reporting. For a firm it's usually the client's book of record, used for write-up, review, and close. QuickBooks Online and Xero dominate US small business, and most firm tools connect back to them — which makes this layer the hub of a firm's integrations.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p><ul>
       <li>Record and categorize a business's financial transactions in a general ledger</li>

@@ -72,9 +72,12 @@
 
   main { padding: 8px 0 20px; }
   .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+  .cat-head { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
   .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
   .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
+  .cat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .cat-icon svg { width: 20px; height: 20px; }
   .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
 
   details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
@@ -256,7 +259,7 @@
 <div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Accounting &amp; Bookkeeping</nav></div>
 
 <section class="section" data-cat="ledger">
-    <div class="cat-head"><h1>Accounting &amp; Bookkeeping</h1><span class="count">5 tools</span></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 18.5z"/><path d="M9 3v17"/><path d="M12.5 8H16M12.5 12H16"/></svg></span><h1>Accounting &amp; Bookkeeping</h1><span class="count">5 tools</span></div>
     <p class="cat-def">The general ledger records a business's transactions — bank feeds, invoicing, bills, reporting. For a firm it's usually the client's book of record, used for write-up, review, and close. QuickBooks Online and Xero dominate US small business, and most firm tools connect back to them — which makes this layer the hub of a firm's integrations.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p><ul>
       <li>Record and categorize a business's financial transactions in a general ledger</li>
