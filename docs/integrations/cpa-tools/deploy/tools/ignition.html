@@ -113,6 +113,7 @@
   .tag .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
   .d-open{background:var(--open)} .d-gated{background:var(--gated)} .d-zap{background:var(--zap)} .d-closed{background:var(--closed)} .d-info{background:var(--info)}
   .visit { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); transition: color .18s ease; }
+  a.visit:hover { text-decoration: underline; color: var(--soft); }
   .visit::after { content: " \2192"; opacity: 0; margin-left: -6px; transition: opacity .18s ease, margin-left .18s ease; }
   .card:hover .visit { color: var(--soft); }
   .card:hover .visit::after { opacity: 1; margin-left: 0; }
