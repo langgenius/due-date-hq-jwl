@@ -187,6 +187,30 @@
   .sibnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
   .sibnav a { font-size: 14px; color: var(--info); text-decoration: none; }
   .sibnav a:hover { text-decoration: underline; }
+  /* internal links + tool/guide pages */
+  .namelink { color: inherit; text-decoration: none; }
+  .namelink:hover { text-decoration: underline; }
+  .toolhero { display: flex; align-items: center; gap: 14px; margin: 4px 0 2px; }
+  .logo-lg { width: 54px; height: 54px; font-size: 20px; border-radius: 12px; }
+  .toolhero h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+  .toolsub { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--faint); margin-top: 3px; }
+  .toollede { font-family: -apple-system, sans-serif; font-size: 16px; line-height: 1.5; color: var(--soft); max-width: 66ch; margin: 12px 0 22px; }
+  .facts { border-collapse: collapse; width: 100%; max-width: 640px; font-family: -apple-system, sans-serif; margin: 0 0 22px; }
+  .facts th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 16px 11px 0; vertical-align: top; white-space: nowrap; width: 118px; border-top: 1px solid var(--line); }
+  .facts td { font-size: 14px; color: var(--ink); padding: 11px 0; border-top: 1px solid var(--line); }
+  .facts a { color: var(--info); text-decoration: none; }
+  .facts a:hover { text-decoration: underline; }
+  .muted { color: var(--faint); }
+  .toolsection { font-family: -apple-system, sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
+  .toolsection a { color: var(--info); }
+  .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
+  .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
+  .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .toollist a { color: var(--info); text-decoration: none; font-weight: 600; font-size: 15px; }
+  .toollist a:hover { text-decoration: underline; }
+  .guides { border-top: 2px solid var(--ink); }
+  .guides .wrap { padding: 26px 24px; }
+  .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
 </style>
 </head>
 <body>
@@ -221,7 +245,7 @@
 
 <section class="section" data-cat="monitor">
     <div class="cat-head"><h1>Deadlines &amp; Monitoring</h1><span class="count">3 tools</span></div>
-    <p class="cat-def">Deadline and compliance tracking tools help a firm make sure no client filing is missed. Two approaches exist. <em>Passive trackers</em> record the due dates a firm enters and roll them forward each period. <em>Active monitors</em> additionally watch official sources — the IRS, state tax agencies, and FEMA — and surface when a filing date or rule changes and which clients it affects. In most firms this is a capability inside practice management; a small set of specialist products focus on it, and it is included here as its own list for that reason.</p>
+    <p class="cat-def">These tools make sure no client filing slips. <em>Passive trackers</em> record the due dates you enter and roll them forward each period. <em>Active monitors</em> also watch official sources — the IRS, state tax agencies, and FEMA — and flag when a date or rule changes and which clients it hits. In most firms this lives inside practice management; the specialists below focus on it.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Deadline &amp; Compliance Tracking, a product must:</p><ul>
       <li>Track statutory filing due dates and extensions for a firm's clients</li>
       <li>Roll recurring deadlines forward across periods and tax years</li>
@@ -229,9 +253,9 @@
       <li>(Active monitors) detect changes to official filing dates or rules and identify the affected clients</li>
     </ul></div></details>
     <div class="grid">
-      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#4A6785;color:#fff;border-color:transparent"><span class="logo-mono">FT</span><img class="asset logo-img"></div><div><div class="name">File In Time</div><div class="seg">Solo · small</div></div></div><p class="desc">Long-standing passive tracker: records due dates and rolls them forward; doesn't watch the regulatory sources.</p><div class="cardmeta"><span class="price">Paid license</span></div></div><div class="shot" style="--tint:#4A6785"><span class="shot-mark" aria-hidden="true">FT</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>Closed</span><span class="visit">timevalue.com</span></div></article>
-      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2E368C;color:#fff;border-color:transparent"><span class="logo-mono">DD</span><img class="asset logo-img"></div><div><div class="name">DueDateHQ</div><div class="seg">Solo · small</div></div></div><p class="desc">Active monitor of the IRS, states, and FEMA — when a date moves, shows which clients it hits. Free in beta.</p><div class="cardmeta"><span class="price">Free · beta</span></div></div><div class="shot" style="--tint:#2E368C"><span class="shot-mark" aria-hidden="true">DD</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-info"></span>No public API yet</span><span class="visit">duedatehq.com</span></div></article>
-      <article class="card" data-seg="mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#E5601F;color:#fff;border-color:transparent"><span class="logo-mono">OC</span><img class="asset logo-img"></div><div><div class="name">ONESOURCE Calendar</div><div class="seg">Mid · enterprise</div></div></div><p class="desc">Thomson Reuters' enterprise compliance calendar for multi-year deadlines, filings, and extensions.</p><div class="cardmeta"><span class="price">Custom quote</span></div></div><div class="shot" style="--tint:#E5601F"><span class="shot-mark" aria-hidden="true">OC</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Suite · gated</span><span class="visit">thomsonreuters.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#4A6785;color:#fff;border-color:transparent"><span class="logo-mono">FT</span><img class="asset logo-img"></div><div><div class="name"><a class="namelink" href="/tools/file-in-time">File In Time</a></div><div class="seg">Solo · small</div></div></div><p class="desc">Long-standing passive tracker: records due dates and rolls them forward; doesn't watch the regulatory sources.</p><div class="cardmeta"><span class="price">Paid license</span></div></div><div class="shot" style="--tint:#4A6785"><span class="shot-mark" aria-hidden="true">FT</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-closed"></span>Closed</span><span class="visit">timevalue.com</span></div></article>
+      <article class="card" data-seg="solo,small"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2E368C;color:#fff;border-color:transparent"><span class="logo-mono">DD</span><img class="asset logo-img"></div><div><div class="name"><a class="namelink" href="/tools/duedatehq">DueDateHQ</a></div><div class="seg">Solo · small</div></div></div><p class="desc">Active monitor of the IRS, states, and FEMA — when a date moves, shows which clients it hits. Free in beta.</p><div class="cardmeta"><span class="price">Free · beta</span></div></div><div class="shot" style="--tint:#2E368C"><span class="shot-mark" aria-hidden="true">DD</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-info"></span>No public API yet</span><span class="visit">duedatehq.com</span></div></article>
+      <article class="card" data-seg="mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#E5601F;color:#fff;border-color:transparent"><span class="logo-mono">OC</span><img class="asset logo-img"></div><div><div class="name"><a class="namelink" href="/tools/onesource-calendar">ONESOURCE Calendar</a></div><div class="seg">Mid · enterprise</div></div></div><p class="desc">Thomson Reuters' enterprise compliance calendar for multi-year deadlines, filings, and extensions.</p><div class="cardmeta"><span class="price">Custom quote</span></div></div><div class="shot" style="--tint:#E5601F"><span class="shot-mark" aria-hidden="true">OC</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Suite · gated</span><span class="visit">thomsonreuters.com</span></div></article>
     </div>
   </section>
 
