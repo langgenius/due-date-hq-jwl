@@ -289,7 +289,7 @@ homeBody = homeBody.replace("<header>", catnav("home") + "\n\n<header>");
 homeBody = homeBody.replace(/<span class="clabel">Category<\/span>[\s\S]*?<span class="sep" aria-hidden="true"><\/span>\s*/, "");
 // add "view all" links from each homepage category heading to its page
 for (const c of cats) {
-  const secOpenRe = new RegExp(`(<section class="section" data-cat="${c.key}">\\s*<div class="cat-head">)(<h2>[\\s\\S]*?<\\/h2><span class="count">[^<]*<\\/span>)(</div>)`);
+  const secOpenRe = new RegExp(`(<section class="section" data-cat="${c.key}">\\s*<div class="cat-head">(?:<span class="cat-icon">[\\s\\S]*?<\\/span>)?)(<h2>[\\s\\S]*?<\\/h2><span class="count">[^<]*<\\/span>)(</div>)`);
   homeBody = homeBody.replace(secOpenRe, `$1$2<a class="cat-more" href="/${c.slug}">View all ${c.n} &rarr;</a>$3`);
 }
 // homepage: link the guide pages (internal links so they aren't orphaned)

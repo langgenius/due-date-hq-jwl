@@ -72,9 +72,12 @@
 
   main { padding: 8px 0 20px; }
   .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+  .cat-head { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
   .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
   .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
+  .cat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .cat-icon svg { width: 20px; height: 20px; }
   .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
 
   details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
@@ -256,7 +259,7 @@
 <div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Deadline &amp; Compliance Tracking</nav></div>
 
 <section class="section" data-cat="monitor">
-    <div class="cat-head"><h1>Deadlines &amp; Monitoring</h1><span class="count">3 tools</span></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><circle cx="12" cy="14.5" r="1.6" fill="currentColor" stroke="none"/></svg></span><h1>Deadlines &amp; Monitoring</h1><span class="count">3 tools</span></div>
     <p class="cat-def">These tools make sure no client filing slips. <em>Passive trackers</em> record the due dates you enter and roll them forward each period. <em>Active monitors</em> also watch official sources — the IRS, state tax agencies, and FEMA — and flag when a date or rule changes and which clients it hits. In most firms this lives inside practice management; the specialists below focus on it.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Deadline &amp; Compliance Tracking, a product must:</p><ul>
       <li>Track statutory filing due dates and extensions for a firm's clients</li>

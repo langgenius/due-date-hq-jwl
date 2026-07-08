@@ -72,9 +72,12 @@
 
   main { padding: 8px 0 20px; }
   .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+  .cat-head { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
   .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
   .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
+  .cat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .cat-icon svg { width: 20px; height: 20px; }
   .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
 
   details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
@@ -256,7 +259,7 @@
 <div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Practice Management</nav></div>
 
 <section class="section" data-cat="pm">
-    <div class="cat-head"><h1>Practice Management</h1><span class="count">10 tools</span></div>
+    <div class="cat-head"><span class="cat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9 4.5V3.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M8.8 12.2l1.6 1.6 3.2-3.4"/><path d="M9 17h6"/></svg></span><h1>Practice Management</h1><span class="count">10 tools</span></div>
     <p class="cat-def">Practice management software runs a firm's front and back office: service catalog, workflows and tasks, client records and communication, deadlines, and billable time — one place to see who's doing what, for which client, by when. Best for solo-to-mid firms leaving spreadsheets and email behind. Deadline tracking is a feature here, not a separate category.</p>
     <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Practice Management, a product must:</p><ul>
       <li>Maintain the catalog of services the firm offers</li>
