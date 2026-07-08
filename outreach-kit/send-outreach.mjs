@@ -30,6 +30,7 @@
  *   --csv PATH    input csv          (default ./duedatehq-approved.csv, else sequence csv)
  *   --state PATH  send log/state     (default ./.outreach-state.json)
  *   --suppress P  emails to skip, one per line (default ./outreach-suppress.txt)
+ *   --utm-campaign NAME              (default 2026_07_cpa_outreach)
  *   --force       ignore the day gap between touches (for testing)
  */
 import fs from 'node:fs'
@@ -54,6 +55,9 @@ const CSV = val(
 )
 const STATE_PATH = val('--state', '.outreach-state.json')
 const SUPPRESS_PATH = val('--suppress', 'outreach-suppress.txt')
+const UTM_SOURCE = val('--utm-source', 'cold_outreach')
+const UTM_MEDIUM = val('--utm-medium', 'email')
+const UTM_CAMPAIGN = val('--utm-campaign', '2026_07_cpa_outreach')
 const GAP_DAYS = { 2: 4, 3: 10 } // touch2 ≥4d after touch1; touch3 ≥10d after touch1
 
 const KEY = process.env.RESEND_API_KEY
@@ -169,8 +173,46 @@ function firstNameOf(r) {
   const m = /^Hi ([^,]+),/.exec(r.Email1 || '')
   return m ? m[1] : 'there'
 }
+function slug(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 80)
+}
+function waveLabel() {
+  const source = WAVE || CSV
+  const basename = source.split(/[\\/]/).pop() || 'sequence'
+  return slug(basename.replace(/\.[^.]+$/, '')) || 'sequence'
+}
+function trackedUrl(r, placement = 'body') {
+  const url = new URL('https://duedatehq.com/')
+  url.searchParams.set('utm_source', slug(UTM_SOURCE) || 'cold_outreach')
+  url.searchParams.set('utm_medium', slug(UTM_MEDIUM) || 'email')
+  url.searchParams.set('utm_campaign', slug(UTM_CAMPAIGN) || '2026_07_cpa_outreach')
+  url.searchParams.set(
+    'utm_content',
+    [waveLabel(), `t${TOUCH}`, `track_${trackOf(r).toLowerCase()}`, slug(placement)]
+      .filter(Boolean)
+      .join('_'),
+  )
+  return url.toString()
+}
+function htmlAttr(value) {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+function applyTrackedLinks(content, r, placement = 'body') {
+  const url = trackedUrl(r, placement)
+  return content
+    .replace(/https?:\/\/(?:www\.)?duedatehq\.com\/?(?:\?[^)\s"'<]*)?/gi, url)
+    .replace(/(^|[\s([{"'>])(?:www\.)?duedatehq\.com\b/gi, (_match, prefix) => {
+      return `${prefix}${url}`
+    })
+}
 function buildTouch1(r) {
   const first = firstNameOf(r)
+  const url = trackedUrl(r, 'body')
   // v12 light Inbox template (2026-07-07, approved by Yuqi): plain, personal, no
   // card/table/image (those landed the v11 card in Promotions). Full loop:
   // monitor IRS/state/FEMA -> who's affected -> one-click apply -> source.
@@ -182,12 +224,12 @@ function buildTouch1(r) {
       `When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.\n` +
       `DueDateHQ watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.\n` +
       `Paste your client list; first sourced deadline in ~10 minutes. Want in?\n` +
-      `Gigi\nCo-Founder, DueDateHQ\nduedatehq.com`,
+      `Gigi\nCo-Founder, DueDateHQ\n${url}`,
     html:
       `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.62;color:#1f2430">` +
       `<p style="margin:0 0 14px">Hi ${first},</p>` +
       `<p style="margin:0 0 14px;text-wrap:pretty">When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.</p>` +
-      `<p style="margin:0 0 14px;text-wrap:pretty"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:none;border-bottom:1px solid #c9cdec">DueDateHQ</a> watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.</p>` +
+      `<p style="margin:0 0 14px;text-wrap:pretty"><a href="${htmlAttr(url)}" style="color:#2E368C;text-decoration:none;border-bottom:1px solid #c9cdec">DueDateHQ</a> watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.</p>` +
       `<p style="margin:0 0 22px;text-wrap:pretty">Paste your client list; first sourced deadline in ~10 minutes. Want in?</p>` +
       `<div style="font-weight:600;color:#111827">Gigi</div>` +
       `<div style="color:#6b7280;font-size:13px;margin-top:2px">Co-Founder · DueDateHQ</div>` +
@@ -272,7 +314,8 @@ for (const r of rows) {
     skipped++
     continue
   }
-  if (TOUCH === 1) ({ subject, text, html, attachments } = buildTouch1(r)) // touch 1 = locked v3 template (card + close); touches 2/3 stay plain-text from CSV
+  if (TOUCH === 1) ({ subject, text, html, attachments } = buildTouch1(r))
+  else text = applyTrackedLinks(text, r)
 
   if (!SEND) {
     console.log(`[DRY] → ${to}  (${r.Firm})  [${trackOf(r)}·${firstNameOf(r)}]  "${subject}"`)

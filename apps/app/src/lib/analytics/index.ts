@@ -36,6 +36,17 @@ let enabled = false
 let ready = false
 const pending: Array<(amp: AmplitudeModule) => void> = []
 let superProps: Record<string, string | number | boolean | string[] | number[]> = {}
+const CAMPAIGN_STORAGE_KEY = 'ddhq.analytics.campaign'
+const CAMPAIGN_PARAM_NAMES = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+] as const
+const TRACKING_PARAM_NAMES = [...CAMPAIGN_PARAM_NAMES, 'gclid', 'fbclid', 'msclkid'] as const
+const CAMPAIGN_VALUE_MAX_LENGTH = 120
+const EMAIL_LIKE_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/
 
 function readApiKey(): string {
   const raw = import.meta.env.VITE_AMPLITUDE_API_KEY
@@ -45,6 +56,82 @@ function readApiKey(): string {
 function readAppVersion(): string | undefined {
   const raw = import.meta.env.VITE_APP_VERSION
   return typeof raw === 'string' && raw ? raw : undefined
+}
+
+function safeCampaignValue(raw: string | null): string | null {
+  const value = raw?.trim() ?? ''
+  if (!value || EMAIL_LIKE_RE.test(value)) return null
+  return value.slice(0, CAMPAIGN_VALUE_MAX_LENGTH)
+}
+
+function hasTrackingParams(url: URL): boolean {
+  return TRACKING_PARAM_NAMES.some((key) => url.searchParams.has(key))
+}
+
+function buildCampaignProps(url: URL): AnalyticsProperties | null {
+  const props: AnalyticsProperties = {}
+  for (const key of CAMPAIGN_PARAM_NAMES) {
+    const value = safeCampaignValue(url.searchParams.get(key))
+    if (value) props[key] = value
+  }
+  if (Object.keys(props).length === 0) return null
+
+  props.landing_path = url.pathname
+  props.is_outreach =
+    props.utm_source === 'cold_outreach' ||
+    (typeof props.utm_campaign === 'string' && props.utm_campaign.includes('cpa_outreach'))
+  return props
+}
+
+function stripTrackingParamsFromUrl(url: URL): void {
+  if (!hasTrackingParams(url)) return
+  for (const key of TRACKING_PARAM_NAMES) url.searchParams.delete(key)
+  const next = `${url.pathname}${url.search}${url.hash}`
+  window.history.replaceState(window.history.state, document.title, next)
+}
+
+function writeStoredCampaignProps(props: AnalyticsProperties): void {
+  try {
+    sessionStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(props))
+  } catch {
+    // Storage can be unavailable in private browsing; event super-props still work.
+  }
+}
+
+function readStoredCampaignProps(): AnalyticsProperties {
+  try {
+    const raw = sessionStorage.getItem(CAMPAIGN_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([, value]) =>
+          typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean',
+      ),
+    )
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Capture campaign parameters before Amplitude lazy-loads, then clean the
+ * address bar. The stored props are stamped on subsequent app events so signup
+ * and activation remain segmentable after UTM removal.
+ */
+export function captureCampaignAttribution(): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  const fromUrl = buildCampaignProps(url)
+  if (fromUrl) {
+    writeStoredCampaignProps(fromUrl)
+    setSuperProperties(fromUrl)
+  } else {
+    const stored = readStoredCampaignProps()
+    if (Object.keys(stored).length > 0) setSuperProperties(stored)
+  }
+  stripTrackingParamsFromUrl(url)
 }
 
 /**

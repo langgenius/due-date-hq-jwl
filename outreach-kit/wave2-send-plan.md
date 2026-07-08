@@ -52,6 +52,10 @@ touch-2; … through Day 4 touch-2 is exhausted (~198), Days 5–6 finish the ne
   Run it locally anytime: `node scripts/check-outreach-state.mjs`.
 - Touch-1 is the v12 **light Inbox template** (rebuilt in code — plain, no card/image); touch-2/3
   are the plain-text bodies from the sequence CSV.
+- All DueDateHQ links are UTM-tagged at send time with `utm_source=cold_outreach`,
+  `utm_medium=email`, `utm_campaign=2026_07_cpa_outreach`, and wave/touch/track-level
+  `utm_content`. Keep attribution group-level only; do not put recipient email, firm name,
+  or personal identifiers in URLs.
 
 ## 4. Caveats
 
