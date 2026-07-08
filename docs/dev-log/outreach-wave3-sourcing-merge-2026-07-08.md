@@ -45,6 +45,14 @@ signals (wealth/mill/not-accepting), not absence-of-signal.
   free-provider, 52 recovered. Recommend a **warm-up ramp** (personal mailboxes first, ~40–60/day, 8s apart),
   not a single 1,000-send blast from a domain that's only sent ~500 — and pause if bounces exceed ~3%.
 
+## Send log — 2026-07-08, batch 1 of wave-3
+- Sent **touch-1 to 200** lowest-risk recipients (`wave3-today-200.txt` — personal mailboxes only, spread
+  ~6/state across all 35 states), `--delay 8000`, scoped via `--wave`.
+- Result: **sent=199, failed=1**. Record appended **t1 500 → 699** (append-only guard: 0 regressions).
+- Failure: `john@johnleeaccounting.com` (John Lee Accounting & Tax, KS) — domain has valid MX, likely a
+  transient reject; left un-suppressed so it retries in a later batch.
+- Remaining wave-3 to send: **801** (601 personal + role/free tiers). Next batch = next 200 personal.
+
 ## ⚠️ Before sending
 - **Use the canonical `.outreach-state.json` (origin/main: t1=500, t2=198).** This worktree's copy is stale
   (t1=205) — sending against it would re-send touch-1 to ~295 already-contacted originals. The state file was
