@@ -86,7 +86,7 @@ const navCss = `
   .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
   .toollist a { color: var(--info); text-decoration: none; font-weight: 600; font-size: 15px; }
   .toollist a:hover { text-decoration: underline; }
-  .guides { border-top: 2px solid var(--ink); }
+  .guides { border-top: 1px solid var(--line); }
   .guides .wrap { padding: 26px 24px; }
   .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
   .footnav { border-top: 1px solid var(--line); background: var(--bg); }
