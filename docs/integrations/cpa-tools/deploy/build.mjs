@@ -89,6 +89,12 @@ const navCss = `
   .guides { border-top: 2px solid var(--ink); }
   .guides .wrap { padding: 26px 24px; }
   .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+  .footnav { border-top: 1px solid var(--line); background: var(--bg); }
+  .footnav .wrap { padding: 30px 24px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px; font-family: -apple-system, sans-serif; }
+  .footnav h3 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin: 0 0 9px; font-weight: 700; }
+  .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
+  .footnav a:hover { color: var(--ink); text-decoration: underline; }
 </style>`;
 style = style.replace("</style>", navCss);
 
@@ -154,6 +160,36 @@ for (const c of cats) {
 }
 const esc = (s) => String(s).replace(/&(?!amp;|lt;|gt;|#\d)/g, "&amp;");
 
+// shared footer link graph (added to every page for internal linking + crawl)
+const footerNav = `<div class="footnav"><div class="wrap">` +
+  `<div><h3>Categories</h3><ul>${cats.map((c) => `<li><a href="/${c.slug}">${c.nav}</a></li>`).join("")}</ul></div>` +
+  `<div><h3>Guides</h3><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
+  `<div><h3>Directory</h3><ul><li><a href="/">All ${toolData.length} tools</a></li></ul></div>` +
+  `</div></div>`;
+const footerBlock = footerNav + "\n\n" + footer;
+
+// per-category FAQ (real, sourced answers — strong for AI answer engines)
+const faqByCat = {
+  tax: [
+    ["What is the cheapest professional tax software?", "Drake Tax and ATX are the lowest-cost unlimited desktop options; Intuit ProSeries and ProConnect use pay-per-return pricing that can be cheaper at low volume."],
+    ["Do professional tax packages e-file state returns?", "Yes — all support IRS Modernized e-File (MeF) and the matching state e-filing. Multi-state coverage and per-return economics vary by product."],
+    ["Which tax software do the largest firms use?", "UltraTax CS and CCH Axcess Tax lead at mid-to-large firms (2025 AICPA survey), while Drake dominates among sole practitioners."],
+  ],
+  monitor: [
+    ["What is the difference between a deadline tracker and a compliance monitor?", "A passive tracker records the due dates you enter and rolls them forward. An active monitor also watches the IRS, state agencies, and FEMA and flags when a date changes and which clients it affects."],
+    ["Is deadline tracking built into practice management software?", "Usually yes — Karbon, Canopy, TaxDome, Financial Cents, and Jetpack all include due-date tracking. The standalone tools here focus on it specifically."],
+  ],
+  pm: [
+    ["How much does accounting practice management software cost?", "Entry pricing runs from about $19/user/mo (Financial Cents) to $59–67/user/mo (Karbon, TaxDome). Some, like Pixie, charge a flat monthly fee; enterprise tools such as Aiwyn are custom-quoted."],
+    ["Which practice management tool has the best API?", "Karbon offers the deepest self-serve public API with webhooks; TaxDome also issues self-serve keys. Canopy's API is approval-gated, and several others connect only through Zapier."],
+    ["Which is best for a small tax firm?", "TaxDome and Canopy are popular all-in-ones with client portals; Financial Cents and Jetpack are lighter and lower-cost; Karbon leads on integration depth."],
+  ],
+  ledger: [
+    ["QuickBooks Online vs Xero — which should a firm use?", "QuickBooks Online dominates US small business and has 500k+ ProAdvisors, so most US firms standardize on it; Xero is strong internationally with a comparable open API. Both offer self-serve APIs and app stores."],
+    ["How much is QuickBooks Online for accountants?", "QuickBooks Online starts around $35/mo (Simple Start). Accountants join the free ProAdvisor program for discounted client subscriptions and firm tools."],
+  ],
+};
+
 const tools = [
   ["Drake Tax", "https://www.drakesoftware.com", "Tax Preparation"],
   ["Lacerte", "https://accountants.intuit.com/tax/lacerte/", "Tax Preparation"],
@@ -183,7 +219,7 @@ const tools = [
 ];
 const org = {
   "@type": "Organization", "@id": ORIGIN + "/#org", name: "CPA Field Guide", url: ORIGIN + "/",
-  logo: ORIGIN + "/og.png",
+  logo: ORIGIN + "/og.png", sameAs: ["https://duedatehq.com"],
   description: "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ.",
 };
 
@@ -261,6 +297,7 @@ homeBody = homeBody.replace(
   '<div class="faq">',
   `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="toollist"><li><a href="/cpa-software-with-open-api">CPA &amp; accounting software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best software for solo CPA firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best software for small CPA firms</a></li></ul></div></div>\n\n<div class="faq">`
 );
+homeBody = homeBody.replace("<footer>", footerNav + "\n<footer>");
 const homeHtml = head(
   "CPA Field Guide — US Tax & Accounting Software Directory (2026)",
   "Independent, vendor-neutral directory of US tax & accounting software: tax preparation, deadline monitoring, practice management, and bookkeeping. Category definitions, inclusion criteria, and integration openness. No pay-to-list.",
@@ -289,7 +326,8 @@ for (const c of cats) {
       { "@type": "CollectionPage", "@id": url + "#webpage", url: url, name: c.title,
         isPartOf: { "@id": ORIGIN + "/#website" }, about: c.label + " software for CPA firms",
         inLanguage: "en-US", datePublished: DATE, dateModified: DATE,
-        primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": url + "#breadcrumb" } },
+        primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": url + "#breadcrumb" },
+        speakable: { "@type": "SpeakableSpecification", cssSelector: [".faq h3", ".faq p"] } },
       { "@type": "BreadcrumbList", "@id": url + "#breadcrumb", itemListElement: [
         { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" },
         { "@type": "ListItem", position: 2, name: c.label, item: url },
@@ -297,22 +335,23 @@ for (const c of cats) {
       { "@type": "ItemList", name: c.label + " software", numberOfItems: catTools.length,
         itemListElement: catTools.map((t, i) => ({ "@type": "ListItem", position: i + 1,
           item: { "@type": "SoftwareApplication", name: t[0], url: t[1], applicationCategory: t[2] + " software" } })) },
+      ...(faqByCat[c.key] ? [{ "@type": "FAQPage", mainEntity: faqByCat[c.key].map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) }] : []),
     ],
   };
   const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
 
+  const catFaq = faqByCat[c.key] || [];
+  const catFaqHtml = catFaq.length
+    ? `<div class="faq"><div class="wrap"><h2>${c.label.replace("&", "&amp;")} — FAQ</h2>` +
+      catFaq.map((f) => `<div class="qa"><h3>${f[0]}</h3><p>${f[1]}</p></div>`).join("") + `</div></div>`
+    : "";
+  const guideNav = `<div class="sibnav"><div class="wrap"><h2>Related guides</h2><ul>` +
+    `<li><a href="/cpa-software-with-open-api">Software with an open API</a></li>` +
+    `<li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li>` +
+    `<li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>`;
   const body = [
-    topbar,
-    catnav(c.key),
-    '<main class="wrap">',
-    crumb,
-    section,
-    "</main>",
-    sibnav,
-    method,
-    footer,
-    revealScript,
-    ld,
+    topbar, catnav(c.key), '<main class="wrap">', crumb, section, "</main>",
+    catFaqHtml, sibnav, guideNav, method, footerBlock, revealScript, ld,
   ].join("\n\n");
   const page = head(c.title, c.desc, url) + "\n<body>\n" + body + "\n</body>\n</html>\n";
   writeFileSync(base + "/deploy/" + c.slug + ".html", page);
@@ -357,7 +396,7 @@ for (const t of toolData) {
   const body = [
     topbar, catnav(t.catKey), '<main class="wrap">', crumb,
     `<div class="toolhero">${logoBig}<div><h1>${esc(t.name)}</h1><div class="toolsub">${catHtml} · ${t.seg}</div></div></div>`,
-    `<p class="toollede">${esc(t.desc)}</p>`, facts, connects, "</main>", related, method, footer, revealScript, ld,
+    `<p class="toollede">${esc(t.desc)}</p>`, facts, connects, "</main>", related, method, footerBlock, revealScript, ld,
   ].join("\n\n");
   const title = `${t.name} — Pricing, Features & Integration | CPA Field Guide`;
   const desc = esc(`${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`).slice(0, 300);
@@ -385,7 +424,7 @@ function guidePage(slug, title, h1, intro, groups, faq) {
   ] };
   const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
   const faqHtml = faq ? `<div class="faq"><div class="wrap"><h2>FAQ</h2>` + faq.map((f) => `<div class="qa"><h3>${f[0]}</h3><p>${f[1]}</p></div>`).join("") + `</div></div>` : "";
-  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">${h1}</h1>`, `<p class="toollede">${intro}</p>`, groupsHtml, "</main>", faqHtml, method, footer, revealScript, ld ].join("\n\n");
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">${h1}</h1>`, `<p class="toollede">${intro}</p>`, groupsHtml, "</main>", faqHtml, method, footerBlock, revealScript, ld ].join("\n\n");
   writeFileSync(base + "/deploy/" + slug + ".html", head(esc(title), esc(intro).replace(/<[^>]+>/g, "").slice(0, 300), url) + "\n<body>\n" + body + "\n</body>\n</html>\n");
   return url;
 }
@@ -415,6 +454,29 @@ const guideUrls = [
     "Tools that fit a small (roughly 2–10 person) US tax or accounting firm, grouped by what each does, with real starting prices.",
     seg("small")),
 ];
+
+// ---------- llms.txt (a map for AI answer engines / GEO) ----------
+const llms = `# CPA Field Guide
+> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms — tax preparation, deadline monitoring, practice management, and bookkeeping. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed ${DATE}.
+
+## Categories
+${cats.map((c) => `- [${c.label}](${ORIGIN}/${c.slug}): ${c.desc}`).join("\n")}
+
+## Guides
+- [CPA & accounting software with an open API](${ORIGIN}/cpa-software-with-open-api)
+- [Best software for solo CPA firms](${ORIGIN}/best-cpa-software-for-solo-firms)
+- [Best software for small CPA firms](${ORIGIN}/best-cpa-software-for-small-firms)
+
+## Tools
+${toolData.map((t) => `- [${t.name}](${ORIGIN}/tools/${t.slug}): ${t.catLabel}. ${t.price}. ${t.openLabel}. ${t.desc}`).join("\n")}
+`;
+writeFileSync(base + "/deploy/llms.txt", llms);
+
+// ---------- branded 404 ----------
+const notFound =
+  head("Page not found — CPA Field Guide", "That page does not exist. Browse the independent directory of US tax & accounting software.", ORIGIN + "/404") +
+  `\n<body>\n${topbar}\n\n${catnav("")}\n\n<main class="wrap"><div style="padding:56px 0 40px"><h1 class="gh1">Page not found</h1><p class="toollede">That page does not exist. Try the <a href="/">full directory</a>, or pick a category above.</p></div></main>\n\n${footerBlock}\n</body>\n</html>\n`;
+writeFileSync(base + "/deploy/404.html", notFound);
 
 // ---------- sitemap (home + categories + guides + tools) ----------
 const entries = [

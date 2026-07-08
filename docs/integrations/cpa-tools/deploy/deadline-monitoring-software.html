@@ -211,6 +211,12 @@
   .guides { border-top: 2px solid var(--ink); }
   .guides .wrap { padding: 26px 24px; }
   .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+  .footnav { border-top: 1px solid var(--line); background: var(--bg); }
+  .footnav .wrap { padding: 30px 24px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px; font-family: -apple-system, sans-serif; }
+  .footnav h3 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin: 0 0 9px; font-weight: 700; }
+  .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
+  .footnav a:hover { color: var(--ink); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -261,7 +267,11 @@
 
 </main>
 
+<div class="faq"><div class="wrap"><h2>Deadline &amp; Compliance Tracking — FAQ</h2><div class="qa"><h3>What is the difference between a deadline tracker and a compliance monitor?</h3><p>A passive tracker records the due dates you enter and rolls them forward. An active monitor also watches the IRS, state agencies, and FEMA and flags when a date changes and which clients it affects.</p></div><div class="qa"><h3>Is deadline tracking built into practice management software?</h3><p>Usually yes — Karbon, Canopy, TaxDome, Financial Cents, and Jetpack all include due-date tracking. The standalone tools here focus on it specifically.</p></div></div></div>
+
 <div class="sibnav"><div class="wrap"><h2>Other categories</h2><ul><li><a href="/">All 25 tools</a></li><li><a href="/tax-preparation-software">Tax Preparation (7)</a></li><li><a href="/practice-management-software">Practice Management (10)</a></li><li><a href="/accounting-software">Accounting &amp; Bookkeeping (5)</a></li></ul></div></div>
+
+<div class="sibnav"><div class="wrap"><h2>Related guides</h2><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>
 
 <div class="method">
   <div class="wrap">
@@ -275,6 +285,8 @@
     </div>
   </div>
 </div>
+
+<div class="footnav"><div class="wrap"><div><h3>Categories</h3><ul><li><a href="/tax-preparation-software">Tax prep</a></li><li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li><li><a href="/practice-management-software">Practice mgmt</a></li><li><a href="/accounting-software">Bookkeeping</a></li></ul></div><div><h3>Guides</h3><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div><div><h3>Directory</h3><ul><li><a href="/">All 25 tools</a></li></ul></div></div></div>
 
 <footer>
   <div class="wrap">
@@ -310,6 +322,9 @@
       "name": "CPA Field Guide",
       "url": "https://cpafieldguide.com/",
       "logo": "https://cpafieldguide.com/og.png",
+      "sameAs": [
+        "https://duedatehq.com"
+      ],
       "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
     },
     {
@@ -327,6 +342,13 @@
       "primaryImageOfPage": "https://cpafieldguide.com/og.png",
       "breadcrumb": {
         "@id": "https://cpafieldguide.com/deadline-monitoring-software#breadcrumb"
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [
+          ".faq h3",
+          ".faq p"
+        ]
       }
     },
     {
@@ -380,6 +402,27 @@
             "name": "ONESOURCE Calendar",
             "url": "https://www.thomsonreuters.com",
             "applicationCategory": "Deadline & Compliance Tracking software"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the difference between a deadline tracker and a compliance monitor?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A passive tracker records the due dates you enter and rolls them forward. An active monitor also watches the IRS, state agencies, and FEMA and flags when a date changes and which clients it affects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is deadline tracking built into practice management software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually yes — Karbon, Canopy, TaxDome, Financial Cents, and Jetpack all include due-date tracking. The standalone tools here focus on it specifically."
           }
         }
       ]
