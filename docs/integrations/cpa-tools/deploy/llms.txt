@@ -20,6 +20,14 @@
 - [QuickBooks Online vs Xero](https://cpafieldguide.com/quickbooks-online-vs-xero)
 - [Drake Tax vs UltraTax CS](https://cpafieldguide.com/drake-tax-vs-ultratax-cs)
 - [Lacerte vs ProSeries](https://cpafieldguide.com/lacerte-vs-proseries)
+- [TaxDome alternatives](https://cpafieldguide.com/taxdome-alternatives)
+- [Karbon alternatives](https://cpafieldguide.com/karbon-alternatives)
+- [Canopy alternatives](https://cpafieldguide.com/canopy-alternatives)
+- [QuickBooks Online alternatives](https://cpafieldguide.com/quickbooks-online-alternatives)
+- [Drake Tax alternatives](https://cpafieldguide.com/drake-tax-alternatives)
+
+## Data
+- [CPA software statistics 2026 (market share, pricing, APIs)](https://cpafieldguide.com/cpa-software-statistics)
 
 ## Tools
 - [Drake Tax](https://cpafieldguide.com/tools/drake-tax): Tax Preparation. From $2,145/yr. File export. Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
