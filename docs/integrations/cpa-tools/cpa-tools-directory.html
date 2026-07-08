@@ -22,14 +22,15 @@
   :root {
     --bg: #FFFFFF; --panel: #F4F4F1; --ink: #1A1A1A; --soft: #565654; --faint: #8C8C88;
     --line: #E7E7E3;
-    --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2E5A87;
+    --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2F6DA6;
+    --accent: #2F6DA6; --accent-soft: #EFF5FB; --accent-line: #D8E6F2;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
     font-family: "Iowan Old Style", Georgia, "Times New Roman", serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
   .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-  a { color: var(--open); }
+  a { color: var(--accent); }
 
   /* masthead */
   .topbar { border-bottom: 1px solid var(--line); }
@@ -56,7 +57,7 @@
   button.chip { font-family: -apple-system, sans-serif; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--soft);
     padding: 5px 12px; border-radius: 6px; font-size: 13px; transition: border-color .15s, color .15s, background .15s, transform .09s; }
   button.chip:hover { border-color: var(--ink); color: var(--ink); }
-  button.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
   button.chip:active { transform: scale(.95); }
   button.chip:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
   .sep { width: 1px; height: 18px; background: var(--line); margin: 0 3px; }
@@ -118,7 +119,7 @@
   .empty { display: none; font-family: -apple-system, sans-serif; color: var(--faint); font-size: 14px; padding: 24px 0; }
 
   /* methodology */
-  .method { border-top: 1px solid var(--line); margin-top: 44px; background: var(--panel); }
+  .method { border-top: 1px solid var(--accent-line); margin-top: 44px; background: var(--accent-soft); }
   .method .wrap { padding: 30px 24px; }
   .method h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
   .method .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-top: 18px; }
@@ -153,7 +154,7 @@
   .shot-img.loaded { opacity: 1; }
 
   /* FAQ (AEO) */
-  .faq { border-top: 1px solid var(--line); }
+  .faq { border-top: 1px solid var(--accent-line); background: var(--accent-soft); }
   .faq .wrap { padding: 30px 24px; }
   .faq h2 { font-size: 20px; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.01em; }
   .faq .qa { border-top: 1px solid var(--line); padding: 15px 0; max-width: 76ch; }
@@ -170,7 +171,7 @@
     <div class="brand">
       <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
         <rect width="30" height="30" rx="8" fill="#1A1A1A"/>
-        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#22936A"/>
+        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#2F6DA6"/>
         <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77"/>
         <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9"/>
       </svg>
