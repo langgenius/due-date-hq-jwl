@@ -1,386 +1,1186 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide</title>
-<meta name="description" content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.">
-<link rel="canonical" href="https://cpafieldguide.com/accounting-software">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
-<meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%2322936A'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="CPA Field Guide">
-<meta property="og:title" content="Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide">
-<meta property="og:description" content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.">
-<meta property="og:url" content="https://cpafieldguide.com/accounting-software">
-<meta property="og:image" content="https://cpafieldguide.com/og.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide">
-<meta name="twitter:description" content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.">
-<meta name="twitter:image" content="https://cpafieldguide.com/og.png">
-<meta name="theme-color" content="#1A1A1A">
-<meta name="author" content="CPA Field Guide">
-<link rel="alternate" hreflang="en-us" href="https://cpafieldguide.com/accounting-software">
-<link rel="alternate" hreflang="x-default" href="https://cpafieldguide.com/accounting-software">
-<link rel="sitemap" type="application/xml" href="/sitemap.xml">
-<style>
-  :root {
-    --bg: #FFFFFF; --panel: #F4F4F1; --ink: #1A1A1A; --soft: #565654; --faint: #8C8C88;
-    --line: #E7E7E3;
-    --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2E5A87;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
-  .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-  a { color: var(--open); }
-
-  /* masthead */
-  .topbar { border-bottom: 1px solid var(--line); }
-  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-mark { display: block; flex: none; }
-  .brand-text { font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.005em; }
-  .brand-text span { color: var(--faint); font-weight: 500; }
-  .topbar .kick { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
-
-  /* header */
-  header { border-bottom: 2px solid var(--ink); }
-  .head-inner { padding: 34px 0 22px; }
-  h1 { font-size: clamp(27px, 3.4vw, 36px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin: 0 0 10px; max-width: 22ch; }
-  .lede { font-family: -apple-system, sans-serif; font-size: 15px; color: var(--soft); margin: 0 0 18px; max-width: 60ch; }
-  .meta { font-family: -apple-system, sans-serif; font-size: 12.5px; color: var(--faint); display: flex; gap: 8px 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 13px; }
-  .meta b { color: var(--soft); font-weight: 600; }
-
-  /* controls */
-  .controls { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line); z-index: 5; transition: box-shadow .2s ease; }
-  .controls.scrolled { box-shadow: 0 8px 20px -16px rgba(0,0,0,.32); }
-  .controls .wrap { padding: 13px 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .clabel { font-family: -apple-system, sans-serif; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-right: 2px; }
-  button.chip { font-family: -apple-system, sans-serif; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--soft);
-    padding: 5px 12px; border-radius: 6px; font-size: 13px; transition: border-color .15s, color .15s, background .15s, transform .09s; }
-  button.chip:hover { border-color: var(--ink); color: var(--ink); }
-  button.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  button.chip:active { transform: scale(.95); }
-  button.chip:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
-  .sep { width: 1px; height: 18px; background: var(--line); margin: 0 3px; }
-
-  main { padding: 8px 0 20px; }
-  .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; }
-  .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
-  .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
-  .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
-
-  details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
-  details.criteria summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--info); list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 0; }
-  details.criteria summary::-webkit-details-marker { display: none; }
-  details.criteria summary::before { content: "▸"; font-size: 10px; transition: transform .15s ease; color: var(--faint); }
-  details.criteria[open] summary::before { transform: rotate(90deg); }
-  .crit-body { border-left: 2px solid var(--line); padding: 6px 0 2px 14px; margin: 8px 0 0; }
-  .crit-body p { font-size: 12.5px; color: var(--faint); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  .crit-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
-  .crit-body li { font-size: 13.5px; color: var(--soft); padding-left: 18px; position: relative; }
-  .crit-body li::before { content: "✓"; position: absolute; left: 0; color: var(--open); font-size: 12px; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-  .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg);
-    transition: transform .18s ease, box-shadow .2s ease, border-color .18s ease; }
-  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -18px rgba(20,20,18,.42); border-color: #D6D6D0; }
-  .card-body { padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .card-head { display: flex; align-items: center; gap: 11px; }
-  .logo { width: 38px; height: 38px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: center; flex: none;
-    font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; color: var(--soft); transition: transform .2s ease; }
-  .card:hover .logo { transform: scale(1.06) rotate(-2deg); }
-  .name { font-weight: 600; font-size: 17px; line-height: 1.15; }
-  .seg { font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--faint); margin-top: 2px; }
-  .desc { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.45; color: var(--soft); margin: 2px 0 0;
-    min-height: 4.35em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .shot { aspect-ratio: 16 / 9; border-top: 1px solid var(--line); overflow: hidden; position: relative;
-    display: flex; align-items: center; justify-content: center;
-    background:
-      radial-gradient(120% 140% at 82% -30%, color-mix(in srgb, var(--tint, #8C8C88) 16%, #fff), transparent 62%),
-      color-mix(in srgb, var(--tint, #8C8C88) 7%, #FFFFFF); }
-  .shot-mark { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 800;
-    font-size: clamp(42px, 8vw, 60px); letter-spacing: -0.03em; line-height: 1; user-select: none;
-    color: color-mix(in srgb, var(--tint, #8C8C88) 34%, transparent); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-  .card:hover .shot-mark { transform: scale(1.07); }
-  .card-foot { padding: 11px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
-  .tag { font-family: -apple-system, sans-serif; font-size: 12px; display: inline-flex; align-items: center; gap: 7px; color: var(--soft); }
-  .tag .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
-  .d-open{background:var(--open)} .d-gated{background:var(--gated)} .d-zap{background:var(--zap)} .d-closed{background:var(--closed)} .d-info{background:var(--info)}
-  .visit { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); transition: color .18s ease; }
-  .visit::after { content: " \2192"; opacity: 0; margin-left: -6px; transition: opacity .18s ease, margin-left .18s ease; }
-  .card:hover .visit { color: var(--soft); }
-  .card:hover .visit::after { opacity: 1; margin-left: 0; }
-
-  .legend { font-family: -apple-system, sans-serif; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--soft); padding: 30px 0 0; }
-  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
-  .legend .dot { width: 8px; height: 8px; border-radius: 999px; }
-  .empty { display: none; font-family: -apple-system, sans-serif; color: var(--faint); font-size: 14px; padding: 24px 0; }
-
-  /* methodology */
-  .method { border-top: 2px solid var(--ink); margin-top: 44px; background: var(--panel); }
-  .method .wrap { padding: 30px 24px; }
-  .method h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .method .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-top: 18px; }
-  .method h3 { font-family: -apple-system, sans-serif; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--info); margin: 0 0 6px; font-weight: 700; }
-  .method p { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--soft); margin: 0; }
-  .method .lead { font-family: -apple-system, sans-serif; font-size: 14px; color: var(--soft); max-width: 68ch; margin: 0; }
-
-  footer .wrap { padding: 22px 24px 48px; font-family: -apple-system, sans-serif; }
-  footer p { font-size: 12.5px; color: var(--faint); max-width: 66ch; margin: 0; }
-
-  @media (max-width: 640px) {
-    .topbar .kick { display: none; }
-    .brand-text span { display: none; }
-    .head-inner { padding: 24px 0 16px; }
-    h1 { font-size: 25px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-    .reveal { opacity: 1 !important; transform: none !important; }
-    .card:hover, .card:hover .logo, .brand:hover .brand-mark, .card:hover .shot::before { transform: none !important; }
-  }
-  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
-  .reveal.in { opacity: 1; transform: translateY(0); }
-  .brand-mark { transition: transform .5s cubic-bezier(.2,.85,.25,1); cursor: pointer; }
-  .brand:hover .brand-mark { transform: rotate(-24deg); }
-
-  /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
-  .logo { position: relative; overflow: hidden; }
-  .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; padding: 5px; opacity: 0; transition: opacity .25s ease; }
-  .logo-img.loaded { opacity: 1; }
-  .shot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; z-index: 1; }
-  .shot-img.loaded { opacity: 1; }
-
-  /* FAQ (AEO) */
-  .faq { border-top: 2px solid var(--ink); }
-  .faq .wrap { padding: 30px 24px; }
-  .faq h2 { font-size: 20px; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.01em; }
-  .faq .qa { border-top: 1px solid var(--line); padding: 15px 0; max-width: 76ch; }
-  .faq h3 { font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 6px; }
-  .faq p { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.55; color: var(--soft); margin: 0; max-width: 72ch; }
-
-  /* multi-page nav */
-  .catnav { border-bottom: 1px solid var(--line); background: var(--bg); }
-  .catnav .wrap { display: flex; flex-wrap: wrap; gap: 4px; padding: 9px 24px; font-family: -apple-system, sans-serif; }
-  .catnav a { font-size: 13px; color: var(--soft); text-decoration: none; padding: 5px 11px; border-radius: 6px; border: 1px solid transparent; }
-  .catnav a:hover { border-color: var(--line); color: var(--ink); }
-  .catnav a[aria-current="page"] { background: var(--ink); color: #fff; }
-  .crumb { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); padding: 16px 0 0; }
-  .crumb a { color: var(--soft); text-decoration: none; }
-  .crumb a:hover { text-decoration: underline; }
-  .cat-more { font-family: -apple-system, sans-serif; font-size: 12.5px; font-weight: 600; color: var(--info); text-decoration: none; margin-left: auto; white-space: nowrap; }
-  .cat-more:hover { text-decoration: underline; }
-  .cat-head h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
-  .sibnav { border-top: 1px solid var(--line); margin-top: 40px; }
-  .sibnav .wrap { padding: 24px 24px 6px; font-family: -apple-system, sans-serif; }
-  .sibnav h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin: 0 0 10px; font-weight: 700; }
-  .sibnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
-  .sibnav a { font-size: 14px; color: var(--info); text-decoration: none; }
-  .sibnav a:hover { text-decoration: underline; }
-</style>
-</head>
-<body>
-<div class="topbar">
-  <div class="wrap">
-    <div class="brand">
-      <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="8" fill="#1A1A1A"/>
-        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#22936A"/>
-        <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77"/>
-        <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9"/>
-      </svg>
-      <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
-    </div>
-    <span class="kick">Independent · editorial · no pay-to-list</span>
-  </div>
-</div>
-
-<nav class="catnav" aria-label="Categories">
-    <div class="wrap">
-      <a href="/">All</a>
-      <a href="/tax-preparation-software">Tax prep</a>
-      <a href="/deadline-monitoring-software">Deadlines & Monitoring</a>
-      <a href="/practice-management-software">Practice mgmt</a>
-      <a href="/accounting-software" aria-current="page">Bookkeeping</a>
-    </div>
-  </nav>
-
-<main class="wrap">
-
-<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Accounting &amp; Bookkeeping</nav></div>
-
-<section class="section" data-cat="ledger">
-    <div class="cat-head"><h1>Accounting &amp; Bookkeeping</h1><span class="count">5 tools</span></div>
-    <p class="cat-def">Accounting and bookkeeping software — the general ledger — records a business's financial transactions through bank feeds, invoicing, bills, and reporting. In a CPA context it is usually the client's book of record, which the firm accesses to perform write-up, review, close, and reporting work. Cloud ledgers like QuickBooks Online and Xero dominate the US small-business market, and most firm-facing tools connect back to them, which makes this layer the hub of a firm's integrations.</p>
-    <details class="criteria"><summary>How we define this category</summary><div class="crit-body"><p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p><ul>
-      <li>Record and categorize a business's financial transactions in a general ledger</li>
-      <li>Support bank and credit-card feeds and reconciliation</li>
-      <li>Produce core financial statements (profit &amp; loss, balance sheet)</li>
-      <li>Provide an accountant or firm view into client books</li>
-      <li>Offer invoicing and/or accounts-payable functions</li>
-    </ul></div></details>
-    <div class="grid">
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">QB</span><img class="asset logo-img"></div><div><div class="name">QuickBooks Online</div><div class="seg">Solo · mid</div></div></div><p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p></div><div class="shot" style="--tint:#2CA01C"><span class="shot-mark" aria-hidden="true">QB</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">quickbooks.intuit.com</span></div></article>
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#13B5EA;color:#fff;border-color:transparent"><span class="logo-mono">Xe</span><img class="asset logo-img"></div><div><div class="name">Xero</div><div class="seg">Solo · mid</div></div></div><p class="desc">#2 cloud ledger. Self-serve API, up to 25 orgs before certification.</p></div><div class="shot" style="--tint:#13B5EA"><span class="shot-mark" aria-hidden="true">Xe</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">xero.com</span></div></article>
-      <article class="card" data-seg="small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#14A05A;color:#fff;border-color:transparent"><span class="logo-mono">Bi</span><img class="asset logo-img"></div><div><div class="name">Bill.com</div><div class="seg">Small · mid</div></div></div><p class="desc">AP/AR and payments. The friendliest self-serve API here.</p></div><div class="shot" style="--tint:#14A05A"><span class="shot-mark" aria-hidden="true">Bi</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Open API</span><span class="visit">bill.com</span></div></article>
-      <article class="card" data-seg="small,mid,enterprise"><div class="card-body"><div class="card-head"><div class="logo" style="background:#00A33B;color:#fff;border-color:transparent"><span class="logo-mono">Sa</span><img class="asset logo-img"></div><div><div class="name">Sage</div><div class="seg">Small · enterprise</div></div></div><p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p></div><div class="shot" style="--tint:#00A33B"><span class="shot-mark" aria-hidden="true">Sa</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-gated"></span>Gated</span><span class="visit">sage.com</span></div></article>
-      <article class="card" data-seg="solo,small,mid"><div class="card-body"><div class="card-head"><div class="logo" style="background:#2CA01C;color:#fff;border-color:transparent"><span class="logo-mono">PA</span><img class="asset logo-img"></div><div><div class="name">ProAdvisor</div><div class="seg">Channel</div></div></div><p class="desc">Not a tool — the accountant program around QuickBooks. 500k members.</p></div><div class="shot" style="--tint:#2CA01C"><span class="shot-mark" aria-hidden="true">PA</span><img class="asset shot-img"></div><div class="card-foot"><span class="tag"><span class="dot d-open"></span>Partner program</span><span class="visit">quickbooks.intuit.com</span></div></article>
-    </div>
-  </section>
-
-</main>
-
-<div class="sibnav"><div class="wrap"><h2>Other categories</h2><ul><li><a href="/">All 26 tools</a></li><li><a href="/tax-preparation-software">Tax Preparation (7)</a></li><li><a href="/deadline-monitoring-software">Deadline &amp; Compliance Tracking (4)</a></li><li><a href="/practice-management-software">Practice Management (10)</a></li></ul></div></div>
-
-<div class="method">
-  <div class="wrap">
-    <h2>How this guide works</h2>
-    <p class="lead">Most software directories rank by who pays. This one doesn't. It's a plain editorial reference, written to be useful to a working firm rather than to any vendor — including the one that maintains it.</p>
-    <div class="grid3">
-      <div><h3>No pay-to-list</h3><p>No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and no paid badges. Every product that meets a category's criteria can appear.</p></div>
-      <div><h3>Only shipped capabilities</h3><p>Each tool is described only by features it has actually released, sourced from the vendor's own product and developer documentation (reviewed July 2026). Roadmap items are not counted.</p></div>
-      <div><h3>Categories a firm recognizes</h3><p>Categories follow how US practices actually evaluate software, each with a stated definition and inclusion criteria. Deadline tracking is treated as a capability of practice management, with a small specialist list called out.</p></div>
-      <div><h3>Who maintains it</h3><p>CPA Field Guide is written and maintained by the team behind <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in the guide. We describe every product — ours included — by the same standard, and never rank ours above its peers.</p></div>
-    </div>
-  </div>
-</div>
-
-<footer>
-  <div class="wrap">
-    <p>CPA Field Guide is an independent editorial reference to US tax and accounting software. Facts reviewed July 2026 from each vendor's own documentation. Something wrong or missing? Corrections are welcome.</p>
-  </div>
-</footer>
-
-<script>
-  (function () {
-    document.querySelectorAll("img.asset").forEach(function (img) {
-      var card = img.closest(".card"); var nm = card && card.querySelector(".name") ? card.querySelector(".name").textContent.trim() : "";
-      img.alt = nm ? (img.classList.contains("shot-img") ? nm + " screenshot" : nm + " logo") : "";
-      if (!img.getAttribute("src")) { img.remove(); return; }
-      img.addEventListener("load", function () { img.classList.add("loaded"); });
-      img.addEventListener("error", function () { img.remove(); });
-    });
-    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reduce && "IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var c = e.target; c.classList.add("in"); io.unobserve(c); setTimeout(function(){c.classList.remove("reveal","in");},650);} }); }, { rootMargin: "0px 0px -6% 0px" });
-      document.querySelectorAll(".card").forEach(function (c) { c.classList.add("reveal"); io.observe(c); });
-    }
-    var controls = document.querySelector(".catnav");
-  })();
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://cpafieldguide.com/#org",
-      "name": "CPA Field Guide",
-      "url": "https://cpafieldguide.com/",
-      "logo": "https://cpafieldguide.com/og.png",
-      "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
-    },
-    {
-      "@type": "CollectionPage",
-      "@id": "https://cpafieldguide.com/accounting-software#webpage",
-      "url": "https://cpafieldguide.com/accounting-software",
-      "name": "Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide",
-      "isPartOf": {
-        "@id": "https://cpafieldguide.com/#website"
-      },
-      "about": "Accounting & Bookkeeping software for CPA firms",
-      "inLanguage": "en-US",
-      "datePublished": "2026-07-08",
-      "dateModified": "2026-07-08",
-      "primaryImageOfPage": "https://cpafieldguide.com/og.png",
-      "breadcrumb": {
-        "@id": "https://cpafieldguide.com/accounting-software#breadcrumb"
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide</title>
+    <meta
+      name="description"
+      content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack."
+    />
+    <link rel="canonical" href="https://cpafieldguide.com/accounting-software" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+    <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%2322936A'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CPA Field Guide" />
+    <meta
+      property="og:title"
+      content="Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide"
+    />
+    <meta
+      property="og:description"
+      content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack."
+    />
+    <meta property="og:url" content="https://cpafieldguide.com/accounting-software" />
+    <meta property="og:image" content="https://cpafieldguide.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide"
+    />
+    <meta
+      name="twitter:description"
+      content="General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack."
+    />
+    <meta name="twitter:image" content="https://cpafieldguide.com/og.png" />
+    <meta name="theme-color" content="#1A1A1A" />
+    <meta name="author" content="CPA Field Guide" />
+    <link rel="alternate" hreflang="en-us" href="https://cpafieldguide.com/accounting-software" />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://cpafieldguide.com/accounting-software"
+    />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --panel: #f4f4f1;
+        --ink: #1a1a1a;
+        --soft: #565654;
+        --faint: #8c8c88;
+        --line: #e7e7e3;
+        --open: #1e7f57;
+        --gated: #9a6206;
+        --zap: #4a4a9a;
+        --closed: #6b6b66;
+        --info: #2e5a87;
       }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://cpafieldguide.com/accounting-software#breadcrumb",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "CPA Field Guide",
-          "item": "https://cpafieldguide.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Accounting & Bookkeeping",
-          "item": "https://cpafieldguide.com/accounting-software"
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .sans {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      a {
+        color: var(--open);
+      }
+
+      /* masthead */
+      .topbar {
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-mark {
+        display: block;
+        flex: none;
+      }
+      .brand-text {
+        font-family: -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: -0.005em;
+      }
+      .brand-text span {
+        color: var(--faint);
+        font-weight: 500;
+      }
+      .topbar .kick {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+      }
+
+      /* header */
+      header {
+        border-bottom: 2px solid var(--ink);
+      }
+      .head-inner {
+        padding: 34px 0 22px;
+      }
+      h1 {
+        font-size: clamp(27px, 3.4vw, 36px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        margin: 0 0 10px;
+        max-width: 22ch;
+      }
+      .lede {
+        font-family: -apple-system, sans-serif;
+        font-size: 15px;
+        color: var(--soft);
+        margin: 0 0 18px;
+        max-width: 60ch;
+      }
+      .meta {
+        font-family: -apple-system, sans-serif;
+        font-size: 12.5px;
+        color: var(--faint);
+        display: flex;
+        gap: 8px 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--line);
+        padding-top: 13px;
+      }
+      .meta b {
+        color: var(--soft);
+        font-weight: 600;
+      }
+
+      /* controls */
+      .controls {
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--line);
+        z-index: 5;
+        transition: box-shadow 0.2s ease;
+      }
+      .controls.scrolled {
+        box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.32);
+      }
+      .controls .wrap {
+        padding: 13px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .clabel {
+        font-family: -apple-system, sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 700;
+        margin-right: 2px;
+      }
+      button.chip {
+        font-family: -apple-system, sans-serif;
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--soft);
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        transition:
+          border-color 0.15s,
+          color 0.15s,
+          background 0.15s,
+          transform 0.09s;
+      }
+      button.chip:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+      button.chip[aria-pressed='true'] {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+      button.chip:active {
+        transform: scale(0.95);
+      }
+      button.chip:focus-visible {
+        outline: 2px solid var(--info);
+        outline-offset: 2px;
+      }
+      .sep {
+        width: 1px;
+        height: 18px;
+        background: var(--line);
+        margin: 0 3px;
+      }
+
+      main {
+        padding: 8px 0 20px;
+      }
+      .section {
+        margin-top: 40px;
+      }
+      .cat-head {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin: 0 0 8px;
+      }
+      .cat-head h2 {
+        font-size: 23px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        margin: 0;
+      }
+      .cat-head .count {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .cat-def {
+        font-family: -apple-system, sans-serif;
+        font-size: 14.5px;
+        color: var(--soft);
+        margin: 0 0 12px;
+        max-width: 74ch;
+      }
+
+      details.criteria {
+        font-family: -apple-system, sans-serif;
+        margin: 0 0 20px;
+        max-width: 74ch;
+      }
+      details.criteria summary {
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--info);
+        list-style: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 0;
+      }
+      details.criteria summary::-webkit-details-marker {
+        display: none;
+      }
+      details.criteria summary::before {
+        content: '▸';
+        font-size: 10px;
+        transition: transform 0.15s ease;
+        color: var(--faint);
+      }
+      details.criteria[open] summary::before {
+        transform: rotate(90deg);
+      }
+      .crit-body {
+        border-left: 2px solid var(--line);
+        padding: 6px 0 2px 14px;
+        margin: 8px 0 0;
+      }
+      .crit-body p {
+        font-size: 12.5px;
+        color: var(--faint);
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+      }
+      .crit-body ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .crit-body li {
+        font-size: 13.5px;
+        color: var(--soft);
+        padding-left: 18px;
+        position: relative;
+      }
+      .crit-body li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--open);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.2s ease,
+          border-color 0.18s ease;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px -18px rgba(20, 20, 18, 0.42);
+        border-color: #d6d6d0;
+      }
+      .card-body {
+        padding: 16px 16px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        font-family: -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--soft);
+        transition: transform 0.2s ease;
+      }
+      .card:hover .logo {
+        transform: scale(1.06) rotate(-2deg);
+      }
+      .name {
+        font-weight: 600;
+        font-size: 17px;
+        line-height: 1.15;
+      }
+      .seg {
+        font-family: -apple-system, sans-serif;
+        font-size: 11.5px;
+        color: var(--faint);
+        margin-top: 2px;
+      }
+      .desc {
+        font-family: -apple-system, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.45;
+        color: var(--soft);
+        margin: 2px 0 0;
+        min-height: 4.35em;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .shot {
+        aspect-ratio: 16 / 9;
+        border-top: 1px solid var(--line);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(
+            120% 140% at 82% -30%,
+            color-mix(in srgb, var(--tint, #8c8c88) 16%, #fff),
+            transparent 62%
+          ),
+          color-mix(in srgb, var(--tint, #8c8c88) 7%, #ffffff);
+      }
+      .shot-mark {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-weight: 800;
+        font-size: clamp(42px, 8vw, 60px);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        user-select: none;
+        color: color-mix(in srgb, var(--tint, #8c8c88) 34%, transparent);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .card:hover .shot-mark {
+        transform: scale(1.07);
+      }
+      .card-foot {
+        padding: 11px 16px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tag {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--soft);
+      }
+      .tag .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        flex: none;
+      }
+      .d-open {
+        background: var(--open);
+      }
+      .d-gated {
+        background: var(--gated);
+      }
+      .d-zap {
+        background: var(--zap);
+      }
+      .d-closed {
+        background: var(--closed);
+      }
+      .d-info {
+        background: var(--info);
+      }
+      .visit {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+        transition: color 0.18s ease;
+      }
+      .visit::after {
+        content: ' \2192';
+        opacity: 0;
+        margin-left: -6px;
+        transition:
+          opacity 0.18s ease,
+          margin-left 0.18s ease;
+      }
+      .card:hover .visit {
+        color: var(--soft);
+      }
+      .card:hover .visit::after {
+        opacity: 1;
+        margin-left: 0;
+      }
+
+      .legend {
+        font-family: -apple-system, sans-serif;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 12px;
+        color: var(--soft);
+        padding: 30px 0 0;
+      }
+      .legend .li {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .legend .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+      .empty {
+        display: none;
+        font-family: -apple-system, sans-serif;
+        color: var(--faint);
+        font-size: 14px;
+        padding: 24px 0;
+      }
+
+      /* methodology */
+      .method {
+        border-top: 2px solid var(--ink);
+        margin-top: 44px;
+        background: var(--panel);
+      }
+      .method .wrap {
+        padding: 30px 24px;
+      }
+      .method h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 6px;
+        letter-spacing: -0.01em;
+      }
+      .method .grid3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 22px;
+        margin-top: 18px;
+      }
+      .method h3 {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--info);
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      .method p {
+        font-family: -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--soft);
+        margin: 0;
+      }
+      .method .lead {
+        font-family: -apple-system, sans-serif;
+        font-size: 14px;
+        color: var(--soft);
+        max-width: 68ch;
+        margin: 0;
+      }
+
+      footer .wrap {
+        padding: 22px 24px 48px;
+        font-family: -apple-system, sans-serif;
+      }
+      footer p {
+        font-size: 12.5px;
+        color: var(--faint);
+        max-width: 66ch;
+        margin: 0;
+      }
+
+      @media (max-width: 640px) {
+        .topbar .kick {
+          display: none;
         }
-      ]
-    },
-    {
-      "@type": "ItemList",
-      "name": "Accounting & Bookkeeping software",
-      "numberOfItems": 5,
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "QuickBooks Online",
-            "url": "https://quickbooks.intuit.com",
-            "applicationCategory": "Accounting & Bookkeeping software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Xero",
-            "url": "https://www.xero.com",
-            "applicationCategory": "Accounting & Bookkeeping software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Bill.com",
-            "url": "https://www.bill.com",
-            "applicationCategory": "Accounting & Bookkeeping software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 4,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Sage",
-            "url": "https://www.sage.com",
-            "applicationCategory": "Accounting & Bookkeeping software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 5,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Intuit ProAdvisor",
-            "url": "https://quickbooks.intuit.com/accountants/proadvisor/",
-            "applicationCategory": "Accounting & Bookkeeping software"
-          }
+        .brand-text span {
+          display: none;
         }
-      ]
-    }
-  ]
-}
-</script>
-</body>
+        .head-inner {
+          padding: 24px 0 16px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+        .reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .card:hover,
+        .card:hover .logo,
+        .brand:hover .brand-mark,
+        .card:hover .shot::before {
+          transform: none !important;
+        }
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .brand-mark {
+        transition: transform 0.5s cubic-bezier(0.2, 0.85, 0.25, 1);
+        cursor: pointer;
+      }
+      .brand:hover .brand-mark {
+        transform: rotate(-24deg);
+      }
+
+      /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
+      .logo {
+        position: relative;
+        overflow: hidden;
+      }
+      .logo-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #fff;
+        padding: 5px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+      .logo-img.loaded {
+        opacity: 1;
+      }
+      .shot-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+      }
+      .shot-img.loaded {
+        opacity: 1;
+      }
+
+      /* FAQ (AEO) */
+      .faq {
+        border-top: 2px solid var(--ink);
+      }
+      .faq .wrap {
+        padding: 30px 24px;
+      }
+      .faq h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 14px;
+        letter-spacing: -0.01em;
+      }
+      .faq .qa {
+        border-top: 1px solid var(--line);
+        padding: 15px 0;
+        max-width: 76ch;
+      }
+      .faq h3 {
+        font-family: -apple-system, sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .faq p {
+        font-family: -apple-system, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: var(--soft);
+        margin: 0;
+        max-width: 72ch;
+      }
+
+      /* multi-page nav */
+      .catnav {
+        border-bottom: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .catnav .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 9px 24px;
+        font-family: -apple-system, sans-serif;
+      }
+      .catnav a {
+        font-size: 13px;
+        color: var(--soft);
+        text-decoration: none;
+        padding: 5px 11px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+      }
+      .catnav a:hover {
+        border-color: var(--line);
+        color: var(--ink);
+      }
+      .catnav a[aria-current='page'] {
+        background: var(--ink);
+        color: #fff;
+      }
+      .crumb {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+        padding: 16px 0 0;
+      }
+      .crumb a {
+        color: var(--soft);
+        text-decoration: none;
+      }
+      .crumb a:hover {
+        text-decoration: underline;
+      }
+      .cat-more {
+        font-family: -apple-system, sans-serif;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--info);
+        text-decoration: none;
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .cat-more:hover {
+        text-decoration: underline;
+      }
+      .cat-head h1 {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .sibnav {
+        border-top: 1px solid var(--line);
+        margin-top: 40px;
+      }
+      .sibnav .wrap {
+        padding: 24px 24px 6px;
+        font-family: -apple-system, sans-serif;
+      }
+      .sibnav h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--faint);
+        margin: 0 0 10px;
+        font-weight: 700;
+      }
+      .sibnav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+      }
+      .sibnav a {
+        font-size: 14px;
+        color: var(--info);
+        text-decoration: none;
+      }
+      .sibnav a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="wrap">
+        <div class="brand">
+          <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+            <rect width="30" height="30" rx="8" fill="#1A1A1A" />
+            <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#22936A" />
+            <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77" />
+            <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9" />
+          </svg>
+          <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
+        </div>
+        <span class="kick">Independent · editorial · no pay-to-list</span>
+      </div>
+    </div>
+
+    <nav class="catnav" aria-label="Categories">
+      <div class="wrap">
+        <a href="/">All</a>
+        <a href="/tax-preparation-software">Tax prep</a>
+        <a href="/deadline-monitoring-software">Deadlines & Monitoring</a>
+        <a href="/practice-management-software">Practice mgmt</a>
+        <a href="/accounting-software" aria-current="page">Bookkeeping</a>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <div class="wrap">
+        <nav class="crumb" aria-label="Breadcrumb">
+          <a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Accounting &amp; Bookkeeping
+        </nav>
+      </div>
+
+      <section class="section" data-cat="ledger">
+        <div class="cat-head">
+          <h1>Accounting &amp; Bookkeeping</h1>
+          <span class="count">5 tools</span>
+        </div>
+        <p class="cat-def">
+          Accounting and bookkeeping software — the general ledger — records a business's financial
+          transactions through bank feeds, invoicing, bills, and reporting. In a CPA context it is
+          usually the client's book of record, which the firm accesses to perform write-up, review,
+          close, and reporting work. Cloud ledgers like QuickBooks Online and Xero dominate the US
+          small-business market, and most firm-facing tools connect back to them, which makes this
+          layer the hub of a firm's integrations.
+        </p>
+        <details class="criteria">
+          <summary>How we define this category</summary>
+          <div class="crit-body">
+            <p>To qualify for inclusion in Accounting &amp; Bookkeeping, a product must:</p>
+            <ul>
+              <li>Record and categorize a business's financial transactions in a general ledger</li>
+              <li>Support bank and credit-card feeds and reconciliation</li>
+              <li>Produce core financial statements (profit &amp; loss, balance sheet)</li>
+              <li>Provide an accountant or firm view into client books</li>
+              <li>Offer invoicing and/or accounts-payable functions</li>
+            </ul>
+          </div>
+        </details>
+        <div class="grid">
+          <article class="card" data-seg="solo,small,mid">
+            <div class="card-body">
+              <div class="card-head">
+                <div
+                  class="logo"
+                  style="background: #2ca01c; color: #fff; border-color: transparent"
+                >
+                  <span class="logo-mono">QB</span><img class="asset logo-img" />
+                </div>
+                <div>
+                  <div class="name">QuickBooks Online</div>
+                  <div class="seg">Solo · mid</div>
+                </div>
+              </div>
+              <p class="desc">Dominant US ledger, 500k ProAdvisors. Self-serve API.</p>
+            </div>
+            <div class="shot" style="--tint: #2ca01c">
+              <span class="shot-mark" aria-hidden="true">QB</span><img class="asset shot-img" />
+            </div>
+            <div class="card-foot">
+              <span class="tag"><span class="dot d-open"></span>Open API</span
+              ><span class="visit">quickbooks.intuit.com</span>
+            </div>
+          </article>
+          <article class="card" data-seg="solo,small,mid">
+            <div class="card-body">
+              <div class="card-head">
+                <div
+                  class="logo"
+                  style="background: #13b5ea; color: #fff; border-color: transparent"
+                >
+                  <span class="logo-mono">Xe</span><img class="asset logo-img" />
+                </div>
+                <div>
+                  <div class="name">Xero</div>
+                  <div class="seg">Solo · mid</div>
+                </div>
+              </div>
+              <p class="desc">
+                #2 cloud ledger. Self-serve API, up to 25 orgs before certification.
+              </p>
+            </div>
+            <div class="shot" style="--tint: #13b5ea">
+              <span class="shot-mark" aria-hidden="true">Xe</span><img class="asset shot-img" />
+            </div>
+            <div class="card-foot">
+              <span class="tag"><span class="dot d-open"></span>Open API</span
+              ><span class="visit">xero.com</span>
+            </div>
+          </article>
+          <article class="card" data-seg="small,mid">
+            <div class="card-body">
+              <div class="card-head">
+                <div
+                  class="logo"
+                  style="background: #14a05a; color: #fff; border-color: transparent"
+                >
+                  <span class="logo-mono">Bi</span><img class="asset logo-img" />
+                </div>
+                <div>
+                  <div class="name">Bill.com</div>
+                  <div class="seg">Small · mid</div>
+                </div>
+              </div>
+              <p class="desc">AP/AR and payments. The friendliest self-serve API here.</p>
+            </div>
+            <div class="shot" style="--tint: #14a05a">
+              <span class="shot-mark" aria-hidden="true">Bi</span><img class="asset shot-img" />
+            </div>
+            <div class="card-foot">
+              <span class="tag"><span class="dot d-open"></span>Open API</span
+              ><span class="visit">bill.com</span>
+            </div>
+          </article>
+          <article class="card" data-seg="small,mid,enterprise">
+            <div class="card-body">
+              <div class="card-head">
+                <div
+                  class="logo"
+                  style="background: #00a33b; color: #fff; border-color: transparent"
+                >
+                  <span class="logo-mono">Sa</span><img class="asset logo-img" />
+                </div>
+                <div>
+                  <div class="name">Sage</div>
+                  <div class="seg">Small · enterprise</div>
+                </div>
+              </div>
+              <p class="desc">SMB Accounting through mid-market Intacct. APIs are fragmented.</p>
+            </div>
+            <div class="shot" style="--tint: #00a33b">
+              <span class="shot-mark" aria-hidden="true">Sa</span><img class="asset shot-img" />
+            </div>
+            <div class="card-foot">
+              <span class="tag"><span class="dot d-gated"></span>Gated</span
+              ><span class="visit">sage.com</span>
+            </div>
+          </article>
+          <article class="card" data-seg="solo,small,mid">
+            <div class="card-body">
+              <div class="card-head">
+                <div
+                  class="logo"
+                  style="background: #2ca01c; color: #fff; border-color: transparent"
+                >
+                  <span class="logo-mono">PA</span><img class="asset logo-img" />
+                </div>
+                <div>
+                  <div class="name">ProAdvisor</div>
+                  <div class="seg">Channel</div>
+                </div>
+              </div>
+              <p class="desc">
+                Not a tool — the accountant program around QuickBooks. 500k members.
+              </p>
+            </div>
+            <div class="shot" style="--tint: #2ca01c">
+              <span class="shot-mark" aria-hidden="true">PA</span><img class="asset shot-img" />
+            </div>
+            <div class="card-foot">
+              <span class="tag"><span class="dot d-open"></span>Partner program</span
+              ><span class="visit">quickbooks.intuit.com</span>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div class="sibnav">
+      <div class="wrap">
+        <h2>Other categories</h2>
+        <ul>
+          <li><a href="/">All 26 tools</a></li>
+          <li><a href="/tax-preparation-software">Tax Preparation (7)</a></li>
+          <li>
+            <a href="/deadline-monitoring-software">Deadline &amp; Compliance Tracking (4)</a>
+          </li>
+          <li><a href="/practice-management-software">Practice Management (10)</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="wrap">
+        <h2>How this guide works</h2>
+        <p class="lead">
+          Most software directories rank by who pays. This one doesn't. It's a plain editorial
+          reference, written to be useful to a working firm rather than to any vendor — including
+          the one that maintains it.
+        </p>
+        <div class="grid3">
+          <div>
+            <h3>No pay-to-list</h3>
+            <p>
+              No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and
+              no paid badges. Every product that meets a category's criteria can appear.
+            </p>
+          </div>
+          <div>
+            <h3>Only shipped capabilities</h3>
+            <p>
+              Each tool is described only by features it has actually released, sourced from the
+              vendor's own product and developer documentation (reviewed July 2026). Roadmap items
+              are not counted.
+            </p>
+          </div>
+          <div>
+            <h3>Categories a firm recognizes</h3>
+            <p>
+              Categories follow how US practices actually evaluate software, each with a stated
+              definition and inclusion criteria. Deadline tracking is treated as a capability of
+              practice management, with a small specialist list called out.
+            </p>
+          </div>
+          <div>
+            <h3>Who maintains it</h3>
+            <p>
+              CPA Field Guide is written and maintained by the team behind
+              <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in
+              the guide. We describe every product — ours included — by the same standard, and never
+              rank ours above its peers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          CPA Field Guide is an independent editorial reference to US tax and accounting software.
+          Facts reviewed July 2026 from each vendor's own documentation. Something wrong or missing?
+          Corrections are welcome.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      ;(function () {
+        document.querySelectorAll('img.asset').forEach(function (img) {
+          var card = img.closest('.card')
+          var nm =
+            card && card.querySelector('.name')
+              ? card.querySelector('.name').textContent.trim()
+              : ''
+          img.alt = nm
+            ? img.classList.contains('shot-img')
+              ? nm + ' screenshot'
+              : nm + ' logo'
+            : ''
+          if (!img.getAttribute('src')) {
+            img.remove()
+            return
+          }
+          img.addEventListener('load', function () {
+            img.classList.add('loaded')
+          })
+          img.addEventListener('error', function () {
+            img.remove()
+          })
+        })
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (!reduce && 'IntersectionObserver' in window) {
+          var io = new IntersectionObserver(
+            function (es) {
+              es.forEach(function (e) {
+                if (e.isIntersecting) {
+                  var c = e.target
+                  c.classList.add('in')
+                  io.unobserve(c)
+                  setTimeout(function () {
+                    c.classList.remove('reveal', 'in')
+                  }, 650)
+                }
+              })
+            },
+            { rootMargin: '0px 0px -6% 0px' },
+          )
+          document.querySelectorAll('.card').forEach(function (c) {
+            c.classList.add('reveal')
+            io.observe(c)
+          })
+        }
+        var controls = document.querySelector('.catnav')
+      })()
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://cpafieldguide.com/#org",
+            "name": "CPA Field Guide",
+            "url": "https://cpafieldguide.com/",
+            "logo": "https://cpafieldguide.com/og.png",
+            "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
+          },
+          {
+            "@type": "CollectionPage",
+            "@id": "https://cpafieldguide.com/accounting-software#webpage",
+            "url": "https://cpafieldguide.com/accounting-software",
+            "name": "Accounting & Bookkeeping Software for CPA Firms — CPA Field Guide",
+            "isPartOf": {
+              "@id": "https://cpafieldguide.com/#website"
+            },
+            "about": "Accounting & Bookkeeping software for CPA firms",
+            "inLanguage": "en-US",
+            "datePublished": "2026-07-08",
+            "dateModified": "2026-07-08",
+            "primaryImageOfPage": "https://cpafieldguide.com/og.png",
+            "breadcrumb": {
+              "@id": "https://cpafieldguide.com/accounting-software#breadcrumb"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://cpafieldguide.com/accounting-software#breadcrumb",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "CPA Field Guide",
+                "item": "https://cpafieldguide.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Accounting & Bookkeeping",
+                "item": "https://cpafieldguide.com/accounting-software"
+              }
+            ]
+          },
+          {
+            "@type": "ItemList",
+            "name": "Accounting & Bookkeeping software",
+            "numberOfItems": 5,
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "QuickBooks Online",
+                  "url": "https://quickbooks.intuit.com",
+                  "applicationCategory": "Accounting & Bookkeeping software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Xero",
+                  "url": "https://www.xero.com",
+                  "applicationCategory": "Accounting & Bookkeeping software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Bill.com",
+                  "url": "https://www.bill.com",
+                  "applicationCategory": "Accounting & Bookkeeping software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Sage",
+                  "url": "https://www.sage.com",
+                  "applicationCategory": "Accounting & Bookkeeping software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Intuit ProAdvisor",
+                  "url": "https://quickbooks.intuit.com/accountants/proadvisor/",
+                  "applicationCategory": "Accounting & Bookkeeping software"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </body>
 </html>
