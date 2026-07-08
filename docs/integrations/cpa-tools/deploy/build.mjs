@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 const base = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -9,7 +9,31 @@ const ORIGIN = "https://cpafieldguide.com";
 // ---- extract shared parts by index (avoids nested-div regex pitfalls) ----
 let style = (src.match(/<style>[\s\S]*?<\/style>/) || [""])[0];
 const iStyleEnd = src.indexOf("</style>") + "</style>".length;
-const fullBody = src.slice(iStyleEnd).trim();
+let fullBody = src.slice(iStyleEnd).trim();
+
+// ---- auto-wire real logo/screenshot files when present (deploy/logos/<slug>.*, deploy/shots/<slug>.*) ----
+// Drop a file named by the tool slug and it renders; otherwise the branded panel/tile shows. No HTML edits.
+function assetMap(dir) {
+  const d = resolve(base, "deploy", dir);
+  if (!existsSync(d)) return {};
+  const m = {};
+  for (const f of readdirSync(d)) {
+    if (f.startsWith(".") || /readme/i.test(f) || /gitkeep/i.test(f)) continue;
+    m[f.replace(/\.[^.]+$/, "").toLowerCase()] = f;
+  }
+  return m;
+}
+const _logos = assetMap("logos");
+const _shots = assetMap("shots");
+const _slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+fullBody = fullBody.replace(/<article class="card"[\s\S]*?<\/article>/g, (card) => {
+  const nm = (card.match(/<div class="name">([^<]+)<\/div>/) || [])[1];
+  if (!nm) return card;
+  const s = _slug(nm);
+  if (_logos[s]) card = card.replace('<img class="asset logo-img">', `<img class="asset logo-img" src="logos/${_logos[s]}">`);
+  if (_shots[s]) card = card.replace('<img class="asset shot-img">', `<img class="asset shot-img" src="shots/${_shots[s]}">`);
+  return card;
+});
 const topbar = fullBody.slice(fullBody.indexOf('<div class="topbar">'), fullBody.indexOf("<header>")).trim();
 const method = fullBody.slice(fullBody.indexOf('<div class="method">'), fullBody.indexOf("<footer>")).trim();
 const footer = fullBody.slice(fullBody.indexOf("<footer>"), fullBody.indexOf("</footer>") + "</footer>".length).trim();
@@ -46,9 +70,9 @@ const cats = [
   { key: "tax", slug: "tax-preparation-software", label: "Tax Preparation", nav: "Tax prep", n: 7,
     title: "Tax Preparation Software for CPA Firms (2026) — CPA Field Guide",
     desc: "Professional tax preparation software for US CPA firms: Drake, Lacerte, ProConnect, ProSeries, UltraTax CS, CCH Axcess, and ATX — what each does, who it fits, and how open it is to integration." },
-  { key: "monitor", slug: "deadline-monitoring-software", label: "Deadline & Compliance Tracking", nav: "Deadlines & Monitoring", n: 4,
+  { key: "monitor", slug: "deadline-monitoring-software", label: "Deadline & Compliance Tracking", nav: "Deadlines & Monitoring", n: 3,
     title: "Tax Deadline & Compliance Monitoring Software — CPA Field Guide",
-    desc: "Deadline tracking and compliance monitoring tools for CPA firms: File In Time, DueDateHQ, ACI TaskTracker, and ONESOURCE Calendar — passive trackers versus active monitors that watch the IRS, states, and FEMA." },
+    desc: "Deadline tracking and compliance monitoring tools for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive trackers versus active monitors that watch the IRS, states, and FEMA." },
   { key: "pm", slug: "practice-management-software", label: "Practice Management", nav: "Practice mgmt", n: 10,
     title: "Accounting Practice Management Software — CPA Field Guide",
     desc: "Practice management and workflow software for accounting firms: Karbon, TaxDome, Canopy, Financial Cents, Jetpack Workflow, Keeper, Firm360, Pixie, Aiwyn, and Ignition — features, firm-size fit, and API openness." },
@@ -69,7 +93,6 @@ const tools = [
   ["ATX", "https://www.wolterskluwer.com/en/solutions/atx", "Tax Preparation"],
   ["File In Time", "https://www.timevalue.com/file-in-time", "Deadline & Compliance Tracking"],
   ["DueDateHQ", "https://duedatehq.com", "Deadline & Compliance Tracking"],
-  ["ACI TaskTracker", "https://www.acisystems.net", "Deadline & Compliance Tracking"],
   ["ONESOURCE Calendar", "https://www.thomsonreuters.com", "Deadline & Compliance Tracking"],
   ["Karbon", "https://karbonhq.com", "Practice Management"],
   ["TaxDome", "https://taxdome.com", "Practice Management"],
