@@ -52,7 +52,7 @@ const navCss = `
   .catnav .wrap { display: flex; flex-wrap: wrap; gap: 4px; padding: 9px 24px; font-family: -apple-system, sans-serif; }
   .catnav a { font-size: 13px; color: var(--soft); text-decoration: none; padding: 5px 11px; border-radius: 6px; border: 1px solid transparent; }
   .catnav a:hover { border-color: var(--line); color: var(--ink); }
-  .catnav a[aria-current="page"] { background: var(--ink); color: #fff; }
+  .catnav a[aria-current="page"] { background: var(--accent); color: #fff; }
   .crumb { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); padding: 16px 0 0; }
   .crumb a { color: var(--soft); text-decoration: none; }
   .crumb a:hover { text-decoration: underline; }
@@ -86,7 +86,7 @@ const navCss = `
   .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
   .toollist a { color: var(--info); text-decoration: none; font-weight: 600; font-size: 15px; }
   .toollist a:hover { text-decoration: underline; }
-  .guides { border-top: 1px solid var(--line); }
+  .guides { border-top: 1px solid var(--accent-line); background: var(--accent-soft); }
   .guides .wrap { padding: 26px 24px; }
   .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
   .footnav { border-top: 1px solid var(--line); background: var(--bg); }
@@ -224,7 +224,7 @@ const org = {
 };
 
 function head(title, desc, canonical) {
-  const fav = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%2322936A'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>";
+  const fav = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%232F6DA6'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>";
   return `<!doctype html>
 <html lang="en">
 <head>

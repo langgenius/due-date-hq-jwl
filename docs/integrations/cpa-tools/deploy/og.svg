@@ -6,7 +6,7 @@
   <!-- compass mark -->
   <g transform="translate(80,86)">
     <rect width="72" height="72" rx="18" fill="#1A1A1A"/>
-    <path d="M36 13 L44 36 L28 36 Z" fill="#22936A"/>
+    <path d="M36 13 L44 36 L28 36 Z" fill="#2F6DA6"/>
     <path d="M36 59 L28 36 L44 36 Z" fill="#7C7C77"/>
     <circle cx="36" cy="36" r="3.4" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="2"/>
   </g>
