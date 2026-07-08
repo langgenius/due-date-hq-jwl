@@ -174,7 +174,7 @@ const esc = (s) => String(s).replace(/&(?!amp;|lt;|gt;|#\d)/g, "&amp;");
 const footerNav = `<div class="footnav"><div class="wrap">` +
   `<div><h3>Categories</h3><ul>${cats.map((c) => `<li><a href="/${c.slug}">${c.nav}</a></li>`).join("")}</ul></div>` +
   `<div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
-  `<div><h3>Directory</h3><ul><li><a href="/">All ${toolData.length} tools</a></li></ul></div>` +
+  `<div><h3>Directory</h3><ul><li><a href="/">All ${toolData.length} tools</a></li><li><a href="/compare">Compare all</a></li><li><a href="/cpa-software-statistics">Statistics</a></li></ul></div>` +
   `</div></div>`;
 const footerBlock = footerNav + "\n\n" + footer;
 
@@ -511,6 +511,64 @@ function vsPage(A, B) {
 const vsList = [["taxdome", "canopy"], ["karbon", "taxdome"], ["canopy", "karbon"], ["quickbooks-online", "xero"], ["drake-tax", "ultratax-cs"], ["lacerte", "proseries"]]
   .map(([a, b]) => (bySlug[a] && bySlug[b]) ? vsPage(bySlug[a], bySlug[b]) : null).filter(Boolean);
 
+// ---------- "X alternatives" PAGES ----------
+function altPage(T) {
+  const slug = `${T.slug}-alternatives`;
+  const url = `${ORIGIN}/${slug}`;
+  const alts = toolData.filter((x) => x.catKey === T.catKey && x.slug !== T.slug);
+  const catl = T.catLabel.toLowerCase().replace("&", "and");
+  const intro = `Looking for an alternative to ${T.name}? Here are the other ${catl} tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.`;
+  const cheaper = alts.filter((a) => /^from \$/i.test(a.price));
+  const list = `<ul class="toollist">` + alts.map((a) => `<li><a href="/tools/${a.slug}">${esc(a.name)}</a> <span class="muted">— ${esc(a.price)} · ${esc(a.openLabel)}${a.share ? ` · ${esc(a.share)}` : ""}</span></li>`).join("") + `</ul>`;
+  const faq = [
+    [`What is the best alternative to ${T.name}?`, `The closest ${catl} alternatives are ${alts.slice(0, 3).map((a) => a.name).join(", ")}. The right pick depends on price and how open you need the integration to be — compare them above.`],
+    [`Is there a cheaper alternative to ${T.name}?`, `${T.name}'s pricing is ${T.price}. Lower-priced ${catl} options include ${cheaper.slice(0, 3).map((a) => a.name + " (" + a.price + ")").join(", ") || "several of the tools listed above"}.`],
+  ];
+  const faqHtml = `<div class="faq"><div class="wrap"><h2>${esc(T.name)} alternatives — FAQ</h2>` + faq.map((f) => `<div class="qa"><h3>${esc(f[0])}</h3><p>${esc(f[1])}</p></div>`).join("") + `</div></div>`;
+  const back = `<div class="sibnav"><div class="wrap"><h2>See also</h2><ul><li><a href="/tools/${T.slug}">${esc(T.name)} full profile</a></li><li><a href="/${T.catSlug}">All ${T.catLabel.replace("&", "&amp;")} tools</a></li></ul></div></div>`;
+  const graph = { "@context": "https://schema.org", "@graph": [ org,
+    { "@type": "CollectionPage", "@id": url + "#webpage", url, name: `${T.name} alternatives`, isPartOf: { "@id": ORIGIN + "/#website" }, inLanguage: "en-US", datePublished: DATE, dateModified: DATE, primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": url + "#breadcrumb" } },
+    { "@type": "BreadcrumbList", "@id": url + "#breadcrumb", itemListElement: [ { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" }, { "@type": "ListItem", position: 2, name: `${T.name} alternatives`, item: url } ] },
+    { "@type": "ItemList", numberOfItems: alts.length, itemListElement: alts.map((a, i) => ({ "@type": "ListItem", position: i + 1, item: { "@type": "SoftwareApplication", name: a.name, url: a.url || `${ORIGIN}/tools/${a.slug}`, applicationCategory: a.catLabel + " software" } })) },
+    { "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) },
+  ] };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; ${esc(T.name)} alternatives</nav></div>`;
+  const body = [ topbar, catnav(T.catKey), '<main class="wrap">', crumb, `<h1 class="gh1">${esc(T.name)} alternatives</h1>`, `<p class="toollede">${esc(intro)}</p>`, list, "</main>", faqHtml, back, method, footerBlock, revealScript, ld ].join("\n\n");
+  writeFileSync(base + "/deploy/" + slug + ".html", head(`${T.name} Alternatives (2026): Compared for US Firms — CPA Field Guide`, esc(intro).slice(0, 300), url) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+  return { url, path: "/" + slug, name: T.name };
+}
+const altList = ["taxdome", "karbon", "canopy", "quickbooks-online", "drake-tax"].map((s) => bySlug[s] ? altPage(bySlug[s]) : null).filter(Boolean);
+
+// ---------- STATS PAGE (citeable data for AEO/GEO) ----------
+const statsUrl = ORIGIN + "/cpa-software-statistics";
+{
+  const shareTools = toolData.filter((t) => / share$/.test(t.share)).map((t) => ({ n: t.name, s: t.share })).sort((a, b) => parseFloat(b.s) - parseFloat(a.s));
+  const openLabels = { "d-open": "Open, self-serve API", "d-gated": "Gated API (approval / plan / partner)", "d-zap": "Zapier only (no direct API)", "d-closed": "No public API (file export)", "d-info": "No public API yet" };
+  const openCounts = {}; toolData.forEach((t) => { openCounts[t.openClass] = (openCounts[t.openClass] || 0) + 1; });
+  const shareTable = `<div class="tablewrap"><table class="cmp"><thead><tr><th>Tax software</th><th>Market share (2025 AICPA survey)</th></tr></thead><tbody>${shareTools.map((r) => `<tr><td>${esc(r.n)}</td><td>${esc(r.s.replace(/ share$/, ""))}</td></tr>`).join("")}</tbody></table></div>`;
+  const openList = `<ul class="toollist">${Object.entries(openLabels).filter(([k]) => openCounts[k]).map(([k, l]) => `<li><span class="muted">${openCounts[k]} of ${toolData.length}</span> — ${l}</li>`).join("")}</ul>`;
+  const faq = [
+    ["What tax software has the largest market share?", `Thomson Reuters UltraTax CS leads at ${(shareTools[0] || {}).s || "~23%"} of surveyed firms, followed by Drake Tax and Intuit Lacerte (2025 AICPA tax software survey).`],
+    ["How many CPA tools offer an open API?", `${openCounts["d-open"] || 0} of the ${toolData.length} tools in this guide offer a self-serve public API; ${openCounts["d-gated"] || 0} have a gated API, and the rest connect only via Zapier or file export.`],
+  ];
+  const faqHtml = `<div class="faq"><div class="wrap"><h2>FAQ</h2>` + faq.map((f) => `<div class="qa"><h3>${esc(f[0])}</h3><p>${esc(f[1])}</p></div>`).join("") + `</div></div>`;
+  const graph = { "@context": "https://schema.org", "@graph": [ org,
+    { "@type": "CollectionPage", "@id": statsUrl + "#webpage", url: statsUrl, name: "CPA & accounting software statistics 2026", isPartOf: { "@id": ORIGIN + "/#website" }, inLanguage: "en-US", datePublished: DATE, dateModified: DATE, primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": statsUrl + "#breadcrumb" } },
+    { "@type": "BreadcrumbList", "@id": statsUrl + "#breadcrumb", itemListElement: [ { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" }, { "@type": "ListItem", position: 2, name: "Statistics", item: statsUrl } ] },
+    { "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) },
+  ] };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Statistics</nav></div>`;
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb,
+    `<h1 class="gh1">CPA &amp; accounting software, by the numbers</h1>`,
+    `<p class="toollede">Market share, integration openness, and pricing across the ${toolData.length} US tax and accounting tools in this guide. Sourced; updated ${DATE}.</p>`,
+    `<h2 class="gh">Tax software market share</h2><p class="toolsection">Usage share among 2,011 US preparers in the 2025 AICPA / Journal of Accountancy tax software survey.</p>`, shareTable,
+    `<h2 class="gh">Integration openness</h2><p class="toolsection">How the ${toolData.length} tools break down by how easy they are to connect to:</p>`, openList,
+    "</main>", faqHtml, method, footerBlock, revealScript, ld ].join("\n\n");
+  writeFileSync(base + "/deploy/cpa-software-statistics.html", head("CPA & Accounting Software Statistics 2026 (Market Share, Pricing, APIs) — CPA Field Guide", "Data on US tax and accounting software: tax-prep market share (2025 AICPA survey), integration openness, and pricing across 25 tools. Sourced, independent.", statsUrl) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+}
+
 // ---------- COMPARE PAGE (/compare) ----------
 const compareUrl = ORIGIN + "/compare";
 {
@@ -524,7 +582,8 @@ const compareUrl = ORIGIN + "/compare";
   ] };
   const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
   const vsBlock = vsList.length ? `<div class="sibnav"><div class="wrap"><h2>Popular comparisons</h2><ul>` + vsList.map((v) => `<li><a href="${v.path}">${esc(v.aName)} vs ${esc(v.bName)}</a></li>`).join("") + `</ul></div></div>` : "";
-  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">Compare every CPA &amp; accounting tool</h1>`, `<p class="toollede">All ${toolData.length} tools in one table — category, firm-size fit, starting price, and how open each is to integration. Independent, and no vendor pays to be here.</p>`, table, "</main>", vsBlock, method, footerBlock, revealScript, ld ].join("\n\n");
+  const altBlock = altList.length ? `<div class="sibnav"><div class="wrap"><h2>Alternatives &amp; data</h2><ul>` + altList.map((a) => `<li><a href="${a.path}">${esc(a.name)} alternatives</a></li>`).join("") + `<li><a href="/cpa-software-statistics">Software statistics 2026</a></li></ul></div></div>` : "";
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">Compare every CPA &amp; accounting tool</h1>`, `<p class="toollede">All ${toolData.length} tools in one table — category, firm-size fit, starting price, and how open each is to integration. Independent, and no vendor pays to be here.</p>`, table, "</main>", vsBlock, altBlock, method, footerBlock, revealScript, ld ].join("\n\n");
   writeFileSync(base + "/deploy/compare.html", head("Compare 25 CPA & Accounting Software Tools — Pricing & Integration | CPA Field Guide", "Side-by-side comparison of 25 US tax and accounting tools: category, firm-size fit, starting price, and integration openness. Independent, no pay-to-list.", compareUrl) + "\n<body>\n" + body + "\n</body>\n</html>\n");
 }
 
@@ -543,6 +602,10 @@ ${cats.map((c) => `- [${c.label}](${ORIGIN}/${c.slug}): ${c.desc}`).join("\n")}
 
 ## Comparisons
 ${vsList.map((v) => `- [${v.aName} vs ${v.bName}](${v.url})`).join("\n")}
+${altList.map((a) => `- [${a.name} alternatives](${a.url})`).join("\n")}
+
+## Data
+- [CPA software statistics 2026 (market share, pricing, APIs)](${statsUrl})
 
 ## Tools
 ${toolData.map((t) => `- [${t.name}](${ORIGIN}/tools/${t.slug}): ${t.catLabel}. ${t.price}. ${t.openLabel}. ${t.desc}`).join("\n")}
@@ -590,7 +653,9 @@ const entries = [
   ...cats.map((c) => ({ u: `${ORIGIN}/${c.slug}`, p: "0.8" })),
   ...guideUrls.map((u) => ({ u, p: "0.8" })),
   { u: compareUrl, p: "0.8" },
+  { u: statsUrl, p: "0.7" },
   ...vsList.map((v) => ({ u: v.url, p: "0.7" })),
+  ...altList.map((a) => ({ u: a.url, p: "0.7" })),
   ...toolData.map((t) => ({ u: `${ORIGIN}/tools/${t.slug}`, p: "0.6" })),
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
