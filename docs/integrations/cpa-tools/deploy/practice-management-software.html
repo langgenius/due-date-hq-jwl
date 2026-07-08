@@ -211,6 +211,12 @@
   .guides { border-top: 2px solid var(--ink); }
   .guides .wrap { padding: 26px 24px; }
   .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+  .footnav { border-top: 1px solid var(--line); background: var(--bg); }
+  .footnav .wrap { padding: 30px 24px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px; font-family: -apple-system, sans-serif; }
+  .footnav h3 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin: 0 0 9px; font-weight: 700; }
+  .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
+  .footnav a:hover { color: var(--ink); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -270,7 +276,11 @@
 
 </main>
 
+<div class="faq"><div class="wrap"><h2>Practice Management — FAQ</h2><div class="qa"><h3>How much does accounting practice management software cost?</h3><p>Entry pricing runs from about $19/user/mo (Financial Cents) to $59–67/user/mo (Karbon, TaxDome). Some, like Pixie, charge a flat monthly fee; enterprise tools such as Aiwyn are custom-quoted.</p></div><div class="qa"><h3>Which practice management tool has the best API?</h3><p>Karbon offers the deepest self-serve public API with webhooks; TaxDome also issues self-serve keys. Canopy's API is approval-gated, and several others connect only through Zapier.</p></div><div class="qa"><h3>Which is best for a small tax firm?</h3><p>TaxDome and Canopy are popular all-in-ones with client portals; Financial Cents and Jetpack are lighter and lower-cost; Karbon leads on integration depth.</p></div></div></div>
+
 <div class="sibnav"><div class="wrap"><h2>Other categories</h2><ul><li><a href="/">All 25 tools</a></li><li><a href="/tax-preparation-software">Tax Preparation (7)</a></li><li><a href="/deadline-monitoring-software">Deadline &amp; Compliance Tracking (3)</a></li><li><a href="/accounting-software">Accounting &amp; Bookkeeping (5)</a></li></ul></div></div>
+
+<div class="sibnav"><div class="wrap"><h2>Related guides</h2><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>
 
 <div class="method">
   <div class="wrap">
@@ -284,6 +294,8 @@
     </div>
   </div>
 </div>
+
+<div class="footnav"><div class="wrap"><div><h3>Categories</h3><ul><li><a href="/tax-preparation-software">Tax prep</a></li><li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li><li><a href="/practice-management-software">Practice mgmt</a></li><li><a href="/accounting-software">Bookkeeping</a></li></ul></div><div><h3>Guides</h3><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div><div><h3>Directory</h3><ul><li><a href="/">All 25 tools</a></li></ul></div></div></div>
 
 <footer>
   <div class="wrap">
@@ -319,6 +331,9 @@
       "name": "CPA Field Guide",
       "url": "https://cpafieldguide.com/",
       "logo": "https://cpafieldguide.com/og.png",
+      "sameAs": [
+        "https://duedatehq.com"
+      ],
       "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
     },
     {
@@ -336,6 +351,13 @@
       "primaryImageOfPage": "https://cpafieldguide.com/og.png",
       "breadcrumb": {
         "@id": "https://cpafieldguide.com/practice-management-software#breadcrumb"
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [
+          ".faq h3",
+          ".faq p"
+        ]
       }
     },
     {
@@ -459,6 +481,35 @@
             "name": "Ignition",
             "url": "https://www.ignitionapp.com",
             "applicationCategory": "Practice Management software"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does accounting practice management software cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Entry pricing runs from about $19/user/mo (Financial Cents) to $59–67/user/mo (Karbon, TaxDome). Some, like Pixie, charge a flat monthly fee; enterprise tools such as Aiwyn are custom-quoted."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which practice management tool has the best API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Karbon offers the deepest self-serve public API with webhooks; TaxDome also issues self-serve keys. Canopy's API is approval-gated, and several others connect only through Zapier."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which is best for a small tax firm?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TaxDome and Canopy are popular all-in-ones with client portals; Financial Cents and Jetpack are lighter and lower-cost; Karbon leads on integration depth."
           }
         }
       ]
