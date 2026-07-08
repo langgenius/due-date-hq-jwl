@@ -32,9 +32,18 @@ const cur = summarize(JSON.parse(fs.readFileSync(FILE, 'utf8')))
 
 let base = null
 try {
-  base = summarize(JSON.parse(execSync(`git show ${baseRef}:${FILE}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })))
+  base = summarize(
+    JSON.parse(
+      execSync(`git show ${baseRef}:${FILE}`, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }),
+    ),
+  )
 } catch {
-  console.log(`[outreach-state-guard] no baseline at ${baseRef}:${FILE} — OK (nothing to regress against).`)
+  console.log(
+    `[outreach-state-guard] no baseline at ${baseRef}:${FILE} — OK (nothing to regress against).`,
+  )
   process.exit(0)
 }
 
@@ -58,4 +67,6 @@ if (cur.touches < base.touches || lost.length) {
   process.exit(1)
 }
 
-console.log(`[outreach-state-guard] OK: ${cur.emails} emails, ${cur.touches} touches (>= baseline ${base.touches}).`)
+console.log(
+  `[outreach-state-guard] OK: ${cur.emails} emails, ${cur.touches} touches (>= baseline ${base.touches}).`,
+)
