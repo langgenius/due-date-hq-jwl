@@ -95,6 +95,14 @@ const navCss = `
   .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
   .footnav a:hover { color: var(--ink); text-decoration: underline; }
+  .tablewrap { overflow-x: auto; margin: 10px 0 26px; border: 1px solid var(--line); border-radius: 10px; }
+  .cmp { border-collapse: collapse; width: 100%; min-width: 660px; font-family: -apple-system, sans-serif; font-size: 13.5px; }
+  .cmp th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; }
+  .cmp td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--soft); vertical-align: top; }
+  .cmp tbody tr:last-child td { border-bottom: none; }
+  .cmp tbody tr:hover { background: var(--accent-soft); }
+  .cmp td:first-child a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .cmp td:first-child a:hover { text-decoration: underline; }
 </style>`;
 style = style.replace("</style>", navCss);
 
@@ -163,7 +171,7 @@ const esc = (s) => String(s).replace(/&(?!amp;|lt;|gt;|#\d)/g, "&amp;");
 // shared footer link graph (added to every page for internal linking + crawl)
 const footerNav = `<div class="footnav"><div class="wrap">` +
   `<div><h3>Categories</h3><ul>${cats.map((c) => `<li><a href="/${c.slug}">${c.nav}</a></li>`).join("")}</ul></div>` +
-  `<div><h3>Guides</h3><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
+  `<div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
   `<div><h3>Directory</h3><ul><li><a href="/">All ${toolData.length} tools</a></li></ul></div>` +
   `</div></div>`;
 const footerBlock = footerNav + "\n\n" + footer;
@@ -295,7 +303,7 @@ for (const c of cats) {
 // homepage: link the guide pages (internal links so they aren't orphaned)
 homeBody = homeBody.replace(
   '<div class="faq">',
-  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="toollist"><li><a href="/cpa-software-with-open-api">CPA &amp; accounting software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best software for solo CPA firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best software for small CPA firms</a></li></ul></div></div>\n\n<div class="faq">`
+  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="toollist"><li><a href="/compare">Compare all 25 tools in one table</a></li><li><a href="/cpa-software-with-open-api">CPA &amp; accounting software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best software for solo CPA firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best software for small CPA firms</a></li></ul></div></div>\n\n<div class="faq">`
 );
 homeBody = homeBody.replace("<footer>", footerNav + "\n<footer>");
 const homeHtml = head(
@@ -378,6 +386,12 @@ for (const t of toolData) {
       siblings.map((s) => `<li><a href="/tools/${s.slug}">${esc(s.name)}</a></li>`).join("") +
       `<li><a href="/${t.catSlug}">See all &rarr;</a></li></ul></div></div>`
     : "";
+  const tfaq = [
+    [`How much does ${t.name} cost?`, `${t.name}'s pricing: ${t.price}.${t.share ? " It is used by " + t.share.replace(/ share$/, " of firms in the 2025 AICPA survey") + "." : ""}`],
+    [`Does ${t.name} have an API?`, openExplain[t.openClass] || "Integration details vary."],
+    [`Who is ${t.name} best for?`, `${t.name} is built for ${t.seg.toLowerCase()} firms. ${t.desc}`],
+  ];
+  const tfaqHtml = `<div class="faq"><div class="wrap"><h2>${esc(t.name)} — FAQ</h2>` + tfaq.map((f) => `<div class="qa"><h3>${esc(f[0])}</h3><p>${esc(f[1])}</p></div>`).join("") + `</div></div>`;
   const graph = {
     "@context": "https://schema.org",
     "@graph": [
@@ -389,6 +403,7 @@ for (const t of toolData) {
         { "@type": "ListItem", position: 2, name: t.catLabel, item: `${ORIGIN}/${t.catSlug}` },
         { "@type": "ListItem", position: 3, name: t.name, item: url },
       ] },
+      { "@type": "FAQPage", mainEntity: tfaq.map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) },
     ],
   };
   const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
@@ -396,7 +411,7 @@ for (const t of toolData) {
   const body = [
     topbar, catnav(t.catKey), '<main class="wrap">', crumb,
     `<div class="toolhero">${logoBig}<div><h1>${esc(t.name)}</h1><div class="toolsub">${catHtml} · ${t.seg}</div></div></div>`,
-    `<p class="toollede">${esc(t.desc)}</p>`, facts, connects, "</main>", related, method, footerBlock, revealScript, ld,
+    `<p class="toollede">${esc(t.desc)}</p>`, facts, connects, "</main>", tfaqHtml, related, method, footerBlock, revealScript, ld,
   ].join("\n\n");
   const title = `${t.name} — Pricing, Features & Integration | CPA Field Guide`;
   const desc = esc(`${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`).slice(0, 300);
@@ -455,6 +470,22 @@ const guideUrls = [
     seg("small")),
 ];
 
+// ---------- COMPARE PAGE (/compare) ----------
+const compareUrl = ORIGIN + "/compare";
+{
+  const rows = toolData.map((t) => `<tr><td><a href="/tools/${t.slug}">${esc(t.name)}</a></td><td>${t.catLabel.replace("&", "&amp;")}</td><td>${t.seg}</td><td>${esc(t.price)}</td><td>${esc(t.openLabel)}</td></tr>`).join("");
+  const table = `<div class="tablewrap"><table class="cmp"><thead><tr><th>Tool</th><th>Category</th><th>Best for</th><th>Pricing</th><th>Integration</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; Compare</nav></div>`;
+  const graph = { "@context": "https://schema.org", "@graph": [ org,
+    { "@type": "CollectionPage", "@id": compareUrl + "#webpage", url: compareUrl, name: "Compare CPA & accounting software", isPartOf: { "@id": ORIGIN + "/#website" }, inLanguage: "en-US", datePublished: DATE, dateModified: DATE, primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": compareUrl + "#breadcrumb" } },
+    { "@type": "BreadcrumbList", "@id": compareUrl + "#breadcrumb", itemListElement: [ { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" }, { "@type": "ListItem", position: 2, name: "Compare", item: compareUrl } ] },
+    { "@type": "ItemList", numberOfItems: toolData.length, itemListElement: toolData.map((t, i) => ({ "@type": "ListItem", position: i + 1, item: { "@type": "SoftwareApplication", name: t.name, url: t.url || `${ORIGIN}/tools/${t.slug}`, applicationCategory: t.catLabel + " software" } })) },
+  ] };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">Compare every CPA &amp; accounting tool</h1>`, `<p class="toollede">All ${toolData.length} tools in one table — category, firm-size fit, starting price, and how open each is to integration. Independent, and no vendor pays to be here.</p>`, table, "</main>", method, footerBlock, revealScript, ld ].join("\n\n");
+  writeFileSync(base + "/deploy/compare.html", head("Compare 25 CPA & Accounting Software Tools — Pricing & Integration | CPA Field Guide", "Side-by-side comparison of 25 US tax and accounting tools: category, firm-size fit, starting price, and integration openness. Independent, no pay-to-list.", compareUrl) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+}
+
 // ---------- llms.txt (a map for AI answer engines / GEO) ----------
 const llms = `# CPA Field Guide
 > Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms — tax preparation, deadline monitoring, practice management, and bookkeeping. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed ${DATE}.
@@ -463,6 +494,7 @@ const llms = `# CPA Field Guide
 ${cats.map((c) => `- [${c.label}](${ORIGIN}/${c.slug}): ${c.desc}`).join("\n")}
 
 ## Guides
+- [Compare all ${toolData.length} tools (one table: category, price, integration)](${ORIGIN}/compare)
 - [CPA & accounting software with an open API](${ORIGIN}/cpa-software-with-open-api)
 - [Best software for solo CPA firms](${ORIGIN}/best-cpa-software-for-solo-firms)
 - [Best software for small CPA firms](${ORIGIN}/best-cpa-software-for-small-firms)
@@ -483,6 +515,7 @@ const entries = [
   { u: ORIGIN + "/", p: "1.0" },
   ...cats.map((c) => ({ u: `${ORIGIN}/${c.slug}`, p: "0.8" })),
   ...guideUrls.map((u) => ({ u, p: "0.8" })),
+  { u: compareUrl, p: "0.8" },
   ...toolData.map((t) => ({ u: `${ORIGIN}/tools/${t.slug}`, p: "0.6" })),
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -492,5 +525,5 @@ ${entries.map((e) => `  <url><loc>${e.u}</loc><lastmod>${DATE}</lastmod><changef
 `;
 writeFileSync(base + "/deploy/sitemap.xml", sitemap);
 
-console.log("pages:", 1 + cats.length + guideUrls.length + toolData.length, "(home + " + cats.length + " categories + " + guideUrls.length + " guides + " + toolData.length + " tools)");
+console.log("pages:", 2 + cats.length + guideUrls.length + toolData.length, "(home + " + cats.length + " categories + " + guideUrls.length + " guides + " + toolData.length + " tools)");
 console.log("sitemap urls:", entries.length);

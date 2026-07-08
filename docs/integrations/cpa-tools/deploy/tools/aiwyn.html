@@ -226,6 +226,14 @@
   .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
   .footnav a:hover { color: var(--ink); text-decoration: underline; }
+  .tablewrap { overflow-x: auto; margin: 10px 0 26px; border: 1px solid var(--line); border-radius: 10px; }
+  .cmp { border-collapse: collapse; width: 100%; min-width: 660px; font-family: -apple-system, sans-serif; font-size: 13.5px; }
+  .cmp th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; }
+  .cmp td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--soft); vertical-align: top; }
+  .cmp tbody tr:last-child td { border-bottom: none; }
+  .cmp tbody tr:hover { background: var(--accent-soft); }
+  .cmp td:first-child a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .cmp td:first-child a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -268,6 +276,8 @@
 
 </main>
 
+<div class="faq"><div class="wrap"><h2>Aiwyn — FAQ</h2><div class="qa"><h3>How much does Aiwyn cost?</h3><p>Aiwyn's pricing: Custom · enterprise.</p></div><div class="qa"><h3>Does Aiwyn have an API?</h3><p>It has an API, but access is gated behind approval, a partner program, or a higher plan.</p></div><div class="qa"><h3>Who is Aiwyn best for?</h3><p>Aiwyn is built for mid · enterprise firms. Billing and revenue-cycle automation for large firms, layered on existing systems.</p></div></div></div>
+
 <div class="sibnav"><div class="wrap"><h2>Other Practice Management tools</h2><ul><li><a href="/tools/karbon">Karbon</a></li><li><a href="/tools/taxdome">TaxDome</a></li><li><a href="/tools/canopy">Canopy</a></li><li><a href="/tools/financial-cents">Financial Cents</a></li><li><a href="/tools/jetpack-workflow">Jetpack Workflow</a></li><li><a href="/tools/keeper">Keeper</a></li><li><a href="/tools/firm360">Firm360</a></li><li><a href="/tools/pixie">Pixie</a></li><li><a href="/tools/ignition">Ignition</a></li><li><a href="/practice-management-software">See all &rarr;</a></li></ul></div></div>
 
 <div class="method">
@@ -283,7 +293,7 @@
   </div>
 </div>
 
-<div class="footnav"><div class="wrap"><div><h3>Categories</h3><ul><li><a href="/tax-preparation-software">Tax prep</a></li><li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li><li><a href="/practice-management-software">Practice mgmt</a></li><li><a href="/accounting-software">Bookkeeping</a></li></ul></div><div><h3>Guides</h3><ul><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div><div><h3>Directory</h3><ul><li><a href="/">All 25 tools</a></li></ul></div></div></div>
+<div class="footnav"><div class="wrap"><div><h3>Categories</h3><ul><li><a href="/tax-preparation-software">Tax prep</a></li><li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li><li><a href="/practice-management-software">Practice mgmt</a></li><li><a href="/accounting-software">Bookkeeping</a></li></ul></div><div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div><div><h3>Directory</h3><ul><li><a href="/">All 25 tools</a></li></ul></div></div></div>
 
 <footer>
   <div class="wrap">
@@ -352,6 +362,35 @@
           "position": 3,
           "name": "Aiwyn",
           "item": "https://cpafieldguide.com/tools/aiwyn"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does Aiwyn cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Aiwyn's pricing: Custom · enterprise."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Aiwyn have an API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It has an API, but access is gated behind approval, a partner program, or a higher plan."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Who is Aiwyn best for?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Aiwyn is built for mid · enterprise firms. Billing and revenue-cycle automation for large firms, layered on existing systems."
+          }
         }
       ]
     }

@@ -8,6 +8,7 @@
 - [Accounting & Bookkeeping](https://cpafieldguide.com/accounting-software): General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.
 
 ## Guides
+- [Compare all 25 tools (one table: category, price, integration)](https://cpafieldguide.com/compare)
 - [CPA & accounting software with an open API](https://cpafieldguide.com/cpa-software-with-open-api)
 - [Best software for solo CPA firms](https://cpafieldguide.com/best-cpa-software-for-solo-firms)
 - [Best software for small CPA firms](https://cpafieldguide.com/best-cpa-software-for-small-firms)
