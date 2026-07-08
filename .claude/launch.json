@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "cpa-field-guide",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4399", "--directory", "docs/integrations/cpa-tools/deploy"],
+      "port": 4399
+    },
+    {
       "name": "marketing-4327",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-F", "@duedatehq/marketing", "exec", "astro", "dev", "--port", "4327", "--strictPort"],
