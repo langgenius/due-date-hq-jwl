@@ -20,8 +20,8 @@
 <title>CPA Field Guide — US Tax &amp; Accounting Software Directory (2026)</title>
 <style>
   :root {
-    --bg: #FFFFFF; --panel: #F4F4F1; --ink: #1A1A1A; --soft: #565654; --faint: #8C8C88;
-    --line: #E7E7E3;
+    --bg: #FFFFFF; --panel: #F1F4F8; --ink: #181B21; --soft: #4F5661; --faint: #6B7280;
+    --line: #E4E8EE;
     --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2F6DA6;
     --accent: #2F6DA6; --accent-soft: #EFF5FB; --accent-line: #D8E6F2;
   }
@@ -31,6 +31,8 @@
   .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
   a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* masthead */
   .topbar { border-bottom: 1px solid var(--line); }
@@ -135,6 +137,8 @@
     .brand-text span { display: none; }
     .head-inner { padding-top: 24px; padding-bottom: 16px; }
     h1 { font-size: 25px; }
+    button.chip { padding: 8px 13px; }
+    .catnav a { padding: 8px 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
