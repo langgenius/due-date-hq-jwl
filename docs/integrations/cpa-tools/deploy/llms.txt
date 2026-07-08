@@ -13,28 +13,28 @@
 - [Best software for small CPA firms](https://cpafieldguide.com/best-cpa-software-for-small-firms)
 
 ## Tools
-- [Drake Tax](https://cpafieldguide.com/tools/drake-tax): Tax Preparation. From $2,145/yr. File export. Dominant among sole practitioners. No API; file export.
-- [Lacerte](https://cpafieldguide.com/tools/lacerte): Tax Preparation. Custom · per-return. Local SDK. High-end desktop engine. Local SDK/ODBC can read on-prem.
-- [ProConnect](https://cpafieldguide.com/tools/proconnect): Tax Preparation. Pay-per-return. No API yet. Intuit's cloud prep. No public API yet — "under review."
-- [ProSeries](https://cpafieldguide.com/tools/proseries): Tax Preparation. From $419/yr. File export. Desktop for 1040 volume. No API or SDK; file import.
-- [UltraTax CS](https://cpafieldguide.com/tools/ultratax-cs): Tax Preparation. Custom quote. File export. Thomson Reuters engine for larger firms. Exports a client list to CSV.
-- [CCH Axcess](https://cpafieldguide.com/tools/cch-axcess): Tax Preparation. From $2,299/yr. API · partner. The one exception: a real cloud API and marketplace, via a partner program.
-- [ATX](https://cpafieldguide.com/tools/atx): Tax Preparation. From $939/yr. File export. Budget forms-based desktop. CSV export only.
-- [File In Time](https://cpafieldguide.com/tools/file-in-time): Deadline & Compliance Tracking. Paid license. Closed. Long-standing passive tracker: records due dates and rolls them forward; doesn't watch the regulatory sources.
-- [DueDateHQ](https://cpafieldguide.com/tools/duedatehq): Deadline & Compliance Tracking. Free · beta. No public API yet. Active monitor of the IRS, states, and FEMA — when a date moves, shows which clients it hits. Free in beta.
-- [ONESOURCE Calendar](https://cpafieldguide.com/tools/onesource-calendar): Deadline & Compliance Tracking. Custom quote. Suite · gated. Thomson Reuters' enterprise compliance calendar for multi-year deadlines, filings, and extensions.
-- [Karbon](https://cpafieldguide.com/tools/karbon): Practice Management. From $59/user/mo. Open API. Workflow, email and billing. The best public API in the category.
-- [TaxDome](https://cpafieldguide.com/tools/taxdome): Practice Management. From $67/user/mo. Open API. All-in-one with client portal. Self-serve API keys; large install base.
-- [Canopy](https://cpafieldguide.com/tools/canopy): Practice Management. From $45/user/mo. Gated. CRM, workflow, documents, billing. API is approval-gated.
-- [Financial Cents](https://cpafieldguide.com/tools/financial-cents): Practice Management. From $19/user/mo. Gated. Recurring workflows and tasks. Open API on the higher plan.
-- [Jetpack Workflow](https://cpafieldguide.com/tools/jetpack-workflow): Practice Management. From $36/user/mo. Gated. Lightweight deadline &amp; job tracker. Direct API is Enterprise-only.
-- [Keeper](https://cpafieldguide.com/tools/keeper): Practice Management. From $200/mo. Zapier. Bookkeeping close with QuickBooks sync. Zapier only.
-- [Firm360](https://cpafieldguide.com/tools/firm360): Practice Management. From $49/user/mo. Zapier. Projects, documents, billing, portal. Zapier connector only.
-- [Pixie](https://cpafieldguide.com/tools/pixie): Practice Management. From $129/mo. Zapier. Simple management, UK-leaning. Integrates via Zapier.
-- [Aiwyn](https://cpafieldguide.com/tools/aiwyn): Practice Management. Custom · enterprise. Partner. Billing / revenue-cycle for larger firms. Managed partnerships.
-- [Ignition](https://cpafieldguide.com/tools/ignition): Practice Management. From $39/mo. Zapier. Proposals, engagement letters, billing. Zapier only.
-- [QuickBooks Online](https://cpafieldguide.com/tools/quickbooks-online): Accounting & Bookkeeping. From $35/mo. Open API. Dominant US ledger, 500k ProAdvisors. Self-serve API.
-- [Xero](https://cpafieldguide.com/tools/xero): Accounting & Bookkeeping. From $25/mo. Open API. #2 cloud ledger. Self-serve API, up to 25 orgs before certification.
-- [Bill.com](https://cpafieldguide.com/tools/bill-com): Accounting & Bookkeeping. From $45/user/mo. Open API. AP/AR and payments. The friendliest self-serve API here.
-- [Sage](https://cpafieldguide.com/tools/sage): Accounting & Bookkeeping. From ~$10/mo. Gated. SMB Accounting through mid-market Intacct. APIs are fragmented.
-- [ProAdvisor](https://cpafieldguide.com/tools/proadvisor): Accounting & Bookkeeping. Free · program. Partner program. Not a tool — the accountant program around QuickBooks. 500k members.
+- [Drake Tax](https://cpafieldguide.com/tools/drake-tax): Tax Preparation. From $2,145/yr. File export. Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
+- [Lacerte](https://cpafieldguide.com/tools/lacerte): Tax Preparation. Custom · per-return. Local SDK. Intuit's high-end desktop tax software for complex individual and business returns.
+- [ProConnect](https://cpafieldguide.com/tools/proconnect): Tax Preparation. Pay-per-return. No API yet. Intuit's cloud professional tax prep, tied into QuickBooks Online Accountant.
+- [ProSeries](https://cpafieldguide.com/tools/proseries): Tax Preparation. From $419/yr. File export. Intuit's desktop tax suite for higher-volume 1040 practices.
+- [UltraTax CS](https://cpafieldguide.com/tools/ultratax-cs): Tax Preparation. Custom quote. File export. Thomson Reuters' tax engine for mid-to-large firms; anchor of the CS Professional Suite.
+- [CCH Axcess](https://cpafieldguide.com/tools/cch-axcess): Tax Preparation. From $2,299/yr. API · partner. Wolters Kluwer's cloud tax, document, and workflow suite for larger firms.
+- [ATX](https://cpafieldguide.com/tools/atx): Tax Preparation. From $939/yr. File export. Wolters Kluwer's budget, forms-based tax software for smaller practices.
+- [File In Time](https://cpafieldguide.com/tools/file-in-time): Deadline & Compliance Tracking. Paid license. Closed. Records client due dates and rolls them forward each year — a classic passive tracker.
+- [DueDateHQ](https://cpafieldguide.com/tools/duedatehq): Deadline & Compliance Tracking. Free · beta. No public API yet. Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits. Free in beta.
+- [ONESOURCE Calendar](https://cpafieldguide.com/tools/onesource-calendar): Deadline & Compliance Tracking. Custom quote. Suite · gated. Thomson Reuters' enterprise compliance calendar for multi-entity tax deadlines.
+- [Karbon](https://cpafieldguide.com/tools/karbon): Practice Management. From $59/user/mo. Open API. All-in-one practice management — workflow, email, and billing — with the category's deepest API.
+- [TaxDome](https://cpafieldguide.com/tools/taxdome): Practice Management. From $67/user/mo. Open API. All-in-one practice management with a client portal, e-signature, and invoicing.
+- [Canopy](https://cpafieldguide.com/tools/canopy): Practice Management. From $45/user/mo. Gated. Modular practice management: CRM, workflow, documents, and billing.
+- [Financial Cents](https://cpafieldguide.com/tools/financial-cents): Practice Management. From $19/user/mo. Gated. Lightweight workflow and client management with recurring tasks and a portal.
+- [Jetpack Workflow](https://cpafieldguide.com/tools/jetpack-workflow): Practice Management. From $36/user/mo. Gated. Simple recurring-job and deadline tracking built for small firms.
+- [Keeper](https://cpafieldguide.com/tools/keeper): Practice Management. From $200/mo. Zapier. Month-end close and bookkeeping workflow with a two-way QuickBooks sync.
+- [Firm360](https://cpafieldguide.com/tools/firm360): Practice Management. From $49/user/mo. Zapier. All-in-one practice management — projects, documents, billing, and a portal.
+- [Pixie](https://cpafieldguide.com/tools/pixie): Practice Management. From $129/mo. Zapier. Simple practice management for small firms: client database, jobs, and email.
+- [Aiwyn](https://cpafieldguide.com/tools/aiwyn): Practice Management. Custom · enterprise. Partner. Billing and revenue-cycle automation for large firms, layered on existing systems.
+- [Ignition](https://cpafieldguide.com/tools/ignition): Practice Management. From $39/mo. Zapier. Proposals, engagement letters, and automated billing for accounting firms.
+- [QuickBooks Online](https://cpafieldguide.com/tools/quickbooks-online): Accounting & Bookkeeping. From $35/mo. Open API. The dominant US small-business ledger — the book of record most firms work from.
+- [Xero](https://cpafieldguide.com/tools/xero): Accounting & Bookkeeping. From $25/mo. Open API. Cloud accounting ledger, strong internationally, with a broad app ecosystem.
+- [Bill.com](https://cpafieldguide.com/tools/bill-com): Accounting & Bookkeeping. From $45/user/mo. Open API. AP/AR automation and payments for firms and their clients.
+- [Sage](https://cpafieldguide.com/tools/sage): Accounting & Bookkeeping. From ~$10/mo. Gated. Accounting from small business (Sage Accounting) to mid-market (Sage Intacct).
+- [ProAdvisor](https://cpafieldguide.com/tools/proadvisor): Accounting & Bookkeeping. Free · program. Partner program. Intuit's free accountant program around QuickBooks — discounts, training, and firm tools.
