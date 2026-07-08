@@ -13,6 +13,14 @@
 - [Best software for solo CPA firms](https://cpafieldguide.com/best-cpa-software-for-solo-firms)
 - [Best software for small CPA firms](https://cpafieldguide.com/best-cpa-software-for-small-firms)
 
+## Comparisons
+- [TaxDome vs Canopy](https://cpafieldguide.com/taxdome-vs-canopy)
+- [Karbon vs TaxDome](https://cpafieldguide.com/karbon-vs-taxdome)
+- [Canopy vs Karbon](https://cpafieldguide.com/canopy-vs-karbon)
+- [QuickBooks Online vs Xero](https://cpafieldguide.com/quickbooks-online-vs-xero)
+- [Drake Tax vs UltraTax CS](https://cpafieldguide.com/drake-tax-vs-ultratax-cs)
+- [Lacerte vs ProSeries](https://cpafieldguide.com/lacerte-vs-proseries)
+
 ## Tools
 - [Drake Tax](https://cpafieldguide.com/tools/drake-tax): Tax Preparation. From $2,145/yr. File export. Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
 - [Lacerte](https://cpafieldguide.com/tools/lacerte): Tax Preparation. Custom · per-return. Local SDK. Intuit's high-end desktop tax software for complex individual and business returns.
