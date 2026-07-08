@@ -103,6 +103,8 @@ const navCss = `
   .cmp tbody tr:hover { background: var(--accent-soft); }
   .cmp td:first-child a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .cmp td:first-child a:hover { text-decoration: underline; }
+  .cmp.vs thead th a { color: var(--accent); text-decoration: none; }
+  .cmp.vs tbody th { background: transparent; color: var(--ink); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 12px; white-space: nowrap; position: static; }
 </style>`;
 style = style.replace("</style>", navCss);
 
@@ -470,6 +472,45 @@ const guideUrls = [
     seg("small")),
 ];
 
+// ---------- HEAD-TO-HEAD "vs" PAGES ----------
+const bySlug = Object.fromEntries(toolData.map((t) => [t.slug, t]));
+const openRank = { "d-open": 4, "d-gated": 3, "d-zap": 2, "d-info": 1, "d-closed": 1 };
+function vsPage(A, B) {
+  const slug = `${A.slug}-vs-${B.slug}`;
+  const url = `${ORIGIN}/${slug}`;
+  const both = A.catKey === B.catKey ? `both ${A.catLabel.toLowerCase()} tools` : `a ${A.catLabel.toLowerCase()} tool and a ${B.catLabel.toLowerCase()} tool`;
+  const intro = `${A.name} and ${B.name} are ${both}. Here is how they compare on firm-size fit, pricing, and integration — sourced, with no vendor paying for placement.`;
+  const attr = (l, va, vb) => `<tr><th>${l}</th><td>${va}</td><td>${vb}</td></tr>`;
+  const table = `<div class="tablewrap"><table class="cmp vs"><thead><tr><th></th><th><a href="/tools/${A.slug}">${esc(A.name)}</a></th><th><a href="/tools/${B.slug}">${esc(B.name)}</a></th></tr></thead><tbody>` +
+    attr("Category", A.catLabel.replace("&", "&amp;"), B.catLabel.replace("&", "&amp;")) +
+    attr("Best for", A.seg + " firms", B.seg + " firms") +
+    attr("Pricing", esc(A.price), esc(B.price)) +
+    attr("Integration", esc(A.openLabel), esc(B.openLabel)) +
+    ((A.share || B.share) ? attr("Adoption", esc(A.share || "—"), esc(B.share || "—")) : "") +
+    `</tbody></table></div>`;
+  const moreOpen = openRank[A.openClass] > openRank[B.openClass] ? A : (openRank[B.openClass] > openRank[A.openClass] ? B : null);
+  const choose = `<p class="toolsection"><strong>How to choose.</strong> ${esc(A.name)} targets ${A.seg.toLowerCase()} firms and ${esc(B.name)} targets ${B.seg.toLowerCase()}. On integration, ${esc(A.name)} is "${esc(A.openLabel)}" and ${esc(B.name)} is "${esc(B.openLabel)}"${moreOpen ? `, so ${esc(moreOpen.name)} is the more open of the two` : ""}. Pricing: ${esc(A.name)} ${A.price.toLowerCase()}, ${esc(B.name)} ${B.price.toLowerCase()}.</p>`;
+  const faq = [
+    [`Is ${A.name} or ${B.name} cheaper?`, `${A.name} pricing: ${A.price}. ${B.name} pricing: ${B.price}.`],
+    [`Does ${A.name} or ${B.name} have a better API?`, `${A.name}: ${A.openLabel}. ${B.name}: ${B.openLabel}.${moreOpen ? " " + moreOpen.name + " is the more open of the two." : ""}`],
+  ];
+  const faqHtml = `<div class="faq"><div class="wrap"><h2>${esc(A.name)} vs ${esc(B.name)} — FAQ</h2>` + faq.map((f) => `<div class="qa"><h3>${esc(f[0])}</h3><p>${esc(f[1])}</p></div>`).join("") + `</div></div>`;
+  const links = `<div class="sibnav"><div class="wrap"><h2>Full profiles</h2><ul><li><a href="/tools/${A.slug}">${esc(A.name)}</a></li><li><a href="/tools/${B.slug}">${esc(B.name)}</a></li>${A.catKey === B.catKey ? `<li><a href="/${A.catSlug}">All ${A.catLabel.replace("&", "&amp;")} tools</a></li>` : ""}</ul></div></div>`;
+  const graph = { "@context": "https://schema.org", "@graph": [ org,
+    { "@type": "CollectionPage", "@id": url + "#webpage", url, name: `${A.name} vs ${B.name}`, isPartOf: { "@id": ORIGIN + "/#website" }, inLanguage: "en-US", datePublished: DATE, dateModified: DATE, primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": url + "#breadcrumb" } },
+    { "@type": "BreadcrumbList", "@id": url + "#breadcrumb", itemListElement: [ { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" }, { "@type": "ListItem", position: 2, name: `${A.name} vs ${B.name}`, item: url } ] },
+    { "@type": "ItemList", numberOfItems: 2, itemListElement: [A, B].map((t, i) => ({ "@type": "ListItem", position: i + 1, item: { "@type": "SoftwareApplication", name: t.name, url: t.url || `${ORIGIN}/tools/${t.slug}`, applicationCategory: t.catLabel + " software" } })) },
+    { "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) },
+  ] };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; ${esc(A.name)} vs ${esc(B.name)}</nav></div>`;
+  const body = [ topbar, catnav(A.catKey === B.catKey ? A.catKey : ""), '<main class="wrap">', crumb, `<h1 class="gh1">${esc(A.name)} vs ${esc(B.name)}</h1>`, `<p class="toollede">${esc(intro)}</p>`, table, choose, "</main>", faqHtml, links, method, footerBlock, revealScript, ld ].join("\n\n");
+  writeFileSync(base + "/deploy/" + slug + ".html", head(`${A.name} vs ${B.name} (2026): Pricing, Features & API — CPA Field Guide`, esc(intro).slice(0, 300), url) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+  return { url, path: "/" + slug, aName: A.name, bName: B.name };
+}
+const vsList = [["taxdome", "canopy"], ["karbon", "taxdome"], ["canopy", "karbon"], ["quickbooks-online", "xero"], ["drake-tax", "ultratax-cs"], ["lacerte", "proseries"]]
+  .map(([a, b]) => (bySlug[a] && bySlug[b]) ? vsPage(bySlug[a], bySlug[b]) : null).filter(Boolean);
+
 // ---------- COMPARE PAGE (/compare) ----------
 const compareUrl = ORIGIN + "/compare";
 {
@@ -482,7 +523,8 @@ const compareUrl = ORIGIN + "/compare";
     { "@type": "ItemList", numberOfItems: toolData.length, itemListElement: toolData.map((t, i) => ({ "@type": "ListItem", position: i + 1, item: { "@type": "SoftwareApplication", name: t.name, url: t.url || `${ORIGIN}/tools/${t.slug}`, applicationCategory: t.catLabel + " software" } })) },
   ] };
   const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
-  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">Compare every CPA &amp; accounting tool</h1>`, `<p class="toollede">All ${toolData.length} tools in one table — category, firm-size fit, starting price, and how open each is to integration. Independent, and no vendor pays to be here.</p>`, table, "</main>", method, footerBlock, revealScript, ld ].join("\n\n");
+  const vsBlock = vsList.length ? `<div class="sibnav"><div class="wrap"><h2>Popular comparisons</h2><ul>` + vsList.map((v) => `<li><a href="${v.path}">${esc(v.aName)} vs ${esc(v.bName)}</a></li>`).join("") + `</ul></div></div>` : "";
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">Compare every CPA &amp; accounting tool</h1>`, `<p class="toollede">All ${toolData.length} tools in one table — category, firm-size fit, starting price, and how open each is to integration. Independent, and no vendor pays to be here.</p>`, table, "</main>", vsBlock, method, footerBlock, revealScript, ld ].join("\n\n");
   writeFileSync(base + "/deploy/compare.html", head("Compare 25 CPA & Accounting Software Tools — Pricing & Integration | CPA Field Guide", "Side-by-side comparison of 25 US tax and accounting tools: category, firm-size fit, starting price, and integration openness. Independent, no pay-to-list.", compareUrl) + "\n<body>\n" + body + "\n</body>\n</html>\n");
 }
 
@@ -499,10 +541,42 @@ ${cats.map((c) => `- [${c.label}](${ORIGIN}/${c.slug}): ${c.desc}`).join("\n")}
 - [Best software for solo CPA firms](${ORIGIN}/best-cpa-software-for-solo-firms)
 - [Best software for small CPA firms](${ORIGIN}/best-cpa-software-for-small-firms)
 
+## Comparisons
+${vsList.map((v) => `- [${v.aName} vs ${v.bName}](${v.url})`).join("\n")}
+
 ## Tools
 ${toolData.map((t) => `- [${t.name}](${ORIGIN}/tools/${t.slug}): ${t.catLabel}. ${t.price}. ${t.openLabel}. ${t.desc}`).join("\n")}
 `;
 writeFileSync(base + "/deploy/llms.txt", llms);
+
+// ---------- llms-full.txt (full machine-readable dump for GEO) ----------
+const llmsFull = `# CPA Field Guide — full index
+> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed ${DATE}.
+
+## Key pages
+- Home: ${ORIGIN}/
+- Compare all tools (table): ${ORIGIN}/compare
+${cats.map((c) => `- ${c.label}: ${ORIGIN}/${c.slug}`).join("\n")}
+
+## Guides
+- CPA & accounting software with an open API: ${ORIGIN}/cpa-software-with-open-api
+- Best software for solo CPA firms: ${ORIGIN}/best-cpa-software-for-solo-firms
+- Best software for small CPA firms: ${ORIGIN}/best-cpa-software-for-small-firms
+
+## Comparisons
+${vsList.map((v) => `- ${v.aName} vs ${v.bName}: ${v.url}`).join("\n")}
+
+## Tools (full detail)
+${toolData.map((t) => `### ${t.name}
+- Page: ${ORIGIN}/tools/${t.slug}
+- Official site: ${t.url}
+- Category: ${t.catLabel}
+- Best for: ${t.seg} firms
+- Pricing: ${t.price}
+- Integration: ${t.openLabel} — ${openExplain[t.openClass] || ""}
+${t.share ? `- Adoption: ${t.share}\n` : ""}- Summary: ${t.desc}`).join("\n\n")}
+`;
+writeFileSync(base + "/deploy/llms-full.txt", llmsFull);
 
 // ---------- branded 404 ----------
 const notFound =
@@ -516,6 +590,7 @@ const entries = [
   ...cats.map((c) => ({ u: `${ORIGIN}/${c.slug}`, p: "0.8" })),
   ...guideUrls.map((u) => ({ u, p: "0.8" })),
   { u: compareUrl, p: "0.8" },
+  ...vsList.map((v) => ({ u: v.url, p: "0.7" })),
   ...toolData.map((t) => ({ u: `${ORIGIN}/tools/${t.slug}`, p: "0.6" })),
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
