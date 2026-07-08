@@ -136,6 +136,22 @@ const STATUS_SORT_INDEX: Record<string, number> = {
   not_applicable: 10,
 }
 
+const FILING_PLAN_GRID_CLASSES = {
+  compact: 'grid-cols-[minmax(0,1fr)_auto_auto_24px]',
+  compactWithoutStatus: 'grid-cols-[minmax(0,1fr)_auto_24px]',
+  full: 'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
+  fullWithoutStatus: 'grid-cols-[minmax(0,1fr)_minmax(0,96px)_minmax(0,76px)_minmax(0,88px)_20px]',
+} as const
+
+function filingPlanGridClass(compact: boolean, hideStatus: boolean): string {
+  if (compact) {
+    return hideStatus
+      ? FILING_PLAN_GRID_CLASSES.compactWithoutStatus
+      : FILING_PLAN_GRID_CLASSES.compact
+  }
+  return hideStatus ? FILING_PLAN_GRID_CLASSES.fullWithoutStatus : FILING_PLAN_GRID_CLASSES.full
+}
+
 function sortObligations(
   list: readonly ObligationQueueRow[],
   sort: FilingPlanSort,
@@ -188,6 +204,7 @@ export function ClientWorkPlanPanel({
   onExpandFiling,
   onCollapseFiling,
   compact = false,
+  hideStatus = false,
 }: {
   obligations: readonly ObligationQueueRow[]
   isLoading: boolean
@@ -207,9 +224,11 @@ export function ClientWorkPlanPanel({
   activeObligationId: string | null
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
-  // When the obligation side panel is open the left column squeezes; render
-  // the filing rows compact (drop OFFICIAL DUE + OWNER) so columns don't collide.
+  // Narrow fallback: drop OFFICIAL DUE + OWNER while keeping row status.
   compact?: boolean
+  // Detail-panel-open fallback: status already lives in the panel, but official
+  // due + owner remain useful scan columns in the filing-plan master.
+  hideStatus?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -388,6 +407,7 @@ export function ClientWorkPlanPanel({
                 onExpandFiling={onExpandFiling}
                 onCollapseFiling={onCollapseFiling}
                 compact={compact}
+                hideStatus={hideStatus}
               />
             ))}
           </div>
@@ -545,6 +565,7 @@ function FilingPlanYearSection({
   onExpandFiling,
   onCollapseFiling,
   compact,
+  hideStatus,
 }: {
   group: FilingPlanYearGroup
   sort: FilingPlanSort
@@ -558,6 +579,7 @@ function FilingPlanYearSection({
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
   compact: boolean
+  hideStatus: boolean
 }) {
   const { t } = useLingui()
   // Apply panel-level sort to this year's obligations. When sort is
@@ -670,27 +692,27 @@ function FilingPlanYearSection({
           <div
             className={cn(
               'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-semibold tracking-eyebrow-tight text-text-tertiary uppercase',
-              compact
-                ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
-                : 'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
+              filingPlanGridClass(compact, hideStatus),
             )}
           >
-            <span>
+            <span className="min-w-0 truncate">
               <Trans>Deadline</Trans>
             </span>
-            <span>
-              <Trans>Status</Trans>
-            </span>
-            <span>
+            {hideStatus ? null : (
+              <span className="min-w-0 truncate">
+                <Trans>Status</Trans>
+              </span>
+            )}
+            <span className="min-w-0 truncate">
               <Trans>Internal due</Trans>
             </span>
             {compact ? null : (
-              <span>
+              <span className="min-w-0 truncate">
                 <Trans>Official due</Trans>
               </span>
             )}
             {compact ? null : (
-              <span>
+              <span className="min-w-0 truncate">
                 <Trans>Owner</Trans>
               </span>
             )}
@@ -708,6 +730,7 @@ function FilingPlanYearSection({
                 isSelected={selectedIds.has(obligation.id)}
                 multiSelectMode={selectedIds.size > 0}
                 canEdit={canChangeStatus}
+                hideStatus={hideStatus}
                 onExpand={onExpandFiling}
                 onCollapse={onCollapseFiling}
                 onSelect={(id) => onToggleRow(id)}
