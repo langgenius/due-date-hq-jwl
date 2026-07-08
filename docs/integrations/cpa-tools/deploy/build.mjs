@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 const base = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -34,6 +34,8 @@ fullBody = fullBody.replace(/<article class="card"[\s\S]*?<\/article>/g, (card) 
   if (_shots[s]) card = card.replace('<img class="asset shot-img">', `<img class="asset shot-img" src="shots/${_shots[s]}">`);
   return card;
 });
+// wrap each card's tool name in a link to its detail page (internal linking)
+fullBody = fullBody.replace(/<div class="name">([^<]+)<\/div>/g, (m, n) => `<div class="name"><a class="namelink" href="/tools/${_slug(n)}">${n}</a></div>`);
 const topbar = fullBody.slice(fullBody.indexOf('<div class="topbar">'), fullBody.indexOf("<header>")).trim();
 const method = fullBody.slice(fullBody.indexOf('<div class="method">'), fullBody.indexOf("<footer>")).trim();
 const footer = fullBody.slice(fullBody.indexOf("<footer>"), fullBody.indexOf("</footer>") + "</footer>".length).trim();
@@ -63,6 +65,30 @@ const navCss = `
   .sibnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
   .sibnav a { font-size: 14px; color: var(--info); text-decoration: none; }
   .sibnav a:hover { text-decoration: underline; }
+  /* internal links + tool/guide pages */
+  .namelink { color: inherit; text-decoration: none; }
+  .namelink:hover { text-decoration: underline; }
+  .toolhero { display: flex; align-items: center; gap: 14px; margin: 4px 0 2px; }
+  .logo-lg { width: 54px; height: 54px; font-size: 20px; border-radius: 12px; }
+  .toolhero h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+  .toolsub { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--faint); margin-top: 3px; }
+  .toollede { font-family: -apple-system, sans-serif; font-size: 16px; line-height: 1.5; color: var(--soft); max-width: 66ch; margin: 12px 0 22px; }
+  .facts { border-collapse: collapse; width: 100%; max-width: 640px; font-family: -apple-system, sans-serif; margin: 0 0 22px; }
+  .facts th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 16px 11px 0; vertical-align: top; white-space: nowrap; width: 118px; border-top: 1px solid var(--line); }
+  .facts td { font-size: 14px; color: var(--ink); padding: 11px 0; border-top: 1px solid var(--line); }
+  .facts a { color: var(--info); text-decoration: none; }
+  .facts a:hover { text-decoration: underline; }
+  .muted { color: var(--faint); }
+  .toolsection { font-family: -apple-system, sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
+  .toolsection a { color: var(--info); }
+  .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
+  .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
+  .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .toollist a { color: var(--info); text-decoration: none; font-weight: 600; font-size: 15px; }
+  .toollist a:hover { text-decoration: underline; }
+  .guides { border-top: 2px solid var(--ink); }
+  .guides .wrap { padding: 26px 24px; }
+  .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
 </style>`;
 style = style.replace("</style>", navCss);
 
@@ -82,6 +108,51 @@ const cats = [
 ];
 const slugOf = Object.fromEntries(cats.map((c) => [c.key, c.slug]));
 const labelToSlug = Object.fromEntries(cats.map((c) => [c.label, c.slug]));
+
+// ---- per-tool data (parsed from the already-built cards) for detail pages ----
+const officialUrl = {
+  "Drake Tax": "https://www.drakesoftware.com", "Lacerte": "https://accountants.intuit.com/tax/lacerte/",
+  "ProConnect": "https://accountants.intuit.com/tax/proconnect/", "ProSeries": "https://accountants.intuit.com/tax/proseries/",
+  "UltraTax CS": "https://tax.thomsonreuters.com/us/en/cs-professional-suite/ultratax-cs",
+  "CCH Axcess": "https://www.wolterskluwer.com/en/solutions/cch-axcess/tax", "ATX": "https://www.wolterskluwer.com/en/solutions/atx",
+  "File In Time": "https://www.timevalue.com/file-in-time", "DueDateHQ": "https://duedatehq.com",
+  "ONESOURCE Calendar": "https://tax.thomsonreuters.com/en/onesource/workflow-manager/calendar",
+  "Karbon": "https://karbonhq.com", "TaxDome": "https://taxdome.com", "Canopy": "https://www.getcanopy.com",
+  "Financial Cents": "https://financial-cents.com", "Jetpack Workflow": "https://jetpackworkflow.com",
+  "Keeper": "https://keeper.app", "Firm360": "https://www.myfirm360.com", "Pixie": "https://www.usepixie.com",
+  "Aiwyn": "https://www.aiwyn.ai", "Ignition": "https://www.ignitionapp.com",
+  "QuickBooks Online": "https://quickbooks.intuit.com", "Xero": "https://www.xero.com", "Bill.com": "https://www.bill.com",
+  "Sage": "https://www.sage.com", "ProAdvisor": "https://quickbooks.intuit.com/accountants/proadvisor/",
+};
+const openExplain = {
+  "d-open": "It offers a self-serve public API, so it is among the easiest tools here to connect to.",
+  "d-gated": "It has an API, but access is gated behind approval, a partner program, or a higher plan.",
+  "d-zap": "It has no direct API; it connects to other tools through Zapier.",
+  "d-closed": "It has no public API; data moves in and out by file export.",
+  "d-info": "It has no public API yet.",
+};
+const toolData = [];
+for (const c of cats) {
+  const sec = sections[c.key] || "";
+  (sec.match(/<article class="card"[\s\S]*?<\/article>/g) || []).forEach((card) => {
+    const g = (re) => (card.match(re) || [])[1] || "";
+    const name = g(/<div class="name">(?:<a[^>]*>)?([^<]+)(?:<\/a>)?<\/div>/);
+    if (!name) return;
+    toolData.push({
+      name, slug: _slug(name), catKey: c.key, catLabel: c.label, catSlug: c.slug,
+      seg: g(/<div class="seg">([^<]+)<\/div>/),
+      desc: g(/<p class="desc">([\s\S]*?)<\/p>/),
+      price: g(/<span class="price">([^<]+)<\/span>/),
+      share: g(/<span class="share">([^<]+)<\/span>/),
+      openClass: g(/<span class="tag"><span class="dot (d-[a-z]+)"><\/span>/),
+      openLabel: g(/<span class="tag"><span class="dot d-[a-z]+"><\/span>([^<]+)<\/span>/),
+      dataSeg: g(/data-seg="([^"]+)"/),
+      logo: (card.match(/<div class="logo"[\s\S]*?<\/div>/) || [""])[0],
+      url: officialUrl[name] || "",
+    });
+  });
+}
+const esc = (s) => String(s).replace(/&(?!amp;|lt;|gt;|#\d)/g, "&amp;");
 
 const tools = [
   ["Drake Tax", "https://www.drakesoftware.com", "Tax Preparation"],
@@ -185,6 +256,11 @@ for (const c of cats) {
   const secOpenRe = new RegExp(`(<section class="section" data-cat="${c.key}">\\s*<div class="cat-head">)(<h2>[\\s\\S]*?<\\/h2><span class="count">[^<]*<\\/span>)(</div>)`);
   homeBody = homeBody.replace(secOpenRe, `$1$2<a class="cat-more" href="/${c.slug}">View all ${c.n} &rarr;</a>$3`);
 }
+// homepage: link the guide pages (internal links so they aren't orphaned)
+homeBody = homeBody.replace(
+  '<div class="faq">',
+  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="toollist"><li><a href="/cpa-software-with-open-api">CPA &amp; accounting software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best software for solo CPA firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best software for small CPA firms</a></li></ul></div></div>\n\n<div class="faq">`
+);
 const homeHtml = head(
   "CPA Field Guide — US Tax & Accounting Software Directory (2026)",
   "Independent, vendor-neutral directory of US tax & accounting software: tax preparation, deadline monitoring, practice management, and bookkeeping. Category definitions, inclusion criteria, and integration openness. No pay-to-list.",
@@ -242,14 +318,117 @@ for (const c of cats) {
   writeFileSync(base + "/deploy/" + c.slug + ".html", page);
 }
 
-// ---------- sitemap ----------
-const urls = [ORIGIN + "/", ...cats.map((c) => `${ORIGIN}/${c.slug}`)];
+// ---------- TOOL PAGES (/tools/<slug>) ----------
+mkdirSync(base + "/deploy/tools", { recursive: true });
+for (const t of toolData) {
+  const url = `${ORIGIN}/tools/${t.slug}`;
+  const catHtml = t.catLabel.replace("&", "&amp;");
+  const siblings = toolData.filter((x) => x.catKey === t.catKey && x.slug !== t.slug);
+  const domain = t.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; <a href="/${t.catSlug}">${catHtml}</a> &nbsp;/&nbsp; ${esc(t.name)}</nav></div>`;
+  const facts = `<table class="facts"><tbody>` +
+    `<tr><th>Category</th><td><a href="/${t.catSlug}">${catHtml}</a></td></tr>` +
+    `<tr><th>Best for</th><td>${t.seg} firms</td></tr>` +
+    `<tr><th>Pricing</th><td>${esc(t.price)}${t.share ? ` <span class="muted">· ${esc(t.share)}</span>` : ""}</td></tr>` +
+    `<tr><th>Integration</th><td>${esc(t.openLabel)}</td></tr>` +
+    `<tr><th>Official site</th><td><a href="${t.url}" target="_blank" rel="nofollow noopener">${domain}</a></td></tr>` +
+    `</tbody></table>`;
+  const connects = `<p class="toolsection"><strong>How it connects.</strong> ${openExplain[t.openClass] || ""} <a href="/cpa-software-with-open-api">Compare every tool by integration openness &rarr;</a></p>`;
+  const related = siblings.length
+    ? `<div class="sibnav"><div class="wrap"><h2>Other ${catHtml} tools</h2><ul>` +
+      siblings.map((s) => `<li><a href="/tools/${s.slug}">${esc(s.name)}</a></li>`).join("") +
+      `<li><a href="/${t.catSlug}">See all &rarr;</a></li></ul></div></div>`
+    : "";
+  const graph = {
+    "@context": "https://schema.org",
+    "@graph": [
+      org,
+      { "@type": "SoftwareApplication", name: t.name, applicationCategory: t.catLabel + " software",
+        url: t.url, sameAs: t.url, description: t.desc },
+      { "@type": "BreadcrumbList", itemListElement: [
+        { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" },
+        { "@type": "ListItem", position: 2, name: t.catLabel, item: `${ORIGIN}/${t.catSlug}` },
+        { "@type": "ListItem", position: 3, name: t.name, item: url },
+      ] },
+    ],
+  };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const logoBig = t.logo.replace('class="logo"', 'class="logo logo-lg"');
+  const body = [
+    topbar, catnav(t.catKey), '<main class="wrap">', crumb,
+    `<div class="toolhero">${logoBig}<div><h1>${esc(t.name)}</h1><div class="toolsub">${catHtml} · ${t.seg}</div></div></div>`,
+    `<p class="toollede">${esc(t.desc)}</p>`, facts, connects, "</main>", related, method, footer, revealScript, ld,
+  ].join("\n\n");
+  const title = `${t.name} — Pricing, Features & Integration | CPA Field Guide`;
+  const desc = esc(`${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`).slice(0, 300);
+  writeFileSync(base + "/deploy/tools/" + t.slug + ".html", head(esc(title), desc, url) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+}
+
+// ---------- GUIDE PAGES ----------
+function guidePage(slug, title, h1, intro, groups, faq) {
+  const url = `${ORIGIN}/${slug}`;
+  const crumb = `<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; ${h1}</nav></div>`;
+  const groupsHtml = groups.filter((gp) => gp.items.length).map((gp) =>
+    `<h2 class="gh">${gp.h}</h2>${gp.note ? `<p class="toolsection">${gp.note}</p>` : ""}<ul class="toollist">` +
+    gp.items.map((t) => `<li><a href="/tools/${t.slug}">${esc(t.name)}</a> <span class="muted">— ${esc(t.price)}${t.share ? ` · ${esc(t.share)}` : ""}</span></li>`).join("") +
+    `</ul>`).join("\n");
+  const allItems = groups.flatMap((gp) => gp.items);
+  const graph = { "@context": "https://schema.org", "@graph": [ org,
+    { "@type": "CollectionPage", "@id": url + "#webpage", url, name: title, isPartOf: { "@id": ORIGIN + "/#website" },
+      inLanguage: "en-US", datePublished: DATE, dateModified: DATE, primaryImageOfPage: ORIGIN + "/og.png", breadcrumb: { "@id": url + "#breadcrumb" } },
+    { "@type": "BreadcrumbList", "@id": url + "#breadcrumb", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "CPA Field Guide", item: ORIGIN + "/" },
+      { "@type": "ListItem", position: 2, name: h1, item: url } ] },
+    { "@type": "ItemList", numberOfItems: allItems.length, itemListElement: allItems.map((t, i) => ({ "@type": "ListItem", position: i + 1,
+      item: { "@type": "SoftwareApplication", name: t.name, url: t.url || `${ORIGIN}/tools/${t.slug}`, applicationCategory: t.catLabel + " software" } })) },
+    ...(faq ? [{ "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f[0], acceptedAnswer: { "@type": "Answer", text: f[1] } })) }] : []),
+  ] };
+  const ld = `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+  const faqHtml = faq ? `<div class="faq"><div class="wrap"><h2>FAQ</h2>` + faq.map((f) => `<div class="qa"><h3>${f[0]}</h3><p>${f[1]}</p></div>`).join("") + `</div></div>` : "";
+  const body = [ topbar, catnav(""), '<main class="wrap">', crumb, `<h1 class="gh1">${h1}</h1>`, `<p class="toollede">${intro}</p>`, groupsHtml, "</main>", faqHtml, method, footer, revealScript, ld ].join("\n\n");
+  writeFileSync(base + "/deploy/" + slug + ".html", head(esc(title), esc(intro).replace(/<[^>]+>/g, "").slice(0, 300), url) + "\n<body>\n" + body + "\n</body>\n</html>\n");
+  return url;
+}
+const seg = (key) => cats.map((c) => ({ h: c.label.replace("&", "&amp;"), items: toolData.filter((t) => t.catKey === c.key && t.dataSeg.split(",").includes(key)) }));
+const guideUrls = [
+  guidePage("cpa-software-with-open-api",
+    "CPA & Accounting Software With an Open API (2026) — CPA Field Guide",
+    "CPA &amp; accounting software with an open API",
+    "How open a tool is to integration decides how much it locks you in. Here is every tool in this guide sorted by that — the ones with a self-serve public API first.",
+    [
+      { h: "Open API — self-serve", note: "You can generate an API key yourself and build against it, no approval needed.", items: toolData.filter((t) => t.openClass === "d-open") },
+      { h: "Gated API", note: "An API exists, but access needs approval, a partner program, or a higher plan.", items: toolData.filter((t) => t.openClass === "d-gated") },
+      { h: "Zapier only", note: "No direct API; they connect to the rest of your stack through Zapier.", items: toolData.filter((t) => t.openClass === "d-zap") },
+    ],
+    [
+      ["Which CPA practice-management tool has the best API?", "Karbon offers the most complete self-serve public API with webhooks; TaxDome also issues self-serve keys. Both let you build directly, without a partner agreement."],
+      ["What does an open API mean for accounting software?", "It means you can generate an API key yourself and integrate without vendor approval — the lowest-friction way to connect a tool to the rest of your firm's stack."],
+    ]),
+  guidePage("best-cpa-software-for-solo-firms",
+    "Best CPA Software for Solo Firms & Sole Practitioners (2026)",
+    "Best software for solo CPA firms",
+    "Software scoped and priced for a one-person US tax or accounting practice, grouped by what each does. Every price is a real starting figure.",
+    seg("solo")),
+  guidePage("best-cpa-software-for-small-firms",
+    "Best CPA Software for Small Firms (2026) — CPA Field Guide",
+    "Best software for small CPA firms",
+    "Tools that fit a small (roughly 2–10 person) US tax or accounting firm, grouped by what each does, with real starting prices.",
+    seg("small")),
+];
+
+// ---------- sitemap (home + categories + guides + tools) ----------
+const entries = [
+  { u: ORIGIN + "/", p: "1.0" },
+  ...cats.map((c) => ({ u: `${ORIGIN}/${c.slug}`, p: "0.8" })),
+  ...guideUrls.map((u) => ({ u, p: "0.8" })),
+  ...toolData.map((t) => ({ u: `${ORIGIN}/tools/${t.slug}`, p: "0.6" })),
+];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u, i) => `  <url><loc>${u}</loc><lastmod>${DATE}</lastmod><changefreq>weekly</changefreq><priority>${i === 0 ? "1.0" : "0.8"}</priority></url>`).join("\n")}
+${entries.map((e) => `  <url><loc>${e.u}</loc><lastmod>${DATE}</lastmod><changefreq>weekly</changefreq><priority>${e.p}</priority></url>`).join("\n")}
 </urlset>
 `;
 writeFileSync(base + "/deploy/sitemap.xml", sitemap);
 
-console.log("pages written: index.html +", cats.map((c) => c.slug + ".html").join(", "));
-console.log("sitemap urls:", urls.length);
+console.log("pages:", 1 + cats.length + guideUrls.length + toolData.length, "(home + " + cats.length + " categories + " + guideUrls.length + " guides + " + toolData.length + " tools)");
+console.log("sitemap urls:", entries.length);
