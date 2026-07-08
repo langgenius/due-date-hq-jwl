@@ -49,8 +49,8 @@ The `<head>` already has commented placeholder tags. Fastest path:
 2. **Bing Webmaster Tools** (bing.com/webmasters) → add site → **Meta tag** → copy the token. (Or just "Import from GSC" once Google is verified.)
 3. In `index.html` `<head>`, uncomment and fill:
    ```html
-   <meta name="google-site-verification" content="YOUR_GOOGLE_TOKEN">
-   <meta name="msvalidate.01" content="YOUR_BING_TOKEN">
+   <meta name="google-site-verification" content="YOUR_GOOGLE_TOKEN" />
+   <meta name="msvalidate.01" content="YOUR_BING_TOKEN" />
    ```
 4. Redeploy (`vercel --prod`), click **Verify** in each console.
 5. In each console → **Sitemaps** → submit `https://cpafieldguide.com/sitemap.xml`. Then **Request indexing** for the homepage.
