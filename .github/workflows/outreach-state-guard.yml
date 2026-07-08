@@ -1,0 +1,25 @@
+name: outreach-state-guard
+
+# Blocks any PR that would shrink outreach-kit/.outreach-state.json (the append-only
+# send record). Prevents a stale copy — e.g. one riding along in an unrelated PR —
+# from reverting the record and causing double-sends to already-contacted CPAs.
+
+on:
+  pull_request:
+    paths:
+      - 'outreach-kit/.outreach-state.json'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}"
+      - name: Check send record is not regressed
+        run: node scripts/check-outreach-state.mjs --base "origin/${{ github.base_ref }}"

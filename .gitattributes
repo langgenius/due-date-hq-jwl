@@ -1,0 +1,5 @@
+# The outreach send record is append-only — never let an incoming (possibly stale)
+# copy overwrite it on a LOCAL merge. Requires a one-time per-clone config:
+#   git config merge.ours.driver true
+# CI enforces the append-only invariant regardless (.github/workflows/outreach-state-guard.yml).
+outreach-kit/.outreach-state.json merge=ours
