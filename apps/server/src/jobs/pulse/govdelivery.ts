@@ -19,7 +19,7 @@ type InboundEmailRuleSource = RuleSource & { inboundEmail: NonNullable<RuleSourc
 
 const UNMATCHED_SOURCE_ID = 'govdelivery.inbound.unmatched'
 const FALLBACK_LOCAL_PARTS = new Set(['pulse-ingest'])
-const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+const EMAIL_RE = /[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
 const AUTH_RESULT_HEADER_NAMES = ['authentication-results', 'arc-authentication-results'] as const
 const CLOUDFLARE_AUTH_RESULT_RE = /\bmx\.cloudflare\.net\b/
 
