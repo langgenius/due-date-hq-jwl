@@ -1111,6 +1111,7 @@
   .cat-more { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: var(--info); text-decoration: none; margin-left: auto; white-space: nowrap; }
   .cat-more:hover { text-decoration: underline; }
   .cat-head h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .cat-head .viewtoggle.catview { flex: none; margin-left: 12px; }
   .sibnav { border-top: 1px solid var(--line); margin-top: 40px; }
   .sibnav .wrap { padding: 24px 24px 6px; font-family: -apple-system, sans-serif; }
   .sibnav h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin: 0 0 10px; font-weight: 700; }
@@ -1216,7 +1217,7 @@
           <path d="M9 17h6" /></svg
       ></span>
       <h1>Practice Management</h1>
-      <span class="count">10 tools</span>
+      <span class="count">10 tools</span><div class="viewtoggle catview" role="group" aria-label="View"><button data-view="cards" aria-pressed="true" aria-label="Card view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></button><button data-view="rows" aria-pressed="false" aria-label="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
     </div>
     <p class="cat-def">
       Runs a firm's front and back office — workflows, client records, deadlines, and billable time
@@ -1556,7 +1557,20 @@
       var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var c = e.target; c.classList.add("in"); io.unobserve(c); setTimeout(function(){c.classList.remove("reveal","in");},650);} }); }, { rootMargin: "0px 0px -6% 0px" });
       document.querySelectorAll(".card").forEach(function (c) { c.classList.add("reveal"); io.observe(c); });
     }
-    var controls = document.querySelector(".catnav");
+  })();
+  (function () {
+    var toggle = document.querySelector(".viewtoggle");
+    if (!toggle) return;
+    var grids = document.querySelectorAll(".grid");
+    var btns = toggle.querySelectorAll("button[data-view]");
+    function setView(v) {
+      grids.forEach(function (g) { g.classList.toggle("rows", v === "rows"); });
+      btns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-view") === v ? "true" : "false"); });
+      try { localStorage.setItem("cfg-view", v); } catch (e) {}
+    }
+    btns.forEach(function (b) { b.addEventListener("click", function () { setView(b.getAttribute("data-view")); }); });
+    var saved; try { saved = localStorage.getItem("cfg-view"); } catch (e) {}
+    if (saved === "rows") setView("rows");
   })();
 </script>
 
