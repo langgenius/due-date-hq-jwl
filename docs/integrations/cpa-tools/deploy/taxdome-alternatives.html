@@ -1,492 +1,1465 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide</title>
-<meta name="description" content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.">
-<link rel="canonical" href="https://cpafieldguide.com/taxdome-alternatives">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
-<meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%232F6DA6'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="CPA Field Guide">
-<meta property="og:title" content="TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide">
-<meta property="og:description" content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.">
-<meta property="og:url" content="https://cpafieldguide.com/taxdome-alternatives">
-<meta property="og:image" content="https://cpafieldguide.com/og.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide">
-<meta name="twitter:description" content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.">
-<meta name="twitter:image" content="https://cpafieldguide.com/og.png">
-<meta name="theme-color" content="#1A1A1A">
-<meta name="author" content="CPA Field Guide">
-<link rel="alternate" hreflang="en-us" href="https://cpafieldguide.com/taxdome-alternatives">
-<link rel="alternate" hreflang="x-default" href="https://cpafieldguide.com/taxdome-alternatives">
-<link rel="sitemap" type="application/xml" href="/sitemap.xml">
-<style>
-  :root {
-    --bg: #FFFFFF; --panel: #F1F4F8; --ink: #181B21; --soft: #4F5661; --faint: #6B7280;
-    --line: #E4E8EE;
-    --open: #1E7F57; --gated: #9A6206; --zap: #4A4A9A; --closed: #6B6B66; --info: #2F6DA6;
-    --accent: #2F6DA6; --accent-soft: #EFF5FB; --accent-line: #D8E6F2;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
-  .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-  a { color: var(--accent); }
-  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-  summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* masthead */
-  .topbar { border-bottom: 1px solid var(--line); }
-  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-mark { display: block; flex: none; }
-  .brand-text { font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.005em; }
-  .brand-text span { color: var(--faint); font-weight: 500; }
-  .topbar .kick { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
-
-  /* header */
-  header { border-bottom: 1px solid var(--line); }
-  .head-inner { padding-top: 34px; padding-bottom: 22px; }
-  h1 { font-size: clamp(27px, 3.4vw, 36px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin: 0 0 10px; max-width: 22ch; text-wrap: balance; }
-  .lede { font-family: -apple-system, sans-serif; font-size: 15px; color: var(--soft); margin: 0 0 18px; max-width: 60ch; }
-  .meta { font-family: -apple-system, sans-serif; font-size: 12.5px; color: var(--faint); display: flex; gap: 8px 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 13px; }
-  .meta b { color: var(--soft); font-weight: 600; }
-
-  /* controls */
-  .controls { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line); z-index: 5; transition: box-shadow .2s ease; }
-  .controls.scrolled { box-shadow: 0 8px 20px -16px rgba(0,0,0,.32); }
-  .controls .wrap { padding: 13px 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .clabel { font-family: -apple-system, sans-serif; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-right: 2px; }
-  button.chip { font-family: -apple-system, sans-serif; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--soft);
-    padding: 5px 12px; border-radius: 6px; font-size: 13px; transition: border-color .15s, color .15s, background .15s, transform .09s; }
-  button.chip:hover { border-color: var(--ink); color: var(--ink); }
-  button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.chip:active { transform: scale(.95); }
-  button.chip:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
-  .sep { width: 1px; height: 18px; background: var(--line); margin: 0 3px; }
-
-  main { padding: 8px 0 20px; }
-  .section { margin-top: 40px; }
-  .cat-head { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
-  .cat-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
-  .cat-head .count { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); }
-  .cat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
-    display: inline-flex; align-items: center; justify-content: center; flex: none; }
-  .cat-icon svg { width: 20px; height: 20px; }
-  .cat-def { font-family: -apple-system, sans-serif; font-size: 14.5px; color: var(--soft); margin: 0 0 12px; max-width: 74ch; }
-
-  details.criteria { font-family: -apple-system, sans-serif; margin: 0 0 20px; max-width: 74ch; }
-  details.criteria summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--info); list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 0; }
-  details.criteria summary::-webkit-details-marker { display: none; }
-  details.criteria summary::before { content: "▸"; font-size: 10px; transition: transform .15s ease; color: var(--faint); }
-  details.criteria[open] summary::before { transform: rotate(90deg); }
-  .crit-body { border-left: 2px solid var(--line); padding: 6px 0 2px 14px; margin: 8px 0 0; }
-  .crit-body p { font-size: 12.5px; color: var(--faint); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  .crit-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
-  .crit-body li { font-size: 13.5px; color: var(--soft); padding-left: 18px; position: relative; }
-  .crit-body li::before { content: "✓"; position: absolute; left: 0; color: var(--open); font-size: 12px; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-  .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg);
-    transition: transform .18s ease, box-shadow .2s ease, border-color .18s ease; }
-  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -18px rgba(20,20,18,.42); border-color: #D6D6D0; }
-  .card-body { padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .card-head { display: flex; align-items: center; gap: 11px; }
-  .logo { width: 38px; height: 38px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: center; flex: none;
-    font-family: -apple-system, sans-serif; font-weight: 700; font-size: 15px; color: var(--soft); transition: transform .2s ease; }
-  .card:hover .logo { transform: scale(1.06) rotate(-2deg); }
-  .name { font-weight: 600; font-size: 17px; line-height: 1.15; }
-  .seg { font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--faint); margin-top: 2px; }
-  .desc { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.45; color: var(--soft); margin: 2px 0 0;
-    min-height: 4.35em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .shot { aspect-ratio: 16 / 9; overflow: hidden; position: relative;
-    display: flex; align-items: center; justify-content: center;
-    background:
-      radial-gradient(120% 140% at 82% -30%, color-mix(in srgb, var(--tint, #8C8C88) 16%, #fff), transparent 62%),
-      color-mix(in srgb, var(--tint, #8C8C88) 7%, #FFFFFF); }
-  .shot-mark { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 800;
-    font-size: clamp(42px, 8vw, 60px); letter-spacing: -0.03em; line-height: 1; user-select: none;
-    color: color-mix(in srgb, var(--tint, #8C8C88) 34%, transparent); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-  .card:hover .shot-mark { transform: scale(1.07); }
-  .card-foot { padding: 11px 16px; display: flex; justify-content: space-between; align-items: center; }
-  .tag { font-family: -apple-system, sans-serif; font-size: 12px; display: inline-flex; align-items: center; gap: 7px; color: var(--soft); }
-  .tag .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
-  .d-open{background:var(--open)} .d-gated{background:var(--gated)} .d-zap{background:var(--zap)} .d-closed{background:var(--closed)} .d-info{background:var(--info)}
-  .visit { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); transition: color .18s ease; }
-  a.visit:hover { text-decoration: underline; color: var(--soft); }
-  .visit::after { content: " \2192"; opacity: 0; margin-left: -6px; transition: opacity .18s ease, margin-left .18s ease; }
-  .card:hover .visit { color: var(--soft); }
-  .card:hover .visit::after { opacity: 1; margin-left: 0; }
-
-  .legend { font-family: -apple-system, sans-serif; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--soft); padding: 30px 0 0; }
-  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
-  .legend .dot { width: 8px; height: 8px; border-radius: 999px; }
-  .empty { display: none; font-family: -apple-system, sans-serif; color: var(--faint); font-size: 14px; padding: 24px 0; }
-
-  /* methodology */
-  .method { border-top: 1px solid var(--accent-line); margin-top: 44px; background: var(--accent-soft); }
-  .method .wrap { padding: 30px 24px; }
-  .method h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .method .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-top: 18px; }
-  .method h3 { font-family: -apple-system, sans-serif; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--info); margin: 0 0 6px; font-weight: 700; }
-  .method p { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--soft); margin: 0; }
-  .method .lead { font-family: -apple-system, sans-serif; font-size: 14px; color: var(--soft); max-width: 68ch; margin: 0; }
-
-  footer .wrap { padding: 22px 24px 48px; font-family: -apple-system, sans-serif; }
-  footer p { font-size: 12.5px; color: var(--faint); max-width: 66ch; margin: 0; }
-
-  @media (max-width: 640px) {
-    .topbar .kick { display: none; }
-    .brand-text span { display: none; }
-    .head-inner { padding-top: 24px; padding-bottom: 16px; }
-    h1 { font-size: 25px; }
-    button.chip { padding: 8px 13px; }
-    .catnav a { padding: 8px 12px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-    .reveal { opacity: 1 !important; transform: none !important; }
-    .card:hover, .card:hover .logo, .brand:hover .brand-mark, .card:hover .shot::before { transform: none !important; }
-  }
-  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
-  .reveal.in { opacity: 1; transform: translateY(0); }
-  .brand-mark { transition: transform .5s cubic-bezier(.2,.85,.25,1); cursor: pointer; }
-  .brand:hover .brand-mark { transform: rotate(-24deg); }
-
-  /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
-  .logo { position: relative; overflow: hidden; }
-  .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; padding: 5px; opacity: 0; transition: opacity .25s ease; }
-  .logo-img.loaded { opacity: 1; }
-  .shot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; z-index: 1; }
-  .shot-img.loaded { opacity: 1; }
-
-  /* FAQ (AEO) */
-  .faq { border-top: 1px solid var(--accent-line); background: var(--accent-soft); }
-  .faq .wrap { padding: 30px 24px; }
-  .faq h2 { font-size: 20px; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.01em; }
-  .faq .qa { border-top: 1px solid var(--line); padding: 15px 0; max-width: 76ch; }
-  .faq h3 { font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 6px; }
-  .faq p { font-family: -apple-system, sans-serif; font-size: 13.5px; line-height: 1.55; color: var(--soft); margin: 0; max-width: 72ch; }
-
-  .cardmeta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: 3px; font-family: -apple-system, sans-serif; }
-  .cardmeta .price { font-size: 12.5px; font-weight: 600; color: var(--ink); }
-  .cardmeta .share { font-size: 11.5px; color: var(--faint); white-space: nowrap; }
-
-  /* multi-page nav */
-  .catnav { border-bottom: 1px solid var(--line); background: var(--bg); }
-  .catnav .wrap { display: flex; flex-wrap: wrap; gap: 4px; padding: 9px 24px; font-family: -apple-system, sans-serif; }
-  .catnav a { font-size: 13px; color: var(--soft); text-decoration: none; padding: 5px 11px; border-radius: 6px; border: 1px solid transparent; }
-  .catnav a:hover { border-color: var(--line); color: var(--ink); }
-  .catnav a[aria-current="page"] { background: var(--accent); color: #fff; }
-  .crumb { font-family: -apple-system, sans-serif; font-size: 12px; color: var(--faint); padding: 16px 0 0; }
-  .crumb a { color: var(--soft); text-decoration: none; }
-  .crumb a:hover { text-decoration: underline; }
-  .cat-more { font-family: -apple-system, sans-serif; font-size: 12.5px; font-weight: 600; color: var(--info); text-decoration: none; margin-left: auto; white-space: nowrap; }
-  .cat-more:hover { text-decoration: underline; }
-  .cat-head h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
-  .sibnav { border-top: 1px solid var(--line); margin-top: 40px; }
-  .sibnav .wrap { padding: 24px 24px 6px; font-family: -apple-system, sans-serif; }
-  .sibnav h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin: 0 0 10px; font-weight: 700; }
-  .sibnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
-  .sibnav a { font-size: 14px; color: var(--info); text-decoration: none; }
-  .sibnav a:hover { text-decoration: underline; }
-  /* internal links + tool/guide pages */
-  .namelink { color: inherit; text-decoration: none; }
-  .namelink:hover { text-decoration: underline; }
-  .toolhero { display: flex; align-items: center; gap: 14px; margin: 4px 0 2px; }
-  .logo-lg { width: 54px; height: 54px; font-size: 20px; border-radius: 12px; }
-  .toolhero h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
-  .toolsub { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--faint); margin-top: 3px; }
-  .toollede { font-family: -apple-system, sans-serif; font-size: 16px; line-height: 1.5; color: var(--soft); max-width: 66ch; margin: 12px 0 22px; }
-  .facts { border-collapse: collapse; width: 100%; max-width: 640px; font-family: -apple-system, sans-serif; margin: 0 0 22px; }
-  .facts th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 16px 11px 0; vertical-align: top; white-space: nowrap; width: 118px; border-top: 1px solid var(--line); }
-  .facts td { font-size: 14px; color: var(--ink); padding: 11px 0; border-top: 1px solid var(--line); }
-  .facts a { color: var(--info); text-decoration: none; }
-  .facts a:hover { text-decoration: underline; }
-  .muted { color: var(--faint); }
-  .toolsection { font-family: -apple-system, sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
-  .toolsection a { color: var(--info); }
-  .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
-  .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
-  .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
-  .toollist a { color: var(--info); text-decoration: none; font-weight: 600; font-size: 15px; }
-  .toollist a:hover { text-decoration: underline; }
-  .guides { border-top: 1px solid var(--accent-line); background: var(--accent-soft); }
-  .guides .wrap { padding: 26px 24px; }
-  .guides h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
-  .footnav { border-top: 1px solid var(--line); background: var(--bg); }
-  .footnav .wrap { padding: 30px 24px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px; font-family: -apple-system, sans-serif; }
-  .footnav h3 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin: 0 0 9px; font-weight: 700; }
-  .footnav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-  .footnav a { font-size: 13.5px; color: var(--soft); text-decoration: none; }
-  .footnav a:hover { color: var(--ink); text-decoration: underline; }
-  .tablewrap { overflow-x: auto; margin: 10px 0 26px; border: 1px solid var(--line); border-radius: 10px; }
-  .cmp { border-collapse: collapse; width: 100%; min-width: 660px; font-family: -apple-system, sans-serif; font-size: 13.5px; }
-  .cmp th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; padding: 11px 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; }
-  .cmp td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--soft); vertical-align: top; }
-  .cmp tbody tr:last-child td { border-bottom: none; }
-  .cmp tbody tr:hover { background: var(--accent-soft); }
-  .cmp td:first-child a { color: var(--accent); text-decoration: none; font-weight: 600; }
-  .cmp td:first-child a:hover { text-decoration: underline; }
-  .cmp.vs thead th a { color: var(--accent); text-decoration: none; }
-  .cmp.vs tbody th { background: transparent; color: var(--ink); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 12px; white-space: nowrap; position: static; }
-</style>
-</head>
-<body>
-<div class="topbar">
-  <div class="wrap">
-    <div class="brand">
-      <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="8" fill="#1A1A1A"/>
-        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#2F6DA6"/>
-        <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77"/>
-        <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9"/>
-      </svg>
-      <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
-    </div>
-    <span class="kick">Independent · editorial · no pay-to-list</span>
-  </div>
-</div>
-
-<nav class="catnav" aria-label="Categories">
-    <div class="wrap">
-      <a href="/">All</a>
-      <a href="/tax-preparation-software">Tax prep</a>
-      <a href="/deadline-monitoring-software">Deadlines & Monitoring</a>
-      <a href="/practice-management-software" aria-current="page">Practice mgmt</a>
-      <a href="/accounting-software">Bookkeeping</a>
-    </div>
-  </nav>
-
-<main class="wrap">
-
-<div class="wrap"><nav class="crumb" aria-label="Breadcrumb"><a href="/">CPA Field Guide</a> &nbsp;/&nbsp; TaxDome alternatives</nav></div>
-
-<h1 class="gh1">TaxDome alternatives</h1>
-
-<p class="toollede">Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.</p>
-
-<ul class="toollist"><li><a href="/tools/karbon">Karbon</a> <span class="muted">— From $59/user/mo · Open API</span></li><li><a href="/tools/canopy">Canopy</a> <span class="muted">— From $45/user/mo · Gated</span></li><li><a href="/tools/financial-cents">Financial Cents</a> <span class="muted">— From $19/user/mo · Gated</span></li><li><a href="/tools/jetpack-workflow">Jetpack Workflow</a> <span class="muted">— From $36/user/mo · Gated</span></li><li><a href="/tools/keeper">Keeper</a> <span class="muted">— From $200/mo · Zapier</span></li><li><a href="/tools/firm360">Firm360</a> <span class="muted">— From $49/user/mo · Zapier</span></li><li><a href="/tools/pixie">Pixie</a> <span class="muted">— From $129/mo · Zapier</span></li><li><a href="/tools/aiwyn">Aiwyn</a> <span class="muted">— Custom · enterprise · Partner</span></li><li><a href="/tools/ignition">Ignition</a> <span class="muted">— From $39/mo · Zapier</span></li></ul>
-
-</main>
-
-<div class="faq"><div class="wrap"><h2>TaxDome alternatives — FAQ</h2><div class="qa"><h3>What is the best alternative to TaxDome?</h3><p>The closest practice management alternatives are Karbon, Canopy, Financial Cents. The right pick depends on price and how open you need the integration to be — compare them above.</p></div><div class="qa"><h3>Is there a cheaper alternative to TaxDome?</h3><p>TaxDome's pricing is From $67/user/mo. Lower-priced practice management options include Karbon (From $59/user/mo), Canopy (From $45/user/mo), Financial Cents (From $19/user/mo).</p></div></div></div>
-
-<div class="sibnav"><div class="wrap"><h2>See also</h2><ul><li><a href="/tools/taxdome">TaxDome full profile</a></li><li><a href="/practice-management-software">All Practice Management tools</a></li></ul></div></div>
-
-<div class="method">
-  <div class="wrap">
-    <h2>How this guide works</h2>
-    <p class="lead">Most software directories rank by who pays. This one doesn't. It's a plain editorial reference, written to be useful to a working firm rather than to any vendor — including the one that maintains it.</p>
-    <div class="grid3">
-      <div><h3>No pay-to-list</h3><p>No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and no paid badges. Every product that meets a category's criteria can appear.</p></div>
-      <div><h3>Only shipped capabilities</h3><p>Each tool is described only by features it has actually released, sourced from the vendor's own product and developer documentation (reviewed July 2026). Roadmap items are not counted.</p></div>
-      <div><h3>Categories a firm recognizes</h3><p>Categories follow how US practices actually evaluate software, each with a stated definition and inclusion criteria. Deadline tracking is treated as a capability of practice management, with a small specialist list called out.</p></div>
-      <div><h3>Who maintains it</h3><p>CPA Field Guide is written and maintained by the team behind <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in the guide. We describe every product — ours included — by the same standard, and never rank ours above its peers.</p></div>
-    </div>
-  </div>
-</div>
-
-<div class="footnav"><div class="wrap"><div><h3>Categories</h3><ul><li><a href="/tax-preparation-software">Tax prep</a></li><li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li><li><a href="/practice-management-software">Practice mgmt</a></li><li><a href="/accounting-software">Bookkeeping</a></li></ul></div><div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div><div><h3>Directory</h3><ul><li><a href="/">All 25 tools</a></li><li><a href="/compare">Compare all</a></li><li><a href="/cpa-software-statistics">Statistics</a></li></ul></div></div></div>
-
-<footer>
-  <div class="wrap">
-    <p>CPA Field Guide is an independent editorial reference to US tax and accounting software. Facts reviewed July 2026 from each vendor's own documentation. Something wrong or missing? Corrections are welcome.</p>
-  </div>
-</footer>
-
-<script>
-  (function () {
-    document.querySelectorAll("img.asset").forEach(function (img) {
-      var card = img.closest(".card"); var nm = card && card.querySelector(".name") ? card.querySelector(".name").textContent.trim() : "";
-      img.alt = nm ? (img.classList.contains("shot-img") ? nm + " screenshot" : nm + " logo") : "";
-      if (!img.getAttribute("src")) { img.remove(); return; }
-      img.addEventListener("load", function () { img.classList.add("loaded"); });
-      img.addEventListener("error", function () { img.remove(); });
-    });
-    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reduce && "IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var c = e.target; c.classList.add("in"); io.unobserve(c); setTimeout(function(){c.classList.remove("reveal","in");},650);} }); }, { rootMargin: "0px 0px -6% 0px" });
-      document.querySelectorAll(".card").forEach(function (c) { c.classList.add("reveal"); io.observe(c); });
-    }
-    var controls = document.querySelector(".catnav");
-  })();
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://cpafieldguide.com/#org",
-      "name": "CPA Field Guide",
-      "url": "https://cpafieldguide.com/",
-      "logo": "https://cpafieldguide.com/og.png",
-      "sameAs": [
-        "https://duedatehq.com"
-      ],
-      "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
-    },
-    {
-      "@type": "CollectionPage",
-      "@id": "https://cpafieldguide.com/taxdome-alternatives#webpage",
-      "url": "https://cpafieldguide.com/taxdome-alternatives",
-      "name": "TaxDome alternatives",
-      "isPartOf": {
-        "@id": "https://cpafieldguide.com/#website"
-      },
-      "inLanguage": "en-US",
-      "datePublished": "2026-07-08",
-      "dateModified": "2026-07-08",
-      "primaryImageOfPage": "https://cpafieldguide.com/og.png",
-      "breadcrumb": {
-        "@id": "https://cpafieldguide.com/taxdome-alternatives#breadcrumb"
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide</title>
+    <meta
+      name="description"
+      content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here."
+    />
+    <link rel="canonical" href="https://cpafieldguide.com/taxdome-alternatives" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+    <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><rect width='30' height='30' rx='8' fill='%231A1A1A'/><path d='M15 6 L18.2 15 L11.8 15 Z' fill='%232F6DA6'/><path d='M15 24 L11.8 15 L18.2 15 Z' fill='%237C7C77'/></svg>"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CPA Field Guide" />
+    <meta
+      property="og:title"
+      content="TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide"
+    />
+    <meta
+      property="og:description"
+      content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here."
+    />
+    <meta property="og:url" content="https://cpafieldguide.com/taxdome-alternatives" />
+    <meta property="og:image" content="https://cpafieldguide.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="TaxDome Alternatives (2026): Compared for US Firms — CPA Field Guide"
+    />
+    <meta
+      name="twitter:description"
+      content="Looking for an alternative to TaxDome? Here are the other practice management tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here."
+    />
+    <meta name="twitter:image" content="https://cpafieldguide.com/og.png" />
+    <meta name="theme-color" content="#1A1A1A" />
+    <meta name="author" content="CPA Field Guide" />
+    <link rel="alternate" hreflang="en-us" href="https://cpafieldguide.com/taxdome-alternatives" />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://cpafieldguide.com/taxdome-alternatives"
+    />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --panel: #f1f4f8;
+        --ink: #181b21;
+        --soft: #4f5661;
+        --faint: #6b7280;
+        --line: #e4e8ee;
+        --open: #1e7f57;
+        --gated: #9a6206;
+        --zap: #4a4a9a;
+        --closed: #6b6b66;
+        --info: #2f6da6;
+        --accent: #2f6da6;
+        --accent-soft: #eff5fb;
+        --accent-line: #d8e6f2;
       }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://cpafieldguide.com/taxdome-alternatives#breadcrumb",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "CPA Field Guide",
-          "item": "https://cpafieldguide.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "TaxDome alternatives",
-          "item": "https://cpafieldguide.com/taxdome-alternatives"
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .sans {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      a {
+        color: var(--accent);
+      }
+      a:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 2px;
+      }
+      summary:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      /* masthead */
+      .topbar {
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-mark {
+        display: block;
+        flex: none;
+      }
+      .brand-text {
+        font-family: -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: -0.005em;
+      }
+      .brand-text span {
+        color: var(--faint);
+        font-weight: 500;
+      }
+      .topbar .kick {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+      }
+
+      /* header */
+      header {
+        border-bottom: 1px solid var(--line);
+      }
+      .head-inner {
+        padding-top: 34px;
+        padding-bottom: 22px;
+      }
+      h1 {
+        font-size: clamp(27px, 3.4vw, 36px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        margin: 0 0 10px;
+        max-width: 22ch;
+        text-wrap: balance;
+      }
+      .lede {
+        font-family: -apple-system, sans-serif;
+        font-size: 15px;
+        color: var(--soft);
+        margin: 0 0 18px;
+        max-width: 60ch;
+      }
+      .meta {
+        font-family: -apple-system, sans-serif;
+        font-size: 12.5px;
+        color: var(--faint);
+        display: flex;
+        gap: 8px 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--line);
+        padding-top: 13px;
+      }
+      .meta b {
+        color: var(--soft);
+        font-weight: 600;
+      }
+
+      /* controls */
+      .controls {
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--line);
+        z-index: 5;
+        transition: box-shadow 0.2s ease;
+      }
+      .controls.scrolled {
+        box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.32);
+      }
+      .controls .wrap {
+        padding: 13px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .clabel {
+        font-family: -apple-system, sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 700;
+        margin-right: 2px;
+      }
+      button.chip {
+        font-family: -apple-system, sans-serif;
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--soft);
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        transition:
+          border-color 0.15s,
+          color 0.15s,
+          background 0.15s,
+          transform 0.09s;
+      }
+      button.chip:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+      button.chip[aria-pressed='true'] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      button.chip:active {
+        transform: scale(0.95);
+      }
+      button.chip:focus-visible {
+        outline: 2px solid var(--info);
+        outline-offset: 2px;
+      }
+      .sep {
+        width: 1px;
+        height: 18px;
+        background: var(--line);
+        margin: 0 3px;
+      }
+
+      main {
+        padding: 8px 0 20px;
+      }
+      .section {
+        margin-top: 40px;
+      }
+      .cat-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 8px;
+      }
+      .cat-head h2 {
+        font-size: 23px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        margin: 0;
+      }
+      .cat-head .count {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .cat-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .cat-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+      .cat-def {
+        font-family: -apple-system, sans-serif;
+        font-size: 14.5px;
+        color: var(--soft);
+        margin: 0 0 12px;
+        max-width: 74ch;
+      }
+
+      details.criteria {
+        font-family: -apple-system, sans-serif;
+        margin: 0 0 20px;
+        max-width: 74ch;
+      }
+      details.criteria summary {
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--info);
+        list-style: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 0;
+      }
+      details.criteria summary::-webkit-details-marker {
+        display: none;
+      }
+      details.criteria summary::before {
+        content: '▸';
+        font-size: 10px;
+        transition: transform 0.15s ease;
+        color: var(--faint);
+      }
+      details.criteria[open] summary::before {
+        transform: rotate(90deg);
+      }
+      .crit-body {
+        border-left: 2px solid var(--line);
+        padding: 6px 0 2px 14px;
+        margin: 8px 0 0;
+      }
+      .crit-body p {
+        font-size: 12.5px;
+        color: var(--faint);
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+      }
+      .crit-body ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .crit-body li {
+        font-size: 13.5px;
+        color: var(--soft);
+        padding-left: 18px;
+        position: relative;
+      }
+      .crit-body li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--open);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.2s ease,
+          border-color 0.18s ease;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px -18px rgba(20, 20, 18, 0.42);
+        border-color: #d6d6d0;
+      }
+      .card-body {
+        padding: 16px 16px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        font-family: -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--soft);
+        transition: transform 0.2s ease;
+      }
+      .card:hover .logo {
+        transform: scale(1.06) rotate(-2deg);
+      }
+      .name {
+        font-weight: 600;
+        font-size: 17px;
+        line-height: 1.15;
+      }
+      .seg {
+        font-family: -apple-system, sans-serif;
+        font-size: 11.5px;
+        color: var(--faint);
+        margin-top: 2px;
+      }
+      .desc {
+        font-family: -apple-system, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.45;
+        color: var(--soft);
+        margin: 2px 0 0;
+        min-height: 4.35em;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .shot {
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(
+            120% 140% at 82% -30%,
+            color-mix(in srgb, var(--tint, #8c8c88) 16%, #fff),
+            transparent 62%
+          ),
+          color-mix(in srgb, var(--tint, #8c8c88) 7%, #ffffff);
+      }
+      .shot-mark {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-weight: 800;
+        font-size: clamp(42px, 8vw, 60px);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        user-select: none;
+        color: color-mix(in srgb, var(--tint, #8c8c88) 34%, transparent);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .card:hover .shot-mark {
+        transform: scale(1.07);
+      }
+      .card-foot {
+        padding: 11px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tag {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--soft);
+      }
+      .tag .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        flex: none;
+      }
+      .d-open {
+        background: var(--open);
+      }
+      .d-gated {
+        background: var(--gated);
+      }
+      .d-zap {
+        background: var(--zap);
+      }
+      .d-closed {
+        background: var(--closed);
+      }
+      .d-info {
+        background: var(--info);
+      }
+      .visit {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+        transition: color 0.18s ease;
+      }
+      a.visit:hover {
+        text-decoration: underline;
+        color: var(--soft);
+      }
+      .visit::after {
+        content: ' \2192';
+        opacity: 0;
+        margin-left: -6px;
+        transition:
+          opacity 0.18s ease,
+          margin-left 0.18s ease;
+      }
+      .card:hover .visit {
+        color: var(--soft);
+      }
+      .card:hover .visit::after {
+        opacity: 1;
+        margin-left: 0;
+      }
+
+      .legend {
+        font-family: -apple-system, sans-serif;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 12px;
+        color: var(--soft);
+        padding: 30px 0 0;
+      }
+      .legend .li {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .legend .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+      .empty {
+        display: none;
+        font-family: -apple-system, sans-serif;
+        color: var(--faint);
+        font-size: 14px;
+        padding: 24px 0;
+      }
+
+      /* methodology */
+      .method {
+        border-top: 1px solid var(--accent-line);
+        margin-top: 44px;
+        background: var(--accent-soft);
+      }
+      .method .wrap {
+        padding: 30px 24px;
+      }
+      .method h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 6px;
+        letter-spacing: -0.01em;
+      }
+      .method .grid3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 22px;
+        margin-top: 18px;
+      }
+      .method h3 {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--info);
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      .method p {
+        font-family: -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--soft);
+        margin: 0;
+      }
+      .method .lead {
+        font-family: -apple-system, sans-serif;
+        font-size: 14px;
+        color: var(--soft);
+        max-width: 68ch;
+        margin: 0;
+      }
+
+      footer .wrap {
+        padding: 22px 24px 48px;
+        font-family: -apple-system, sans-serif;
+      }
+      footer p {
+        font-size: 12.5px;
+        color: var(--faint);
+        max-width: 66ch;
+        margin: 0;
+      }
+
+      @media (max-width: 640px) {
+        .topbar .kick {
+          display: none;
         }
-      ]
-    },
-    {
-      "@type": "ItemList",
-      "numberOfItems": 9,
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Karbon",
-            "url": "https://karbonhq.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Canopy",
-            "url": "https://www.getcanopy.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Financial Cents",
-            "url": "https://financial-cents.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 4,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Jetpack Workflow",
-            "url": "https://jetpackworkflow.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 5,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Keeper",
-            "url": "https://keeper.app",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 6,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Firm360",
-            "url": "https://www.myfirm360.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 7,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Pixie",
-            "url": "https://www.usepixie.com",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 8,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Aiwyn",
-            "url": "https://www.aiwyn.ai",
-            "applicationCategory": "Practice Management software"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 9,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Ignition",
-            "url": "https://www.ignitionapp.com",
-            "applicationCategory": "Practice Management software"
-          }
+        .brand-text span {
+          display: none;
         }
-      ]
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is the best alternative to TaxDome?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "The closest practice management alternatives are Karbon, Canopy, Financial Cents. The right pick depends on price and how open you need the integration to be — compare them above."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is there a cheaper alternative to TaxDome?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "TaxDome's pricing is From $67/user/mo. Lower-priced practice management options include Karbon (From $59/user/mo), Canopy (From $45/user/mo), Financial Cents (From $19/user/mo)."
-          }
+        .head-inner {
+          padding-top: 24px;
+          padding-bottom: 16px;
         }
-      ]
-    }
-  ]
-}
-</script>
-</body>
+        h1 {
+          font-size: 25px;
+        }
+        button.chip {
+          padding: 8px 13px;
+        }
+        .catnav a {
+          padding: 8px 12px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+        .reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .card:hover,
+        .card:hover .logo,
+        .brand:hover .brand-mark,
+        .card:hover .shot::before {
+          transform: none !important;
+        }
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .brand-mark {
+        transition: transform 0.5s cubic-bezier(0.2, 0.85, 0.25, 1);
+        cursor: pointer;
+      }
+      .brand:hover .brand-mark {
+        transform: rotate(-24deg);
+      }
+
+      /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
+      .logo {
+        position: relative;
+        overflow: hidden;
+      }
+      .logo-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #fff;
+        padding: 5px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+      .logo-img.loaded {
+        opacity: 1;
+      }
+      .shot-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+      }
+      .shot-img.loaded {
+        opacity: 1;
+      }
+
+      /* FAQ (AEO) */
+      .faq {
+        border-top: 1px solid var(--accent-line);
+        background: var(--accent-soft);
+      }
+      .faq .wrap {
+        padding: 30px 24px;
+      }
+      .faq h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 14px;
+        letter-spacing: -0.01em;
+      }
+      .faq .qa {
+        border-top: 1px solid var(--line);
+        padding: 15px 0;
+        max-width: 76ch;
+      }
+      .faq h3 {
+        font-family: -apple-system, sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .faq p {
+        font-family: -apple-system, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: var(--soft);
+        margin: 0;
+        max-width: 72ch;
+      }
+
+      .cardmeta {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 3px;
+        font-family: -apple-system, sans-serif;
+      }
+      .cardmeta .price {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .cardmeta .share {
+        font-size: 11.5px;
+        color: var(--faint);
+        white-space: nowrap;
+      }
+
+      /* multi-page nav */
+      .catnav {
+        border-bottom: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .catnav .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 9px 24px;
+        font-family: -apple-system, sans-serif;
+      }
+      .catnav a {
+        font-size: 13px;
+        color: var(--soft);
+        text-decoration: none;
+        padding: 5px 11px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+      }
+      .catnav a:hover {
+        border-color: var(--line);
+        color: var(--ink);
+      }
+      .catnav a[aria-current='page'] {
+        background: var(--accent);
+        color: #fff;
+      }
+      .crumb {
+        font-family: -apple-system, sans-serif;
+        font-size: 12px;
+        color: var(--faint);
+        padding: 16px 0 0;
+      }
+      .crumb a {
+        color: var(--soft);
+        text-decoration: none;
+      }
+      .crumb a:hover {
+        text-decoration: underline;
+      }
+      .cat-more {
+        font-family: -apple-system, sans-serif;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--info);
+        text-decoration: none;
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .cat-more:hover {
+        text-decoration: underline;
+      }
+      .cat-head h1 {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .sibnav {
+        border-top: 1px solid var(--line);
+        margin-top: 40px;
+      }
+      .sibnav .wrap {
+        padding: 24px 24px 6px;
+        font-family: -apple-system, sans-serif;
+      }
+      .sibnav h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--faint);
+        margin: 0 0 10px;
+        font-weight: 700;
+      }
+      .sibnav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+      }
+      .sibnav a {
+        font-size: 14px;
+        color: var(--info);
+        text-decoration: none;
+      }
+      .sibnav a:hover {
+        text-decoration: underline;
+      }
+      /* internal links + tool/guide pages */
+      .namelink {
+        color: inherit;
+        text-decoration: none;
+      }
+      .namelink:hover {
+        text-decoration: underline;
+      }
+      .toolhero {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 4px 0 2px;
+      }
+      .logo-lg {
+        width: 54px;
+        height: 54px;
+        font-size: 20px;
+        border-radius: 12px;
+      }
+      .toolhero h1 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .toolsub {
+        font-family: -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--faint);
+        margin-top: 3px;
+      }
+      .toollede {
+        font-family: -apple-system, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--soft);
+        max-width: 66ch;
+        margin: 12px 0 22px;
+      }
+      .facts {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 640px;
+        font-family: -apple-system, sans-serif;
+        margin: 0 0 22px;
+      }
+      .facts th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--faint);
+        font-weight: 700;
+        padding: 11px 16px 11px 0;
+        vertical-align: top;
+        white-space: nowrap;
+        width: 118px;
+        border-top: 1px solid var(--line);
+      }
+      .facts td {
+        font-size: 14px;
+        color: var(--ink);
+        padding: 11px 0;
+        border-top: 1px solid var(--line);
+      }
+      .facts a {
+        color: var(--info);
+        text-decoration: none;
+      }
+      .facts a:hover {
+        text-decoration: underline;
+      }
+      .muted {
+        color: var(--faint);
+      }
+      .toolsection {
+        font-family: -apple-system, sans-serif;
+        font-size: 14.5px;
+        line-height: 1.55;
+        color: var(--soft);
+        max-width: 66ch;
+        margin: 0 0 22px;
+      }
+      .toolsection a {
+        color: var(--info);
+      }
+      .gh1 {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 8px 0 6px;
+      }
+      .gh {
+        font-size: 17px;
+        font-weight: 600;
+        margin: 26px 0 2px;
+      }
+      .toollist {
+        font-family: -apple-system, sans-serif;
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .toollist a {
+        color: var(--info);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .toollist a:hover {
+        text-decoration: underline;
+      }
+      .guides {
+        border-top: 1px solid var(--accent-line);
+        background: var(--accent-soft);
+      }
+      .guides .wrap {
+        padding: 26px 24px;
+      }
+      .guides h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 12px;
+      }
+      .footnav {
+        border-top: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .footnav .wrap {
+        padding: 30px 24px 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 22px;
+        font-family: -apple-system, sans-serif;
+      }
+      .footnav h3 {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin: 0 0 9px;
+        font-weight: 700;
+      }
+      .footnav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .footnav a {
+        font-size: 13.5px;
+        color: var(--soft);
+        text-decoration: none;
+      }
+      .footnav a:hover {
+        color: var(--ink);
+        text-decoration: underline;
+      }
+      .tablewrap {
+        overflow-x: auto;
+        margin: 10px 0 26px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .cmp {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 660px;
+        font-family: -apple-system, sans-serif;
+        font-size: 13.5px;
+      }
+      .cmp th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--faint);
+        font-weight: 700;
+        padding: 11px 14px;
+        background: var(--accent-soft);
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+      }
+      .cmp td {
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--line);
+        color: var(--soft);
+        vertical-align: top;
+      }
+      .cmp tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .cmp tbody tr:hover {
+        background: var(--accent-soft);
+      }
+      .cmp td:first-child a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .cmp td:first-child a:hover {
+        text-decoration: underline;
+      }
+      .cmp.vs thead th a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .cmp.vs tbody th {
+        background: transparent;
+        color: var(--ink);
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 12px;
+        white-space: nowrap;
+        position: static;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="wrap">
+        <div class="brand">
+          <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+            <rect width="30" height="30" rx="8" fill="#1A1A1A" />
+            <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#2F6DA6" />
+            <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77" />
+            <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9" />
+          </svg>
+          <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
+        </div>
+        <span class="kick">Independent · editorial · no pay-to-list</span>
+      </div>
+    </div>
+
+    <nav class="catnav" aria-label="Categories">
+      <div class="wrap">
+        <a href="/">All</a>
+        <a href="/tax-preparation-software">Tax prep</a>
+        <a href="/deadline-monitoring-software">Deadlines & Monitoring</a>
+        <a href="/practice-management-software" aria-current="page">Practice mgmt</a>
+        <a href="/accounting-software">Bookkeeping</a>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <div class="wrap">
+        <nav class="crumb" aria-label="Breadcrumb">
+          <a href="/">CPA Field Guide</a> &nbsp;/&nbsp; TaxDome alternatives
+        </nav>
+      </div>
+
+      <h1 class="gh1">TaxDome alternatives</h1>
+
+      <p class="toollede">
+        Looking for an alternative to TaxDome? Here are the other practice management tools US firms
+        use — each with pricing and how open it is to integration, so you can compare on the axes
+        that matter. Independent, no vendor pays to be here.
+      </p>
+
+      <ul class="toollist">
+        <li>
+          <a href="/tools/karbon">Karbon</a>
+          <span class="muted">— From $59/user/mo · Open API</span>
+        </li>
+        <li>
+          <a href="/tools/canopy">Canopy</a> <span class="muted">— From $45/user/mo · Gated</span>
+        </li>
+        <li>
+          <a href="/tools/financial-cents">Financial Cents</a>
+          <span class="muted">— From $19/user/mo · Gated</span>
+        </li>
+        <li>
+          <a href="/tools/jetpack-workflow">Jetpack Workflow</a>
+          <span class="muted">— From $36/user/mo · Gated</span>
+        </li>
+        <li>
+          <a href="/tools/keeper">Keeper</a> <span class="muted">— From $200/mo · Zapier</span>
+        </li>
+        <li>
+          <a href="/tools/firm360">Firm360</a>
+          <span class="muted">— From $49/user/mo · Zapier</span>
+        </li>
+        <li><a href="/tools/pixie">Pixie</a> <span class="muted">— From $129/mo · Zapier</span></li>
+        <li>
+          <a href="/tools/aiwyn">Aiwyn</a>
+          <span class="muted">— Custom · enterprise · Partner</span>
+        </li>
+        <li>
+          <a href="/tools/ignition">Ignition</a> <span class="muted">— From $39/mo · Zapier</span>
+        </li>
+      </ul>
+    </main>
+
+    <div class="faq">
+      <div class="wrap">
+        <h2>TaxDome alternatives — FAQ</h2>
+        <div class="qa">
+          <h3>What is the best alternative to TaxDome?</h3>
+          <p>
+            The closest practice management alternatives are Karbon, Canopy, Financial Cents. The
+            right pick depends on price and how open you need the integration to be — compare them
+            above.
+          </p>
+        </div>
+        <div class="qa">
+          <h3>Is there a cheaper alternative to TaxDome?</h3>
+          <p>
+            TaxDome's pricing is From $67/user/mo. Lower-priced practice management options include
+            Karbon (From $59/user/mo), Canopy (From $45/user/mo), Financial Cents (From
+            $19/user/mo).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sibnav">
+      <div class="wrap">
+        <h2>See also</h2>
+        <ul>
+          <li><a href="/tools/taxdome">TaxDome full profile</a></li>
+          <li><a href="/practice-management-software">All Practice Management tools</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="wrap">
+        <h2>How this guide works</h2>
+        <p class="lead">
+          Most software directories rank by who pays. This one doesn't. It's a plain editorial
+          reference, written to be useful to a working firm rather than to any vendor — including
+          the one that maintains it.
+        </p>
+        <div class="grid3">
+          <div>
+            <h3>No pay-to-list</h3>
+            <p>
+              No vendor pays for inclusion, placement, or ranking. There is no "sponsored" sort and
+              no paid badges. Every product that meets a category's criteria can appear.
+            </p>
+          </div>
+          <div>
+            <h3>Only shipped capabilities</h3>
+            <p>
+              Each tool is described only by features it has actually released, sourced from the
+              vendor's own product and developer documentation (reviewed July 2026). Roadmap items
+              are not counted.
+            </p>
+          </div>
+          <div>
+            <h3>Categories a firm recognizes</h3>
+            <p>
+              Categories follow how US practices actually evaluate software, each with a stated
+              definition and inclusion criteria. Deadline tracking is treated as a capability of
+              practice management, with a small specialist list called out.
+            </p>
+          </div>
+          <div>
+            <h3>Who maintains it</h3>
+            <p>
+              CPA Field Guide is written and maintained by the team behind
+              <a href="https://duedatehq.com">DueDateHQ</a>, a deadline-monitoring tool listed in
+              the guide. We describe every product — ours included — by the same standard, and never
+              rank ours above its peers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnav">
+      <div class="wrap">
+        <div>
+          <h3>Categories</h3>
+          <ul>
+            <li><a href="/tax-preparation-software">Tax prep</a></li>
+            <li><a href="/deadline-monitoring-software">Deadlines & Monitoring</a></li>
+            <li><a href="/practice-management-software">Practice mgmt</a></li>
+            <li><a href="/accounting-software">Bookkeeping</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Guides</h3>
+          <ul>
+            <li><a href="/compare">Compare all tools</a></li>
+            <li><a href="/cpa-software-with-open-api">Software with an open API</a></li>
+            <li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li>
+            <li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Directory</h3>
+          <ul>
+            <li><a href="/">All 25 tools</a></li>
+            <li><a href="/compare">Compare all</a></li>
+            <li><a href="/cpa-software-statistics">Statistics</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          CPA Field Guide is an independent editorial reference to US tax and accounting software.
+          Facts reviewed July 2026 from each vendor's own documentation. Something wrong or missing?
+          Corrections are welcome.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      ;(function () {
+        document.querySelectorAll('img.asset').forEach(function (img) {
+          var card = img.closest('.card')
+          var nm =
+            card && card.querySelector('.name')
+              ? card.querySelector('.name').textContent.trim()
+              : ''
+          img.alt = nm
+            ? img.classList.contains('shot-img')
+              ? nm + ' screenshot'
+              : nm + ' logo'
+            : ''
+          if (!img.getAttribute('src')) {
+            img.remove()
+            return
+          }
+          img.addEventListener('load', function () {
+            img.classList.add('loaded')
+          })
+          img.addEventListener('error', function () {
+            img.remove()
+          })
+        })
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (!reduce && 'IntersectionObserver' in window) {
+          var io = new IntersectionObserver(
+            function (es) {
+              es.forEach(function (e) {
+                if (e.isIntersecting) {
+                  var c = e.target
+                  c.classList.add('in')
+                  io.unobserve(c)
+                  setTimeout(function () {
+                    c.classList.remove('reveal', 'in')
+                  }, 650)
+                }
+              })
+            },
+            { rootMargin: '0px 0px -6% 0px' },
+          )
+          document.querySelectorAll('.card').forEach(function (c) {
+            c.classList.add('reveal')
+            io.observe(c)
+          })
+        }
+        var controls = document.querySelector('.catnav')
+      })()
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://cpafieldguide.com/#org",
+            "name": "CPA Field Guide",
+            "url": "https://cpafieldguide.com/",
+            "logo": "https://cpafieldguide.com/og.png",
+            "sameAs": ["https://duedatehq.com"],
+            "description": "Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ."
+          },
+          {
+            "@type": "CollectionPage",
+            "@id": "https://cpafieldguide.com/taxdome-alternatives#webpage",
+            "url": "https://cpafieldguide.com/taxdome-alternatives",
+            "name": "TaxDome alternatives",
+            "isPartOf": {
+              "@id": "https://cpafieldguide.com/#website"
+            },
+            "inLanguage": "en-US",
+            "datePublished": "2026-07-08",
+            "dateModified": "2026-07-08",
+            "primaryImageOfPage": "https://cpafieldguide.com/og.png",
+            "breadcrumb": {
+              "@id": "https://cpafieldguide.com/taxdome-alternatives#breadcrumb"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://cpafieldguide.com/taxdome-alternatives#breadcrumb",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "CPA Field Guide",
+                "item": "https://cpafieldguide.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "TaxDome alternatives",
+                "item": "https://cpafieldguide.com/taxdome-alternatives"
+              }
+            ]
+          },
+          {
+            "@type": "ItemList",
+            "numberOfItems": 9,
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Karbon",
+                  "url": "https://karbonhq.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Canopy",
+                  "url": "https://www.getcanopy.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Financial Cents",
+                  "url": "https://financial-cents.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Jetpack Workflow",
+                  "url": "https://jetpackworkflow.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Keeper",
+                  "url": "https://keeper.app",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 6,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Firm360",
+                  "url": "https://www.myfirm360.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 7,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Pixie",
+                  "url": "https://www.usepixie.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 8,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Aiwyn",
+                  "url": "https://www.aiwyn.ai",
+                  "applicationCategory": "Practice Management software"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 9,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "Ignition",
+                  "url": "https://www.ignitionapp.com",
+                  "applicationCategory": "Practice Management software"
+                }
+              }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is the best alternative to TaxDome?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The closest practice management alternatives are Karbon, Canopy, Financial Cents. The right pick depends on price and how open you need the integration to be — compare them above."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is there a cheaper alternative to TaxDome?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TaxDome's pricing is From $67/user/mo. Lower-priced practice management options include Karbon (From $59/user/mo), Canopy (From $45/user/mo), Financial Cents (From $19/user/mo)."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </body>
 </html>
