@@ -21,3 +21,14 @@ Field Guide deploy HTML files.
 ## Verification
 
 - `pnpm check:fix`
+
+## Follow-up
+
+The later `docs(integrations): CPA Field Guide design overhaul` commit reintroduced the same
+formatter drift across the checked-in guide and deploy HTML output. Re-ran `pnpm check:fix`, cleaned
+the generator lint issues that came with that drift, and verified the full local CI command.
+
+## Follow-up verification
+
+- `pnpm check`
+- `pnpm run ci`
