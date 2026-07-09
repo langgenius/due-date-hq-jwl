@@ -29,9 +29,12 @@
 - Category: Tax Preparation
 - Best for: Solo firms
 - Pricing: From $2,145/yr
-- Integration: File export — It has no public API; data moves in and out by file export.
+- Integration: Export only — It has no public API; data moves in and out by file export.
 - Adoption: 16.3% share
-- Summary: Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
+- Summary: 
+            Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole
+            practitioners.
+          
 
 ### Lacerte
 - Page: https://cpafieldguide.com/tools/lacerte
@@ -41,7 +44,9 @@
 - Pricing: Custom · per-return
 - Integration: Local SDK — It has no public API; data moves in and out by file export.
 - Adoption: 15.8% share
-- Summary: Intuit's high-end desktop tax software for complex individual and business returns.
+- Summary: 
+            Intuit's high-end desktop tax software for complex individual and business returns.
+          
 
 ### ProConnect
 - Page: https://cpafieldguide.com/tools/proconnect
@@ -51,7 +56,9 @@
 - Pricing: Pay-per-return
 - Integration: No API yet — It has no public API; data moves in and out by file export.
 - Adoption: 3.8% share
-- Summary: Intuit's cloud professional tax prep, tied into QuickBooks Online Accountant.
+- Summary: 
+            Intuit's cloud professional tax prep, tied into QuickBooks Online Accountant.
+          
 
 ### ProSeries
 - Page: https://cpafieldguide.com/tools/proseries
@@ -59,7 +66,7 @@
 - Category: Tax Preparation
 - Best for: Small firms
 - Pricing: From $419/yr
-- Integration: File export — It has no public API; data moves in and out by file export.
+- Integration: Export only — It has no public API; data moves in and out by file export.
 - Adoption: 10.5% share
 - Summary: Intuit's desktop tax suite for higher-volume 1040 practices.
 
@@ -69,9 +76,11 @@
 - Category: Tax Preparation
 - Best for: Mid · large firms
 - Pricing: Custom quote
-- Integration: File export — It has no public API; data moves in and out by file export.
+- Integration: Export only — It has no public API; data moves in and out by file export.
 - Adoption: 22.9% share
-- Summary: Thomson Reuters' tax engine for mid-to-large firms; anchor of the CS Professional Suite.
+- Summary: 
+            Thomson Reuters' tax engine for mid-to-large firms; anchor of the CS Professional Suite.
+          
 
 ### CCH Axcess
 - Page: https://cpafieldguide.com/tools/cch-axcess
@@ -79,9 +88,11 @@
 - Category: Tax Preparation
 - Best for: Mid · enterprise firms
 - Pricing: From $2,299/yr
-- Integration: API · partner — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Integration: Partner API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
 - Adoption: 12.5% share
-- Summary: Wolters Kluwer's cloud tax, document, and workflow suite for larger firms.
+- Summary: 
+            Wolters Kluwer's cloud tax, document, and workflow suite for larger firms.
+          
 
 ### ATX
 - Page: https://cpafieldguide.com/tools/atx
@@ -89,9 +100,11 @@
 - Category: Tax Preparation
 - Best for: Solo · small firms
 - Pricing: From $939/yr
-- Integration: File export — It has no public API; data moves in and out by file export.
+- Integration: Export only — It has no public API; data moves in and out by file export.
 - Adoption: 4.6% share
-- Summary: Wolters Kluwer's budget, forms-based tax software for smaller practices.
+- Summary: 
+            Wolters Kluwer's budget, forms-based tax software for smaller practices.
+          
 
 ### File In Time
 - Page: https://cpafieldguide.com/tools/file-in-time
@@ -99,8 +112,10 @@
 - Category: Deadline & Compliance Tracking
 - Best for: Solo · small firms
 - Pricing: Paid license
-- Integration: Closed — It has no public API; data moves in and out by file export.
-- Summary: Records client due dates and rolls them forward each year — a classic passive tracker.
+- Integration: Export only — It has no public API; data moves in and out by file export.
+- Summary: 
+            Records client due dates and rolls them forward each year — a classic passive tracker.
+          
 
 ### DueDateHQ
 - Page: https://cpafieldguide.com/tools/duedatehq
@@ -108,8 +123,11 @@
 - Category: Deadline & Compliance Tracking
 - Best for: Solo · small firms
 - Pricing: Free · beta
-- Integration: No public API yet — It has no public API yet.
-- Summary: Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits. Free in beta.
+- Integration: No API yet — It has no public API yet.
+- Summary: 
+            Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits.
+            Free in beta.
+          
 
 ### ONESOURCE Calendar
 - Page: https://cpafieldguide.com/tools/onesource-calendar
@@ -117,8 +135,10 @@
 - Category: Deadline & Compliance Tracking
 - Best for: Mid · enterprise firms
 - Pricing: Custom quote
-- Integration: Suite · gated — It has an API, but access is gated behind approval, a partner program, or a higher plan.
-- Summary: Thomson Reuters' enterprise compliance calendar for multi-entity tax deadlines.
+- Integration: Gated API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Summary: 
+            Thomson Reuters' enterprise compliance calendar for multi-entity tax deadlines.
+          
 
 ### Karbon
 - Page: https://cpafieldguide.com/tools/karbon
@@ -127,7 +147,10 @@
 - Best for: Small · mid firms
 - Pricing: From $59/user/mo
 - Integration: Open API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
-- Summary: All-in-one practice management — workflow, email, and billing — with the category's deepest API.
+- Summary: 
+            All-in-one practice management — workflow, email, and billing — with the category's
+            deepest API.
+          
 
 ### TaxDome
 - Page: https://cpafieldguide.com/tools/taxdome
@@ -137,7 +160,9 @@
 - Pricing: From $67/user/mo
 - Integration: Open API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
 - Adoption: 10,000+ firms
-- Summary: All-in-one practice management with a client portal, e-signature, and invoicing.
+- Summary: 
+            All-in-one practice management with a client portal, e-signature, and invoicing.
+          
 
 ### Canopy
 - Page: https://cpafieldguide.com/tools/canopy
@@ -145,7 +170,7 @@
 - Category: Practice Management
 - Best for: Small · mid firms
 - Pricing: From $45/user/mo
-- Integration: Gated — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Integration: Gated API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
 - Summary: Modular practice management: CRM, workflow, documents, and billing.
 
 ### Financial Cents
@@ -154,8 +179,10 @@
 - Category: Practice Management
 - Best for: Solo · small firms
 - Pricing: From $19/user/mo
-- Integration: Gated — It has an API, but access is gated behind approval, a partner program, or a higher plan.
-- Summary: Lightweight workflow and client management with recurring tasks and a portal.
+- Integration: Gated API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Summary: 
+            Lightweight workflow and client management with recurring tasks and a portal.
+          
 
 ### Jetpack Workflow
 - Page: https://cpafieldguide.com/tools/jetpack-workflow
@@ -163,7 +190,7 @@
 - Category: Practice Management
 - Best for: Solo · small firms
 - Pricing: From $36/user/mo
-- Integration: Gated — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Integration: Gated API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
 - Summary: Simple recurring-job and deadline tracking built for small firms.
 
 ### Keeper
@@ -172,8 +199,10 @@
 - Category: Practice Management
 - Best for: Solo · small firms
 - Pricing: From $200/mo
-- Integration: Zapier — It has no direct API; it connects to other tools through Zapier.
-- Summary: Month-end close and bookkeeping workflow with a two-way QuickBooks sync.
+- Integration: Zapier only — It has no direct API; it connects to other tools through Zapier.
+- Summary: 
+            Month-end close and bookkeeping workflow with a two-way QuickBooks sync.
+          
 
 ### Firm360
 - Page: https://cpafieldguide.com/tools/firm360
@@ -181,8 +210,10 @@
 - Category: Practice Management
 - Best for: Small · mid firms
 - Pricing: From $49/user/mo
-- Integration: Zapier — It has no direct API; it connects to other tools through Zapier.
-- Summary: All-in-one practice management — projects, documents, billing, and a portal.
+- Integration: Zapier only — It has no direct API; it connects to other tools through Zapier.
+- Summary: 
+            All-in-one practice management — projects, documents, billing, and a portal.
+          
 
 ### Pixie
 - Page: https://cpafieldguide.com/tools/pixie
@@ -190,8 +221,10 @@
 - Category: Practice Management
 - Best for: Solo · small firms
 - Pricing: From $129/mo
-- Integration: Zapier — It has no direct API; it connects to other tools through Zapier.
-- Summary: Simple practice management for small firms: client database, jobs, and email.
+- Integration: Zapier only — It has no direct API; it connects to other tools through Zapier.
+- Summary: 
+            Simple practice management for small firms: client database, jobs, and email.
+          
 
 ### Aiwyn
 - Page: https://cpafieldguide.com/tools/aiwyn
@@ -199,8 +232,10 @@
 - Category: Practice Management
 - Best for: Mid · enterprise firms
 - Pricing: Custom · enterprise
-- Integration: Partner — It has an API, but access is gated behind approval, a partner program, or a higher plan.
-- Summary: Billing and revenue-cycle automation for large firms, layered on existing systems.
+- Integration: Partner API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Summary: 
+            Billing and revenue-cycle automation for large firms, layered on existing systems.
+          
 
 ### Ignition
 - Page: https://cpafieldguide.com/tools/ignition
@@ -208,8 +243,10 @@
 - Category: Practice Management
 - Best for: Solo · mid firms
 - Pricing: From $39/mo
-- Integration: Zapier — It has no direct API; it connects to other tools through Zapier.
-- Summary: Proposals, engagement letters, and automated billing for accounting firms.
+- Integration: Zapier only — It has no direct API; it connects to other tools through Zapier.
+- Summary: 
+            Proposals, engagement letters, and automated billing for accounting firms.
+          
 
 ### QuickBooks Online
 - Page: https://cpafieldguide.com/tools/quickbooks-online
@@ -218,7 +255,9 @@
 - Best for: Solo · mid firms
 - Pricing: From $35/mo
 - Integration: Open API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
-- Summary: The dominant US small-business ledger — the book of record most firms work from.
+- Summary: 
+            The dominant US small-business ledger — the book of record most firms work from.
+          
 
 ### Xero
 - Page: https://cpafieldguide.com/tools/xero
@@ -227,7 +266,9 @@
 - Best for: Solo · mid firms
 - Pricing: From $25/mo
 - Integration: Open API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
-- Summary: Cloud accounting ledger, strong internationally, with a broad app ecosystem.
+- Summary: 
+            Cloud accounting ledger, strong internationally, with a broad app ecosystem.
+          
 
 ### Bill.com
 - Page: https://cpafieldguide.com/tools/bill-com
@@ -244,8 +285,10 @@
 - Category: Accounting & Bookkeeping
 - Best for: Small · enterprise firms
 - Pricing: From ~$10/mo
-- Integration: Gated — It has an API, but access is gated behind approval, a partner program, or a higher plan.
-- Summary: Accounting from small business (Sage Accounting) to mid-market (Sage Intacct).
+- Integration: Gated API — It has an API, but access is gated behind approval, a partner program, or a higher plan.
+- Summary: 
+            Accounting from small business (Sage Accounting) to mid-market (Sage Intacct).
+          
 
 ### ProAdvisor
 - Page: https://cpafieldguide.com/tools/proadvisor
@@ -253,6 +296,9 @@
 - Category: Accounting & Bookkeeping
 - Best for: Channel firms
 - Pricing: Free · program
-- Integration: Partner program — It offers a self-serve public API, so it is among the easiest tools here to connect to.
+- Integration: Partner API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
 - Adoption: 500k+ members
-- Summary: Intuit's free accountant program around QuickBooks — discounts, training, and firm tools.
+- Summary: 
+            Intuit's free accountant program around QuickBooks — discounts, training, and firm
+            tools.
+          

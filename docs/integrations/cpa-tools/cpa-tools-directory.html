@@ -108,130 +108,47 @@
     border-bottom: 1px solid var(--line);
   }
   .head-inner {
-    padding-top: 34px;
-    padding-bottom: 22px;
-  }
-  h1 {
-    font-size: clamp(27px, 3.4vw, 36px);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.08;
-    margin: 0 0 10px;
-    max-width: 22ch;
-    text-wrap: balance;
-  }
-  .lede {
-    font-family: -apple-system, sans-serif;
-    font-size: 15px;
-    color: var(--soft);
-    margin: 0 0 18px;
-    max-width: 60ch;
-  }
-  .meta {
-    font-family: -apple-system, sans-serif;
-    font-size: 12.5px;
-    color: var(--faint);
+    padding-top: 44px;
+    padding-bottom: 30px;
     display: flex;
-    gap: 8px 16px;
-    flex-wrap: wrap;
-    border-top: 1px solid var(--line);
-    padding-top: 13px;
-  }
-  .meta b {
-    color: var(--soft);
-    font-weight: 600;
-  }
-
-  /* controls */
-  .controls {
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    z-index: 5;
-    transition: box-shadow 0.2s ease;
-  }
-  .controls.scrolled {
-    box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.32);
-  }
-  .controls .wrap {
-    padding: 13px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
     align-items: center;
+    gap: 48px;
+    justify-content: space-between;
   }
-  .clabel {
-    font-family: -apple-system, sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--faint);
-    font-weight: 700;
-    margin-right: 2px;
+  .head-text {
+    flex: 1 1 auto;
+    min-width: 0;
   }
-  button.chip {
-    font-family: -apple-system, sans-serif;
-    cursor: pointer;
+  .head-text .lede,
+  .head-text h1 {
+    max-width: 20ch;
+  }
+  .head-text .lede {
+    max-width: 46ch;
+  }
+  .head-cats {
+    flex: 0 0 356px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .hero-cat {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 13px 13px;
     border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--soft);
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 13px;
+    border-radius: 12px;
+    text-decoration: none;
     transition:
       border-color 0.15s,
-      color 0.15s,
-      background 0.15s,
-      transform 0.09s;
+      background 0.15s;
   }
-  button.chip:hover {
-    border-color: var(--ink);
-    color: var(--ink);
+  .hero-cat:hover {
+    border-color: var(--accent-line);
+    background: var(--accent-soft);
   }
-  button.chip[aria-pressed='true'] {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  button.chip:active {
-    transform: scale(0.95);
-  }
-  button.chip:focus-visible {
-    outline: 2px solid var(--info);
-    outline-offset: 2px;
-  }
-  .sep {
-    width: 1px;
-    height: 18px;
-    background: var(--line);
-    margin: 0 3px;
-  }
-
-  main {
-    padding: 8px 0 20px;
-  }
-  .section {
-    margin-top: 40px;
-  }
-  .cat-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0 0 8px;
-  }
-  .cat-head h2 {
-    font-size: 23px;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    margin: 0;
-  }
-  .cat-head .count {
-    font-family: -apple-system, sans-serif;
-    font-size: 12px;
-    color: var(--faint);
-  }
-  .cat-icon {
+  .hc-icon {
     width: 34px;
     height: 34px;
     border-radius: 9px;
@@ -242,26 +159,302 @@
     justify-content: center;
     flex: none;
   }
+  .hero-cat:hover .hc-icon {
+    background: #fff;
+  }
+  .hc-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+  .hc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .hc-body b {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+  }
+  .hc-count {
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    color: var(--faint);
+  }
+  h1 {
+    font-size: clamp(31px, 4.2vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.024em;
+    line-height: 1.05;
+    margin: 0 0 14px;
+    max-width: 19ch;
+    text-wrap: balance;
+  }
+  .lede {
+    font-family: -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--soft);
+    margin: 0 0 22px;
+    max-width: 70ch;
+  }
+  .meta {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    color: var(--faint);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .meta b {
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .meta .dotsep {
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--line);
+    flex: none;
+  }
+
+  /* sticky control bar — section nav (scroll-spy) + firm-size filter */
+  .controls {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+    z-index: 5;
+    transition: box-shadow 0.2s ease;
+  }
+  .controls.scrolled {
+    box-shadow: 0 6px 18px -14px rgba(24, 27, 33, 0.28);
+  }
+  .controls .wrap {
+    padding: 0 24px;
+    min-height: 48px;
+    display: flex;
+    gap: 0 20px;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .secnav {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    font-family: -apple-system, sans-serif;
+    margin-left: -10px;
+  }
+  .secnav a {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--soft);
+    text-decoration: none;
+    padding: 0 10px;
+    border-bottom: 2px solid transparent;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+  }
+  .secnav a:hover {
+    color: var(--ink);
+  }
+  .secnav a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .ctrl-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .segfilter {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .viewtoggle {
+    display: inline-flex;
+    background: var(--panel);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .viewtoggle button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 28px;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    color: var(--faint);
+    border-radius: 6px;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .viewtoggle button svg {
+    width: 17px;
+    height: 17px;
+  }
+  .viewtoggle button:hover {
+    color: var(--soft);
+  }
+  .viewtoggle button[aria-pressed='true'] {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(24, 27, 33, 0.09);
+  }
+  .viewtoggle button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .rescount {
+    align-self: center;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .rescount b {
+    color: var(--soft);
+    font-weight: 600;
+  }
+  .rescount[hidden] {
+    display: none;
+  }
+  .clabel {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 700;
+  }
+  .segset {
+    display: inline-flex;
+    background: var(--panel);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .segset button {
+    font-family: -apple-system, sans-serif;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    color: var(--soft);
+    padding: 7px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .segset button:hover {
+    color: var(--ink);
+  }
+  .segset button[aria-pressed='true'] {
+    background: var(--bg);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(24, 27, 33, 0.09);
+  }
+  .segset button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  main {
+    padding: 8px 0 40px;
+  }
+  /* main is <main class="wrap">, so the .wrap class (0 24px) beats the element rule above;
+     set top/bottom explicitly here so the last section gets real breathing room before the footer zone */
+  main.wrap {
+    padding-block: 8px 48px;
+  }
+  .section {
+    margin-top: 54px;
+    scroll-margin-top: 60px;
+  }
+  .cat-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 10px;
+  }
+  .cat-head h2,
+  .cat-head h1 {
+    font-size: 23px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .cat-head .count {
+    margin-left: auto;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--faint);
+    background: var(--panel);
+    padding: 5px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .cat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
   .cat-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
   .cat-def {
     font-family: -apple-system, sans-serif;
-    font-size: 14.5px;
+    font-size: 15px;
+    line-height: 1.5;
     color: var(--soft);
-    margin: 0 0 12px;
-    max-width: 74ch;
+    margin: 0 0 14px;
+    max-width: 72ch;
   }
 
   details.criteria {
     font-family: -apple-system, sans-serif;
-    margin: 0 0 20px;
-    max-width: 74ch;
+    margin: 0 0 22px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    max-width: none;
   }
   details.criteria summary {
     cursor: pointer;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--info);
     list-style: none;
@@ -288,7 +481,7 @@
     margin: 8px 0 0;
   }
   .crit-body p {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--faint);
     margin: 0 0 8px;
     text-transform: uppercase;
@@ -304,7 +497,7 @@
     gap: 6px;
   }
   .crit-body li {
-    font-size: 13.5px;
+    font-size: 14px;
     color: var(--soft);
     padding-left: 18px;
     position: relative;
@@ -322,25 +515,95 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
   }
+
+  /* dense list (rows) view — reuses the card markup via display:contents, no duplicate DOM */
+  @media (min-width: 641px) {
+    .grid.rows {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .grid.rows .card {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) minmax(0, 2.2fr) 150px 148px;
+      align-items: center;
+      gap: 20px;
+      padding: 11px 16px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .grid.rows .card:last-child {
+      border-bottom: 0;
+    }
+    .grid.rows .card:hover {
+      background: var(--accent-soft);
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .grid.rows .card-body,
+    .grid.rows .card-foot {
+      display: contents;
+    }
+    .grid.rows .card-head {
+      gap: 10px;
+    }
+    .grid.rows .logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+    }
+    .grid.rows .logo-mono {
+      font-size: 11px;
+    }
+    .grid.rows .name {
+      font-size: 15px;
+    }
+    .grid.rows .seg {
+      margin-top: 1px;
+      font-size: 11px;
+    }
+    .grid.rows .desc {
+      min-height: 0;
+      margin: 0;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .grid.rows .cardmeta {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      justify-content: flex-start;
+      white-space: nowrap;
+    }
+    .grid.rows .tag {
+      justify-self: start;
+    }
+    .grid.rows .visit {
+      display: none;
+    }
+  }
   .card {
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--bg);
     transition:
-      transform 0.18s ease,
       box-shadow 0.2s ease,
       border-color 0.18s ease;
   }
   .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px -18px rgba(20, 20, 18, 0.42);
-    border-color: #d6d6d0;
+    box-shadow: 0 8px 24px -18px rgba(24, 27, 33, 0.35);
+    border-color: var(--accent-line);
   }
   .card-body {
-    padding: 16px 16px 14px;
+    padding: 16px 16px 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -351,11 +614,10 @@
     gap: 11px;
   }
   .logo {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 8px;
-    background: var(--panel);
-    border: 1px solid var(--line);
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -364,25 +626,35 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--soft);
-    transition: transform 0.2s ease;
-  }
-  .card:hover .logo {
-    transform: scale(1.06) rotate(-2deg);
   }
   .name {
     font-weight: 600;
-    font-size: 17px;
+    font-size: 18px;
     line-height: 1.15;
+    letter-spacing: -0.01em;
   }
   .seg {
     font-family: -apple-system, sans-serif;
-    font-size: 11.5px;
-    color: var(--faint);
-    margin-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--soft);
+    margin-top: 4px;
+  }
+  .seg::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    flex: none;
+    background: var(--faint);
+    -webkit-mask: var(--seg-ico) center / contain no-repeat;
+    mask: var(--seg-ico) center / contain no-repeat;
+    --seg-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
   }
   .desc {
     font-family: -apple-system, sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.45;
     color: var(--soft);
     margin: 2px 0 0;
@@ -415,13 +687,9 @@
     line-height: 1;
     user-select: none;
     color: color-mix(in srgb, var(--tint, #8c8c88) 34%, transparent);
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .card:hover .shot-mark {
-    transform: scale(1.07);
   }
   .card-foot {
-    padding: 11px 16px;
+    padding: 10px 16px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -431,12 +699,15 @@
     font-size: 12px;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     color: var(--soft);
+    background: var(--panel);
+    padding: 4px 10px 4px 8px;
+    border-radius: 999px;
   }
   .tag .dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
     flex: none;
   }
@@ -453,7 +724,8 @@
     background: var(--closed);
   }
   .d-info {
-    background: var(--info);
+    /* "no public API yet" shares the neutral no-API color so the legend stays a 4-step spectrum */
+    background: var(--closed);
   }
   .visit {
     font-family: -apple-system, sans-serif;
@@ -485,10 +757,12 @@
     font-family: -apple-system, sans-serif;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 18px;
+    gap: 8px 20px;
     font-size: 12px;
     color: var(--soft);
-    padding: 30px 0 0;
+    margin-top: 40px;
+    padding: 22px 0 0;
+    border-top: 1px solid var(--line);
   }
   .legend .li {
     display: inline-flex;
@@ -510,12 +784,11 @@
 
   /* methodology */
   .method {
-    border-top: 1px solid var(--accent-line);
-    margin-top: 44px;
-    background: var(--accent-soft);
+    border-top: 1px solid var(--line);
+    background: var(--bg);
   }
   .method .wrap {
-    padding: 30px 24px;
+    padding: 32px 24px;
   }
   .method h2 {
     font-size: 20px;
@@ -557,12 +830,26 @@
     font-family: -apple-system, sans-serif;
   }
   footer p {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--faint);
     max-width: 66ch;
     margin: 0;
   }
 
+  @media (max-width: 900px) {
+    .head-inner {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 28px;
+    }
+    .head-cats {
+      flex: none;
+    }
+    .head-text h1,
+    .head-text .lede {
+      max-width: none;
+    }
+  }
   @media (max-width: 640px) {
     .topbar .kick {
       display: none;
@@ -571,17 +858,77 @@
       display: none;
     }
     .head-inner {
-      padding-top: 24px;
-      padding-bottom: 16px;
+      padding-top: 26px;
+      padding-bottom: 18px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 24px;
+    }
+    .head-cats {
+      flex: none;
+    }
+    .desc {
+      min-height: 0;
     }
     h1 {
-      font-size: 25px;
-    }
-    button.chip {
-      padding: 8px 13px;
+      font-size: 27px;
     }
     .catnav a {
       padding: 8px 12px;
+    }
+    /* one slim sticky row on mobile: section tabs then the firm-size filter, scrolled sideways */
+    .controls .wrap {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 4px 16px;
+      min-height: 44px;
+      scrollbar-width: none;
+    }
+    .controls .wrap::-webkit-scrollbar {
+      display: none;
+    }
+    .secnav {
+      flex-wrap: nowrap;
+      margin: 0;
+    }
+    .secnav a {
+      white-space: nowrap;
+      padding: 10px 9px;
+    }
+    .ctrl-right {
+      gap: 8px;
+    }
+    .segfilter {
+      flex: none;
+      margin-left: 4px;
+    }
+    .viewtoggle {
+      display: none;
+    }
+    .segset {
+      flex: none;
+    }
+    .segset button {
+      padding: 9px 14px;
+    }
+    .segfilter .clabel {
+      display: none;
+    }
+    /* keep the count out of the slim mobile bar visually, but still announce it to
+       screen readers via aria-live when a filter changes the result set */
+    .rescount:not([hidden]) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -612,11 +959,7 @@
     transform: translateY(0);
   }
   .brand-mark {
-    transition: transform 0.5s cubic-bezier(0.2, 0.85, 0.25, 1);
-    cursor: pointer;
-  }
-  .brand:hover .brand-mark {
-    transform: rotate(-24deg);
+    display: block;
   }
 
   /* real-asset image slots (fall back to brand tile / screenshot placeholder) */
@@ -631,9 +974,17 @@
     height: 100%;
     object-fit: contain;
     background: #fff;
-    padding: 5px;
+    padding: 3px;
     opacity: 0;
     transition: opacity 0.25s ease;
+  }
+  .logo-mono {
+    color: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1;
   }
   .logo-img.loaded {
     opacity: 1;
@@ -652,13 +1003,13 @@
     opacity: 1;
   }
 
-  /* FAQ (AEO) */
+  /* FAQ (AEO) — content, so it sits on white; the method band below is the one tinted zone */
   .faq {
-    border-top: 1px solid var(--accent-line);
-    background: var(--accent-soft);
+    border-top: 1px solid var(--line);
+    background: var(--bg);
   }
   .faq .wrap {
-    padding: 30px 24px;
+    padding: 32px 24px;
   }
   .faq h2 {
     font-size: 20px;
@@ -668,8 +1019,42 @@
   }
   .faq .qa {
     border-top: 1px solid var(--line);
+    max-width: 78ch;
+  }
+  .faq details.qa summary {
+    font-family: -apple-system, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
     padding: 15px 0;
-    max-width: 76ch;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .faq details.qa summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq details.qa summary::after {
+    content: '';
+    width: 15px;
+    height: 15px;
+    flex: none;
+    background: var(--faint);
+    -webkit-mask: var(--plus) center / contain no-repeat;
+    mask: var(--plus) center / contain no-repeat;
+    --plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+    transition: transform 0.2s ease;
+  }
+  .faq details.qa[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .faq details.qa summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
   }
   .faq h3 {
     font-family: -apple-system, sans-serif;
@@ -679,11 +1064,11 @@
   }
   .faq p {
     font-family: -apple-system, sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.55;
     color: var(--soft);
-    margin: 0;
-    max-width: 72ch;
+    margin: 0 0 15px;
+    max-width: 74ch;
   }
 
   .cardmeta {
@@ -691,16 +1076,19 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
-    margin-top: 3px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
     font-family: -apple-system, sans-serif;
   }
   .cardmeta .price {
-    font-size: 12.5px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--ink);
+    letter-spacing: -0.01em;
   }
   .cardmeta .share {
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--faint);
     white-space: nowrap;
   }
@@ -711,50 +1099,89 @@
     <div class="brand">
       <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
         <rect width="30" height="30" rx="8" fill="#1A1A1A" />
-        <path d="M15 6 L18.2 15 L11.8 15 Z" fill="#2F6DA6" />
-        <path d="M15 24 L11.8 15 L18.2 15 Z" fill="#7C7C77" />
-        <circle cx="15" cy="15" r="1.5" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="0.9" />
+        <path
+          d="M15 4.2 L17.6 12.4 L25.8 15 L17.6 17.6 L15 25.8 L12.4 17.6 L4.2 15 L12.4 12.4 Z"
+          fill="#FFFFFF"
+        />
+        <path d="M12.4 12.4 L15 4.2 L17.6 12.4 Z" fill="#2F6DA6" />
       </svg>
       <span class="brand-text">CPA Field Guide <span>/ US tax &amp; accounting</span></span>
     </div>
-    <span class="kick">Independent · editorial · no pay-to-list</span>
+    <span class="kick">No pay-to-list</span>
   </div>
 </div>
 
 <header>
   <div class="wrap head-inner">
-    <h1>The software US CPA firms run on.</h1>
-    <p class="lede">
-      The tools a US tax and accounting firm actually runs on — each defined plainly, priced, and
-      rated for how open it is to integration. Independent, and no vendor pays to be here.
-    </p>
-    <div class="meta">
-      <span><b>25</b> tools</span><span><b>4</b> categories</span
-      ><span><b>Reviewed</b> Jul 2026</span><span>No vendor pays for placement</span>
+    <div class="head-text">
+      <h1>The software US CPA firms run on.</h1>
+      <p class="lede">
+        Every tool a US tax and accounting firm actually runs on — defined plainly, priced, and
+        rated for how open it is to integration.
+      </p>
+      <div class="meta">
+        <span><b>25</b> tools</span><i class="dotsep"></i
+        ><span><b>4</b> categories</span><i class="dotsep"></i
+        ><span>Updated <b>Jul&nbsp;2026</b></span>
+      </div>
     </div>
+    <nav class="head-cats" aria-label="Browse by category">
+      <a class="hero-cat" href="#sec-tax">
+        <span class="hc-icon"
+          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h4"/><path d="M9 13h6M9 16.5h4"/></svg
+        ></span>
+        <span class="hc-body"><b>Tax preparation</b><span class="hc-count">7 tools</span></span>
+      </a>
+      <a class="hero-cat" href="#sec-monitor">
+        <span class="hc-icon"
+          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><circle cx="12" cy="14.5" r="1.6" fill="currentColor" stroke="none"/></svg
+        ></span>
+        <span class="hc-body"><b>Deadlines &amp; monitoring</b><span class="hc-count">3 tools</span></span>
+      </a>
+      <a class="hero-cat" href="#sec-pm">
+        <span class="hc-icon"
+          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9 4.5V3.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M8.8 12.2l1.6 1.6 3.2-3.4"/><path d="M9 17h6"/></svg
+        ></span>
+        <span class="hc-body"><b>Practice management</b><span class="hc-count">10 tools</span></span>
+      </a>
+      <a class="hero-cat" href="#sec-ledger">
+        <span class="hc-icon"
+          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 18.5z"/><path d="M9 3v17"/><path d="M12.5 8H16M12.5 12H16"/></svg
+        ></span>
+        <span class="hc-body"><b>Bookkeeping</b><span class="hc-count">5 tools</span></span>
+      </a>
+    </nav>
   </div>
 </header>
 
 <div class="controls">
   <div class="wrap">
-    <span class="clabel">Category</span>
-    <button class="chip" data-filter="cat" data-value="all" aria-pressed="true">All</button>
-    <button class="chip" data-filter="cat" data-value="tax" aria-pressed="false">Tax prep</button>
-    <button class="chip" data-filter="cat" data-value="monitor" aria-pressed="false">
-      Deadlines &amp; Monitoring
-    </button>
-    <button class="chip" data-filter="cat" data-value="pm" aria-pressed="false">
-      Practice mgmt
-    </button>
-    <button class="chip" data-filter="cat" data-value="ledger" aria-pressed="false">
-      Bookkeeping
-    </button>
-    <span class="sep" aria-hidden="true"></span>
-    <span class="clabel">Firm size</span>
-    <button class="chip" data-filter="seg" data-value="all" aria-pressed="true">Any</button>
-    <button class="chip" data-filter="seg" data-value="solo" aria-pressed="false">Solo</button>
-    <button class="chip" data-filter="seg" data-value="small" aria-pressed="false">Small</button>
-    <button class="chip" data-filter="seg" data-value="mid" aria-pressed="false">Mid+</button>
+    <nav class="secnav" aria-label="Jump to section">
+      <a href="#sec-tax" data-spy="sec-tax" class="active">Tax prep</a>
+      <a href="#sec-monitor" data-spy="sec-monitor">Deadlines</a>
+      <a href="#sec-pm" data-spy="sec-pm">Practice mgmt</a>
+      <a href="#sec-ledger" data-spy="sec-ledger">Bookkeeping</a>
+    </nav>
+    <div class="ctrl-right">
+      <span class="rescount" aria-live="polite" hidden></span>
+      <div class="segfilter">
+        <span class="clabel">Firm size</span>
+        <div class="segset" role="group" aria-label="Filter by firm size">
+          <button data-filter="seg" data-value="all" aria-pressed="true">Any</button>
+          <button data-filter="seg" data-value="solo" aria-pressed="false">Solo</button>
+          <button data-filter="seg" data-value="small" aria-pressed="false">Small</button>
+          <button data-filter="seg" data-value="mid" aria-pressed="false">Mid+</button>
+        </div>
+      </div>
+      <div class="viewtoggle" role="group" aria-label="View">
+        <button data-view="cards" aria-pressed="true" aria-label="Card view">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+        </button>
+        <button data-view="rows" aria-pressed="false" aria-label="List view">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -769,7 +1196,7 @@
     for logos, and your own captured screenshots — do not hotlink or embed copyrighted marketing images.
   -->
 
-  <section class="section" data-cat="tax">
+  <section class="section" id="sec-tax" data-cat="tax">
     <div class="cat-head">
       <span class="cat-icon"
         ><svg
@@ -788,11 +1215,8 @@
       <span class="count">7 tools</span>
     </div>
     <p class="cat-def">
-      Professional tax preparation software prepares, reviews, and e-files federal and state returns
-      for a firm's individual and business clients. Unlike consumer apps, it handles every entity
-      return (1040, 1120, 1120-S, 1065, 1041, 990), multi-state filings, and K-1s, runs on a
-      preparer-and-reviewer workflow, and carries client data forward each year. It's the engine a
-      US tax practice is built on — and usually its largest software decision.
+      The engine a US tax practice runs on — prepares, reviews, and e-files every entity return
+      (1040 through 990) across multiple states, on a preparer-and-reviewer workflow.
     </p>
     <details class="criteria">
       <summary>How we define this category</summary>
@@ -1047,7 +1471,7 @@
     </div>
   </section>
 
-  <section class="section" data-cat="monitor">
+  <section class="section" id="sec-monitor" data-cat="monitor">
     <div class="cat-head">
       <span class="cat-icon"
         ><svg
@@ -1066,11 +1490,8 @@
       <span class="count">3 tools</span>
     </div>
     <p class="cat-def">
-      These tools make sure no client filing slips. <em>Passive trackers</em> record the due dates
-      you enter and roll them forward each period. <em>Active monitors</em> also watch official
-      sources — the IRS, state tax agencies, and FEMA — and flag when a date or rule changes and
-      which clients it hits. In most firms this lives inside practice management; the specialists
-      below focus on it.
+      Keeps client filings from slipping — passive trackers roll your dates forward; active monitors
+      also watch the IRS, state agencies, and FEMA, and flag when a date changes and who it hits.
     </p>
     <details class="criteria">
       <summary>How we define this category</summary>
@@ -1189,7 +1610,7 @@
     </div>
   </section>
 
-  <section class="section" data-cat="pm">
+  <section class="section" id="sec-pm" data-cat="pm">
     <div class="cat-head">
       <span class="cat-icon"
         ><svg
@@ -1209,10 +1630,8 @@
       <span class="count">10 tools</span>
     </div>
     <p class="cat-def">
-      Practice management software runs a firm's front and back office: service catalog, workflows
-      and tasks, client records and communication, deadlines, and billable time — one place to see
-      who's doing what, for which client, by when. Best for solo-to-mid firms leaving spreadsheets
-      and email behind. Deadline tracking is a feature here, not a separate category.
+      Runs a firm's front and back office — workflows, client records, deadlines, and billable time
+      in one place: who's doing what, for which client, by when.
     </p>
     <details class="criteria">
       <summary>How we define this category</summary>
@@ -1549,7 +1968,7 @@
     </div>
   </section>
 
-  <section class="section" data-cat="ledger">
+  <section class="section" id="sec-ledger" data-cat="ledger">
     <div class="cat-head">
       <span class="cat-icon"
         ><svg
@@ -1570,10 +1989,8 @@
       <span class="count">5 tools</span>
     </div>
     <p class="cat-def">
-      The general ledger records a business's transactions — bank feeds, invoicing, bills,
-      reporting. For a firm it's usually the client's book of record, used for write-up, review, and
-      close. QuickBooks Online and Xero dominate US small business, and most firm tools connect back
-      to them — which makes this layer the hub of a firm's integrations.
+      The client's book of record — bank feeds, invoicing, bills, reporting. QuickBooks Online and
+      Xero dominate, so most firm tools connect back here, making this the hub of a firm's stack.
     </p>
     <details class="criteria">
       <summary>How we define this category</summary>
@@ -1759,67 +2176,37 @@
   <p class="empty" id="empty">Nothing matches. Loosen a filter.</p>
 
   <div class="legend">
-    <span class="li"><span class="dot d-open"></span>Open — get an API key yourself</span>
-    <span class="li"><span class="dot d-gated"></span>Gated — approval / plan / partner</span>
-    <span class="li"><span class="dot d-zap"></span>Zapier — no direct API</span>
-    <span class="li"><span class="dot d-closed"></span>Closed — file export at best</span>
+    <span class="li"><span class="dot d-open"></span>Open API — self-serve key</span>
+    <span class="li"><span class="dot d-gated"></span>Gated API — approval / plan / partner</span>
+    <span class="li"><span class="dot d-zap"></span>Zapier only — no direct API</span>
+    <span class="li"><span class="dot d-closed"></span>No public API — export only, or not yet</span>
   </div>
 </main>
 
 <div class="faq">
   <div class="wrap">
     <h2>Frequently asked questions</h2>
-    <div class="qa">
-      <h3>What is the best tax preparation software for a small CPA firm?</h3>
-      <p>
-        It depends on volume and return complexity. Drake Tax leads among sole practitioners on
+    <details class="qa" open><summary>What is the best tax preparation software for a small CPA firm?</summary><p>It depends on volume and return complexity. Drake Tax leads among sole practitioners on
         price and speed; Intuit Lacerte and ProConnect suit small firms with more complex returns;
         Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess dominate at mid-to-large firms.
-        (2025 AICPA tax software survey.)
-      </p>
-    </div>
-    <div class="qa">
-      <h3>Which CPA practice management software has an open API?</h3>
-      <p>
-        Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an
+        (2025 AICPA tax software survey.)</p></details>
+    <details class="qa"><summary>Which CPA practice management software has an open API?</summary><p>Karbon and TaxDome offer near-self-serve APIs with webhooks, and Financial Cents exposes an
         open API on higher plans. Canopy's API is approval-gated. Keeper, Firm360, and Pixie
-        integrate mainly through Zapier rather than a direct API.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>What is the difference between a deadline tracker and a compliance monitor?</h3>
-      <p>
-        A passive tracker such as File In Time records the due dates you enter and rolls them
+        integrate mainly through Zapier rather than a direct API.</p></details>
+    <details class="qa"><summary>What is the difference between a deadline tracker and a compliance monitor?</summary><p>A passive tracker such as File In Time records the due dates you enter and rolls them
         forward each year. An active monitor such as DueDateHQ additionally watches official sources
         — the IRS, state tax agencies, and FEMA — and flags when a filing date changes and which of
-        your clients it affects.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>How is CPA Field Guide different from G2 or Capterra?</h3>
-      <p>
-        It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and
+        your clients it affects.</p></details>
+    <details class="qa"><summary>How is CPA Field Guide different from G2 or Capterra?</summary><p>It is editorial and vendor-neutral. No vendor pays for inclusion, placement, or ranking, and
         there is no sponsored sort. Every tool is described only by capabilities it has shipped,
-        sourced from the vendor's own documentation, and organized around US tax-practice workflows.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>Which accounting software integrates with QuickBooks Online?</h3>
-      <p>
-        QuickBooks Online offers a self-serve public API and an app store, so most firm tools
+        sourced from the vendor's own documentation, and organized around US tax-practice workflows.</p></details>
+    <details class="qa"><summary>Which accounting software integrates with QuickBooks Online?</summary><p>QuickBooks Online offers a self-serve public API and an app store, so most firm tools
         connect to it — including practice-management platforms like Karbon and Canopy and
         bookkeeping-workflow tools like Keeper, which offers a two-way sync. Xero provides a
-        comparable open API.
-      </p>
-    </div>
-    <div class="qa">
-      <h3>What tax software do the largest US accounting firms use?</h3>
-      <p>
-        At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead,
+        comparable open API.</p></details>
+    <details class="qa"><summary>What tax software do the largest US accounting firms use?</summary><p>At the largest firms, Thomson Reuters UltraTax CS and Wolters Kluwer CCH Axcess Tax lead,
         per the 2025 AICPA survey — both are suite or cloud systems with deeper integration and
-        e-file capacity than the desktop products favored by smaller shops.
-      </p>
-    </div>
+        e-file capacity than the desktop products favored by smaller shops.</p></details>
   </div>
 </div>
 
@@ -1881,9 +2268,11 @@
 <script>
   ;(function () {
     var state = { cat: 'all', seg: 'all' }
-    var buttons = document.querySelectorAll('button.chip')
+    var buttons = document.querySelectorAll('[data-filter]')
     var sections = document.querySelectorAll('.section')
     var empty = document.getElementById('empty')
+    var rescount = document.querySelector('.rescount')
+    var grand = document.querySelectorAll('.card').length
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var dim = btn.getAttribute('data-filter')
@@ -1896,7 +2285,8 @@
       })
     })
     function apply() {
-      var any = false
+      var any = false,
+        total = 0
       sections.forEach(function (sec) {
         var catMatch = state.cat === 'all' || state.cat === sec.getAttribute('data-cat')
         var cards = sec.querySelectorAll('.card'),
@@ -1911,8 +2301,14 @@
         })
         sec.style.display = catMatch && shown > 0 ? '' : 'none'
         if (catMatch && shown > 0) any = true
+        total += shown
       })
       empty.style.display = any ? 'none' : 'block'
+      if (rescount) {
+        var filtered = state.seg !== 'all' || state.cat !== 'all'
+        rescount.hidden = !filtered
+        if (filtered) rescount.innerHTML = '<b>' + total + '</b> of ' + grand + ' tools'
+      }
     }
   })()
   ;(function () {
@@ -1947,6 +2343,64 @@
         },
         { passive: true },
       )
+  })()
+
+  // scroll-spy: light the tab for the last section whose top has passed under the sticky bar.
+  // Defaults to the first tab while the hero is in view; always keeps exactly one lit.
+  ;(function () {
+    var links = {}
+    document.querySelectorAll('.secnav a[data-spy]').forEach(function (a) {
+      links[a.getAttribute('data-spy')] = a
+    })
+    var ids = Object.keys(links)
+    if (!ids.length) return
+    var ticking = false
+    var update = function () {
+      ticking = false
+      var line = window.scrollY + 120 // sticky bar (~48) + comfortable lookahead
+      var current = ids[0]
+      for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i])
+        // offsetParent === null → section is display:none (filtered out); skip so a hidden
+        // section (whose rect collapses to top 0) can't be picked as the active tab.
+        if (el && el.offsetParent !== null && el.getBoundingClientRect().top + window.scrollY <= line)
+          current = ids[i]
+      }
+      ids.forEach(function (id) { links[id].classList.toggle('active', id === current) })
+    }
+    addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(update) }
+    }, { passive: true })
+    update()
+  })()
+
+  // view toggle: flip every category grid between card and dense-list layout (remembered per visitor)
+  ;(function () {
+    var toggle = document.querySelector('.viewtoggle')
+    if (!toggle) return
+    var grids = document.querySelectorAll('.grid')
+    var btns = toggle.querySelectorAll('button[data-view]')
+    function setView(v) {
+      grids.forEach(function (g) {
+        g.classList.toggle('rows', v === 'rows')
+      })
+      btns.forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-view') === v ? 'true' : 'false')
+      })
+      try {
+        localStorage.setItem('cfg-view', v)
+      } catch (e) {}
+    }
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        setView(b.getAttribute('data-view'))
+      })
+    })
+    var saved
+    try {
+      saved = localStorage.getItem('cfg-view')
+    } catch (e) {}
+    if (saved === 'rows') setView('rows')
   })()
 
   // real-asset image slots: reveal when a valid src loads, else keep the placeholder

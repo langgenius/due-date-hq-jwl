@@ -3,12 +3,11 @@
   <rect x="0" y="0" width="1200" height="10" fill="#1A1A1A"/>
   <rect x="0" y="620" width="1200" height="10" fill="#1A1A1A"/>
 
-  <!-- compass mark -->
+  <!-- compass-star mark -->
   <g transform="translate(80,86)">
     <rect width="72" height="72" rx="18" fill="#1A1A1A"/>
-    <path d="M36 13 L44 36 L28 36 Z" fill="#2F6DA6"/>
-    <path d="M36 59 L28 36 L44 36 Z" fill="#7C7C77"/>
-    <circle cx="36" cy="36" r="3.4" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="2"/>
+    <path d="M36 10 L42.2 29.8 L62 36 L42.2 42.2 L36 62 L29.8 42.2 L10 36 L29.8 29.8 Z" fill="#FFFFFF"/>
+    <path d="M29.8 29.8 L36 10 L42.2 29.8 Z" fill="#2F6DA6"/>
   </g>
   <text x="172" y="132" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="0.5" fill="#1A1A1A">CPA Field Guide</text>
   <text x="172" y="160" font-family="Arial, sans-serif" font-size="18" fill="#8C8C88">Independent · vendor-neutral · no pay-to-list</text>
@@ -24,8 +23,8 @@
     <circle cx="92" cy="556" r="9" fill="#1E7F57"/><text x="112" y="563">Open API</text>
     <circle cx="316" cy="556" r="9" fill="#9A6206"/><text x="336" y="563">Gated</text>
     <circle cx="486" cy="556" r="9" fill="#4A4A9A"/><text x="506" y="563">Zapier</text>
-    <circle cx="676" cy="556" r="9" fill="#6B6B66"/><text x="696" y="563">Closed</text>
+    <circle cx="676" cy="556" r="9" fill="#6B6B66"/><text x="696" y="563">No public API</text>
   </g>
 
-  <text x="1120" y="563" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1A1A1A">26 tools · 4 categories</text>
+  <text x="1120" y="563" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1A1A1A">25 tools · 4 categories</text>
 </svg>
