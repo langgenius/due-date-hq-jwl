@@ -4254,13 +4254,14 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
-    // dfa.arkansas.gov Cloudflare-520s datacenter clients (browserless included), so
-    // direct fetch only ever parses one nav link. 2026-06-23 research: DFA publishes
-    // news through its OWN CMS, NOT GovDelivery (the only AR-tax GovDelivery account,
-    // ARFORTSMITH, is the City of Fort Smith — do NOT use it), so email_inbound is
-    // not an option. Needs a residential proxy (same as oh.sales_tax_rate_changes);
-    // known limitation until then.
+    // DFA exposes its `news` custom post type through an official WordPress RSS feed.
+    // Use that structured, lightweight source instead of rendering the 986 KB page:
+    // the HTML includes tax-topic navigation that can look like announcements, and
+    // datacenter/browserless fetches have historically failed against DFA's WAF.
     url: 'https://www.dfa.arkansas.gov/about/news/',
+    feedUrl: 'https://www.dfa.arkansas.gov/feed/?post_type=news',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
     // Index-level relief signal: AR posts disaster relief via DFA news +
     // gubernatorial orders; no dedicated relief page.
     alertCoverageRoles: ['relief_or_disaster_signal'],

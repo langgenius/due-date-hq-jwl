@@ -203,14 +203,11 @@ PULSE_EMAIL_REQUIRE_AUTH = "true"
 # returned 'Invalid PDF structure' bodies for them in prod.
 # nh.temporary_announcements is a section-link hub, so a browser can't help it
 # either — it needs a real press-release listing URL (still open).
-# 2026-06-23: on Cloudflare Browser Rendering (networkidle0 wait), ADDED ar + ut —
-# both were impossible on browserless.io (ar Cloudflare-520'd its datacenter IPs;
-# ut WAF-502'd them AND its CMS news loads via async XHR after `load`). Verified by
-# rendering both through CF /content: ar returns its dated /news/<slug>/ list, ut's
-# release-PDF list loads under networkidle0. Dropped 4 phantom ids that match no
-# source (az/ks/mi/nh.income_tax). VERIFY ar/ut via last_change_detected_at + the
-# whole fleet's source-health after deploy.
-PULSE_BROWSERLESS_SOURCE_IDS = "pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.tax_calendar,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,wi.temporary_announcements,ar.temporary_announcements,ut.temporary_announcements"
+# 2026-06-23: on Cloudflare Browser Rendering (networkidle0 wait), added ar + ut.
+# 2026-07-10: ar moved to DFA's official WordPress custom-post RSS feed, which avoids
+# both the rendered page's navigation noise and the headless-browser dependency. ut
+# remains here because its CMS news list still loads through async XHR.
+PULSE_BROWSERLESS_SOURCE_IDS = "pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.tpt_due_dates,ks.tax_calendar,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,wi.temporary_announcements,ut.temporary_announcements"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings

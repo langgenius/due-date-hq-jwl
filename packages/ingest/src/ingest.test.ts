@@ -378,6 +378,63 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  it('keeps AR tax news while excluding tax-navigation chrome and unrelated news', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'ar.temporary_announcements',
+        title: 'Arkansas DFA News',
+        url: 'https://www.dfa.arkansas.gov/about/news/',
+        jurisdiction: 'AR',
+      },
+      {
+        fetchedAt: new Date('2026-07-10T00:00:00.000Z'),
+        body: [
+          '<nav><a href="/office/taxes/excise-tax-administration/sales-use-tax/">Sales &amp; Use Tax</a></nav>',
+          '<main>',
+          '<a href="/news/licenses-and-state-ids-now-available-in-apple-wallet/">Licenses and State IDs now available in Apple Wallet</a>',
+          '<a href="/news/disaster-tax-relief-filing-deadline/">Disaster tax relief extends filing and payment deadline</a>',
+          '</main>',
+        ].join(''),
+      },
+    )
+
+    expect(items.map(({ title, officialSourceUrl }) => ({ title, officialSourceUrl }))).toEqual([
+      {
+        title: 'Disaster tax relief extends filing and payment deadline',
+        officialSourceUrl: 'https://www.dfa.arkansas.gov/news/disaster-tax-relief-filing-deadline/',
+      },
+    ])
+  })
+
+  it('rejects cross-origin AR RSS items before relevance filtering', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'ar.temporary_announcements',
+        title: 'Arkansas DFA News',
+        url: 'https://www.dfa.arkansas.gov/feed/?post_type=news',
+        jurisdiction: 'AR',
+      },
+      {
+        fetchedAt: new Date('2026-07-10T00:00:00.000Z'),
+        body: [
+          '<rss><channel>',
+          '<item><title>Disaster tax relief extends filing deadline</title>',
+          '<link>https://example.com/news/disaster-tax-relief/</link></item>',
+          '<item><title>Disaster tax relief extends filing and payment deadline</title>',
+          '<link>https://www.dfa.arkansas.gov/news/disaster-tax-relief-filing-deadline/</link></item>',
+          '</channel></rss>',
+        ].join(''),
+      },
+    )
+
+    expect(items.map(({ title, officialSourceUrl }) => ({ title, officialSourceUrl }))).toEqual([
+      {
+        title: 'Disaster tax relief extends filing and payment deadline',
+        officialSourceUrl: 'https://www.dfa.arkansas.gov/news/disaster-tax-relief-filing-deadline/',
+      },
+    ])
+  })
+
   it('parses a Zendesk Help Center JSON feed and keeps TN notices over portal how-tos', () => {
     // TN DOR mirrors its notices on a Zendesk Help Center (revenue.support.tn.gov)
     // because tn.gov drops datacenter fetches. The /api/v2/.../articles.json shape

@@ -217,14 +217,15 @@ export const RATE_LIMIT = {
 
 ### 4.2 按源分级的反爬预案
 
-| 源类型                                      | 风险                                                     | 预案                                                                                                                                               |
-| ------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `irs.disaster` / `irs.newsroom`             | 几乎不封，但偶发 WAF 503                                 | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                |
-| `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                              | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                     |
-| `ny.dtf.press`                              | HTML archive 结构可能调整                                | 不假设 RSS；HTML selector fallback + NY Email Services 并行信号                                                                                    |
-| `tx.cpa.rss`                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤 |
-| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                      | 每条 selector 必须附 **selector fallback chain**（见 §6.2），并配置官方邮件并行信号；必要时再走 Browserless / 人工录入                             |
-| `fema.*` / `weather.*`                      | 官方 API，稳定                                           | 标准 REST + 指数退避                                                                                                                               |
+| 源类型                                      | 风险                                                                   | 预案                                                                                                                                               |
+| ------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `irs.disaster` / `irs.newsroom`             | 几乎不封，但偶发 WAF 503                                               | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                |
+| `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                                            | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                     |
+| `ar.temporary_announcements`                | 新闻 HTML 体积大、含税种导航噪声，datacenter/browserless 曾被 WAF 拦截 | 直接抓 DFA 官方 WordPress `news` custom-post RSS；仅接受同源 `/news/<slug>` 条目，并继续执行 tax relevance filter                                  |
+| `ny.dtf.press`                              | HTML archive 结构可能调整                                              | 不假设 RSS；HTML selector fallback + NY Email Services 并行信号                                                                                    |
+| `tx.cpa.rss`                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed               | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤 |
+| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                                    | 每条 selector 必须附 **selector fallback chain**（见 §6.2），并配置官方邮件并行信号；必要时再走 Browserless / 人工录入                             |
+| `fema.*` / `weather.*`                      | 官方 API，稳定                                                         | 标准 REST + 指数退避                                                                                                                               |
 
 ### 4.3 Cloudflare Worker 出口 IP 的风险
 

@@ -66,6 +66,8 @@ export function linkLooksTaxAnnouncementRelevant(text: string, href: string): bo
 }
 
 const WY_TAXING_ISSUES_RE = /^(\d{2})-(\d{4})\s+Taxing Issues$/i
+const ARKANSAS_DFA_NEWS_ORIGIN = 'https://www.dfa.arkansas.gov'
+const ARKANSAS_DFA_NEWS_PATH_RE = /^\/news\/[^/]+\/?$/
 
 // TN DOR's legal notices (SUT-/FT-/LOT-/TOB-/FONCE-/F&E/GEN-… series) live in a
 // Zendesk Help Center alongside TNTAP portal how-tos. Keep the notices, drop the
@@ -77,6 +79,18 @@ const TN_PORTAL_HELP_RE = /\btntap\b|^\s*logging\b|password|sign[- ]?in|log[- ]?
 function defaultLinkFilterForSource(
   source: AnnouncementSourceConfig,
 ): ((link: AnnouncementLink) => boolean) | undefined {
+  if (source.id === 'ar.temporary_announcements') {
+    return (link) => {
+      try {
+        const url = new URL(link.href)
+        return (
+          url.origin === ARKANSAS_DFA_NEWS_ORIGIN && ARKANSAS_DFA_NEWS_PATH_RE.test(url.pathname)
+        )
+      } catch {
+        return false
+      }
+    }
+  }
   if (source.id !== 'wy.temporary_announcements') return undefined
   return (link) => WY_TAXING_ISSUES_RE.test(link.text.trim())
 }
