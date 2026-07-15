@@ -119,7 +119,7 @@
   - BreadcrumbList（`:77-88`，`:186,201-203,219-220,238,256`）：parent 标签按 locale 取（现在 zh 页硬编码英文 "Home/Pricing/…"）。
   - WebSite `SearchAction`：**无站内搜索就省略**。
 - [ ] **BaseLayout head**：`BaseLayout.astro` 加 `ogType` prop（guides/rules/compare → `article`）、`og:image:alt`、`twitter:site/creator`（有 handle 再加）、`apple-touch-icon.png` + `site.webmanifest`。
-- [ ] **host 规范化（2026-06-18 修正）**：**不要用 `public/_redirects`** —— Cloudflare **Workers Static Assets** 的 `_redirects` 只接受相对 URL，host 级跳转（`https://www.…/*`）会被拒（`code 100324`）并让 `wrangler deploy` 挂（`ci` build 不校验、只有 deploy 才暴露）。www→apex + http→https 改为 **Cloudflare zone Redirect Rule + "Always Use HTTPS"**（dashboard，绑定自定义域名后做）。`site.ts` canonical 与 sitemap 已锚 apex。
+- [ ] **host 规范化（2026-07-15 修正）**：**不要用 `public/_redirects` 做 host 级跳转** —— Cloudflare **Workers Static Assets** 的 `_redirects` 只接受相对 URL，`https://www.…/*` 规则会被拒（`code 100324`）并让 `wrangler deploy` 挂（`ci` build 不校验、只有 deploy 才暴露）。www→apex + http→https 使用 **Cloudflare zone Redirect Rule + "Always Use HTTPS"**；仓库内 `_redirects` 只用于把历史 `/*.html` 以 `301` 规范化到无扩展名 canonical。`site.ts` canonical 与 sitemap 已锚 apex。
 - [ ] **asset 缓存**：`public/_headers` 给 hashed `_astro/*` 加 long-cache immutable。
 - [ ] **robots.txt**：`robots.txt.ts` 保持全 allow（含 GPTBot/ClaudeBot 训练抓取，pre-launch 有意决策 §7-2），加注释记录该决策；launch 后再评估是否收紧训练 bot。
 
@@ -183,15 +183,15 @@ Phase 4 (度量) ────── 持续, Phase 2 上线后开始建基线
 
 ## 6. 关键文件速查（按职责）
 
-| 职责           | 文件                                                                                                      |
-| -------------- | --------------------------------------------------------------------------------------------------------- |
-| 文案 / 声明    | `src/i18n/en.ts`, `src/i18n/zh-CN.ts`, `src/lib/seo-content.ts`, `src/lib/trust-pages.ts`                 |
-| 新鲜度         | `src/lib/content-metadata.ts`                                                                             |
-| 结构化数据     | `src/lib/structured-data.ts`, `src/components/StructuredData.astro`                                       |
-| head / OG      | `src/layouts/BaseLayout.astro`                                                                            |
-| sitemap / host | `astro.config.mjs`, `public/_headers`（host 跳转走 Cloudflare zone Redirect Rule，**不放** `_redirects`） |
-| GEO 入口       | `src/pages/llms.txt.ts`, `src/pages/robots.txt.ts`, 新增 `src/pages/llms-full.txt.ts`                     |
-| 资产           | `public/og/*`, `public/`（PNG favicon / manifest）                                                        |
+| 职责           | 文件                                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文案 / 声明    | `src/i18n/en.ts`, `src/i18n/zh-CN.ts`, `src/lib/seo-content.ts`, `src/lib/trust-pages.ts`                                                               |
+| 新鲜度         | `src/lib/content-metadata.ts`                                                                                                                           |
+| 结构化数据     | `src/lib/structured-data.ts`, `src/components/StructuredData.astro`                                                                                     |
+| head / OG      | `src/layouts/BaseLayout.astro`                                                                                                                          |
+| sitemap / host | `astro.config.mjs`, `public/_headers`, `public/_redirects`（后者只做相对 path 的 `.html` → canonical `301`；host 跳转走 Cloudflare zone Redirect Rule） |
+| GEO 入口       | `src/pages/llms.txt.ts`, `src/pages/robots.txt.ts`, 新增 `src/pages/llms-full.txt.ts`                                                                   |
+| 资产           | `public/og/*`, `public/`（PNG favicon / manifest）                                                                                                      |
 
 > Truth anchor：`en.ts:22` statusPill 升级后的分层口径——全站向它看齐。覆盖事实以 `dev-file/11 §3` 为准。
 
