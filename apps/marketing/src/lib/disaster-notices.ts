@@ -498,10 +498,29 @@ export interface DisasterNoticeMeta {
   description: string
 }
 
+// State+deadline combos shared by more than one notice (e.g. the two Montana
+// winter-storm notices) — their titles would otherwise be identical, and
+// duplicate titles are a negative signal. Those get the notice code appended.
+const DUPLICATE_TITLE_KEYS = (() => {
+  const counts = new Map<string, number>()
+  for (const n of DISASTER_NOTICES) {
+    const k = `${n.state}|${n.deadline}`
+    counts.set(k, (counts.get(k) ?? 0) + 1)
+  }
+  return new Set([...counts].filter(([, c]) => c > 1).map(([k]) => k))
+})()
+
 export function getNoticeMeta(notice: DisasterNotice): DisasterNoticeMeta {
   const yr = notice.deadline.slice(0, 4)
+  const disambig = DUPLICATE_TITLE_KEYS.has(`${notice.state}|${notice.deadline}`)
+    ? ` (${notice.code})`
+    : ''
   return {
-    title: `IRS ${notice.state} ${notice.event} Tax Relief ${yr} — Deadline ${notice.deadlineLabel} (${notice.code}) | DueDateHQ`,
+    // Keep ~60 chars so Google doesn't truncate: front-load state + "disaster tax
+    // relief" + the postponed deadline (what a searching CPA actually needs to see
+    // in the SERP). The full event name + notice code stay in the H1, body, and
+    // structured data.
+    title: `IRS ${notice.state} Disaster Tax Relief ${yr}: Deadline ${notice.deadlineLabel}${disambig}`,
     description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${notice.affectedArea.replace(/^The /, '')} after ${notice.event.toLowerCase()} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
   }
 }

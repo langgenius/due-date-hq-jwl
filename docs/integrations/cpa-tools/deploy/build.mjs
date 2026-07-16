@@ -389,6 +389,21 @@ const org = {
   description:
     'Independent, vendor-neutral directory of US tax and accounting software, maintained by the team behind DueDateHQ.',
 }
+// Shared WebSite node. Every interior page's `isPartOf` points at `#website`, but
+// the node itself only existed on the homepage — leaving 21 dangling references.
+// Including it in every page's @graph (like `org`) makes the reference resolve
+// on-page and matches Yoast/best-practice site-wide schema. Mirrors the homepage
+// node exactly so the two never conflict on @id.
+const site = {
+  '@type': 'WebSite',
+  '@id': ORIGIN + '/#website',
+  name: 'CPA Field Guide',
+  url: ORIGIN + '/',
+  inLanguage: 'en-US',
+  publisher: { '@id': ORIGIN + '/#org' },
+  description:
+    'An independent, vendor-neutral directory of US tax and accounting software — tax preparation, deadline monitoring, practice management, and bookkeeping — with category definitions, inclusion criteria, and integration openness.',
+}
 
 function head(title, desc, canonical) {
   const fav =
@@ -514,6 +529,7 @@ for (const c of cats) {
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': url + '#webpage',
@@ -599,6 +615,30 @@ for (const c of cats) {
   writeFileSync(base + '/deploy/' + c.slug + '.html', page)
 }
 
+// ---------- cross-link data (head-to-head + alternatives) ----------
+// Defined once here — consumed by the tool pages below AND by the vs/alt page
+// generators lower down. Hoisting it lets each tool profile link to the comparison
+// pages that feature it, so those high-intent pages get internal-link equity from
+// the strong tool pages instead of being reachable only from /compare.
+const VS_PAIRS = [
+  ['taxdome', 'canopy'],
+  ['karbon', 'taxdome'],
+  ['canopy', 'karbon'],
+  ['quickbooks-online', 'xero'],
+  ['drake-tax', 'ultratax-cs'],
+  ['lacerte', 'proseries'],
+]
+const ALT_SLUGS = ['taxdome', 'karbon', 'canopy', 'quickbooks-online', 'drake-tax']
+const nameBySlug = Object.fromEntries(toolData.map((t) => [t.slug, t.name]))
+function crossLinksFor(slug) {
+  const vs = VS_PAIRS.filter((p) => p.includes(slug)).map(([a, b]) => ({
+    href: `/${a}-vs-${b}`,
+    label: `${nameBySlug[a] || a} vs ${nameBySlug[b] || b}`,
+  }))
+  const alt = ALT_SLUGS.includes(slug) ? `/${slug}-alternatives` : null
+  return { vs, alt }
+}
+
 // ---------- TOOL PAGES (/tools/<slug>) ----------
 mkdirSync(base + '/deploy/tools', { recursive: true })
 for (const t of toolData) {
@@ -620,6 +660,16 @@ for (const t of toolData) {
     ? `<div class="sibnav"><div class="wrap"><h2>Other ${catHtml} tools</h2><ul>` +
       siblings.map((s) => `<li><a href="/tools/${s.slug}">${esc(s.name)}</a></li>`).join('') +
       `<li><a href="/${t.catSlug}">See all &rarr;</a></li></ul></div></div>`
+    : ''
+  // Link each profile to the head-to-head + alternatives pages that feature it —
+  // those high-intent pages otherwise only receive links from /compare.
+  const cross = crossLinksFor(t.slug)
+  const crossItems = [
+    ...cross.vs.map((v) => `<li><a href="${v.href}">${esc(v.label)}</a></li>`),
+    ...(cross.alt ? [`<li><a href="${cross.alt}">${esc(t.name)} alternatives</a></li>`] : []),
+  ]
+  const crossBlock = crossItems.length
+    ? `<div class="sibnav"><div class="wrap"><h2>Compare ${esc(t.name)}</h2><ul>${crossItems.join('')}</ul></div></div>`
     : ''
   const tfaq = [
     [
@@ -644,6 +694,7 @@ for (const t of toolData) {
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'SoftwareApplication',
         name: t.name,
@@ -688,6 +739,7 @@ for (const t of toolData) {
     screenshot,
     '</main>',
     tfaqHtml,
+    crossBlock,
     related,
     method,
     footerBlock,
@@ -727,6 +779,7 @@ function guidePage(slug, title, h1, intro, groups, faq) {
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': url + '#webpage',
@@ -922,6 +975,7 @@ function vsPage(A, B) {
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': url + '#webpage',
@@ -998,16 +1052,11 @@ function vsPage(A, B) {
   )
   return { url, path: '/' + slug, aName: A.name, bName: B.name }
 }
-const vsList = [
-  ['taxdome', 'canopy'],
-  ['karbon', 'taxdome'],
-  ['canopy', 'karbon'],
-  ['quickbooks-online', 'xero'],
-  ['drake-tax', 'ultratax-cs'],
-  ['lacerte', 'proseries'],
-]
-  .map(([a, b]) => (bySlug[a] && bySlug[b] ? vsPage(bySlug[a], bySlug[b]) : null))
-  .filter(Boolean)
+// Pairs defined once in VS_PAIRS (hoisted above the tool pages so profiles can
+// cross-link to these); generate from the same list so they can never drift.
+const vsList = VS_PAIRS.map(([a, b]) =>
+  bySlug[a] && bySlug[b] ? vsPage(bySlug[a], bySlug[b]) : null,
+).filter(Boolean)
 
 // ---------- "X alternatives" PAGES ----------
 function altPage(T) {
@@ -1059,6 +1108,7 @@ function altPage(T) {
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': url + '#webpage',
@@ -1134,9 +1184,7 @@ function altPage(T) {
   )
   return { url, path: '/' + slug, name: T.name }
 }
-const altList = ['taxdome', 'karbon', 'canopy', 'quickbooks-online', 'drake-tax']
-  .map((s) => (bySlug[s] ? altPage(bySlug[s]) : null))
-  .filter(Boolean)
+const altList = ALT_SLUGS.map((s) => (bySlug[s] ? altPage(bySlug[s]) : null)).filter(Boolean)
 
 // ---------- STATS PAGE (citeable data for AEO/GEO) ----------
 const statsUrl = ORIGIN + '/cpa-software-statistics'
@@ -1186,6 +1234,7 @@ const statsUrl = ORIGIN + '/cpa-software-statistics'
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': statsUrl + '#webpage',
@@ -1264,6 +1313,7 @@ const compareUrl = ORIGIN + '/compare'
     '@context': 'https://schema.org',
     '@graph': [
       org,
+      site,
       {
         '@type': 'CollectionPage',
         '@id': compareUrl + '#webpage',
