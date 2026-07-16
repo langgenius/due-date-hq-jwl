@@ -9,6 +9,7 @@
  *  honest limits, FAQ, and a cross-link footer back to the hub + neighbors. */
 import type { StatePageCopy } from '../i18n/types'
 import { getContentDates, type OfficialSourceLink } from '../lib/content-metadata'
+import stateFilingDeadlines from '../lib/state-filing-deadlines.json'
 import FaqList from './FaqList.astro'
 import { getStartedHref } from '../lib/app-url'
 
@@ -24,6 +25,38 @@ interface Props {
 
 const { page, coverageHref, locale, officialSources, allStates } = Astro.props
 const zh = locale === 'zh-CN'
+
+/** Verified per-entity filing deadlines (agent-verified 2026-07-16 from official
+ *  state DOR pages; see lib/state-filing-deadlines.json). English pages only —
+ *  the sourced fact strings are English and we don't machine-translate facts. */
+interface FilingCategory {
+  form: string | null
+  due: string | null
+  extension: string | null
+  sourceLabel: string | null
+  sourceHref: string | null
+}
+interface StateFiling {
+  slug: string
+  agency: string | null
+  individual: FilingCategory | null
+  corporate: FilingCategory | null
+  passthrough: FilingCategory | null
+  notes: string | null
+}
+const filing = (stateFilingDeadlines as unknown as StateFiling[]).find(
+  (r) => r.slug === page.slug,
+)
+const filingRows = filing
+  ? (
+      [
+        ['Individual income tax', filing.individual],
+        ['C corporation', filing.corporate],
+        ['S corporation & partnership', filing.passthrough],
+      ] as const
+    ).filter((r): r is [string, FilingCategory] => r[1] != null && r[1].due != null)
+  : []
+const showFiling = !zh && filingRows.length > 0
 const reviewedOn = getContentDates(page.slug).reviewedOn
 const prefix = zh ? '/zh-CN' : ''
 
@@ -138,6 +171,40 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
             </a>
           </div>
         </div>
+      </section>
+    )
+  }
+
+  {
+    showFiling && filing && (
+      <section class="m-section m-page-block" aria-labelledby="std-vf-h">
+        <p class="m-eyebrow">Verified filing deadlines</p>
+        <h2 class="m-page-h2" id="std-vf-h">
+          {filing.agency ?? page.name} due dates by entity type (2026)
+        </h2>
+        <ul class="std-vf">
+          {filingRows.map(([label, cat]) => (
+            <li class="std-vf__row">
+              <div class="std-vf__head">
+                <span class="std-vf__label">{label}</span>
+                {cat.form && <span class="std-vf__form">{cat.form}</span>}
+              </div>
+              <p class="std-vf__due">{cat.due}</p>
+              {cat.extension && <p class="std-vf__ext">Extension: {cat.extension}</p>}
+              {cat.sourceHref && (
+                <a class="std-vf__src" href={cat.sourceHref} rel="noreferrer" target="_blank">
+                  {cat.sourceLabel ?? 'Official source'} ↗
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+        {filing.notes && <p class="std-vf__notes">{filing.notes}</p>}
+        <p class="std-vf__disclaimer">
+          Verified against the official pages linked above for calendar-year filers (tax year
+          2025, filed 2026). Weekend and holiday rollovers may shift a date; always confirm
+          against the linked source.
+        </p>
       </section>
     )
   }
@@ -583,5 +650,61 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
       align-items: flex-start;
       gap: 10px;
     }
+  }
+  .std-vf {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 720px;
+  }
+  .std-vf__row {
+    border: 1px solid var(--m-hairline, #e6e8ee);
+    border-radius: var(--m-radius-md, 12px);
+    padding: 14px 16px;
+  }
+  .std-vf__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .std-vf__label {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .std-vf__form {
+    font-family: var(--m-font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    color: var(--m-muted, #667085);
+  }
+  .std-vf__due {
+    margin: 6px 0 0;
+    color: var(--m-text-secondary, #475467);
+  }
+  .std-vf__ext {
+    margin: 4px 0 0;
+    font-size: var(--m-text-sm, 14px);
+    color: var(--m-text-secondary, #475467);
+  }
+  .std-vf__src {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: var(--m-text-xs, 13px);
+    color: var(--m-accent, #2e368c);
+  }
+  .std-vf__notes {
+    margin-top: 14px;
+    max-width: 720px;
+    font-size: var(--m-text-sm, 14px);
+    color: var(--m-text-secondary, #475467);
+  }
+  .std-vf__disclaimer {
+    margin-top: 10px;
+    max-width: 720px;
+    font-size: var(--m-text-xs, 12px);
+    color: var(--m-muted, #98a2b3);
   }
 </style>

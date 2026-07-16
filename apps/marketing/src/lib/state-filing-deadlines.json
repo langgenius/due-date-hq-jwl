@@ -1,0 +1,1297 @@
+[
+ {
+  "state": "Pennsylvania",
+  "abbreviation": "PA",
+  "slug": "pennsylvania",
+  "agency": "Pennsylvania Department of Revenue",
+  "individual": {
+   "form": "PA-40",
+   "due": "April 15 (DPO-05: \"2025 Annual Personal Income Tax Returns - Residents, Nonresidents, Part-Year Residents\" due Apr. 15, 2026)",
+   "extension": "Up to six months \u2014 extended return due October 15 (DPO-05: \"2025 Annual Personal Income Tax Return with six-month extension\" on Oct. 15). PA accepts a federal extension if no PA tax is owed with the return; otherwise file Form REV-276 (per PA DOR \"Extension of Time to File\" page, https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/personal-income-tax/extension-of-time-to-file). Extension does not extend time to pay.",
+   "sourceLabel": "PA DOR \u2014 2026 State Tax Due Date Reference Guide (DPO-05)",
+   "sourceHref": "https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/formsandpublications/otherforms/documents/dpo-05.pdf"
+  },
+  "corporate": {
+   "form": "RCT-101 (PA Corporate Net Income Tax Report)",
+   "due": "May 15 for calendar-year filers (DPO-05: \"Annual CNI Corporation Tax Report for previous tax year ending Dec. 31\" listed on May 15, 2026)",
+   "extension": "Per Form REV-853: \"Taxpayers granted an extension to file the federal return will automatically be granted an extension to file RCT-101\" (indicate on RCT-101 and include a copy of the federal extension); without a federal extension, REV-853 requests \"a Pennsylvania extension of up to 60 days.\" Payment still due by the original due date. (Source: REV-853, https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/formsandpublications/formsforbusinesses/corporationtax/documents/rev-853.pdf)",
+   "sourceLabel": "PA DOR \u2014 2026 State Tax Due Date Reference Guide (DPO-05)",
+   "sourceHref": "https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/formsandpublications/otherforms/documents/dpo-05.pdf"
+  },
+  "passthrough": {
+   "form": "PA-20S/PA-65 (PA S Corporation/Partnership Information Return)",
+   "due": "April 15 for calendar-year filers; when the year ends in any other month, \"the PA-20S/PA-65 Information Return is due on the 15th day of the fourth month following the close of the fiscal year\" (DPO-05)",
+   "extension": "Five-month extension \u2014 extended return due September 15 (DPO-05: \"Annual 2025 PA S Corporation/Partnership Information Return (PA-20S/PA-65) with five-month extension\" on Sept. 15, 2026)",
+   "sourceLabel": "PA DOR \u2014 2026 State Tax Due Date Reference Guide (DPO-05)",
+   "sourceHref": "https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/formsandpublications/otherforms/documents/dpo-05.pdf"
+  },
+  "notes": "PA CNIT quarterly estimates and S-election (REV-976) dates also listed in DPO-05. Nonresident withholding installments for PA S corps/partnerships due with PA-20S/PA-65."
+ },
+ {
+  "state": "New Jersey",
+  "abbreviation": "NJ",
+  "slug": "new-jersey",
+  "agency": "New Jersey Division of Taxation",
+  "individual": {
+   "form": "NJ-1040",
+   "due": "April 15 (\"the 2025 New Jersey returns are due by April 15, 2026\")",
+   "extension": "Six months via Form NJ-630 (or federal extension \u2014 \"provide us with a copy of your federal extension application (or confirmation number from the IRS) when you file your New Jersey tax return\"); \"extended due date of the New Jersey tax return is October 15, 2026.\" Must have \"at least 80% of any owed taxes paid no later than April 15, 2026\" or the extension is denied. (Extension detail: https://www.nj.gov/treasury/taxation/njit17.shtml)",
+   "sourceLabel": "NJ Division of Taxation \u2014 When to File and Pay",
+   "sourceHref": "https://www.nj.gov/treasury/taxation/njit27.shtml"
+  },
+  "corporate": {
+   "form": "CBT-100 / CBT-100U (Corporation Business Tax)",
+   "due": "May 15 for calendar-year filers (NJ \"Due Dates by Tax 1/1/26\u201312/31/26\": CBT-100/CBT-100U shown May 15; CBT-200-T extension application also May 15)",
+   "extension": "\"We will grant a six-month extension of time only to file your New Jersey CBT return\" via Form CBT-200-T; \"if 90% of the tax liability is not paid by the original due date of the return, your request for an extension will be denied.\" No extension of time to pay. (Extension detail: https://www.nj.gov/treasury/taxation/cbt/cbtextensions.shtml)",
+   "sourceLabel": "NJ Division of Taxation \u2014 Due Dates by Tax, Jan 1\u2013Dec 31, 2026",
+   "sourceHref": "https://www.nj.gov/treasury/taxation/pdf/alphasum26.pdf"
+  },
+  "passthrough": {
+   "form": "CBT-100S (S corporation); NJ-1065 + NJ-CBT-1065 (partnership)",
+   "due": "April 15 for calendar-year filers for all three: CBT-100S, NJ-1065, and NJ-CBT-1065 all shown April 15 in the 2026 Due Dates by Tax calendar (CBT-200-T for CBT-100S filers, PART-200-T, and CBT-206 extension applications also April 15)",
+   "extension": "S corp: six-month extension via CBT-200-T (90% paid). Partnership: PART-200-T is \"used to apply for a five-month extension of time to file an NJ-1065 that has a filing fee due\" (at least 80% of the filing fee paid by the original due date; https://www.nj.gov/treasury/taxation/pdf/current/part/part200t.pdf); CBT-206 extends NJ-CBT-1065.",
+   "sourceLabel": "NJ Division of Taxation \u2014 Due Dates by Tax, Jan 1\u2013Dec 31, 2026",
+   "sourceHref": "https://www.nj.gov/treasury/taxation/pdf/alphasum26.pdf"
+  },
+  "notes": "NJ Pass-Through Business Alternative Income Tax (BAIT) PTE-100 shown due March 16, 2026 with PTE-200-T extension application the same day (2026 Due Dates by Tax calendar)."
+ },
+ {
+  "state": "Connecticut",
+  "abbreviation": "CT",
+  "slug": "connecticut",
+  "agency": "Connecticut Department of Revenue Services",
+  "individual": {
+   "form": "CT-1040",
+   "due": "April 15 (\"Your Connecticut income tax return is due on or before April 15, 2026\")",
+   "extension": "Six months via Form CT-1040 EXT filed by April 15, 2026 \u2014 extended CT-1040 due October 15, 2026 (DRS-166 calendar lists CT-1040 on Oct. 15 \"for filers with an extension of time to file\"). CT-1040 EXT not needed if you \"have requested an extension of time to file your 2025 federal income tax return and you expect to owe no additional Connecticut income tax.\" Does not extend time to pay.",
+   "sourceLabel": "CT DRS \u2014 Resident Income Tax Information",
+   "sourceHref": "https://portal.ct.gov/drs/individuals/resident-income-tax/tax-information"
+  },
+  "corporate": {
+   "form": "CT-1120 (Corporation Business Tax Return; CT-1120CU for combined unitary)",
+   "due": "May 15, 2026 for calendar-year filers (DRS-166 2026 calendar: CT-1120, CT-1120CU, and CT-1120 EXT all listed May 15)",
+   "extension": "Form CT-1120 EXT (filed by May 15, 2026) requests \"a six-month extension (seven-month extension for corporations with a June 30 fiscal year end)\" to file CT-1120 or CT-1120CU; it does not extend the time to pay (CT-1120 Instructions, https://portal.ct.gov/-/media/drs/forms/2025/corp/ct-1120-instructions_1225.pdf)",
+   "sourceLabel": "CT DRS \u2014 2026 Tax Filing Due Dates Calendar (DRS-166)",
+   "sourceHref": "https://portal.ct.gov/-/media/drs/videos/drs-166_1225.pdf"
+  },
+  "passthrough": {
+   "form": "CT-PET (Connecticut Pass-Through Entity Tax Return \u2014 S corporations and partnerships); CT-1065/CT-1120SI (Composite Income Tax Return)",
+   "due": "March 15, 2026 for calendar-year filers (DRS-166 2026 calendar: CT-PET, CT-PET EXT, CT-1065/CT-1120SI, and CT-1065/CT-1120SI EXT all listed March 15)",
+   "extension": "Form CT-PET EXT (filed by March 15) \u2014 six-month extension to September 15, 2026 to file Form CT-PET and furnish Schedule CT K-1; extends filing only, not payment (Form CT-PET EXT, https://portal.ct.gov/-/media/drs/forms/2025/pass-through/ct-pet-ext_1225.pdf)",
+   "sourceLabel": "CT DRS \u2014 2026 Tax Filing Due Dates Calendar (DRS-166)",
+   "sourceHref": "https://portal.ct.gov/-/media/drs/videos/drs-166_1225.pdf"
+  },
+  "notes": "DRS-166: \"If the due date falls on a Saturday, Sunday, or legal holiday, the return will be considered timely filed if filed by the next business day.\""
+ },
+ {
+  "state": "Rhode Island",
+  "abbreviation": "RI",
+  "slug": "rhode-island",
+  "agency": "Rhode Island Division of Taxation",
+  "individual": {
+   "form": "RI-1040",
+   "due": "April 15 (\"A personal income tax return must be computed and filed on or before the 15th day of the fourth month following the close of a taxable year\"; Form RI-4868 confirms filing/payment on or before April 15, 2026 for tax year 2025)",
+   "extension": "\"Use Form RI-4868 to obtain an automatic 6 month extension of time to file\" (to October 15 for calendar-year filers); file and pay by April 15, 2026; \"the Rhode Island extension form need not be filed if you are not required to make payment with Rhode Island extension form\" (federal extension honored in that case); no extension of time to pay (2025 Form RI-4868, https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-01/2025%20RI-4868_w.pdf)",
+   "sourceLabel": "RI Division of Taxation \u2014 Personal Income Tax",
+   "sourceHref": "https://tax.ri.gov/tax-sections/personal-income-tax"
+  },
+  "corporate": {
+   "form": "RI-1120C (Business Corporation Tax)",
+   "due": "April 15 for calendar-year filers (\"For calendar year and non-June 30 fiscal year end filers, Form RI-1120C is due on or before the fifteenth day of the fourth month following the close of the taxable year\")",
+   "extension": "Form RI-7004, \"Automatic Extension Request for RI-1120C, RI-1120S and RI-1065 Filers\": \"automatic six (6) month extension for filers of Form RI-1120C (except for filers with a June 30 fiscal year end)\"; seven months for June 30 year-ends; full estimated tax payment must accompany the request (https://tax.ri.gov/sites/g/files/xkgbur541/files/2022-01/ri-7004_1d_w.pdf)",
+   "sourceLabel": "RI Division of Taxation \u2014 Corporate Tax Filing Requirements",
+   "sourceHref": "https://tax.ri.gov/tax-sections/corporate-tax/tax-filing-requirements"
+  },
+  "passthrough": {
+   "form": "RI-1120S (S corporation) / RI-1065 (partnership)",
+   "due": "March 15 for calendar-year filers (\"Forms RI-1065 and RI-1120S are due on or before the fifteenth day of the third month following the close of the taxable year\"); exception: single-member LLC RI-1065 filers use the fifteenth day of the fourth month",
+   "extension": "Form RI-7004 \u2014 \"automatic six (6) month extension\" for RI-1120S and RI-1065 filers; payment of the full amount of tax reasonably estimated to be due must be submitted with the request (https://tax.ri.gov/sites/g/files/xkgbur541/files/2022-01/ri-7004_1d_w.pdf)",
+   "sourceLabel": "RI Division of Taxation \u2014 Corporate Tax Filing Requirements",
+   "sourceHref": "https://tax.ri.gov/tax-sections/corporate-tax/tax-filing-requirements"
+  },
+  "notes": "RI-4868 warns it does NOT extend RI-1040H (property tax relief) or RI-6238 \u2014 those must be filed by April 15, 2026 even with an extension."
+ },
+ {
+  "state": "Delaware",
+  "abbreviation": "DE",
+  "slug": "delaware",
+  "agency": "Delaware Division of Revenue",
+  "individual": {
+   "form": "PIT-RES (Resident Individual Income Tax Return)",
+   "due": "April 30 (\"Individual income tax returns are due on or before April 30, 2026 for all taxpayers filing on a calendar year basis\") \u2014 note Delaware is later than the federal April 15",
+   "extension": "\"To extend your due date for submitting your completed income tax return (from April 30, 2026 to October 15, 2026) submit... the completed copy of Form PIT-EXT\" plus payment of any estimated balance, no later than April 30, 2026. \"CAUTION: THERE IS NO EXTENSION OF TIME FOR PAYMENT OF TAX.\" Blanket requests not granted.",
+   "sourceLabel": "Delaware DOR \u2014 2025 Form PIT-RES Resident Instructions",
+   "sourceHref": "https://revenuefiles.delaware.gov/2025/PITForms_Instructions/Instructions/PIT-RES_Instructions_2025-01.pdf"
+  },
+  "corporate": {
+   "form": "CIT-TAX (Corporate Income Tax Return; formerly Form 1100)",
+   "due": "April 15 for calendar-year filers (\"Delaware corporate income tax returns are due in the case of a calendar year taxpayer, on or before April 15 of the following year\"; Tax Season Updates: \"Returns for C corporations are generally due on or before April 15, 2026\")",
+   "extension": "\"A federal extension automatically extends the Delaware due date. An extension of time to file is not an extension of time to pay.\" Delaware's own extension request is Form CIT-EXT \u2014 \"Delaware Corporate Request for Extension\" (form list: https://revenue.delaware.gov/business-tax-forms/)",
+   "sourceLabel": "Delaware DOR \u2014 Corporate Income Tax FAQs",
+   "sourceHref": "https://revenue.delaware.gov/frequently-asked-questions/corporate-income-tax-faqs/"
+  },
+  "passthrough": {
+   "form": "SCT-RTN (S Corporation Reconciliation and Shareholders Information Return; formerly 1100S) / PRT-RTN (Delaware Partnership Return; formerly Form 300)",
+   "due": "March 16, 2026 for calendar-year filers for both (\"S corporation returns are due on or before March 16, 2026\"; \"Partnership returns are due on or before March 16, 2026 for calendar year taxpayers\")",
+   "extension": "Extension request forms SCT-EXT (\"S Corporation Request for Extension\") and PRT-EXT (\"Delaware Partnership Return Extension\") per the Division of Revenue business forms list (https://revenue.delaware.gov/business-tax-forms/); extension length not stated on the pages reviewed",
+   "sourceLabel": "Delaware DOR \u2014 Tax Season Updates",
+   "sourceHref": "https://revenue.delaware.gov/tax-season-updates/"
+  },
+  "notes": "Delaware renumbered its business income tax forms for 2025-2026 (1100\u2192CIT-TAX, 1100S\u2192SCT-RTN, 300\u2192PRT-RTN). Delaware also levies separate franchise/annual-entity taxes through the Division of Corporations, distinct from these income tax returns."
+ },
+ {
+  "state": "District of Columbia",
+  "abbreviation": "DC",
+  "slug": "district-of-columbia",
+  "agency": "DC Office of Tax and Revenue (Office of the Chief Financial Officer)",
+  "individual": {
+   "form": "D-40",
+   "due": "April 15 (\"April 15 is the deadline for filing your return and paying any taxes due\")",
+   "extension": "\"By filing a timely Form FR-127, plus any payment due with the extension, you have a 6-month extension of time to file until October 15.\" Additional 6-month extension available only if living or traveling outside the U.S.",
+   "sourceLabel": "DC OTR \u2014 Individual Filings FAQs",
+   "sourceHref": "https://otr.cfo.dc.gov/page/individual-filings-faqs"
+  },
+  "corporate": {
+   "form": "D-20 (Corporation Franchise Tax Return)",
+   "due": "April 15 (\"For calendar year filers (with tax years ending on December 31st), the original due date is April 15th\")",
+   "extension": "Form FR-120 filed by the return due date with full payment of tax due: \"a 6-month extension of time to file a Corporation Franchise Tax Return (Form D-20) or a 7-month extension of time to file if you are a Combined Reporting filer.\" \"The Office of Tax and Revenue (OTR) does not accept the federal application for an extension of time to file. You must use DC Form FR-120.\" (FR-120 instructions, https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_FR-120_0002_120324.pdf)",
+   "sourceLabel": "DC OTR \u2014 Franchise Tax FAQs",
+   "sourceHref": "https://otr.cfo.dc.gov/page/franchise-tax-faqs"
+  },
+  "passthrough": {
+   "form": "D-20 for S corporations (DC does not follow the federal S election); D-65 (Partnership Return of Income)",
+   "due": "April 15, 2026 for calendar-year filers \u2014 D-65 instructions: \"You must file your return by: Calendar year filer - April 15, 2026\"; S corporations follow D-20 dates (April 15). Franchise Tax FAQs: every corporation \"including... S corporations\" must file Form D-20 if engaged in business in the District.",
+   "extension": "D-65: \"If you are requesting an extension of time to file, submit DC FR-165, Extension of Time to File a DC Partnership Return, by the due date of your return. Do not use the federal extension of time to file form to request a DC extension\" (6-month extension; FR-165 requires no remittance since D-65 is an information return). S corps filing D-20 use FR-120 (6-month).",
+   "sourceLabel": "DC OTR \u2014 2025 D-65 Partnership Return Instructions",
+   "sourceHref": "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2025_D-65_Book_Final_wLinks_02232026.pdf"
+  },
+  "notes": "D-65 is an information return \u2014 \"no remittance is due or should be tendered with the D-65 return, or with form FR-165 extension request.\" Unincorporated businesses (including many partnerships over the $12,000 gross-income threshold) must instead file Form D-30, Unincorporated Business Franchise Tax Return."
+ },
+ {
+  "state": "Ohio",
+  "abbreviation": "OH",
+  "slug": "ohio",
+  "agency": "Ohio Department of Taxation",
+  "individual": {
+   "form": "Ohio IT 1040",
+   "due": "April 15 (tax year 2025: April 15, 2026)",
+   "extension": "No Ohio extension form \u2014 Ohio honors the IRS extension: \"You can extend the due date for filing your Ohio IT 1040 and SD 100 to October 15th, only if you qualify for an IRS extension of time to file.\" Check the federal-extension box on the IT 1040; payment is still due by the unextended due date (usually April 15).",
+   "sourceLabel": "Ohio Department of Taxation \u2014 Due Dates; Income \u2014 General Information FAQ",
+   "sourceHref": "https://tax.ohio.gov/help-center/resources/duedates"
+  },
+  "corporate": {
+   "form": "None \u2014 Ohio has no corporate income tax return for most corporations. Main business tax: Commercial Activity Tax (CAT), filed quarterly via the Ohio Business Gateway.",
+   "due": "CAT quarterly returns due the 10th day of the second month after each quarter: May 10 (Q1), August 10 (Q2), November 10 (Q3), February 10 of the next year (Q4). \"Beginning with tax year 2024 and going forward, annual filing has been eliminated and all businesses with an active CAT account are required to file on a quarterly basis.\"",
+   "extension": null,
+   "sourceLabel": "Ohio Department of Taxation \u2014 Commercial Activity Tax (CAT)",
+   "sourceHref": "https://tax.ohio.gov/business/commercial-activity-tax"
+  },
+  "passthrough": {
+   "form": "IT 4708 (Pass-Through Entity Composite Income Tax Return) / IT 1140 (PTE & Trust Withholding Tax Return) / IT 4738 (Electing Pass-Through Entity Income Tax Return)",
+   "due": "IT 4708 and IT 4738: April 15 after the end of the entity's fiscal year. IT 1140: \"on or before the 15th day of the fourth month following the end of the qualifying pass-through entity's taxable year.\"",
+   "extension": "\"Ohio allows filers the same extended filing deadline as the federal government\" \u2014 attach a copy of the federal extension to the return; the extension gives more time to file but not more time to pay (payment still due by the original due date).",
+   "sourceLabel": "Ohio Department of Taxation \u2014 IT 4708 / IT 1140 / IT 4738 pages",
+   "sourceHref": "https://tax.ohio.gov/business/pass-through-entity-and-fiduciary-income-tax/it-4708"
+  },
+  "notes": "Ohio taxes S corp/partnership income at the owner level; entity filings are the IT 1140 withholding, IT 4708 composite, or elective IT 4738 PTE tax (SALT-cap workaround). CAT annual exclusion is $6 million of taxable gross receipts for 2025 and forward (rate 0.26% above it). Individual extension quote from ODT Income \u2014 General Information FAQ: https://tax.ohio.gov/help-center/faqs/income-general-information/income-general-information. IT 1140/IT 4738 detail: https://tax.ohio.gov/business/pass-through-entity-and-fiduciary-income-tax/it-1140 and .../it-4738."
+ },
+ {
+  "state": "Indiana",
+  "abbreviation": "IN",
+  "slug": "indiana",
+  "agency": "Indiana Department of Revenue",
+  "individual": {
+   "form": "Form IT-40",
+   "due": "April 15",
+   "extension": "Form IT-9 (Extension of time to file) due April 15; DOR calendar lists IT-40 \"Due with Extension\" Nov. 15. A federal extension is also recognized.",
+   "sourceLabel": "Indiana DOR \u2014 Tax Filing Deadlines calendar",
+   "sourceHref": "https://www.in.gov/dor/i-am-a/individual/tax-filing-deadlines/"
+  },
+  "corporate": {
+   "form": "Form IT-20 (Indiana Corporate Adjusted Gross Income Tax Return)",
+   "due": "May 15 (calendar-year corporations)",
+   "extension": "DOR calendar lists IT-20 \"Due with Extension\" Nov. 15 (calendar-year filers).",
+   "sourceLabel": "Indiana DOR \u2014 Tax Filing Deadlines calendar",
+   "sourceHref": "https://www.in.gov/dor/i-am-a/individual/tax-filing-deadlines/"
+  },
+  "passthrough": {
+   "form": "Form IT-20S (IN S Corporation Income Tax Return) / Form IT-65 (IN Annual Partnership Return)",
+   "due": "April 15 (calendar-year S corporations and partnerships)",
+   "extension": "DOR calendar lists IT-20S and IT-65 \"Due with Extension\" Oct. 15. No separate Indiana extension request is needed if a federal extension is filed \u2014 include a copy of the federal extension with the Indiana return.",
+   "sourceLabel": "Indiana DOR \u2014 Tax Filing Deadlines calendar",
+   "sourceHref": "https://www.in.gov/dor/i-am-a/individual/tax-filing-deadlines/"
+  },
+  "notes": "Indiana does not follow the federal March 15 date for pass-throughs: IT-20S/IT-65 are due April 15 for calendar-year filers, and the corporate IT-20 is due May 15 (a month after federal). If a due date falls on a weekend or federal/state holiday, it moves to the next business day. Indiana also has an elective PTET (see DOR PTET FAQ)."
+ },
+ {
+  "state": "Illinois",
+  "abbreviation": "IL",
+  "slug": "illinois",
+  "agency": "Illinois Department of Revenue",
+  "individual": {
+   "form": "Form IL-1040",
+   "due": "April 15 (\"The original due date to file and pay Illinois individual income tax for calendar year filers is April 15, 2026.\")",
+   "extension": "\"We grant an automatic six-month extension of time to file your return\" \u2014 extended to October 15, 2026; no form needed to get the extension, but use Form IL-505-I to pay any tax owed by April 15 to avoid penalty and interest. A federal extension longer than six months is automatically allowed for Illinois.",
+   "sourceLabel": "Illinois DOR \u2014 Due Date/Extension to File Income Tax Return (2025 IL-1040)",
+   "sourceHref": "https://tax.illinois.gov/individuals/filingrequirements/extension.html"
+  },
+  "corporate": {
+   "form": "Form IL-1120 (Corporation Income and Replacement Tax Return)",
+   "due": "On or before the 15th day of the 4th month following the close of the tax year (tax years ending June 30: 15th day of the 3rd month)",
+   "extension": "Automatic seven-month extension (eight months for June 30 year-ends, tax years ending after December 31, 2021); granted whether or not requested; tentative tax must be paid by the original due date.",
+   "sourceLabel": "Illinois DOR Q&A \u2014 Who must file Form IL-1120 and when is its due date?",
+   "sourceHref": "https://tax.illinois.gov/questionsandanswers/answer.69.html"
+  },
+  "passthrough": {
+   "form": "Form IL-1120-ST (S corporations) / Form IL-1065 (partnerships)",
+   "due": "IL-1120-ST: on or before the 15th day of the 3rd month following the close of the taxable year. IL-1065: on or before the 15th day of the 4th month following the close of the taxable year.",
+   "extension": "IL-1120-ST: automatic seven-month extension. IL-1065: automatic six-month extension. No form required to obtain either; tentative tax due must be paid by the original due date to avoid interest and penalty.",
+   "sourceLabel": "Illinois DOR Q&A \u2014 IL-1120-ST (answer.93) and IL-1065 (answer.74)",
+   "sourceHref": "https://tax.illinois.gov/questionsandanswers/answer.93.html"
+  },
+  "notes": "Asymmetric pass-through dates: S corps file by the 3rd month (March 15 calendar-year), partnerships by the 4th month (April 15). IL-1065 due date/extension source: https://tax.illinois.gov/questionsandanswers/answer.74.html. Illinois also has an elective pass-through entity (PTE) tax paid with these returns."
+ },
+ {
+  "state": "Michigan",
+  "abbreviation": "MI",
+  "slug": "michigan",
+  "agency": "Michigan Department of Treasury",
+  "individual": {
+   "form": "Form MI-1040",
+   "due": "April 15 (2025 returns due April 15, 2026)",
+   "extension": "Request an extension to Oct. 15, 2026 using Form 4, or a federal extension automatically extends the Michigan return to the new federal due date (per Form 4 instructions). Without a federal extension Treasury generally grants a 6-month extension. An extension to file is not an extension to pay \u2014 pay by April 15.",
+   "sourceLabel": "Michigan Treasury news (Apr 8, 2026) + Form 4 instructions",
+   "sourceHref": "https://www.michigan.gov/treasury/news/2026/04/08/treasury-urges-michiganders-to-use-time-available-before-tax-day-to-file-accurate-returns"
+  },
+  "corporate": {
+   "form": "Form 4891 (CIT Annual Return)",
+   "due": "Annual return due April 30 of the following calendar year (fiscal filers: last day of the fourth month after the end of the tax year)",
+   "extension": "Business tax filers must file Form 4 even if the IRS approved a federal extension; if properly prepared and filed timely with payment, Treasury grants an extension to \"the last day of the eighth month beyond the original due date\" (Dec. 31 for calendar-year filers).",
+   "sourceLabel": "Michigan Treasury \u2014 Corporate Income Tax (CIT) due dates + Form 4 instructions",
+   "sourceHref": "https://www.michigan.gov/taxes/business-taxes/cit"
+  },
+  "passthrough": {
+   "form": "No general S corp/partnership income tax return; elective Flow-Through Entity (FTE) tax filed on Form 5772 (Michigan FTE Annual Return)",
+   "due": "FTE annual return \"required to be filed by the last day of the third month after the end of the taxpayer's tax year (March 31 for calendar year filers)\"",
+   "extension": "May be extended an additional 6 months (until September 30 for calendar-year filers) upon application, or automatically if the taxpayer has a federal extension; the extension does not extend the time to pay.",
+   "sourceLabel": "Michigan Treasury \u2014 FTE tax filing and payment deadlines (implementation notice)",
+   "sourceHref": "https://www.michigan.gov/treasury/reference/the-implementation-of-the-michigan-flow-through-entity-tax/i-overview-of-the-flow-through-entity-tax/d-what-are-the-filing-and-payment-deadlines-under-the-flow-through-entity-tax"
+  },
+  "notes": "Michigan CIT applies to C corporations only; S corps and partnerships are not subject to CIT and file no entity income tax return unless they elect the FTE tax (SALT-cap workaround) or file a composite return (Form 807) for nonresident owners. FTE payments made after March 15 don't generate a member credit until the following year. Form 4 instructions PDF: https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/All-Years/4.pdf."
+ },
+ {
+  "state": "Wisconsin",
+  "abbreviation": "WI",
+  "slug": "wisconsin",
+  "agency": "Wisconsin Department of Revenue",
+  "individual": {
+   "form": "Form 1 (residents) / Form 1NPR (nonresidents & part-year)",
+   "due": "\"The due date for filing the return is the date required to file the corresponding federal income tax return or April 15.\"",
+   "extension": "Any federal extension automatically extends the Wisconsin due date to the federal extended due date (October 15 with federal Form 4868). A Wisconsin-only extension is available even without filing with the IRS \u2014 attach a copy of the federal extension application or a statement to the Wisconsin return. Not an extension to pay: unpaid tax accrues 1% interest per month during the extension.",
+   "sourceLabel": "Wisconsin DOR Publication 401 \u2014 Extensions of Time to File (01/26)",
+   "sourceHref": "https://www.revenue.wi.gov/DOR%20Publications/pb401.pdf"
+  },
+  "corporate": {
+   "form": "Form 4 / Form 6 (Corporation franchise or income tax return)",
+   "due": "15th day of the 4th month after end of taxable year (fiscal year ending June 30: 15th day of the 3rd month)",
+   "extension": "A federal extension extends the Wisconsin due date to 30 days after the federal extended due date; alternatively, \"Wisconsin law provides an automatic extension of seven months or until the original due date of the corporation's corresponding federal return, whichever is later.\" Payment still due by the original date (interest applies).",
+   "sourceLabel": "Wisconsin DOR Publication 401 \u2014 Extensions of Time to File (01/26)",
+   "sourceHref": "https://www.revenue.wi.gov/DOR%20Publications/pb401.pdf"
+  },
+  "passthrough": {
+   "form": "Form 5S (tax-option (S) corporation franchise or income tax return) / Form 3 (partnership return)",
+   "due": "Form 5S: 15th day of the 3rd month after end of taxable year. Form 3: 15th day of the 3rd month after the end of the taxable year.",
+   "extension": "Form 5S follows the corporation rules (federal extension + 30 days, or automatic Wisconsin 7-month extension). Form 3: a federal extension automatically extends the Wisconsin return to the federal extended due date; Wisconsin-only extension available by enclosing a federal extension copy or statement. Tax not paid by the original due date accrues 1% interest per month.",
+   "sourceLabel": "Wisconsin DOR Publication 401 \u2014 Extensions of Time to File (01/26)",
+   "sourceHref": "https://www.revenue.wi.gov/DOR%20Publications/pb401.pdf"
+  },
+  "notes": "Nonresident composite returns: Form 1CNS (S corp shareholders) and Form 1CNP (partners) are due the 15th day of the 4th month after the end of the calendar taxable year. Publication 401 (01/26) states it is for preparing 2025 returns."
+ },
+ {
+  "state": "Minnesota",
+  "abbreviation": "MN",
+  "slug": "minnesota",
+  "agency": "Minnesota Department of Revenue",
+  "individual": {
+   "form": "Form M1",
+   "due": "April 15 (\"Most people must file their 2025 Minnesota tax return by April 15, 2026.\")",
+   "extension": "No extension form required; \"To avoid a late filing penalty, you must file your return by Oct. 15, 2026.\" Payment is still due April 15, 2026, even with a federal filing extension.",
+   "sourceLabel": "Minnesota DOR \u2014 Income Tax Due Dates",
+   "sourceHref": "https://www.revenue.state.mn.us/income-tax-due-dates"
+  },
+  "corporate": {
+   "form": "Form M4 (Corporation Franchise Tax Return)",
+   "due": "\"The regular due date for the Corporation Franchise Tax return is the same as the federal Corporation Tax return\" (April 15 for calendar-year C corporations).",
+   "extension": "\"All corporations are granted an automatic seven-month extension to file Form M4\" \u2014 no form required; if the IRS grants a longer federal extension, the state due date extends to the federal date. Filing only \u2014 pay by the regular due date.",
+   "sourceLabel": "Minnesota DOR \u2014 Due Date (Corporation Franchise Tax) and Filing Extensions",
+   "sourceHref": "https://www.revenue.state.mn.us/due-date"
+  },
+  "passthrough": {
+   "form": "Form M8 (S Corporation Return) / Form M3 (Partnership Return)",
+   "due": "Calendar-year filers: March 15 of the following year for both; fiscal-year filers: the 15th day of the third month following the tax year.",
+   "extension": "Automatic six-month extension for both (\"All S corporations are granted an automatic six-month extension to file Form M8\"; \"All partnerships are granted an automatic six-month extension to file Form M3\"); if the IRS grants a longer federal extension, the state due date extends to match. Pay any tax owed by the regular due date.",
+   "sourceLabel": "Minnesota DOR \u2014 S Corporation Due Dates / Partnership Due Dates / Extensions pages",
+   "sourceHref": "https://www.revenue.state.mn.us/s-corporation-due-dates"
+  },
+  "notes": "Corporate extension detail: https://www.revenue.state.mn.us/filing-extensions-0. Partnership due dates/extensions: https://www.revenue.state.mn.us/partnership-due-dates and https://www.revenue.state.mn.us/partnership-extensions; S corp extensions: https://www.revenue.state.mn.us/s-corporation-extensions. Minnesota also has an elective PTE tax reported on the M8/M3."
+ },
+ {
+  "state": "Massachusetts",
+  "abbreviation": "MA",
+  "slug": "massachusetts",
+  "agency": "Massachusetts Department of Revenue",
+  "individual": {
+   "form": "Form 1 (Resident) / Form 1-NR/PY (Nonresident/Part-Year)",
+   "due": "April 15 (\"Due on or before April 15, 2026\" for 2025 calendar-year returns)",
+   "extension": "Form M-4868, must be filed on or before April 15 \u2014 extended to October 15. NOT federal-piggyback: \"Filing an extension with the IRS does not count as filing an extension for Massachusetts.\" At least 80% of the tax liability must be paid by April 15 for the extension to be valid; a return with no tax due that is not filed by the due date is granted an automatic extension until October 15. Extension of time to file, not to pay.",
+   "sourceLabel": "Mass.gov \u2014 Massachusetts DOR Tax Due Dates and Extensions",
+   "sourceHref": "https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions"
+  },
+  "corporate": {
+   "form": "Form 355 (C Corporation)",
+   "due": "April 15 (\"Due on or before April 15, 2026\" for 2025 calendar-year returns; fiscal-year filers determine due dates from tax period end date)",
+   "extension": "Automatic extension of time to file as long as the greater of (1) 50% of the total tax ultimately due or (2) the minimum corporate excise is paid by the original due date; no zero extensions \u2014 a payment must be made. Extended due date October 15 (October 15, 2026 for 2025 calendar-year Form 355). Filing an IRS extension does not count for Massachusetts.",
+   "sourceLabel": "Mass.gov \u2014 Massachusetts DOR Tax Due Dates and Extensions",
+   "sourceHref": "https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions"
+  },
+  "passthrough": {
+   "form": "Form 355S (S Corporation) / Form 3 (Partnership)",
+   "due": "S corp and partnership both due March 15 (\"Due on or before March 16, 2026\" for 2025 calendar-year returns \u2014 March 15 falls on a Sunday)",
+   "extension": "Form 355S: automatic extension with payment of the greater of 50% of tax due or the minimum corporate excise by the original due date \u2014 extended to September 15 (September 15, 2026). Form 3: partnerships are granted an automatic 6-month extension \u2014 on or before September 15, 2026 (see TIR 16-10).",
+   "sourceLabel": "Mass.gov \u2014 Massachusetts DOR Tax Due Dates and Extensions",
+   "sourceHref": "https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions"
+  },
+  "notes": "mass.gov blocks automated access; facts transcribed from an Internet Archive capture (May 19, 2026) of the official DOR page, page marked 'Updated: March 23, 2026' showing the 2026 filing-season (TY2025) dates. MA extensions require a payment ('no zero extensions') and a federal extension never substitutes for the MA one. Form 355U (combined) extended due date is November 16, 2026."
+ },
+ {
+  "state": "Vermont",
+  "abbreviation": "VT",
+  "slug": "vermont",
+  "agency": "Vermont Department of Taxes",
+  "individual": {
+   "form": "Form IN-111 (Vermont Income Tax Return)",
+   "due": "April 15 (\"The filing deadline is April 15, 2026\" for tax year 2025; Vermont's personal income tax filing season follows the federal calendar)",
+   "extension": "Six-month extension (to October 15), but taxpayers must submit an application first: file online through myVTax or submit Form IN-151 by the April due date. Vermont also allows an automatic extension upon extension at the federal level. Extension of time to file only \u2014 tax due must be paid by the April deadline.",
+   "sourceLabel": "Vermont Department of Taxes \u2014 Filing Season FAQs (Tax Year 2025)",
+   "sourceHref": "https://tax.vermont.gov/filing-season-faqs"
+  },
+  "corporate": {
+   "form": "Form CO-411 (Corporate Income Tax Return)",
+   "due": "\"Due on the date prescribed for filing under the Internal Revenue Code\" \u2014 April 15, 2026 for corporations using the calendar year (per the department's due-date table)",
+   "extension": "Form BA-403, Application for Extension of Time to File Vermont Corporate/Business Income Tax Return (due with the April 15 deadline). An extension of time to file a federal return automatically extends the time to file with Vermont until 30 days beyond the federal extension date; tax is due on the original due date. Extended due date for calendar-year CO-411: October 15, 2026.",
+   "sourceLabel": "Vermont Department of Taxes \u2014 Corporate Income Tax",
+   "sourceHref": "https://tax.vermont.gov/business/corporate-income-tax"
+  },
+  "passthrough": {
+   "form": "Form BI-471 (Business Income Tax Return) for S corporations, partnerships, and LLCs taxed as pass-throughs; Form BI-476 (Resident Only) for entities owned exclusively by Vermont residents",
+   "due": "\"Due on the date established for filing under the Internal Revenue Code\" \u2014 March 16, 2026 for calendar-year S corporations, partnerships, and LLCs (March 15 falls on a Sunday)",
+   "extension": "Form BA-403 by the original due date. A federal extension automatically extends the Vermont filing deadline until 30 days beyond the federal extension date; tax is due on the original due date. Extended due date for calendar-year BI-471/BI-476: October 15, 2026.",
+   "sourceLabel": "Vermont Department of Taxes \u2014 Business Entity Income Tax",
+   "sourceHref": "https://tax.vermont.gov/business/business-entity-income-tax"
+  },
+  "notes": "Pass-through entities generally owe a $250 minimum entity tax with BI-471/BI-476. Entities must make quarterly nonresident-withholding estimated payments (Form WH-435); composite filing is mandatory for pass-throughs with more than 50 nonresident owners. The department's extension page notes Vermont gives corporations one additional month to file upon a federal extension."
+ },
+ {
+  "state": "New Hampshire",
+  "abbreviation": "NH",
+  "slug": "new-hampshire",
+  "agency": "New Hampshire Department of Revenue Administration",
+  "individual": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "NH DRA \u2014 Interest & Dividends Tax",
+   "sourceHref": "https://www.revenue.nh.gov/taxes-glance/interest-dividends-tax",
+   "note": "New Hampshire has no individual income tax on wages: \"The State of New Hampshire does not have an income tax on an individual's reported W-2 wages.\" The Interest & Dividends Tax is repealed for taxable periods beginning after December 31, 2024 (TIR 2025-001), so there is no NH individual return for tax year 2025. The state's main business taxes (BPT/BET) are captured under corporate/passthrough."
+  },
+  "corporate": {
+   "form": "Form NH-1120 (Corporate Business Profits Tax Return) filed with Form BT-Summary; BET reported on the same BT-Summary filing",
+   "due": "April 15 for calendar-year corporations (\"postmarked NO LATER THAN... April 15th for proprietorships, corporations, combined groups, and fiduciaries\"); fiscal-year: 15th day of the 4th month following the close of the taxable period",
+   "extension": "Automatic 7-month extension to file if 100% of the BET and BPT determined to be due is paid by the original due date \u2014 no form required. If an additional payment is needed to reach 100%, file Form BT-EXT (or pay via Granite Tax Connect) by the original due date. Not an extension of time to pay.",
+   "sourceLabel": "NH DRA \u2014 2025 BT-Summary General Instructions",
+   "sourceHref": "https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2025.pdf"
+  },
+  "passthrough": {
+   "form": "Form NH-1065 (Partnership Business Profits Tax Return) with Form BT-Summary; S corporations file Form NH-1120 (NH treats S corporations as C corporations; Form DP-120 required)",
+   "due": "Partnerships: March 15 for calendar-year filers (fiscal-year: 15th day of the 3rd month following close of the period). S corporations: April 15 for calendar-year filers, same as C corporations",
+   "extension": "Same automatic 7-month extension as all NH business tax filers: granted without any form if 100% of BET/BPT due is paid by the original due date; otherwise Form BT-EXT with payment by the original due date.",
+   "sourceLabel": "NH DRA \u2014 2025 BT-Summary General Instructions",
+   "sourceHref": "https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2025.pdf"
+  },
+  "notes": "No wage income tax; I&D Tax repealed for taxable periods beginning after 12/31/2024. Main business obligations: Business Profits Tax (7.5% for periods ending on or after 12/31/2023; filing threshold gross business income > $109,000 for periods beginning on or after 1/1/2025) and Business Enterprise Tax (0.55%; threshold $298,000 gross receipts or enterprise value tax base for periods beginning on or after 1/1/2025) \u2014 due-date rules confirmed on both the BPT and BET FAQ pages (https://www.revenue.nh.gov/resource-center/frequently-asked-questions/business-profits-tax). revenue.nh.gov blocks automated access; pages and the official 2025 BT-Summary/BT-EXT instruction PDFs were read via Internet Archive captures (Jan\u2013Jun 2026)."
+ },
+ {
+  "state": "Maine",
+  "abbreviation": "ME",
+  "slug": "maine",
+  "agency": "Maine Revenue Services",
+  "individual": {
+   "form": "Form 1040ME",
+   "due": "April 15 (calendar-year basis; \"If the due date falls on a holiday or weekend, the due date is the next business day\")",
+   "extension": "Automatic six-month extension of time to file \u2014 no application required (extended to October 15). Requests for time beyond the six months must be submitted in writing before the six-month period expires; total extension generally cannot exceed eight months. Extension payment voucher Form 1040EXT-ME is due April 15; extension is of time to file, not to pay.",
+   "sourceLabel": "Maine Revenue Services \u2014 List of Forms and Due Dates / Individual Income Tax FAQ",
+   "sourceHref": "https://www.maine.gov/revenue/tax-return-forms/due-dates"
+  },
+  "corporate": {
+   "form": "Form 1120ME",
+   "due": "April 15 for calendar-year filers; September 15 for filers with a year end of June 30; otherwise the 15th day of the 4th month following the end of the fiscal year (\"due on the same date as your federal corporate income tax return... without regard to an extension of time to file\")",
+   "extension": "Automatic six-month extension \u2014 \"Maine Revenue Services does not require a written request to obtain an automatic extension to file.\" Total Maine extension period generally may not exceed eight months; if the IRS has granted a federal extension, the Maine filing date is automatically extended for the same period plus 30 days (proof attached to the return). Extension payment via Form 1120EXT-ME (due April 15).",
+   "sourceLabel": "Maine Revenue Services \u2014 Corporate Income Tax FAQ",
+   "sourceHref": "https://www.maine.gov/revenue/faq/corporate-income-tax"
+  },
+  "passthrough": {
+   "form": "Form 941P-ME (Pass-through Entity Return of Maine Income Tax Withheld) \u2014 Maine has no separate entity-level income tax return for S corporations or partnerships",
+   "due": "March 15 (listed under \"Income Tax Withholding for Pass-through Entities\"; 901ES-ME extension payment due March 15)",
+   "extension": "901ES-ME extension payment due March 15 (per the List of Forms and Due Dates).",
+   "sourceLabel": "Maine Revenue Services \u2014 List of Forms and Due Dates",
+   "sourceHref": "https://www.maine.gov/revenue/tax-return-forms/due-dates"
+  },
+  "notes": "Maine pass-throughs file the 941P-ME withholding return rather than an entity income tax return; per the Corporate Income Tax FAQ, S corporations with certain taxable gains (and tax-exempt corporations with unrelated business income) must file Form 1120ME. Financial institutions instead file franchise tax Form 1120B-ME, due April 15 for calendar-year filers."
+ },
+ {
+  "state": "Iowa",
+  "abbreviation": "IA",
+  "slug": "iowa",
+  "agency": "Iowa Department of Revenue",
+  "individual": {
+   "form": "IA 1040",
+   "due": "April 30 (\"Iowa current-year income tax returns are due on April 30 of the following year\")",
+   "extension": "No extension form \u2014 automatic extension to October 31 if at least 90% of the correct tax is paid by April 30; pay any shortfall with Iowa Individual Income Tax Payment Voucher (96-048)",
+   "sourceLabel": "Iowa DOR \u2014 Individual Income Tax FAQs",
+   "sourceHref": "https://revenue.iowa.gov/taxes/frequently-asked-questions/individual-income"
+  },
+  "corporate": {
+   "form": "IA 1120",
+   "due": "Last day of the 4th month after the close of the tax year (April 30 for calendar-year filers)",
+   "extension": "No extension form \u2014 automatic 6-month extension (to October 31 for calendar-year filers) if 90% or more of the correct tax is paid by the original due date; interest accrues from the due date",
+   "sourceLabel": "Iowa DOR \u2014 Tax/Fee Descriptions and Rates; Iowa Corporation Income Tax Instructions (42-002)",
+   "sourceHref": "https://revenue.iowa.gov/taxes/tax-guidance/general/iowa-taxfee-descriptions-and-rates"
+  },
+  "passthrough": {
+   "form": "IA 1120S (S corporation) / IA 1065 (partnership)",
+   "due": "Last day of the 4th month after the close of the tax year (April 30 for calendar-year filers)",
+   "extension": "No extension form \u2014 automatic 6-month extension (to October 31 for calendar-year filers); 90%-paid rule applies to any tax due (e.g., PTET)",
+   "sourceLabel": "Iowa DOR \u2014 Tax/Fee Descriptions and Rates",
+   "sourceHref": "https://revenue.iowa.gov/taxes/tax-guidance/general/iowa-taxfee-descriptions-and-rates"
+  },
+  "notes": "Iowa runs on its own calendar: April 30 original / October 31 extended for individual, corporate, and pass-through \u2014 not the federal April 15 / October 15. Pass-through entity tax (PTET) election deadline is six months after the return's original due date."
+ },
+ {
+  "state": "Missouri",
+  "abbreviation": "MO",
+  "slug": "missouri",
+  "agency": "Missouri Department of Revenue",
+  "individual": {
+   "form": "Form MO-1040",
+   "due": "April 15 (April 15, 2026 for tax year 2025)",
+   "extension": "Automatic if a federal extension is filed \u2014 no Form MO-60 needed unless tax is owed or a Missouri-only extension is wanted; extended return due October 15, 2026",
+   "sourceLabel": "Missouri DOR \u2014 2026 Tax Calendar; Form MO-60",
+   "sourceHref": "https://dor.mo.gov/tax-calendar/"
+  },
+  "corporate": {
+   "form": "Form MO-1120",
+   "due": "April 15 (April 15, 2026 for calendar-year filers)",
+   "extension": "Federal extension honored automatically for the same period \u2014 attach copy of federal Form 7004 to the MO-1120; Form MO-7004 for a Missouri-only extension (up to 180 days); extended return due October 15, 2026",
+   "sourceLabel": "Missouri DOR \u2014 2026 Tax Calendar; Form MO-7004",
+   "sourceHref": "https://dor.mo.gov/tax-calendar/"
+  },
+  "passthrough": {
+   "form": "Form MO-1120S (S corporation) / Form MO-1065 (partnership)",
+   "due": "April 15 (April 15, 2026 for calendar-year filers)",
+   "extension": "Federal extension honored (attach copy); DOR calendar lists both \"Form MO-1120 or MO-1120S with Extension\" and \"Form MO-1065 with Extension\" as due October 15, 2026",
+   "sourceLabel": "Missouri DOR \u2014 2026 Tax Calendar",
+   "sourceHref": "https://dor.mo.gov/tax-calendar/"
+  },
+  "notes": "Missouri's official 2026 calendar puts ALL extended returns \u2014 including partnerships (MO-1065) \u2014 at October 15, 2026, unlike the federal September 15 pass-through extended date."
+ },
+ {
+  "state": "Kansas",
+  "abbreviation": "KS",
+  "slug": "kansas",
+  "agency": "Kansas Department of Revenue",
+  "individual": {
+   "form": "Form K-40",
+   "due": "April 15 (April 15, 2026 for calendar year 2025)",
+   "extension": "Kansas has no separate extension request form \u2014 enclose a copy of federal Form 4868 with the K-40 to automatically receive the extension; 90% of the tax must be paid by April 15 to avoid penalty",
+   "sourceLabel": "Kansas DOR \u2014 Pub. KS-1515 Tax Calendar of Due Dates; 2025 Individual Income Tax Booklet",
+   "sourceHref": "https://www.ksrevenue.gov/pub1515.html"
+  },
+  "corporate": {
+   "form": "Form K-120",
+   "due": "\"No later than one month after the due date established under the federal internal revenue code\" \u2014 May 15 for calendar-year filers; payment of any liability is due April 15",
+   "extension": "No separate Kansas form \u2014 enclose a copy of federal Form 7004 with the K-120 to automatically receive a six-month extension; if a federal extension is granted, the Kansas deadline is one month after the extended federal due date",
+   "sourceLabel": "Kansas DOR \u2014 Corporate Income Tax Booklet (K-120 instructions)",
+   "sourceHref": "https://www.ksrevenue.gov/corpbook24.html"
+  },
+  "passthrough": {
+   "form": "Form K-120S (partnership and S corporation)",
+   "due": "April 15 (payment of any liability due April 15, 2026 for calendar year 2025)",
+   "extension": "No separate Kansas form \u2014 enclose a copy of federal Form 7004 with the K-120S to automatically receive a six-month extension for partnerships and S corporations",
+   "sourceLabel": "Kansas DOR \u2014 Partnership or S Corporation Income Tax Booklet 2025 (K-120S instructions)",
+   "sourceHref": "https://www.ksrevenue.gov/scorpbook25.html"
+  },
+  "notes": "Kansas corporate (K-120) returns are due one month AFTER the federal deadline \u2014 May 15 for calendar-year C corps \u2014 an unusual rollover rule. Financial institutions file the K-130 privilege tax return instead."
+ },
+ {
+  "state": "Nebraska",
+  "abbreviation": "NE",
+  "slug": "nebraska",
+  "agency": "Nebraska Department of Revenue",
+  "individual": {
+   "form": "Form 1040N",
+   "due": "April 15 (April 15, 2026 for calendar-year filers)",
+   "extension": "Six-month extension by attaching a copy of a timely-filed federal Form 4868 (or a schedule with the federal confirmation number), or by filing Nebraska Form 4868N by the due date; interest runs from the original due date",
+   "sourceLabel": "Nebraska DOR \u2014 Nebraska Tax Calendar; Form 4868N",
+   "sourceHref": "https://revenue.nebraska.gov/about/tax-calendar"
+  },
+  "corporate": {
+   "form": "Form 1120N",
+   "due": "15th day of the fourth month following the close of the taxable year (April 15, 2026 for calendar-year filers)",
+   "extension": "File Nebraska Form 7004N by the due date or attach a copy of a timely-filed federal Form 7004; extension cannot exceed a total of seven months after the due date; interest still due on unpaid tax",
+   "sourceLabel": "Nebraska DOR \u2014 Business Income Tax FAQs",
+   "sourceHref": "https://revenue.nebraska.gov/about/frequently-asked-questions/business-income-tax-faqs"
+  },
+  "passthrough": {
+   "form": "Form 1120-SN (S corporation) / Form 1065N (partnership)",
+   "due": "March 16, 2026 for calendar-year filers (15th day of the third month; March 15, 2026 falls on a Sunday)",
+   "extension": "A granted federal extension automatically extends Forms 1120N, 1120-SN, and 1065N for the same period (attach copy of federal Form 7004 when filing); Form 7004N if no federal extension or making a tentative payment; total extension cannot exceed seven months",
+   "sourceLabel": "Nebraska DOR \u2014 Nebraska Tax Calendar; Form 7004N",
+   "sourceHref": "https://revenue.nebraska.gov/about/tax-calendar"
+  },
+  "notes": "Farmers and ranchers who meet the two-thirds-of-income test have a March 2, 2026 alternate individual filing date."
+ },
+ {
+  "state": "South Dakota",
+  "abbreviation": "SD",
+  "slug": "south-dakota",
+  "agency": "South Dakota Department of Revenue",
+  "individual": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "South Dakota DOR \u2014 Individuals: \"South Dakota is one of seven states that does not impose a state income tax\"",
+   "sourceHref": "https://dor.sd.gov/individuals/taxes/"
+  },
+  "corporate": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "South Dakota DOR \u2014 Business Tax: \"South Dakota does not impose a corporate income tax\"",
+   "sourceHref": "https://dor.sd.gov/businesses/taxes/"
+  },
+  "passthrough": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "South Dakota DOR \u2014 Business Tax (no corporate or personal income tax; pass-throughs file no state income return)",
+   "sourceHref": "https://dor.sd.gov/businesses/taxes/"
+  },
+  "notes": "South Dakota has NO individual or corporate income tax \u2014 the absence is the fact. Main business tax obligations: state sales & use tax and contractor's excise tax (license-based, filed via the DOR portal). Financial institutions only: bank franchise tax return, due within 15 days after the federal income tax return is due; extension requires a cover letter, a copy of the federal extension request, and a minimum $200 estimated payment by the original due date (source: https://dor.sd.gov/businesses/taxes/bank-franchise-tax/)."
+ },
+ {
+  "state": "North Dakota",
+  "abbreviation": "ND",
+  "slug": "north-dakota",
+  "agency": "North Dakota Office of State Tax Commissioner",
+  "individual": {
+   "form": "Form ND-1 (or ND-EZ)",
+   "due": "April 15 (April 15, 2026 for tax year 2025)",
+   "extension": "Federal extensions are automatically recognized for North Dakota \u2014 no notice to the state required; extended Form ND-1/ND-EZ due October 15, 2026; Form 101 available for a state-only extension for good cause",
+   "sourceLabel": "North Dakota Tax \u2014 Individual Income Tax Deadlines; Filing an Extension",
+   "sourceHref": "https://www.tax.nd.gov/individual-income-tax-deadlines"
+  },
+  "corporate": {
+   "form": "Form 40",
+   "due": "April 15 (April 15, 2026 for calendar-year filers; tax-exempt orgs May 15, cooperatives September 15)",
+   "extension": "With a federal extension, the North Dakota return is due one month after the automatic federal extension date \u2014 extended Form 40 due November 16, 2026 (November 15 falls on a Sunday); attach a copy of the federal extension; Form 101 if no federal extension",
+   "sourceLabel": "North Dakota Tax \u2014 Corporate Income Tax Deadlines; Filing an Extension",
+   "sourceHref": "https://www.tax.nd.gov/corporate-income-tax-deadlines"
+  },
+  "passthrough": {
+   "form": "Form 60 (S corporation) / Form 58 (partnership)",
+   "due": "April 15 (Form 60 and Form 58 and tax due April 15, 2026 for 2025 calendar year-end filers)",
+   "extension": "Federal extension automatically recognized, to the same date as the automatic federal extension \u2014 extended Forms 60 and 58 due September 15, 2026",
+   "sourceLabel": "North Dakota Tax \u2014 S Corp and Partnership Tax Deadlines",
+   "sourceHref": "https://www.tax.nd.gov/s-corp-and-partnership-tax-deadlines"
+  },
+  "notes": "Unusual pairing: ND pass-through returns are due April 15 (not the federal March 15) but extend only to September 15, while corporate extensions run one month PAST the federal extended date (November 16, 2026). Refund statute-of-limitations date is April 20."
+ },
+ {
+  "state": "North Carolina",
+  "abbreviation": "NC",
+  "slug": "north-carolina",
+  "agency": "North Carolina Department of Revenue (NCDOR)",
+  "individual": {
+   "form": "Form D-400",
+   "due": "April 15 (\"the 2025 return is due on or before April 15, 2026\"); fiscal-year filers: 15th day of the 4th month after year-end",
+   "extension": "Form D-410 by the original due date \u2014 6-month extension (to October 15). A taxpayer granted an automatic federal extension is granted an automatic extension to file the corresponding NC return; extension does not extend time to pay",
+   "sourceLabel": "NCDOR \u2014 Extensions",
+   "sourceHref": "https://www.ncdor.gov/taxes-forms/extensions"
+  },
+  "corporate": {
+   "form": "Form CD-405 (C-Corporation franchise and income tax return)",
+   "due": "\"Corporate franchise and income tax returns are due on the 15th day of the fourth month following the close of the income year\" (April 15 for calendar-year filers)",
+   "extension": "Form CD-419 \u2014 \"When timely filed, this application for extension extends time to file the tax return by six months\"; does not extend time to pay (all tax due by 15th day of 4th month after year-end); payment not required with the extension request",
+   "sourceLabel": "NCDOR \u2014 Corporate Income & Franchise Tax: When to File (extension per CD-419 Information, ncdor.gov/cd-419-information)",
+   "sourceHref": "https://www.ncdor.gov/taxes-forms/corporate-income-franchise-tax/when-file"
+  },
+  "passthrough": {
+   "form": "Form CD-401S (S corporation) / Form D-403 (partnership)",
+   "due": "Both due the 15th day of the 4th month following year-end (April 15 for calendar-year filers). D-403A: \"A partnership income tax return must be filed on or before the 15th day of the 4th month following the end date of the partnership's tax year... for calendar year partnerships, the due date is April 15th\"",
+   "extension": "CD-401S: Form CD-419 six-month extension (same rule as CD-405). D-403: a partnership with an automatic federal extension is granted an automatic NC extension (must fill in the Federal Extension \"Yes\" circle on D-403); otherwise file Form D-410P by the original due date; extension does not extend time to pay",
+   "sourceLabel": "NCDOR \u2014 2024 D-403A Partnership Income Tax Return Instructions",
+   "sourceHref": "https://www.ncdor.gov/2024-d-403a-partnership-tax-return-instructions/open"
+  },
+  "notes": "NC franchise tax is filed on the same CD-405/CD-401S return. Eligible partnerships may elect on Form D-403 to be a \"Taxed Partnership\" (entity-level PTET); election must be made by the due date including extensions."
+ },
+ {
+  "state": "South Carolina",
+  "abbreviation": "SC",
+  "slug": "south-carolina",
+  "agency": "South Carolina Department of Revenue (SCDOR)",
+  "individual": {
+   "form": "Form SC1040",
+   "due": "April 15 (April 15, 2026 for TY2025). SPECIAL FOR TY2025: on March 26 the SCDOR extended the filing due date for all 2025 SC Individual Income Tax returns to October 15, 2026 (IRC-conformity legislation, H.B. 3368); payment was NOT extended \u2014 at least 90% of 2025 liability was due April 15, 2026",
+   "extension": "Form SC4868 (or pay balance on MyDORWAY) for extension to file; for TY2025 the October 15, 2026 filing extension is automatic per the SCDOR statement; \"This extension applies only to the deadline to file your return, not to pay what you owe\"",
+   "sourceLabel": "SCDOR statement on Income Tax conformity; April 15 filing deadline extended for SC returns",
+   "sourceHref": "https://dor.sc.gov/news/scdor-statement-income-tax-conformity-april-15-filing-deadline-extended-sc-returns"
+  },
+  "corporate": {
+   "form": "Form SC1120",
+   "due": "\"All corporate taxable entities (other than S Corporations and Tax Exempt Organizations) file annually on or before the 15th day of the fourth month after the close of the taxable year\" (April 15 for calendar-year filers)",
+   "extension": "File the Tentative Corporate Tax Return (SC1120-T) with payment by the original due date (paying on MyDORWAY submits the extension request automatically); there is no extension of time to pay; extended date not stated on the page",
+   "sourceLabel": "SCDOR \u2014 Corporate tax page",
+   "sourceHref": "https://dor.sc.gov/tax/corporate"
+  },
+  "passthrough": {
+   "form": "Form SC1120S (S corporation) / Form SC1065 (partnership)",
+   "due": "Both due the \"15th day of the third month after the end of your business year\" (March 15 for calendar-year filers) \u2014 stated on the SCDOR S Corporation page (SC1120S) and Partnership page (SC1065)",
+   "extension": "S corp: request extension via SC1120-T / MyDORWAY payment (\"Your payment on MyDORWAY automatically submits your filing extension request\"); no extension of time to pay. Partnership: Form SC8736 \u2014 \"The request for extension extends the filing due date for up to six months\" (to September 15); no extension of time to pay",
+   "sourceLabel": "SCDOR \u2014 Partnership page (SC1065); S Corporation page at dor.sc.gov/business-income-taxes/corporate/s-corporation",
+   "sourceHref": "https://dor.sc.gov/tax/partnership"
+  },
+  "notes": "Normal-year quirk: SC1040 filers who both file AND pay electronically have until May 1 without penalty or interest (per SCDOR 'Tax Season opens January 26, 2026', dor.sc.gov/news/tax-season-opens-january-26-2026). TY2025 individual returns auto-extended to October 15, 2026 (filing only). SC1120S includes the annual report (Schedule D) and license fee."
+ },
+ {
+  "state": "Virginia",
+  "abbreviation": "VA",
+  "slug": "virginia",
+  "agency": "Virginia Department of Taxation (Virginia Tax)",
+  "individual": {
+   "form": "Form 760",
+   "due": "May 1 (\"Typically, most people must file their tax return by May 1\"); fiscal-year filers: 15th day of the 4th month after year-end",
+   "extension": "\"Virginia allows an automatic 6-month extension to file your return (Nov. 1 for most filers)\" \u2014 no application required; tax owed must still be paid by the original May 1 due date",
+   "sourceLabel": "Virginia Tax \u2014 When to File",
+   "sourceHref": "https://www.tax.virginia.gov/when-to-file"
+  },
+  "corporate": {
+   "form": "Form 500",
+   "due": "April 15 for calendar-year filers; \"15th day of the 4th month following the close of your taxable year\" for fiscal-year filers",
+   "extension": "\"An automatic 7-month filing extension. Calendar year filers have an extended due date of Nov. 15\" (nonprofits: automatic 6-month); \"the extension provisions do not apply to payment of any tax due\" \u2014 pay at least 90% by the original due date",
+   "sourceLabel": "Virginia Tax \u2014 Corporation Income Tax",
+   "sourceHref": "https://www.tax.virginia.gov/corporation-income-tax"
+  },
+  "passthrough": {
+   "form": "Form 502 (S corporations and partnerships); Form 502PTET for electing PTEs",
+   "due": "\"PTE income tax returns are due by the 15th day of the 4th month following the close of the business's taxable year\" (April 15 for calendar-year entities)",
+   "extension": "Automatic 6-month extension, no application required \u2014 \"you must file Form 502 no later than 6 months from the original due date\" (October 15 for calendar-year filers); withholding tax payment is not extended",
+   "sourceLabel": "Virginia Tax \u2014 Pass-Through Entities",
+   "sourceHref": "https://www.tax.virginia.gov/pass-through-entities"
+  },
+  "notes": "Virginia's individual due date (May 1) and extended date (Nov 1) are later than the federal dates. Elective PTET filed on Form 502PTET."
+ },
+ {
+  "state": "West Virginia",
+  "abbreviation": "WV",
+  "slug": "west-virginia",
+  "agency": "West Virginia Tax Division",
+  "individual": {
+   "form": "Form IT-140",
+   "due": "April 15 (\"April 15 is the final day to file a 2025 tax return, request an extension, and pay tax owed\")",
+   "extension": "Six-month extension to October 15 (\"October 15 is the final day to file 2025 tax returns with approved extension\"); the extension request (WV4868, part of the IT-140 packet) must be filed before the original due date; an extension to file is not an extension to pay \u2014 payment due April 15",
+   "sourceLabel": "WV Tax Division \u2014 Income Tax Filing Season",
+   "sourceHref": "https://tax.wv.gov/Individuals/TaxFilingSeason/Pages/TaxFilingSeason.aspx"
+  },
+  "corporate": {
+   "form": "Form CIT-120 (Corporation Net Income Tax)",
+   "due": "\"Annual returns will have a due date of April 15 and an extended due date of October 15. Fiscal and 52/53-week returns will be due on the 15th day of the fourth month following the end of the period\"",
+   "extension": "Six-month extension period. \"An extension of time to file a federal return is automatically accepted by West Virginia as an extension of time to file the West Virginia return\" (attach federal Form 7004); a state extension may be obtained via Form CIT-120EXT even without a federal one; does not extend time to pay",
+   "sourceLabel": "WV Tax Division \u2014 2025 CIT-120 Instructions",
+   "sourceHref": "https://tax.wv.gov/Documents/CIT/2025/cit120.instructions.2025.pdf"
+  },
+  "passthrough": {
+   "form": "Form PTE-100 (S Corporation & Partnership Income Tax Return)",
+   "due": "\"Annual returns will have a due date of March 15... and an extended due date of September 15. Fiscal and 52/53-week returns will be due on the 15th day of the third month following the close of the taxable year with an extension period of six months\"",
+   "extension": "Six-month extension (to September 15 for calendar-year filers); an extension of time for filing does not extend the time for payment",
+   "sourceLabel": "WV Tax Division \u2014 PTE-100 Income Tax for Pass-Through Entities Instructions",
+   "sourceHref": "https://tax.wv.gov/Documents/PTE/2022/pte100.instructions.pdf"
+  },
+  "notes": "PTE-100 due-date wording is from the PTE-100 instructions ('for periods beginning on or after January 1, 2022'); one form covers both S corporations and partnerships."
+ },
+ {
+  "state": "Kentucky",
+  "abbreviation": "KY",
+  "slug": "kentucky",
+  "agency": "Kentucky Department of Revenue",
+  "individual": {
+   "form": "Form 740",
+   "due": "April 15 (returns must be postmarked no later than April 15, 2026 for TY2025)",
+   "extension": "Form 740EXT requests \"a six-month extension\" (to October 15). \"Taxpayers who request a federal extension are not required to file a separate Kentucky extension, unless an amount is due with the extension\" \u2014 attach federal Form 4868 to the Kentucky return; extension does not extend time to pay",
+   "sourceLabel": "Kentucky DOR \u2014 Form 740EXT, Application for Extension of Time to File",
+   "sourceHref": "https://revenue.ky.gov/Forms/740EXT.pdf"
+  },
+  "corporate": {
+   "form": "Form 720 (Corporation Income Tax and LLET Return)",
+   "due": "\"The 15th day of the fourth month following the close of the taxable year\" (April 15 for calendar-year filers)",
+   "extension": "Seven-month extension for corporations (Form 720/720U) \u2014 request via Form 720EXT before the due date, or attach federal Form 7004 to the Kentucky return (\"granted the same extension of time... provided a copy of the federal Form 7004 is attached\"); does not extend the date for payment of tax",
+   "sourceLabel": "Kentucky DOR \u2014 File a Corporation Income Tax Extension",
+   "sourceHref": "https://revenue.ky.gov/Business/Corporation-Income-and-Limited-Liability-Entity-Tax/Pages/File-a-Corporation-Income-Tax-Extension.aspx"
+  },
+  "passthrough": {
+   "form": "Form PTE (S corporations and partnerships; Form 725 for single-member LLCs)",
+   "due": "\"The 15th day of the fourth month following the close of the taxable year\" (April 15 for calendar-year filers) \u2014 Kentucky pass-through returns do not follow the federal March 15 date",
+   "extension": "Six-month extension for pass-through entities (Form PTE/725) \u2014 via Form 720EXT before the due date or federal Form 7004 attached to the return; does not extend the date for payment",
+   "sourceLabel": "Kentucky DOR \u2014 File a Corporation Income Tax Extension",
+   "sourceHref": "https://revenue.ky.gov/Business/Corporation-Income-and-Limited-Liability-Entity-Tax/Pages/File-a-Corporation-Income-Tax-Extension.aspx"
+  },
+  "notes": "The Limited Liability Entity Tax (LLET) is filed on the same 720/PTE returns. Note the unusual split: corporations get a 7-month extension, pass-through entities 6 months, both from the same April 15 original due date. TY2025 due-date confirmation: revenue.ky.gov/Forms/740 Packet Instructions (2025).pdf"
+ },
+ {
+  "state": "Maryland",
+  "abbreviation": "MD",
+  "slug": "maryland",
+  "agency": "Comptroller of Maryland",
+  "individual": {
+   "form": "Form 502 (resident return)",
+   "due": "April 15 (\"Today is the deadline to file state and federal personal income tax returns in Maryland\" \u2014 April 15 release)",
+   "extension": "Six-month extension to October 15: \"Marylanders who filed for an extension... must file their returns by October 15.\" \"Taxpayers who filed for an extension on a federal return and did not owe state taxes received a six-month extension for a state return\"; extensions beyond six months only for taxpayers outside the U.S. (up to one year); estimated taxes must be paid by the April deadline",
+   "sourceLabel": "Comptroller of Maryland \u2014 Personal Income Tax Filing Extension Ends October 15 (news release)",
+   "sourceHref": "https://www.marylandcomptroller.gov/content/dam/mdcomp/md/media/2024/10-09-24-Personal-Income-Tax-Filing-Extension-Ends-October-15.pdf"
+  },
+  "corporate": {
+   "form": "Form 500",
+   "due": "15th day of the fourth month following the close of the tax year (April 15 for calendar-year filers) \u2014 Form 500E: \"File Form 500E by the 15th day of the fourth month following the close of the tax year or period, or, by the original due date required for filing the federal income tax return\"",
+   "extension": "\"Extensions are allowable for up to seven months from the original due date. An automatic seven-month extension will be granted if Form 500E is filed by the original due date\" (November 15 for calendar-year filers); extension of time to file, \"but not to pay the tax due\"",
+   "sourceLabel": "Comptroller of Maryland \u2014 2025 Form 500E Application for Extension to File Corporation Income Tax Return",
+   "sourceHref": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/forms/2025/500e.pdf"
+  },
+  "passthrough": {
+   "form": "Form 510 (pass-through entity) / Form 511 (electing PTE); used by partnerships, S corporations, LLCs and business trusts",
+   "due": "\"File Form 510 by the 15th day of the 4th month following the close of the tax year or period\" (April 15 for calendar-year filers); Form 510/511E likewise: \"by the 15th day of the fourth month following the close of the tax year for all pass-through entities\"",
+   "extension": "Form 510/511E: \"Extensions are allowable for up to seven months from the original due date for S corporations and up to six months from the original due date for all other pass-through entities. An automatic extension will be granted if Form 510/511E is filed by the original due date\" \u2014 510 instructions add that a federal extension must also have been filed and full payment of any balance submitted",
+   "sourceLabel": "Comptroller of Maryland \u2014 2025 Form 510 Pass-Through Entity Income Tax Return Instructions (PTE Booklet)",
+   "sourceHref": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/pte-booklet-510.pdf"
+  },
+  "notes": "Maryland PTET: electing entities (Box A on 510/511D/E, irrevocable for the year) file Form 511 instead of 510. April 15 individual deadline release: marylandcomptroller.gov/content/dam/mdcomp/md/media/2025/04-15-2025-today-personal-income-tax-filing-deadline.pdf. Extension form 510/511E 2025: marylandcomptroller.gov/content/dam/mdcomp/tax/forms/2025/511e.pdf. Note MD's own 2025 forms state ALL PTE returns (incl. S corps) are due the 15th day of the 4th month, with a 7-month extension for S corps and 6-month for others."
+ },
+ {
+  "state": "Georgia",
+  "abbreviation": "GA",
+  "slug": "georgia",
+  "agency": "Georgia Department of Revenue",
+  "individual": {
+   "form": "Form 500",
+   "due": "April 15 \u2014 \"Georgia Individual Income Tax Returns must be received or postmarked by April 15, 2026\"",
+   "extension": "Automatic with a federal extension \u2014 \"You do NOT need to request an extension to file your Georgia return if you receive a Federal extension\"; otherwise Form IT-303 (Application for Extension of Time for Filing State Income Tax Returns). \"Extension to file cannot exceed 6 months and does not extend the date for paying the tax\" \u2014 extended to October 15 (per dor.georgia.gov/requesting-extension)",
+   "sourceLabel": "Georgia DOR \u2014 Tax Due Dates",
+   "sourceHref": "https://dor.georgia.gov/taxes/tax-faqs-due-dates-and-other-resources/tax-due-dates"
+  },
+  "corporate": {
+   "form": "Form 600",
+   "due": "15th day of the fourth month following the close of the tax year (April 15 for calendar-year filers)",
+   "extension": "Up to a six-month extension is available; automatic if a federal extension is approved, otherwise Form IT-303; \"late payment penalties and interest will accrue if the tax is not paid by the statutory due date\"",
+   "sourceLabel": "Georgia DOR \u2014 C Corporations FAQ",
+   "sourceHref": "https://dor.georgia.gov/c-corporations-faq"
+  },
+  "passthrough": {
+   "form": "Form 600S (S corporation) / Form 700 (partnership)",
+   "due": "On or before the 15th day of the third month following the close of the taxable year (March 15 for calendar-year filers) \u2014 stated in both the IT-611S (600S) and IT-711 (700) instruction booklets",
+   "extension": "Automatic Georgia extension if the taxpayer \"applies for and receives an automatic six (6) month extension\" of the federal return (check the Extension box on the return); \"If you do not need a Federal extension, use Form IT-303 to request a Georgia extension\"; tax must be prepaid by the statutory due date",
+   "sourceLabel": "Georgia DOR \u2014 2025 IT-611S S Corporation Income Tax Booklet",
+   "sourceHref": "https://dor.georgia.gov/document/document/2025-it-611s-s-corporation-income-tax-booklet/download"
+  },
+  "notes": "Forms 600/600S are combined income + net worth (franchise) tax returns; net worth tax is due with the same return. Partnership due-date source: 2025 IT-711 booklet, https://dor.georgia.gov/document/document/2025-it-711-partnership-income-tax-booklet/download. Extension canon page: https://dor.georgia.gov/requesting-extension"
+ },
+ {
+  "state": "Alabama",
+  "abbreviation": "AL",
+  "slug": "alabama",
+  "agency": "Alabama Department of Revenue",
+  "individual": {
+   "form": "Form 40",
+   "due": "\"Due the same date as the corresponding federal income tax return\" (April 15 for calendar-year filers)",
+   "extension": "Automatic \u2014 \"you do not need to file for an extension. You will automatically be granted an extension until October 15\"; \"No paper or electronic extension form is needed\"; not an extension of time to pay (per ADOR FAQ 'Can I apply for an extension to file my return?')",
+   "sourceLabel": "Alabama DOR \u2014 Due Dates",
+   "sourceHref": "https://revenue.alabama.gov/individual-corporate/due-dates/"
+  },
+  "corporate": {
+   "form": "Form 20C",
+   "due": "\"Due one month following the due date of the corresponding federal income tax return, including applicable extensions\" \u2014 May 15 for calendar-year C corporations",
+   "extension": "Follows the federal extension (due one month after the federal date \"including applicable extensions\"); Act 2022-53 allows an additional one-month extension for filing purposes only \u2014 \"The full amount of the tax liability is due on or by the original due date of the return without the benefit of the additional one-month extension\"",
+   "sourceLabel": "Alabama DOR \u2014 Due Dates",
+   "sourceHref": "https://revenue.alabama.gov/individual-corporate/due-dates/"
+  },
+  "passthrough": {
+   "form": "Form 20S (S corporation) / Form 65 (partnership/LLE)",
+   "due": "\"Due annually on March 15 for calendar year taxpayers\" (both Form 20S and Form 65)",
+   "extension": "Automatic extension consistent with the federal extension \u2014 if a federal extension (Form 7004) has been granted, the Alabama extension is granted; submit the federal extension with the Alabama return; not an extension of time to pay (per ADOR FAQ 'How does a partnership file for an extension?')",
+   "sourceLabel": "Alabama DOR \u2014 Due Dates",
+   "sourceHref": "https://revenue.alabama.gov/individual-corporate/due-dates/"
+  },
+  "notes": "Alabama Business Privilege Tax return is also due: C corporations \u2014 same date as the corresponding federal income tax return (April 15 calendar-year); S corporations and limited liability entities \u2014 same date as the corresponding federal return (March 15). Extension FAQs: https://www.revenue.alabama.gov/faqs/can-i-apply-for-an-extension-to-file-my-return/ and https://www.revenue.alabama.gov/faqs/how-does-a-partnership-file-for-an-extension/"
+ },
+ {
+  "state": "Mississippi",
+  "abbreviation": "MS",
+  "slug": "mississippi",
+  "agency": "Mississippi Department of Revenue",
+  "individual": {
+   "form": "Form 80-105 (Resident Individual Income Tax Return)",
+   "due": "April 15 \u2014 the due date for filing 2025 Mississippi Individual Income Tax Returns is April 15, 2026",
+   "extension": "Federal extension automatically honored \u2014 a federal extension of time to file automatically extends the Mississippi return; attach a copy of the federal extension (Form 4868) when filing; extended to October 15, 2026; not an extension of time to pay",
+   "sourceLabel": "Mississippi DOR \u2014 Individual Income Tax FAQs",
+   "sourceHref": "https://www.dor.ms.gov/individual/individual-income-tax-frequently-asked-questions"
+  },
+  "corporate": {
+   "form": "Form 83-105 (Corporate Income and Franchise Tax Return)",
+   "due": "On or before the 15th day of the 4th month following the close of the taxable year (April 15 for calendar-year filers)",
+   "extension": "Remit the tax due with the Mississippi Application for Extension on or before the due date to receive an automatic extension of time to file; \"The federal extension will be accepted in lieu of the Mississippi extension if no tax liability exists on the due date of the return\"; does not extend time to pay",
+   "sourceLabel": "Mississippi DOR \u2014 2025 Corporate Income and Franchise Tax Instructions (Form 83-100)",
+   "sourceHref": "https://www.dor.ms.gov/sites/default/files/tax-forms/business/2025%20CIT%20INSTRUCTIONS%2083-100%20-%20Final%20%2001.14.2026.pdf"
+  },
+  "passthrough": {
+   "form": "Form 84-105 (Pass-Through Entity Income and Franchise Tax Return \u2014 S corporations and partnerships)",
+   "due": "On or before the 15th day of the 3rd month following the close of the taxable year (March 15 for calendar-year filers)",
+   "extension": "Same rule as corporate: automatic extension with the Mississippi Application for Extension and payment of tax due; federal extension accepted in lieu of the Mississippi extension if no tax liability exists on the due date",
+   "sourceLabel": "Mississippi DOR \u2014 2025 Pass-Through Entity Income and Franchise Tax Instructions (Form 84-100)",
+   "sourceHref": "https://www.dor.ms.gov/sites/default/files/tax-forms/business/2025%20PTE%20INSTRUCTIONS%2084-100%20-%20Final%20%2001.14.2026.pdf"
+  },
+  "notes": "Corporate (83-105) and pass-through (84-105) returns are combined income AND franchise tax returns. Business FAQ page: https://www.dor.ms.gov/business/corporate-income-and-franchise-tax-faqs"
+ },
+ {
+  "state": "Louisiana",
+  "abbreviation": "LA",
+  "slug": "louisiana",
+  "agency": "Louisiana Department of Revenue",
+  "individual": {
+   "form": "Form IT-540",
+   "due": "On or before May 15 of the following year (May 15, 2026 for tax year 2025)",
+   "extension": "Automatic six-month extension \u2014 \"For calendar year filers the extension will be to November 15th. No paper or electronic extension form needs to be filed to obtain the automatic extension\"; for tax year 2025 LDR states the extended date as Nov. 16, 2026 (Nov. 15 falls on a Sunday); \"the extension does not allow an extension of time to pay the tax due\"",
+   "sourceLabel": "Louisiana DOR \u2014 FAQ: Can I request a state income tax extension?",
+   "sourceHref": "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/general-questions/can-i-request-a-state-income-tax-extension-if-i-am-unable-to-file-my-return-before-the-due-date/"
+  },
+  "corporate": {
+   "form": "Form CIFT-620 (Corporation Income and Franchise Taxes)",
+   "due": "On or before the 15th day of the fifth month following the close of the accounting period (May 15 for calendar-year filers; LDR 2025 filing calendar lists 'Annual Corporation and Franchise Return' on May 15)",
+   "extension": "\"Most corporate taxpayers do not need to submit a separate Louisiana extension request\" \u2014 automatic six-month extension to file IF you \"timely requested an extension for federal income tax purposes\"; check the extension box on Form CIFT-620; \"It does not extend the time to pay any tax due\" (extension payment via Form CIFT-620EXT-V or LaTAP)",
+   "sourceLabel": "Louisiana DOR \u2014 FAQ: How do I request an extension to file a Louisiana Corporation Income and Franchise taxes return?",
+   "sourceHref": "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/corporation-income-franchise-taxes/how-do-i-request-an-extension-to-file-a-louisiana-corporation-income-and-franchise-taxes-return/"
+  },
+  "passthrough": {
+   "form": "Form IT-565 (Partnership Return of Income); S corporations file Form CIFT-620",
+   "due": "Partnership returns: due date generally May 15 for calendar-year filers (LDR extension FAQ: payments after \"the return due date (generally May 15)\" incur interest)",
+   "extension": "Partnerships: automatic six-month extension \u2014 \"For calendar year filers the extension will be to November 15th. No paper or electronic extension form needs to be filed\"; S corporations follow the corporate rule (automatic six-month with a timely federal extension)",
+   "sourceLabel": "Louisiana DOR \u2014 FAQ: Can I request a state income tax extension?",
+   "sourceHref": "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/general-questions/can-i-request-a-state-income-tax-extension-if-i-am-unable-to-file-my-return-before-the-due-date/"
+  },
+  "notes": "Louisiana does not follow federal S corporation treatment for filing: \"Louisiana taxes Subchapter S corporations... in the same manner as regular corporations, with one exception\" (S corps file CIFT-620; resident shareholders also report their share on individual returns) \u2014 https://revenue.louisiana.gov/tax-education-and-faqs/faqs/corporation-income-franchise-taxes/how-does-louisiana-tax-a-corporation-that-is-classified-by-the-irs-as-an-s-small-business-corporation/. Corporate due-date calendar entry: https://revenue.louisiana.gov/calendar/2025/05/05-15-annual-corporation-and-franchise-return/"
+ },
+ {
+  "state": "Arkansas",
+  "abbreviation": "AR",
+  "slug": "arkansas",
+  "agency": "Arkansas Department of Finance and Administration",
+  "individual": {
+   "form": "Form AR1000F",
+   "due": "\"The due date for filing your Arkansas Individual Income Tax return is April 15\" (next business day if April 15 falls on a weekend or holiday)",
+   "extension": "\"If you have already filed a federal extension, you do not have to file a state extension\"; for an Arkansas-only extension, file Form AR1055 postmarked on or before April 15; extended deadline is \"usually November 15th for annual filers of Individual or Fiduciary returns\"; an extension to file is not an extension to pay",
+   "sourceLabel": "Arkansas DFA \u2014 Individual Income Tax: Deadlines & Extensions",
+   "sourceHref": "https://www.dfa.arkansas.gov/office/taxes/income-tax-administration/individual-income-tax/deadlines-extensions/"
+  },
+  "corporate": {
+   "form": "Form AR1100CT",
+   "due": "\"Arkansas corporation income tax returns to be filed on or before April 15 for the preceding calendar year. Returns are due on or before the 15th day of the 4th (fourth) month (3 1/2 months) after the close of the corporation's tax year if covering a fiscal year\"",
+   "extension": "\"Any person who requests an automatic extension of time for filing a federal income tax return will be granted an extension of time for filing the corresponding Arkansas income tax return until the extended due date of the federal return\"; Form AR1155 may request an Arkansas extension of 60 days beyond the automatic federal extension due date (for good cause); all tax payments due by the original due date",
+   "sourceLabel": "Arkansas DFA \u2014 Corporate FAQs",
+   "sourceHref": "https://www.dfa.arkansas.gov/office/taxes/income-tax-administration/corporation-income-tax/corporate-faqs/"
+  },
+  "passthrough": {
+   "form": "Form AR1100S (S corporation) / Form AR1050 (partnership)",
+   "due": "S corporations (AR1100S): \"On or before the 15th day of the 4th month following the close of the tax year, for calendar year filers the due date is April 15th.\" Partnerships (AR1050): April 15 for calendar-year filers; 15th day of the fourth month after fiscal year-end",
+   "extension": "Act 629 of 2021 (ACA 26-51-807(a)) allows \"an extension to file of one month after the extended due date for a federal income tax return\" for tax years beginning on or after January 1, 2021; \"does not apply to returns for which a federal extension is not requested and does not extend the original due date\"; all tax payments due on the original due date",
+   "sourceLabel": "Arkansas DFA \u2014 2025 Subchapter S Corporation Income Tax Instructions",
+   "sourceHref": "https://www.dfa.arkansas.gov/wp-content/uploads/SubS_Corp_IncomeTaxInst_2025.pdf"
+  },
+  "notes": "Arkansas uses April 15 (not March 15) for S corporation and partnership returns \u2014 \"Arkansas has adopted the due date of April 15th for calendar year filers\" (tax years beginning on or after 1/1/2016). S corps electing the Arkansas pass-through entity tax (PET) should not file Form AR1100S. Partnership instructions: https://www.dfa.arkansas.gov/wp-content/uploads/PartnershipTaxInstructions_2024_1.pdf"
+ },
+ {
+  "state": "Tennessee",
+  "abbreviation": "TN",
+  "slug": "tennessee",
+  "agency": "Tennessee Department of Revenue",
+  "individual": {
+   "form": null,
+   "due": "Not applicable \u2014 Tennessee has no individual income tax on wages. The Hall income tax (on interest and dividends only; it never applied to salaries, wages, and commissions) was repealed for tax periods beginning January 1, 2021 or later",
+   "extension": null,
+   "sourceLabel": "Tennessee DOR \u2014 Hall Income Tax (repealed)",
+   "sourceHref": "https://www.tn.gov/revenue/taxes/hall-income-tax.html"
+  },
+  "corporate": {
+   "form": "Form FAE170 (Franchise and Excise Tax Return)",
+   "due": "\"15th day of the fourth month following the close of your books and records. For businesses with a January 1 - December 31 calendar year, this tax is due on April 15 of the following year\"",
+   "extension": "Seven-month extension (as stated on the TN DOR Franchise & Excise due dates page); extension payments can be made through TNTAP",
+   "sourceLabel": "Tennessee DOR \u2014 Franchise & Excise Tax: Due Dates and Tax Rates",
+   "sourceHref": "https://www.tn.gov/revenue/taxes/franchise---excise-tax/due-dates-and-tax-rates.html"
+  },
+  "passthrough": {
+   "form": "Form FAE170 (Franchise and Excise Tax Return) \u2014 same return as corporations",
+   "due": "Same rule: 15th day of the fourth month following the close of books and records (April 15 for calendar-year entities). Tennessee has no pass-through income tax return for owners; \"If you are a corporation, limited partnership, limited liability company, or business trust chartered, qualified, or registered in Tennessee or doing business in this state, then you must register for and pay franchise and excise taxes\"",
+   "extension": "Seven-month extension, same as corporate (Franchise & Excise due dates page)",
+   "sourceLabel": "Tennessee DOR \u2014 Franchise & Excise Tax overview",
+   "sourceHref": "https://www.tn.gov/revenue/taxes/franchise---excise-tax.html"
+  },
+  "notes": "No-income-tax state for individuals (wage income): main business tax obligation is the Franchise & Excise Tax \u2014 franchise tax on net worth ($100 minimum), excise tax on net earnings. General partnerships and sole proprietorships are not listed among the entities required to register on the overview page; must-file filing is online via TNTAP"
+ },
+ {
+  "state": "Oklahoma",
+  "abbreviation": "OK",
+  "slug": "oklahoma",
+  "agency": "Oklahoma Tax Commission",
+  "individual": {
+   "form": "Form 511",
+   "due": "April 15 (\"Generally, your Oklahoma income tax return is due April 15th, the same day as your federal return\"); if you file electronically, the due date is extended to April 20th (payment due April 20 must be remitted electronically)",
+   "extension": "A valid federal extension automatically extends the Oklahoma due date if no Oklahoma liability is owed (attach copy of federal extension); if the federal return is not extended or Oklahoma tax is owed, request on Form 504-I. At least 90% of the tax must be paid by the original due date to avoid late-payment penalty",
+   "sourceLabel": "Oklahoma Tax Commission \u2014 2025 Form 511 Packet (Resident Individual Income Tax Forms and Instructions)",
+   "sourceHref": "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/individuals/current/511-Pkt.pdf"
+  },
+  "corporate": {
+   "form": "Form 512",
+   "due": "\"Corporate returns shall be due no later than 30 days after the due date established under the Internal Revenue Code\" (packet cover: \"Your Oklahoma return is due 30 days after the due date of your federal return\")",
+   "extension": "An approved federal extension automatically extends the Oklahoma due date if no Oklahoma liability is owed (attach copy); otherwise Form 504-C, filed on or before the return due date. 90% of the income tax liability must be paid with the extension to avoid delinquent penalty; 100% to avoid interest",
+   "sourceLabel": "Oklahoma Tax Commission \u2014 2025 Form 512 Packet (Corporation Income and Franchise Tax)",
+   "sourceHref": "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/businesses/corporate-income-tax/current/512-Pkt.pdf"
+  },
+  "passthrough": {
+   "form": "Form 512-S (S corporation) / Form 514 (partnership)",
+   "due": "Both packets: \"Your Oklahoma return is due 30 days after the due date of your federal return\" (\"Partnership returns shall be due no later than 30 days after the due date established under the IRC\")",
+   "extension": "With a federal extension and no Oklahoma tax due, the Oklahoma return is automatically extended (attach federal Form 7004); if tax is due, no federal extension was filed, or more time is needed, file Form 504-C (Form 504-PTE if the PTE election was made); extensions cannot exceed six months. At least 90% of tax must be paid by the original due date",
+   "sourceLabel": "Oklahoma Tax Commission \u2014 2025 Form 514 Packet (Partnership Income Tax); same 30-day rule stated in the 2025 Form 512-S Packet",
+   "sourceHref": "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/businesses/corporate-income-tax/current/514-Pkt.pdf"
+  },
+  "notes": "Oklahoma keys business due dates to the federal date + 30 days rather than fixed calendar dates (calendar-year C corps: 30 days after the federal April 15 due date; S corps/partnerships: 30 days after the federal March 15 due date). Individual e-filed returns get an April 20 due date only if payment is also remitted electronically. Corporate/pass-through e-filing is mandatory (Rules 710:50-17-1, 710:50-19-1). S-corp packet source: https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/businesses/corporate-income-tax/current/512-S-Pkt.pdf"
+ },
+ {
+  "state": "Colorado",
+  "abbreviation": "CO",
+  "slug": "colorado",
+  "agency": "Colorado Department of Revenue",
+  "individual": {
+   "form": "Form DR 0104",
+   "due": "April 15 (Due Date Guide: \"Return due April 15th of the following year (under an extension, October 15th)\")",
+   "extension": "Automatic six-month extension \u2014 \"There is no form to fill out to notify the Department of Revenue that you are taking the extension\"; pay at least 90% of the tax liability by April 15 (Extension Payment Form DR 0158-I if paying by check) and file by October 15",
+   "sourceLabel": "Colorado DOR \u2014 Individual Income Tax | Due Dates & Filing Extension",
+   "sourceHref": "https://tax.colorado.gov/income-tax-due-dates-filing-extension"
+  },
+  "corporate": {
+   "form": "Form DR 0112",
+   "due": "May 15 (\"Corporate income tax returns are due on the fifteenth day of the fifth month after the end of your tax year, or by May 15 for traditional calendar year filers\"; Due Date Guide: \"May 15th of the following year or the 15th day of the fifth month following the close of the fiscal year\")",
+   "extension": "Automatic filing extension of an additional six months \u2014 \"until November 15 for traditional calendar year filers\"; extension of time to file, not to pay (extension payments via Form DR 0158-C)",
+   "sourceLabel": "Colorado DOR \u2014 DR 0158-C Extension of Time for Filing C Corporation Income Tax Payment Form",
+   "sourceHref": "https://tax.colorado.gov/DR0158C"
+  },
+  "passthrough": {
+   "form": "Form DR 0106 (single return for partnerships and S corporations)",
+   "due": "April 15 (\"due the fifteenth day of the fourth month after the end of your tax year, or by April 15 for traditional calendar year filers\")",
+   "extension": "Filing under extension allows \"an additional six months to file your return, or until October 15th for traditional calendar year filers\"; not an extension to pay \u2014 at least 90% of tax liability must be paid by the original due date",
+   "sourceLabel": "Colorado DOR \u2014 Partnership & S Corporation Filing Information",
+   "sourceHref": "https://tax.colorado.gov/partnership-s-corporation-filing-information"
+  },
+  "notes": "C-corporation due date: CDOR's Due Date Guide (https://tax.colorado.gov/due-date-guide) and the DR 0158-C page both state May 15 / 15th day of the fifth month, while the general Business Income Tax page (https://tax.colorado.gov/business-income-tax) still says fourth month/April 15 \u2014 the May 15 date is CDOR's current specific published guidance. All Colorado extensions are automatic with no application form; the DR 0158 series are payment vouchers only."
+ },
+ {
+  "state": "New Mexico",
+  "abbreviation": "NM",
+  "slug": "new-mexico",
+  "agency": "New Mexico Taxation and Revenue Department",
+  "individual": {
+   "form": "Form PIT-1",
+   "due": "April 15 (Department press release, Jan 12, 2026: \"2025 tax season filing deadline is April 15 \u2026 Taxpayers have until April 15 to file their tax returns and pay taxes due\")",
+   "extension": "Federal extension piggyback \u2014 \"If you have obtained a Federal Automatic Extension, you do not need to submit an Application for Extension of Time to File\"; otherwise submit Form RPD-41096. An extension of time to file does NOT extend the time to pay; interest accrues from the original due date",
+   "sourceLabel": "New Mexico Taxation and Revenue Department \u2014 press release \"New Mexico to begin accepting electronic income tax returns Jan. 16\" (Jan 12, 2026)",
+   "sourceHref": "https://www.tax.newmexico.gov/wp-content/uploads/2026/01/20260112_New-Mexico-to-begin-accepting-electronic-income-tax-returns-Jan.-16_Final.pdf"
+  },
+  "corporate": {
+   "form": "Form CIT-1 (Corporate Income and Franchise Tax Return)",
+   "due": "\"The return is due on the 15th day of the fourth month following the close of the tax year\" (April 15 for calendar-year filers)",
+   "extension": "Federal Automatic Extension accepted without a separate state application; otherwise Form RPD-41096 (initial state extensions typically granted for 60 days). Extension to file does not extend time to pay",
+   "sourceLabel": "New Mexico Taxation and Revenue \u2014 Corporate Income & Franchise Tax: Filing Requirements",
+   "sourceHref": "https://www.tax.newmexico.gov/businesses/corporate-income-franchise-tax-overview/filing-requirements/"
+  },
+  "passthrough": {
+   "form": "Form PTE (Pass-Through Entities Tax Return) / Form S-Corp (Sub-Chapter S Corporate Income and Franchise Tax Return)",
+   "due": "\"File the required New Mexico return on or before the due date of your federal return for the tax year\" (i.e. keyed to the federal due date)",
+   "extension": "Federal Automatic Extension accepted without separate application; otherwise Form RPD-41096. Extension payment vouchers are available for pass-through entity returns; extension to file does not extend time to pay",
+   "sourceLabel": "New Mexico Taxation and Revenue \u2014 Pass-Through Entity (Businesses)",
+   "sourceHref": "https://www.tax.newmexico.gov/businesses/corporate-income-franchise-tax-overview/pass-through-entity/"
+  },
+  "notes": "Extension rules confirmed on the department's extension pages: https://www.tax.newmexico.gov/individuals/file-your-taxes-overview/extension-of-time-to-file/ and https://www.tax.newmexico.gov/businesses/request-an-extension-to-file/. A commonly cited April 30 due date for taxpayers who both e-file and e-pay was NOT confirmed on the current-year official pages read, so it is omitted. Specific extended calendar dates are not published on these pages (NM defers to the federal extension period)."
+ },
+ {
+  "state": "Arizona",
+  "abbreviation": "AZ",
+  "slug": "arizona",
+  "agency": "Arizona Department of Revenue",
+  "individual": {
+   "form": "Form 140",
+   "due": "April 15 (\"Your 2025 calendar year tax return is due no later than midnight, April 15, 2026\")",
+   "extension": "Automatic 6-month extension \u2014 apply with Arizona Form 204 by April 15, or \"use your federal extension (federal Form 4868)\" (check box 82F on the return); \"your due date is October 15, 2026\". Not an extension to pay: 90% of the tax must be paid by the original due date to avoid the extension underpayment penalty",
+   "sourceLabel": "Arizona DOR \u2014 2025 Form 140 Resident Personal Income Tax Return instructions",
+   "sourceHref": "https://azdor.gov/sites/default/files/document/FORMS_INDIVIDUAL_2025_140i.pdf"
+  },
+  "corporate": {
+   "form": "Form 120",
+   "due": "\"Returns are due by the 15th day of the fourth month following the close of the taxable year\" (April 15 for calendar-year filers)",
+   "extension": "File Arizona Form 120/165EXT or use a valid federal extension \u2014 \"An Arizona extension for a C corporation cannot be granted for more than seven months beyond the original due date of the return\" (automatic seven-month extension; November 15 for calendar-year filers). 90% of the tax liability must be paid by the original due date",
+   "sourceLabel": "Arizona DOR \u2014 Corporate Income Tax (Businesses in Arizona)",
+   "sourceHref": "https://azdor.gov/businesses-arizona/corporate-income-tax"
+  },
+  "passthrough": {
+   "form": "Form 120S (S corporation) / Form 165 (partnership)",
+   "due": "March 15 \u2014 \"All partnership returns are due on or before the 15th day of the third month following the close of the partnership's taxable year\u2026 a partnership whose taxable year ends on December 31st must file its partnership return by March 15th\"; 120S instructions: \"All S Corporation returns are due on or before the 15th day of the third month following the close of the taxable year\"",
+   "extension": "Arizona Form 120/165EXT or a valid federal extension \u2014 \"An Arizona extension for a partnership or S Corporation cannot be granted for more than six months beyond the original due date\" (automatic six-month extension; September 15 for calendar-year filers)",
+   "sourceLabel": "Arizona DOR \u2014 2025 Form 165 Partnership Income Tax Return instructions",
+   "sourceHref": "https://azdor.gov/sites/default/files/document/FORMS_PARTNERSHIP_2025_165_i.pdf"
+  },
+  "notes": "Extension lengths confirmed on Arizona Form 120/165EXT (https://azdor.gov/sites/default/files/document/FORMS_CORPORATE_2024_120_165EXT_f.pdf): automatic seven-month extension for Form 120/120A, six-month for Form 120S/165; \"Arizona will accept a valid federal extension for the same period of time covered by the Arizona extension.\" S-corp due date source: 2024 Form 120S instructions (https://azdor.gov/sites/default/files/document/FORMS_CORPORATE_2024_120Si.pdf)."
+ },
+ {
+  "state": "Utah",
+  "abbreviation": "UT",
+  "slug": "utah",
+  "agency": "Utah State Tax Commission",
+  "individual": {
+   "form": "Form TC-40",
+   "due": "April 15 (\"by April 15, 2026, if you file on a calendar year basis (tax year ends Dec. 31, 2025)\"; fiscal-year filers: 15th day of the fourth month after the fiscal year ends)",
+   "extension": "\"You get an automatic extension of up to six months to file your return. You do not need to file an extension form\" \u2014 all extension returns must be filed by Oct. 15, 2026. Not an extension to pay: prepay 90% of the current-year tax or 100% of the previous year's liability by the original due date",
+   "sourceLabel": "Utah State Tax Commission \u2014 Income Tax: Extensions and Prepayments (incometax.utah.gov)",
+   "sourceHref": "https://incometax.utah.gov/filing/extensions-and-prepayments"
+  },
+  "corporate": {
+   "form": "Form TC-20",
+   "due": "\"A return must be filed on or before the 15th day of the fourth month following the close of the tax year or the due date of the federal return, whichever is later\" (April 15 for calendar-year filers)",
+   "extension": "\"Corporations are automatically allowed an extension of up to six months to file a return without filing an extension form\" \u2014 not an extension to pay; extension prepayments must equal 90% of current-year tax (or the $100 minimum tax) or 100% of the previous year's liability",
+   "sourceLabel": "Utah State Tax Commission \u2014 2025 TC-20 Utah Corporation Franchise and Income Tax Return instructions",
+   "sourceHref": "https://tax.utah.gov/forms/current/tc-20inst.pdf"
+  },
+  "passthrough": {
+   "form": "Form TC-20S (S corporation) / Form TC-65 (partnership)",
+   "due": "Both: \"on or before the 15th day of the fourth month following the close of the tax year or the due date of the federal return, whichever is later\" (April 15 for calendar-year filers \u2014 note Utah pass-through returns are due in the fourth month, not the federal third month)",
+   "extension": "TC-20S: automatic extension of up to six months without filing a form; TC-65: \"Partnerships are automatically allowed an extension of up to five months to file a return without filing an extension form.\" Not an extension to pay \u2014 prepayment requirements apply, and TC-65 pass-through withholding must be paid by the original due date",
+   "sourceLabel": "Utah State Tax Commission \u2014 2025 TC-65 Utah Partnership/LLC/LLP instructions (S-corp: 2025 TC-20S instructions)",
+   "sourceHref": "https://files.tax.utah.gov/tax/forms/current/tc-65inst.pdf"
+  },
+  "notes": "All Utah income-tax due dates (TC-40, TC-20, TC-20S, TC-65) fall on April 15 for calendar-year filers, confirmed on the Tax Commission due-date calendar (https://tax.utah.gov/event/individual-corporate-partnership-income-tax-due-date-jan-dec-2025/). All extensions are automatic (no form) but conditioned on prepayment; the partnership extension is five months (aligning with the federal Sept. 15 extended date) versus six months for corporations. TC-20S instructions: https://tax.utah.gov/forms/current/tc-20sinst.pdf"
+ },
+ {
+  "state": "Nevada",
+  "abbreviation": "NV",
+  "slug": "nevada",
+  "agency": "Nevada Department of Taxation",
+  "individual": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "Nevada Department of Taxation \u2014 Income Tax in Nevada: \"Nevada residents do not pay state tax on income earned from salaries, wages, or similar compensation\" \u2014 there is no state individual income tax return",
+   "sourceHref": "https://tax.nv.gov/about-nevada-department-of-taxation/income-tax-in-nevada/"
+  },
+  "corporate": {
+   "form": "Commerce Tax Return (Nevada's main business tax on gross revenue; Nevada has no corporate income tax)",
+   "due": "\"The Commerce Tax return is due 45 days following the end of the fiscal year. Generally, the due date is August 14\" (Commerce Tax taxable year ends June 30); next business day if it falls on a weekend or holiday",
+   "extension": "A 30-day extension may be granted for good cause on written request submitted before the original due date; tax paid during the extension period incurs no penalty, but interest accrues at 0.75% per month",
+   "sourceLabel": "Nevada Department of Taxation \u2014 Commerce Tax FAQs",
+   "sourceHref": "https://tax.nv.gov/faqs/commerce-tax-faqs/"
+  },
+  "passthrough": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "Nevada has no pass-through (S corporation/partnership) income tax return; business entities of any form (corporations, partnerships, etc.) with Nevada gross revenue exceeding $4,000,000 in the fiscal year file the Commerce Tax Return described under corporate \u2014 Commerce Tax FAQs",
+   "sourceHref": "https://tax.nv.gov/faqs/commerce-tax-faqs/"
+  },
+  "notes": "Nevada has no state individual or corporate income tax (source: https://tax.nv.gov/about-nevada-department-of-taxation/income-tax-in-nevada/). The absence is the fact for the individual and passthrough categories; the state's main business tax obligation is the Commerce Tax \u2014 gross-revenue threshold $4,000,000, fiscal year July 1\u2013June 30, return due 45 days after fiscal year end (generally August 14). Commerce Tax page: https://tax.nv.gov/tax-types/commerce-tax/"
+ },
+ {
+  "state": "Montana",
+  "abbreviation": "MT",
+  "slug": "montana",
+  "agency": "Montana Department of Revenue",
+  "individual": {
+   "form": "Form 2 \u2014 Montana Individual Income Tax Return",
+   "due": "April 15",
+   "extension": "Automatic extension of up to six months \u2014 no form to file and no payment required to qualify; 'If you are not ready to file by April 15, you may take advantage of Montana's automatic extension and file by October 15.' Extension is for filing only; tax must be paid by April 15 to avoid penalties and interest.",
+   "sourceLabel": "Montana DOR \u2014 Filing an Individual Income Tax Return on Extension",
+   "sourceHref": "https://revenue.mt.gov/taxes/individual-income-tax/extensions"
+  },
+  "corporate": {
+   "form": "Form CIT \u2014 Montana Corporate Income Tax Return",
+   "due": "May 15 for calendar-year filers",
+   "extension": "Automatic six-month extension granted to all C corporations \u2014 no form required; extended deadline November 15 for calendar-year filers. 'Any tax liability must still be paid by the original due date or it will be subject to uniform penalties and interest.'",
+   "sourceLabel": "Montana DOR \u2014 Corporate Income Tax",
+   "sourceHref": "https://revenue.mt.gov/taxes/corporate-income-tax"
+  },
+  "passthrough": {
+   "form": "Form PTE \u2014 Montana Pass-Through Entity Tax Return (filed by both S corporations and partnerships)",
+   "due": "March 15 for calendar-year filers \u2014 due at 'the same time as your federal Form 1120S' (S corporations); partnerships likewise due with the federal return, the 15th day of the third month following the close of the tax year",
+   "extension": "'Montana grants all S corporations an automatic six-month extension to file a return' (extended due date September 15 for calendar-year filers); the same automatic six-month extension applies to partnerships. Tax liability must still be paid by the original due date.",
+   "sourceLabel": "Montana DOR \u2014 S Corporations in Montana (partnerships confirmed on the parallel Partnerships page)",
+   "sourceHref": "https://revenue.mt.gov/taxes/pass-through-entities/s-corporations"
+  },
+  "notes": "Partnership rules confirmed at https://revenue.mt.gov/taxes/pass-through-entities/partnerships. Individual due dates (April 15 regular / October 15 extension) also listed on https://revenue.mt.gov/taxes/individual-income-tax/. Montana offers a pass-through entity tax (PTET) election reported on Form PTE."
+ },
+ {
+  "state": "Idaho",
+  "abbreviation": "ID",
+  "slug": "idaho",
+  "agency": "Idaho State Tax Commission",
+  "individual": {
+   "form": "Form 40 \u2014 Idaho Individual Income Tax Return",
+   "due": "April 15 \u2014 'File your return and pay any tax due on or before April 15, 2026, for the 2025 calendar year.'",
+   "extension": "Up to six months from the original due date (October 15) with a valid extension \u2014 NOT automatic: prepayments must equal at least 80% of the estimated tax due for the current return OR 100% of the income tax reported on the previous year's return. Form 51 is the worksheet/payment voucher for individuals. 'There aren't any extensions allowing you to pay late' \u2014 interest accrues from April 15.",
+   "sourceLabel": "Idaho State Tax Commission \u2014 Individual Income Tax Filing and Paying (extension rules on the Extensions page)",
+   "sourceHref": "https://tax.idaho.gov/taxes/income-tax/individual-income/filing-and-paying/"
+  },
+  "corporate": {
+   "form": "Form 41 \u2014 Idaho Corporation Income Tax Return",
+   "due": "'File your return and pay any tax on or before the 15th day of the fourth month following the close of your tax year' \u2014 April 15 for calendar-year filers",
+   "extension": "Up to six months from the original due date (October 15 for calendar-year filers) with a valid extension \u2014 requires prepayment of at least 80% of current-year estimated tax or 100% of prior-year tax; Form 41ES is the business extension worksheet/payment voucher. No extension to pay.",
+   "sourceLabel": "Idaho State Tax Commission \u2014 Business Income Tax Filing and Paying",
+   "sourceHref": "https://tax.idaho.gov/taxes/income-tax/business-income/filing/"
+  },
+  "passthrough": {
+   "form": "Form 41S (S corporation) / Form 65 (partnership)",
+   "due": "Same rule as all Idaho business income tax returns: 'on or before the 15th day of the fourth month following the close of your tax year' \u2014 April 15 for calendar-year filers (Idaho does not use the federal March 15 pass-through date)",
+   "extension": "Up to six months from the original due date (October 15 for calendar-year filers) with a valid extension \u2014 same 80%-of-current / 100%-of-prior-year prepayment test; Form 41ES for business payments. No extension to pay.",
+   "sourceLabel": "Idaho State Tax Commission \u2014 Business Income Tax Filing and Paying",
+   "sourceHref": "https://tax.idaho.gov/taxes/income-tax/business-income/filing/"
+  },
+  "notes": "Extension conditions for all entity types are stated at https://tax.idaho.gov/taxes/income-tax/extension/. Idaho's pass-through due date (15th day of the 4th month, April 15) is unusual \u2014 one month later than the federal S corp/partnership deadline; worth flagging on the page."
+ },
+ {
+  "state": "Wyoming",
+  "abbreviation": "WY",
+  "slug": "wyoming",
+  "agency": "Wyoming Secretary of State (annual report license tax); Wyoming Department of Revenue (excise, mineral, and property taxes)",
+  "individual": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "State of Wyoming \u2014 About Wyoming",
+   "sourceHref": "https://www.wyo.gov/about-wyoming",
+   "note": "Wyoming has NO state individual income tax \u2014 'Unlike other states, Wyoming does not possess an individual or corporate income tax.' No individual return is filed."
+  },
+  "corporate": {
+   "form": "Annual Report with annual report license tax \u2014 filed with the Wyoming Secretary of State (Wyoming has no corporate income tax)",
+   "due": "'The annual report due date for all registered business entities (with the exception of Statutory Trusts) is based on the anniversary month of formation' \u2014 due on the first day of the anniversary month (e.g., initial filing May 15 \u2192 report due May 1 each year); Statutory Trust annual reports are due January 1",
+   "extension": null,
+   "sourceLabel": "Wyoming Secretary of State \u2014 Business Division FAQs (due date and license tax) / wyobiz.wyo.gov Annual Report page",
+   "sourceHref": "https://sos.wyo.gov/faqs.aspx?root=BUS",
+   "note": "License tax: 'The tax is $60 or two-tenths of one mill on the dollar ($.0002), whichever is greater,' based on assets located and employed in Wyoming; entities with $300,000 or less in Wyoming assets pay the $60 minimum. No extension provision is stated on the official pages."
+  },
+  "passthrough": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "State of Wyoming \u2014 About Wyoming (no income tax); Wyoming SOS Annual Report page (annual report applies to LLCs/LPs/RLLPs)",
+   "sourceHref": "https://wyobiz.wyo.gov/Business/AnnualReport.aspx",
+   "note": "Wyoming has no state income tax, so S corporations and partnerships file no state income tax return. LLCs, LPs, RLLPs (and corporations) all file the same Secretary of State annual report due the first day of their anniversary month of formation."
+  },
+  "notes": "The absence of individual and corporate income tax is the fact (source: https://www.wyo.gov/about-wyoming). Main recurring business obligation is the SOS annual report license tax. Wyoming DOR (https://revenue.wyo.gov/) administers excise/sales & use, mineral, and property taxes only."
+ },
+ {
+  "state": "Oregon",
+  "abbreviation": "OR",
+  "slug": "oregon",
+  "agency": "Oregon Department of Revenue",
+  "individual": {
+   "form": "Form OR-40 \u2014 Oregon Individual Income Tax Return (full-year residents)",
+   "due": "April 15 (April 15, 2026 for tax year 2025 \u2014 'Personal Income Tax, return and payment due date for tax year 2025')",
+   "extension": "Federal piggyback: 'If you requested a federal extension, you do not need to request an Oregon extension' \u2014 just mark the 'Extension filed' box on the return. Oregon-only extensions use Publication OR-40-EXT with payment via Revenue Online or Form OR-40-V. Extended filing deadline October 15, 2026. Extension is to file, not to pay \u2014 pay at least 90% of liability by April 15 to avoid the 5% late-payment penalty.",
+   "sourceLabel": "Oregon DOR \u2014 Apply for an extension (Individuals); due date also on the DOR Tax Calendar",
+   "sourceHref": "https://www.oregon.gov/dor/programs/individuals/pages/extension.aspx"
+  },
+  "corporate": {
+   "form": "Form OR-20 \u2014 Oregon Corporation Excise Tax Return",
+   "due": "'Oregon corporation returns are due the 15th day of the month following the due date of your federal corporation return' \u2014 May 15 for calendar-year filers",
+   "extension": "No separate Oregon extension form \u2014 use federal Form 7004, include it with the Oregon return (not sent separately), and mark the 'Extension' box. 'The Oregon corporation extended due date is the 15th day of the month following the federal extended due date' (November 15 for calendar-year filers whose federal extended date is October 15).",
+   "sourceLabel": "Oregon DOR \u2014 Corporation Excise and Income Tax requirements",
+   "sourceHref": "https://www.oregon.gov/dor/programs/businesses/pages/corp-requirements.aspx"
+  },
+  "passthrough": {
+   "form": "Form OR-20-S (S corporation) / Form OR-65 (partnership)",
+   "due": "OR-20-S: 15th day of the month following the federal due date \u2014 April 15 for calendar-year filers. OR-65: 'Calendar-year filers \u2014 returns and payments are due March 15.'",
+   "extension": "S corporation: federal Form 7004 included with the Oregon return; extended due date is the 15th day of the month following the federal extended due date (October 15 for calendar-year filers). Partnership: 'A valid federal extension is a valid extension for Oregon' \u2014 mark the Extension box; extension payment by the original due date via Revenue Online or Form OR-65-V (DOR tax calendar lists September 15, 2026 for calendar-year OR-65 extension filing).",
+   "sourceLabel": "Oregon DOR \u2014 Corporation requirements (OR-20/OR-20-S) and Partnership information (OR-65)",
+   "sourceHref": "https://www.oregon.gov/dor/programs/businesses/pages/corp-requirements.aspx"
+  },
+  "notes": "Partnership rules at https://www.oregon.gov/dor/programs/businesses/pages/partnership.aspx; DOR Tax Calendar at https://www.oregon.gov/dor/pages/tax-calendar.aspx. Oregon's 'month after federal' pattern makes its C corp date (May 15) a month later than most states \u2014 good differentiator content."
+ },
+ {
+  "state": "Alaska",
+  "abbreviation": "AK",
+  "slug": "alaska",
+  "agency": "Alaska Department of Revenue \u2014 Tax Division",
+  "individual": {
+   "form": null,
+   "due": null,
+   "extension": null,
+   "sourceLabel": "Alaska DOR Tax Division \u2014 Personal Income Tax program page",
+   "sourceHref": "https://tax.alaska.gov/programs/programs/index.aspx?10001",
+   "note": "Alaska has NO individual income tax \u2014 'The State of Alaska currently does not have an individual income tax, therefore no employee withholding for state income tax is required.' No individual return is filed."
+  },
+  "corporate": {
+   "form": "Form 6000 \u2014 Alaska corporation income tax return (DOR's MeF e-file program lists Forms 6000, 6020, 6100, 6900)",
+   "due": "'Tax returns are due 30 days after the federal return due date' \u2014 for a calendar-year C corporation with a federal due date of April 15, that is May 15",
+   "extension": "'If the federal return is on extension, the Alaska return is automatically on extension' \u2014 automatic federal piggyback; no separate Alaska extension application is described",
+   "sourceLabel": "Alaska DOR Tax Division \u2014 Corporate Income Tax program page",
+   "sourceHref": "https://tax.alaska.gov/programs/programs/index.aspx?60380",
+   "note": "Form numbers confirmed on the DOR MeF page: https://tax.alaska.gov/programs/programs/other/corporate/mef.aspx"
+  },
+  "passthrough": {
+   "form": "Partnership information return (no entity-level or owner-level state income tax on individuals)",
+   "due": null,
+   "extension": null,
+   "sourceLabel": "Alaska DOR Tax Division \u2014 Partnerships program page",
+   "sourceHref": "https://tax.alaska.gov/programs/programs/index.aspx?60390",
+   "note": "'A partnership or a Limited Liability Company (LLC) treated as a partnership for tax purposes, which conducts business in the state is required to file a return, unless all of the partners or LLC members are natural persons.' 'If all of the partners are natural persons, the partnership is not required to file.' The page does not state a due date; S corporations are not addressed on this page."
+  },
+  "notes": "Alaska has no individual income tax but DOES have a corporate net income tax (graduated rates). Pass-through income flowing to individuals is untaxed at the state level; partnerships with non-natural-person partners (e.g., corporate partners) must file."
+ },
+ {
+  "state": "Hawaii",
+  "abbreviation": "HI",
+  "slug": "hawaii",
+  "agency": "Hawaii Department of Taxation",
+  "individual": {
+   "form": "Form N-11 \u2014 Hawaii Individual Income Tax Return (resident)",
+   "due": "April 20 (April 20, 2026 for tax year 2025 \u2014 'Taxpayers must file their income tax returns by April 20, 2026')",
+   "extension": "Automatic 6-month extension to October 20, 2026 \u2014 'no form is required to request the extension' \u2014 granted if: properly estimated tax liability is paid on or before April 20; the return is filed on or before October 20 with full payment of any tax not already paid; and the taxpayer is not bound by a court order to file by April 20. The extension does not extend the time to pay.",
+   "sourceLabel": "Hawaii Department of Taxation \u2014 Tax Year Information (2025)",
+   "sourceHref": "https://tax.hawaii.gov/tax-year-information/"
+  },
+  "corporate": {
+   "form": "Form N-30 \u2014 Hawaii Corporation Income Tax Return",
+   "due": "'Returns must be filed on or before the 20th day of the fourth month following the close of the taxable year' \u2014 April 20 for calendar-year filers (next business day if it falls on a weekend or legal holiday)",
+   "extension": "'Section 18-235-98, Hawaii Administrative Rules, allows an automatic extension of time to file a return without filing an application for extension' \u2014 six months (October 20 for calendar-year filers). Not an extension to pay: 'File Form N-201V, Business Income Tax Payment Voucher, to make a payment... by the regular due date.' Federal Form 7004 is not allowed as a substitute.",
+   "sourceLabel": "Hawaii DoTax \u2014 Instructions for Form N-30 (current)",
+   "sourceHref": "https://files.hawaii.gov/tax/forms/current/n30ins.pdf"
+  },
+  "passthrough": {
+   "form": "Form N-35 (S corporation) / Form N-20 (partnership)",
+   "due": "Both: 'Returns must be filed on or before the 20th day of the fourth month following the close of the taxable year' \u2014 April 20 for calendar-year filers (next business day if weekend/holiday)",
+   "extension": "Both get the automatic six-month extension of time to file under HAR \u00a718-235-98 'without filing an application for extension' (October 20 for calendar-year filers); payment of tax due is not extended \u2014 use Form N-201V. For S corps, the entity's automatic extension does not affect the due date of shareholders' returns.",
+   "sourceLabel": "Hawaii DoTax \u2014 Instructions for Form N-20 (partnership) and Form N-35 (S corporation), current",
+   "sourceHref": "https://files.hawaii.gov/tax/forms/current/n20ins.pdf"
+  },
+  "notes": "Hawaii's April 20 / October 20 dates (20th day of the fourth month) differ from the federal April 15 pattern \u2014 strong SEO hook. N-35 instructions at https://files.hawaii.gov/tax/forms/current/n35ins.pdf. Hawaii also offers elective pass-through entity taxation (see https://tax.hawaii.gov/pte/). March 2026 Kona Low disaster relief FAQs exist at https://tax.hawaii.gov/2026konalow/ \u2014 check before publishing 2026 dates for affected taxpayers."
+ }
+]
