@@ -235,7 +235,7 @@ function buildAlert(r) {
     ``,
     `If any of your clients file there, it covers: ${forms}.`,
     ``,
-    `That's what DueDateHQ does — it watches the IRS, all 50 states and FEMA, and the moment a filing date moves it shows which of your clients it hits, with the official notice behind it. This ${n.state} change is live now: ${n.sourceHref}`,
+    `DueDateHQ flagged this the day the IRS posted the notice — it watches the IRS, all 50 states and FEMA, and shows exactly which of your clients are affected. The ${n.state} notice: ${n.sourceHref}`,
     ``,
     `It's free while we're in beta. Next time a date moves in a state you file in, you'll know that morning.`,
     ``,
@@ -256,12 +256,12 @@ function buildAlert(r) {
     `<td align="right" style="background:#F9FAFB;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:9px 16px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
     `</tr></table>` +
     `<div style="padding:16px 16px 18px">` +
-    `<div style="font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#98A2B3;font-weight:bold">New filing deadline</div>` +
+    `<div style="font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#98A2B3;font-weight:bold">New federal deadline</div>` +
     `<div style="font-family:Georgia,serif;font-size:27px;font-weight:bold;color:#101828;letter-spacing:-.01em;margin-top:5px;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</div>` +
     `<div style="margin-top:9px"><span style="display:inline-block;font-size:12px;font-weight:bold;color:#B54708;background:#FFFAEB;border:1px solid #FEDF89;border-radius:999px;padding:3px 10px">${daysLine}</span></div>` +
     `</div></td></tr></table>` +
-    `<p style="margin:0 0 20px"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> flagged this automatically, and shows which of your clients each change hits — <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">see the IRS notice</a>.</p>` +
-    `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 20px;border-radius:8px">See who&#39;s affected →</a>` +
+    `<p style="margin:0 0 20px"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> flagged this the day the IRS posted the <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">notice</a> — and shows exactly which of your clients are affected.</p>` +
+    `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 20px;border-radius:8px">See your affected clients →</a>` +
     `<div style="font-size:13px;color:#475467;margin-top:22px"><b style="color:#202124">Gigi</b> · Co-Founder, DueDateHQ · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
     '</div>'
