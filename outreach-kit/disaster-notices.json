@@ -19,7 +19,8 @@
       "Estimates",
       "IRA / HSA"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026",
+    "fema": "3629-EM"
   },
   {
     "abbr": "GA",
@@ -40,7 +41,8 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20",
+    "issuedOn": "May 6, 2026"
   },
   {
     "abbr": "HI",
@@ -56,7 +58,8 @@
       "706 / 709",
       "990"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026",
+    "issuedOn": "April 10, 2026"
   },
   {
     "abbr": "AZ",
@@ -78,7 +81,9 @@
       "Estimates",
       "IRA / HSA"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026",
+    "issuedOn": "June 16, 2026",
+    "fema": "4911-DR"
   },
   {
     "abbr": "MT",
@@ -99,7 +104,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-winter-storm-and-straight-line-winds-in-the-fort-peck-assiniboine-and-sioux-tribes-various-deadlines-postponed-to-sept-28-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-winter-storm-and-straight-line-winds-in-the-fort-peck-assiniboine-and-sioux-tribes-various-deadlines-postponed-to-sept-28-2026",
+    "issuedOn": "June 16, 2026",
+    "fema": "4914-DR"
   },
   {
     "abbr": "MT",
@@ -118,7 +125,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026",
+    "issuedOn": "June 16, 2026",
+    "fema": "4915-DR"
   },
   {
     "abbr": "MP",
@@ -139,7 +148,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-sinlaku-in-the-commonwealth-of-the-northern-mariana-islands-various-deadlines-postponed-to-nov-2-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-sinlaku-in-the-commonwealth-of-the-northern-mariana-islands-various-deadlines-postponed-to-nov-2-2026",
+    "issuedOn": "May 4, 2026",
+    "fema": "4910-DR"
   },
   {
     "abbr": "LA",
@@ -160,7 +171,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-and-businesses-in-louisiana-affected-by-tropical-storm-arthur-that-began-on-june-17-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-and-businesses-in-louisiana-affected-by-tropical-storm-arthur-that-began-on-june-17-2026",
+    "issuedOn": "July 13, 2026",
+    "fema": "4927-DR"
   },
   {
     "abbr": "MS",
@@ -181,7 +194,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026",
+    "issuedOn": "July 13, 2026",
+    "fema": "4922-DR"
   },
   {
     "abbr": "WI",
@@ -202,7 +217,9 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-wisconsin-various-deadlines-postponed-to-nov-2-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-wisconsin-various-deadlines-postponed-to-nov-2-2026",
+    "issuedOn": "July 13, 2026",
+    "fema": "4923-DR"
   },
   {
     "abbr": "MI",
@@ -223,6 +240,8 @@
       "941 / 940",
       "Estimates"
     ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-michigan-various-deadlines-postponed-to-nov-2-2026"
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-michigan-various-deadlines-postponed-to-nov-2-2026",
+    "issuedOn": "July 13, 2026",
+    "fema": "4925-DR"
   }
 ]
