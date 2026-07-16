@@ -6,10 +6,14 @@ Waves C1/C2 (70 + 70) complete the 205.
 ## The send path (script, not Mailmeteor)
 
 Everything sends via `send-outreach.mjs` (Resend API, from `Gigi from DueDateHQ <gigi@duedatehq.com>`).
-Touch 1 renders the locked **v11 template** in code — serif hero question, product-faithful GA
-alert card (IRS/GEORGIA comparison, Clinch/Echols/Brantley counties, card links to
-`app.duedatehq.com/?lng=en`), cid-embedded wordmark signature, CAN-SPAM footer.
-The older Mailmeteor/plain-text flow this doc used to describe is retired.
+Touch 1 renders the locked **v12 light Inbox template** in code — plain system-font HTML,
+one DueDateHQ link, text signature, no card/table/image attachment. The older
+Mailmeteor/plain-text flow and the v11 card are retired.
+
+The sender now auto-adds campaign tracking to every DueDateHQ link:
+`utm_source=cold_outreach`, `utm_medium=email`, `utm_campaign=2026_07_cpa_outreach`,
+and `utm_content=<wave>_t<touch>_track_<A/B/C>_body`. Do not put recipient email,
+firm name, or personal identifiers in UTM fields.
 
 ```bash
 cd outreach-kit
@@ -37,7 +41,8 @@ Dry-run by default — add `--send` only when you mean it.
   after every send day. Never hand-edit.
 - Replies land in Yuqi's inbox via Cloudflare Email Routing (gigi@duedatehq.com → Gmail).
 - Touches 2/3 are plain-text follow-ups from `duedatehq-OUTREACH-sequence.csv` (subjects
-  `re: DueDateHQ`), threading under touch 1.
+  `re: DueDateHQ`), threading under touch 1. Their `duedatehq.com` mentions are rewritten
+  to tracked URLs at send time.
 
 ## Files
 

@@ -47,8 +47,11 @@ export interface DeadlineRowProps {
   deadline: ObligationQueueRow
   mode: DeadlineRowMode
   // inline-expand only: drops the OFFICIAL DUE + OWNER columns so the row fits
-  // a squeezed container (e.g. when the client-detail side panel is open).
+  // a squeezed container.
   compact?: boolean
+  // inline-expand only: hides row status when a neighboring detail panel already
+  // shows it, while keeping the rest of the filing-plan columns visible.
+  hideStatus?: boolean
   isExpanded?: boolean
   isSelected?: boolean
   isActive?: boolean
@@ -82,6 +85,22 @@ const TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'not_applicable',
 ])
 
+const INLINE_EXPAND_GRID_CLASSES = {
+  compact: 'grid-cols-[minmax(0,1fr)_auto_auto_24px]',
+  compactWithoutStatus: 'grid-cols-[minmax(0,1fr)_auto_24px]',
+  full: 'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
+  fullWithoutStatus: 'grid-cols-[minmax(0,1fr)_minmax(0,96px)_minmax(0,76px)_minmax(0,88px)_20px]',
+} as const
+
+function inlineExpandGridClass(compact: boolean, hideStatus: boolean): string {
+  if (compact) {
+    return hideStatus
+      ? INLINE_EXPAND_GRID_CLASSES.compactWithoutStatus
+      : INLINE_EXPAND_GRID_CLASSES.compact
+  }
+  return hideStatus ? INLINE_EXPAND_GRID_CLASSES.fullWithoutStatus : INLINE_EXPAND_GRID_CLASSES.full
+}
+
 function isOverdue(deadline: ObligationQueueRow): boolean {
   return deadline.daysUntilDue < 0 && !TERMINAL_STATUSES.has(deadline.status)
 }
@@ -97,6 +116,7 @@ export function DeadlineRow({
   deadline,
   mode,
   compact = false,
+  hideStatus = false,
   isExpanded = false,
   isSelected = false,
   isActive = false,
@@ -212,14 +232,8 @@ export function DeadlineRow({
           onKeyDown={handleKeyDown}
           className={cn(
             'group/row grid w-full cursor-pointer items-center gap-3 px-5 py-2.5 text-left outline-none transition-colors',
-            // Compact drops OFFICIAL DUE + OWNER so the row fits a squeezed
-            // container (client-detail side panel open). Full layout otherwise.
-            compact
-              ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
-              : // 2026-06-16 (audit): fixed columns → minmax(0,Npx) so the row
-                // reflows/shrinks instead of forcing the filing-plan's old
-                // horizontal scrollbar. Must match ClientWorkPlanPanel's header.
-                'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
+            // Must match ClientWorkPlanPanel's header grid.
+            inlineExpandGridClass(compact, hideStatus),
             'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
             // §1b — selected + open share one accent (VtC73 #eff4ff).
             isActive && 'bg-state-accent-hover',
@@ -235,14 +249,17 @@ export function DeadlineRow({
               shows the JURISDICTION (not the form label, which would just echo
               the name beside it) — that also doubles as the per-row state, so
               the old `clientState` sub-line is dropped (one home per fact). */}
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3 overflow-hidden">
             <button
               type="button"
               onClick={stop(() => goToSummary())}
               // w-[104px] fits the longest jurisdiction names ("California" /
               // "Washington" ≈ 95px chip) without clipping, while still aligning
               // the form names into a column.
-              className="flex w-[104px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className={cn(
+                'flex shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                hideStatus ? 'w-[72px]' : 'w-[104px]',
+              )}
               tabIndex={-1}
               aria-hidden
             >
@@ -267,44 +284,52 @@ export function DeadlineRow({
                 />
               )}
             </button>
-            <div className="flex min-w-0 flex-col">
-              <Link
-                id={titleId}
-                to={summaryHref}
-                state={{ from: 'client' }}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  // 2026-06-15 (Yuqi): on the inline-expand surface (client
-                  // detail) a plain left-click opens the in-page side panel
-                  // (onExpand → openDrawer) instead of navigating away to the
-                  // firm-wide /deadlines page. cmd/ctrl-click falls through to
-                  // the Link so power users can still open the full page in a
-                  // new tab (deep-link / escape hatch).
-                  if (mode === 'inline-expand' && !event.metaKey && !event.ctrlKey) {
-                    event.preventDefault()
-                    onExpand?.(deadline.id)
-                  }
-                }}
-                aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
-                // max-w-full keeps w-fit (hover underline hugs the text) from
-                // defeating truncate — without the cap, long form names paint
-                // over the status chip instead of ellipsizing.
-                className="w-fit max-w-full truncate text-row-name text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
+            {hideStatus ? (
+              <span id={titleId} className="sr-only">
                 {deadline.formName}
-              </Link>
-            </div>
+              </span>
+            ) : (
+              <div className="flex min-w-0 flex-col">
+                <Link
+                  id={titleId}
+                  to={summaryHref}
+                  state={{ from: 'client' }}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    // 2026-06-15 (Yuqi): on the inline-expand surface (client
+                    // detail) a plain left-click opens the in-page side panel
+                    // (onExpand → openDrawer) instead of navigating away to the
+                    // firm-wide /deadlines page. cmd/ctrl-click falls through to
+                    // the Link so power users can still open the full page in a
+                    // new tab (deep-link / escape hatch).
+                    if (mode === 'inline-expand' && !event.metaKey && !event.ctrlKey) {
+                      event.preventDefault()
+                      onExpand?.(deadline.id)
+                    }
+                  }}
+                  aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
+                  // max-w-full keeps w-fit (hover underline hugs the text) from
+                  // defeating truncate — without the cap, long form names paint
+                  // over the status chip instead of ellipsizing.
+                  className="w-fit max-w-full truncate text-row-name text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  {deadline.formName}
+                </Link>
+              </div>
+            )}
           </div>
 
-          {/* STATUS */}
-          <button
-            type="button"
-            onClick={stop(() => onFilterByStatus?.(deadline.status))}
-            aria-label={`Filter by status: ${deadline.status}`}
-            className="flex min-w-0 justify-self-start rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <ObligationStatusReadBadge status={deadline.status} />
-          </button>
+          {/* STATUS — hidden when the neighboring detail panel already carries it. */}
+          {hideStatus ? null : (
+            <button
+              type="button"
+              onClick={stop(() => onFilterByStatus?.(deadline.status))}
+              aria-label={`Filter by status: ${deadline.status}`}
+              className="flex min-w-0 justify-self-start rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <ObligationStatusReadBadge status={deadline.status} />
+            </button>
+          )}
 
           {/* DUE (working) — countdown + working date */}
           <div className="flex min-w-0 flex-col gap-0.5">

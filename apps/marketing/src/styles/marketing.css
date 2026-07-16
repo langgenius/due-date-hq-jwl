@@ -515,13 +515,17 @@ body {
   .m-cta--primary:hover {
     background: var(--m-accent-strong);
   }
+  /* outlined secondary pill — a hairline ring gives it real presence next to the
+     solid primary, without a fill. */
   .m-cta--ghost {
     color: var(--m-ink);
-    padding: 11px 16px;
+    padding: 11px 22px;
+    border: 1px solid var(--m-hairline);
   }
+  /* hover: ring + label + icon shift to brand blue (no fill) — quiet and precise */
   .m-cta--ghost:hover {
     color: var(--m-accent);
-    background: var(--m-section);
+    border-color: color-mix(in srgb, var(--m-accent) 38%, var(--m-hairline));
   }
   /* on a navy surface: primary → white pill, ghost → white text */
   .m-cta-dark .m-cta--primary {

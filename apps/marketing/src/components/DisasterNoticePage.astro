@@ -1,0 +1,369 @@
+---
+/** DisasterNoticePage — per-IRS-notice disaster-relief leaf
+ *  (/irs-disaster-relief/[slug]). This is DueDateHQ's read-side capability given
+ *  away as content: a CPA who just Googled "[state] IRS disaster relief 2026
+ *  deadline" lands here and gets the verified, sourced answer plus a one-click
+ *  path into the app.
+ *
+ *  Reuses the shared long-tail page kit (.m-page-* / .m-card / .m-btn) and mirrors
+ *  StateDetailPage's chrome (breadcrumb + jurisdiction chip, key-deadline signature
+ *  module, sourced footer, FAQ, clean CTA) so it carries zero net-new visual
+ *  language. Every fact comes from lib/disaster-notices.ts (cited irs.gov). */
+import type { DisasterNotice } from '../lib/disaster-notices'
+import { FILING_TYPE_META, getNoticeStatus } from '../lib/disaster-notices'
+import { getContentDates } from '../lib/content-metadata'
+import FaqList from './FaqList.astro'
+import AlertOptin from './AlertOptin.astro'
+
+interface Props {
+  notice: DisasterNotice
+  /** Path back to the /irs-disaster-relief hub. */
+  hubHref: string
+  /** Open-signup CTA (app.duedatehq.com/?lng=en) — same target as the lookup. */
+  ctaHref: string
+  faq: { question: string; answer: string }[]
+  locale: 'en' | 'zh-CN'
+}
+
+const { notice, hubHref, ctaHref, faq, locale } = Astro.props
+const alertFormAction =
+  import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/YOUR_FORM_ID'
+const status = getNoticeStatus(notice)
+const reviewedOn = getContentDates('irs-disaster-relief').reviewedOn
+
+const returns = notice.affectedReturns.map((t) => ({ key: t, ...FILING_TYPE_META[t] }))
+
+const L = {
+  backToHub: 'IRS disaster relief',
+  live: 'Active relief',
+  expired: 'Relief window closed',
+  deadlineEyebrow: 'The postponed deadline',
+  deadlineTitle: `IRS ${notice.state} ${notice.event.toLowerCase()} relief — the new deadline`,
+  factNotice: 'IRS relief code',
+  factDeadline: 'Postponed to',
+  factArea: 'Affected area',
+  factIncident: 'Disaster began',
+  factFema: 'FEMA declaration',
+  factNote:
+    'Facts transcribed verbatim from the official IRS news release. Verify against the source before you rely on it.',
+  sourceLead: 'Official IRS source',
+  returnsEyebrow: 'Which clients this hits',
+  returnsTitle: 'The filings and payments this relief postpones',
+  returnsBody: `If a client resides or has a business in the affected area, these returns and payments move to ${notice.deadlineLabel}. Everything else stays on its normal date.`,
+  faqEyebrow: 'FAQ',
+  faqTitle: `${notice.state} disaster relief questions`,
+  lastReviewed: 'Last reviewed',
+  ctaTitle: `See which of your clients this ${notice.state} relief actually touches`,
+  ctaBody:
+    'DueDateHQ watches IRS, state, and FEMA sources around the clock. When a postponement like this drops, it matches the change to the clients in your book it affects — with the source on every date — so you are not cross-referencing a county list by hand.',
+  ctaPrimary: 'Start free',
+  ctaSecondary: 'See all disaster relief',
+  ctaNote: 'No card to start',
+}
+---
+
+<main>
+  <section class="m-section m-page-hero dnp-hero" id="hero">
+    <nav class="dnp-hero__bc" aria-label="Breadcrumb">
+      <a href={hubHref} class="m-page-back">
+        <span class="m-page-back__arrow" aria-hidden="true">←</span>{L.backToHub}
+      </a>
+      <span class:list={['dnp-chip', status === 'expired' && 'dnp-chip--expired']}>
+        <span class="dnp-chip__abbr">{notice.code}</span>
+        {status === 'live' && <span class="dnp-chip__live" aria-hidden="true"></span>}
+        {status === 'live' ? L.live : L.expired}
+      </span>
+    </nav>
+    <p class="m-eyebrow">{L.deadlineEyebrow}</p>
+    <h1 class="m-page-title dnp-hero__title">
+      IRS {notice.state} {notice.event.toLowerCase()} tax relief — deadlines postponed to {notice.deadlineLabel}
+    </h1>
+    <p class="m-page-lead">
+      The IRS postponed a range of filing and payment deadlines for taxpayers in {notice.affectedArea.replace(/^The /, '')} after {notice.event.toLowerCase()} that began {notice.incidentStart}. Affected returns and payments are now due {notice.deadlineLabel}.
+    </p>
+    <p class="m-page-reviewed">
+      {L.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
+    </p>
+  </section>
+
+  <!-- Key-deadline signature module: the verified, sourced fact table -->
+  <section class="m-section m-page-block" aria-labelledby="dnp-kd-h">
+    <p class="m-eyebrow">{L.deadlineEyebrow}</p>
+    <h2 class="m-page-h2" id="dnp-kd-h">{L.deadlineTitle}</h2>
+    <div class="dnp-kd">
+      <dl class="dnp-kd__dl">
+        <div class="dnp-kd__row">
+          <dt>{L.factNotice}</dt>
+          <dd>{notice.code}</dd>
+        </div>
+        <div class="dnp-kd__row dnp-kd__row--hero">
+          <dt>{L.factDeadline}</dt>
+          <dd class="dnp-kd__deadline">{notice.deadlineLabel}</dd>
+        </div>
+        <div class="dnp-kd__row">
+          <dt>{L.factArea}</dt>
+          <dd class="dnp-kd__area">{notice.affectedArea}</dd>
+        </div>
+        <div class="dnp-kd__row">
+          <dt>{L.factIncident}</dt>
+          <dd>{notice.incidentStart}</dd>
+        </div>
+        {
+          notice.femaDeclaration && (
+            <div class="dnp-kd__row">
+              <dt>{L.factFema}</dt>
+              <dd>{notice.femaDeclaration}</dd>
+            </div>
+          )
+        }
+      </dl>
+      <div class="dnp-kd__foot">
+        <p class="dnp-kd__note">{L.factNote}</p>
+        <a class="dnp-kd__source" href={notice.sourceHref} rel="nofollow noopener" target="_blank">
+          <span class="dnp-kd__source-lead">{L.sourceLead}</span>
+          <span class="dnp-kd__source-label">
+            IRS newsroom — {notice.code}
+            <span class="dnp-ext" aria-hidden="true">↗</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Which clients this hits: filing types → plain-English "who" -->
+  <section class="m-section m-page-block">
+    <div class="m-page-split">
+      <div class="m-page-split__lead">
+        <p class="m-eyebrow">{L.returnsEyebrow}</p>
+        <h2 class="m-page-h2">{L.returnsTitle}</h2>
+        <p class="m-page-body">{L.returnsBody}</p>
+      </div>
+      <div class="m-page-cards">
+        {
+          returns.map((r) => (
+            <article class="m-card dnp-card">
+              <span class="dnp-card__form">{r.form}</span>
+              <h3 class="m-card__t">{r.label}</h3>
+              <p class="m-card__d">{r.whoItHits}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="m-section m-page-block">
+    <FaqList eyebrow={L.faqEyebrow} title={L.faqTitle} items={faq} />
+  </section>
+
+  <section class="m-section m-page-block">
+    <AlertOptin
+      action={alertFormAction}
+      compact
+      defaultStates={notice.abbreviation}
+      heading={`Get future ${notice.state} deadline changes by email`}
+    />
+  </section>
+
+  <section class="m-section m-page-block">
+    <div class="m-page-cta">
+      <div>
+        <h2 class="m-page-cta__title">{L.ctaTitle}</h2>
+        <p class="m-page-cta__body">{L.ctaBody}</p>
+        <p class="dnp-cta__note">{L.ctaNote}</p>
+      </div>
+      <div class="m-page-cta__btns">
+        <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.disaster-notice.cta">
+          {L.ctaPrimary}
+        </a>
+        <a class="m-btn m-btn--secondary" href={hubHref}>{L.ctaSecondary}</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  /* Mirrors StateDetailPage's chrome; only per-notice touches live here. */
+  .dnp-hero__bc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin-bottom: 18px;
+  }
+  .dnp-hero__bc .m-page-back {
+    margin-bottom: 0;
+  }
+  .dnp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--m-hairline);
+    background: var(--m-surface);
+    font-size: var(--m-text-2xs);
+    font-weight: 500;
+    color: var(--m-muted);
+  }
+  .dnp-chip__abbr {
+    display: inline-grid;
+    place-items: center;
+    height: 20px;
+    padding-inline: 8px;
+    border-radius: 999px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: #fff;
+    background: var(--m-accent);
+  }
+  .dnp-chip--expired .dnp-chip__abbr {
+    background: var(--m-faint);
+  }
+  .dnp-chip__live {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 18%, transparent);
+  }
+  .dnp-hero__title {
+    max-width: 24ch;
+  }
+
+  /* key-deadline signature module (same anatomy as .std-kd) */
+  .dnp-kd {
+    margin-top: 28px;
+    max-width: 880px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--m-surface);
+  }
+  .dnp-kd__dl {
+    margin: 0;
+  }
+  .dnp-kd__row {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 16px 24px;
+    align-items: baseline;
+    padding: 16px 24px;
+  }
+  .dnp-kd__row + .dnp-kd__row {
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .dnp-kd__row dt {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .dnp-kd__row dd {
+    margin: 0;
+    font-size: var(--m-text-lg);
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--m-ink);
+  }
+  /* the postponed date is the page's core fact — give it the mono + accent lift */
+  .dnp-kd__row--hero {
+    background: var(--m-accent-tint);
+  }
+  .dnp-kd__deadline {
+    font-family: var(--m-font-mono);
+    color: var(--m-accent) !important;
+    font-weight: 600 !important;
+  }
+  .dnp-kd__area {
+    font-size: var(--m-text-base) !important;
+    font-weight: 400 !important;
+    color: var(--m-ink-2) !important;
+    line-height: 1.55 !important;
+  }
+  .dnp-kd__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 24px;
+    background: var(--m-section);
+    border-top: 1px solid var(--m-hairline-2);
+  }
+  .dnp-kd__note {
+    max-width: 52ch;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    line-height: 1.5;
+    color: var(--m-muted);
+  }
+  .dnp-kd__source {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+    margin-left: auto;
+  }
+  .dnp-kd__source-lead {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .dnp-kd__source-label {
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .dnp-kd__source:hover .dnp-kd__source-label {
+    color: var(--m-accent-strong);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .dnp-ext {
+    margin-left: 4px;
+    font-family: var(--m-font-mono);
+    font-size: 0.85em;
+  }
+
+  /* filing-type cards — the form badge marks each as a real return category */
+  .dnp-card__form {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--m-accent);
+    background: var(--m-accent-tint);
+  }
+
+  .dnp-cta__note {
+    margin-top: 16px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+
+  @media (max-width: 720px) {
+    .dnp-kd__row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .dnp-kd__foot {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .dnp-kd__source {
+      text-align: left;
+      margin-left: 0;
+    }
+  }
+</style>

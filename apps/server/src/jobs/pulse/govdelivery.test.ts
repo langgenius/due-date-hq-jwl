@@ -373,6 +373,22 @@ describe('ingestGovDeliveryEmail', () => {
       officialSourceUrl: 'https://floridarevenue.com/taxes/tips/Documents/TIP_26A01-01.pdf',
     },
     {
+      label: 'Florida TIP Constant Contact subscriptions',
+      from: [
+        'AhNj/OJebTbejKu+f3V8B5g==_1101670779207_7IBeqmr5EfG1XgJCCjIAAg==',
+        '@in.constantcontact.com',
+      ].join(''),
+      to: 'pulse-ingest+fl-tax-publications@duedatehq.com',
+      subject: 'Florida Tax Information Publication',
+      listId: '<Florida Department of Revenue Tax Information Publications>',
+      raw: [
+        'Florida Department of Revenue posted a new Tax Information Publication.',
+        'https://floridarevenue.com/taxes/tips/Documents/TIP_26A01-01.pdf',
+      ].join('\n'),
+      sourceId: 'fl.tips',
+      officialSourceUrl: 'https://floridarevenue.com/taxes/tips/Documents/TIP_26A01-01.pdf',
+    },
+    {
       label: 'Washington DOR GovDelivery news',
       from: 'Washington Department of Revenue <updates@content.govdelivery.com>',
       to: 'pulse-ingest+wa-dor-news@duedatehq.com',

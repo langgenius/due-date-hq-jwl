@@ -1,0 +1,130 @@
+---
+/**
+ * AlertOptin — free deadline-change alert opt-in (no app signup).
+ * Captures email + states and POSTs to `action` (set PUBLIC_ALERT_FORM_ACTION);
+ * each submission feeds the disaster-alert sender. Used on the disaster hub and,
+ * compact + state-prefilled, on each state notice page.
+ */
+interface Props {
+  action: string
+  defaultStates?: string
+  compact?: boolean
+  heading?: string
+}
+const { action, defaultStates = '', compact = false, heading } = Astro.props
+const h = heading ?? 'Get an email the moment a deadline moves in your states'
+---
+
+<div class:list={['ao', compact && 'ao--compact']}>
+  {!compact && <p class="m-eyebrow">Free alerts</p>}
+  <h2 class="ao__title">{h}</h2>
+  <p class="ao__lead">
+    No account needed — the next time the IRS postpones a filing deadline in your states, we send you
+    the change, the affected counties, and the official notice, the day it posts.
+  </p>
+  <form class="ao__form" action={action} method="POST">
+    <input type="hidden" name="_subject" value="New DueDateHQ deadline-alert subscriber" />
+    <input type="hidden" name="source" value="irs-disaster-relief" />
+    <label class="ao__field">
+      <span class="ao__label">Work email</span>
+      <input
+        class="ao__input"
+        type="email"
+        name="email"
+        required
+        placeholder="you@yourfirm.com"
+        autocomplete="email"
+      />
+    </label>
+    <label class="ao__field">
+      <span class="ao__label">States you file in</span>
+      <input
+        class="ao__input"
+        type="text"
+        name="states"
+        required
+        value={defaultStates}
+        placeholder="e.g. GA, WA, LA"
+      />
+    </label>
+    <button
+      class="m-btn m-btn--primary ao__btn"
+      type="submit"
+      data-event="marketing.disaster.alert-optin"
+    >
+      Send me deadline alerts
+    </button>
+  </form>
+  <p class="ao__fine">Free while in beta · one email per change · unsubscribe anytime</p>
+</div>
+
+<style>
+  .ao {
+    background: var(--m-surface-soft, #f7f8fb);
+    border: 1px solid var(--m-hairline, #e6e8ee);
+    border-radius: var(--m-radius-lg, 16px);
+    padding: 28px;
+    max-width: 560px;
+  }
+  .ao--compact {
+    padding: 22px;
+  }
+  .ao__title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--m-ink, #101828);
+  }
+  .ao--compact .ao__title {
+    font-size: 17px;
+  }
+  .ao__lead {
+    margin: 8px 0 18px;
+    color: var(--m-text-secondary, #475467);
+  }
+  .ao--compact .ao__lead {
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  .ao__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 380px;
+  }
+  .ao__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ao__label {
+    font-size: 13px;
+    color: var(--m-muted, #667085);
+  }
+  .ao__input {
+    font: inherit;
+    padding: 11px 13px;
+    border-radius: var(--m-radius-sm, 8px);
+    border: 1px solid var(--m-hairline, #d5d9e2);
+    background: #fff;
+    color: inherit;
+  }
+  .ao__input::placeholder {
+    color: #98a2b3;
+  }
+  .ao__input:focus-visible {
+    outline: 2px solid var(--m-accent, #2e368c);
+    outline-offset: 1px;
+    border-color: var(--m-accent, #2e368c);
+  }
+  .ao__btn {
+    margin-top: 4px;
+    align-self: flex-start;
+  }
+  .ao__fine {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--m-muted, #98a2b3);
+  }
+</style>

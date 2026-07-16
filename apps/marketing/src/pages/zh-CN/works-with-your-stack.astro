@@ -1,0 +1,53 @@
+---
+/**
+ * /zh-CN/works-with-your-stack — Simplified-Chinese mirror of the "works with
+ * your stack" hub. Mirrors works-with-your-stack.astro; content comes from
+ * components/WorksWithStackPage.astro + lib/stack-tools.ts.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import WorksWithStackPage from '../../components/WorksWithStackPage.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { stackStructuredData } from '../../lib/stack-structured-data'
+
+const ctaHref = getStartedHref('zh-CN')
+const pathname = '/zh-CN/works-with-your-stack'
+const title = 'DueDateHQ —— 兼容你 CPA 工具栈的截止日监控层'
+const description =
+  'DueDateHQ 在美国 CPA 事务所已有的工具（TaxDome、Canopy、Karbon、UltraTax、QuickBooks 等）之上，叠加带官方来源的 IRS 与各州截止日变化监控。补充，而非替换。'
+const faqForSchema = [
+  {
+    question: 'DueDateHQ 会替换我现在的软件吗？',
+    answer:
+      '不会。它是监控层，叠加在你现有的 practice suite、报税软件或账本之上。你仍在自己的工具里完成工作——DueDateHQ 只负责捕捉官方来源的截止日与规则变化，并显示受影响的客户。',
+  },
+  {
+    question: '它和我的工具是怎么连接的？',
+    answer:
+      'DueDateHQ 监控的是官方 IRS 与各州来源，不是你的软件——所以它与工具无关，不需要每个平台都做集成就能捕捉变化。它读取你的客户上下文，把每条变化映射到名单上的具体客户。',
+  },
+  {
+    question: '如果我用的工具不在这个列表上呢？',
+    answer:
+      '一样适用。上面的分组只是常见示例。因为监控的是官方来源而非某个平台，无论你运行哪套软件，截止日与规则变化的信号都一致。',
+  },
+  {
+    question: '这算税务建议吗？',
+    answer: '不算。DueDateHQ 支持基于证据的复核；它不是税务建议，也不是报税系统。',
+  },
+]
+---
+
+<BaseLayout
+  lang="zh-CN"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/stack.zh-CN.png"
+  structuredData={stackStructuredData('zh-CN', title, description, faqForSchema)}
+>
+  <TopNav pageMode ctaHref={ctaHref} locale="zh-CN" />
+  <WorksWithStackPage locale="zh-CN" ctaHref={ctaHref} />
+  <Footer locale="zh-CN" />
+</BaseLayout>

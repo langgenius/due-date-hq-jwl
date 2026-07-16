@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import DisasterNoticePage from '../../components/DisasterNoticePage.astro'
+import Footer from '../../components/home/Footer.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import {
+  DISASTER_NOTICES,
+  getNoticeFaq,
+  getNoticeMeta,
+  type DisasterNotice,
+} from '../../lib/disaster-notices'
+import { disasterNoticeStructuredData } from '../../lib/structured-data'
+
+export function getStaticPaths() {
+  return DISASTER_NOTICES.map((notice) => ({
+    params: { slug: notice.slug },
+    props: { notice },
+  }))
+}
+
+interface Props {
+  notice: DisasterNotice
+}
+
+const t = en
+const { notice } = Astro.props
+const pathname = `/irs-disaster-relief/${notice.slug}`
+const hubHref = '/irs-disaster-relief'
+// Open signup (app.duedatehq.com/?lng=en) — the give-it-away conversion target.
+const ctaHref = getCtaHref('en')
+const meta = getNoticeMeta(notice)
+const faq = getNoticeFaq(notice)
+const leafCrumb = `${notice.state} — ${notice.code}`
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={meta.title}
+  description={meta.description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={disasterNoticeStructuredData(
+    t,
+    'en',
+    pathname,
+    notice.slug,
+    meta.title,
+    meta.description,
+    leafCrumb,
+    faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <DisasterNoticePage notice={notice} hubHref={hubHref} ctaHref={ctaHref} faq={faq} locale="en" />
+  <Footer />
+</BaseLayout>

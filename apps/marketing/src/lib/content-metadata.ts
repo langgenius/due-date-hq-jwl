@@ -10,6 +10,13 @@ export const CONTENT_REVIEWED_ON = '2026-06-18'
 // Add an entry only when a single page changes independently of a site-wide
 // pass, so its JSON-LD dateModified and sitemap lastmod reflect the real edit.
 const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?: string }> = {
+  // High-intent rule references first published 2026-06-25. Keep these here
+  // with the later rule batch below so Search Console receives the real
+  // publication date instead of the 2026-06-18 site-wide fallback.
+  '1099-nec-misc-filing-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  '1040-es-estimated-tax-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  '941-payroll-tax-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  '990-nonprofit-filing-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   // Federal form rule references added 2026-06-25 (each date source-verified
   // against irs.gov); they did not exist at the 2026-06-18 site-wide review, so
   // their JSON-LD datePublished/dateModified and sitemap lastmod reflect 06-25.
@@ -20,6 +27,45 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'form-w-2-filing-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'form-2553-s-corp-election-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'form-5500-benefit-plan-deadline': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  // The 9-state expansion and the final 27-state completion batch both shipped
+  // on 2026-06-25. These pages did not exist during the 2026-06-18 site-wide
+  // review, so their page metadata and sitemap lastmod must not predate them.
+  virginia: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  maryland: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  minnesota: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  wisconsin: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  tennessee: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  missouri: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  indiana: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  connecticut: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'district-of-columbia': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  alabama: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  alaska: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  arkansas: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  delaware: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  hawaii: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  idaho: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  iowa: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  kansas: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  kentucky: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  louisiana: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  maine: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  mississippi: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  montana: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  nebraska: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  nevada: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'new-hampshire': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'new-mexico': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'north-dakota': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  oklahoma: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  oregon: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'rhode-island': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'south-carolina': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'south-dakota': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  utah: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  vermont: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  'west-virginia': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  wyoming: { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   // Comparison pages added 2026-06-25 (positioning, source-checked product
   // categories), likewise post-dating the 06-18 site-wide review.
   'jetpack-workflow-deadline-operations': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
@@ -37,6 +83,35 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'taxdome-alternatives': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'karbon-alternatives': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
   'file-in-time-alternatives': { publishedOn: '2026-06-25', reviewedOn: '2026-06-25' },
+  // IRS disaster-relief hub + per-notice landing pages added 2026-07-06 (each IRS
+  // fact transcribed + cited from irs.gov in lib/disaster-notices.ts). The hub and
+  // every notice slug share this date so their JSON-LD dateModified and sitemap
+  // lastmod reflect the real publish, not the 06-18 site-wide review.
+  'irs-disaster-relief': { publishedOn: '2026-07-06', reviewedOn: '2026-07-06' },
+  'arizona-san-carlos-apache-tribe-severe-storms-flooding': {
+    publishedOn: '2026-07-06',
+    reviewedOn: '2026-07-06',
+  },
+  'georgia-southeast-wildfires': { publishedOn: '2026-07-06', reviewedOn: '2026-07-06' },
+  'hawaii-severe-storms-flooding': { publishedOn: '2026-07-06', reviewedOn: '2026-07-06' },
+  'washington-severe-storms-flooding-landslides': {
+    publishedOn: '2026-07-06',
+    reviewedOn: '2026-07-06',
+  },
+  'northern-mariana-islands-super-typhoon-sinlaku': {
+    publishedOn: '2026-07-06',
+    reviewedOn: '2026-07-06',
+  },
+  'missouri-severe-storms-tornadoes-flooding': {
+    publishedOn: '2026-07-06',
+    reviewedOn: '2026-07-06',
+  },
+  // Neutral editorial CPA response-playbook guide added 2026-07-06.
+  'cpa-response-playbook': { publishedOn: '2026-07-06', reviewedOn: '2026-07-06' },
+  // "Works with your stack" complement hub added 2026-07-07. Its JSON-LD
+  // dateModified is set independently in lib/stack-structured-data.ts; this entry
+  // aligns the sitemap lastmod to the real publish date.
+  'works-with-your-stack': { publishedOn: '2026-07-07', reviewedOn: '2026-07-07' },
 }
 
 export interface ContentDates {

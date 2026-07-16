@@ -206,6 +206,19 @@ const CATEGORIES = [
       chips: ['实战指南', '联邦 + 50 州 + DC'],
     },
   },
+  {
+    key: 'stack',
+    en: {
+      eyebrow: 'WORKS WITH YOUR STACK',
+      headline: ['The deadline layer', 'for the stack you run.'],
+      chips: ['Complement, not replacement', 'Layered on your tools'],
+    },
+    zh: {
+      eyebrow: '兼容你的工具栈',
+      headline: ['为你已有的工具栈', '补上截止日那一层。'],
+      chips: ['补充，而非替换', '叠加在你的工具之上'],
+    },
+  },
 ]
 
 const CARDS = {}

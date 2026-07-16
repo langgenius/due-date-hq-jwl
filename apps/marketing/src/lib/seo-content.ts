@@ -4513,6 +4513,18 @@ export function getResourceIndex(siteCopy: LandingCopy, locale: Locale): Resourc
       })),
     },
     {
+      heading: zh ? '兼容你的工具栈' : 'Works with your stack',
+      description: zh
+        ? 'DueDateHQ 如何叠加在你已有的 CPA 工具之上——补充，而非替换。'
+        : 'How DueDateHQ layers on top of the CPA tools you already run — complement, not replacement.',
+      links: [
+        {
+          label: zh ? '兼容你的工具栈' : 'Works with your stack',
+          href: `${prefix}/works-with-your-stack`,
+        },
+      ],
+    },
+    {
       heading: zh ? '规则参考' : 'Rule references',
       description: zh
         ? '带官方来源的联邦截止日规则参考。'

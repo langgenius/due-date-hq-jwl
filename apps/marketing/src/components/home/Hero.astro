@@ -145,7 +145,6 @@ const t = zh
         },
       ],
     }
-const points = t.points
 const alerts = t.alerts
 ---
 
@@ -159,57 +158,6 @@ const alerts = t.alerts
       <p class="hero__sub">
         {t.subLead} <em>{t.subEm}</em> {t.subRest}
       </p>
-
-      <ul class="hero__points">
-        {
-          points.map((p, i) => (
-            <li>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                {/* each glyph is matched to its promise: watch · clients · source · free */}
-                {i === 0 && (
-                  <>
-                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
-                    <circle cx="12" cy="12" r="2.7" />
-                  </>
-                )}
-                {i === 1 && (
-                  <>
-                    <path d="M16 19v-1.2a3.6 3.6 0 0 0-3.6-3.6H6.6A3.6 3.6 0 0 0 3 17.8V19" />
-                    <circle cx="9.5" cy="8" r="3.2" />
-                    <path d="M21 19v-1.2a3.6 3.6 0 0 0-2.7-3.5M15.6 5a3.2 3.2 0 0 1 0 6" />
-                  </>
-                )}
-                {i === 2 && (
-                  <>
-                    <path d="M10 13a4.5 4.5 0 0 0 6.7.5l2.5-2.5a4.5 4.5 0 0 0-6.4-6.4l-1.4 1.4" />
-                    <path d="M14 11a4.5 4.5 0 0 0-6.7-.5L4.8 13a4.5 4.5 0 0 0 6.4 6.4l1.4-1.4" />
-                  </>
-                )}
-                {i === 3 && (
-                  <>
-                    <path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8" />
-                    <rect x="2.5" y="7.5" width="19" height="4.5" rx="1" />
-                    <path d="M12 7.5V21" />
-                    <path d="M12 7.5H8.2a2.1 2.1 0 1 1 0-4.2C11 3.3 12 7.5 12 7.5Z" />
-                    <path d="M12 7.5h3.8a2.1 2.1 0 1 0 0-4.2C13 3.3 12 7.5 12 7.5Z" />
-                  </>
-                )}
-              </svg>
-              <span>
-                <b>{p.strong}</b> {p.rest}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
 
       <div class="hero__cta">
         <a class="m-cta m-cta--primary" href={ctaHref} data-event="marketing.hero.cta">
@@ -253,17 +201,9 @@ const alerts = t.alerts
         <span class="panel__cap">{t.panelCap}</span>
       </div>
 
-      <div class="panel__filter" aria-hidden="true">
-        {
-          t.filters.map((j, i) => (
-            <span class={`chip${i === 0 ? ' chip--on' : ''}`}>{j}</span>
-          ))
-        }
-      </div>
-
       <div class="panel__rows">
         {
-          alerts.map((a) => (
+          alerts.slice(0, 2).map((a) => (
             <article class={`row${a.sev === 'urgent' ? ' row--anchor' : ' row--secondary'}`}>
               <div class="row__top">
                 <span class={`sev sev--${a.sev}`}>{a.sev === 'urgent' ? t.sevUrgent : t.sevInfo}</span>
@@ -526,7 +466,7 @@ const alerts = t.alerts
     margin-top: clamp(30px, 3vw, 40px);
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 22px;
+    gap: 10px 8px;
     align-items: center;
   }
   /* hero CTAs use the shared .m-cta / .m-cta--primary / .m-cta--ghost pill

@@ -699,6 +699,11 @@ session、React Router、TanStack Query、oRPC 或 app 专属业务组件。
 - **PO formatter**：`@lingui/format-po` 保留 file-level origins，但关闭 line numbers，避免纯代码移动
   造成 `.po` diff churn
 - **共享 contract**：`SUPPORTED_LOCALES`、`DEFAULT_LOCALE`、`INTL_LOCALE`、`LOCALE_HEADER` 位于 `packages/i18n`；app、server、marketing 共享这些常量，但 catalog 分离
+- **App 启动优先级与分析上下文**：`apps/app` 按 `?lng=` → `localStorage["lng"]` →
+  `navigator.language` → `en` 激活 Lingui；`bootstrapI18n()` 同时返回实际 locale 与来源，
+  `main.tsx` 在 Amplitude 初始化前写入 `app_locale` 与 `locale_source`
+  (`query | storage | browser | default`)。Amplitude 内置 `Language` 仅代表浏览器语言，不能替代
+  `app_locale` 判断用户实际看到的界面语言
 - **Marketing i18n**：`apps/marketing` 使用 Astro i18n routing + 静态 copy dictionary；不把 landing 文案写进 app 的 Lingui PO
 - **服务端**（Hono 中间件 + React Email 模板）：Worker 不加载 Lingui runtime；`x-locale` >
   `Accept-Language` > `en` 解析后走 `apps/server/src/i18n/messages.ts` 类型化薄字典

@@ -7,7 +7,7 @@ import { Toaster } from '@duedatehq/ui/components/ui/sonner'
 import { TooltipProvider } from '@duedatehq/ui/components/ui/tooltip'
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { AppI18nProvider } from '@/i18n/provider'
-import { initAnalytics } from '@/lib/analytics'
+import { captureCampaignAttribution, initAnalytics, setSuperProperties } from '@/lib/analytics'
 import { createAppRouter } from './router'
 import './styles/globals.css'
 
@@ -29,7 +29,12 @@ const appRoot = rootEl
 void startApp()
 
 async function startApp() {
-  bootstrapI18n()
+  const localeResolution = bootstrapI18n()
+  setSuperProperties({
+    app_locale: localeResolution.locale,
+    locale_source: localeResolution.source,
+  })
+  captureCampaignAttribution()
   // Boot analytics early so the SDK is loading while the router resolves the
   // session. No-op without VITE_AMPLITUDE_API_KEY; never throws.
   initAnalytics()

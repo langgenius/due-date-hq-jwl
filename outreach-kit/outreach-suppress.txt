@@ -1,3 +1,15 @@
 # Suppression list — one email per line. The sender script skips these on ALL touches.
 # Add anyone who: replied "no thanks"/unsubscribe, asked to stop, or hard-bounced.
 # Add BEFORE running touch 2 (≈2026-07-06) and touch 3 (≈2026-07-12).
+
+# --- touch-1 hard bounces (Resend, Jul 2 send · duedatehq domain) added 2026-07-06 ---
+info@doesmytaxes.com
+hello@clearwatercpa.com
+rodriguezandsastre@gmail.com
+norm@nsmithcpa.com
+dbeck@davidbeck.tax
+info@cicpallp.com
+info@equifirstinc.com
+
+# --- unverified: directory-guessed, no email published on firm site (added 2026-07-07) ---
+info@janiebarry.com

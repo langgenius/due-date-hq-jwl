@@ -228,6 +228,13 @@ describe('@duedatehq/core/rules', () => {
       url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
       acquisitionMethod: 'html_watch',
     })
+    expect(sourcesById.get('ar.temporary_announcements')).toMatchObject({
+      title: 'Arkansas DFA News',
+      url: 'https://www.dfa.arkansas.gov/about/news/',
+      acquisitionMethod: 'api_watch',
+      adapterKind: 'rss_or_announcement_list',
+      feedUrl: 'https://www.dfa.arkansas.gov/feed/?post_type=news',
+    })
     expect(sourcesById.get('nh.temporary_announcements')).toMatchObject({
       title: 'New Hampshire DRA News and Announcements',
       url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
