@@ -1,0 +1,211 @@
+---
+/**
+ * /irs-disaster-relief/archive — every IRS disaster-relief deadline postponement,
+ * 2020–2026, transcribed from irs.gov (one entry per relief code, final deadline
+ * after updates). The SEO long-tail: people search old codes ("TN-2023-02") and
+ * "IRS disaster relief <year>" — zero competition, and the by-the-numbers block
+ * gives press a citable dataset. Data: lib/disaster-archive.json (agent-verified
+ * 2026-07-16 from the IRS yearly indexes + release pages).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import archive from '../../lib/disaster-archive.json'
+
+interface ArchiveNotice {
+  code: string | null
+  state: string | null
+  abbreviation: string | null
+  event: string | null
+  year: number
+  issuedOn: string | null
+  deadline: string | null
+  deadlineLabel: string | null
+  affectedArea: string | null
+  sourceHref: string | null
+}
+
+const t = en
+const pathname = '/irs-disaster-relief/archive'
+const ctaHref = getCtaHref('en')
+
+const notices = archive as ArchiveNotice[]
+const years = [...new Set(notices.map((n) => n.year))].toSorted((a, b) => b - a)
+const byYear = new Map(years.map((y) => [y, notices.filter((n) => n.year === y)]))
+
+// By-the-numbers (computed from the dataset so the stats can never drift)
+const stateCounts = new Map<string, number>()
+for (const n of notices) {
+  if (n.state && n.abbreviation) stateCounts.set(n.state, (stateCounts.get(n.state) ?? 0) + 1)
+}
+const topStates = [...stateCounts.entries()].toSorted((a, b) => b[1] - a[1]).slice(0, 5)
+const peakYear = years.reduce((a, b) => ((byYear.get(b)?.length ?? 0) > (byYear.get(a)?.length ?? 0) ? b : a), years[0])
+
+const title = `IRS Disaster Tax Relief History ${Math.min(...years)}–${Math.max(...years)} — Every Deadline Postponement | DueDateHQ`
+const description = `Complete archive of ${notices.length} IRS disaster-relief deadline postponements from ${Math.min(...years)} to ${Math.max(...years)}, by state and relief code, each transcribed from the official irs.gov release.`
+
+const anchorId = (n: ArchiveNotice, i: number) =>
+  n.code ? n.code.toLowerCase() : `uncoded-${n.year}-${i}`
+---
+
+<BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">Archive</p>
+      <h1 class="m-page-title">IRS disaster-relief history, {Math.min(...years)}–{Math.max(...years)}</h1>
+      <p class="m-page-lead">
+        Every IRS disaster-relief deadline postponement we could verify — one entry per relief
+        code, with the final postponed deadline after any updates, each transcribed from the
+        official irs.gov release. For what's in effect right now, see the
+        <a href="/irs-disaster-relief">current notices</a>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="ar-stats-h">
+      <p class="m-eyebrow">By the numbers</p>
+      <h2 class="m-page-h2" id="ar-stats-h">{notices.length} postponements in seven years</h2>
+      <ul class="ar-stats">
+        <li><b>{notices.length}</b> relief notices, {Math.min(...years)}–{Math.max(...years)}</li>
+        <li><b>{stateCounts.size}</b> states and territories affected at least once</li>
+        <li>Peak year: <b>{peakYear}</b> with <b>{byYear.get(peakYear)?.length}</b> notices</li>
+        <li>
+          Most-postponed states:
+          {topStates.map(([s, c], i) => (
+            <span><b>{s}</b> ({c}){i < topStates.length - 1 ? ' · ' : ''}</span>
+          ))}
+        </li>
+      </ul>
+      <p class="ar-note">
+        Counts derive from the archive below (one entry per IRS relief code; nationwide and
+        multi-state notices counted once). Free to cite with a link to this page.
+      </p>
+    </section>
+
+    {years.map((year) => (
+      <section class="m-section m-page-block" aria-labelledby={`ar-${year}`}>
+        <h2 class="m-page-h2" id={`ar-${year}`}>{year} — {byYear.get(year)?.length} notices</h2>
+        <ul class="ar-list">
+          {byYear.get(year)?.map((n, i) => (
+            <li class="ar-row" id={anchorId(n, i)}>
+              <div class="ar-row__head">
+                {n.code && <span class="ar-row__code">{n.code}</span>}
+                <span class="ar-row__state">{n.state ?? 'Multi-state'}</span>
+                {n.deadlineLabel && (
+                  <span class="ar-row__deadline">postponed to <b>{n.deadlineLabel}</b></span>
+                )}
+              </div>
+              <p class="ar-row__event">{n.event}</p>
+              {n.affectedArea && <p class="ar-row__area">{n.affectedArea}</p>}
+              {n.sourceHref && (
+                <a class="ar-row__src" href={n.sourceHref} rel="nofollow noopener" target="_blank">
+                  Official IRS release ↗
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">{notices.length} times in seven years, deadlines moved</h2>
+          <p class="m-page-cta__body">
+            Each one changed real filing dates for real clients. DueDateHQ watches IRS, state, and
+            FEMA sources and tells you which of your clients each change affects — the morning it
+            happens, not at the deadline.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.disaster-archive.cta">Start free</a>
+          <a class="m-btn m-btn--secondary" href="/irs-disaster-relief">Current notices</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .ar-stats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--m-text-secondary, #475467);
+    max-width: 640px;
+  }
+  .ar-stats b {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .ar-note {
+    margin-top: 14px;
+    font-size: var(--m-text-xs, 13px);
+    color: var(--m-muted, #98a2b3);
+    max-width: 640px;
+  }
+  .ar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 720px;
+  }
+  .ar-row {
+    border: 1px solid var(--m-hairline, #e6e8ee);
+    border-radius: var(--m-radius-md, 12px);
+    padding: 14px 16px;
+  }
+  .ar-row__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .ar-row__code {
+    font-family: var(--m-font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--m-accent, #2e368c);
+    background: #eef1fb;
+    border: 1px solid #d5dbf3;
+    border-radius: 6px;
+    padding: 1px 7px;
+  }
+  .ar-row__state {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .ar-row__deadline {
+    font-size: var(--m-text-sm, 14px);
+    color: var(--m-text-secondary, #475467);
+  }
+  .ar-row__deadline b {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .ar-row__event {
+    margin: 6px 0 0;
+    color: var(--m-text-secondary, #475467);
+  }
+  .ar-row__area {
+    margin: 4px 0 0;
+    font-size: var(--m-text-xs, 13px);
+    color: var(--m-muted, #98a2b3);
+  }
+  .ar-row__src {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: var(--m-text-xs, 13px);
+    color: var(--m-accent, #2e368c);
+  }
+</style>
