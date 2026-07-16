@@ -245,7 +245,7 @@ function buildAlert(r) {
   ].join('\n')
   const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
   const logo = WORDMARK_B64
-    ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="140" height="19" alt="DueDateHQ" style="display:block;border:0"></a>`
+    ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
     : '<a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>'
   const footerHtml = FOOTER_ADDRESS
     ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
