@@ -47,6 +47,7 @@ const SEND = has('--send')
 const LIMIT = parseInt(val('--limit', '25'), 10)
 const DELAY = parseInt(val('--delay', '6000'), 10)
 const FORCE = has('--force')
+const ALERT = has('--alert') // per-state IRS disaster-relief alert send (uses disaster-notices.json)
 const CSV = val(
   '--csv',
   fs.existsSync('duedatehq-approved.csv')
@@ -241,6 +242,79 @@ function buildTouch1(r) {
   }
 }
 
+// ---- Alert template: per-state IRS disaster-relief postponement.
+// Data from disaster-notices.json (each fact transcribed from the cited irs.gov release).
+// HONEST per-state fill: uses only verified IRS facts (state, event, deadline, affected area,
+// affected returns). No fabricated state-conformity dates. States with no live notice are skipped.
+const NOTICES = ALERT
+  ? JSON.parse(fs.readFileSync(val('--notices', 'disaster-notices.json'), 'utf8'))
+  : []
+const noticeForState = (abbr) => NOTICES.find((n) => n.abbr === (abbr || '').trim().toUpperCase())
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+// Restored for the alert's cid logo (main's v12 touch-1 dropped the wordmark image).
+const WORDMARK_B64 = fs.existsSync(new URL('./wordmark-2x.png', import.meta.url))
+  ? fs.readFileSync(new URL('./wordmark-2x.png', import.meta.url)).toString('base64')
+  : null
+function buildAlert(r) {
+  const n = noticeForState(r.State)
+  if (!n) return null // no live disaster relief for this recipient's state
+  const first = firstNameOf(r)
+  const daysLeft = Math.ceil((new Date(`${n.deadline}T23:59:59Z`).getTime() - Date.now()) / 864e5)
+  const daysLine = daysLeft > 0 ? `${daysLeft} days out` : 'due now'
+  const pillCss =
+    daysLeft <= 30
+      ? 'color:#B54708;background:#FFFAEB;border:1px solid #FEDF89'
+      : 'color:#475467;background:#F2F4F7;border:1px solid #E4E7EC'
+  const forms = n.forms.join(' · ')
+  const subject = `The IRS moved a filing deadline in ${n.state} to ${n.deadlineLabel}`
+  const text = [
+    `Hi ${first},`,
+    `A ${n.state} filing deadline has moved. After ${n.event}, the IRS postponed federal deadlines to ${n.deadlineLabel} for taxpayers in ${n.affectedArea}${daysLeft > 0 ? ` — ${daysLeft} days out` : ''}.`,
+    ``,
+    `If any of your clients file there, it covers: ${forms}.`,
+    ``,
+    `DueDateHQ caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects. The ${n.state} notice: ${n.sourceHref}`,
+    ``,
+    `It's free while we're in beta. Next time a date moves in a state you file in, you'll know that morning.`,
+    ``,
+    `Gigi`,
+    `Co-Founder of DueDateHQ`,
+    `A new product from Dify (dify.ai) · duedatehq.com`,
+  ].join('\n')
+  const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
+  const logo = WORDMARK_B64
+    ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
+    : '<a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>'
+  const footerHtml = FOOTER_ADDRESS
+    ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
+    : ''
+  const html =
+    '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:496px;padding-top:16px">' +
+    `<div style="margin:0 0 26px;padding-bottom:16px;border-bottom:1px solid #EAECF0">${logo}</div>` +
+    `<p style="margin:0 0 20px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.015em">A ${esc(n.state)} filing deadline has moved.</p>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
+    `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:10px 18px"><span style="display:inline-block;min-width:23px;text-align:center;font-size:11px;font-weight:600;color:#2E368C;background:#EEF1FB;border:1px solid #D5DBF3;border-radius:6px;padding:2px 5px;margin-right:9px;font-variant-numeric:tabular-nums;vertical-align:middle">${esc(n.abbr)}</span><span style="font-size:12px;font-weight:500;color:#344054;vertical-align:middle">${esc(n.state)} disaster relief</span></td>` +
+    `<td align="right" style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
+    `</tr></table>` +
+    `<div style="padding:18px">` +
+    `<div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500">New federal deadline</div>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:7px"><tr>` +
+    `<td valign="middle"><span style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
+    `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;${pillCss};border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
+    `</tr></table>` +
+    `</div></td></tr></table>` +
+    `<p style="margin:0 0 24px;color:#475467"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
+    `<a href="https://app.duedatehq.com/alerts?state=${esc(n.abbr)}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
+    `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
+    footerHtml +
+    '</div>'
+  const attachments = WORDMARK_B64
+    ? [{ filename: 'duedatehq.png', content: WORDMARK_B64, content_id: 'wordmark', content_type: 'image/png' }]
+    : []
+  return { subject, text, html, attachments }
+}
+
 async function sendOne(to, subject, text, html, attachments) {
   const unsubTo = REPLY_TO || FROM.replace(/^.*<|>$/g, '')
   const res = await fetch('https://api.resend.com/emails', {
@@ -286,6 +360,35 @@ for (const r of rows) {
     continue
   } // opted out
   const log = state.sent[key] || {}
+  if (ALERT) {
+    if (log.alert) {
+      skipped++
+      continue
+    } // already alerted
+    const built = buildAlert(r)
+    if (!built) {
+      skipped++
+      continue
+    } // no live disaster relief for this state
+    if (!SEND) {
+      console.log(`[DRY] alert → ${to}  (${r.Firm}, ${r.State})  "${built.subject}"`)
+      sent++
+      continue
+    }
+    try {
+      const id = await sendOne(to, built.subject, built.text, built.html, built.attachments)
+      log.alert = Date.now()
+      state.sent[key] = log
+      fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2))
+      console.log(`✓ alert ${to}  (${r.Firm})  id=${id}`)
+      sent++
+      await sleep(DELAY)
+    } catch (e) {
+      console.error(`✗ FAIL ${to}  (${r.Firm}): ${e.message}`)
+      failed++
+    }
+    continue
+  }
   if (log[`t${TOUCH}`]) {
     skipped++
     continue
