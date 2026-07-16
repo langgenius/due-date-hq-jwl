@@ -253,7 +253,7 @@ function buildAlert(r) {
     `<p style="margin:0 0 20px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.015em">A ${esc(n.state)} filing deadline has moved.</p>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-    `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:12px;font-weight:500;color:#344054">${esc(n.state)} disaster relief</span></td>` +
+    `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:10px 18px"><span style="display:inline-block;min-width:23px;text-align:center;font-size:11px;font-weight:600;color:#2E368C;background:#EEF1FB;border:1px solid #D5DBF3;border-radius:6px;padding:2px 5px;margin-right:9px;font-variant-numeric:tabular-nums;vertical-align:middle">${esc(n.abbr)}</span><span style="font-size:12px;font-weight:500;color:#344054;vertical-align:middle">${esc(n.state)} disaster relief</span></td>` +
     `<td align="right" style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
     `</tr></table>` +
     `<div style="padding:18px">` +
