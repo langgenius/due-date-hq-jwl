@@ -260,7 +260,7 @@ function buildAlert(r) {
     `<div style="font-family:Georgia,serif;font-size:27px;font-weight:bold;color:#101828;letter-spacing:-.01em;margin-top:5px;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</div>` +
     `<div style="margin-top:9px"><span style="display:inline-block;font-size:12px;font-weight:bold;color:#B54708;background:#FFFAEB;border:1px solid #FEDF89;border-radius:999px;padding:3px 10px">${daysLine}</span></div>` +
     `</div></td></tr></table>` +
-    `<p style="margin:0 0 20px">DueDateHQ flagged this automatically, and shows which of your clients each change hits — <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">see the IRS notice</a>.</p>` +
+    `<p style="margin:0 0 20px"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> flagged this automatically, and shows which of your clients each change hits — <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">see the IRS notice</a>.</p>` +
     `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 20px;border-radius:8px">See who&#39;s affected →</a>` +
     `<div style="font-size:13px;color:#475467;margin-top:22px"><b style="color:#202124">Gigi</b> · Co-Founder, DueDateHQ · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
