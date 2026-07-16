@@ -245,14 +245,14 @@ function buildAlert(r) {
   ].join('\n')
   const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
   const footerHtml = FOOTER_ADDRESS
-    ? `<p style="margin:18px 0 0;font-size:11px;color:#9aa0a6">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
+    ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
     : ''
   const html =
     '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#344054;max-width:500px">' +
     `<p style="margin:0 0 18px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.01em">A ${esc(n.state)} filing deadline has moved.</p>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 20px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-    `<td style="background:#F9FAFB;border-bottom:1px solid #E4E7EC;border-radius:12px 12px 0 0;padding:10px 16px"><span style="font-size:12px;font-weight:500;color:#475467">${esc(n.state)} disaster relief</span></td>` +
+    `<td style="background:#F9FAFB;border-bottom:1px solid #E4E7EC;border-radius:12px 12px 0 0;padding:10px 16px"><span style="font-size:12px;font-weight:500;color:#344054">${esc(n.state)} disaster relief</span></td>` +
     `<td align="right" style="background:#F9FAFB;border-bottom:1px solid #E4E7EC;border-radius:12px 12px 0 0;padding:10px 16px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
     `</tr></table>` +
     `<div style="padding:16px 16px 18px">` +
