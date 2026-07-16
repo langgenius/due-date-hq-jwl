@@ -248,21 +248,24 @@ function buildAlert(r) {
     ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
     : ''
   const html =
-    '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#344054;max-width:500px">' +
-    `<p style="margin:0 0 18px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.01em">A ${esc(n.state)} filing deadline has moved.</p>` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 20px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
+    '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:496px">' +
+    `<div style="margin:0 0 24px;padding-bottom:15px;border-bottom:1px solid #EAECF0"><span style="font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</span></div>` +
+    `<p style="margin:0 0 20px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.015em">A ${esc(n.state)} filing deadline has moved.</p>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-    `<td style="background:#F9FAFB;border-bottom:1px solid #E4E7EC;border-radius:12px 12px 0 0;padding:10px 16px"><span style="font-size:12px;font-weight:500;color:#344054">${esc(n.state)} disaster relief</span></td>` +
-    `<td align="right" style="background:#F9FAFB;border-bottom:1px solid #E4E7EC;border-radius:12px 12px 0 0;padding:10px 16px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
+    `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:12px;font-weight:500;color:#344054">${esc(n.state)} disaster relief</span></td>` +
+    `<td align="right" style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
     `</tr></table>` +
-    `<div style="padding:16px 16px 18px">` +
+    `<div style="padding:18px">` +
     `<div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500">New federal deadline</div>` +
-    `<div style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</div>` +
-    `<div style="margin-top:11px"><span style="display:inline-block;font-size:12px;color:#B54708;background:#FFFAEB;border:1px solid #FEDF89;border-radius:999px;padding:3px 10px">${daysLine}</span></div>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:7px"><tr>` +
+    `<td valign="middle"><span style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
+    `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;color:#B54708;background:#FFFAEB;border:1px solid #FEDF89;border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
+    `</tr></table>` +
     `</div></td></tr></table>` +
-    `<p style="margin:0 0 20px;color:#344054"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
-    `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:11px 20px;border-radius:8px">See your affected clients →</a>` +
-    `<div style="font-size:13px;color:#667085;margin-top:22px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder, DueDateHQ · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
+    `<p style="margin:0 0 24px;color:#475467"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
+    `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
+    `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
     '</div>'
   return { subject, text, html, attachments: [] }
