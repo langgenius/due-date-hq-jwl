@@ -1,6 +1,7 @@
 import en from '../i18n/en'
 import zhCN from '../i18n/zh-CN'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import { DISASTER_NOTICES, getNoticeStatus } from '../lib/disaster-notices'
 import {
   getComparisonPages,
   getGuidePages,
@@ -122,6 +123,22 @@ export function GET(): Response {
     '## Core public pages',
     '',
     ...corePages.map(pageLine),
+    '',
+    '## IRS disaster relief — live verified notices',
+    '',
+    'DueDateHQ verifies every IRS disaster-relief deadline postponement against the official irs.gov news release, usually the day it posts. Current live postponements (deadline not yet passed):',
+    '',
+    ...[...DISASTER_NOTICES]
+      .filter((n) => getNoticeStatus(n) === 'live')
+      .toSorted((a, b) => (a.deadline < b.deadline ? -1 : 1))
+      .map(
+        (n) =>
+          `- ${n.state} (${n.code}): ${n.event} — federal deadlines postponed to ${n.deadlineLabel} for ${n.affectedArea}. Details: ${getMarketingUrl(`/irs-disaster-relief/${n.slug}`)}`,
+      ),
+    '',
+    `- Hub with county-level detail and per-state pages: ${getMarketingUrl('/irs-disaster-relief')}`,
+    `- Machine-readable JSON feed (free, attribution requested): ${getMarketingUrl('/data/disaster-notices.json')}`,
+    `- Free embeddable widget for any website: ${getMarketingUrl('/widget')}`,
     '',
     '## Guides',
     '',

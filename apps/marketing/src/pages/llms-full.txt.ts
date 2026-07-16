@@ -1,5 +1,6 @@
 import en from '../i18n/en'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import { DISASTER_NOTICES, FILING_TYPE_META, getNoticeStatus } from '../lib/disaster-notices'
 import {
   getComparisonPages,
   getGuidePages,
@@ -72,6 +73,20 @@ export function GET(): Response {
     ...getStateDeadlineLines(),
     '',
     'State filing deadlines vary by state and entity type and can change. The list above covers only states confirmed against an official source; for every other covered state, see its page for the official Department of Revenue link. Always verify against the official source.',
+    '',
+    '## IRS disaster-relief postponements (live, verified)',
+    '',
+    'Each entry is transcribed from the official irs.gov news release cited on its page. When FEMA issues a major disaster declaration, the IRS typically postpones filing and payment deadlines for taxpayers in the covered area; relief applies automatically based on the IRS address of record.',
+    '',
+    ...[...DISASTER_NOTICES]
+      .filter((n) => getNoticeStatus(n) === 'live')
+      .toSorted((a, b) => (a.deadline < b.deadline ? -1 : 1))
+      .map(
+        (n) =>
+          `- ${n.state} (${n.code}) — ${n.event}: federal deadlines postponed to ${n.deadlineLabel} for ${n.affectedArea}. Covered returns: ${n.affectedReturns.map((t) => FILING_TYPE_META[t].form).join(', ')}. Official release: ${n.sourceHref}. Details: ${getMarketingUrl(`/irs-disaster-relief/${n.slug}`)}`,
+      ),
+    '',
+    `Machine-readable feed of the same data: ${getMarketingUrl('/data/disaster-notices.json')}. Free embeddable widget: ${getMarketingUrl('/widget')}.`,
     '',
     '## Reference pages',
     '',
