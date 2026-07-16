@@ -130,117 +130,177 @@ export interface DisasterNotice {
  */
 export const DISASTER_NOTICES: DisasterNotice[] = [
   {
-    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026
-    // Verified 2026-07-06: code AZ-2026-01 (issued June 16, 2026); deadline Sept. 28, 2026;
-    // area = San Carlos Apache Tribe; incident Oct. 10–13, 2025; FEMA 4911-DR.
-    slug: 'arizona-san-carlos-apache-tribe-severe-storms-flooding',
-    code: 'AZ-2026-01',
-    state: 'Arizona',
-    abbreviation: 'AZ',
-    event: 'Severe storms & flooding',
-    issuedOn: 'June 16, 2026',
-    deadline: '2026-09-28',
-    deadlineLabel: 'Sept. 28, 2026',
-    incidentStart: 'Oct. 10, 2025',
-    affectedArea: 'The San Carlos Apache Tribe',
-    affectedReturns: [
-      'individual',
-      'corporate',
-      's-corp',
-      'partnership',
-      'estate-trust',
-      'estate-gift',
-      'tax-exempt',
-      'payroll-excise',
-      'estimated',
-    ],
-    femaDeclaration: '4911-DR',
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026',
-  },
-  {
-    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20
-    // Verified 2026-07-06: code GA-2026-03 (issued May 6, 2026); deadline Aug. 20, 2026;
-    // counties Clinch, Echols, Brantley; incident (wildfires & straight-line winds) April 18, 2026.
-    slug: 'georgia-southeast-wildfires',
-    code: 'GA-2026-03',
-    state: 'Georgia',
-    abbreviation: 'GA',
-    event: 'Wildfires & straight-line winds',
-    issuedOn: 'May 6, 2026',
-    deadline: '2026-08-20',
-    deadlineLabel: 'Aug. 20, 2026',
-    incidentStart: 'April 18, 2026',
-    affectedArea: 'Clinch, Echols, and Brantley counties',
-    affectedReturns: [
-      'individual',
-      'corporate',
-      's-corp',
-      'partnership',
-      'estate-trust',
-      'estate-gift',
-      'tax-exempt',
-      'payroll-excise',
-      'estimated',
-    ],
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20',
-  },
-  {
-    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026
-    // Verified 2026-07-06: code HI-2026-01 (issued April 10, 2026). Release UPDATED 5/12/26
-    // to move the deadline from July 8, 2026 to Aug. 20, 2026 (current). Counties: Hawaii,
-    // Honolulu, Kauai, Maui; incident (flooding & mudslides from severe storms) March 10, 2026.
-    slug: 'hawaii-severe-storms-flooding',
-    code: 'HI-2026-01',
-    state: 'Hawaii',
-    abbreviation: 'HI',
-    event: 'Severe storms, flooding & mudslides',
-    issuedOn: 'April 10, 2026',
-    deadline: '2026-08-20',
-    deadlineLabel: 'Aug. 20, 2026',
-    incidentStart: 'March 10, 2026',
-    affectedArea: 'Hawaii, Honolulu, Kauai and Maui counties',
-    affectedReturns: [
-      'individual',
-      'corporate',
-      's-corp',
-      'partnership',
-      'estate-trust',
-      'estate-gift',
-      'tax-exempt',
-      'payroll-excise',
-      'estimated',
-    ],
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026',
-  },
-  {
     // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026
-    // Verified 2026-07-06: code WA-2025-03. Release UPDATED 5/1/26 to move the deadline from
-    // May 1, 2026 to Aug. 5, 2026 (current). Current qualifying counties: Asotin, Clark, Cowlitz,
-    // Garfield, Klickitat, Pacific, Pend Oreille, Skamania, Wahkiakum (plus listed tribal nations);
-    // incident began Dec. 9, 2025; FEMA 3629-EM.
+    // Verified 2026-07-14: code WA-2025-03; deadline Aug. 5, 2026; incident December 9, 2025;
+    // FEMA 3629-EM. Area: Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille,
+    // Skamania, and Wahkiakum counties
     slug: 'washington-severe-storms-flooding-landslides',
     code: 'WA-2025-03',
     state: 'Washington',
     abbreviation: 'WA',
-    event: 'Severe storms, flooding & landslides',
-    issuedOn: 'Dec. 9, 2025',
+    event: 'Severe storms, straight-line winds, flooding, landslides and mudslides',
     deadline: '2026-08-05',
     deadlineLabel: 'Aug. 5, 2026',
-    incidentStart: 'Dec. 9, 2025',
-    affectedArea:
-      'Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania and Wahkiakum counties (plus listed Washington tribal nations)',
-    affectedReturns: ['individual', 'payroll-excise', 'estimated', 'retirement-hsa'],
+    incidentStart: 'December 9, 2025',
+    affectedArea: 'Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania, and Wahkiakum counties',
+    affectedReturns: ['individual', 'corporate', 'partnership', 's-corp', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated', 'retirement-hsa'],
     femaDeclaration: '3629-EM',
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20
+    // Verified 2026-07-14: code GA-2026-03 (issued May 6, 2026); deadline Aug. 20, 2026;
+    // incident April 18, 2026. Area: Clinch, Echols and Brantley counties
+    slug: 'georgia-southeast-wildfires',
+    code: 'GA-2026-03',
+    state: 'Georgia',
+    abbreviation: 'GA',
+    event: 'Southeast Georgia wildfires',
+    issuedOn: 'May 6, 2026',
+    deadline: '2026-08-20',
+    deadlineLabel: 'Aug. 20, 2026',
+    incidentStart: 'April 18, 2026',
+    affectedArea: 'Clinch, Echols and Brantley counties',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026
+    // Verified 2026-07-14: code HI-2026-01 (issued April 10, 2026); deadline Aug. 20, 2026;
+    // incident March 10, 2026. Area: Hawaii, Honolulu, Kauai, and Maui counties
+    slug: 'hawaii-severe-storms-flooding-mudslides',
+    code: 'HI-2026-01',
+    state: 'Hawaii',
+    abbreviation: 'HI',
+    event: 'Severe storms, flooding and mudslides',
+    issuedOn: 'April 10, 2026',
+    deadline: '2026-08-20',
+    deadlineLabel: 'Aug. 20, 2026',
+    incidentStart: 'March 10, 2026',
+    affectedArea: 'Hawaii, Honolulu, Kauai, and Maui counties',
+    affectedReturns: ['individual', 'payroll-excise', 'estate-gift', 'tax-exempt'],
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026
+    // Verified 2026-07-14: code AZ-2026-01 (issued June 16, 2026); deadline Sept. 28, 2026;
+    // incident October 10, 2025; FEMA 4911-DR. Area: San Carlos Apache Tribe
+    slug: 'arizona-san-carlos-apache-severe-storms-flooding',
+    code: 'AZ-2026-01',
+    state: 'Arizona',
+    abbreviation: 'AZ',
+    event: 'Severe storms and flooding (San Carlos Apache Tribe)',
+    issuedOn: 'June 16, 2026',
+    deadline: '2026-09-28',
+    deadlineLabel: 'Sept. 28, 2026',
+    incidentStart: 'October 10, 2025',
+    affectedArea: 'San Carlos Apache Tribe',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated', 'retirement-hsa'],
+    femaDeclaration: '4911-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-winter-storm-and-straight-line-winds-in-the-fort-peck-assiniboine-and-sioux-tribes-various-deadlines-postponed-to-sept-28-2026
+    // Verified 2026-07-14: code MT-2026-03 (issued June 16, 2026); deadline Sept. 28, 2026;
+    // incident December 17, 2025; FEMA 4914-DR. Area: Fort Peck Assiniboine and Sioux Tribes
+    // in northeastern Montana
+    slug: 'montana-fort-peck-tribes-winter-storm',
+    code: 'MT-2026-03',
+    state: 'Montana',
+    abbreviation: 'MT',
+    event: 'Severe Winter Storm and Straight-line Winds (Fort Peck Assiniboine and Sioux Tribes)',
+    issuedOn: 'June 16, 2026',
+    deadline: '2026-09-28',
+    deadlineLabel: 'Sept. 28, 2026',
+    incidentStart: 'December 17, 2025',
+    affectedArea: 'Fort Peck Assiniboine and Sioux Tribes in northeastern Montana',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4914-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-winter-storm-and-straight-line-winds-in-the-fort-peck-assiniboine-and-sioux-tribes-various-deadlines-postponed-to-sept-28-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026
+    // Verified 2026-07-14: code MT-2026-04 (issued June 16, 2026); deadline Sept. 28, 2026;
+    // incident December 17, 2025; FEMA 4915-DR. Area: Individuals and households that reside
+    // or have a business in the Crow Reservation in southcentral Montana
+    slug: 'montana-crow-tribe-winter-storm',
+    code: 'MT-2026-04',
+    state: 'Montana',
+    abbreviation: 'MT',
+    event: 'Severe Winter Storm and Straight-line Winds (Crow Tribe)',
+    issuedOn: 'June 16, 2026',
+    deadline: '2026-09-28',
+    deadlineLabel: 'Sept. 28, 2026',
+    incidentStart: 'December 17, 2025',
+    affectedArea: 'Individuals and households that reside or have a business in the Crow Reservation in southcentral Montana',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4915-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-and-businesses-in-louisiana-affected-by-tropical-storm-arthur-that-began-on-june-17-2026
+    // Verified 2026-07-14: code LA-2026-02 (issued July 13, 2026); deadline Nov. 2, 2026;
+    // incident June 17, 2026; FEMA 4927-DR. Area: Avoyelles, St. Landry, St. Tammany and
+    // Terrebonne parishes
+    slug: 'louisiana-tropical-storm-arthur',
+    code: 'LA-2026-02',
+    state: 'Louisiana',
+    abbreviation: 'LA',
+    event: 'Tropical Storm Arthur',
+    issuedOn: 'July 13, 2026',
+    deadline: '2026-11-02',
+    deadlineLabel: 'Nov. 2, 2026',
+    incidentStart: 'June 17, 2026',
+    affectedArea: 'Avoyelles, St. Landry, St. Tammany and Terrebonne parishes',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4927-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-and-businesses-in-louisiana-affected-by-tropical-storm-arthur-that-began-on-june-17-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-michigan-various-deadlines-postponed-to-nov-2-2026
+    // Verified 2026-07-14: code MI-2026-02 (issued July 13, 2026); deadline Nov. 2, 2026;
+    // incident April 10, 2026; FEMA 4925-DR. Area: Alcona, Allegan, Alpena, Antrim, Barry,
+    // Benzie, Charlevoix, Cheboygan, Crawford, Eaton, Emmet, Grand Traverse, Gratiot, Iosco,
+    // Iron, Kalamazoo, Kalkaska, Lake, Manistee, Marquette, Mecosta, Menominee, Missaukee,
+    // Montcalm, Montmorency, Muskegon, Newaygo, Oceana, Ogemaw, Osceola, Oscoda, Presque
+    // Isle, Roscommon, Saginaw, Tuscola, Washtenaw, and Wexford counties
+    slug: 'michigan-severe-storms-tornadoes-flooding',
+    code: 'MI-2026-02',
+    state: 'Michigan',
+    abbreviation: 'MI',
+    event: 'Severe Storms, Tornadoes and Flooding',
+    issuedOn: 'July 13, 2026',
+    deadline: '2026-11-02',
+    deadlineLabel: 'Nov. 2, 2026',
+    incidentStart: 'April 10, 2026',
+    affectedArea: 'Alcona, Allegan, Alpena, Antrim, Barry, Benzie, Charlevoix, Cheboygan, Crawford, Eaton, Emmet, Grand Traverse, Gratiot, Iosco, Iron, Kalamazoo, Kalkaska, Lake, Manistee, Marquette, Mecosta, Menominee, Missaukee, Montcalm, Montmorency, Muskegon, Newaygo, Oceana, Ogemaw, Osceola, Oscoda, Presque Isle, Roscommon, Saginaw, Tuscola, Washtenaw, and Wexford counties',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4925-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-michigan-various-deadlines-postponed-to-nov-2-2026',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026
+    // Verified 2026-07-14: code MS-2026-02 (issued July 13, 2026); deadline Nov. 2, 2026;
+    // incident May 6, 2026; FEMA 4922-DR. Area: Franklin, Lamar, Lawrence, Lincoln, and
+    // Wilkinson counties
+    slug: 'mississippi-severe-storms-tornadoes-flooding',
+    code: 'MS-2026-02',
+    state: 'Mississippi',
+    abbreviation: 'MS',
+    event: 'Severe storms, straight-line winds, tornadoes and flooding',
+    issuedOn: 'July 13, 2026',
+    deadline: '2026-11-02',
+    deadlineLabel: 'Nov. 2, 2026',
+    incidentStart: 'May 6, 2026',
+    affectedArea: 'Franklin, Lamar, Lawrence, Lincoln, and Wilkinson counties',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4922-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026',
   },
   {
     // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-sinlaku-in-the-commonwealth-of-the-northern-mariana-islands-various-deadlines-postponed-to-nov-2-2026
-    // Verified 2026-07-06: code NMI-2026-01 (issued May 4, 2026); deadline Nov. 2, 2026;
-    // area = Northern Islands, Rota, Saipan and Tinian; incident (Super Typhoon Sinlaku) April 11, 2026; FEMA 4910-DR.
+    // Verified 2026-07-14: code NMI-2026-01 (issued May 4, 2026); deadline Nov. 2, 2026;
+    // incident April 11, 2026; FEMA 4910-DR. Area: Northern Islands, Rota, Saipan, and Tinian
     slug: 'northern-mariana-islands-super-typhoon-sinlaku',
     code: 'NMI-2026-01',
     state: 'Northern Mariana Islands',
@@ -250,49 +310,31 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     deadline: '2026-11-02',
     deadlineLabel: 'Nov. 2, 2026',
     incidentStart: 'April 11, 2026',
-    affectedArea: 'Northern Islands, Rota, Saipan and Tinian',
-    affectedReturns: [
-      'individual',
-      'corporate',
-      's-corp',
-      'partnership',
-      'estate-trust',
-      'estate-gift',
-      'payroll-excise',
-      'estimated',
-    ],
+    affectedArea: 'Northern Islands, Rota, Saipan, and Tinian',
+    affectedReturns: ['individual', 'corporate', 'partnership', 's-corp', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
     femaDeclaration: '4910-DR',
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-sinlaku-in-the-commonwealth-of-the-northern-mariana-islands-various-deadlines-postponed-to-nov-2-2026',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-sinlaku-in-the-commonwealth-of-the-northern-mariana-islands-various-deadlines-postponed-to-nov-2-2026',
   },
   {
-    // Source: https://www.irs.gov/newsroom/irs-provides-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-multiple-counties-missouri-various-deadlines-postponed-to-march-30-2026
-    // Verified 2026-07-06: code MO-2025-03 (issued Nov. 17, 2025); deadline March 30, 2026 (EXPIRED
-    // as of the 2026-07-06 build); 27 counties (see affectedArea); incident began March 30, 2025; FEMA 4872-DR.
-    slug: 'missouri-severe-storms-tornadoes-flooding',
-    code: 'MO-2025-03',
-    state: 'Missouri',
-    abbreviation: 'MO',
-    event: 'Severe storms, tornadoes & flooding',
-    issuedOn: 'Nov. 17, 2025',
-    deadline: '2026-03-30',
-    deadlineLabel: 'March 30, 2026',
-    incidentStart: 'March 30, 2025',
-    affectedArea:
-      'Bollinger, Butler, Cape Girardeau, Carter, Cooper, Douglas, Dunklin, Howell, Iron, Madison, Maries, Mississippi, New Madrid, Oregon, Ozark, Pemiscot, Reynolds, Ripley, Scott, Shannon, Ste. Genevieve, Stoddard, Texas, Vernon, Washington, Wayne, and Webster counties',
-    affectedReturns: [
-      'individual',
-      'corporate',
-      's-corp',
-      'partnership',
-      'estate-trust',
-      'payroll-excise',
-      'estimated',
-      'form-5500',
-    ],
-    femaDeclaration: '4872-DR',
-    sourceHref:
-      'https://www.irs.gov/newsroom/irs-provides-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-multiple-counties-missouri-various-deadlines-postponed-to-march-30-2026',
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-wisconsin-various-deadlines-postponed-to-nov-2-2026
+    // Verified 2026-07-14: code WI-2026-02 (issued July 13, 2026); deadline Nov. 2, 2026;
+    // incident April 13, 2026; FEMA 4923-DR. Area: Bayfield, Brown, Buffalo, Iowa, Jackson,
+    // Jefferson, Juneau, Kenosha, Kewaunee, Manitowoc, Marathon, Milwaukee, Outagamie,
+    // Racine, Rock, Sauk, Vernon, Washington, Waukesha, Waupaca, and Winnebago counties, and
+    // the Oneida Indian Reservation
+    slug: 'wisconsin-severe-storms-tornadoes-flooding',
+    code: 'WI-2026-02',
+    state: 'Wisconsin',
+    abbreviation: 'WI',
+    event: 'Severe Storms, Tornadoes and Flooding',
+    issuedOn: 'July 13, 2026',
+    deadline: '2026-11-02',
+    deadlineLabel: 'Nov. 2, 2026',
+    incidentStart: 'April 13, 2026',
+    affectedArea: 'Bayfield, Brown, Buffalo, Iowa, Jackson, Jefferson, Juneau, Kenosha, Kewaunee, Manitowoc, Marathon, Milwaukee, Outagamie, Racine, Rock, Sauk, Vernon, Washington, Waukesha, Waupaca, and Winnebago counties, and the Oneida Indian Reservation',
+    affectedReturns: ['individual', 'corporate', 's-corp', 'partnership', 'estate-trust', 'estate-gift', 'tax-exempt', 'payroll-excise', 'estimated'],
+    femaDeclaration: '4923-DR',
+    sourceHref: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-wisconsin-various-deadlines-postponed-to-nov-2-2026',
   },
 ]
 
