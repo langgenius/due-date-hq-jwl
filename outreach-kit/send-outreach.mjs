@@ -244,12 +244,15 @@ function buildAlert(r) {
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
   const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
+  const logo = WORDMARK_B64
+    ? `<img src="cid:wordmark" width="140" height="19" alt="DueDateHQ" style="display:block;border:0">`
+    : '<span style="font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</span>'
   const footerHtml = FOOTER_ADDRESS
     ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
     : ''
   const html =
     '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:496px">' +
-    `<div style="margin:0 0 24px;padding-bottom:15px;border-bottom:1px solid #EAECF0"><span style="font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</span></div>` +
+    `<div style="margin:0 0 24px;padding-bottom:15px;border-bottom:1px solid #EAECF0">${logo}</div>` +
     `<p style="margin:0 0 20px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.015em">A ${esc(n.state)} filing deadline has moved.</p>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
@@ -264,11 +267,14 @@ function buildAlert(r) {
     `</tr></table>` +
     `</div></td></tr></table>` +
     `<p style="margin:0 0 24px;color:#475467"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
-    `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
+    `<a href="https://app.duedatehq.com/alerts?state=${esc(n.abbr)}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
     `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
     '</div>'
-  return { subject, text, html, attachments: [] }
+  const attachments = WORDMARK_B64
+    ? [{ filename: 'duedatehq.png', content: WORDMARK_B64, content_id: 'wordmark', content_type: 'image/png' }]
+    : []
+  return { subject, text, html, attachments }
 }
 
 async function sendOne(to, subject, text, html, attachments) {
