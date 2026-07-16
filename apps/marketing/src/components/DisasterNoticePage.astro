@@ -13,6 +13,7 @@ import type { DisasterNotice } from '../lib/disaster-notices'
 import { FILING_TYPE_META, getNoticeStatus } from '../lib/disaster-notices'
 import { getContentDates } from '../lib/content-metadata'
 import FaqList from './FaqList.astro'
+import AlertOptin from './AlertOptin.astro'
 
 interface Props {
   notice: DisasterNotice
@@ -25,6 +26,8 @@ interface Props {
 }
 
 const { notice, hubHref, ctaHref, faq, locale } = Astro.props
+const alertFormAction =
+  import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/YOUR_FORM_ID'
 const status = getNoticeStatus(notice)
 const reviewedOn = getContentDates('irs-disaster-relief').reviewedOn
 
@@ -151,6 +154,15 @@ const L = {
 
   <section class="m-section m-page-block">
     <FaqList eyebrow={L.faqEyebrow} title={L.faqTitle} items={faq} />
+  </section>
+
+  <section class="m-section m-page-block">
+    <AlertOptin
+      action={alertFormAction}
+      compact
+      defaultStates={notice.abbreviation}
+      heading={`Get future ${notice.state} deadline changes by email`}
+    />
   </section>
 
   <section class="m-section m-page-block">

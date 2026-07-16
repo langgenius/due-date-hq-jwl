@@ -13,6 +13,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 import TopNav from '../../components/home/TopNav.astro'
 import Footer from '../../components/home/Footer.astro'
 import FaqList from '../../components/FaqList.astro'
+import AlertOptin from '../../components/AlertOptin.astro'
 import en from '../../i18n/en'
 import { getCtaHref } from '../../lib/app-url'
 import {
@@ -168,52 +169,9 @@ const faq = [
       </p>
     </section>
 
-    <!-- Free deadline-change alert opt-in — turns SEO traffic into subscribers
-         without an app signup. POSTs email + states to `alertFormAction`; those
-         feed the disaster-alert sender. -->
-    <section class="m-section m-page-block" aria-labelledby="dr-optin-h">
-      <div class="dr-optin">
-        <p class="m-eyebrow">Free alerts</p>
-        <h2 class="m-page-h2" id="dr-optin-h">Get an email the moment a deadline moves in your states</h2>
-        <p class="dr-optin__lead">
-          No account needed. Tell us the states you file in — the next time the IRS postpones a
-          filing deadline there, we send you the change, the affected counties, and the official
-          notice, the day it posts.
-        </p>
-        <form class="dr-optin__form" action={alertFormAction} method="POST">
-          <input type="hidden" name="_subject" value="New DueDateHQ deadline-alert subscriber" />
-          <input type="hidden" name="source" value="irs-disaster-relief-hub" />
-          <label class="dr-optin__field">
-            <span class="dr-optin__label">Work email</span>
-            <input
-              class="dr-optin__input"
-              type="email"
-              name="email"
-              required
-              placeholder="you@yourfirm.com"
-              autocomplete="email"
-            />
-          </label>
-          <label class="dr-optin__field">
-            <span class="dr-optin__label">States you file in</span>
-            <input
-              class="dr-optin__input"
-              type="text"
-              name="states"
-              required
-              placeholder="e.g. GA, WA, LA"
-            />
-          </label>
-          <button
-            class="m-btn m-btn--primary dr-optin__btn"
-            type="submit"
-            data-event="marketing.disaster-hub.alert-optin"
-          >
-            Send me deadline alerts
-          </button>
-        </form>
-        <p class="dr-optin__fine">Free while in beta · one email per change · unsubscribe anytime</p>
-      </div>
+    <!-- Free deadline-change alert opt-in — turns SEO traffic into subscribers. -->
+    <section class="m-section m-page-block">
+      <AlertOptin action={alertFormAction} />
     </section>
 
     <section class="m-section m-page-block">
@@ -676,56 +634,5 @@ const faq = [
     font-family: var(--m-font-mono);
     font-size: var(--m-text-xs);
     color: var(--m-muted);
-  }
-  .dr-optin {
-    background: var(--m-surface-soft, #f7f8fb);
-    border: 1px solid var(--m-hairline, #e6e8ee);
-    border-radius: var(--m-radius-lg, 16px);
-    padding: 28px;
-    max-width: 560px;
-  }
-  .dr-optin__lead {
-    margin: 10px 0 20px;
-    color: var(--m-text-secondary, #475467);
-  }
-  .dr-optin__form {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    max-width: 380px;
-  }
-  .dr-optin__field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .dr-optin__label {
-    font-size: var(--m-text-xs, 13px);
-    color: var(--m-muted, #667085);
-  }
-  .dr-optin__input {
-    font: inherit;
-    padding: 11px 13px;
-    border-radius: var(--m-radius-sm, 8px);
-    border: 1px solid var(--m-hairline, #d5d9e2);
-    background: #fff;
-    color: inherit;
-  }
-  .dr-optin__input::placeholder {
-    color: #98a2b3;
-  }
-  .dr-optin__input:focus-visible {
-    outline: 2px solid var(--m-accent, #2e368c);
-    outline-offset: 1px;
-    border-color: var(--m-accent, #2e368c);
-  }
-  .dr-optin__btn {
-    margin-top: 4px;
-    align-self: flex-start;
-  }
-  .dr-optin__fine {
-    margin-top: 14px;
-    font-size: var(--m-text-xs, 12px);
-    color: var(--m-muted, #98a2b3);
   }
 </style>

@@ -30,3 +30,10 @@ Two GTM moves on `/irs-disaster-relief`, which is already the newsjack SEO surfa
 
 The loop: SEO hub (#5) → free-alert opt-in (#1) → subscriber list → disaster-alert sender. Ties directly
 to the "real-time monitoring" selling point.
+
+## Update — reusable component + per-state leaves
+Refactored the opt-in into `components/AlertOptin.astro` (props: action, defaultStates, compact,
+heading). The hub uses the full version; every state notice page (via `DisasterNoticePage`) now shows
+a **compact, state-prefilled** version ("Get future <State> deadline changes by email", states field
+pre-set to the notice's abbreviation) — so leaf pages that catch direct search traffic convert too.
+All 11 leaves + hub build clean (207 pages).
