@@ -51,6 +51,12 @@ First live render read as list-overload. Fixes to `buildAlert()`:
   proper nouns like "Southeast Georgia").
 - Preview: `docs/marketing/alert-email-preview.html` (GA/WA/LA).
 
+## Minimal pass ("too much things")
+Stripped further: dropped the lede paragraph and the entire "returns that moved" chips block + the
+county-list block. Card collapses to **date + countdown + one summary line** ("Nearly all federal
+returns · clients in the affected counties"). Body = headline → card → one product sentence → CTA.
+Full county list / return specifics live behind the "official notice" link and the CTA.
+
 ## Not sent
 Nothing sent. Pilot plan: scope with `--wave` to one live-disaster state (e.g. WA — soonest deadline, and our
 Vancouver/Longview firms sit in the affected counties) and measure reply/signup vs the generic campaign's 0.
