@@ -281,7 +281,6 @@ function buildAlert(r) {
     `Co-Founder of DueDateHQ`,
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
-  const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
   const logo = WORDMARK_B64
     ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
     : '<a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>'
@@ -310,7 +309,14 @@ function buildAlert(r) {
     footerHtml +
     '</div>'
   const attachments = WORDMARK_B64
-    ? [{ filename: 'duedatehq.png', content: WORDMARK_B64, content_id: 'wordmark', content_type: 'image/png' }]
+    ? [
+        {
+          filename: 'duedatehq.png',
+          content: WORDMARK_B64,
+          content_id: 'wordmark',
+          content_type: 'image/png',
+        },
+      ]
     : []
   return { subject, text, html, attachments }
 }

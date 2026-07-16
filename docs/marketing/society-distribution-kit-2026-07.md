@@ -5,6 +5,7 @@ the day it posts. Hand them ready-to-publish member-notice content, free — one
 thousands of CPAs with authority backing. Never pitch the product; the credit line does that.
 
 **What we offer each society (the ask is one yes):**
+
 1. A **member-ready summary** of each new IRS relief for their state, the day it posts — publish
    as-is or edited, credit optional ("verified by DueDateHQ").
 2. The **embeddable widget** for their site — `duedatehq.com/widget` (live list, auto-updates,
@@ -17,19 +18,21 @@ WA relief deadline is **Aug. 5, 2026** (release updated from May 1) and HI is **
 still live** (updated from Jul 8) — per our verified dataset.
 
 ## Contact table (priority order)
-| Pri | Society | Contact | Why now |
-|---|---|---|---|
-| 1 | **MSCPA** (Mississippi) | Rachel Shirley, Dir. Marketing & Comms — rshirley@ms-cpa.org | IRS posted MS relief **Jul 13**; society has published **nothing** — real speed gap, newsletter only 10×/yr |
-| 2 | **LCPA** (Louisiana) | Ann Lupo, Dir. Communications & PR — alupo@louisiana.cpa · 504.904.1125 | Fastest society (posted Jul 14). Pitch = **augment**: same-day parish-level detail so she doesn't write it herself |
-| 3 | **WSCPA** (Washington) | Jeanette Kebede, CAE, VP Comms & Tech — jkebede@wscpa.org | Never covered the WA relief (now **Aug. 5** deadline, 3 weeks out) — gentle concrete miss |
-| 4 | **MICPA** (Michigan) | Jennifer Rogers, Marketing Services Dir. — jrogers@micpa.org | Active news feed, zero disaster-relief coverage; MI relief new Jul 13 |
-| 5 | **GSCPA** (Georgia) | Brandi Kornegay, Mgr. Communications — bkornegay@gscpa.org | Only a stale Helene-era page; GA deadline Aug. 20 approaching |
-| 6 | **ASCPA** (Arizona) | Rosa Hernandez — rhernandez@ascpa.com (magazine/eNews submissions route) | Whitespace; AZ relief live to Sept. 28 |
-| 7 | **MTCPA** (Montana — montana.cpa) | erinn@montana.cpa (address to "marketing & comms team"; fallback info@montana.cpa) | Econnect weekly; no Fort Peck/Crow coverage (Sept. 28) |
-| 8 | **WICPA** (Wisconsin) | communications@wicpa.org (no named editor) | WI relief new Jul 13, nothing posted |
-| 9 | **HSCPA** (Hawaii) | info@hscpa.org | News stale since 2023; HI relief **still live to Aug. 20** — "next time, same-day" pitch |
+
+| Pri | Society                           | Contact                                                                            | Why now                                                                                                            |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | **MSCPA** (Mississippi)           | Rachel Shirley, Dir. Marketing & Comms — rshirley@ms-cpa.org                       | IRS posted MS relief **Jul 13**; society has published **nothing** — real speed gap, newsletter only 10×/yr        |
+| 2   | **LCPA** (Louisiana)              | Ann Lupo, Dir. Communications & PR — alupo@louisiana.cpa · 504.904.1125            | Fastest society (posted Jul 14). Pitch = **augment**: same-day parish-level detail so she doesn't write it herself |
+| 3   | **WSCPA** (Washington)            | Jeanette Kebede, CAE, VP Comms & Tech — jkebede@wscpa.org                          | Never covered the WA relief (now **Aug. 5** deadline, 3 weeks out) — gentle concrete miss                          |
+| 4   | **MICPA** (Michigan)              | Jennifer Rogers, Marketing Services Dir. — jrogers@micpa.org                       | Active news feed, zero disaster-relief coverage; MI relief new Jul 13                                              |
+| 5   | **GSCPA** (Georgia)               | Brandi Kornegay, Mgr. Communications — bkornegay@gscpa.org                         | Only a stale Helene-era page; GA deadline Aug. 20 approaching                                                      |
+| 6   | **ASCPA** (Arizona)               | Rosa Hernandez — rhernandez@ascpa.com (magazine/eNews submissions route)           | Whitespace; AZ relief live to Sept. 28                                                                             |
+| 7   | **MTCPA** (Montana — montana.cpa) | erinn@montana.cpa (address to "marketing & comms team"; fallback info@montana.cpa) | Econnect weekly; no Fort Peck/Crow coverage (Sept. 28)                                                             |
+| 8   | **WICPA** (Wisconsin)             | communications@wicpa.org (no named editor)                                         | WI relief new Jul 13, nothing posted                                                                               |
+| 9   | **HSCPA** (Hawaii)                | info@hscpa.org                                                                     | News stale since 2023; HI relief **still live to Aug. 20** — "next time, same-day" pitch                           |
 
 ## Pitch email — MSCPA version (speed-gap; send first)
+
 > **Subject:** Ready-to-publish summary of the new Mississippi IRS relief (MS-2026-02)
 >
 > Hi Rachel,
@@ -56,6 +59,7 @@ I can save Ann the write-up — a verified, parish-level summary the same day th
 live widget for your Disaster Response page."
 
 ## Ready-to-publish member notice — Mississippi (every fact from IRS MS-2026-02)
+
 > **IRS postpones deadlines to Nov. 2 for five Mississippi counties (MS-2026-02)**
 >
 > Following severe storms, straight-line winds, tornadoes and flooding, the IRS has postponed
@@ -68,14 +72,15 @@ live widget for your Disaster Response page."
 > based on the IRS address of record.
 >
 > Official release: [irs.gov — MS-2026-02]
-> *Deadline data verified against the IRS release by [DueDateHQ](https://duedatehq.com), which
-> monitors IRS and state deadline changes for CPA firms.*
+> _Deadline data verified against the IRS release by [DueDateHQ](https://duedatehq.com), which
+> monitors IRS and state deadline changes for CPA firms._
 
 (LA version: swap to **LA-2026-02 · Tropical Storm Arthur · Nov. 2, 2026 · Avoyelles, St. Landry,
 St. Tammany and Terrebonne parishes · FEMA 4927-DR**. WA version: **WA-2025-03 · Aug. 5, 2026 ·
 9 counties** — pull exact fields from `outreach-kit/disaster-notices.json`.)
 
 ## Operating loop
+
 Daily IRS monitor catches a new declaration → verify + update the dataset → send that state's
 society the pitch/summary **same day** (this kit's template) → alert-email the state's firms →
 the society post/widget links back to the hub. One event, four surfaces.

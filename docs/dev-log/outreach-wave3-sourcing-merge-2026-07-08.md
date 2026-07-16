@@ -1,6 +1,7 @@
 # Outreach wave-3 — deep sourcing + merge into send list (2026-07-08)
 
 ## What
+
 Sourced **1,001 verified, emailable, ICP-qualified US CPA contacts** across 35 states and merged them into
 the cold-outreach master roster + send sequence. (1,003 qualified − 2 removed by MX pre-check, see below.)
 
@@ -8,7 +9,9 @@ the cold-outreach master roster + send sequence. (1,003 qualified − 2 removed 
 - `outreach-kit/duedatehq-OUTREACH-sequence.csv`: 649 → **1,650** rows (16-col, rendered)
 
 ## How (sourcing)
+
 "Crank it" depth pass — 48 subagents in rate-safe batches of ~7:
+
 - **4 fresh disaster states**: MT, NV, UT, ID.
 - **31 already-covered states deepened** into secondary/tertiary cities at ~40-firm depth
   (the 12 wave-3 tornado states + 19 prior states).
@@ -18,6 +21,7 @@ Hard rules enforced: no guessed emails (pattern-only/AI-summary hits rejected), 
 programmatic dedupe vs the 688-email base (0 dup emails in final file).
 
 ## Target-user (ICP) fit gate
+
 Every row gated to DueDateHQ's ICP: a US CPA / CPA-solo **tax-compliance** practice carrying a recurring
 filing-deadline calendar. **1,003 qualified; 3 held for review** (`wave3-review-fit.csv`) — a wealth-management
 hybrid, an IRS-resolution solo, and one firm not accepting new clients. First gate pass over-flagged 98 legit
@@ -25,6 +29,7 @@ CPA firms for lacking a literal "tax" token in terse Notes; corrected to gate on
 signals (wealth/mill/not-accepting), not absence-of-signal.
 
 ## How (merge/render)
+
 - Templates lifted byte-exact from existing sequence rows (2 variants): **track C** (Fit contains
   business/entity → "S-corps and partnerships" subject/body, 802 rows) vs **track B** ("your clients", 201).
   Touch-2/3 copy identical across tracks. `buildTouch1()` still regenerates the touch-1 GA card at send time.
@@ -34,10 +39,12 @@ signals (wealth/mill/not-accepting), not absence-of-signal.
   to origin/main. Send-script dry-run touch-1: `failed=0`.
 
 ## New files
+
 `duedatehq-MASTER-verified-wave3.csv` (1,003), `wave3-review-fit.csv` (3), `wave3-form-and-manual.csv` (265),
 `wave3-sequence-greeting-review.csv` (36), `wave3-sourcing-notes.md`.
 
 ## Deliverability / reputation guard
+
 - **MX pre-check on all 969 recipient domains** (dig, Google-DNS re-verify): 967 have valid mail servers;
   2 domains were genuinely dead (no MX + no A) → their recipients removed before commit:
   `trish@legriscpa.com`, `david@ondrovichcpa.com`. (4 others flagged initially were transient DNS timeouts.)
@@ -46,6 +53,7 @@ signals (wealth/mill/not-accepting), not absence-of-signal.
   not a single 1,000-send blast from a domain that's only sent ~500 — and pause if bounces exceed ~3%.
 
 ## Send log — 2026-07-08, batch 1 of wave-3
+
 - Sent **touch-1 to 200** lowest-risk recipients (`wave3-today-200.txt` — personal mailboxes only, spread
   ~6/state across all 35 states), `--delay 8000`, scoped via `--wave`.
 - Result: **sent=199, failed=1**. Record appended **t1 500 → 699** (append-only guard: 0 regressions).
@@ -54,6 +62,7 @@ signals (wealth/mill/not-accepting), not absence-of-signal.
 - Remaining wave-3 to send: **801** (601 personal + role/free tiers). Next batch = next 200 personal.
 
 ## ⚠️ Before sending
+
 - **Use the canonical `.outreach-state.json` (origin/main: t1=500, t2=198).** This worktree's copy is stale
   (t1=205) — sending against it would re-send touch-1 to ~295 already-contacted originals. The state file was
   NOT modified or committed here.

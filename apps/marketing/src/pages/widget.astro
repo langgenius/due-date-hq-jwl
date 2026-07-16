@@ -19,13 +19,13 @@ const title = 'Free IRS Deadline-Change Widget & Data Feed | DueDateHQ'
 const description =
   'Embed a live, verified list of IRS disaster-relief deadline postponements on your site with one script tag — or pull the free JSON feed. Every date sourced to irs.gov.'
 
-const snippetBasic = `<script src="https://duedatehq.com/widget/deadline-alerts.js" async><\/script>`
+const snippetBasic = `<script src="https://duedatehq.com/widget/deadline-alerts.js" async></script>`
 const snippetFiltered = `<!-- Only your states, capped at 3 rows -->
 <script src="https://duedatehq.com/widget/deadline-alerts.js"
-        data-states="LA,GA,WA" data-max="3" async><\/script>`
+        data-states="LA,GA,WA" data-max="3" async></script>`
 const snippetContainer = `<!-- Optional: control placement with a container -->
 <div id="duedatehq-alerts"></div>
-<script src="https://duedatehq.com/widget/deadline-alerts.js" async><\/script>`
+<script src="https://duedatehq.com/widget/deadline-alerts.js" async></script>`
 ---
 
 <BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">

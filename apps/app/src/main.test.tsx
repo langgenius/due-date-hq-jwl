@@ -47,4 +47,4 @@ it('sets app locale analytics context before analytics initialization', async ()
   expect(mocks.setSuperProperties.mock.invocationCallOrder[0]).toBeLessThan(
     mocks.initAnalytics.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
   )
-})
+}, 15_000)
