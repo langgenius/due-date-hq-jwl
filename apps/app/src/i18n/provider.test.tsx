@@ -1,12 +1,20 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_LOCALE, type Locale } from '@duedatehq/i18n'
 
 import { bootstrapI18n } from './bootstrap'
 import { activateLocale } from './i18n'
 import { AppI18nProvider, useLocaleSwitch } from './provider'
+
+const analyticsMocks = vi.hoisted(() => ({
+  setSuperProperties: vi.fn(),
+}))
+
+vi.mock('@/lib/analytics', () => ({
+  setSuperProperties: analyticsMocks.setSuperProperties,
+}))
 
 // Vitest doesn't set this by default; without it React 19's act() prints
 // noisy warnings even though the test code itself is correct.
@@ -62,6 +70,7 @@ describe('AppI18nProvider', () => {
   let harness: Harness | null = null
 
   beforeEach(() => {
+    analyticsMocks.setSuperProperties.mockClear()
     window.localStorage.clear()
     window.history.replaceState(null, '', '/')
     document.documentElement.lang = ''
@@ -71,26 +80,53 @@ describe('AppI18nProvider', () => {
     harness?.unmount()
     harness = null
     activateLocale('en')
+    vi.restoreAllMocks()
   })
 
   it('provides the bootstrapped locale to React consumers', () => {
-    bootstrapI18n()
+    const resolution = bootstrapI18n()
 
     harness = mount()
     expect(document.documentElement.lang).toBe('en')
+    expect(resolution).toEqual({ locale: 'en', source: 'browser' })
   })
 
   it('consumes a valid marketing lng query before render', () => {
     window.history.replaceState(null, '', '/?lng=zh-CN')
 
-    bootstrapI18n()
+    const resolution = bootstrapI18n()
 
     harness = mount()
 
+    expect(resolution).toEqual({ locale: 'zh-CN', source: 'query' })
     expect(harness.ref.current.locale).toBe('zh-CN')
     expect(document.documentElement.lang).toBe('zh-CN')
     expect(window.localStorage.getItem('lng')).toBe('zh-CN')
     expect(window.location.search).toBe('')
+  })
+
+  it('reports a persisted locale as the bootstrap source', () => {
+    window.localStorage.setItem('lng', 'zh-CN')
+
+    const resolution = bootstrapI18n()
+
+    expect(resolution).toEqual({ locale: 'zh-CN', source: 'storage' })
+  })
+
+  it('reports browser detection as the bootstrap source', () => {
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('zh-Hans-SG')
+
+    const resolution = bootstrapI18n()
+
+    expect(resolution).toEqual({ locale: 'zh-CN', source: 'browser' })
+  })
+
+  it('reports the default source when the browser exposes no language', () => {
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('')
+
+    const resolution = bootstrapI18n()
+
+    expect(resolution).toEqual({ locale: 'en', source: 'default' })
   })
 
   it('switches locale, persists the choice, and updates <html lang>', () => {
@@ -103,6 +139,7 @@ describe('AppI18nProvider', () => {
     expect(harness.ref.current.locale).toBe('zh-CN')
     expect(document.documentElement.lang).toBe('zh-CN')
     expect(window.localStorage.getItem('lng')).toBe('zh-CN')
+    expect(analyticsMocks.setSuperProperties).toHaveBeenCalledWith({ app_locale: 'zh-CN' })
   })
 
   it('is a no-op when switching to the already-active locale', () => {

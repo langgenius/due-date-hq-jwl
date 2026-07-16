@@ -11,6 +11,13 @@ import { localeFromSearch, localeFromSearchParams, removeLocaleFromPath } from '
 
 const STORAGE_KEY = 'lng'
 
+export type LocaleSource = 'query' | 'storage' | 'browser' | 'default'
+
+export interface LocaleResolution {
+  locale: Locale
+  source: LocaleSource
+}
+
 export { DEFAULT_LOCALE, INTL_LOCALE, LOCALE_LABELS, SUPPORTED_LOCALES, isLocale, type Locale }
 
 function detectLocaleHandoff(): Locale | null {
@@ -50,22 +57,28 @@ export function persistLocaleHandoffFromUrl(url: URL): Locale | null {
 
 // Priority: marketing handoff query → explicit user choice in localStorage →
 // navigator.language → default.
-export function detectLocale(): Locale {
-  if (typeof window === 'undefined') return DEFAULT_LOCALE
+export function detectLocaleResolution(): LocaleResolution {
+  if (typeof window === 'undefined') return { locale: DEFAULT_LOCALE, source: 'default' }
 
   const queryLocale = detectLocaleHandoff()
-  if (queryLocale) return queryLocale
+  if (queryLocale) return { locale: queryLocale, source: 'query' }
 
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY)
-    if (isLocale(stored)) return stored
+    if (isLocale(stored)) return { locale: stored, source: 'storage' }
   } catch {
     // localStorage may be blocked in private mode; fall through to navigator.
   }
 
-  const detected = localeFromLanguageSignal(window.navigator?.language)
-  if (detected) return detected
-  return DEFAULT_LOCALE
+  const language = window.navigator?.language
+  const detected = localeFromLanguageSignal(language)
+  if (detected) return { locale: detected, source: 'browser' }
+  if (language) return { locale: DEFAULT_LOCALE, source: 'browser' }
+  return { locale: DEFAULT_LOCALE, source: 'default' }
+}
+
+export function detectLocale(): Locale {
+  return detectLocaleResolution().locale
 }
 
 export function persistLocale(locale: Locale): void {

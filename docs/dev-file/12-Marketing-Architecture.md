@@ -499,6 +499,10 @@ https://app.duedatehq.com/?lng=zh-CN
 消费有效值，写入 Lingui runtime、`<html lang>` 和 `localStorage["lng"]`，随后用 nuqs
 serializer 生成去掉 `lng` 的 URL，并通过 `history.replaceState` 清理。React Router loaders
 若再遇到有效 `lng`，只消费、不透传，redirect 到 `/login` / `/onboarding` 时不会继续保留该参数。
+在 URL 清理后、Amplitude 初始化前，app 会把实际 Lingui locale 记录为 `app_locale`，并把本次
+启动来源记录为 `locale_source=query`；从持久化偏好、浏览器信号或最终默认值启动时则分别记录
+`storage`、`browser`、`default`。因此分析界面语言必须使用 `app_locale`，不能使用 Amplitude
+内置的浏览器 `Language` 字段代替。
 
 `lng` 只表示一次性 marketing → app handoff，不是长期 app state。app 内语言切换仍通过用户菜单写入
 `localStorage["lng"]`。无效值（例如 `?lng=fr-FR`）解析为空，不覆盖用户已有偏好。

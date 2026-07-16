@@ -38,6 +38,11 @@ under `vp dev` because of the `import.meta.env.PROD` gate.
   properties to land — create it once.
 - **Lazy + queued**: the SDK loads via `import()` after a key is present; calls
   made before it finishes are queued and flushed in order.
+- **App locale context**: app bootstrap sets `app_locale` to the active Lingui
+  locale and `locale_source` to `query`, `storage`, `browser`, or `default`
+  before analytics initialization. These custom properties describe the UI
+  language; Amplitude's built-in `Language` property only describes the
+  browser language signal.
 
 ## Adding an event
 

@@ -3,6 +3,7 @@ import { I18nProvider } from '@lingui/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { DEFAULT_LOCALE, type Locale } from '@duedatehq/i18n'
 
+import { setSuperProperties } from '@/lib/analytics'
 import { activateLocale, currentLocale, i18n } from './i18n'
 
 interface AppI18nProviderProps {
@@ -33,6 +34,7 @@ export function useLocaleSwitch(): {
     (next: Locale) => {
       if (next === locale) return
       activateLocale(next, { persist: true })
+      setSuperProperties({ app_locale: next })
       // Drop any server responses that embed human-readable locale-dependent
       // text so follow-up renders refetch in the newly active language.
       void queryClient.invalidateQueries()
