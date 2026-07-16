@@ -1,0 +1,144 @@
+---
+/**
+ * /widget — docs + live preview for the embeddable "IRS deadline changes" widget
+ * and the free JSON data feed. The distribution play: accounting blogs, state
+ * societies, and tool sites embed the widget (or pull the feed) and every embed
+ * links back to the disaster hub — attribution, backlinks, and brand in one.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import en from '../i18n/en'
+import { getCtaHref } from '../lib/app-url'
+
+const t = en
+const pathname = '/widget'
+const ctaHref = getCtaHref('en')
+
+const title = 'Free IRS Deadline-Change Widget & Data Feed | DueDateHQ'
+const description =
+  'Embed a live, verified list of IRS disaster-relief deadline postponements on your site with one script tag — or pull the free JSON feed. Every date sourced to irs.gov.'
+
+const snippetBasic = `<script src="https://duedatehq.com/widget/deadline-alerts.js" async><\/script>`
+const snippetFiltered = `<!-- Only your states, capped at 3 rows -->
+<script src="https://duedatehq.com/widget/deadline-alerts.js"
+        data-states="LA,GA,WA" data-max="3" async><\/script>`
+const snippetContainer = `<!-- Optional: control placement with a container -->
+<div id="duedatehq-alerts"></div>
+<script src="https://duedatehq.com/widget/deadline-alerts.js" async><\/script>`
+---
+
+<BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <p class="m-eyebrow">Free embed + data feed</p>
+      <h1 class="m-page-title">Put live IRS deadline changes on your site</h1>
+      <p class="m-page-lead">
+        One script tag renders the current IRS disaster-relief postponements — state, event, new
+        deadline, days remaining — verified against the official irs.gov release. Free for
+        accounting firms, blogs, state societies, and tools. It updates whenever the data does.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="wg-preview-h">
+      <p class="m-eyebrow">Live preview</p>
+      <h2 class="m-page-h2" id="wg-preview-h">What it looks like</h2>
+      <div class="wg-preview">
+        <div id="duedatehq-alerts"></div>
+        <script is:inline src="/widget/deadline-alerts.js" async></script>
+      </div>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="wg-embed-h">
+      <p class="m-eyebrow">Embed</p>
+      <h2 class="m-page-h2" id="wg-embed-h">Add it with one tag</h2>
+      <div class="wg-snips">
+        <figure class="wg-snip">
+          <figcaption>All current notices</figcaption>
+          <pre><code set:text={snippetBasic} /></pre>
+        </figure>
+        <figure class="wg-snip">
+          <figcaption>Filter to your states</figcaption>
+          <pre><code set:text={snippetFiltered} /></pre>
+        </figure>
+        <figure class="wg-snip">
+          <figcaption>Choose where it renders</figcaption>
+          <pre><code set:text={snippetContainer} /></pre>
+        </figure>
+      </div>
+      <p class="wg-note">
+        The widget renders in a Shadow DOM, so your site's styles and ours never interfere. No
+        cookies, no tracking, no external requests — the data ships inside the script.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="wg-api-h">
+      <p class="m-eyebrow">Data feed</p>
+      <h2 class="m-page-h2" id="wg-api-h">Prefer raw data? Pull the JSON</h2>
+      <p class="wg-note">
+        The same verified dataset is published at
+        <a href="/data/disaster-notices.json"><code>duedatehq.com/data/disaster-notices.json</code></a>
+        — relief code, state, event, new deadline, affected area, covered returns, and the official
+        irs.gov source link for every notice. Free to use with a link back to
+        <a href="/irs-disaster-relief">duedatehq.com/irs-disaster-relief</a>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">Want the changes matched to your clients?</h2>
+          <p class="m-page-cta__body">
+            The widget shows what moved. DueDateHQ shows <em>who it hits</em> — it watches IRS,
+            state, and FEMA sources and matches every change to the clients in your book.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.widget.cta">Start free</a>
+          <a class="m-btn m-btn--secondary" href="/irs-disaster-relief">See current notices</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .wg-preview {
+    max-width: 480px;
+  }
+  .wg-snips {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 640px;
+  }
+  .wg-snip figcaption {
+    font-size: 13px;
+    color: var(--m-muted, #667085);
+    margin-bottom: 6px;
+  }
+  .wg-snip pre {
+    margin: 0;
+    padding: 14px 16px;
+    background: var(--m-surface-soft, #f7f8fb);
+    border: 1px solid var(--m-hairline, #e6e8ee);
+    border-radius: var(--m-radius-sm, 8px);
+    overflow-x: auto;
+  }
+  .wg-snip code {
+    font-family: var(--m-font-mono, ui-monospace, monospace);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--m-ink, #101828);
+    white-space: pre;
+  }
+  .wg-note {
+    max-width: 640px;
+    color: var(--m-text-secondary, #475467);
+  }
+  .wg-note a {
+    color: var(--m-accent, #2e368c);
+  }
+</style>
