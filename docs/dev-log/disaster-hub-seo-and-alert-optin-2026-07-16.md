@@ -3,6 +3,7 @@
 Two GTM moves on `/irs-disaster-relief`, which is already the newsjack SEO surface.
 
 ## #5 — SEO (mostly already built; confirmed + expanded)
+
 - Per-page titles are keyword-perfect via `getNoticeMeta`:
   `IRS <State> <Event> Tax Relief <yr> — Deadline <date> (<code>) | DueDateHQ`, plus rich
   `getNoticeFaq` (FAQ structured data) and `disasterNoticeStructuredData`.
@@ -14,6 +15,7 @@ Two GTM moves on `/irs-disaster-relief`, which is already the newsjack SEO surfa
   monitor task does this).
 
 ## #1 — Free deadline-alert opt-in (new)
+
 - Added a "Get an email the moment a deadline moves in your states" section to the hub, between the
   notices roster and the FAQ — so the SEO traffic converts to **subscribers without an app signup**
   (lower-commitment than "Start free"; the product value delivered before the product).
@@ -22,6 +24,7 @@ Two GTM moves on `/irs-disaster-relief`, which is already the newsjack SEO surfa
 - Analytics: `data-event="marketing.disaster-hub.alert-optin"`. Scoped CSS via `--m-*` tokens.
 
 ### Wiring to go live (2 steps)
+
 1. Create a capture endpoint (Formspree/Tally free form, or a Cloudflare Worker) and set
    `PUBLIC_ALERT_FORM_ACTION` to its URL in the marketing build env.
 2. Each submission (email + states) lands in Yuqi's inbox → add to a subscriber CSV → when a disaster
@@ -32,6 +35,7 @@ The loop: SEO hub (#5) → free-alert opt-in (#1) → subscriber list → disast
 to the "real-time monitoring" selling point.
 
 ## Update — reusable component + per-state leaves
+
 Refactored the opt-in into `components/AlertOptin.astro` (props: action, defaultStates, compact,
 heading). The hub uses the full version; every state notice page (via `DisasterNoticePage`) now shows
 a **compact, state-prefilled** version ("Get future <State> deadline changes by email", states field
