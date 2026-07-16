@@ -231,7 +231,7 @@ function buildAlert(r) {
   const subject = `The IRS moved a filing deadline in ${n.state} to ${n.deadlineLabel}`
   const text = [
     `Hi ${first},`,
-    `A filing deadline just moved in ${n.state}. After ${n.event.toLowerCase()}, the IRS postponed federal deadlines to ${n.deadlineLabel} for taxpayers in ${n.affectedArea}${daysLeft > 0 ? ` — ${daysLeft} days out` : ''}.`,
+    `A filing deadline just moved in ${n.state}. After ${n.event}, the IRS postponed federal deadlines to ${n.deadlineLabel} for taxpayers in ${n.affectedArea}${daysLeft > 0 ? ` — ${daysLeft} days out` : ''}.`,
     ``,
     `If any of your clients file there, it covers: ${forms}.`,
     ``,
@@ -243,12 +243,16 @@ function buildAlert(r) {
     `Co-Founder of DueDateHQ`,
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
-  const chips = n.forms
+  const PRIMARY = ['1040', '1120-S', '1065', '941 / 940', 'Estimates']
+  const primary = PRIMARY.filter((f) => n.forms.includes(f))
+  const extra = n.forms.filter((f) => !primary.includes(f))
+  const chips = primary
     .map(
       (f) =>
-        `<span style="display:inline-block;font-size:12px;font-weight:bold;color:#2E368C;background:#F2F4FF;border:1px solid #DDE1F6;border-radius:6px;padding:3px 8px;margin:0 4px 4px 0">${esc(f)}</span>`,
+        `<span style="display:inline-block;font-size:12px;font-weight:bold;color:#2E368C;background:#F2F4FF;border:1px solid #DDE1F6;border-radius:6px;padding:3px 9px;margin:0 5px 5px 0">${esc(f)}</span>`,
     )
     .join('')
+  const overflow = extra.length ? `+ ${esc(extra.join(' · '))}` : ''
   const footerHtml = FOOTER_ADDRESS
     ? `<p style="margin:18px 0 0;font-size:11px;color:#9aa0a6">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
     : ''
@@ -256,19 +260,20 @@ function buildAlert(r) {
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#202124;max-width:540px">' +
     `<p style="margin:0 0 14px"><span style="display:inline-block;width:7px;height:7px;border-radius:99px;background:#14C5F6;vertical-align:middle"></span> <span style="font-size:11px;letter-spacing:.12em;font-weight:bold;color:#2E368C">DEADLINE ALERT · IRS DISASTER RELIEF</span></p>` +
     `<p style="margin:0 0 12px;font-family:Georgia,serif;font-size:22px;line-height:1.28;color:#1F315C">A filing deadline just moved in ${esc(n.state)}.</p>` +
-    `<p style="margin:0 0 16px">After ${esc(n.event.toLowerCase())}, the IRS postponed federal deadlines to <b>${esc(n.deadlineLabel)}</b> for taxpayers in ${esc(n.affectedArea)}. If any of your clients file there, here&#39;s who it hits.</p>` +
+    `<p style="margin:0 0 18px;color:#475467">After ${esc(n.event)}, the IRS postponed federal filing deadlines in ${esc(n.state)} to <b style="color:#101828">${esc(n.deadlineLabel)}</b>. If any of your clients file in the affected counties, here&#39;s what moved.</p>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 18px"><tr><td style="border:1px solid #EAECF0;border-radius:12px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
     `<td style="background:#F9FAFB;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:8px 14px"><span style="font-size:11px;letter-spacing:.06em;font-weight:bold;color:#2E368C">${esc(n.state.toUpperCase())} · DISASTER RELIEF</span></td>` +
     `<td align="right" style="background:#F9FAFB;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:8px 14px"><span style="font-size:11px;color:#98A2B3">IRS ${esc(n.code)}</span></td>` +
     `</tr></table>` +
-    `<div style="padding:13px 14px">` +
+    `<div style="padding:14px">` +
     `<div style="font-size:12px;color:#475467">Federal deadlines postponed to</div>` +
-    `<div style="margin-top:2px"><span style="font-family:Georgia,serif;font-size:20px;font-weight:bold;color:#101828">${esc(n.deadlineLabel)}</span> <span style="font-size:12px;color:#B54708;font-weight:bold">· ${daysLine}</span></div>` +
-    `<div style="font-size:12px;color:#475467;margin-top:11px;padding-top:11px;border-top:1px solid #EAECF0">Affected area</div>` +
-    `<div style="font-size:13px;color:#101828;margin-top:2px">${esc(n.affectedArea)}</div>` +
-    `<div style="font-size:12px;color:#475467;margin-top:11px">Who it hits</div>` +
-    `<div style="margin-top:6px">${chips}</div>` +
+    `<div style="margin-top:3px"><span style="font-family:Georgia,serif;font-size:23px;font-weight:bold;color:#101828">${esc(n.deadlineLabel)}</span> &nbsp;<span style="font-size:13px;color:#B54708;font-weight:bold">${daysLine}</span></div>` +
+    `<div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#98A2B3;font-weight:bold;margin-top:15px;padding-top:13px;border-top:1px solid #EAECF0">Returns that moved</div>` +
+    `<div style="margin-top:8px">${chips}</div>` +
+    (overflow ? `<div style="font-size:11px;color:#98A2B3;margin-top:4px">${overflow}</div>` : '') +
+    `<div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#98A2B3;font-weight:bold;margin-top:15px">Affected counties</div>` +
+    `<div style="font-size:12px;color:#475467;line-height:1.5;margin-top:3px">${esc(n.affectedArea)}</div>` +
     `</div></td></tr></table>` +
     `<p style="margin:0 0 20px">That&#39;s what <a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> does — it watches the IRS, all 50 states and FEMA, and the moment a filing date moves it shows which of your clients it hits, with the <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">official notice</a> behind it. Free while we&#39;re in beta.</p>` +
     `<a href="https://app.duedatehq.com/?lng=en" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 20px;border-radius:8px">See which of your clients this hits →</a>` +

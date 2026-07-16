@@ -41,6 +41,16 @@ nothing invented). **6 → 11 live notices** (deadline on/after 2026-07-14):
 ## Design reference
 `docs/marketing/alert-email-preview.html` — real `buildAlert()` output rendered for GA / WA / LA.
 
+## Hierarchy revision (post first-render critique)
+First live render read as list-overload. Fixes to `buildAlert()`:
+- **De-duplicated the county list** (was in both lede and card → card only, demoted to muted small text).
+- **Tamed "who it hits":** 5 lead form chips (1040 · 1120-S · 1065 · 941/940 · Estimates) + a muted
+  `+ …` overflow, instead of 10 chips wrapping two rows.
+- **Spec-sheet card staircase:** Date (hero, 23px) → uppercase "RETURNS THAT MOVED" → uppercase
+  "AFFECTED COUNTIES" (demoted). Shorter lede; dropped `.toLowerCase()` on the event (was breaking
+  proper nouns like "Southeast Georgia").
+- Preview: `docs/marketing/alert-email-preview.html` (GA/WA/LA).
+
 ## Not sent
 Nothing sent. Pilot plan: scope with `--wave` to one live-disaster state (e.g. WA — soonest deadline, and our
 Vancouver/Longview firms sit in the affected counties) and measure reply/signup vs the generic campaign's 0.
