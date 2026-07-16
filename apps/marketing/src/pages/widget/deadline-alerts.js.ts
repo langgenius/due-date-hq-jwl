@@ -36,8 +36,11 @@ export const GET: APIRoute = () => {
 (function () {
   var NOTICES = ${JSON.stringify(data)};
   var script = document.currentScript;
-  var host = document.getElementById('duedatehq-alerts');
-  if (!host) {
+  var host = null;
+  var sel = script && script.getAttribute('data-target');
+  if (sel) host = document.querySelector(sel);
+  if (!host) host = document.getElementById('duedatehq-alerts');
+  if (!host || host.shadowRoot) { // no container, or one already claimed by another instance
     host = document.createElement('div');
     if (script && script.parentNode) script.parentNode.insertBefore(host, script.nextSibling);
     else document.body.appendChild(host);

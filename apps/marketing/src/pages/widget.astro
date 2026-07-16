@@ -11,12 +11,13 @@ import Footer from '../components/home/Footer.astro'
 import FaqList from '../components/FaqList.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
+import { widgetStructuredData } from '../lib/structured-data'
 
 const t = en
 const pathname = '/widget'
 const ctaHref = getCtaHref('en')
 
-const title = 'Free IRS Deadline-Change Widget & Data Feed | DueDateHQ'
+const title = 'Free Tax Deadline Widget — Embed Live IRS Deadline Changes | DueDateHQ'
 const description =
   'Embed a live, verified list of IRS disaster-relief deadline postponements on your site with one script tag — or pull the free JSON feed. Every date sourced to irs.gov.'
 
@@ -62,7 +63,14 @@ const faq = [
 ]
 ---
 
-<BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  structuredData={widgetStructuredData(t, 'en', pathname, title, description, faq)}
+>
   <TopNav pageMode ctaHref={ctaHref} current="coverage" />
   <main>
     <section class="m-section m-page-hero" id="hero">
@@ -142,6 +150,38 @@ const faq = [
       </p>
     </section>
 
+    <section class="m-section m-page-block" aria-labelledby="wg-ex-h">
+      <p class="m-eyebrow">Examples</p>
+      <h2 class="m-page-h2" id="wg-ex-h">Three ways sites use it</h2>
+      <div class="wg-examples">
+        <div class="wg-example">
+          <h3 class="wg-example__t">A Louisiana firm's client page</h3>
+          <p class="wg-example__d">
+            Filtered to the firm's state — clients see only what affects them.
+            <code>data-states="LA"</code>
+          </p>
+          <div id="wg-ex-la"></div>
+          <script is:inline src="/widget/deadline-alerts.js" data-target="#wg-ex-la" data-states="LA" async></script>
+        </div>
+        <div class="wg-example">
+          <h3 class="wg-example__t">A state society's member-news sidebar</h3>
+          <p class="wg-example__d">
+            The society's region, capped to two rows so it fits a sidebar.
+            <code>data-states="MS,LA,WI" data-max="2"</code>
+          </p>
+          <div id="wg-ex-multi"></div>
+          <script is:inline src="/widget/deadline-alerts.js" data-target="#wg-ex-multi" data-states="MS,LA,WI" data-max="2" async></script>
+        </div>
+        <div class="wg-example">
+          <h3 class="wg-example__t">A blog or newsletter resource page</h3>
+          <p class="wg-example__d">
+            Unfiltered, the full national picture — the default embed at the top of this page.
+            Readers click through to the county-level detail on each notice.
+          </p>
+        </div>
+      </div>
+    </section>
+
     <section class="m-section m-page-block" aria-labelledby="wg-api-h">
       <p class="m-eyebrow">Data feed</p>
       <h2 class="m-page-h2" id="wg-api-h">Prefer raw data? Pull the JSON</h2>
@@ -219,6 +259,33 @@ const faq = [
   .wg-preview {
     max-width: 480px;
     margin-top: 14px;
+  }
+  .wg-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 640px;
+  }
+  .wg-example__t {
+    font-size: var(--m-text-md, 16px);
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+    margin: 0 0 4px;
+  }
+  .wg-example__d {
+    margin: 0 0 12px;
+    color: var(--m-text-secondary, #475467);
+  }
+  .wg-example__d code {
+    font-family: var(--m-font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    background: var(--m-surface-soft, #f7f8fb);
+    border: 1px solid var(--m-hairline, #e6e8ee);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+  .wg-example > div[id^='wg-ex'] {
+    max-width: 460px;
   }
   .wg-snips {
     display: flex;

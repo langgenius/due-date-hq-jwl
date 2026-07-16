@@ -523,6 +523,26 @@ export function disasterHubStructuredData(
   ])
 }
 
+/** /widget — the free embeddable deadline-change widget + JSON feed docs page. */
+export function widgetStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  title: string,
+  description: string,
+  faq: FaqItemCopy[],
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, title, description, lang),
+    faqNode(faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: 'Deadline widget', pathname },
+    ]),
+  ])
+}
+
 export function disasterNoticeStructuredData(
   siteCopy: LandingCopy,
   lang: Locale,
