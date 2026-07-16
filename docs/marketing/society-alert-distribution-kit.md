@@ -22,6 +22,9 @@ HI is Aug 20 and still live, not "closed Jul 8").
 | 8 | MTCPA (montana.cpa) | erinn@montana.cpa (comms; surname unconfirmed — open with "marketing & communications team") | Two tribal reliefs to Sept 28, Econnect weekly |
 | 9 | HSCPA (hscpa.org) | info@hscpa.org (no editor public) | News page stale since 2023; HI relief **still live to Aug 20** |
 
+> **NOTE (v3, 2026-07-17):** final send-ready versions of all 9 emails (freshest-notice-first order,
+> full product-highlight line) live in the "society-emails-v3" artifact — treat that as canonical.
+
 ## Email 1 — MSCPA (SEND FIRST, today)
 
 **To:** rshirley@ms-cpa.org
@@ -35,8 +38,8 @@ HI is Aug 20 and still live, not "closed Jul 8").
 > on the site, as-is or edited, no strings. A "verified by DueDateHQ" credit is appreciated but
 > optional.
 >
-> We verify every IRS disaster notice against irs.gov the day it posts (it's what our product
-> does). If useful, I'll send you the same summary whenever new relief hits Mississippi — usually
+> DueDateHQ watches the IRS, all 50 state tax agencies and FEMA around the clock, verifies every
+> change against the official source, and shows firms exactly which of their clients it affects — free in beta. If useful, I'll send you the same summary whenever new relief hits Mississippi — usually
 > same-day.
 >
 > ---
@@ -70,8 +73,8 @@ HI is Aug 20 and still live, not "closed Jul 8").
 > Hi Ann,
 >
 > Saw LCPA's Tropical Storm Arthur notice go up on the 14th — fastest of any state society we
-> track. We verify every IRS disaster notice against irs.gov the day it posts (11 active
-> nationwide right now), with parish-level detail and the covered returns broken out.
+> track. DueDateHQ watches the IRS, all 50 state tax agencies and FEMA around the clock and verifies every
+> change against the official source (11 active reliefs nationwide right now), with parish-level detail and the covered returns broken out.
 >
 > If it would save you time, I'll send you a member-ready, source-linked summary the day anything
 > new hits Louisiana — free, publish however you like, credit optional. And if you'd rather it be
