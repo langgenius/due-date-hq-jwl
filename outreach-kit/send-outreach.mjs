@@ -227,6 +227,10 @@ function buildAlert(r) {
   const first = firstNameOf(r)
   const daysLeft = Math.ceil((new Date(`${n.deadline}T23:59:59Z`).getTime() - Date.now()) / 864e5)
   const daysLine = daysLeft > 0 ? `${daysLeft} days out` : 'due now'
+  const pillCss =
+    daysLeft <= 30
+      ? 'color:#B54708;background:#FFFAEB;border:1px solid #FEDF89'
+      : 'color:#475467;background:#F2F4F7;border:1px solid #E4E7EC'
   const forms = n.forms.join(' · ')
   const subject = `The IRS moved a filing deadline in ${n.state} to ${n.deadlineLabel}`
   const text = [
@@ -263,7 +267,7 @@ function buildAlert(r) {
     `<div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500">New federal deadline</div>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:7px"><tr>` +
     `<td valign="middle"><span style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
-    `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;color:#B54708;background:#FFFAEB;border:1px solid #FEDF89;border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
+    `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;${pillCss};border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
     `</tr></table>` +
     `</div></td></tr></table>` +
     `<p style="margin:0 0 24px;color:#475467"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
