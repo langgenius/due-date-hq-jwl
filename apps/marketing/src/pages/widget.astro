@@ -8,6 +8,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import TopNav from '../components/home/TopNav.astro'
 import Footer from '../components/home/Footer.astro'
+import FaqList from '../components/FaqList.astro'
 import en from '../i18n/en'
 import { getCtaHref } from '../lib/app-url'
 
@@ -26,6 +27,39 @@ const snippetFiltered = `<!-- Only your states, capped at 3 rows -->
 const snippetContainer = `<!-- Optional: control placement with a container -->
 <div id="duedatehq-alerts"></div>
 <script src="https://duedatehq.com/widget/deadline-alerts.js" async></script>`
+
+const faq = [
+  {
+    question: 'What exactly is this?',
+    answer:
+      'A small panel you add to your website with one script tag. It lists the IRS disaster-relief deadline postponements currently in effect — state, event, new deadline, days remaining — and each row links to the official irs.gov release. When the IRS posts a new notice, the widget updates by itself; you never touch the embed again.',
+  },
+  {
+    question: 'Who is it for?',
+    answer:
+      'Anyone whose audience files US taxes: state CPA societies (member-facing news), accounting blogs and newsletters, CPA firm websites (clients check your site after a disaster), and practice-management tools that want timely deadline context in-product.',
+  },
+  {
+    question: 'Is it really free?',
+    answer:
+      'Yes — the widget and the JSON feed are free to use. The widget carries a small built-in credit line ("deadline data by DueDateHQ"); keeping that visible is the only ask. For the raw feed, we ask for a link back to duedatehq.com/irs-disaster-relief.',
+  },
+  {
+    question: 'Will it slow my site down or track my visitors?',
+    answer:
+      'No. It is one async script with the data shipped inside it — zero external requests at render time, no cookies, no tracking. It renders inside a Shadow DOM, so your CSS and ours can never interfere.',
+  },
+  {
+    question: 'How current and how reliable is the data?',
+    answer:
+      'Every notice is transcribed from the official irs.gov news release — nothing inferred — and we monitor the IRS newsroom daily, so new postponements typically appear the day they post. Each row links to its source release so your readers can verify every date.',
+  },
+  {
+    question: 'Can I show only the states I care about?',
+    answer:
+      'Yes. Add data-states="LA,GA,WA" to the script tag to filter, and data-max="3" to cap the number of rows. Drop a <div id="duedatehq-alerts"></div> where you want it to render, or let it render in place.',
+  },
+]
 ---
 
 <BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">
@@ -33,17 +67,47 @@ const snippetContainer = `<!-- Optional: control placement with a container -->
   <main>
     <section class="m-section m-page-hero" id="hero">
       <p class="m-eyebrow">Free embed + data feed</p>
-      <h1 class="m-page-title">Put live IRS deadline changes on your site</h1>
+      <h1 class="m-page-title">Show live IRS deadline changes on your website</h1>
       <p class="m-page-lead">
-        One script tag renders the current IRS disaster-relief postponements — state, event, new
-        deadline, days remaining — verified against the official irs.gov release. Free for
-        accounting firms, blogs, state societies, and tools. It updates whenever the data does.
+        A free widget for accounting sites: one script tag renders the IRS disaster-relief
+        postponements currently in effect — state, new deadline, days remaining — with every date
+        verified against the official irs.gov release. It updates itself when the IRS posts; you
+        never maintain it.
       </p>
+      <p class="wg-who">
+        Built for <b>state CPA societies</b> · <b>accounting blogs &amp; newsletters</b> ·
+        <b>firm websites</b> · <b>practice-management tools</b>
+      </p>
+      <div class="wg-hero-btns">
+        <a class="m-btn m-btn--primary" href="#wg-embed-h">Copy the embed code</a>
+        <a class="m-btn m-btn--secondary" href="#wg-preview-h">See it live</a>
+      </div>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="wg-why-h">
+      <p class="m-eyebrow">Why embed it</p>
+      <h2 class="m-page-h2" id="wg-why-h">Timely answers on your site, zero upkeep</h2>
+      <ul class="wg-why">
+        <li>
+          <b>It answers the question your audience actually asks.</b> The week a disaster hits,
+          clients and members ask "which deadlines moved?" — the widget answers it on <i>your</i>
+          site, not a search result.
+        </li>
+        <li>
+          <b>Zero maintenance.</b> New IRS notices appear automatically, expired ones drop off.
+          Paste the tag once and forget it.
+        </li>
+        <li>
+          <b>Trust built in.</b> Every row links to the official irs.gov release, so your readers
+          can verify each date at the source.
+        </li>
+      </ul>
     </section>
 
     <section class="m-section m-page-block" aria-labelledby="wg-preview-h">
       <p class="m-eyebrow">Live preview</p>
-      <h2 class="m-page-h2" id="wg-preview-h">What it looks like</h2>
+      <h2 class="m-page-h2" id="wg-preview-h">This is the widget, running now</h2>
+      <p class="wg-note">Live data — exactly what renders on your site, at your container's width.</p>
       <div class="wg-preview">
         <div id="duedatehq-alerts"></div>
         <script is:inline src="/widget/deadline-alerts.js" async></script>
@@ -52,7 +116,12 @@ const snippetContainer = `<!-- Optional: control placement with a container -->
 
     <section class="m-section m-page-block" aria-labelledby="wg-embed-h">
       <p class="m-eyebrow">Embed</p>
-      <h2 class="m-page-h2" id="wg-embed-h">Add it with one tag</h2>
+      <h2 class="m-page-h2" id="wg-embed-h">Add it in under a minute</h2>
+      <ol class="wg-steps">
+        <li>Copy one tag below</li>
+        <li>Paste it into your page where you want the panel (any CMS that allows a script tag)</li>
+        <li>Done — it keeps itself current from here</li>
+      </ol>
       <div class="wg-snips">
         <figure class="wg-snip">
           <figcaption>All current notices</figcaption>
@@ -86,6 +155,10 @@ const snippetContainer = `<!-- Optional: control placement with a container -->
     </section>
 
     <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="Widget & feed questions" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
       <div class="m-page-cta">
         <div>
           <h2 class="m-page-cta__title">Want the changes matched to your clients?</h2>
@@ -105,8 +178,47 @@ const snippetContainer = `<!-- Optional: control placement with a container -->
 </BaseLayout>
 
 <style>
+  .wg-who {
+    margin-top: 14px;
+    font-size: var(--m-text-sm, 14px);
+    color: var(--m-text-secondary, #475467);
+  }
+  .wg-who b {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .wg-hero-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .wg-why {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 640px;
+    color: var(--m-text-secondary, #475467);
+  }
+  .wg-why b {
+    font-weight: 500;
+    color: var(--m-ink, #101828);
+  }
+  .wg-steps {
+    margin: 0 0 20px;
+    padding-left: 20px;
+    max-width: 640px;
+    color: var(--m-text-secondary, #475467);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
   .wg-preview {
     max-width: 480px;
+    margin-top: 14px;
   }
   .wg-snips {
     display: flex;
