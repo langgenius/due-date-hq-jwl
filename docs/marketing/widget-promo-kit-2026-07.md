@@ -59,11 +59,13 @@ Page: https://duedatehq.com/widget
 > duedatehq.com/widget
 
 ## Done on-site
+
 - /widget page rebuilt: what-it-is hero, audience line, "why embed" (answers the client question /
   zero maintenance / irs.gov-linked trust), 60-second steps, live preview, FAQ (6), JSON feed docs.
 - Disaster hub roster now cross-links to /widget ("Embed these notices free…").
 
 ## Metrics
+
 - Embeds live on third-party sites (check referrers / backlinks in GSC 链接数量)
 - /widget page visits (GA) · feed pulls
 - First embed target: 1 society or 1 blog within 2 weeks.

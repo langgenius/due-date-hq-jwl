@@ -31,7 +31,7 @@ One event, three channels. Send all three the same day — the news window is th
 >
 > Gigi · Co-Founder, DueDateHQ
 
-*(Same body works for Going Concern's tip line and Accounting Today if CPA-PA passes.)*
+_(Same body works for Going Concern's tip line and Accounting Today if CPA-PA passes.)_
 
 ## 2 · Jason Staats heads-up (value-first, no ask)
 
@@ -52,6 +52,7 @@ One event, three channels. Send all three the same day — the news window is th
 ## 3 · X / #TaxTwitter posts (post from whichever account exists)
 
 **Post A (the news):**
+
 > The IRS postponed filing deadlines in FOUR states on the same day (July 13):
 >
 > 🌀 Louisiana — Tropical Storm Arthur
@@ -61,6 +62,7 @@ One event, three channels. Send all three the same day — the news window is th
 > #TaxTwitter
 
 **Post B (the insight, next day):**
+
 > 11 IRS disaster-relief postponements are active right now, across 9 states/territories.
 > Soonest: Washington, Aug. 5 (three weeks out).
 >
@@ -71,12 +73,12 @@ One event, three channels. Send all three the same day — the news window is th
 
 ## Facts table (for reference / editor questions)
 
-| Code | State | Event | Issued | New deadline | Affected area |
-|---|---|---|---|---|---|
-| LA-2026-02 | Louisiana | Tropical Storm Arthur | July 13, 2026 | Nov. 2, 2026 | Avoyelles, St. Landry, St. Tammany, Terrebonne parishes |
-| MS-2026-02 | Mississippi | Severe storms, straight-line winds, tornadoes, flooding | July 13, 2026 | Nov. 2, 2026 | Franklin, Lamar, Lawrence, Lincoln, Wilkinson counties |
-| WI-2026-02 | Wisconsin | Severe storms, tornadoes, flooding | July 13, 2026 | Nov. 2, 2026 | 21 counties + Oneida Indian Reservation |
-| MI-2026-02 | Michigan | Severe storms, tornadoes, flooding | July 13, 2026 | Nov. 2, 2026 | 37 counties |
+| Code       | State       | Event                                                   | Issued        | New deadline | Affected area                                           |
+| ---------- | ----------- | ------------------------------------------------------- | ------------- | ------------ | ------------------------------------------------------- |
+| LA-2026-02 | Louisiana   | Tropical Storm Arthur                                   | July 13, 2026 | Nov. 2, 2026 | Avoyelles, St. Landry, St. Tammany, Terrebonne parishes |
+| MS-2026-02 | Mississippi | Severe storms, straight-line winds, tornadoes, flooding | July 13, 2026 | Nov. 2, 2026 | Franklin, Lamar, Lawrence, Lincoln, Wilkinson counties  |
+| WI-2026-02 | Wisconsin   | Severe storms, tornadoes, flooding                      | July 13, 2026 | Nov. 2, 2026 | 21 counties + Oneida Indian Reservation                 |
+| MI-2026-02 | Michigan    | Severe storms, tornadoes, flooding                      | July 13, 2026 | Nov. 2, 2026 | 37 counties                                             |
 
 Sources: irs.gov newsroom releases cited per-notice in `disaster-notices.ts`. Do not state facts
 beyond this table when talking to press.

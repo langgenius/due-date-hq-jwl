@@ -10,17 +10,17 @@ Ask = tiny ("want these when they hit your state?"). Credit line optional, never
 (`disaster-notices.ts`) — the research notes contained two stale values (WA is Aug 5 not May 1;
 HI is Aug 20 and still live, not "closed Jul 8").
 
-| Priority | Society | Contact | Angle |
-|---|---|---|---|
-| **1** | **MSCPA** (ms-cpa.org) | **Rachel Shirley**, Dir. Marketing & Comms — rshirley@ms-cpa.org | IRS posted MS relief **Jul 13**; ms-cpa.org has published **nothing** → fill the gap same-day |
-| 2 | LCPA (louisiana.cpa) | Ann Lupo, Dir. Communications & PR — alupo@louisiana.cpa | They're FAST (posted Arthur Jul 14) — angle is "we make Ann's job zero-effort + parish-level detail", not "you're slow" |
-| 3 | WSCPA (wscpa.org) | Jeanette Kebede, VP Communications — jkebede@wscpa.org | WA relief (now **Aug 5**) not covered on their blog; soonest deadline in the country |
-| 4 | GSCPA (gscpa.org) | Brandi Kornegay, Mgr. Communications — bkornegay@gscpa.org | Only a stale Helene-era resource page; GA deadline **Aug 20** |
-| 5 | MICPA (micpa.org) | Jennifer Rogers, Marketing Services Dir. — jrogers@micpa.org | Active news feed, zero disaster coverage; MI relief fresh (Jul 13) |
-| 6 | WICPA (wicpa.org) | communications@wicpa.org (no named editor) | WI relief fresh (Jul 13), nothing posted |
-| 7 | ASCPA (ascpa.com) | Rosa Hernandez — rhernandez@ascpa.com (mag/eNews submissions route) | AZ tribal relief to Sept 28, no coverage |
-| 8 | MTCPA (montana.cpa) | erinn@montana.cpa (comms; surname unconfirmed — open with "marketing & communications team") | Two tribal reliefs to Sept 28, Econnect weekly |
-| 9 | HSCPA (hscpa.org) | info@hscpa.org (no editor public) | News page stale since 2023; HI relief **still live to Aug 20** |
+| Priority | Society                | Contact                                                                                      | Angle                                                                                                                   |
+| -------- | ---------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **1**    | **MSCPA** (ms-cpa.org) | **Rachel Shirley**, Dir. Marketing & Comms — rshirley@ms-cpa.org                             | IRS posted MS relief **Jul 13**; ms-cpa.org has published **nothing** → fill the gap same-day                           |
+| 2        | LCPA (louisiana.cpa)   | Ann Lupo, Dir. Communications & PR — alupo@louisiana.cpa                                     | They're FAST (posted Arthur Jul 14) — angle is "we make Ann's job zero-effort + parish-level detail", not "you're slow" |
+| 3        | WSCPA (wscpa.org)      | Jeanette Kebede, VP Communications — jkebede@wscpa.org                                       | WA relief (now **Aug 5**) not covered on their blog; soonest deadline in the country                                    |
+| 4        | GSCPA (gscpa.org)      | Brandi Kornegay, Mgr. Communications — bkornegay@gscpa.org                                   | Only a stale Helene-era resource page; GA deadline **Aug 20**                                                           |
+| 5        | MICPA (micpa.org)      | Jennifer Rogers, Marketing Services Dir. — jrogers@micpa.org                                 | Active news feed, zero disaster coverage; MI relief fresh (Jul 13)                                                      |
+| 6        | WICPA (wicpa.org)      | communications@wicpa.org (no named editor)                                                   | WI relief fresh (Jul 13), nothing posted                                                                                |
+| 7        | ASCPA (ascpa.com)      | Rosa Hernandez — rhernandez@ascpa.com (mag/eNews submissions route)                          | AZ tribal relief to Sept 28, no coverage                                                                                |
+| 8        | MTCPA (montana.cpa)    | erinn@montana.cpa (comms; surname unconfirmed — open with "marketing & communications team") | Two tribal reliefs to Sept 28, Econnect weekly                                                                          |
+| 9        | HSCPA (hscpa.org)      | info@hscpa.org (no editor public)                                                            | News page stale since 2023; HI relief **still live to Aug 20**                                                          |
 
 > **NOTE (v3, 2026-07-17):** final send-ready versions of all 9 emails (freshest-notice-first order,
 > full product-highlight line) live in the "society-emails-v3" artifact — treat that as canonical.
@@ -84,6 +84,7 @@ HI is Aug 20 and still live, not "closed Jul 8").
 > Gigi · Co-Founder, DueDateHQ · duedatehq.com
 
 ## Rollout
+
 - Today: MSCPA (Email 1). This week: LCPA, WSCPA, GSCPA (adapt Email 1's structure; swap the
   state's verified notice block from `disaster-notices.ts`).
 - Next week: MICPA / WICPA / ASCPA / MTCPA / HSCPA.
@@ -92,5 +93,6 @@ HI is Aug 20 and still live, not "closed Jul 8").
 - Every email carries the widget P.S. (see `widget-promo-kit-2026-07.md`).
 
 ## Red lines
+
 Facts only from `disaster-notices.ts` / the cited IRS release. Never imply the society is slow
 (except factually, gently, where nothing is posted). Never make the credit line a condition.

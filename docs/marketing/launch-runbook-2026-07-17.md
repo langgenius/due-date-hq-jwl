@@ -15,16 +15,16 @@ guard 0 regressions.)
 
 ## B · 发送日历(所有命令在 `outreach-kit/`,环境变量同往常)
 
-| когда | 动作 | 命令/材料 |
-|---|---|---|
-| 今天 | AZ + MT alert(92 家,最后两州)| `--alert --send --wave wave3-alert-AZ.txt --limit 70` 然后 `--wave wave3-alert-MT.txt --limit 35` |
-| 今天 | touch-2 第一批(405 到期)| `--touch 2 --send --limit 200 --delay 8000` |
-| 今天 | 协会第一批 ×4(MSCPA/WICPA/MICPA/LCPA)| 成稿 artifact「society-emails-v3」 |
-| 今天 | newsjack 三发(CPA-PA / Jason / X 帖 A)| `newsjack-four-states-2026-07.md` |
-| 明天 | touch-2 剩余 ~205 | 同命令再跑 |
-| 明天 | 协会第二批(WSCPA/GSCPA/HSCPA)+ X 帖 B | 同 artifact |
-| 周末 | touch-3(205 到期,分两天)| `--touch 3 --send --limit 150 --delay 8000` |
-| 下周 | 协会可选批(ASCPA/MTCPA)+ widget embed-offer 邮件 | kit 文件 |
+| когда | 动作                                             | 命令/材料                                                                                         |
+| ----- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| 今天  | AZ + MT alert(92 家,最后两州)                    | `--alert --send --wave wave3-alert-AZ.txt --limit 70` 然后 `--wave wave3-alert-MT.txt --limit 35` |
+| 今天  | touch-2 第一批(405 到期)                         | `--touch 2 --send --limit 200 --delay 8000`                                                       |
+| 今天  | 协会第一批 ×4(MSCPA/WICPA/MICPA/LCPA)            | 成稿 artifact「society-emails-v3」                                                                |
+| 今天  | newsjack 三发(CPA-PA / Jason / X 帖 A)           | `newsjack-four-states-2026-07.md`                                                                 |
+| 明天  | touch-2 剩余 ~205                                | 同命令再跑                                                                                        |
+| 明天  | 协会第二批(WSCPA/GSCPA/HSCPA)+ X 帖 B            | 同 artifact                                                                                       |
+| 周末  | touch-3(205 到期,分两天)                         | `--touch 3 --send --limit 150 --delay 8000`                                                       |
+| 下周  | 协会可选批(ASCPA/MTCPA)+ widget embed-offer 邮件 | kit 文件                                                                                          |
 
 每批发完:commit `.outreach-state.json`(guard 会拦截任何回退)。
 
@@ -41,12 +41,12 @@ guard 0 regressions.)
 
 ## E · 资产索引
 
-| 资产 | 位置 |
-|---|---|
-| 灾害 hub + 11 州页 + 档案(206 条)+ opt-in | `/irs-disaster-relief*`(main,待部署)|
-| 50 州 × 3 实体截止日矩阵 | `/states/*` filing 小节 + `lib/state-filing-deadlines.json`(46 州,CA/TX/NY/FL/WA 补录中)|
-| Widget + JSON feed + llms.txt | `/widget`、`/data/disaster-notices.json`、`/llms*.txt` |
-| Alert 邮件系统 | `outreach-kit/send-outreach.mjs --alert`(263 已发,AZ/MT 待发)|
-| 协会 kit(9 封成稿+联系人)| `society-alert-distribution-kit.md` + artifact v3 |
-| Newsjack kits(圈内+圈外)| `newsjack-four-states-2026-07.md`、`beyond-cpa-newsjack-kit-2026-07.md` |
-| 双站 | duedatehq.com(时效/权威)+ cpafieldguide.com(工具对比词)|
+| 资产                                      | 位置                                                                                     |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 灾害 hub + 11 州页 + 档案(206 条)+ opt-in | `/irs-disaster-relief*`(main,待部署)                                                     |
+| 50 州 × 3 实体截止日矩阵                  | `/states/*` filing 小节 + `lib/state-filing-deadlines.json`(46 州,CA/TX/NY/FL/WA 补录中) |
+| Widget + JSON feed + llms.txt             | `/widget`、`/data/disaster-notices.json`、`/llms*.txt`                                   |
+| Alert 邮件系统                            | `outreach-kit/send-outreach.mjs --alert`(263 已发,AZ/MT 待发)                            |
+| 协会 kit(9 封成稿+联系人)                 | `society-alert-distribution-kit.md` + artifact v3                                        |
+| Newsjack kits(圈内+圈外)                  | `newsjack-four-states-2026-07.md`、`beyond-cpa-newsjack-kit-2026-07.md`                  |
+| 双站                                      | duedatehq.com(时效/权威)+ cpafieldguide.com(工具对比词)                                  |
