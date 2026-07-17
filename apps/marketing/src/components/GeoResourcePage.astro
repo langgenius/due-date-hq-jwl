@@ -310,6 +310,42 @@ const t = zh
     )
   }
 
+  {
+    /* Free tools & data — standing internal links from every resource/guide page to the
+       link-magnet surfaces (widget, live tracker, archive). These guide pages earn most of
+       the site's current impressions, so they push authority to the new pages. EN only —
+       the linked pages have no zh mirrors. */
+    !zh && (
+      <section class="m-section m-page-block geo-block geo-related" aria-labelledby="geo-tools-h">
+        <h2 class="m-page-h2 geo-related__title" id="geo-tools-h">
+          Free tools &amp; data
+        </h2>
+        <ul class="geo-related__list">
+          {[
+            { href: '/widget', label: 'Free embeddable deadline-change widget' },
+            { href: '/irs-disaster-relief', label: 'Live IRS disaster-relief tracker (11 active notices)' },
+            { href: '/irs-disaster-relief/archive', label: 'IRS disaster-relief archive, 2020–2026 (206 notices)' },
+          ].map((link) => (
+            <li>
+              <a class="geo-related__link" href={link.href}>
+                <span>{link.label}</span>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M5 12h14M13 6l6 6-6 6"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
   <section class="m-section m-page-block geo-block">
     <div class="geo-next">
       <p class="m-eyebrow geo-next__eyebrow">{t.nextEyebrow}</p>
