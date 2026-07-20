@@ -10,7 +10,7 @@ guard 0 regressions.)
    `git pull && cd apps/marketing && npm run build && npm run deploy`
    验收:浏览器开 `/irs-disaster-relief/archive`(206 条)、`/states/georgia`(filing 小节)、`/widget`(Examples 段)。
 2. **GSC 第二批索引请求**(10 个):archive、states/{georgia,texas,illinois,pennsylvania,ohio,virginia,iowa,louisiana}、llms.txt。
-3. **Formspree 表单**:免费建一个 → 把 URL 设为 `PUBLIC_ALERT_FORM_ACTION`(Cloudflare 构建环境变量或 build 命令前缀)→ 重新 build+deploy。这是订阅/Ads 链路的最后断点。
+3. **Formspree 表单:✅ 已完成(2026-07-17)** —— 真实地址 f/xojgdvrp 已写进代码为默认值,端到端实测 200 OK。**下次部署即生效**,无需任何环境变量。
 4. **旋转 Resend key**(旧 key 曾进入聊天记录)。
 
 ## B · 发送日历(所有命令在 `outreach-kit/`,环境变量同往常)
