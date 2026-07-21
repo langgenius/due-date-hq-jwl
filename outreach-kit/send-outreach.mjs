@@ -265,6 +265,12 @@ function buildAlert(r) {
     daysLeft <= 30
       ? 'color:#B54708;background:#FFFAEB;border:1px solid #FEDF89'
       : 'color:#475467;background:#F2F4F7;border:1px solid #E4E7EC'
+  // Attribution: every duedatehq link in the alert carries UTM so Amplitude can
+  // segment visits by state batch (utm_content=alert_<abbr>).
+  const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_${n.abbr.toLowerCase()}`
+  const siteUrl = `https://duedatehq.com/?${utm}`
+  const noticeUrl = `https://duedatehq.com/irs-disaster-relief/${n.slug}?${utm}`
+  const psUrl = `https://duedatehq.com/irs-disaster-relief/${n.slug}?${utm}_ps`
   const forms = n.forms.join(' · ')
   const subject = `The IRS moved a filing deadline in ${n.state} to ${n.deadlineLabel}`
   const text = [
@@ -273,7 +279,7 @@ function buildAlert(r) {
     ``,
     `If any of your clients file there, it covers: ${forms}.`,
     ``,
-    `DueDateHQ caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects. The ${n.state} notice: ${n.sourceHref}`,
+    `DueDateHQ caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects. Full detail (counties, covered returns): ${noticeUrl}`,
     ``,
     `It's free while we're in beta. Next time a date moves in a state you file in, you'll know that morning.`,
     ``,
@@ -282,11 +288,10 @@ function buildAlert(r) {
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
   const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
-  // Attribution: every duedatehq link in the alert carries UTM so Amplitude can
-  // segment visits by state batch (utm_content=alert_<abbr>).
-  const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_${n.abbr.toLowerCase()}`
-  const siteUrl = `https://duedatehq.com/?${utm}`
-  const appUrl = `https://app.duedatehq.com/alerts?state=${encodeURIComponent(n.abbr)}&${utm}`
+  const areaLine =
+    n.affectedArea.length <= 70
+      ? n.affectedArea
+      : `${n.affectedArea.split(',').length} ${n.state} counties — full list in the notice`
   const logo = WORDMARK_B64
     ? `<a href="${siteUrl}" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
     : `<a href="${siteUrl}" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>`
@@ -308,9 +313,11 @@ function buildAlert(r) {
     `<td valign="middle"><span style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
     `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;${pillCss};border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
     `</tr></table>` +
+    `<div style="font-size:12px;color:#98A2B3;margin-top:10px">${esc(areaLine)}</div>` +
     `</div></td></tr></table>` +
     `<p style="margin:0 0 24px;color:#475467"><a href="${siteUrl}" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
-    `<a href="${appUrl}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
+    `<a href="${noticeUrl}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See the full ${esc(n.state)} notice →</a>` +
+    `<p style="margin:16px 0 0;font-size:13px;color:#667085">P.S. Want these automatically whenever ${esc(n.state)} deadlines move? <a href="${psUrl}" style="color:#2E368C;text-decoration:underline">Get them free — no account needed</a>.</p>` +
     `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
     '</div>'
