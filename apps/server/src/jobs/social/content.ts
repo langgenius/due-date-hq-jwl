@@ -1,3 +1,4 @@
+import { requiresReviewOnlyPulseAlert } from '@duedatehq/core/rules'
 import {
   alertSourceAdapterMetadataById,
   listAlertSourceCatalog,
@@ -91,6 +92,9 @@ export function validateSocialCandidate(
 ): SocialCandidateValidation {
   const reasons: string[] = []
   if (candidate.status !== 'approved') reasons.push('pulse_not_approved')
+  if (requiresReviewOnlyPulseAlert(candidate.sourceId ?? candidate.agency)) {
+    reasons.push('review_only_source')
+  }
   if (candidate.isSample) reasons.push('sample_pulse')
   if (EXCLUDED_CHANGE_KINDS.has(candidate.changeKind)) reasons.push('internal_change_kind')
   if (!resolvedPublicAgency(candidate)) reasons.push('missing_agency')

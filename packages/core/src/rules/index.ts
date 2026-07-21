@@ -199,6 +199,18 @@ export type AlertSourcePurpose =
   | 'email_signal'
   | 'hidden_policy_watch'
 
+export const REVIEW_ONLY_PULSE_SOURCE_IDS = [
+  'fema.declarations',
+  'govdelivery.inbound',
+  'govdelivery.inbound.unmatched',
+] as const
+
+const REVIEW_ONLY_PULSE_SOURCE_ID_SET = new Set<string>(REVIEW_ONLY_PULSE_SOURCE_IDS)
+
+export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
+  return REVIEW_ONLY_PULSE_SOURCE_ID_SET.has(sourceId)
+}
+
 export interface RuleSource {
   id: string
   jurisdiction: RuleJurisdiction

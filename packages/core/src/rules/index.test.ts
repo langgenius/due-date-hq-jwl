@@ -23,6 +23,7 @@ import {
   OBLIGATION_RULES,
   previewObligationsFromRules,
   resolveAnnouncementYearUrl,
+  requiresReviewOnlyPulseAlert,
   RULE_SOURCES,
   ruleCitesSourceAsBasis,
   rulesBySourceId,
@@ -30,6 +31,15 @@ import {
   sourceCoversRuleDomain,
   STATE_RULE_JURISDICTIONS,
 } from './index'
+
+describe('requiresReviewOnlyPulseAlert', () => {
+  it('only forces signal-only sources into review-only Alerts', () => {
+    expect(requiresReviewOnlyPulseAlert('fema.declarations')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('govdelivery.inbound')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('govdelivery.inbound.unmatched')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('ny.email_services')).toBe(false)
+  })
+})
 
 const LEGACY_VERIFIED_RULE_JURISDICTIONS = new Set(['FED', 'CA', 'NY', 'TX', 'FL', 'WA'])
 const COMPLETED_SOURCE_PACK_JURISDICTIONS = new Set([

@@ -329,7 +329,7 @@ Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► P
 ### 4.4 X daily Alert acquisition loop
 
 ```text
-approved global Pulse
+approved, externally useful global Pulse
   -> deterministic social draft (D1 social_alert_post)
   -> operator marks ready
   -> 09:00 ET unique daily slot (D1 social_publish_run)
@@ -343,6 +343,13 @@ approved global Pulse
 这里没有公开 Alert 详情页。匿名接口只能回显已经在 X 公开的三项 teaser 字段；完整 summary、
 官方来源、客户匹配和 `pulse_firm_alert.id` 必须经过 session + tenant middleware。相同 `ref`
 由两个 firm 打开时，各自解析/创建自己的 `pulse_firm_alert`，不会共享 tenant row id。
+
+Social selection 通过共享 source policy 排除 `fema.declarations`、`govdelivery.inbound` 和
+`govdelivery.inbound.unmatched`：这些 source 只提供尚未完成税务归因的 early signal，不能据此
+确认 filing/deadline change，并要求 CPA 重新核验规则。数据库 candidate predicate 与发布前
+runtime validation 同时执行该闸门；
+`rule_source_drift` 等内部 change kind 仍单独排除。`action_mode='review_only'` 本身不是排除条件，
+避免误伤 filing requirement、applicability scope 等真实且适合公开介绍的来源变化。
 
 每日上限由 `UNIQUE(channel, local_date)` 而不是 Cron 时间假设保证。`ready` backlog 按 urgent
 优先、同优先级 FIFO；等待超过三个发布日会升为 urgent。X 返回明确 4xx 时当天记 failed 且

@@ -156,6 +156,12 @@ describe('makeSocialOpsRepo', () => {
           },
           { ...CANDIDATE, pulseId: 'bad-url', sourceUrl: 'javascript:alert(1)' },
           { ...CANDIDATE, pulseId: 'no-scope', forms: [], entityTypes: [] },
+          {
+            ...CANDIDATE,
+            pulseId: 'review-only-source',
+            sourceId: 'fema.declarations',
+            agency: 'fema.declarations',
+          },
         ],
       ],
     })

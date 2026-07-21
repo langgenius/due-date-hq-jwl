@@ -1,5 +1,6 @@
 import {
   MVP_RULE_JURISDICTIONS,
+  REVIEW_ONLY_PULSE_SOURCE_IDS,
   isCoveredTemporaryAnnouncementSource,
   isTemporaryAnnouncementSource,
   isParserBackedRuleSource,
@@ -7,6 +8,7 @@ import {
   listRuleSources,
   parserBackedAdapterKindForSource,
   policyWatchAutomationStatusForSource,
+  requiresReviewOnlyPulseAlert as requiresReviewOnlyPulseAlertFromPolicy,
   resolveAnnouncementYearUrl,
   ruleSourceFetchUrl,
   type AlertSourcePurpose,
@@ -953,14 +955,10 @@ export const alertSourceAdapterMetadataById = new Map(
 
 export const emailSignalAlertSourceIds = EMAIL_SIGNAL_SOURCE_IDS
 
-export const reviewOnlyPulseSourceIds = new Set([
-  'fema.declarations',
-  'govdelivery.inbound',
-  'govdelivery.inbound.unmatched',
-])
+export const reviewOnlyPulseSourceIds = new Set(REVIEW_ONLY_PULSE_SOURCE_IDS)
 
 export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
-  return reviewOnlyPulseSourceIds.has(sourceId)
+  return requiresReviewOnlyPulseAlertFromPolicy(sourceId)
 }
 
 export function shouldForceReviewOnlyPulseAlert(input: {

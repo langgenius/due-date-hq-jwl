@@ -61,13 +61,17 @@ function priority(value: string | undefined): 'normal' | 'urgent' | undefined {
 }
 
 export function parseSocialXCommand(args: string[], env = process.env): Command {
-  const [name, postId] = args
+  // pnpm 11 preserves the conventional script-argument separator, so
+  // `pnpm social:x -- candidates ...` reaches us with `--` as argv[0].
+  // Accept both the documented form and the shorter separator-free form.
+  const commandArgs = args[0] === '--' ? args.slice(1) : args
+  const [name, postId] = commandArgs
   if (name === 'candidates') {
-    const rawLimit = option(args, '--limit')
+    const rawLimit = option(commandArgs, '--limit')
     const limit = rawLimit === undefined ? undefined : Number(rawLimit)
-    const status = option(args, '--status')
-    const pulseId = option(args, '--pulse')
-    const parsedPriority = priority(option(args, '--priority'))
+    const status = option(commandArgs, '--status')
+    const pulseId = option(commandArgs, '--pulse')
+    const parsedPriority = priority(option(commandArgs, '--priority'))
     if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
       throw new Error('--limit must be an integer from 1 to 100.')
     }
@@ -80,12 +84,12 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
     }
   }
   if (name === 'approve') {
-    const parsedPriority = priority(option(args, '--priority'))
+    const parsedPriority = priority(option(commandArgs, '--priority'))
     return {
       kind: 'approve',
       postId: requiredPostId(postId, 'approve'),
       reviewer: required(
-        option(args, '--reviewer') ?? env.SOCIAL_OPS_REVIEWER,
+        option(commandArgs, '--reviewer') ?? env.SOCIAL_OPS_REVIEWER,
         'approve requires --reviewer or SOCIAL_OPS_REVIEWER.',
       ),
       ...(parsedPriority ? { priority: parsedPriority } : {}),
@@ -95,16 +99,16 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
     return {
       kind: 'cancel',
       postId: requiredPostId(postId, 'cancel'),
-      reason: required(option(args, '--reason'), 'cancel requires --reason.'),
+      reason: required(option(commandArgs, '--reason'), 'cancel requires --reason.'),
     }
   }
   if (name === 'reconcile') {
-    const outcome = option(args, '--outcome')
+    const outcome = option(commandArgs, '--outcome')
     if (outcome !== 'published' && outcome !== 'not_published') {
       throw new Error('reconcile requires --outcome published or not_published.')
     }
-    const externalPostId = option(args, '--x-post-id')
-    const reason = option(args, '--reason')
+    const externalPostId = option(commandArgs, '--x-post-id')
+    const reason = option(commandArgs, '--reason')
     if (outcome === 'published' && !externalPostId) {
       throw new Error('published reconciliation requires --x-post-id.')
     }

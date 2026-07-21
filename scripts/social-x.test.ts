@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { parseSocialXCommand } from './social-x'
 
 describe('parseSocialXCommand', () => {
+  it('accepts the pnpm script-argument separator', () => {
+    expect(parseSocialXCommand(['--', 'candidates', '--status', 'draft', '--limit', '50'])).toEqual(
+      {
+        kind: 'candidates',
+        status: 'draft',
+        limit: 50,
+      },
+    )
+  })
+
   it('uses the configured reviewer for approvals', () => {
     expect(
       parseSocialXCommand(['approve', 'post-1', '--priority', 'urgent'], {

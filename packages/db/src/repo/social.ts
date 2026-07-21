@@ -1,3 +1,4 @@
+import { REVIEW_ONLY_PULSE_SOURCE_IDS, requiresReviewOnlyPulseAlert } from '@duedatehq/core/rules'
 import {
   and,
   asc,
@@ -39,6 +40,7 @@ const SOCIAL_EXCLUDED_CHANGE_KINDS: PulseChangeKind[] = [
   'rule_source_drift',
   'threshold_advisory',
 ]
+const SOCIAL_EXCLUDED_SOURCE_IDS = [...REVIEW_ONLY_PULSE_SOURCE_IDS]
 
 export type SocialOpsRepoErrorCode = 'not_found' | 'conflict' | 'ineligible' | 'invalid'
 
@@ -103,6 +105,7 @@ function candidateConditions(since?: Date): SQL {
   const conditions = and(
     eq(pulse.status, 'approved'),
     eq(pulse.isSample, false),
+    notInArray(pulse.source, SOCIAL_EXCLUDED_SOURCE_IDS),
     notInArray(pulse.changeKind, SOCIAL_EXCLUDED_CHANGE_KINDS),
     sql`length(trim(${pulse.source})) > 0`,
     sql`length(trim(${pulse.sourceUrl})) > 0`,
@@ -158,6 +161,7 @@ function isValidLocalDate(value: string): boolean {
 function candidateIsRuntimeEligible(row: SocialAlertCandidateRow | undefined) {
   return Boolean(
     row &&
+    !requiresReviewOnlyPulseAlert(row.sourceId) &&
     validPublicHttpUrl(row.sourceUrl) &&
     (row.forms.some((value) => value.trim()) || row.entityTypes.some((value) => value.trim())),
   )

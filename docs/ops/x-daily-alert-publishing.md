@@ -17,6 +17,11 @@ Hard invariants:
   ET date.
 - `unknown` never retries automatically. Check the DueDateHQ X account, then reconcile.
 - X links go to protected `/alerts?ref=...`; there is no public Alert detail page.
+- Approved, non-sample, source-backed Pulses are eligible unless their source is explicitly marked
+  as signal-only. FEMA declarations and generic GovDelivery inbound Alerts provide early signals
+  that have not yet been attributed to a tax filing or deadline change, so they never enter the
+  social outbox. `action_mode='review_only'` alone does not disqualify an otherwise useful source
+  change.
 
 ## Configuration
 

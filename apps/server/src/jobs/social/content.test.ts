@@ -69,6 +69,21 @@ describe('validateSocialCandidate', () => {
     })
   })
 
+  it('rejects early-warning sources that only ask users to review rules', () => {
+    expect(
+      validateSocialCandidate(
+        candidate({
+          sourceId: 'fema.declarations',
+          agency: 'fema.declarations',
+          changeKind: 'other',
+          originalDueDate: null,
+          newDueDate: null,
+          effectiveFrom: new Date('2026-07-12T00:00:00.000Z'),
+        }),
+      ),
+    ).toEqual({ eligible: false, reasons: ['review_only_source'] })
+  })
+
   it('uses entity types as scope when an alert has no form', () => {
     const input = candidate({ forms: [], entityTypes: ['Partnerships', 'S corporations'] })
 
