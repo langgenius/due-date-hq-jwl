@@ -54,12 +54,7 @@
     "deadline": "2026-08-20",
     "deadlineLabel": "Aug. 20, 2026",
     "affectedArea": "Hawaii, Honolulu, Kauai, and Maui counties",
-    "forms": [
-      "1040",
-      "941 / 940",
-      "706 / 709",
-      "990"
-    ],
+    "forms": ["1040", "941 / 940", "706 / 709", "990"],
     "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026",
     "issuedOn": "April 10, 2026",
     "slug": "hawaii-severe-storms-flooding-mudslides"
@@ -121,15 +116,7 @@
     "deadline": "2026-09-28",
     "deadlineLabel": "Sept. 28, 2026",
     "affectedArea": "Individuals and households that reside or have a business in the Crow Reservation in southcentral Montana",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "1041",
-      "941 / 940",
-      "Estimates"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "1041", "941 / 940", "Estimates"],
     "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026",
     "issuedOn": "June 16, 2026",
     "fema": "4915-DR",

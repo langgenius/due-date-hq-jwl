@@ -32,4 +32,4 @@ back to the two editorial bookends and moved everything else to Instrument Sans.
   `--m-display-2-size` = `clamp(26px, 3.2vw, 40px)` is restored.
 - Verified live (dev): `.m-page-title`, `.m-display-2` (promise + CTA), and the
   modal title all compute to `Instrument Sans` / 600; serif remains only on Hero
-  + Close. `vp check` clean (0 errors).
+  - Close. `vp check` clean (0 errors).
