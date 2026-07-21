@@ -376,16 +376,15 @@ const c = zh
 <script is:inline define:vars={{ errGeneric: c.errGeneric, errNetwork: c.errNetwork, sending: c.submitting }}>
   ;(() => {
     const KEY = 'ddhq_founding_dismissed_v1'
-    const q = (s) => document.querySelector(s)
 
     function applyDismiss() {
-      const bar = q('[data-founding-bar]')
+      const bar = document.querySelector('[data-founding-bar]')
       if (!bar) return
       if (localStorage.getItem(KEY) === '1') bar.setAttribute('hidden', '')
       else bar.removeAttribute('hidden')
     }
     function openModal() {
-      const m = q('[data-founding-modal]')
+      const m = document.querySelector('[data-founding-modal]')
       if (!m) return
       m.removeAttribute('hidden')
       document.documentElement.style.overflow = 'hidden'
@@ -393,14 +392,14 @@ const c = zh
       if (first) first.focus()
     }
     function closeModal() {
-      const m = q('[data-founding-modal]')
+      const m = document.querySelector('[data-founding-modal]')
       if (!m) return
       m.setAttribute('hidden', '')
       document.documentElement.style.overflow = ''
     }
 
-    if (!window.__ddhqFounding) {
-      window.__ddhqFounding = true
+    if (!window.ddhqFoundingBound) {
+      window.ddhqFoundingBound = true
 
       document.addEventListener('click', (e) => {
         const t = e.target.closest(
@@ -443,7 +442,7 @@ const c = zh
           })
           if (res.ok) {
             form.setAttribute('hidden', '')
-            const ok = q('[data-founding-success]')
+            const ok = document.querySelector('[data-founding-success]')
             if (ok) ok.removeAttribute('hidden')
           } else {
             const data = await res.json().catch(() => ({}))

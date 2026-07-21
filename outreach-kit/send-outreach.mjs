@@ -281,7 +281,7 @@ function buildAlert(r) {
     `Co-Founder of DueDateHQ`,
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
-  const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
+  const _scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
   // Attribution: every duedatehq link in the alert carries UTM so Amplitude can
   // segment visits by state batch (utm_content=alert_<abbr>).
   const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_${n.abbr.toLowerCase()}`
