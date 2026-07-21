@@ -51,7 +51,8 @@
   --m-urgent-ink: var(--color-util-colors-warning-700); /* #a83227 — legible on warning tint */
 
   /* ---- type ---- */
-  --m-font-display: 'Instrument Serif', ui-serif, Georgia, serif; /* hero headline ONLY */
+  --m-font-display:
+    'Instrument Serif', ui-serif, Georgia, serif; /* home Hero + Close finale ONLY — every other heading is sans (feedback: serif = hero only) */
   --m-font-sans:
     'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --m-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* data / dates */
