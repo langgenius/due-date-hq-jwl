@@ -36,9 +36,19 @@ Product adjectives: proactive · precise · traceable.
 Avoid: "deadline monitoring/tracking" (tracker category), bare "alert monitoring"
 (commodity), "predictive" (overclaim), "radar" (banned).
 
+## Follow-up (same day)
+
+- Coverage badge confirmed by Yuqi as "全部都覆盖了" → now `IRS · 50 states · DC · FEMA`
+  (en + zh).
+- Outreach audit: every claim in touches 1–3 and the REPLY playbook checked against
+  shipped capabilities — all true (watches IRS/states/FEMA, official notice per change,
+  one-click update, ~10-min onboarding, free in beta). One correction: the touch-1
+  template (v12 → v13 in `send-outreach.mjs`) still led with "deadline monitoring" /
+  "moves a filing deadline" — now "rule changes, matched to your affected clients" /
+  "changes a rule or moves a deadline", message-matching the new hero. CSV Subject1
+  values are vestigial (track detection only); the script subject governs all touch-1s.
+
 ## Open
 
-- Hero coverage badge still reads `IRS · 50 states · DC` while the subhead names FEMA —
-  needs a decision on the true coverage claim before changing.
 - A/B candidate for the disaster pages: "FEMA declared a disaster… which of your
   clients qualify?" (kept off the homepage).

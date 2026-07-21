@@ -47,7 +47,6 @@ const SEND = has('--send')
 const LIMIT = parseInt(val('--limit', '25'), 10)
 const DELAY = parseInt(val('--delay', '6000'), 10)
 const FORCE = has('--force')
-const ALERT = has('--alert') // per-state IRS disaster-relief alert send (uses disaster-notices.json)
 const CSV = val(
   '--csv',
   fs.existsSync('duedatehq-approved.csv')
@@ -214,23 +213,25 @@ function applyTrackedLinks(content, r, placement = 'body') {
 function buildTouch1(r) {
   const first = firstNameOf(r)
   const url = trackedUrl(r, 'body')
-  // v12 light Inbox template (2026-07-07, approved by Yuqi): plain, personal, no
-  // card/table/image (those landed the v11 card in Promotions). Full loop:
+  // v13 light Inbox template (2026-07-21): v12 shape (plain/personal, no card/table/image —
+  // those landed v11 in Promotions), vocabulary aligned with the new marketing hero
+  // "Catching every rule change. Naming every affected client." so the click-through
+  // message-matches. Every claim stays shipped-true. Full loop:
   // monitor IRS/state/FEMA -> who's affected -> one-click apply -> source.
   // The plain-text footer is appended by withFooter() in sendOne; HTML footer inline.
   return {
-    subject: 'DueDateHQ — deadline monitoring for US CPAs, and who it hits',
+    subject: 'DueDateHQ — rule changes, matched to your affected clients',
     text:
       `Hi ${first},\n` +
-      `When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.\n` +
-      `DueDateHQ watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.\n` +
+      `When the IRS, a state, or FEMA changes a rule or moves a deadline, the hard part is knowing which of your clients it hits.\n` +
+      `DueDateHQ watches all three around the clock. The moment a rule or date changes, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.\n` +
       `Paste your client list; first sourced deadline in ~10 minutes. Want in?\n` +
       `Gigi\nCo-Founder, DueDateHQ\n${url}`,
     html:
       `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.62;color:#1f2430">` +
       `<p style="margin:0 0 14px">Hi ${first},</p>` +
-      `<p style="margin:0 0 14px;text-wrap:pretty">When the IRS, a state, or FEMA moves a filing deadline, the hard part is knowing which of your clients it hits.</p>` +
-      `<p style="margin:0 0 14px;text-wrap:pretty"><a href="${htmlAttr(url)}" style="color:#2E368C;text-decoration:none;border-bottom:1px solid #c9cdec">DueDateHQ</a> watches all three around the clock. The moment a date moves, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.</p>` +
+      `<p style="margin:0 0 14px;text-wrap:pretty">When the IRS, a state, or FEMA changes a rule or moves a deadline, the hard part is knowing which of your clients it hits.</p>` +
+      `<p style="margin:0 0 14px;text-wrap:pretty"><a href="${htmlAttr(url)}" style="color:#2E368C;text-decoration:none;border-bottom:1px solid #c9cdec">DueDateHQ</a> watches all three around the clock. The moment a rule or date changes, it shows you exactly which clients are affected — with the official notice — and lets you update their deadlines in one click.</p>` +
       `<p style="margin:0 0 22px;text-wrap:pretty">Paste your client list; first sourced deadline in ~10 minutes. Want in?</p>` +
       `<div style="font-weight:600;color:#111827">Gigi</div>` +
       `<div style="color:#6b7280;font-size:13px;margin-top:2px">Co-Founder · DueDateHQ</div>` +
@@ -240,98 +241,6 @@ function buildTouch1(r) {
       `</div>`,
     attachments: [],
   }
-}
-
-// ---- Alert template: per-state IRS disaster-relief postponement.
-// Data from disaster-notices.json (each fact transcribed from the cited irs.gov release).
-// HONEST per-state fill: uses only verified IRS facts (state, event, deadline, affected area,
-// affected returns). No fabricated state-conformity dates. States with no live notice are skipped.
-const NOTICES = ALERT
-  ? JSON.parse(fs.readFileSync(val('--notices', 'disaster-notices.json'), 'utf8'))
-  : []
-const noticeForState = (abbr) => NOTICES.find((n) => n.abbr === (abbr || '').trim().toUpperCase())
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-// Restored for the alert's cid logo (main's v12 touch-1 dropped the wordmark image).
-const WORDMARK_B64 = fs.existsSync(new URL('./wordmark-2x.png', import.meta.url))
-  ? fs.readFileSync(new URL('./wordmark-2x.png', import.meta.url)).toString('base64')
-  : null
-function buildAlert(r) {
-  const n = noticeForState(r.State)
-  if (!n) return null // no live disaster relief for this recipient's state
-  const first = firstNameOf(r)
-  const daysLeft = Math.ceil((new Date(`${n.deadline}T23:59:59Z`).getTime() - Date.now()) / 864e5)
-  const daysLine = daysLeft > 0 ? `${daysLeft} days out` : 'due now'
-  const pillCss =
-    daysLeft <= 30
-      ? 'color:#B54708;background:#FFFAEB;border:1px solid #FEDF89'
-      : 'color:#475467;background:#F2F4F7;border:1px solid #E4E7EC'
-  // Attribution: every duedatehq link in the alert carries UTM so Amplitude can
-  // segment visits by state batch (utm_content=alert_<abbr>).
-  const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_${n.abbr.toLowerCase()}`
-  const siteUrl = `https://duedatehq.com/?${utm}`
-  const noticeUrl = `https://duedatehq.com/irs-disaster-relief/${n.slug}?${utm}`
-  const psUrl = `https://duedatehq.com/irs-disaster-relief/${n.slug}?${utm}_ps`
-  const forms = n.forms.join(' · ')
-  const subject = `The IRS moved a filing deadline in ${n.state} to ${n.deadlineLabel}`
-  const text = [
-    `Hi ${first},`,
-    `A ${n.state} filing deadline has moved. After ${n.event}, the IRS postponed federal deadlines to ${n.deadlineLabel} for taxpayers in ${n.affectedArea}${daysLeft > 0 ? ` — ${daysLeft} days out` : ''}.`,
-    ``,
-    `If any of your clients file there, it covers: ${forms}.`,
-    ``,
-    `DueDateHQ caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects. Full detail (counties, covered returns): ${noticeUrl}`,
-    ``,
-    `It's free while we're in beta. Next time a date moves in a state you file in, you'll know that morning.`,
-    ``,
-    `Gigi`,
-    `Co-Founder of DueDateHQ`,
-    `A new product from Dify (dify.ai) · duedatehq.com`,
-  ].join('\n')
-  const _scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
-  const areaLine =
-    n.affectedArea.length <= 70
-      ? n.affectedArea
-      : `${n.affectedArea.split(',').length} ${n.state} counties — full list in the notice`
-  const logo = WORDMARK_B64
-    ? `<a href="${siteUrl}" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
-    : `<a href="${siteUrl}" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>`
-  const footerHtml = FOOTER_ADDRESS
-    ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
-    : ''
-  const html =
-    '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:496px;padding-top:16px">' +
-    `<div style="margin:0 0 26px;padding-bottom:16px;border-bottom:1px solid #EAECF0">${logo}</div>` +
-    `<p style="margin:0 0 20px;font-size:20px;line-height:1.35;font-weight:500;color:#101828;letter-spacing:-.015em">A ${esc(n.state)} filing deadline has moved.</p>` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-    `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:10px 18px"><span style="display:inline-block;min-width:23px;text-align:center;font-size:11px;font-weight:600;color:#2E368C;background:#EEF1FB;border:1px solid #D5DBF3;border-radius:6px;padding:2px 5px;margin-right:9px;font-variant-numeric:tabular-nums;vertical-align:middle">${esc(n.abbr)}</span><span style="font-size:12px;font-weight:500;color:#344054;vertical-align:middle">${esc(n.state)} disaster relief</span></td>` +
-    `<td align="right" style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:11px 18px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums">IRS ${esc(n.code)}</span></td>` +
-    `</tr></table>` +
-    `<div style="padding:18px">` +
-    `<div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500">New federal deadline</div>` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:7px"><tr>` +
-    `<td valign="middle"><span style="font-size:28px;font-weight:500;color:#101828;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
-    `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;${pillCss};border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
-    `</tr></table>` +
-    `<div style="font-size:12px;color:#98A2B3;margin-top:10px">${esc(areaLine)}</div>` +
-    `</div></td></tr></table>` +
-    `<p style="margin:0 0 24px;color:#475467"><a href="${siteUrl}" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
-    `<a href="${noticeUrl}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See the full ${esc(n.state)} notice →</a>` +
-    `<p style="margin:16px 0 0;font-size:13px;color:#667085">P.S. Want these automatically whenever ${esc(n.state)} deadlines move? <a href="${psUrl}" style="color:#2E368C;text-decoration:underline">Get them free — no account needed</a>.</p>` +
-    `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
-    footerHtml +
-    '</div>'
-  const attachments = WORDMARK_B64
-    ? [
-        {
-          filename: 'duedatehq.png',
-          content: WORDMARK_B64,
-          content_id: 'wordmark',
-          content_type: 'image/png',
-        },
-      ]
-    : []
-  return { subject, text, html, attachments }
 }
 
 async function sendOne(to, subject, text, html, attachments) {
@@ -379,35 +288,6 @@ for (const r of rows) {
     continue
   } // opted out
   const log = state.sent[key] || {}
-  if (ALERT) {
-    if (log.alert) {
-      skipped++
-      continue
-    } // already alerted
-    const built = buildAlert(r)
-    if (!built) {
-      skipped++
-      continue
-    } // no live disaster relief for this state
-    if (!SEND) {
-      console.log(`[DRY] alert → ${to}  (${r.Firm}, ${r.State})  "${built.subject}"`)
-      sent++
-      continue
-    }
-    try {
-      const id = await sendOne(to, built.subject, built.text, built.html, built.attachments)
-      log.alert = Date.now()
-      state.sent[key] = log
-      fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2))
-      console.log(`✓ alert ${to}  (${r.Firm})  id=${id}`)
-      sent++
-      await sleep(DELAY)
-    } catch (e) {
-      console.error(`✗ FAIL ${to}  (${r.Firm}): ${e.message}`)
-      failed++
-    }
-    continue
-  }
   if (log[`t${TOUCH}`]) {
     skipped++
     continue
