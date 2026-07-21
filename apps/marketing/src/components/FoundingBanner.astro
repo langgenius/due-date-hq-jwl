@@ -67,11 +67,6 @@ const c = zh
 
 <div class="fb-bar" data-founding-bar hidden>
   <div class="fb-bar__inner">
-    <span class="fb-bar__badge" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
-        <path d="M12 2l1.7 6.5L20 10l-6.3 1.5L12 18l-1.7-6.5L4 10l6.3-1.5z" />
-      </svg>
-    </span>
     <p class="fb-bar__text"><strong>{c.barLead}</strong> — {c.barText}</p>
     <button
       class="fb-bar__cta"
@@ -202,16 +197,6 @@ const c = zh
     justify-content: center;
     gap: 8px 13px;
   }
-  .fb-bar__badge {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border-radius: var(--m-radius-pill);
-    background: var(--m-brand);
-    color: #a5e0ef;
-  }
   .fb-bar__text {
     font-size: var(--m-text-sm);
     font-weight: 500;
@@ -221,23 +206,31 @@ const c = zh
   .fb-bar__text strong {
     font-weight: 700;
   }
-  /* arrow link, not a pill — the badge + colour field carry the design */
+  /* solid navy button — small radius (not a pill); anchors the CTA with real
+     weight so the bar reads composed, not like loose text */
   .fb-bar__cta {
     flex: none;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: var(--m-brand);
+    gap: 6px;
+    margin-left: 4px;
+    padding: 7px 14px;
+    border-radius: var(--m-radius-md);
+    background: var(--m-brand);
+    color: #fff;
     font-size: var(--m-text-sm);
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
+    transition:
+      background var(--m-dur-fast) var(--m-ease),
+      transform var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta svg {
     transition: transform var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    background: #16213f;
+    transform: translateY(-1px);
   }
   .fb-bar__cta:hover svg {
     transform: translateX(2px);
