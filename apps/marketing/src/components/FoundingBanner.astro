@@ -375,12 +375,12 @@ const c = zh
 
 <script is:inline define:vars={{ errGeneric: c.errGeneric, errNetwork: c.errNetwork, sending: c.submitting }}>
   ;(() => {
-    const KEY = 'ddhq_founding_dismissed_v1'
+    const DISMISS_STORE = 'ddhq_founding_dismissed_v1'
 
     function applyDismiss() {
       const bar = document.querySelector('[data-founding-bar]')
       if (!bar) return
-      if (localStorage.getItem(KEY) === '1') bar.setAttribute('hidden', '')
+      if (localStorage.getItem(DISMISS_STORE) === '1') bar.setAttribute('hidden', '')
       else bar.removeAttribute('hidden')
     }
     function openModal() {
@@ -410,7 +410,7 @@ const c = zh
           e.preventDefault()
           openModal()
         } else if (t.hasAttribute('data-founding-dismiss')) {
-          localStorage.setItem(KEY, '1')
+          localStorage.setItem(DISMISS_STORE, '1')
           applyDismiss()
         } else {
           e.preventDefault()
