@@ -4,6 +4,7 @@ LinkedIn = the higher-density CPA channel (most small-firm owners who aren't on 
 Same content engine as X, adapted to LinkedIn mechanics:
 
 **Mechanics (apply to every post)**
+
 - Post from a PERSONAL profile (Yuqi/Gigi); company page reshares. Personal >> page reach.
 - First 2 lines are everything — they show before "...see more". Hook goes there.
 - External link goes in the FIRST COMMENT, not the post body ("Link in comments 👇").
@@ -72,6 +73,7 @@ Same content engine as X, adapted to LinkedIn mechanics:
 ---
 
 ## 后续弹药(数据型变体,从 51 州矩阵取)
+
 - "5 states where the individual deadline is NOT April 15" (IA 4/30, VA 5/1, HI 4/20, DE 4/30, LA 5/15)
 - "Texas has no income tax — but every entity owes the May 15 franchise report"
 - "DC taxes S-corps like C-corps and rejects federal extension forms"
