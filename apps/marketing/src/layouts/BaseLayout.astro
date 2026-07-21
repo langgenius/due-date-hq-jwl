@@ -3,9 +3,15 @@ import { ClientRouter } from 'astro:transitions'
 import { THEME_INIT_SCRIPT } from '@duedatehq/ui/theme/no-flash-script'
 import type { Locale } from '@duedatehq/i18n/locales'
 import StructuredData from '../components/StructuredData.astro'
+import FoundingBanner from '../components/FoundingBanner.astro'
 import type { JsonLdDocument } from '../lib/structured-data'
 import { MARKETING_SITE_URL, getMarketingUrl } from '../lib/site'
 import '../styles/globals.css'
+
+// Founding-user lead form endpoint (dedicated Formspree form). Hardcoded default
+// so it works on deploy with no env; override with PUBLIC_FOUNDING_FORM_ACTION.
+const FOUNDING_FORM_ACTION =
+  import.meta.env.PUBLIC_FOUNDING_FORM_ACTION ?? 'https://formspree.io/f/mjgnrnpj'
 
 interface Props {
   /** BCP-47 tag rendered into <html lang>. */
@@ -128,6 +134,7 @@ const FONT_CSS_HREF =
   </head>
   <body class="min-h-screen bg-bg-canvas text-text-primary antialiased">
     <a class="m-skip" href="#main-content">{lang === 'zh-CN' ? '跳到主要内容' : 'Skip to content'}</a>
+    <FoundingBanner locale={lang} action={FOUNDING_FORM_ACTION} />
     <slot />
     <script>
       // Tag <main> as the skip-link target on first load AND after every

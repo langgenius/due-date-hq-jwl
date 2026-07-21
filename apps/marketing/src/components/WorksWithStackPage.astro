@@ -37,6 +37,9 @@ const c = zh
       ctaBody: '不迁移、不替换。DueDateHQ 监控官方来源，并显示每条变化影响到哪些客户。',
       ctaPrimary: '开始使用',
       ctaSecondary: '查看工作原理',
+      contactPre: '有问题?邮件联系 ',
+      contactMid: ' · 或',
+      foundingCta: '成为 founding user',
       missingNote:
         '没看到你用的工具？监控层与工具无关——DueDateHQ 监控的是官方来源，不依赖你运行哪套软件。',
     }
@@ -57,6 +60,9 @@ const c = zh
         'No migration, no replacement. DueDateHQ watches the official sources and shows which clients each change affects.',
       ctaPrimary: 'Get started',
       ctaSecondary: 'See how it works',
+      contactPre: 'Questions? Email ',
+      contactMid: ' · or',
+      foundingCta: 'become a founding user',
       missingNote:
         "Don't see your tool? The monitoring layer is tool-agnostic — DueDateHQ watches the official sources, not whichever software you run.",
     }
@@ -183,6 +189,10 @@ const faq = zh
         <a class="wws-cta__primary" href={ctaHref}>{c.ctaPrimary}</a>
         <a class="wws-cta__secondary" href={`${base}/how-it-works`}>{c.ctaSecondary}</a>
       </div>
+      <p class="wws-cta__contact">
+        {c.contactPre}<a href="mailto:hello@duedatehq.com">hello@duedatehq.com</a>{c.contactMid}{' '}
+        <button type="button" class="wws-cta__founding" data-founding-open>{c.foundingCta}</button>
+      </p>
     </div>
   </section>
 </main>
@@ -334,6 +344,22 @@ const faq = zh
     font-size: var(--m-text-md);
     line-height: 1.6;
     color: var(--m-ink-2);
+  }
+  .wws-cta__contact {
+    margin-top: 18px;
+    font-size: var(--m-text-sm);
+    color: var(--m-muted);
+  }
+  .wws-cta__contact a,
+  .wws-cta__founding {
+    color: var(--m-accent);
+    font-weight: 500;
+    font-size: inherit;
+  }
+  .wws-cta__founding {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   .wws-cta__actions {
     margin-top: 28px;
