@@ -18,7 +18,8 @@ const zh = locale === 'zh-CN'
 
 const c = zh
   ? {
-      barText: '招募 founding users —— 首批美国 CPA 事务所,和我们一起打磨 DueDateHQ。',
+      barLead: '招募 founding users',
+      barText: '首批美国 CPA 事务所,和我们一起打磨 DueDateHQ。',
       barCta: '申请加入',
       dismiss: '关闭',
       title: '成为 founding user',
@@ -40,7 +41,8 @@ const c = zh
       errNetwork: '网络错误 —— 也可直接邮件 hello@duedatehq.com',
     }
   : {
-      barText: 'Founding users wanted — a first group of US CPA firms to shape DueDateHQ with us.',
+      barLead: 'Founding users wanted',
+      barText: 'a first group of US CPA firms to shape DueDateHQ with us.',
       barCta: 'Apply',
       dismiss: 'Dismiss',
       title: 'Become a founding user',
@@ -64,13 +66,30 @@ const c = zh
 ---
 
 <div class="fb-bar" data-founding-bar hidden>
-  <p class="fb-bar__text">{c.barText}</p>
-  <button
-    class="fb-bar__cta"
-    type="button"
-    data-founding-open
-    data-event="marketing.founding-banner.apply">{c.barCta} →</button
-  >
+  <div class="fb-bar__inner">
+    <span class="fb-bar__badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+        <path d="M12 2l1.7 6.5L20 10l-6.3 1.5L12 18l-1.7-6.5L4 10l6.3-1.5z" />
+      </svg>
+    </span>
+    <p class="fb-bar__text"><strong>{c.barLead}</strong> — {c.barText}</p>
+    <button
+      class="fb-bar__cta"
+      type="button"
+      data-founding-open
+      data-event="marketing.founding-banner.apply"
+    >
+      {c.barCta}
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="14" height="14">
+        <path
+          d="M5 12h13M12 6l6 6-6 6"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </button>
+  </div>
   <button
     class="fb-bar__x"
     type="button"
@@ -164,41 +183,64 @@ const c = zh
   [hidden] {
     display: none !important;
   }
-  /* ---- top bar (scrolls away above the sticky nav) ---- */
+  /* ---- top bar (scrolls away above the sticky nav) ----
+     Light turquoise field (from Yuqi's palette); everything on it is brand navy.
+     Composed as a contained row: navy icon badge → message (bold lead) → arrow
+     CTA, with the dismiss pinned right. */
   .fb-bar {
+    position: relative;
+    background: #a5e0ef;
+    color: var(--m-brand);
+  }
+  .fb-bar__inner {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding: 11px 48px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-    padding: 9px 44px 9px 20px;
-    position: relative;
-    /* bright lime highlighter (from Yuqi's palette) — a warm-bright accent that
-       pops against the cool navy/cyan/gray page; navy text pairs with it */
-    background: #e6f58c;
-    color: var(--m-brand);
-    text-align: center;
+    gap: 8px 13px;
+  }
+  .fb-bar__badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--m-radius-pill);
+    background: var(--m-brand);
+    color: #a5e0ef;
   }
   .fb-bar__text {
     font-size: var(--m-text-sm);
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.35;
     color: var(--m-brand);
   }
-  /* text link, not a pill — the bar colour already carries the affordance */
+  .fb-bar__text strong {
+    font-weight: 700;
+  }
+  /* arrow link, not a pill — the badge + colour field carry the design */
   .fb-bar__cta {
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: var(--m-brand);
     font-size: var(--m-text-sm);
     font-weight: 700;
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: color-mix(in srgb, var(--m-brand) 45%, transparent);
-    transition: text-decoration-color var(--m-dur-fast) var(--m-ease);
+  }
+  .fb-bar__cta svg {
+    transition: transform var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta:hover {
-    text-decoration-color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .fb-bar__cta:hover svg {
+    transform: translateX(2px);
   }
   .fb-bar__x {
     position: absolute;
@@ -210,8 +252,11 @@ const c = zh
     width: 28px;
     height: 28px;
     border-radius: var(--m-radius-pill);
-    color: color-mix(in srgb, var(--m-brand) 60%, transparent);
+    color: color-mix(in srgb, var(--m-brand) 55%, transparent);
     cursor: pointer;
+    transition:
+      color var(--m-dur-fast) var(--m-ease),
+      background var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__x:hover {
     color: var(--m-brand);
