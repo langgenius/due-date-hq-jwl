@@ -167,30 +167,31 @@ const c = zh
     gap: 8px 16px;
     padding: 9px 44px 9px 20px;
     position: relative;
-    background: var(--m-brand);
-    color: #fff;
+    /* brand cyan — the loud, eye-catching accent (navy text pairs with it) */
+    background: var(--m-cyan);
+    color: var(--m-brand);
     text-align: center;
   }
   .fb-bar__text {
     font-size: var(--m-text-sm);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.35;
-    color: #fff;
+    color: var(--m-brand);
   }
-  /* text link, not a pill — the navy bar already carries the affordance */
+  /* text link, not a pill — the bar colour already carries the affordance */
   .fb-bar__cta {
     flex: none;
-    color: #fff;
+    color: var(--m-brand);
     font-size: var(--m-text-sm);
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 3px;
-    text-decoration-color: rgba(255, 255, 255, 0.5);
+    text-decoration-color: color-mix(in srgb, var(--m-brand) 45%, transparent);
     transition: text-decoration-color var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta:hover {
-    text-decoration-color: #fff;
+    text-decoration-color: var(--m-brand);
   }
   .fb-bar__x {
     position: absolute;
@@ -202,12 +203,12 @@ const c = zh
     width: 28px;
     height: 28px;
     border-radius: var(--m-radius-pill);
-    color: rgba(255, 255, 255, 0.75);
+    color: color-mix(in srgb, var(--m-brand) 60%, transparent);
     cursor: pointer;
   }
   .fb-bar__x:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.14);
+    color: var(--m-brand);
+    background: color-mix(in srgb, var(--m-brand) 12%, transparent);
   }
 
   /* ---- modal ---- */
