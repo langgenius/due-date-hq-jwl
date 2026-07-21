@@ -287,7 +287,7 @@ function buildAlert(r) {
     `Co-Founder of DueDateHQ`,
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
-  const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
+  const _scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
   const areaLine =
     n.affectedArea.length <= 70
       ? n.affectedArea
