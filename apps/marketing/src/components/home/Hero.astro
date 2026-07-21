@@ -17,19 +17,18 @@ const zh = locale === 'zh-CN'
 
 const t = zh
   ? {
-      headBefore: '为',
-      headItal: '美国 CPA 事务所',
-      headAfter: '打造的截止日监控',
+      headBefore: '抓住每一次',
+      headItal: '规则变动。',
+      headAfter: '点名每一个受影响的客户。',
       headCoverage: 'IRS · 50 个州 · DC',
-      subLead: '截止日刚刚变了。你知道它影响到谁吗？',
-      subEm: '申报日期一变动，',
-      subRest: '你立刻看到它影响到谁，以及背后的官方公告 —— IRS、各州或 FEMA。',
+      subLead: '',
+      subEm: 'IRS、各州或 FEMA 一发布变动，',
+      subRest: 'DueDateHQ 立刻告诉你哪些客户受影响 —— 并一键应用新日期。',
       subStrong: '自己来：粘贴客户名单，约 10 分钟出第一条带来源的截止日。',
       points: [
-        { strong: '全天候盯着 IRS、各州和 FEMA', rest: '' },
-        { strong: '看清每次变化影响到哪些客户', rest: '' },
-        { strong: '每个日期都可追溯到官方来源', rest: '' },
-        { strong: '免费用 3 个月 Team 版', rest: '' },
+        { strong: '规则变动侦测', rest: '—— 主动，发布那一刻就抓到' },
+        { strong: '客户影响匹配', rest: '—— 精准，点名到每一个客户' },
+        { strong: '一键应用', rest: '—— 可追溯，每个日期都带官方来源' },
       ],
       ctaStart: '免费领 3 个月',
       ctaConcierge: '把名单交给我们，帮你设置好',
@@ -81,20 +80,20 @@ const t = zh
       ],
     }
   : {
-      headBefore: 'Deadline monitoring for',
-      headItal: 'US CPA firms',
-      headAfter: '',
+      headBefore: 'Catching every',
+      headItal: 'rule change.',
+      headAfter: 'Naming every affected client.',
       headCoverage: 'IRS · 50 states · DC',
-      subLead: 'A deadline just moved. Do you know who it hits?',
-      subEm: 'The moment a filing date moves,',
-      subRest: 'you see who it hits and the official notice behind it — IRS, state, or FEMA.',
+      subLead: '',
+      subEm: 'The moment the IRS, a state, or FEMA publishes a change,',
+      subRest:
+        'DueDateHQ tells you exactly which clients are hit — and applies the new dates in one click.',
       subStrong:
         'Do it yourself: paste your client list, first sourced deadline in ~10 minutes.',
       points: [
-        { strong: 'We watch IRS, 50 states & FEMA', rest: '' },
-        { strong: 'You see who each change hits', rest: '' },
-        { strong: 'Every date links to its source', rest: '' },
-        { strong: '3 months of Team, free', rest: '' },
+        { strong: 'Rule-change detection', rest: '— proactive, the moment it publishes' },
+        { strong: 'Client impact matching', rest: '— precise, down to the client' },
+        { strong: 'One-click apply', rest: '— traceable, source on every date' },
       ],
       ctaStart: 'Get 3 months free',
       ctaConcierge: "We'll set it up with your list",
@@ -253,6 +252,29 @@ const alerts = t.alerts
         }
       </div>
     </div>
+
+    <!-- keyword strip: the three-step chain (detection → matching → apply), one keyword
+         per column — each pairs a feature noun with its product adjective -->
+    <ul class="hero__points">
+      {
+        t.points.map((p) => (
+          <li>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 6L9 17l-4-4" />
+            </svg>
+            <b>{p.strong}</b> {p.rest}
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </section>
 
@@ -403,6 +425,7 @@ const alerts = t.alerts
   /* a compact 2-up proof grid (1-up when the column gets narrow) — tighter than
      the old 4-row stack so it reads as a quiet footnote, not a second pitch */
   .hero__points {
+    grid-column: 1 / -1;
     margin-top: clamp(22px, 2.2vw, 28px);
     padding-top: clamp(18px, 1.8vw, 22px);
     border-top: 1px solid var(--m-hairline);
