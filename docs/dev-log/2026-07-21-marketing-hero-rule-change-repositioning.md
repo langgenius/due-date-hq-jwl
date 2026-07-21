@@ -13,7 +13,7 @@ already claims, so the 5-second read was "I already have this." The differentiat
 
 ## What changed
 
-- **H1** → "Catching every *rule change*. Naming every affected client." Progressive
+- **H1** → "Catching every _rule change_. Naming every affected client." Progressive
   verbs carry the always-watching feel; "rule change" (not "deadline") avoids both the
   tracker category and the too-narrow deadline framing; "naming" carries the precision.
 - **Subhead** → "The moment the IRS, a state, or FEMA publishes a change, DueDateHQ
