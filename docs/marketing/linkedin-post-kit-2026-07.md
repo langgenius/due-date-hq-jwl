@@ -5,7 +5,11 @@ Same content engine as X, adapted to LinkedIn mechanics:
 
 **Mechanics (apply to every post)**
 
-- Post from a PERSONAL profile (Yuqi/Gigi); company page reshares. Personal >> page reach.
+- Post from the DueDateHQ COMPANY PAGE (broadcast content = official brand voice; team
+  aren't CPAs, so personal-profile tax posts would ring hollow). Compensate for low page
+  reach: Yuqi reshares from personal with a builder-angle line ("We build a monitor that
+  watches IRS, all 50 states and FEMA for deadline changes — this is one it's tracking
+  right now."), and teammates like/reshare early for initial distribution.
 - First 2 lines are everything — they show before "...see more". Hook goes there.
 - External link goes in the FIRST COMMENT, not the post body ("Link in comments 👇").
 - 3-4 niche hashtags at the end max. Best windows: Tue–Thu, 8–11am ET.

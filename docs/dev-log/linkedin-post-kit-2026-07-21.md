@@ -15,7 +15,9 @@ daily-monitor content pipeline gets a second distribution surface at near-zero c
 
 ## Mechanics encoded in the kit
 
-- Personal profile posts, company page reshares (page-only reach is poor)
+- Company-page posts (team aren't CPAs — brand voice fits sourced broadcast content);
+  Yuqi reshares from personal with a builder-angle line + teammates engage early
+  (updated 07-21, was personal-first)
 - Hook in first 2 lines (pre-"see more" fold); external link in first comment
 - UTM: `utm_source=linkedin&utm_medium=social&utm_campaign=li_alert|li_data`
 - Facts only from the verified notice DB — no predicting IRS action
