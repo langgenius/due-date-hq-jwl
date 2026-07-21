@@ -35,7 +35,7 @@ import type {
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Card } from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '@duedatehq/ui/components/ui/dialog'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -1703,7 +1703,7 @@ function CandidateReviewForm({
   if (chrome === 'card') {
     return (
       <Card size="sm" tone="accent-active" radius="md">
-        {body}
+        <CardContent className="flex flex-col gap-3">{body}</CardContent>
       </Card>
     )
   }

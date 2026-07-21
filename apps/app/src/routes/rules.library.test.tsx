@@ -19,6 +19,7 @@ import {
   KeyboardShellContext,
   type KeyboardShellContextValue,
 } from '@/components/patterns/keyboard-shell/state'
+import { CandidateReviewSection } from '@/features/rules/rule-detail-drawer'
 
 import { RulesLibraryRoute } from './rules.library'
 
@@ -1007,6 +1008,18 @@ describe('RulesLibraryRoute', () => {
 
     expect(document.body.textContent).not.toContain('AI concrete draft is not ready.')
     expect(rpcMocks.listConcreteDraftsQueryFn).toHaveBeenCalled()
+  })
+
+  it('insets the candidate decision content inside its tinted card', async () => {
+    await render(<CandidateReviewSection rule={obligationRule({})} />)
+    await waitForButton('Accept rule')
+
+    const acceptButton = findButton('Accept rule')
+    const card = acceptButton?.closest('[data-slot="card"]')
+    const content = card?.querySelector(':scope > [data-slot="card-content"]')
+
+    expect(content).not.toBeNull()
+    expect(content?.classList.contains('group-data-[size=sm]/card:px-4')).toBe(true)
   })
 
   it('opens official sources from evidence cards with an explicit click handler', async () => {
