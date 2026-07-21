@@ -53,7 +53,7 @@ const filingRows = filing
         ['Individual income tax', filing.individual],
         ['C corporation', filing.corporate],
         ['S corporation & partnership', filing.passthrough],
-      ] as const
+      ] as [string, FilingCategory | null][]
     ).filter((r): r is [string, FilingCategory] => r[1] != null && r[1].due != null)
   : []
 const showFiling = !zh && filingRows.length > 0
