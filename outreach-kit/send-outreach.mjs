@@ -282,9 +282,14 @@ function buildAlert(r) {
     `A new product from Dify (dify.ai) · duedatehq.com`,
   ].join('\n')
   const scope = n.forms.length >= 6 ? 'Nearly all federal returns' : n.forms.join(', ')
+  // Attribution: every duedatehq link in the alert carries UTM so Amplitude can
+  // segment visits by state batch (utm_content=alert_<abbr>).
+  const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_${n.abbr.toLowerCase()}`
+  const siteUrl = `https://duedatehq.com/?${utm}`
+  const appUrl = `https://app.duedatehq.com/alerts?state=${encodeURIComponent(n.abbr)}&${utm}`
   const logo = WORDMARK_B64
-    ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
-    : '<a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>'
+    ? `<a href="${siteUrl}" style="text-decoration:none"><img src="cid:wordmark" width="116" height="15" alt="DueDateHQ" style="display:block;border:0"></a>`
+    : `<a href="${siteUrl}" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a>`
   const footerHtml = FOOTER_ADDRESS
     ? `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">Facts from IRS ${esc(n.code)}. Not useful? Reply &quot;no thanks&quot; and I won&#39;t write again.<br>DueDateHQ · ${FOOTER_ADDRESS}</p>`
     : ''
@@ -304,8 +309,8 @@ function buildAlert(r) {
     `<td align="right" valign="middle"><span style="display:inline-block;font-size:12px;${pillCss};border-radius:999px;padding:4px 11px;white-space:nowrap">${daysLine}</span></td>` +
     `</tr></table>` +
     `</div></td></tr></table>` +
-    `<p style="margin:0 0 24px;color:#475467"><a href="https://duedatehq.com" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
-    `<a href="https://app.duedatehq.com/alerts?state=${esc(n.abbr)}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
+    `<p style="margin:0 0 24px;color:#475467"><a href="${siteUrl}" style="color:#2E368C;text-decoration:underline">DueDateHQ</a> caught this the day it posted — it watches every IRS and state deadline and tells you which of your clients each change affects.</p>` +
+    `<a href="${appUrl}" style="display:inline-block;background:#2E368C;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 22px;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.18)">See your affected clients →</a>` +
     `<div style="font-size:13px;color:#667085;margin-top:26px"><span style="font-weight:500;color:#101828">Gigi</span> · Co-Founder · a new product from <a href="https://dify.ai" style="color:#2E368C;text-decoration:underline">Dify</a></div>` +
     footerHtml +
     '</div>'
