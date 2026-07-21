@@ -85,6 +85,11 @@
      all read at the same size. Pages must use this, not a per-page clamp. */
   --m-page-title-size: clamp(34px, 4.8vw, 64px);
 
+  /* ONE size for secondary statement headings below the page H1 — the mid-page
+     "promise"/CTA moments. Sans (serif is reserved for the home hero + finale
+     only). Use via .m-display-2, not a per-component clamp. */
+  --m-display-2-size: clamp(26px, 3.2vw, 40px);
+
   /* ---- layout (editorial, marketing-specific) ---- */
   --m-maxw: 1240px; /* one shared container width */
   --m-gutter: clamp(22px, 5vw, 64px); /* page margins */
@@ -193,6 +198,17 @@ body {
   .m-h2 .ital {
     font-style: italic;
   }
+  /* Secondary statement heading — mid-page "promise"/CTA moments, one tier below
+     .m-h2. Sans (serif is home hero + finale only). Owns type only; callers add
+     their own layout (max-width, centering, margins). */
+  .m-display-2 {
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: var(--m-display-2-size);
+    line-height: 1.14;
+    letter-spacing: var(--m-tracking-tight);
+    color: var(--m-ink);
+  }
   .m-lead {
     max-width: var(--m-measure);
     font-size: clamp(17px, 1.4vw, 20px);
@@ -291,14 +307,13 @@ body {
   .m-page-title {
     margin-top: 4px;
     max-width: 20ch;
-    /* Display serif H1 — the SAME editorial hero as the home + Close finale, so
-       every page (long-tail leaves included) opens in one voice. Serif reads
-       large and optically lighter, so it takes a slightly higher ceiling and
-       tighter leading than the sans .m-h2 it sits above. */
-    font-family: var(--m-font-display);
-    font-weight: 400;
+    /* Sans H1 for every subpage. Serif is reserved for the home hero + finale
+       only (deliberate restraint — the serif reads as a rare accent, not the
+       site's workhorse heading face). */
+    font-family: var(--m-font-sans);
+    font-weight: 600;
     font-size: var(--m-page-title-size);
-    line-height: 1.04;
+    line-height: 1.05;
     letter-spacing: -0.02em;
     color: var(--m-ink);
   }
