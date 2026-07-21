@@ -27,7 +27,10 @@ const fileIx = args.indexOf('--file')
 let texts
 if (fileIx >= 0) {
   const raw = fs.readFileSync(args[fileIx + 1], 'utf8').trim()
-  texts = raw.split(/\n---\n/).map((s) => s.trim()).filter(Boolean)
+  texts = raw
+    .split(/\n---\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
 } else {
   const positional = args.filter((a) => !a.startsWith('--'))
   texts = [positional.join(' ').trim()]
@@ -50,11 +53,14 @@ const K = {
   as: process.env.X_ACCESS_TOKEN_SECRET,
 }
 if (POST && (!K.ck || !K.cs || !K.at || !K.as)) {
-  console.error('ERROR: set X_CONSUMER_KEY / X_CONSUMER_SECRET / X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET to post.')
+  console.error(
+    'ERROR: set X_CONSUMER_KEY / X_CONSUMER_SECRET / X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET to post.',
+  )
   process.exit(1)
 }
 
-const enc = (s) => encodeURIComponent(s).replace(/[!*'()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
+const enc = (s) =>
+  encodeURIComponent(s).replace(/[!*'()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
 
 function oauthHeader(method, url) {
   const p = {
@@ -65,11 +71,20 @@ function oauthHeader(method, url) {
     oauth_token: K.at,
     oauth_version: '1.0',
   }
-  const paramStr = Object.keys(p).sort().map((k) => `${enc(k)}=${enc(p[k])}`).join('&')
+  const paramStr = Object.keys(p)
+    .sort()
+    .map((k) => `${enc(k)}=${enc(p[k])}`)
+    .join('&')
   const base = [method, enc(url), enc(paramStr)].join('&')
   const key = `${enc(K.cs)}&${enc(K.as)}`
   p.oauth_signature = crypto.createHmac('sha1', key).update(base).digest('base64')
-  return 'OAuth ' + Object.keys(p).sort().map((k) => `${enc(k)}="${enc(p[k])}"`).join(', ')
+  return (
+    'OAuth ' +
+    Object.keys(p)
+      .sort()
+      .map((k) => `${enc(k)}="${enc(p[k])}"`)
+      .join(', ')
+  )
 }
 
 async function postOne(text, replyTo) {
@@ -86,7 +101,11 @@ async function postOne(text, replyTo) {
 }
 
 if (!POST) {
-  texts.forEach((t, i) => console.log(`[DRY${texts.length > 1 ? ` ${i + 1}/${texts.length}` : ''}] (${t.length} chars)\n${t}\n`))
+  texts.forEach((t, i) =>
+    console.log(
+      `[DRY${texts.length > 1 ? ` ${i + 1}/${texts.length}` : ''}] (${t.length} chars)\n${t}\n`,
+    ),
+  )
   console.log('Dry run only — add --post to publish.')
 } else {
   let replyTo = null
