@@ -65,7 +65,12 @@ const c = zh
 
 <div class="fb-bar" data-founding-bar hidden>
   <p class="fb-bar__text">{c.barText}</p>
-  <button class="fb-bar__cta" type="button" data-founding-open>{c.barCta} →</button>
+  <button
+    class="fb-bar__cta"
+    type="button"
+    data-founding-open
+    data-event="marketing.founding-banner.apply">{c.barCta} →</button
+  >
   <button class="fb-bar__x" type="button" data-founding-dismiss aria-label={c.dismiss}>
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
       <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"

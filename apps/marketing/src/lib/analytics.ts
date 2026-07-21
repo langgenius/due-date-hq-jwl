@@ -17,7 +17,20 @@ const EVENTS = {
   pageViewed: 'Marketing Page Viewed',
   pricingViewed: 'Pricing Viewed',
   signupCtaClicked: 'Signup CTA Clicked',
+  foundingBannerApplyClicked: 'Founding User Banner Apply Clicked',
 } as const
+
+const ACTION_EVENTS = {
+  'marketing.founding-banner.apply': {
+    name: EVENTS.foundingBannerApplyClicked,
+    location: 'founding_banner',
+  },
+} as const
+
+export function resolveMarketingAction(marker: string | undefined) {
+  if (!marker || !(marker in ACTION_EVENTS)) return undefined
+  return ACTION_EVENTS[marker as keyof typeof ACTION_EVENTS]
+}
 
 const KEY = import.meta.env.PUBLIC_AMPLITUDE_API_KEY ?? ''
 const ENABLED = import.meta.env.PROD && KEY.length > 0
@@ -168,18 +181,28 @@ export function initMarketingAnalytics(): void {
   // interactive) so it never blocks LCP/CWV on this SEO-critical site.
   window.setTimeout(loadSdk, 1200)
 
-  // Delegated CTA tracking: a click on any link to the app domain is signup
-  // intent. The `data-event` marker (e.g. "marketing.hero.cta") names the
-  // surface; mailto + locale-switch links have a different host and are ignored.
-  // Capture phase so it runs before the browser follows the link.
+  // Delegated action tracking: named non-navigation actions use an explicit
+  // marker contract, while any link to the app domain is signup intent. Capture
+  // phase runs before navigation and before feature click handlers.
   document.addEventListener(
     'click',
     (event) => {
       const target = event.target
       if (!(target instanceof Element)) return
+      const marker = target.closest<HTMLElement>('[data-event]')
+      const action = resolveMarketingAction(marker?.dataset.event)
+      if (action) {
+        track(action.name, {
+          location: action.location,
+          page: location.pathname,
+          locale: document.documentElement.lang || 'en',
+          ...readStoredCampaignProps(),
+        })
+        return
+      }
+
       const anchor = target.closest('a')
       if (!anchor || anchor.host !== APP_HOST) return
-      const marker = target.closest('[data-event]')
       const campaignProps = readStoredCampaignProps()
       const surface =
         marker instanceof HTMLElement

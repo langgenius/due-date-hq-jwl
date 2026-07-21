@@ -162,27 +162,42 @@ Pricing handoff 由 Playwright 覆盖：本地 e2e 会单独启动 Astro preview
 
 ### 2.5 转化事件
 
-Marketing 只埋公开站事件，不读取 app session。
+Marketing 只埋公开站事件，不读取 app session。`data-event` 是稳定的页面位置/动作契约；
+`apps/marketing/src/lib/analytics.ts` 把这些 marker 归一化为 Amplitude 事件。
 
-| Event                                        | 触发                                                      |
-| -------------------------------------------- | --------------------------------------------------------- |
-| `marketing.nav.cta`                          | TopNav primary CTA                                        |
-| `marketing.hero_cta.clicked`                 | Hero primary CTA                                          |
-| `marketing.secondary_cta.clicked`            | Hero secondary CTA                                        |
-| `marketing.demo_cta.clicked`                 | Hero `Try a live demo`（仅 demo 开启时渲染）              |
-| `marketing.workflow_section.viewed`          | Workflow 进入视口（`is:inline` IntersectionObserver）     |
-| `marketing.final_cta.clicked`                | 页尾 primary CTA                                          |
-| `marketing.final_cta.secondary`              | 页尾 Contact sales（mailto）                              |
-| `marketing.footer.lang`                      | Footer `PreferenceSwitcher` 语言切换                      |
-| `marketing.pricing.{checkout\|app\|contact}` | Pricing 卡 CTA，动态 `marketing.pricing.${plan.hrefKind}` |
+| Marker / pattern                             | 页面动作                                     | Runtime handling                        |
+| -------------------------------------------- | -------------------------------------------- | --------------------------------------- |
+| `marketing.nav.cta`                          | TopNav primary CTA                           | app-host link → `Signup CTA Clicked`    |
+| `marketing.hero.cta`                         | Hero primary CTA                             | app-host link → `Signup CTA Clicked`    |
+| `marketing.close.cta`                        | 页尾 primary CTA                             | app-host link → `Signup CTA Clicked`    |
+| `marketing.pricing.{checkout\|app\|contact}` | Pricing 卡 CTA                               | 仅 app-host link → `Signup CTA Clicked` |
+| `marketing.disaster-*.cta`                   | Disaster hub / archive / notice / lookup CTA | app-host link → `Signup CTA Clicked`    |
+| `marketing.widget.cta`                       | Widget page primary CTA                      | app-host link → `Signup CTA Clicked`    |
+| `marketing.founding-banner.apply`            | Founding-user banner Apply / 申请加入        | `Founding User Banner Apply Clicked`    |
+| `marketing.hero.concierge`                   | Hero guided-setup mailto                     | marker only; mailto 不上报              |
+| `marketing.close.concierge`                  | 页尾 guided-setup mailto                     | marker only; mailto 不上报              |
+| `marketing.footer.lang`                      | Footer `PreferenceSwitcher` 语言切换         | marker only; 当前不上报                 |
+| `marketing.disaster.alert-optin`             | Disaster alert opt-in submit                 | marker only; 当前不上报                 |
+| `marketing.founding.submit`                  | Founding-user modal submit                   | marker only; 不计入 banner Apply 点击   |
 
 当前 plans 实配：Solo / Pro / Team 均为 `checkout`，Enterprise 为 `contact`
 （mailto）；暂无套餐使用 `app`，但 `hrefKind: 'app'` 分支仍在组件中保留。
 
-事件命名不进 Lingui catalog。marketing 站点分析 SDK 尚未接线（app 端已接入
-Amplitude），data attribute 仅作为事件契约保留，待接线。
+事件命名不进 Lingui catalog。marketing 站点的 Amplitude SDK 只在 production 且
+`PUBLIC_AMPLITUDE_API_KEY` 存在时延迟加载；未配 key 或 dev/preview 中全部静默 no-op。
+对外的 Amplitude 事件名及属性为：
 
-> **跨子域身份缝合**：`duedatehq.com` 与 `app.duedatehq.com` 是不同 origin，任何分析工具默认都会生成两个独立访客 id，导致 `marketing.*_cta.clicked → app 注册` 漏斗断裂。未来接入分析 SDK 时必须做一件事：marketing 侧在 CTA `href` 传访客 id，app 侧首屏 identify 合并身份。在真正接入前，本节只承诺事件契约不承诺漏斗闭环。
+| Amplitude event                      | Trigger                               | Properties                                             |
+| ------------------------------------ | ------------------------------------- | ------------------------------------------------------ |
+| `Marketing Page Viewed`              | 每次 marketing page load              | `page`, `locale`, campaign attribution                 |
+| `Pricing Viewed`                     | pricing page load                     | `locale`, campaign attribution                         |
+| `Signup CTA Clicked`                 | 指向 app host 的 CTA link             | `location`, `locale`, campaign attribution             |
+| `Founding User Banner Apply Clicked` | founding-user banner Apply / 申请加入 | `location=founding_banner`, `page`, `locale`, campaign |
+
+> **跨子域身份缝合**：marketing 与 app 共用同一 Amplitude project；SDK 使用
+> `identityStorage: 'cookie'` 在 `.duedatehq.com` 共享 `device_id`，将 marketing 点击与 app
+> 注册/激活串成同一访客漏斗。Campaign 属性在 marketing session 内保留，并在 app CTA
+> 跳转时转传；禁止将收件人姓名、邮箱或事务所等 PII 放入 UTM / Amplitude 属性。
 
 ---
 
