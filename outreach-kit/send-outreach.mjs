@@ -315,7 +315,14 @@ function buildAlert(r) {
     footerHtml +
     '</div>'
   const attachments = WORDMARK_B64
-    ? [{ filename: 'duedatehq.png', content: WORDMARK_B64, content_id: 'wordmark', content_type: 'image/png' }]
+    ? [
+        {
+          filename: 'duedatehq.png',
+          content: WORDMARK_B64,
+          content_id: 'wordmark',
+          content_type: 'image/png',
+        },
+      ]
     : []
   return { subject, text, html, attachments }
 }
