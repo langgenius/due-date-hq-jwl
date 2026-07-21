@@ -6,6 +6,7 @@ import * as firmSchema from './schema/firm'
 import * as notificationSchema from './schema/notifications'
 import * as readinessSchema from './schema/readiness'
 import * as rulesSchema from './schema/rules'
+import * as socialSchema from './schema/social'
 import * as obligationSavedViewSchema from './schema/obligation-saved-view'
 import { makeFirmsRepo } from './repo/firms'
 import { makeAiRepo } from './repo/ai'
@@ -22,6 +23,7 @@ import {
 } from './repo/reminders'
 import { makeRulesOpsRepo, makeRulesRepo } from './repo/rules'
 import { makeCalendarFeedRepo, makeCalendarRepo } from './repo/calendar'
+import { makeSocialOpsRepo } from './repo/social'
 
 export { createDb } from './client'
 export { scoped } from './scoped'
@@ -39,6 +41,7 @@ export { firmSchema }
 export { notificationSchema }
 export { readinessSchema }
 export { rulesSchema }
+export { socialSchema }
 export { obligationSavedViewSchema }
 export { makeFirmsRepo }
 export { makeAiRepo }
@@ -53,6 +56,16 @@ export { makeRuleConcreteDraftRepo }
 export { makeRemindersRepo, renderReminderTemplate, DEFAULT_REMINDER_TEMPLATES }
 export { makeRulesRepo }
 export { makeRulesOpsRepo }
+export { makeSocialOpsRepo }
+export type { SocialAlertCandidateRow, SocialOpsRepo, SocialPublishPayload } from './repo/social'
+export type {
+  SocialAlertPost,
+  SocialAlertPostStatus,
+  SocialAlertPriority,
+  SocialChannel,
+  SocialPublishRun,
+  SocialPublishRunStatus,
+} from './schema/social'
 export type {
   Db,
   ScopedRepo,

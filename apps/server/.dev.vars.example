@@ -77,6 +77,23 @@ PULSE_BROWSERLESS_TOKEN=
 PULSE_BROWSERLESS_SOURCE_IDS=
 
 # ═════════════════════════════════════════════════════════════════════════════
+# [Optional until live rollout] X daily Alert social outbox
+# ═════════════════════════════════════════════════════════════════════════════
+# The Worker always starts in draft mode. The four OAuth 1.0a credentials are
+# all-or-none and are only required when X_POSTING_MODE=live. SOCIAL_OPS_TOKEN
+# protects the candidates / approve / cancel / reconcile control plane outside
+# local development; use a separate random value, never E2E_SEED_TOKEN.
+# X_SOCIAL_START_AT is the automatic candidate cutover. Older Pulse rows are
+# skipped unless explicitly added with `pnpm social:x -- candidates --pulse ...`.
+X_POSTING_MODE=draft
+X_SOCIAL_START_AT=2026-07-21T00:00:00.000Z
+X_API_KEY=
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_TOKEN_SECRET=
+SOCIAL_OPS_TOKEN=
+
+# ═════════════════════════════════════════════════════════════════════════════
 # [Optional until billing test] Stripe · Better Auth subscription checkout
 # ═════════════════════════════════════════════════════════════════════════════
 # Local webhook test:

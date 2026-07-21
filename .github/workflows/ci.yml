@@ -138,6 +138,11 @@ jobs:
       STRIPE_PRICE_PRO_MONTHLY: ${{ secrets.STRIPE_PRICE_PRO_MONTHLY }}
       STRIPE_PRICE_PRO_YEARLY: ${{ secrets.STRIPE_PRICE_PRO_YEARLY }}
       STRIPE_PRICE_TEAM_MONTHLY: ${{ secrets.STRIPE_PRICE_TEAM_MONTHLY }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      SOCIAL_OPS_TOKEN: ${{ secrets.SOCIAL_OPS_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
@@ -188,6 +193,21 @@ jobs:
               ].join(' '),
             )
           }
+          const xKeys = [
+            'X_API_KEY',
+            'X_API_SECRET',
+            'X_ACCESS_TOKEN',
+            'X_ACCESS_TOKEN_SECRET',
+          ]
+          const hasAnyXCredential = xKeys.some((key) => process.env[key])
+          const missingXCredentials = hasAnyXCredential
+            ? xKeys.filter((key) => !process.env[key])
+            : []
+          if (missingXCredentials.length > 0) {
+            throw new Error(
+              `X OAuth credentials are all-or-none. Missing: ${missingXCredentials.join(', ')}`,
+            )
+          }
 
           const keys = [
             ...required,
@@ -199,6 +219,8 @@ jobs:
             'STRIPE_PRICE_FIRM_MONTHLY',
             'STRIPE_PRICE_FIRM_YEARLY',
             'STRIPE_PRICE_PRO_YEARLY',
+            ...xKeys,
+            'SOCIAL_OPS_TOKEN',
           ]
           const secrets = Object.fromEntries(
             keys

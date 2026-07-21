@@ -508,6 +508,29 @@ describe('AlertDetailDrawer hotkeys behind modal layers', () => {
     rpcMocks.markReviewedMutationFn.mockResolvedValue({})
   })
 
+  it('keeps the client import CTA visible for a zero-match social Alert', async () => {
+    const detail = hotkeyDetail()
+    rpcMocks.getDetailQueryFn.mockResolvedValue({
+      ...detail,
+      alert: {
+        ...detail.alert,
+        firmImpact: 'no_current_match',
+        matchedCount: 0,
+        applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },
+      },
+      applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },
+      affectedClients: [],
+    } satisfies PulseDetail)
+
+    await renderHotkeyDrawer()
+    await waitForText('Import clients')
+
+    const importLink = Array.from(document.querySelectorAll('a')).find(
+      (candidate) => candidate.textContent?.trim() === 'Import clients',
+    )
+    expect(importLink?.getAttribute('href')).toBe('/clients')
+  })
+
   it('fires dismiss on D when only the drawer is open', async () => {
     await renderHotkeyDrawer()
 

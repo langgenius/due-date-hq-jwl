@@ -190,7 +190,10 @@ async function guestLoader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
   const consumedLocale = applyRequestLocaleHandoff(url)
   if (session) {
-    const target = pickSafeRedirect(url.searchParams.get('redirectTo'))
+    const target = pickSafeRedirect(
+      url.searchParams.get('continue'),
+      pickSafeRedirect(url.searchParams.get('redirectTo')),
+    )
     if (needsTwoFactorVerification(session)) {
       throw redirect(`/two-factor?redirectTo=${encodeURIComponent(target)}`)
     }

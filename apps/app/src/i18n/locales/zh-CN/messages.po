@@ -5573,6 +5573,10 @@ msgstr "创建"
 msgid "Create a client before running deadline preview."
 msgstr "运行截止事项预览前，请先创建客户。"
 
+#: src/routes/login.tsx
+msgid "Create a free account to review the source-backed alert and check client impact."
+msgstr "创建免费账户，查看有来源依据的提醒并核对客户影响。"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
 msgstr "创建包含 PDF 报告、审计事件、证据链接和 manifest 的 ZIP。"
@@ -8317,6 +8321,7 @@ msgid "Import batch created"
 msgstr "导入批次已创建"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/add-menu.tsx
@@ -10456,8 +10461,8 @@ msgid "No clients match your search."
 msgstr "没有符合搜索条件的客户。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
-msgstr "没有客户匹配此提醒的范围。您可以忽略它或等待 — 如有匹配范围的新客户加入，提醒会重新打开。"
+msgid "No clients matched this alert's scope. Import clients to check their deadlines against this and future official updates."
+msgstr "没有客户匹配此提醒的范围。请导入客户，用此项及今后的官方更新核对他们的截止日期。"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
@@ -11579,6 +11584,10 @@ msgstr "打开"
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"
 msgstr "正在打开支付…"
+
+#: src/features/alerts/SocialAlertIntentResolver.tsx
+msgid "Opening the source-backed alert…"
+msgstr "正在打开有来源依据的提醒…"
 
 #: src/routes/billing.tsx
 msgid "Opening…"
@@ -13796,6 +13805,10 @@ msgstr "优先审核这些 · 高严重度"
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "稍后在规则库审核这些州，即可生成剩余的州级截止日。"
 
+#: src/routes/login.tsx
+msgid "Review this alert"
+msgstr "查看此提醒"
+
 #: src/routes/settings.permissions.tsx
 msgid "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
 msgstr "查看每个角色在工作区中可执行的操作。所有者权限是固定的，仅供参考。"
@@ -14520,6 +14533,10 @@ msgstr "在「今日」中查看"
 #: src/features/migration/SuccessModal.tsx
 msgid "See what's due next on Today"
 msgstr "在「今日」中查看接下来的到期项"
+
+#: src/routes/login.tsx
+msgid "See which client deadlines this official update may affect."
+msgstr "查看此项官方更新可能影响哪些客户截止日期。"
 
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
@@ -16252,6 +16269,10 @@ msgstr "此提醒仅供审阅 — 不会更改任何截止日期。"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "This alert isn't available"
 msgstr "此提醒不可用"
+
+#: src/features/alerts/SocialAlertIntentResolver.tsx
+msgid "This alert link is no longer available. You can still review current alerts below."
+msgstr "此提醒链接已失效。您仍可在下方查看当前提醒。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."

@@ -458,6 +458,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async getDetail() {
       return unused('pulse.getDetail')
     },
+    async resolveSocialAlertRef() {
+      return unused('pulse.resolveSocialAlertRef')
+    },
     async listPriorityQueue() {
       return unused('pulse.listPriorityQueue')
     },

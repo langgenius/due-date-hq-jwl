@@ -510,3 +510,39 @@ describe('listAlerts output resilience', () => {
     consoleError.mockRestore()
   })
 })
+
+describe('resolveSocialAlert', () => {
+  it('delegates the opaque ref to the tenant-scoped Pulse repo', async () => {
+    const ref = 'social_ref_1234567890abcdef'
+    const alertId = '11111111-1111-4111-8111-111111111111'
+    const resolveSocialAlertRef = vi.fn(async () => ({ alertId }))
+    const context: RpcContext = {
+      env: {} as unknown as Env,
+      request: new Request('https://app.test/rpc/pulse/resolveSocialAlert'),
+      vars: {
+        requestId: 'req_social_1',
+        userId: 'user_1',
+        tenantContext: {
+          firmId: 'firm_1',
+          timezone: 'America/New_York',
+          plan: 'team',
+          seatLimit: 5,
+          status: 'active',
+          internalDeadlineOffsetDays: 14,
+          monitoringStartDate: '2026-05-29',
+          ownerUserId: 'user_1',
+          coordinatorCanSeeDollars: false,
+        },
+        scoped: {
+          firmId: 'firm_1',
+          pulse: { resolveSocialAlertRef },
+        } as unknown as NonNullable<ContextVars['scoped']>,
+      },
+    }
+
+    await expect(call(pulseHandlers.resolveSocialAlert, { ref }, { context })).resolves.toEqual({
+      alertId,
+    })
+    expect(resolveSocialAlertRef).toHaveBeenCalledWith(ref)
+  })
+})

@@ -32,6 +32,13 @@ const serverEnvSchema = z.object({
   STRIPE_PRICE_PRO_YEARLY: z.string().min(1).optional(),
   STRIPE_PRICE_TEAM_MONTHLY: z.string().min(1).optional(),
   STRIPE_PRICE_TEAM_YEARLY: z.string().min(1).optional(),
+  X_API_KEY: z.string().min(1).optional(),
+  X_API_SECRET: z.string().min(1).optional(),
+  X_ACCESS_TOKEN: z.string().min(1).optional(),
+  X_ACCESS_TOKEN_SECRET: z.string().min(1).optional(),
+  X_POSTING_MODE: z.enum(['draft', 'live']).default('draft'),
+  X_SOCIAL_START_AT: z.iso.datetime().optional(),
+  SOCIAL_OPS_TOKEN: z.string().min(16).optional(),
 })
 
 function assertMicrosoftOAuthPair(env: ServerEnv) {
@@ -40,6 +47,22 @@ function assertMicrosoftOAuthPair(env: ServerEnv) {
   if (hasMicrosoftClientId === hasMicrosoftClientSecret) return
 
   throw new Error('MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET must be configured together.')
+}
+
+function assertXCredentials(env: ServerEnv) {
+  const values = [env.X_API_KEY, env.X_API_SECRET, env.X_ACCESS_TOKEN, env.X_ACCESS_TOKEN_SECRET]
+  const configured = values.filter(Boolean).length
+  if (configured !== 0 && configured !== values.length) {
+    throw new Error(
+      'X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN and X_ACCESS_TOKEN_SECRET must be configured together.',
+    )
+  }
+  if (env.X_POSTING_MODE === 'live' && configured !== values.length) {
+    throw new Error('X_POSTING_MODE=live requires all four X OAuth credentials.')
+  }
+  if (env.X_POSTING_MODE === 'live' && !env.SOCIAL_OPS_TOKEN) {
+    throw new Error('X_POSTING_MODE=live requires SOCIAL_OPS_TOKEN.')
+  }
 }
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>
@@ -66,6 +89,7 @@ export interface WorkerBindings {
   PULSE_QUEUE: Queue
   DASHBOARD_QUEUE: Queue
   AUDIT_QUEUE: Queue
+  SOCIAL_QUEUE: Queue
   ASSETS: Fetcher
 }
 
@@ -132,11 +156,19 @@ export function validateServerEnv(runtimeEnv: ServerEnvInput): ServerEnv {
       STRIPE_PRICE_PRO_YEARLY: runtimeEnv.STRIPE_PRICE_PRO_YEARLY,
       STRIPE_PRICE_TEAM_MONTHLY: runtimeEnv.STRIPE_PRICE_TEAM_MONTHLY,
       STRIPE_PRICE_TEAM_YEARLY: runtimeEnv.STRIPE_PRICE_TEAM_YEARLY,
+      X_API_KEY: runtimeEnv.X_API_KEY,
+      X_API_SECRET: runtimeEnv.X_API_SECRET,
+      X_ACCESS_TOKEN: runtimeEnv.X_ACCESS_TOKEN,
+      X_ACCESS_TOKEN_SECRET: runtimeEnv.X_ACCESS_TOKEN_SECRET,
+      X_POSTING_MODE: runtimeEnv.X_POSTING_MODE,
+      X_SOCIAL_START_AT: runtimeEnv.X_SOCIAL_START_AT,
+      SOCIAL_OPS_TOKEN: runtimeEnv.SOCIAL_OPS_TOKEN,
     },
     emptyStringAsUndefined: true,
   })
 
   assertMicrosoftOAuthPair(env)
+  assertXCredentials(env)
 
   return env
 }

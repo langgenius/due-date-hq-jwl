@@ -21,6 +21,7 @@ import {
   isRuleDateReconciliationMessage,
   isRuleRegistryCatalogSyncMessage,
 } from './rules/reconcile'
+import { consumeXPublish, isXPublishQueueMessage, markXPublishDeadLetter } from './social/consumer'
 
 interface QueueBatchLike {
   queue: string
@@ -49,6 +50,7 @@ function isDispatchableMessage(body: unknown): boolean {
     isPulseRuleSourceScanMessage(body) ||
     isRuleRegistryCatalogSyncMessage(body) ||
     isRuleDateReconciliationMessage(body) ||
+    isXPublishQueueMessage(body) ||
     isEmailFlushMessage(body) ||
     isAuditPackageGenerateMessage(body)
   )
@@ -90,12 +92,20 @@ export function queueMessageSourceId(body: unknown): string | null {
   return isRecord(body) && typeof body.sourceId === 'string' ? body.sourceId : null
 }
 
+export function queueMessageRunId(body: unknown): string | null {
+  return isXPublishQueueMessage(body) ? body.runId : null
+}
+
 // Dead-letter queues are wired in wrangler.toml (e.g. due-date-hq-pulse-dlq-*).
 // A batch arriving from the Pulse DLQ means a snapshot exhausted max_retries —
 // re-dispatching would just re-run the failing handler, so we alert and ack to
 // drain it instead. Without this consumer the messages die silently.
 export function isPulseDeadLetterQueue(queueName: string): boolean {
   return queueName.includes('pulse') && queueName.includes('dlq')
+}
+
+export function isSocialDeadLetterQueue(queueName: string): boolean {
+  return queueName.includes('social') && queueName.includes('dlq')
 }
 
 function recordQueueRetry(body: unknown, error: unknown): void {
@@ -110,17 +120,34 @@ function recordQueueRetry(body: unknown, error: unknown): void {
   )
 }
 
-async function drainDeadLetterBatch(batch: MessageBatch, env: Env): Promise<void> {
+export async function drainDeadLetterBatch(
+  batch: MessageBatch,
+  env: Env,
+  dependencies: { markXDeadLetter?: typeof markXPublishDeadLetter } = {},
+): Promise<void> {
   for (const message of batch.messages) {
+    if (isSocialDeadLetterQueue(batch.queue) && isXPublishQueueMessage(message.body)) {
+      await (dependencies.markXDeadLetter ?? markXPublishDeadLetter)(message.body, env)
+      message.ack()
+      continue
+    }
     const fields = {
       queue: batch.queue,
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
       sourceId: queueMessageSourceId(message.body),
       snapshotId: isPulseExtractMessage(message.body) ? message.body.snapshotId : null,
+      runId: queueMessageRunId(message.body),
     }
-    recordPulseAlert('pulse.queue.dead_letter', fields)
-    await dispatchOpsAlert(env, 'pulse.queue.dead_letter', fields)
+    const alertName = isSocialDeadLetterQueue(batch.queue)
+      ? 'social.queue.dead_letter'
+      : 'pulse.queue.dead_letter'
+    if (alertName === 'pulse.queue.dead_letter') {
+      recordPulseAlert(alertName, fields)
+    } else {
+      console.error(JSON.stringify({ type: alertName, at: new Date().toISOString(), ...fields }))
+    }
+    await dispatchOpsAlert(env, alertName, fields)
     message.ack()
   }
 }
@@ -128,7 +155,7 @@ async function drainDeadLetterBatch(batch: MessageBatch, env: Env): Promise<void
 // Queue consumer entry. Keep message contracts explicit so additional queues
 // can be routed here without conflating job payloads.
 export async function queue(batch: MessageBatch, env: Env, _ctx: ExecutionContext): Promise<void> {
-  if (isPulseDeadLetterQueue(batch.queue)) {
+  if (isPulseDeadLetterQueue(batch.queue) || isSocialDeadLetterQueue(batch.queue)) {
     await drainDeadLetterBatch(batch, env)
     return
   }
@@ -178,6 +205,9 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     }
     if (isRuleDateReconciliationMessage(body)) {
       await consumeRuleDateReconciliation(body, env)
+    }
+    if (isXPublishQueueMessage(body)) {
+      await consumeXPublish(body, env)
     }
     if (isEmailFlushMessage(body)) {
       await flushEmailOutbox(env)

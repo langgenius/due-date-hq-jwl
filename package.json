@@ -23,6 +23,7 @@
     "rules:concrete-draft-yield": "tsx scripts/rule-concrete-draft-yield.ts",
     "cost:report": "tsx scripts/cost-report.ts",
     "pulse:eval-recall": "tsx scripts/eval-alert-recall.ts",
+    "social:x": "tsx scripts/social-x.ts",
     "rules:backfill-concrete-draft-source-text": "tsx scripts/backfill-concrete-draft-citations.ts",
     "pulse:email:smoke": "node scripts/pulse-inbound-email-smoke.mjs",
     "db:migrate:local": "pnpm --dir apps/server exec wrangler d1 migrations apply DB --local --config wrangler.toml",

@@ -89,6 +89,10 @@ queue = "due-date-hq-dashboard-staging"
 binding = "AUDIT_QUEUE"
 queue = "due-date-hq-audit-staging"
 
+[[queues.producers]]
+binding = "SOCIAL_QUEUE"
+queue = "due-date-hq-social-staging"
+
 [[queues.consumers]]
 queue = "due-date-hq-email-staging"
 max_batch_size = 10
@@ -138,6 +142,26 @@ max_batch_timeout = 5
 max_retries = 3
 dead_letter_queue = "due-date-hq-audit-dlq-staging"
 
+# X creates are non-idempotent at the remote API boundary. One-message batches
+# and one consumer invocation keep dispatch serialized; application state guards
+# prevent redelivery from issuing a second create request.
+[[queues.consumers]]
+queue = "due-date-hq-social-staging"
+max_batch_size = 1
+max_batch_timeout = 5
+max_retries = 2
+max_concurrency = 1
+dead_letter_queue = "due-date-hq-social-dlq-staging"
+
+[[queues.consumers]]
+queue = "due-date-hq-social-dlq-staging"
+max_batch_size = 10
+max_batch_timeout = 5
+# The drain performs a D1 CAS to unknown before acking. Retry transient D1
+# failures so an ambiguous X create can never disappear as an untracked run.
+max_retries = 3
+max_concurrency = 1
+
 # -------------------------------------------------------------
 # Cron Triggers · pulse ingest + reminder dispatch
 # -------------------------------------------------------------
@@ -176,6 +200,13 @@ AI_SYSTEM_DAILY_LIMIT = "1500"
 # this to "true", AND (3) set marketing PUBLIC_ENABLE_DEMO="true" so the Hero
 # "Try a live demo" button appears. The demo session is server-enforced read-only.
 ENABLE_PUBLIC_DEMO = "false"
+# Social posting fails closed in draft mode. After the seven-day shadow review,
+# switch to "live" only after setting X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN,
+# X_ACCESS_TOKEN_SECRET and SOCIAL_OPS_TOKEN with `wrangler secret put`.
+X_POSTING_MODE = "draft"
+# Pulse rows older than this deployment cutover never enter the automatic social
+# candidate scan; operators can still add a specific historical Pulse manually.
+X_SOCIAL_START_AT = "2026-07-21T00:00:00.000Z"
 # 2026-06-23: migrated off browserless.io (cost) to Cloudflare Browser Rendering.
 # createBrowserlessFetch switches on the host: this *.cloudflare.com endpoint uses
 # CF's /content REST API (Bearer auth via PULSE_BROWSERLESS_TOKEN = a CF API token

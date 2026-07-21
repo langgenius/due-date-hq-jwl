@@ -5552,6 +5552,10 @@ msgstr "Create"
 msgid "Create a client before running deadline preview."
 msgstr "Create a client before running deadline preview."
 
+#: src/routes/login.tsx
+msgid "Create a free account to review the source-backed alert and check client impact."
+msgstr "Create a free account to review the source-backed alert and check client impact."
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
 msgstr "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
@@ -8289,6 +8293,7 @@ msgid "Import batch created"
 msgstr "Import batch created"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/add-menu.tsx
@@ -10418,8 +10423,8 @@ msgid "No clients match your search."
 msgstr "No clients match your search."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
-msgstr "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
+msgid "No clients matched this alert's scope. Import clients to check their deadlines against this and future official updates."
+msgstr "No clients matched this alert's scope. Import clients to check their deadlines against this and future official updates."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
@@ -11535,6 +11540,10 @@ msgstr "Opened"
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"
 msgstr "Opening checkout…"
+
+#: src/features/alerts/SocialAlertIntentResolver.tsx
+msgid "Opening the source-backed alert…"
+msgstr "Opening the source-backed alert…"
 
 #: src/routes/billing.tsx
 msgid "Opening…"
@@ -13738,6 +13747,10 @@ msgstr "Review these first · high-severity"
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "Review these states in Rule Library to unlock the remaining deadlines."
 
+#: src/routes/login.tsx
+msgid "Review this alert"
+msgstr "Review this alert"
+
 #: src/routes/settings.permissions.tsx
 msgid "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
 msgstr "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
@@ -14459,6 +14472,10 @@ msgstr "see them on Today"
 #: src/features/migration/SuccessModal.tsx
 msgid "See what's due next on Today"
 msgstr "See what's due next on Today"
+
+#: src/routes/login.tsx
+msgid "See which client deadlines this official update may affect."
+msgstr "See which client deadlines this official update may affect."
 
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
@@ -16188,6 +16205,10 @@ msgstr "This alert is review-only — no due date will change."
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "This alert isn't available"
 msgstr "This alert isn't available"
+
+#: src/features/alerts/SocialAlertIntentResolver.tsx
+msgid "This alert link is no longer available. You can still review current alerts below."
+msgstr "This alert link is no longer available. You can still review current alerts below."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."

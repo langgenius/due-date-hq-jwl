@@ -42,6 +42,10 @@
 - 双设备会话允许；Account Security 列所有 session，可撤销单个 session 或其他 session
 - 已启用 MFA 的用户登录时走 DueDateHQ `/two-factor` challenge；项目接口权限只由 tenant + role 决定，不因为 MFA 开/关额外拦截
 - Email OTP 只允许 `type='sign-in'`，验证码 6 位、5 分钟过期；新邮箱验证通过后自助注册并进入 onboarding。验证码存入 Better Auth `verification` 表，限流走 `rate_limit` 表，无新增 auth schema。
+- Email OTP 发信时通过请求 header 传入 post-login continuation；服务端在 AsyncLocalStorage
+  request scope 内只接受最长 2048 字符的 same-origin app path，拒绝 absolute URL、`//host`、
+  `/api/*` 与 `/rpc/*`，再写进邮件 `continue=`。因此普通 `redirectTo` 和 canonical
+  `/alerts?ref=<base64url>` 都能跨邮箱标签页恢复，而不扩大 open-redirect 面。
 
 ### 2.3 Invitation 流
 
@@ -63,6 +67,19 @@
 - `/two-factor` 承接已启用 MFA 用户的登录二次验证；OAuth 登录不会走 Better Auth email sign-in 的 `twoFactorRedirect` hook，所以 `protectedLoader` 用 session 上的 `twoFactorVerified` 做应用层 gate；challenge 当前只接受 TOTP 码（recovery-code 登录分支暂缓，锁定用户走 support 邮箱重置）
 - MFA 是用户可选账户安全项；关闭 MFA 后不会让 members / firm / billing / audit 等项目接口因为 MFA 额外失败
 - `two_factor.secret` / `backup_codes` 由 Better Auth 管理；session 额外记录当前登录是否完成 MFA 验证
+
+### 2.5 X Social Alert acquisition boundary
+
+- `ref_token` 是不可猜的关联 id，不是授权：匿名 `GET /api/social-alerts/:ref/teaser` 只在对应
+  social post 已 `published` 时返回 X 已公开的 `teaser / agency / jurisdiction`，不返回完整
+  summary、官方 source URL、Pulse id、client match 或 firm Alert id。
+- 登录后的 `pulse.resolveSocialAlert({ref})` 必须经过 session + active firm + tenant middleware；
+  repo 只返回/创建当前 `firmId` 的 `pulse_firm_alert`。相同 ref 给不同 firm 的结果 id 不同。
+- 新建零匹配 Alert 只用于让该 firm 查看 source-backed Alert；不触发 email、不复制客户数据，
+  也不改变 global Pulse。source revoked、sample 或非 approved Pulse 不能解析。
+- `/api/ops/social/*` 与 `/api/e2e/*` 完全分钥匙：非 development 只接受
+  `Authorization: Bearer <SOCIAL_OPS_TOKEN>`，token 缺失/错误统一 404。approve 还必须提交真实
+  Better Auth reviewer user id；X OAuth credential 从不进入 ops request、D1、URL 或日志。
 
 ---
 
@@ -268,6 +285,9 @@ contract，不包含 Drizzle schema、DB factory 或 Worker runtime；
 - 早期设计的 `{{client_N}}` / `{{ein_N}}` / `{{email_N}}` 占位 + `piiMap` 回填方案未实装；prompt 输入以「最小必要字段 + SSN 列剥离」为准
 - `ai_output.input_hash` / `llm_log.input_hash` 存 sha256，不存原文
 - 这是 IRC §7216 + FTC Safeguards Rule 的工程落地
+- Social copy 不调用第二次自由生成；确定性模板只消费已审核 Pulse 字段，并在建 draft 前拒绝
+  email-like / 9-digit identifier、sample、内部运维 change kind、无有效官方 URL 或缺 scope/date
+  的候选。X URL 的 UTM 只到 campaign/content，不带 user、email、firm 或 client 标识。
 
 ### 5.3 加密
 
@@ -404,12 +424,12 @@ guard 拒绝产出 `GUARD_REJECTED` refusal，连同 `guardResult` 记入 `llm_l
 
 ## 11. Rate Limit
 
-| 层                                    | 实现                                                                                                       |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Worker `RATE_LIMIT` binding           | Cloudflare 原生 ratelimit binding，`simple = { limit: 100, period: 60 }`；key = userId（登录态），否则 IP  |
-| binding 挂载面                        | `/rpc/*` · `/api/audit/*`（session → tenant 之后）· `/api/demo` · `/api/ics/*` · `/api/readiness/*`        |
-| Better Auth（DB-backed `rate_limit`） | 非 development 启用；全局 60s/100 次；`/email-otp/send-verification-otp` 3/min；`/sign-in/email-otp` 5/min |
-| Webhook 入站（`/api/webhook/resend`） | 不走 binding，靠 Svix 签名验签拒绝伪造                                                                     |
+| 层                                    | 实现                                                                                                                         |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Worker `RATE_LIMIT` binding           | Cloudflare 原生 ratelimit binding，`simple = { limit: 100, period: 60 }`；key = userId（登录态），否则 IP                    |
+| binding 挂载面                        | `/rpc/*` · `/api/audit/*`（session → tenant 之后）· `/api/demo` · `/api/ics/*` · `/api/readiness/*` · `/api/social-alerts/*` |
+| Better Auth（DB-backed `rate_limit`） | 非 development 启用；全局 60s/100 次；`/email-otp/send-verification-otp` 3/min；`/sign-in/email-otp` 5/min                   |
+| Webhook 入站（`/api/webhook/resend`） | 不走 binding，靠 Svix 签名验签拒绝伪造                                                                                       |
 
 超限返回 `429`（binding 路径返回 `RATE_LIMITED`）。早期设计的 per-user 120/min、AI 调用
 20/min/200/day、Pulse Approve 30/min、per-token 10/min 等细粒度配额未实现；AI 消耗由
@@ -421,6 +441,9 @@ per-plan `aiDailyRunLimit` + `AI_SYSTEM_DAILY_LIMIT` 预算层兜底（`packages
 
 - **本地**：Worker 运行时 secrets 放 `apps/server/.dev.vars`（copy 自 `.dev.vars.example`，gitignore）；浏览器侧 `VITE_*` 变量按需放 `apps/app/.env.local`；CLI 凭据走 `wrangler login`，不进仓库文件；1Password Shared Vault 同步给团队
 - **Staging / Production**：`wrangler secret put <KEY>`
+- **X social**：`X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET` 必须四项
+  all-or-none；`X_POSTING_MODE=live` 时四项必填。`SOCIAL_OPS_TOKEN` 独立生成、独立轮换，不复用
+  `AUTH_SECRET`、`E2E_SEED_TOKEN` 或 X token；默认 `draft` 无 X credential 也可影子运行。
 - **轮换**：季度轮换 `AUTH_SECRET`；轮换流程先新增 secondary → 验证 → 删除 primary（原 `VAPID_PRIVATE_KEY` 已随 Web Push 从 Phase 0 移除）
 - **扫描**：`pnpm secrets:scan`（= `gitleaks detect --source . --no-git --redact`），改动配置前手动跑；CI 安装固定版本 gitleaks 再扫一次。pre-commit hook 是 `vp staged`（对 staged 文件跑 `vp check --fix`），不含 gitleaks
 

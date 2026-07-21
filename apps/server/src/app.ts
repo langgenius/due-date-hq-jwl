@@ -19,6 +19,7 @@ import { icsRoute } from './routes/ics'
 import { notificationsRoute } from './routes/notifications'
 import { opsRoute } from './routes/ops'
 import { readinessRoute } from './routes/readiness'
+import { socialAlertsRoute } from './routes/social-alerts'
 import { resendWebhook } from './webhooks/resend'
 import { rpcHandler } from './rpc'
 
@@ -100,8 +101,9 @@ export function createApp() {
   // requires E2E_SEED_TOKEN; production always returns 404.
   app.route('/api/e2e', e2eRoute)
 
-  // /api/ops/* — operator one-shot maintenance jobs (pulse backfill seeding).
-  // Same access model as /api/e2e: dev open, staging token-gated, else 404.
+  // /api/ops/* — operator one-shot maintenance jobs. Pulse backfill keeps the
+  // staging-only E2E-token policy; /social/* is also available in production
+  // behind its separate SOCIAL_OPS_TOKEN control-plane credential.
   app.route('/api/ops', opsRoute)
 
   // /api/demo — public no-signup read-only product tour (gated by ENABLE_PUBLIC_DEMO;
@@ -135,6 +137,11 @@ export function createApp() {
 
   app.use('/api/readiness/*', rateLimitMiddleware)
   app.route('/api/readiness', readinessRoute)
+
+  // Public X acquisition teaser. The response is deliberately narrower than
+  // Pulse detail and only resolves posts that have actually been published.
+  app.use('/api/social-alerts/*', rateLimitMiddleware)
+  app.route('/api/social-alerts', socialAlertsRoute)
 
   app.use(
     '/api/audit/*',

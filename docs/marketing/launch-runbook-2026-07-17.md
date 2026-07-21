@@ -30,7 +30,12 @@ guard 0 regressions.)
 
 ## C · 已在自动运行(勿重复建)
 
-- **每日 IRS 监控(8am)**:发现新灾害通知 → 自动产出全渠道 kit(alert 命令+协会邮件+媒体 tip+X/Jason 稿)
+- **每日 IRS 监控(8am)**:继续发现新灾害通知并产出 alert/协会/媒体材料；其中旧的 X/Jason
+  草稿只作研究素材，**不再是 X 调度或发布权威**，不得另建自动发布任务。
+- **X Alert 发布(9am ET)**:唯一权威是 SaaS Worker 的 D1 Social Outbox + `SOCIAL_QUEUE`；
+  每个 ET 自然日最多一条，默认 `draft` 影子运行，操作见
+  [`../ops/x-daily-alert-publishing.md`](../ops/x-daily-alert-publishing.md)。本机 Codex automations
+  已核对，没有第二个 DueDateHQ/X recurring task 需要停用。
 - **每周简报(周五 9am)**:自动出稿,过目即发
 
 ## D · 监测节奏(每周 ~2 小时)

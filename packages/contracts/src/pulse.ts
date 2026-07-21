@@ -415,6 +415,30 @@ export const PulseAddAlertNoteInputSchema = z.object({
 export type PulseAddAlertNoteInput = z.infer<typeof PulseAddAlertNoteInputSchema>
 
 export const PulseAlertIdInputSchema = z.object({ alertId: EntityIdSchema })
+
+// Opaque, non-tenant social acquisition token. It is deliberately narrower
+// than a generic path segment so malformed values never reach D1. The token
+// carries no user, firm, or Pulse identifiers.
+export const SocialAlertRefSchema = z
+  .string()
+  .min(16)
+  .max(128)
+  .regex(/^[A-Za-z0-9_-]+$/)
+export type SocialAlertRef = z.infer<typeof SocialAlertRefSchema>
+
+export const SocialAlertTeaserSchema = z.object({
+  teaser: z.string().min(1).max(280),
+  agency: z.string().min(1).max(120),
+  jurisdiction: z.string().min(1).max(80),
+})
+export type SocialAlertTeaser = z.infer<typeof SocialAlertTeaserSchema>
+
+export const PulseResolveSocialAlertInputSchema = z.object({ ref: SocialAlertRefSchema })
+export type PulseResolveSocialAlertInput = z.infer<typeof PulseResolveSocialAlertInputSchema>
+
+export const PulseResolveSocialAlertOutputSchema = z.object({ alertId: EntityIdSchema })
+export type PulseResolveSocialAlertOutput = z.infer<typeof PulseResolveSocialAlertOutputSchema>
+
 export const PulseSourceHealthInputSchema = z.object({ sourceId: z.string().min(1) })
 export type PulseSourceHealthInput = z.infer<typeof PulseSourceHealthInputSchema>
 
@@ -633,6 +657,9 @@ export const pulseContract = oc.router({
   retrySourceHealth: oc
     .input(PulseSourceHealthInputSchema)
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),
+  resolveSocialAlert: oc
+    .input(PulseResolveSocialAlertInputSchema)
+    .output(PulseResolveSocialAlertOutputSchema),
   getDetail: oc.input(PulseAlertIdInputSchema).output(PulseDetailSchema),
   // Batch counterpart to `getDetail` — fetch many alert detail rows in
   // one round-trip. Used by surfaces that need to surface per-client

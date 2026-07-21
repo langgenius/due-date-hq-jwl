@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { createWorkerAuth } from '../auth'
+import { resolveAuthContinue, runWithAuthContinue } from '../auth-continuation'
 import type { Env, ContextVars } from '../env'
 
 /**
@@ -26,7 +27,10 @@ export const authRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().o
   '*',
   async (c) => {
     const auth = createWorkerAuth(c.env, c.executionCtx)
-    const response = await auth.handler(await withParseableAuthBody(c.req.raw))
+    const request = await withParseableAuthBody(c.req.raw)
+    const response = await runWithAuthContinue(resolveAuthContinue(request.headers), () =>
+      auth.handler(request),
+    )
 
     // Failed sign-ins are SECURITY TELEMETRY, not a firm-scoped compliance
     // event: `audit_event.firm_id` is NOT NULL, and a failed attempt usually

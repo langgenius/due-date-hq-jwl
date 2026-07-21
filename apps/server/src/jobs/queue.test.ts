@@ -8,8 +8,11 @@ import type { Env } from '../env'
 import { dashboardBriefDebounceKey } from './dashboard-brief/enqueue'
 import {
   assertQueueDispatchable,
+  drainDeadLetterBatch,
   isPulseDeadLetterQueue,
+  isSocialDeadLetterQueue,
   queue,
+  queueMessageRunId,
   queueMessageSourceId,
   queueMessageType,
 } from './queue'
@@ -60,6 +63,17 @@ describe('queue consumer', () => {
         ]),
       ),
     ).not.toThrow()
+  })
+
+  it('allows only well-formed X publish messages', () => {
+    expect(() =>
+      assertQueueDispatchable(
+        batch([{ body: { type: 'social.x.publish', runId: 'social-run-1' } }]),
+      ),
+    ).not.toThrow()
+    expect(() =>
+      assertQueueDispatchable(batch([{ body: { type: 'social.x.publish', runId: '' } }])),
+    ).toThrow()
   })
 
   it('allows Pulse per-source ingest scan messages', () => {
@@ -150,6 +164,12 @@ describe('queue consumer', () => {
     expect(queueMessageType(null)).toBe('unknown')
   })
 
+  it('extracts the social run ID for dead-letter reconciliation', () => {
+    expect(queueMessageRunId({ type: 'social.x.publish', runId: 'run-1' })).toBe('run-1')
+    expect(queueMessageRunId({ type: 'social.x.publish', runId: '' })).toBeNull()
+    expect(queueMessageRunId({ type: 'pulse.extract', snapshotId: 'snapshot-1' })).toBeNull()
+  })
+
   it('names the affected source(s) on a failed message for ops alerts', () => {
     // Single-source ingest message.
     expect(
@@ -177,6 +197,12 @@ describe('queue consumer', () => {
     expect(isPulseDeadLetterQueue('due-date-hq-pulse-dlq-staging')).toBe(true)
     expect(isPulseDeadLetterQueue('due-date-hq-pulse-staging')).toBe(false)
     expect(isPulseDeadLetterQueue('due-date-hq-email-dlq-staging')).toBe(false)
+  })
+
+  it('detects social dead-letter queues without matching the live queue', () => {
+    expect(isSocialDeadLetterQueue('due-date-hq-social-dlq-staging')).toBe(true)
+    expect(isSocialDeadLetterQueue('due-date-hq-social-staging')).toBe(false)
+    expect(isSocialDeadLetterQueue('due-date-hq-pulse-dlq-staging')).toBe(false)
   })
 
   it('drains pulse dead-letter batches and alerts instead of re-dispatching', async () => {
@@ -208,6 +234,28 @@ describe('queue consumer', () => {
       snapshotId: 's1',
     })
     warn.mockRestore()
+  })
+
+  it('marks a social dead letter unknown before acknowledging it', async () => {
+    const ack = vi.fn()
+    const retry = vi.fn()
+    const message = {
+      body: { type: 'social.x.publish', runId: 'run-1' },
+      attempts: 3,
+      ack,
+      retry,
+    } as unknown as Message
+    const dlqBatch = {
+      queue: 'due-date-hq-social-dlq-staging',
+      messages: [message],
+    } as unknown as MessageBatch
+    const markXDeadLetter = vi.fn().mockResolvedValue(true)
+
+    await drainDeadLetterBatch(dlqBatch, {} as Env, { markXDeadLetter })
+
+    expect(markXDeadLetter).toHaveBeenCalledWith(message.body, {})
+    expect(ack).toHaveBeenCalledOnce()
+    expect(retry).not.toHaveBeenCalled()
   })
 
   it('debounces dashboard brief refreshes at firm and scope granularity', () => {

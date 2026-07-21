@@ -12,6 +12,7 @@ import {
   buildOrganizationMembershipLimit,
 } from './organization-hooks'
 import { buildDatabaseHooks } from './session-hooks'
+import { getAuthContinue } from './auth-continuation'
 
 type WaitUntilContext = {
   waitUntil(promise: Promise<unknown>): void
@@ -97,11 +98,13 @@ function createEmailSender(env: ServerEnv): AuthEmailSender {
       // …plus a deep link back to /login pre-loaded with the same email + code so
       // a tap auto-fills and submits the verify step. No password, no separate
       // magic-link token — the link just replays the OTP the user received.
-      // `continue` is the post-sign-in target; OTP send has no redirect context,
-      // so it's empty here and /login falls back to `/` on success.
+      // The request-scoped continuation is a validated, bounded in-app path.
+      // Absolute URLs and Worker API/RPC targets are rejected at the route
+      // boundary before this mail callback can observe them.
+      const continuePath = getAuthContinue() ?? ''
       const signInUrl = absoluteUrl(
         env,
-        `/login?email=${encodeURIComponent(message.to)}&code=${encodeURIComponent(message.otp)}&continue=`,
+        `/login?email=${encodeURIComponent(message.to)}&code=${encodeURIComponent(message.otp)}&continue=${encodeURIComponent(continuePath)}`,
       )
       const button = `<p><a href="${escapeHtml(signInUrl)}" style="display:inline-block;padding:10px 18px;background:#111827;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:600;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">${escapeHtml(cta)}</a></p>`
       await sendEmail({

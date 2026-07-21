@@ -41,7 +41,7 @@
 | **向量**                | **Cloudflare Vectorize**                                                                | 与 Worker 同域；RAG top-k 检索                                                                                                                                                                         |
 | **对象存储**            | **Cloudflare R2**                                                                       | 零出口流量费；S3 兼容 API（`@aws-sdk/client-s3` 可用）                                                                                                                                                 |
 | **缓存 / 限流**         | **Workers KV** + **Rate Limiting binding**                                              | KV 做热数据；Rate Limit 是 Cloudflare 原生 primitive                                                                                                                                                   |
-| **后台任务**            | **Cron Triggers** + **Queues**（email / pulse / dashboard / audit 四组 + DLQ）          | Pulse ingest / Email outbox / dashboard 聚合 / audit 打包；零外部依赖。Workflows 尚未启用（wrangler.toml 无 workflows binding）                                                                        |
+| **后台任务**            | **Cron Triggers** + **Queues**（email / pulse / dashboard / audit / social 五组 + DLQ） | Pulse ingest / Email outbox / dashboard 聚合 / audit 打包 / X 单条发布；零外部调度依赖。Workflows 尚未启用（wrangler.toml 无 workflows binding）                                                       |
 | **AI SDK**              | Vercel AI SDK Core（`ai`）                                                              | Worker 后端唯一模型执行层；统一 structured output / streaming / tool calling / usage metadata，业务模块不直接碰 provider SDK                                                                           |
 | **AI 网关**             | Cloudflare AI Gateway via AI SDK provider                                               | 上游 provider 代理；自带 cache / retry / rate limit / provider-level observability                                                                                                                     |
 | **AI Gateway provider** | `ai-gateway-provider`                                                                   | Cloudflare 官方 Vercel AI SDK 集成包；仅在 `packages/ai` 内部组合 Gateway + OpenRouter / Unified provider；不允许业务模块直接 import                                                                   |
@@ -431,6 +431,7 @@ APP_URL=http://localhost:5173   # 浏览器 SPA origin；dev 走 Vite 5173，pro
 # PULSE_QUEUE  (Queues producer)
 # DASHBOARD_QUEUE (Queues producer)
 # AUDIT_QUEUE  (Queues producer)
+# SOCIAL_QUEUE (Queues producer; max batch/concurrency = 1 + DLQ)
 # ASSETS       (Static Assets binding)
 # 非密钥运行配置（OPS_ALERT_EMAIL / AI_SYSTEM_DAILY_LIMIT / ENABLE_PUBLIC_DEMO 等）
 # 直接定义在 wrangler.toml [vars]
@@ -467,6 +468,15 @@ EMAIL_FROM=noreply@langgenius.app
 PULSE_BROWSERLESS_URL=        # WAF 403 / JS 渲染源走 Browserless /content
 PULSE_BROWSERLESS_TOKEN=
 PULSE_BROWSERLESS_SOURCE_IDS= # 免代码改 fetcher 的源覆盖名单
+
+# ───────── X daily Alert outbox（默认只影子运行）─────────
+X_POSTING_MODE=draft          # 验收后才改 live
+X_SOCIAL_START_AT=2026-07-21T00:00:00.000Z  # 自动候选切点；更早 Pulse 仅手工加入
+X_API_KEY=                    # OAuth 1.0a 四项 all-or-none；draft 可全空
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_TOKEN_SECRET=
+SOCIAL_OPS_TOKEN=             # 非 dev 的 /api/ops/social/* 专用 bearer token
 
 # ───────── Stripe（better-auth subscription；计费联调前可空）─────────
 STRIPE_SECRET_KEY=

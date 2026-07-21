@@ -197,4 +197,20 @@ describe('activateOrCreateOnboardingFirm', () => {
   it('preserves the original redirect when onboarding reused an existing practice', () => {
     expect(postOnboardingTarget({ kind: 'reused', firm: firm() }, '/deadlines')).toBe('/deadlines')
   })
+
+  it('bypasses migration only for a canonical social Alert intent', () => {
+    const ref = 'social_ref_1234567890abcdef'
+    expect(
+      postOnboardingTarget(
+        { kind: 'created', firm: firm(), ruleActivation: null },
+        `/alerts?ref=${ref}&utm_source=x`,
+      ),
+    ).toBe(`/alerts?ref=${ref}`)
+    expect(
+      postOnboardingTarget(
+        { kind: 'created', firm: firm(), ruleActivation: null },
+        '/alerts?ref=short',
+      ),
+    ).toBe(ONBOARDING_MIGRATION_TARGET)
+  })
 })

@@ -13,6 +13,7 @@ import * as overlaySchema from './schema/overlay'
 import * as pulseSchema from './schema/pulse'
 import * as readinessSchema from './schema/readiness'
 import * as rulesSchema from './schema/rules'
+import * as socialSchema from './schema/social'
 import * as obligationSavedViewSchema from './schema/obligation-saved-view'
 
 const schema = {
@@ -30,6 +31,7 @@ const schema = {
   ...pulseSchema,
   ...readinessSchema,
   ...rulesSchema,
+  ...socialSchema,
   ...obligationSavedViewSchema,
 }
 

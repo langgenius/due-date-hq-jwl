@@ -1,6 +1,13 @@
 import { Hono } from 'hono'
+import {
+  createDb,
+  makeSocialOpsRepo,
+  type SocialAlertPriority,
+  type SocialAlertPostStatus,
+} from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
+import { buildXAlertPost, validateSocialCandidate } from '../jobs/social/content'
 
 // Operator-only surface for one-shot maintenance jobs. Same access model as
 // the e2e seed routes: open in development, token-gated in staging, absent
@@ -13,18 +20,59 @@ function hasOpsAccess(c: { env: Env; req: { header(name: string): string | undef
   return header === `Bearer ${token}` || c.req.header('x-e2e-seed-token') === token
 }
 
+// Social publishing is a production operator surface, so it intentionally does
+// not share the E2E seed credential or staging-only lifecycle above. Local dev
+// stays open for previewing; every non-development environment fails closed
+// unless the dedicated token is configured and presented as a bearer token.
+function hasSocialOpsAccess(c: { env: Env; req: { header(name: string): string | undefined } }) {
+  if (c.env.ENV === 'development') return true
+  const token = c.env.SOCIAL_OPS_TOKEN
+  if (!token) return false
+  return c.req.header('authorization') === `Bearer ${token}`
+}
+
 interface PulseBackfillRequest {
   sourceIds?: unknown
   limit?: unknown
 }
 
-function isObjectLike(value: unknown): value is PulseBackfillRequest {
+function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().post(
-  '/pulse-backfill',
-  async (c) => {
+const SOCIAL_POST_STATUS_VALUES = [
+  'draft',
+  'ready',
+  'scheduled',
+  'published',
+  'unknown',
+  'cancelled',
+] as const satisfies readonly SocialAlertPostStatus[]
+const SOCIAL_PRIORITY_VALUES = [
+  'normal',
+  'urgent',
+] as const satisfies readonly SocialAlertPriority[]
+const SOCIAL_POST_STATUSES = new Set<string>(SOCIAL_POST_STATUS_VALUES)
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+function boundedLimit(value: string | undefined): number {
+  const parsed = Number(value ?? 50)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 100 ? parsed : 50
+}
+
+function socialPostStatus(value: string | undefined): SocialAlertPostStatus | undefined {
+  return SOCIAL_POST_STATUS_VALUES.find((status) => status === value)
+}
+
+function socialPriority(value: string | undefined): SocialAlertPriority | undefined {
+  return SOCIAL_PRIORITY_VALUES.find((priority) => priority === value)
+}
+
+export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
+  .post('/pulse-backfill', async (c) => {
     if (!hasOpsAccess(c)) {
       return c.notFound()
     }
@@ -42,5 +90,145 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
       ...(limit !== undefined ? { limit } : {}),
     })
     return c.json(result)
-  },
-)
+  })
+  .get('/social/candidates', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const rawStatus = c.req.query('status')
+    if (rawStatus && !SOCIAL_POST_STATUSES.has(rawStatus)) {
+      return c.json({ error: 'status is not a valid social post status' }, 400)
+    }
+    const status = socialPostStatus(rawStatus)
+    const posts = await makeSocialOpsRepo(createDb(c.env.DB)).listPosts({
+      channel: 'x',
+      limit: boundedLimit(c.req.query('limit')),
+      ...(status ? { status } : {}),
+    })
+    return c.json({ posts })
+  })
+  .post('/social/candidates', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    if (!isObjectLike(raw)) return c.json({ error: 'JSON body is required' }, 400)
+    const pulseId = optionalString(raw.pulseId)
+    if (!pulseId) return c.json({ error: 'pulseId is required' }, 400)
+    const rawPriority = optionalString(raw.priority)
+    const priority = socialPriority(rawPriority)
+    if (rawPriority && !priority) {
+      return c.json({ error: 'priority must be normal or urgent' }, 400)
+    }
+
+    const repo = makeSocialOpsRepo(createDb(c.env.DB))
+    const candidate = await repo.getEligibleCandidate(pulseId)
+    if (!candidate) return c.json({ error: 'Pulse is not eligible for social publishing' }, 422)
+    const validation = validateSocialCandidate(candidate)
+    if (!validation.eligible) {
+      return c.json(
+        { error: 'Pulse is not eligible for social publishing', reasons: validation.reasons },
+        422,
+      )
+    }
+
+    const now = new Date()
+    const refToken = crypto.randomUUID().replaceAll('-', '')
+    const built = buildXAlertPost(candidate, { appUrl: c.env.APP_URL, refToken })
+    const post = await repo.createDraft({
+      channel: 'x',
+      pulseId,
+      refToken,
+      postText: built.text,
+      targetUrl: built.targetUrl,
+      teaser: built.teaser,
+      agency: built.agency,
+      priority: priority ?? 'normal',
+      now,
+    })
+    return c.json({ post }, 201)
+  })
+  .post('/social/:postId/approve', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    if (!isObjectLike(raw)) return c.json({ error: 'JSON body is required' }, 400)
+    const approvedBy = optionalString(raw.approvedBy)
+    if (!approvedBy) return c.json({ error: 'approvedBy user ID is required' }, 400)
+    const rawPriority = optionalString(raw.priority)
+    const priority = socialPriority(rawPriority)
+    if (rawPriority && !priority) {
+      return c.json({ error: 'priority must be normal or urgent' }, 400)
+    }
+
+    const repo = makeSocialOpsRepo(createDb(c.env.DB))
+    const draft = await repo.getPost(c.req.param('postId'))
+    if (!draft || draft.status !== 'draft') {
+      return c.json({ error: 'Draft was not found or cannot be approved' }, 409)
+    }
+    const candidate = await repo.getEligibleCandidate(draft.pulseId)
+    if (!candidate) return c.json({ error: 'Pulse is no longer eligible' }, 422)
+    const validation = validateSocialCandidate(candidate)
+    if (!validation.eligible) {
+      return c.json({ error: 'Pulse is no longer eligible', reasons: validation.reasons }, 422)
+    }
+    // Rebuild at the approval boundary so ready copy is frozen from the
+    // current approved Pulse and a previously rejected draft can be repaired
+    // after deterministic template or validation changes.
+    const built = buildXAlertPost(candidate, {
+      appUrl: c.env.APP_URL,
+      refToken: draft.refToken,
+    })
+    const post = await repo.approvePost({
+      postId: c.req.param('postId'),
+      approvedBy,
+      postText: built.text,
+      targetUrl: built.targetUrl,
+      teaser: built.teaser,
+      ...(priority ? { priority } : {}),
+      now: new Date(),
+    })
+    if (!post) return c.json({ error: 'Draft was not found or cannot be approved' }, 409)
+    return c.json({ post })
+  })
+  .post('/social/:postId/cancel', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    if (!isObjectLike(raw)) return c.json({ error: 'JSON body is required' }, 400)
+    const reason = optionalString(raw.reason)
+    if (!reason) return c.json({ error: 'reason is required' }, 400)
+    const cancelled = await makeSocialOpsRepo(createDb(c.env.DB)).cancelPost({
+      postId: c.req.param('postId'),
+      reason,
+      now: new Date(),
+    })
+    if (!cancelled) return c.json({ error: 'Post was not found or cannot be cancelled' }, 409)
+    return c.json({ cancelled: true })
+  })
+  .post('/social/:postId/reconcile', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    if (!isObjectLike(raw)) return c.json({ error: 'JSON body is required' }, 400)
+    const outcome = optionalString(raw.outcome)
+    if (outcome !== 'published' && outcome !== 'not_published') {
+      return c.json({ error: 'outcome must be published or not_published' }, 400)
+    }
+    const externalPostId = optionalString(raw.externalPostId)
+    const reason = optionalString(raw.reason)
+    if (outcome === 'published' && !externalPostId) {
+      return c.json({ error: 'externalPostId is required for a published outcome' }, 400)
+    }
+    if (outcome === 'not_published' && !reason) {
+      return c.json({ error: 'reason is required for a not_published outcome' }, 400)
+    }
+
+    const reconciled = await makeSocialOpsRepo(createDb(c.env.DB)).reconcilePost({
+      postId: c.req.param('postId'),
+      outcome,
+      ...(externalPostId ? { externalPostId } : {}),
+      ...(reason ? { reason } : {}),
+      now: new Date(),
+    })
+    if (!reconciled) return c.json({ error: 'Unknown post was not found' }, 409)
+    return c.json({ reconciled: true })
+  })

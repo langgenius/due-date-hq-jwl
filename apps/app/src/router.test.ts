@@ -591,6 +591,25 @@ describe('guestLoader', () => {
     await expectRedirectTo(guestLoader(makeArgs('http://localhost/login?redirectTo=/')), '/')
   })
 
+  it('preserves a safe continuation for an already-authenticated OTP click', async () => {
+    const ref = 'social_ref_1234567890abcdef'
+    getSession.mockResolvedValueOnce({ data: makeSession('firm_1') })
+    await expectRedirectTo(
+      guestLoader(
+        makeArgs(`http://localhost/login?continue=${encodeURIComponent(`/alerts?ref=${ref}`)}`),
+      ),
+      `/alerts?ref=${ref}`,
+    )
+
+    getSession.mockResolvedValueOnce({ data: makeSession('firm_1') })
+    await expectRedirectTo(
+      guestLoader(
+        makeArgs(`http://localhost/login?continue=${encodeURIComponent('/deadlines?scope=me')}`),
+      ),
+      '/deadlines?scope=me',
+    )
+  })
+
   it('redirects MFA-enabled authed users from login to two-factor', async () => {
     getSession.mockResolvedValueOnce({
       data: makeSession('firm_1', { twoFactorEnabled: true, twoFactorVerified: false }),

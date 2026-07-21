@@ -82,4 +82,46 @@ describe('validateServerEnv', () => {
       validateServerEnv(runtimeEnv({ MICROSOFT_CLIENT_ID: 'microsoft-client-id' })),
     ).toThrow(/MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET/)
   })
+
+  it('defaults X publishing to draft and preserves explicit social settings', () => {
+    expect(validateServerEnv(runtimeEnv()).X_POSTING_MODE).toBe('draft')
+
+    const env = validateServerEnv(
+      runtimeEnv({
+        X_POSTING_MODE: 'live',
+        X_SOCIAL_START_AT: '2026-07-21T00:00:00.000Z',
+        X_API_KEY: 'x-key',
+        X_API_SECRET: 'x-secret',
+        X_ACCESS_TOKEN: 'x-token',
+        X_ACCESS_TOKEN_SECRET: 'x-token-secret',
+        SOCIAL_OPS_TOKEN: 'social-ops-token-1234',
+      }),
+    )
+
+    expect(env.X_POSTING_MODE).toBe('live')
+    expect(env.X_SOCIAL_START_AT).toBe('2026-07-21T00:00:00.000Z')
+    expect(env.X_API_KEY).toBe('x-key')
+    expect(env.X_ACCESS_TOKEN).toBe('x-token')
+    expect(env.SOCIAL_OPS_TOKEN).toBe('social-ops-token-1234')
+  })
+
+  it('requires complete X OAuth credentials and refuses an unconfigured live mode', () => {
+    expect(() => validateServerEnv(runtimeEnv({ X_API_KEY: 'x-key' }))).toThrow(
+      /must be configured together/,
+    )
+    expect(() => validateServerEnv(runtimeEnv({ X_POSTING_MODE: 'live' }))).toThrow(
+      /requires all four X OAuth credentials/,
+    )
+    expect(() =>
+      validateServerEnv(
+        runtimeEnv({
+          X_POSTING_MODE: 'live',
+          X_API_KEY: 'x-key',
+          X_API_SECRET: 'x-secret',
+          X_ACCESS_TOKEN: 'x-token',
+          X_ACCESS_TOKEN_SECRET: 'x-token-secret',
+        }),
+      ),
+    ).toThrow(/requires SOCIAL_OPS_TOKEN/)
+  })
 })

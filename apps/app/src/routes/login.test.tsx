@@ -107,6 +107,7 @@ function clickButton(label: string) {
 
 beforeEach(() => {
   bootstrapI18n()
+  vi.stubGlobal('fetch', vi.fn())
   capabilityMocks.authCapabilities.mockResolvedValue({
     providers: {
       google: true,
@@ -132,6 +133,7 @@ afterEach(() => {
   document.body.replaceChildren()
   activateLocale('en')
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
 })
 
 // 2026-06-10 (login redesign): the email flow's visible copy changed —
@@ -178,6 +180,7 @@ describe('LoginRoute email OTP', () => {
     changeInput(emailInput, 'alex@example.com')
     clickButton('Send sign-in link')
     await waitForText('Verify & sign in')
+    expect(authMocks.sendEmailSignInCode).toHaveBeenCalledWith('alex@example.com', '/deadlines')
 
     const codeInput = requireInput(document.querySelector<HTMLInputElement>('input[name="otp"]'))
     changeInput(codeInput, '123456')
@@ -189,5 +192,62 @@ describe('LoginRoute email OTP', () => {
       otp: '123456',
       name: 'Test User',
     })
+  })
+
+  it('shows published Alert context and preserves the safe ref in the email link', async () => {
+    const ref = 'social_ref_1234567890abcdef'
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          teaser: 'Selected California filing deadlines moved after severe storms.',
+          agency: 'IRS',
+          jurisdiction: 'CA',
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    )
+    await renderLogin(`/login?redirectTo=${encodeURIComponent(`/alerts?ref=${ref}`)}`)
+
+    await waitForText('Selected California filing deadlines moved')
+    expect(document.body.textContent).toContain('Review this alert')
+    expect(document.body.textContent).toContain('See which client deadlines')
+
+    const emailInput = requireInput(document.querySelector<HTMLInputElement>('input[type="email"]'))
+    changeInput(emailInput, 'alex@example.com')
+    clickButton('Send sign-in link')
+
+    await waitForText('Verify & sign in')
+    expect(authMocks.sendEmailSignInCode).toHaveBeenCalledWith(
+      'alex@example.com',
+      `/alerts?ref=${ref}`,
+    )
+    expect(fetch).toHaveBeenCalledWith(
+      `/api/social-alerts/${ref}/teaser`,
+      expect.objectContaining({ credentials: 'omit' }),
+    )
+  })
+
+  it('preserves an OTP-link continuation when the visitor switches to Google OAuth', async () => {
+    const target = '/alerts?ref=social_ref_1234567890abcdef'
+    await renderLogin(`/login?continue=${encodeURIComponent(target)}`)
+    await waitForText('Continue with Google')
+
+    clickButton('Continue with Google')
+
+    expect(authMocks.signInWithGoogle).toHaveBeenCalledWith(target)
+  })
+
+  it('preserves an OTP-link continuation when the visitor switches to Microsoft OAuth', async () => {
+    capabilityMocks.authCapabilities.mockResolvedValue({
+      providers: { google: true, microsoft: true, emailOtp: true },
+      publicClientIds: {},
+    })
+    const target = '/alerts?ref=social_ref_1234567890abcdef'
+    await renderLogin(`/login?continue=${encodeURIComponent(target)}`)
+    await waitForText('Microsoft')
+
+    clickButton('Microsoft')
+
+    expect(authMocks.signInWithMicrosoft).toHaveBeenCalledWith(target)
   })
 })

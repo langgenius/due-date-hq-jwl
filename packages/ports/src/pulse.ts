@@ -377,6 +377,12 @@ export interface PulseRepo {
   // the day-one landscape without routing later additions away from the
   // sweep's "new alert" channel.
   catchUpStillOpenWindowsOnFirstObligations(createdCount: number, now?: Date): Promise<number>
+  /**
+   * Resolve a published social-post ref into this tenant's own alert row.
+   * Missing rows are materialized quietly with zero impact counts; no firm id
+   * is accepted from the caller and no other tenant's alert id is exposed.
+   */
+  resolveSocialAlertRef(refToken: string): Promise<{ alertId: string }>
   getDetail(alertId: string): Promise<PulseDetailRow>
   listPriorityQueue(opts?: { limit?: number }): Promise<PulsePriorityQueueItemRow[]>
   requestPriorityReview(input: {

@@ -17,6 +17,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { canonicalSocialAlertIntent } from '@/features/alerts/social-alert-intent'
 import { CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { RuleReviewPrompt } from '@/features/onboarding/rule-review-prompt'
 import { StepDots } from '@/features/onboarding/step-dots'
@@ -219,7 +220,12 @@ export function OnboardingRoute() {
             jurisdiction_count: selectedRuleStates.length,
           })
         }
-        if (activation && activation.reviewRequiredCount > 0) {
+        // A visitor arriving from an X Alert should see that promised Alert
+        // immediately after practice creation. They can import clients and
+        // review generated rules afterward; all other onboarding paths retain
+        // the existing review → migration activation sequence.
+        const socialAlertTarget = canonicalSocialAlertIntent(redirectTo)
+        if (!socialAlertTarget && activation && activation.reviewRequiredCount > 0) {
           track(ANALYTICS_EVENTS.ruleReviewPromptShown, {
             review_required_count: activation.reviewRequiredCount,
             jurisdiction_count: activation.reviewRequiredJurisdictions.length,

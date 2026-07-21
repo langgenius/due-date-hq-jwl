@@ -670,6 +670,9 @@ function buildScopedRepo(
     async getDetail() {
       return unexpectedRepoCall('pulse.getDetail')
     },
+    async resolveSocialAlertRef() {
+      return unexpectedRepoCall('pulse.resolveSocialAlertRef')
+    },
     async listPriorityQueue() {
       return unexpectedRepoCall('pulse.listPriorityQueue')
     },

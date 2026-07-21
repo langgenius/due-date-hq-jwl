@@ -7,6 +7,7 @@ import {
   type RuleOnboardingActivationOutput,
   type USFirmTimezone,
 } from '@duedatehq/contracts'
+import { canonicalSocialAlertIntent } from '@/features/alerts/social-alert-intent'
 
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 export const ONBOARDING_MIGRATION_TARGET = '/migration/new?source=onboarding'
@@ -67,6 +68,12 @@ export function postOnboardingTarget(
   redirectTo: string,
 ): string {
   if (result.kind === 'created') {
+    // Social acquisition is the single narrow exception to mandatory CSV
+    // migration: first satisfy the Alert promise that brought the visitor in.
+    // The Alerts page still prompts them to import clients for impact matching.
+    const socialAlertTarget = canonicalSocialAlertIntent(redirectTo)
+    if (socialAlertTarget) return socialAlertTarget
+
     const target = new URL(ONBOARDING_MIGRATION_TARGET, 'http://duedatehq.local')
     const activation = result.ruleActivation
     if (activation && activation.reviewRequiredCount > 0) {

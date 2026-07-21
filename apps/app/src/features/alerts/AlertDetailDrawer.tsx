@@ -1,5 +1,6 @@
 import {
   Fragment,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -74,6 +75,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
+import { MigrationWizardContext } from '@/features/migration/WizardContext'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { SeverityChip } from '@/components/primitives/severity-chip'
@@ -912,6 +914,7 @@ export function AlertDetailDrawer({
 }: AlertDetailDrawerProps) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
+  const migrationWizard = useContext(MigrationWizardContext)
   const open = alertId !== null
   // Same pattern as the /deadlines obligation drawer (see
   // routes/obligations.tsx). When the alert drawer is open it needs
@@ -1640,17 +1643,10 @@ export function AlertDetailDrawer({
   // (the hero just scrolls away; the top-bar breadcrumb keeps the title in
   // view, and the sticky section nav keeps orientation).
 
-  // The "Affected clients" group card renders only when it has real
-  // content — a client surface (overlay or review-only) OR an
-  // apply-permission notice OR the manager-review / ready-to-apply
-  // controls. Avoids an empty card on no-match / read-only alerts.
-  const showClientsGroup =
-    !!detail &&
-    ((detail.alert.actionMode === 'due_date_overlay' &&
-      detail.alert.firmImpact !== 'no_current_match') ||
-      (detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0) ||
-      (detail.alert.firmImpact !== 'no_current_match' && !canApply) ||
-      (detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady))
+  // Keep client impact visible even at zero matches: social acquisition must
+  // satisfy the Alert promise first, then offer client import to unlock the
+  // matching layer. This applies to both overlay and review-only Alerts.
+  const showClientsGroup = !!detail
 
   // 2026-06-12 (Yuqi: "have the tabs from the Deadline Detail panel as well,
   // but the content is a long scroll — scrolling just indicates which tab
@@ -2355,7 +2351,10 @@ export function AlertDetailDrawer({
                   headerRight={
                     // Pencil `G24tQh` header: bulk Confirm / Exclude on the right
                     // (overlay + apply permission). Otherwise the read-only count.
-                    detail.alert.actionMode === 'due_date_overlay' && canApply && stats ? (
+                    detail.alert.actionMode === 'due_date_overlay' &&
+                    detail.affectedClients.length > 0 &&
+                    canApply &&
+                    stats ? (
                       <>
                         <button
                           type="button"
@@ -2383,8 +2382,7 @@ export function AlertDetailDrawer({
                 >
                   {/* Due-date overlay: per-row Confirm / Exclude is the
                     confirmation surface — always renders for due-date alerts. */}
-                  {detail.alert.actionMode === 'due_date_overlay' &&
-                  detail.alert.firmImpact !== 'no_current_match' ? (
+                  {detail.alert.actionMode === 'due_date_overlay' ? (
                     <section className="flex flex-col gap-2">
                       {detail.affectedClients.length > 0 ? (
                         <AffectedClientsTable
@@ -2400,12 +2398,11 @@ export function AlertDetailDrawer({
                           readOnly={!canApply || !deadlineApplyReady}
                         />
                       ) : (
-                        <p className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
-                          <Trans>
-                            No clients matched this alert's scope. You can dismiss it or wait — if a
-                            new client is added that matches the scope, the alert will reopen.
-                          </Trans>
-                        </p>
+                        <NoAffectedClientsPrompt
+                          onImport={
+                            migrationWizard ? () => migrationWizard.openWizard() : undefined
+                          }
+                        />
                       )}
                     </section>
                   ) : null}
@@ -2426,6 +2423,13 @@ export function AlertDetailDrawer({
                         variant="review"
                       />
                     </section>
+                  ) : null}
+
+                  {detail.alert.actionMode === 'review_only' &&
+                  detail.affectedClients.length === 0 ? (
+                    <NoAffectedClientsPrompt
+                      onImport={migrationWizard ? () => migrationWizard.openWizard() : undefined}
+                    />
                   ) : null}
 
                   {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
@@ -3648,6 +3652,34 @@ function buildClientEmailDraft(detail: PulseDetail, selection: ReadonlySet<strin
     '',
     'This is a draft. Please review before sending.',
   ].join('\n')
+}
+
+function NoAffectedClientsPrompt({ onImport }: { onImport?: (() => void) | undefined }) {
+  return (
+    <div className="flex flex-col items-start gap-3 rounded-lg border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+      <p>
+        <Trans>
+          No clients matched this alert's scope. Import clients to check their deadlines against
+          this and future official updates.
+        </Trans>
+      </p>
+      {onImport ? (
+        <Button size="sm" variant="outline" className="shrink-0" onClick={onImport}>
+          <Trans>Import clients</Trans>
+        </Button>
+      ) : (
+        <Button
+          nativeButton={false}
+          size="sm"
+          variant="outline"
+          className="shrink-0"
+          render={<Link to="/clients" />}
+        >
+          <Trans>Import clients</Trans>
+        </Button>
+      )}
+    </div>
+  )
 }
 
 function SelectionSummary({ stats }: { stats: SelectionStats }) {

@@ -45,7 +45,9 @@ import {
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
 } from '../../schema/pulse'
+import { socialAlertPost } from '../../schema/social'
 import { listActiveOverlayDueDates } from '../overlay'
+import { isValidSocialAlertRef } from '../social'
 import { isOpenObligationStatus } from '@duedatehq/core/obligation-workflow'
 import {
   APPLICATION_BATCH_SIZE,
@@ -1613,6 +1615,56 @@ export function makePulseRepo(db: Db, firmId: string) {
       const total = rows[0]?.value ?? 0
       if (total !== createdCount) return 0
       return makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId, now)
+    },
+
+    async resolveSocialAlertRef(refToken: string): Promise<{ alertId: string }> {
+      // Defense in depth behind the public route/contract validation. Keeping
+      // invalid refs indistinguishable from missing refs avoids turning the
+      // endpoint into a token-shape oracle.
+      if (!isValidSocialAlertRef(refToken)) {
+        throw new PulseRepoError('not_found')
+      }
+
+      const [social] = await db
+        .select({ pulseId: pulse.id })
+        .from(socialAlertPost)
+        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+        .where(
+          and(
+            eq(socialAlertPost.refToken, refToken),
+            eq(socialAlertPost.status, 'published'),
+            eq(pulse.status, 'approved'),
+            eq(pulse.isSample, false),
+          ),
+        )
+        .limit(1)
+      if (!social) throw new PulseRepoError('not_found')
+
+      // Quiet, tenant-owned materialization only: no global fan-out and no
+      // notification/email side effects. The unique (firm_id, pulse_id) key
+      // makes concurrent OAuth/email return paths idempotent.
+      await db
+        .insert(pulseFirmAlert)
+        .values({
+          id: crypto.randomUUID(),
+          firmId,
+          pulseId: social.pulseId,
+          status: 'matched',
+          matchedCount: 0,
+          needsReviewCount: 0,
+          origin: 'catchup',
+        })
+        .onConflictDoNothing({
+          target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
+        })
+
+      const [firmAlert] = await db
+        .select({ alertId: pulseFirmAlert.id })
+        .from(pulseFirmAlert)
+        .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.pulseId, social.pulseId)))
+        .limit(1)
+      if (!firmAlert) throw new PulseRepoError('not_found')
+      return firmAlert
     },
 
     async getDetail(alertId: string): Promise<PulseDetailRow> {

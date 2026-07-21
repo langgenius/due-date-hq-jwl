@@ -12,6 +12,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
+import { SocialAlertIntentResolver } from '@/features/alerts/SocialAlertIntentResolver'
 import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
@@ -144,6 +145,7 @@ export function AlertsRoute() {
        override its filter state). Without the wrapper, the button could
        read state but couldn't influence the alerts list, or vice versa. */
     <MorningSweepProvider>
+      <SocialAlertIntentResolver />
       <RulesPageShell
         title={titleNode}
         // Lock the shell to viewport height so the list column and the

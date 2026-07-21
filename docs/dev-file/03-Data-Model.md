@@ -27,6 +27,7 @@ packages/db/
 │   │   ├── migration.ts
 │   │   ├── pulse.ts             ← pulse + source_snapshot/source_state + firm_alert /
 │   │   │                            priority_review / application / alert_note / rule_source_drift_state
+│   │   ├── social.ts            ← global X Alert outbox + ET-local daily publish ledger
 │   │   ├── ai.ts                ← ai_output + llm_log + rule_concrete_draft
 │   │   ├── ai-insights.ts       ← async cached client_risk_summary + deadline_tip
 │   │   ├── dashboard.ts         ← dashboard_brief + user_dashboard_visit
@@ -45,7 +46,7 @@ packages/db/
 │   ├── evidence-writer.ts
 │   ├── reminder-linkage.ts
 │   └── types.ts
-├── migrations/                   ← 手写 SQL 为主（0000–0025 由 drizzle-kit 生成），wrangler d1 apply；当前至 0075
+├── migrations/                   ← 手写 SQL 为主（0000–0025 由 drizzle-kit 生成），wrangler d1 apply；当前至 0082
 ```
 
 **约束：**
@@ -86,7 +87,7 @@ packages/db/
 | 类别            | 表                                                                                                                                                                                                                                                                           | `firm_id` 规则                                                                                       | 访问方式                                                                      |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | 租户业务数据    | `client` / `client_filing_profile` / `client_tax_year_profile` / `obligation_instance` / `migration_*` / `practice_rule*` / `pulse_firm_alert` / `audit_event` / `ai_output` / `llm_log` / `ai_insight_cache` / `dashboard_brief` / `email_outbox` / `obligation_saved_view` | `firm_id NOT NULL`                                                                                   | 只能经 `scoped(db, firmId)`                                                   |
-| 全局规则/源资产 | `rule_source_template` / `rule_template` / `rule_catalog_release` / `pulse` / `pulse_source_snapshot` / `pulse_source_state` / `rule_source_drift_state` / `mutation_lock`                                                                                                   | 不带 firm                                                                                            | 只读公开/ops 路径；业务读取经 `practice_rule` / `pulse_firm_alert` 等租户投影 |
+| 全局规则/源资产 | `rule_source_template` / `rule_template` / `rule_catalog_release` / `pulse` / `pulse_source_snapshot` / `pulse_source_state` / `rule_source_drift_state` / `social_alert_post` / `social_publish_run` / `mutation_lock`                                                      | 不带 firm                                                                                            | 只读公开/ops 路径；业务读取经 `practice_rule` / `pulse_firm_alert` 等租户投影 |
 | 混合 overlay    | `exception_rule`                                                                                                                                                                                                                                                             | `firm_id NOT NULL` 表示 practice temporary/custom exception；不再使用全局生产 exception 作为生效依据 | 经 `scoped` 按 practice 隔离                                                  |
 | 应用记录        | `pulse_application` / `obligation_exception_application` / `evidence_link`                                                                                                                                                                                                   | `firm_id NOT NULL`（即使可由 parent join 推导，也冗余存储）                                          | 只能经 `scoped`                                                               |
 
@@ -490,6 +491,33 @@ snapshot）。所有可监控变化都以 `pulse_source_snapshot` 进入 extract
 `action_mode='review_only'` 的 CPA-facing Alert。source registry 本身（state news URL、
 temporary_announcements 多源、`{year}` token、WAF/browser 需求等）**不在 D1**，由
 `rule_source_template` + 代码内 catalog 承载：详见 [`11-Pulse-Ingest-Source-Catalog.md`](./11-Pulse-Ingest-Source-Catalog.md)（2026-06-08）。
+
+### 2.3.b Social Alert outbox（migration `0082`）
+
+**social_alert_post** 是 X channel 的全局冻结文案，不带 `firm_id`：
+
+| 字段                                                                              | 约束 / 语义                                                                      |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `id` / `channel='x'` / `pulse_id`                                                 | `UNIQUE(channel, pulse_id)`；同一 Pulse 永不重复建帖                             |
+| `ref_token`                                                                       | 16–128 位 base64url-safe opaque token，global unique；不编码 Pulse / firm / user |
+| `post_text` / `target_url` / `teaser` / `agency` / `jurisdiction` / `change_kind` | ready 时冻结的公开字段；teaser API 只返回其中三项                                |
+| `status`                                                                          | `draft / ready / scheduled / published / unknown / cancelled`                    |
+| `priority` / `ready_at`                                                           | `urgent / normal` + FIFO；超过三个发布日的 ready row 选取时提升                  |
+| `approved_by` / `approved_at`                                                     | reviewer user FK；Social Ops approve 必须提供 reviewer                           |
+| `x_post_id` / `published_at`                                                      | X 成功确认后写；`UNIQUE(channel, x_post_id)`                                     |
+
+**social_publish_run** 是 ET 自然日发布槽位：
+
+| 字段                                                 | 约束 / 语义                                                                                          |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `channel / local_date / post_id`                     | `UNIQUE(channel, local_date)` 是每天最多一条的数据库硬闸；live post 另有 partial unique 防止跨日重复 |
+| `status`                                             | `draft_only / queued / sending / published / failed / unknown`                                       |
+| `attempt_count / last_attempt_at / lease_expires_at` | Queue claim 与 redelivery 状态条件；remote create 已开始后不盲重试                                   |
+| `response_http_status / failure_reason / x_post_id`  | 明确失败和模糊结果的对账证据；不保存 OAuth secret 或响应中的用户数据                                 |
+
+`ref_token` 不是授权凭证。匿名访问只能读取 published row 的冻结 teaser；登录后的
+`pulse.resolveSocialAlert` 才能把 global Pulse materialize/resolve 为当前 firm 的
+`pulse_firm_alert`。零匹配 row 允许创建以展示 Alert，但不触发邮件，也不产生其他 firm 的 id。
 
 ### 2.4 Migration
 

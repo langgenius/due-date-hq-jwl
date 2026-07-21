@@ -42,6 +42,10 @@ import {
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
 import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
+import {
+  fetchSocialAlertTeaser,
+  socialAlertRefFromPath,
+} from '@/features/alerts/social-alert-intent'
 
 // /login is a full-bleed two-column split — a product-story column (left)
 // beside the sign-in card (right), with a dedicated footer. The page owns its
@@ -89,6 +93,11 @@ export function LoginRoute() {
   const continueParam = search.get('continue')
   const hasEmailLink = Boolean(linkEmail && linkCode)
   const postSignInTarget = isInAppPath(continueParam) ? continueParam : redirectTo
+  // `continue` carries the same intent when the visitor opens the OTP email in
+  // a fresh tab, so context and the final destination survive both halves of
+  // the passwordless flow.
+  const socialAlertRef = socialAlertRefFromPath(postSignInTarget)
+  const emailContinuePath = postSignInTarget === '/' ? undefined : postSignInTarget
   const { t } = useLingui()
   const capabilitiesQuery = useQuery({
     queryKey: ['auth-capabilities'],
@@ -98,6 +107,14 @@ export function LoginRoute() {
   const microsoftEnabled = capabilitiesQuery.data?.providers.microsoft ?? false
   const emailOtpEnabled = capabilitiesQuery.data?.providers.emailOtp ?? true
   const googleClientId = capabilitiesQuery.data?.publicClientIds?.google
+  const socialAlertTeaserQuery = useQuery({
+    queryKey: ['social-alert-teaser', socialAlertRef],
+    queryFn: ({ signal }) => fetchSocialAlertTeaser(socialAlertRef ?? '', signal),
+    enabled: socialAlertRef !== null,
+    retry: false,
+    staleTime: 5 * 60_000,
+  })
+  const socialAlertTeaser = socialAlertTeaserQuery.data
 
   const [submittingProvider, setSubmittingProvider] = useState<'google' | 'microsoft' | null>(null)
   const [emailFlowActive, setEmailFlowActive] = useState(hasEmailLink)
@@ -106,12 +123,12 @@ export function LoginRoute() {
   const socialDisabled = submittingProvider !== null || emailBusy
 
   useQuery({
-    queryKey: ['auth-one-tap', googleClientId, redirectTo],
+    queryKey: ['auth-one-tap', googleClientId, postSignInTarget],
     queryFn: async () => {
       if (!googleClientId) return null
       await startGoogleOneTap({
         clientId: googleClientId,
-        callbackURL: redirectTo,
+        callbackURL: postSignInTarget,
       })
       return null
     },
@@ -134,7 +151,7 @@ export function LoginRoute() {
     markSignInPending('google')
     try {
       // better-auth performs the browser redirect itself; this promise typically does not resolve.
-      await signInWithGoogle(redirectTo)
+      await signInWithGoogle(postSignInTarget)
     } catch (err) {
       const message =
         err instanceof Error
@@ -153,7 +170,7 @@ export function LoginRoute() {
     track(ANALYTICS_EVENTS.signInStarted, { method: 'microsoft' })
     markSignInPending('microsoft')
     try {
-      await signInWithMicrosoft(redirectTo)
+      await signInWithMicrosoft(postSignInTarget)
     } catch (err) {
       const message =
         err instanceof Error
@@ -192,13 +209,33 @@ export function LoginRoute() {
               <AuthBrandAnchor tagline={false} animated markClassName="h-3.5" />
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
-                  <Trans>Sign in</Trans>
+                  {socialAlertRef ? <Trans>Review this alert</Trans> : <Trans>Sign in</Trans>}
                 </h1>
-                <p className="text-sm leading-normal text-nowrap text-text-tertiary">
-                  <Trans>One source of truth for every filing deadline.</Trans>
+                <p className="text-sm leading-normal text-text-tertiary">
+                  {socialAlertRef ? (
+                    <Trans>See which client deadlines this official update may affect.</Trans>
+                  ) : (
+                    <Trans>One source of truth for every filing deadline.</Trans>
+                  )}
                 </p>
               </div>
             </div>
+
+            {socialAlertTeaser ? (
+              <aside className="rounded-xl border border-divider-subtle bg-background-default p-4 shadow-xs">
+                <p className="text-caption-xs font-semibold tracking-eyebrow text-text-accent uppercase">
+                  {socialAlertTeaser.agency} · {socialAlertTeaser.jurisdiction}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed font-medium text-text-primary">
+                  {socialAlertTeaser.teaser}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
+                  <Trans>
+                    Create a free account to review the source-backed alert and check client impact.
+                  </Trans>
+                </p>
+              </aside>
+            ) : null}
 
             {/* Email first, then SSO below the divider */}
             <div className="flex flex-col gap-4">
@@ -210,6 +247,7 @@ export function LoginRoute() {
                   onInteraction={() => setEmailFlowActive(true)}
                   onPendingChange={setEmailBusy}
                   onSignedIn={() => navigate(postSignInTarget, { replace: true })}
+                  continuePath={emailContinuePath}
                 />
               ) : null}
 
@@ -512,6 +550,7 @@ interface LoginEmailFormProps {
   onInteraction?: () => void
   onPendingChange?: (pending: boolean) => void
   onSignedIn: () => void | Promise<void>
+  continuePath?: string | undefined
 }
 
 function isValidEmail(value: string): boolean {
@@ -535,6 +574,7 @@ function LoginEmailForm({
   onInteraction,
   onPendingChange,
   onSignedIn,
+  continuePath,
 }: LoginEmailFormProps) {
   const { t } = useLingui()
   const seededEmail = (initialEmail ?? '').trim().toLowerCase()
@@ -608,7 +648,11 @@ function LoginEmailForm({
 
     setPending(action)
     try {
-      await sendEmailSignInCode(target)
+      if (continuePath) {
+        await sendEmailSignInCode(target, continuePath)
+      } else {
+        await sendEmailSignInCode(target)
+      }
       track(ANALYTICS_EVENTS.emailCodeRequested, { is_resend: action === 'resend' })
       setEmail(target)
       setSentEmail(target)

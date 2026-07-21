@@ -1209,6 +1209,7 @@ describe('@duedatehq/contracts', () => {
       'listSourceHealth',
       'listAlertSourceCoverage',
       'retrySourceHealth',
+      'resolveSocialAlert',
       'getDetail',
       'getDetailsBatch',
       'listPriorityQueue',

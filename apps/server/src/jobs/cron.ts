@@ -13,6 +13,7 @@ import {
   enqueueRuleDateReconciliation,
   enqueueRuleRegistryCatalogSync,
 } from './rules/reconcile'
+import { runXSocialCron, runXSocialWatchdog } from './social/scheduler'
 
 // 2026-06-10: the scheduled firm-brief fan-out (one enqueue per active
 // firm per day + a weekend critical-risk probe per firm) was removed —
@@ -105,6 +106,8 @@ export async function scheduled(
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
     ['annual_rollover_auto', dispatchAutoRollover(env, now)],
+    ['social_x_daily', runXSocialCron(env, now)],
+    ['social_x_watchdog', runXSocialWatchdog(env, now)],
     ['email_flush', env.EMAIL_QUEUE.send({ type: 'email.flush' })],
   ]
 

@@ -575,6 +575,18 @@ const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, con
   return listSourceHealthForScopedRepo(scoped)
 })
 
+// Resolve the opaque ref carried by an X post into this firm's own alert row.
+// The scoped repo is responsible for tenant-safe materialization when the firm
+// did not exist at fan-out time; procedures never accept a firm id from input.
+const resolveSocialAlert = os.pulse.resolveSocialAlert.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  try {
+    return await scoped.pulse.resolveSocialAlertRef(input.ref)
+  } catch (error) {
+    return mapPulseError(error)
+  }
+})
+
 // Opt-in catch-up: re-materialize the still-open, high-value regulatory windows
 // the firm missed by joining / importing clients after approval. Reuses the live
 // fan-out (real counts, dismiss-safe). Empty input — pinned to the caller's firm.
@@ -1383,6 +1395,7 @@ export const pulseHandlers = {
   listSourceHealth,
   listAlertSourceCoverage: listAlertSourceCoverageHandler,
   retrySourceHealth,
+  resolveSocialAlert,
   catchUpStillOpenWindows,
   getDetail,
   listAlertsForRule,

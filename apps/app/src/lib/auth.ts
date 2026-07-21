@@ -118,11 +118,13 @@ export function displayNameFromEmail(email: string): string {
   return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
 }
 
-export async function sendEmailSignInCode(email: string) {
-  const result = await authClient.emailOtp.sendVerificationOtp({
-    email,
-    type: 'sign-in',
-  })
+export async function sendEmailSignInCode(email: string, continuePath?: string) {
+  const input = { email, type: 'sign-in' as const }
+  const result = continuePath
+    ? await authClient.emailOtp.sendVerificationOtp(input, {
+        headers: { 'x-auth-continue': continuePath },
+      })
+    : await authClient.emailOtp.sendVerificationOtp(input)
   assertNoAuthClientError(result, "Couldn't send the sign-in code")
   return result
 }

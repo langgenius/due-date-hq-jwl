@@ -109,6 +109,10 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   `PULSE_BROWSERLESS_TOKEN` · `AI_GATEWAY_PROVIDER_API_KEY`。可选（存在即随
   `--secrets-file` 上传）：`RESEND_API_KEY`、`RESEND_WEBHOOK_SECRET`、
   `STRIPE_PRICE_PRO_YEARLY`、`STRIPE_PRICE_FIRM_MONTHLY`、`STRIPE_PRICE_FIRM_YEARLY`；
+  X social 的 `X_API_KEY`、`X_API_SECRET`、`X_ACCESS_TOKEN`、
+  `X_ACCESS_TOKEN_SECRET`、`SOCIAL_OPS_TOKEN` 也按需存在即上传；四项 X OAuth credential
+  all-or-none，`SOCIAL_OPS_TOKEN` 独立。默认 `X_POSTING_MODE=draft`，所以未配置 X credential
+  不阻塞部署，但 deployed Social Ops 会在 token 缺失时 fail closed。
   `AI_GATEWAY_API_KEY` 仅在启用 Cloudflare Authenticated Gateway 或切回 Unified provider
   时使用。注意：CI deploy 当前**不**传 `STRIPE_PRICE_SOLO_*` 与 `STRIPE_PRICE_TEAM_YEARLY`
   （代码仍支持这些 env，要启用须把对应 secret 加回 `ci.yml`）。
@@ -177,15 +181,17 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 
 ### 4.2 关键 SLO / 告警
 
-| 指标                  | 阈值             | 告警                                             |
-| --------------------- | ---------------- | ------------------------------------------------ |
-| Dashboard P95 latency | > 1.5s           | ops alert email（OPS_ALERT_EMAIL）               |
-| Worker error rate     | > 1% / 5min      | ops alert email（OPS_ALERT_EMAIL）               |
-| D1 query P95          | > 200ms          | Logpush 查询 + Slack                             |
-| AI fail rate          | > 5% / hour      | Workers Logs / Analytics Engine → ops alert mail |
-| Dashboard Brief DLQ   | 任意消息进入 DLQ | 参照 `docs/ops/dashboard-brief-queue-runbook.md` |
-| Email outbox stuck    | 未 flush > 5min  | Queue consumer 告警                              |
-| Pulse ingest idle     | Cron 未运行 > 2h | Cron health check                                |
+| 指标                  | 阈值             | 告警                                                         |
+| --------------------- | ---------------- | ------------------------------------------------------------ |
+| Dashboard P95 latency | > 1.5s           | ops alert email（OPS_ALERT_EMAIL）                           |
+| Worker error rate     | > 1% / 5min      | ops alert email（OPS_ALERT_EMAIL）                           |
+| D1 query P95          | > 200ms          | Logpush 查询 + Slack                                         |
+| AI fail rate          | > 5% / hour      | Workers Logs / Analytics Engine → ops alert mail             |
+| Dashboard Brief DLQ   | 任意消息进入 DLQ | 参照 `docs/ops/dashboard-brief-queue-runbook.md`             |
+| Email outbox stuck    | 未 flush > 5min  | Queue consumer 告警                                          |
+| Pulse ingest idle     | Cron 未运行 > 2h | Cron health check                                            |
+| X social backlog      | 最老 ready > 7d  | `social.x.backlog_stale` ops alert + Workers Logs            |
+| X ambiguous publish   | 任意 `unknown`   | 停止重试；按 `docs/ops/x-daily-alert-publishing.md` 人工对账 |
 
 ### 4.3 Worker request observability
 
