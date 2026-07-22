@@ -359,9 +359,17 @@ const surfaces = [
     color: var(--m-muted);
     background: transparent;
     white-space: nowrap;
+    position: relative;
     transition:
       color 0.15s ease,
       background 0.15s ease;
+  }
+  /* the tabs are real controls but drawn at mock scale (21px) — extend the hit
+     area to ~37px with an invisible overlay instead of inflating the visual */
+  .bench__tab::after {
+    content: '';
+    position: absolute;
+    inset: -8px -3px;
   }
   .bench__tab:hover:not(.on) {
     color: var(--m-ink-2);

@@ -125,7 +125,10 @@ found two real horizontal-scroll bugs, both fixed:
 Verified clean at 360/414/600/768/900/1024 across all 12 core pages; 320px
 (legacy SE-class) still overflows ~25px on home en+zh — accepted as edge.
 Interaction checks: burger sheet (7 links), founding modal open/close+form,
-scroll-spy nav, FAQ accordions. Known debt (not fixed): breakpoint values are
+scroll-spy nav, FAQ accordions. Follow-up same day: `.bench__tab`
+now carries an invisible ::after hit-area overlay (21px visual → ~37px target,
+mock proportions untouched). The 320px home overflow traced into pseudo-element
+territory (invisible to element scans) — accepted as legacy edge rather than
+masking with body overflow-x:hidden. Remaining known debt: breakpoint values
 fragmented across components (480/560/640/720/760/860/900/1000/1023) — works,
-but drift-prone; workbench-mock `.bench__tab` buttons are 21px tall (real
-aria-pressed controls inside the demo).
+but drift-prone; converge deliberately in its own pass, not as a drive-by.
