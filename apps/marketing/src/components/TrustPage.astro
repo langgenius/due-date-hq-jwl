@@ -37,10 +37,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
     <div class="trustpg__meta">
       <p class="trustpg__note">{page.hero.note}</p>
-      <p class="trustpg__reviewed">
-        <span class="trustpg__reviewed-k">{lastReviewedLabel}</span>
-        <time datetime={reviewedOn}>{reviewedOn}</time>
-      </p>
+      {
+        !isSignature && (
+          <p class="trustpg__reviewed">
+            <span class="trustpg__reviewed-k">{lastReviewedLabel}</span>
+            <time datetime={reviewedOn}>{reviewedOn}</time>
+          </p>
+        )
+      }
     </div>
 
     {
