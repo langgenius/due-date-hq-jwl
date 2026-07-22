@@ -726,7 +726,11 @@ const sidebarMenuButtonVariants = cva(
     // the active pill read square around a lone icon; with a visible label
     // the pill wraps icon+caption instead). h-auto + py: the tile is
     // taller than the expanded h-8 row — height comes from content.
-    'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:h-auto group-data-[collapsed=true]/sidebar:w-[68px] group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:py-1.5',
+    // w-full (NOT a fixed width): the tile must fill the CARD CONTENT width,
+    // never exceed it — a fixed w-[68px] tile inside a 64px card-content box
+    // overflowed by 4px each side and the card's overflow-hidden clipped the
+    // pill's rounded corners flat against the edge (2026-07-22 "歪了/被crop").
+    'group-data-[collapsed=true]/sidebar:h-auto group-data-[collapsed=true]/sidebar:w-full group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:py-1.5',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route
