@@ -958,5 +958,12 @@ const surfaces = t.surfaces
     .covmap {
       grid-template-columns: repeat(8, 1fr);
     }
+    /* the product-frame mocks have a ~338px min-content (table headers etc.);
+       under ~370px viewports let the demo scroll internally instead of pushing
+       the whole page sideways (same containment pattern as .usmap-wrap) */
+    .sd__demo {
+      min-width: 0;
+      overflow-x: auto;
+    }
   }
 </style>

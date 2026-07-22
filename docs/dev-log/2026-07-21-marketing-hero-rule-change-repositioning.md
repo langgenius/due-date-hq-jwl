@@ -109,3 +109,23 @@ title/H1, state-page titles, URL slugs) keep their searched wording:
 - Verified: JSON-LD parses (7-type entity graph), founding-banner form posts to
   live Formspree, zh-CN home fully mirrors the new hero, inner-page H1s clean,
   209-page build + 24 guardrail tests green, dist sweep zero stale phrases.
+
+## Responsive audit (2026-07-22, /design-critique round 3)
+
+Automated overflow scan (iframe harness, 12 pages × 360/414/600/768/900/1024)
+found two real horizontal-scroll bugs, both fixed:
+
+- **zh-CN home ≤430px** — `word-break: keep-all` on the zh hero H1 served the
+  old space-segmented headline; the new continuous CJK run made an 11-char
+  phrase unbreakable (doc scrollWidth 430 vs 345). Now `word-break: normal`.
+- **how-it-works ≤370px** — the four `.sd__demo` product-frame mocks have a
+  ~338px min-content; added `min-width:0; overflow-x:auto` containment at the
+  560px breakpoint (usmap-wrap pattern).
+
+Verified clean at 360/414/600/768/900/1024 across all 12 core pages; 320px
+(legacy SE-class) still overflows ~25px on home en+zh — accepted as edge.
+Interaction checks: burger sheet (7 links), founding modal open/close+form,
+scroll-spy nav, FAQ accordions. Known debt (not fixed): breakpoint values are
+fragmented across components (480/560/640/720/760/860/900/1000/1023) — works,
+but drift-prone; workbench-mock `.bench__tab` buttons are 21px tall (real
+aria-pressed controls inside the demo).

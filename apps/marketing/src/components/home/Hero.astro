@@ -366,9 +366,10 @@ const alerts = t.alerts
     line-height: 1.18;
     letter-spacing: 0;
     max-width: 18ch;
-    /* keep CJK words whole — break only at the spaces between segments so the
-       accent phrase 美国 CPA 事务所 never splits mid-word (事 / 务所). */
-    word-break: keep-all;
+    /* natural CJK wrapping. The old keep-all served a space-segmented headline;
+       the current one is a continuous CJK run — keep-all made an 11-char phrase
+       unbreakable and forced horizontal scroll under ~430px. */
+    word-break: normal;
   }
   .hero__sub {
     margin-top: clamp(22px, 1.7vw, 28px);
