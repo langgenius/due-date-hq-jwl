@@ -157,16 +157,18 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
           nothing snaps during the collapse/expand animation. */}
       <div
         title={firm.name}
-        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1 group-data-[collapsed=true]/sidebar:gap-0"
+        // Collapsed: center the monogram so it sits on the same vertical
+        // centerline as the (now centered) nav icons + footer avatar
+        // (2026-07-22 "avatar没有对齐"). The old `pl-px` left-nudge was tuned
+        // for the previous LEFT-aligned icon rail; the labeled rail centers
+        // its tiles, so the header + footer avatars must center too.
+        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0"
       >
         {/* The workspace monogram is `sm` (28px) — same size as the
             footer user avatar so the top + bottom of the rail bookend as a
             matched pair. Shape stays SQUARE (org) vs the user's round
             (person). Renders in both modes. */}
-        {/* pl-px nudges the 28px monogram so its center sits on the exact
-            same rail centerline as the 16px nav icons below (a 28px avatar
-            needs a 5px left inset vs a 16px icon's 11px to share one center). */}
-        <span className="flex shrink-0 pl-px">
+        <span className="flex shrink-0 pl-px group-data-[collapsed=true]/sidebar:pl-0">
           <AssigneeAvatar
             name={firm.name}
             title={firm.name}

@@ -257,10 +257,13 @@ function UserMenuTrigger({
               // The two-line identity stack still fits centered in 40px.
               // active:scale-[0.98]: the chip dips on press like the nav rows
               // (transform added to the transition so the dip eases).
-              // pl-[5px] (was px-1.5) so the 28px account avatar centers on the
-              // exact rail centerline (x=41) shared by every glyph above it.
+              // pl-[5px] left-aligns the 28px avatar for the EXPANDED chip.
+              // Collapsed: center it (justify-center + pl-0) so it lands on the
+              // same centerline as the now-centered nav icons + firm monogram
+              // (2026-07-22 "avatar没有对齐" — the labeled rail centers its
+              // tiles; the old pl-[5px] left-nudge no longer matches).
               'inline-flex h-10 w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg pr-1.5 pl-[5px] outline-none transition-[background-color,color,transform] active:scale-[0.98]',
-              'group-data-[collapsed=true]/sidebar:gap-0',
+              'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:pr-0 group-data-[collapsed=true]/sidebar:pl-0',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />
