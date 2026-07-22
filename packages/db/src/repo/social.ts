@@ -622,24 +622,175 @@ export function makeSocialOpsRepo(db: Db) {
             updatedAt: input.now,
           })
           .where(
-            and(eq(socialAlertPost.id, candidate.post.id), eq(socialAlertPost.status, 'ready')),
+            and(
+              eq(socialAlertPost.id, candidate.post.id),
+              eq(socialAlertPost.status, 'ready'),
+              sql`exists (
+                select 1 from ${socialPublishRun}
+                where ${socialPublishRun.id} = ${runId}
+                  and ${socialPublishRun.postId} = ${candidate.post.id}
+                  and ${socialPublishRun.status} = ${runStatus}
+              )`,
+            ),
           )
           .returning(),
+        db
+          .update(socialPublishRun)
+          .set({
+            status: 'failed',
+            failureReason: 'post_claim_conflict',
+            failedAt: input.now,
+            updatedAt: input.now,
+          })
+          .where(
+            and(
+              eq(socialPublishRun.id, runId),
+              eq(socialPublishRun.status, runStatus),
+              sql`not exists (
+                select 1 from ${socialAlertPost}
+                where ${socialAlertPost.id} = ${candidate.post.id}
+                  and ${socialAlertPost.status} = ${nextPostStatus}
+              )`,
+            ),
+          )
+          .returning({ id: socialPublishRun.id }),
       ])
       const run = insertedRuns[0]
       if (!run) return null
       const post = claimedPosts[0]
       if (post) return { run, post }
+      return null
+    },
 
-      await db
-        .update(socialPublishRun)
-        .set({
-          status: 'failed',
-          failureReason: 'post_claim_conflict',
-          failedAt: input.now,
-          updatedAt: input.now,
-        })
-        .where(eq(socialPublishRun.id, run.id))
+    async claimExactDailyReadyPost(input: {
+      channel: SocialChannel
+      localDate: string
+      postId: string
+      now: Date
+    }): Promise<{ run: SocialPublishRun; post: SocialAlertPost } | null> {
+      if (!isValidLocalDate(input.localDate) || !input.postId.trim()) {
+        throw new SocialOpsRepoError('invalid')
+      }
+
+      const [existingRun] = await db
+        .select()
+        .from(socialPublishRun)
+        .where(
+          and(
+            eq(socialPublishRun.channel, input.channel),
+            eq(socialPublishRun.localDate, input.localDate),
+          ),
+        )
+        .limit(1)
+
+      // A shadow run deliberately returns its Post to draft and clears the
+      // approval. After an operator explicitly approves that same Post again,
+      // publish-now may promote that exact audit row instead of inventing a
+      // second daily slot. No other existing slot may be reused.
+      const canPromoteShadow =
+        existingRun?.status === 'draft_only' && existingRun.postId === input.postId
+      if (existingRun && !canPromoteShadow) return null
+
+      const [candidate] = await db
+        .select({ post: socialAlertPost, ...candidateSelection })
+        .from(socialAlertPost)
+        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+        .where(
+          and(
+            eq(socialAlertPost.id, input.postId),
+            eq(socialAlertPost.channel, input.channel),
+            eq(socialAlertPost.status, 'ready'),
+            candidateConditions(),
+          ),
+        )
+        .limit(1)
+      if (!candidate || !candidateIsRuntimeEligible(candidate)) return null
+
+      const runId = existingRun?.id ?? crypto.randomUUID()
+      const runStatement = canPromoteShadow
+        ? db
+            .update(socialPublishRun)
+            .set({
+              status: 'queued',
+              queuedAt: input.now,
+              failureReason: null,
+              failedAt: null,
+              updatedAt: input.now,
+            })
+            .where(
+              and(
+                eq(socialPublishRun.id, runId),
+                eq(socialPublishRun.channel, input.channel),
+                eq(socialPublishRun.localDate, input.localDate),
+                eq(socialPublishRun.postId, input.postId),
+                eq(socialPublishRun.status, 'draft_only'),
+              ),
+            )
+            .returning()
+        : db
+            .insert(socialPublishRun)
+            .values({
+              id: runId,
+              channel: input.channel,
+              localDate: input.localDate,
+              postId: input.postId,
+              status: 'queued',
+              queuedAt: input.now,
+              createdAt: input.now,
+              updatedAt: input.now,
+            })
+            .onConflictDoNothing()
+            .returning()
+
+      // The run mutation and ready -> scheduled CAS are one D1 transaction.
+      // The EXISTS gate prevents a losing concurrent daily-slot claimant from
+      // moving the Post when its run insert/promotion did not succeed.
+      const [claimedRuns, claimedPosts] = await db.batch([
+        runStatement,
+        db
+          .update(socialAlertPost)
+          .set({ status: 'scheduled', updatedAt: input.now })
+          .where(
+            and(
+              eq(socialAlertPost.id, input.postId),
+              eq(socialAlertPost.channel, input.channel),
+              eq(socialAlertPost.status, 'ready'),
+              sql`exists (
+                select 1 from ${socialPublishRun}
+                where ${socialPublishRun.id} = ${runId}
+                  and ${socialPublishRun.channel} = ${input.channel}
+                  and ${socialPublishRun.localDate} = ${input.localDate}
+                  and ${socialPublishRun.postId} = ${input.postId}
+                  and ${socialPublishRun.status} = 'queued'
+              )`,
+            ),
+          )
+          .returning(),
+        db
+          .update(socialPublishRun)
+          .set({
+            status: 'failed',
+            failureReason: 'post_claim_conflict',
+            failedAt: input.now,
+            updatedAt: input.now,
+          })
+          .where(
+            and(
+              eq(socialPublishRun.id, runId),
+              eq(socialPublishRun.status, 'queued'),
+              sql`not exists (
+                select 1 from ${socialAlertPost}
+                where ${socialAlertPost.id} = ${input.postId}
+                  and ${socialAlertPost.status} = 'scheduled'
+              )`,
+            ),
+          )
+          .returning({ id: socialPublishRun.id }),
+      ])
+      const run = claimedRuns[0]
+      if (!run) return null
+      const post = claimedPosts[0]
+      if (post) return { run, post }
       return null
     },
 

@@ -1,4 +1,5 @@
 const X_CREATE_POST_URL = 'https://api.x.com/2/tweets'
+const X_AUTHENTICATED_USER_URL = 'https://api.x.com/2/users/me?user.fields=username'
 const DEFAULT_TIMEOUT_MS = 15_000
 
 export interface XOAuthCredentials {
@@ -18,6 +19,73 @@ export interface XCreatePostOptions {
   now?: Date
   nonce?: string
   timeoutMs?: number
+}
+
+export type XVerifyAccountResult =
+  | { kind: 'verified'; userId: string; username: string }
+  | { kind: 'failure'; httpStatus?: number; reason: string }
+
+export async function verifyXAccount(
+  credentials: XOAuthCredentials,
+  options: XCreatePostOptions = {},
+): Promise<XVerifyAccountResult> {
+  const fetcher = options.fetch ?? fetch
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS)
+
+  try {
+    const authorization = await buildXOAuthHeader(credentials, {
+      method: 'GET',
+      url: X_AUTHENTICATED_USER_URL,
+      ...(options.now ? { now: options.now } : {}),
+      ...(options.nonce ? { nonce: options.nonce } : {}),
+    })
+    let response: Response
+    try {
+      response = await fetcher(X_AUTHENTICATED_USER_URL, {
+        method: 'GET',
+        headers: { authorization },
+        signal: controller.signal,
+      })
+    } catch (error) {
+      return {
+        kind: 'failure',
+        reason:
+          error instanceof Error
+            ? error.message
+            : 'X account verification failed without a response.',
+      }
+    }
+
+    const responseText = await readResponseText(response)
+    if (!response.ok) {
+      return {
+        kind: 'failure',
+        httpStatus: response.status,
+        reason: xErrorReason(response.status, responseText),
+      }
+    }
+
+    const parsed = parseJsonRecord(responseText)
+    const data = parsed && isRecord(parsed.data) ? parsed.data : null
+    if (
+      !data ||
+      typeof data.id !== 'string' ||
+      !data.id ||
+      typeof data.username !== 'string' ||
+      !data.username
+    ) {
+      return {
+        kind: 'failure',
+        httpStatus: response.status,
+        reason: 'X API returned success without an account ID and username.',
+      }
+    }
+
+    return { kind: 'verified', userId: data.id, username: data.username }
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export async function createXPost(

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { buildXOAuthHeader, createXPost, type XOAuthCredentials } from './x-client'
+import { buildXOAuthHeader, createXPost, verifyXAccount, type XOAuthCredentials } from './x-client'
 
 const CREDENTIALS: XOAuthCredentials = {
   apiKey: 'consumer-key',
@@ -98,6 +98,45 @@ describe('createXPost', () => {
       kind: 'unknown',
       httpStatus: 201,
       reason: 'X API returned success without a Post ID.',
+    })
+  })
+})
+
+describe('verifyXAccount', () => {
+  it('performs a signed read-only account lookup and returns only safe identity fields', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: { id: 'user-123', name: 'DueDateHQ', username: 'duedatehq' },
+        }),
+        { status: 200 },
+      ),
+    )
+
+    await expect(
+      verifyXAccount(CREDENTIALS, {
+        fetch: fetcher,
+        now: new Date('2026-07-21T13:00:00.000Z'),
+        nonce: 'verify-nonce',
+      }),
+    ).resolves.toEqual({ kind: 'verified', userId: 'user-123', username: 'duedatehq' })
+    expect(fetcher).toHaveBeenCalledOnce()
+    const [url, init] = fetcher.mock.calls[0]!
+    expect(url).toBe('https://api.x.com/2/users/me?user.fields=username')
+    expect(init?.method).toBe('GET')
+    expect(new Headers(init?.headers).get('authorization')).toMatch(/^OAuth /u)
+    expect(init?.body).toBeUndefined()
+  })
+
+  it('fails closed when X rejects the configured credentials', async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify({ detail: 'Unauthorized' }), { status: 401 }))
+
+    await expect(verifyXAccount(CREDENTIALS, { fetch: fetcher })).resolves.toEqual({
+      kind: 'failure',
+      httpStatus: 401,
+      reason: 'Unauthorized',
     })
   })
 })

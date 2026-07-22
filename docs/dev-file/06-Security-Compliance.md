@@ -80,6 +80,9 @@
 - `/api/ops/social/*` 与 `/api/e2e/*` 完全分钥匙：非 development 只接受
   `Authorization: Bearer <SOCIAL_OPS_TOKEN>`，token 缺失/错误统一 404。approve 还必须提交真实
   Better Auth reviewer user id；X OAuth credential 从不进入 ops request、D1、URL 或日志。
+- `verify-account` 与 `publish-now` 的 preflight 使用 OAuth 1.0a 签名读取 X `/2/users/me`；响应
+  只回传 user id / username。`publish-now` 在 Post/Pulse 校验和账号核验都通过后才 claim D1
+  日槽，远端写操作仍由 `SOCIAL_QUEUE` 执行。
 
 ---
 

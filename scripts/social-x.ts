@@ -10,6 +10,8 @@ type Command =
       priority?: 'normal' | 'urgent'
     }
   | { kind: 'approve'; postId: string; reviewer: string; priority?: 'normal' | 'urgent' }
+  | { kind: 'verify-account' }
+  | { kind: 'publish-now'; postId: string }
   | { kind: 'cancel'; postId: string; reason: string }
   | {
       kind: 'reconcile'
@@ -23,6 +25,8 @@ const USAGE = `Usage:
   pnpm social:x -- candidates [--status draft] [--limit 50]
   pnpm social:x -- candidates --pulse <pulse-id> [--priority urgent]
   pnpm social:x -- approve <post-id> [--reviewer <user-id>] [--priority urgent]
+  pnpm social:x -- verify-account
+  pnpm social:x -- publish-now <post-id>
   pnpm social:x -- cancel <post-id> --reason <text>
   pnpm social:x -- reconcile <post-id> --outcome published --x-post-id <id>
   pnpm social:x -- reconcile <post-id> --outcome not_published --reason <text>
@@ -95,6 +99,10 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
       ...(parsedPriority ? { priority: parsedPriority } : {}),
     }
   }
+  if (name === 'verify-account') return { kind: 'verify-account' }
+  if (name === 'publish-now') {
+    return { kind: 'publish-now', postId: requiredPostId(postId, 'publish-now') }
+  }
   if (name === 'cancel') {
     return {
       kind: 'cancel',
@@ -126,7 +134,11 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
   throw new Error(USAGE)
 }
 
-function requestFor(command: Command): { path: string; method: 'GET' | 'POST'; body?: unknown } {
+export function requestFor(command: Command): {
+  path: string
+  method: 'GET' | 'POST'
+  body?: unknown
+} {
   if (command.kind === 'candidates' && command.pulseId) {
     return {
       path: '/api/ops/social/candidates',
@@ -150,6 +162,15 @@ function requestFor(command: Command): { path: string; method: 'GET' | 'POST'; b
       body: { approvedBy: command.reviewer, priority: command.priority },
     }
   }
+  if (command.kind === 'verify-account') {
+    return { path: '/api/ops/social/x/account', method: 'GET' }
+  }
+  if (command.kind === 'publish-now') {
+    return {
+      path: `/api/ops/social/${encodeURIComponent(command.postId)}/publish-now`,
+      method: 'POST',
+    }
+  }
   if (command.kind === 'cancel') {
     return {
       path: `/api/ops/social/${encodeURIComponent(command.postId)}/cancel`,
@@ -171,6 +192,8 @@ function requestFor(command: Command): { path: string; method: 'GET' | 'POST'; b
 async function main() {
   const command = parseSocialXCommand(process.argv.slice(2))
   const request = requestFor(command)
+  const timeoutMs =
+    command.kind === 'verify-account' || command.kind === 'publish-now' ? 45_000 : 15_000
   const origin = process.env.SOCIAL_OPS_URL ?? 'http://localhost:8787'
   const url = new URL(request.path, origin)
   const headers = new Headers({ accept: 'application/json' })
@@ -183,7 +206,7 @@ async function main() {
     method: request.method,
     headers,
     ...(request.body === undefined ? {} : { body: JSON.stringify(request.body) }),
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(timeoutMs),
   })
   const text = await response.text()
   let payload: unknown = text

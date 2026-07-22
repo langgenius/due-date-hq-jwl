@@ -11,6 +11,8 @@ Hard invariants:
 
 - `UNIQUE(social_alert_post.channel, pulse_id)` prevents the same Alert entering the outbox twice.
 - `UNIQUE(social_publish_run.channel, local_date)` caps every ET calendar day at one attempt.
+- An explicitly re-approved Post may promote its own same-day `draft_only` shadow row to `queued`;
+  that row cannot be reused for a different Post, channel, or ET date.
 - A failed or unknown attempt consumes that day; no replacement is sent.
 - A queued message is sent only while its reserved ET `local_date` is still current. A delayed
   prior-day delivery becomes `failed` and returns to review, preventing two actual Posts on the new
@@ -52,6 +54,13 @@ X_ACCESS_TOKEN_SECRET=
 
 Never pass secrets as command arguments or put them in a tracked file.
 
+Verify the fixed account with a signed, read-only OAuth 1.0a request. The command returns only the X
+user ID and username; it never prints credentials:
+
+```bash
+pnpm social:x -- verify-account
+```
+
 ## Daily review commands
 
 List drafts and the frozen copy/URL:
@@ -84,6 +93,29 @@ Cancel a bad/stale draft with an auditable reason:
 ```bash
 pnpm social:x -- cancel '<social post id>' --reason 'Pulse was superseded'
 ```
+
+## Immediate live publish
+
+`publish-now` is an operator override for the normal 09:00 ET claim time, not an override for the
+daily cap or editorial approval. It is available only when the deployed Worker has
+`X_POSTING_MODE=live` and all four OAuth 1.0a user credentials. To publish one exact ready Post:
+
+```bash
+pnpm social:x -- candidates --status ready --limit 50
+pnpm social:x -- verify-account
+pnpm social:x -- publish-now '<social post id>'
+```
+
+The endpoint revalidates that exact Post and its Pulse, verifies the authenticated X account with a
+read-only request, atomically reserves the current ET date, and enqueues `social.x.publish`. HTTP 202
+means queued; the serialized Queue consumer performs the remote create and records `published`,
+`failed`, or `unknown`.
+
+If today's shadow run already used this same Post, first approve the returned draft again. The exact
+same `draft_only` ledger row is then promoted to `queued`; no second daily row is created. A shadow or
+live slot belonging to another Post returns 409 and must not be bypassed. If enqueue recovery returns
+HTTP 500, preserve the reported `runId`, stop, and inspect D1/Queue state before issuing any further
+command.
 
 ## Seven-day shadow gate
 

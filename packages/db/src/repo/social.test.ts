@@ -222,11 +222,98 @@ describe('makeSocialOpsRepo', () => {
 
     expect(result).toEqual({ run: RUN, post: scheduled })
     expect(raw.batch).toHaveBeenCalledTimes(1)
+    expect(raw.batch.mock.calls[0]?.[0]).toHaveLength(3)
     const candidateChain = raw.select.mock.results[1]?.value as ReturnType<typeof selectChain>
     const priorityExpression = candidateChain.orderBy.mock.calls[0]?.[0] as SQL
     const query = new SQLiteSyncDialect().sqlToQuery(priorityExpression)
     expect(query.params).toContain(NOW.getTime() - 3 * 24 * 60 * 60 * 1000)
     expect(query.params.some((value) => value instanceof Date)).toBe(false)
+    const postUpdate = raw.update.mock.results[0]?.value as MutationChain
+    const postClaimCondition = postUpdate.where.mock.calls[0]?.[0] as SQL
+    const postClaimQuery = new SQLiteSyncDialect().sqlToQuery(postClaimCondition)
+    expect(postClaimQuery.sql).toContain('exists')
+    expect(postClaimQuery.params).toEqual(expect.arrayContaining([POST.id, 'queued']))
+  })
+
+  it('claims one exact ready Post for an otherwise empty live daily slot', async () => {
+    const scheduled = { ...POST, status: 'scheduled' as const }
+    const { db } = fakeDb({
+      selectResponses: [[], [{ post: POST, ...CANDIDATE }]],
+      insertResponses: [[RUN]],
+      updateResponses: [[scheduled], []],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).claimExactDailyReadyPost({
+        channel: 'x',
+        localDate: RUN.localDate,
+        postId: POST.id,
+        now: NOW,
+      }),
+    ).resolves.toEqual({ run: RUN, post: scheduled })
+  })
+
+  it('promotes the same-day same-Post shadow run after explicit reapproval', async () => {
+    const shadowRun = {
+      ...RUN,
+      status: 'draft_only' as const,
+      queuedAt: null,
+    }
+    const scheduled = { ...POST, status: 'scheduled' as const }
+    const { db, insertedValues, updatedValues } = fakeDb({
+      selectResponses: [[shadowRun], [{ post: POST, ...CANDIDATE }]],
+      updateResponses: [[RUN], [scheduled], []],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).claimExactDailyReadyPost({
+        channel: 'x',
+        localDate: RUN.localDate,
+        postId: POST.id,
+        now: NOW,
+      }),
+    ).resolves.toEqual({ run: RUN, post: scheduled })
+    expect(insertedValues).toEqual([])
+    expect(updatedValues[0]).toMatchObject({ status: 'queued', queuedAt: NOW })
+    expect(updatedValues[1]).toMatchObject({ status: 'scheduled' })
+  })
+
+  it('does not reuse a daily shadow slot for a different exact Post', async () => {
+    const shadowRun = {
+      ...RUN,
+      status: 'draft_only' as const,
+      postId: 'another-post',
+      queuedAt: null,
+    }
+    const { db, raw } = fakeDb({ selectResponses: [[shadowRun]] })
+
+    await expect(
+      makeSocialOpsRepo(db).claimExactDailyReadyPost({
+        channel: 'x',
+        localDate: RUN.localDate,
+        postId: POST.id,
+        now: NOW,
+      }),
+    ).resolves.toBeNull()
+    expect(raw.insert).not.toHaveBeenCalled()
+    expect(raw.update).not.toHaveBeenCalled()
+  })
+
+  it('does not exact-claim a row that fails runtime candidate validation', async () => {
+    const { db, raw } = fakeDb({
+      selectResponses: [[], [{ post: POST, ...CANDIDATE, sourceUrl: 'javascript:alert(1)' }]],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).claimExactDailyReadyPost({
+        channel: 'x',
+        localDate: RUN.localDate,
+        postId: POST.id,
+        now: NOW,
+      }),
+    ).resolves.toBeNull()
+    expect(raw.insert).not.toHaveBeenCalled()
+    expect(raw.update).not.toHaveBeenCalled()
   })
 
   it('freezes approval metadata only for a real reviewer and draft row', async () => {
@@ -409,7 +496,7 @@ describe('makeSocialOpsRepo', () => {
   })
 
   it('terminally timestamps a rare post CAS conflict instead of leaving a queued orphan', async () => {
-    const { db, updatedValues } = fakeDb({
+    const { db, raw, updatedValues } = fakeDb({
       selectResponses: [[], [{ post: POST }]],
       insertResponses: [[RUN]],
       updateResponses: [[], []],
@@ -423,6 +510,7 @@ describe('makeSocialOpsRepo', () => {
     })
 
     expect(result).toBeNull()
+    expect(raw.batch.mock.calls[0]?.[0]).toHaveLength(3)
     expect(updatedValues[1]).toMatchObject({
       status: 'failed',
       failureReason: 'post_claim_conflict',

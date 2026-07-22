@@ -8,6 +8,12 @@ import {
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
 import { buildXAlertPost, validateSocialCandidate } from '../jobs/social/content'
+import { easternTimeParts } from '../jobs/social/time'
+import {
+  verifyXAccount,
+  type XOAuthCredentials,
+  type XVerifyAccountResult,
+} from '../jobs/social/x-client'
 
 // Operator-only surface for one-shot maintenance jobs. Same access model as
 // the e2e seed routes: open in development, token-gated in staging, absent
@@ -71,6 +77,24 @@ function socialPriority(value: string | undefined): SocialAlertPriority | undefi
   return SOCIAL_PRIORITY_VALUES.find((priority) => priority === value)
 }
 
+function xCredentials(env: Env): XOAuthCredentials | null {
+  if (!env.X_API_KEY || !env.X_API_SECRET || !env.X_ACCESS_TOKEN || !env.X_ACCESS_TOKEN_SECRET) {
+    return null
+  }
+  return {
+    apiKey: env.X_API_KEY,
+    apiSecret: env.X_API_SECRET,
+    accessToken: env.X_ACCESS_TOKEN,
+    accessTokenSecret: env.X_ACCESS_TOKEN_SECRET,
+  }
+}
+
+async function verifyConfiguredXAccount(env: Env): Promise<XVerifyAccountResult | null> {
+  const credentials = xCredentials(env)
+  if (!credentials) return null
+  return verifyXAccount(credentials)
+}
+
 export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
   .post('/pulse-backfill', async (c) => {
     if (!hasOpsAccess(c)) {
@@ -90,6 +114,23 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       ...(limit !== undefined ? { limit } : {}),
     })
     return c.json(result)
+  })
+  .get('/social/x/account', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const result = await verifyConfiguredXAccount(c.env)
+    if (!result) return c.json({ error: 'X OAuth 1.0a credentials are incomplete' }, 503)
+    if (result.kind === 'failure') {
+      return c.json(
+        {
+          error: 'X account verification failed',
+          reason: result.reason,
+          httpStatus: result.httpStatus ?? null,
+        },
+        502,
+      )
+    }
+    return c.json({ account: { userId: result.userId, username: result.username } })
   })
   .get('/social/candidates', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()
@@ -188,6 +229,89 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     })
     if (!post) return c.json({ error: 'Draft was not found or cannot be approved' }, 409)
     return c.json({ post })
+  })
+  .post('/social/:postId/publish-now', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+    if (c.env.X_POSTING_MODE !== 'live') {
+      return c.json({ error: 'X live publishing is disabled' }, 409)
+    }
+
+    const postId = c.req.param('postId')
+    const repo = makeSocialOpsRepo(createDb(c.env.DB))
+    const post = await repo.getPost(postId)
+    if (!post || post.status !== 'ready') {
+      return c.json({ error: 'Post was not found or is not ready' }, 409)
+    }
+    const candidate = await repo.getEligibleCandidate(post.pulseId)
+    if (!candidate) return c.json({ error: 'Pulse is no longer eligible' }, 422)
+    const validation = validateSocialCandidate(candidate)
+    if (!validation.eligible) {
+      return c.json({ error: 'Pulse is no longer eligible', reasons: validation.reasons }, 422)
+    }
+
+    // Verify the credentials and account with a signed read-only request
+    // after validating the requested Post but before reserving the ET daily
+    // slot. A bad credential must not consume the only publishing opportunity.
+    const account = await verifyConfiguredXAccount(c.env)
+    if (!account) return c.json({ error: 'X OAuth 1.0a credentials are incomplete' }, 503)
+    if (account.kind === 'failure') {
+      return c.json(
+        {
+          error: 'X account verification failed',
+          reason: account.reason,
+          httpStatus: account.httpStatus ?? null,
+        },
+        502,
+      )
+    }
+
+    const now = new Date()
+    const { localDate } = easternTimeParts(now)
+    const claim = await repo.claimExactDailyReadyPost({
+      channel: 'x',
+      localDate,
+      postId,
+      now,
+    })
+    if (!claim) {
+      return c.json(
+        { error: 'The ET daily slot is already consumed or the Post is no longer ready' },
+        409,
+      )
+    }
+
+    try {
+      await c.env.SOCIAL_QUEUE.send({
+        type: 'social.x.publish',
+        runId: claim.run.id,
+      })
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Unable to enqueue the X publish job.'
+      const recovered = await repo
+        .markFailed({ runId: claim.run.id, reason, now })
+        .catch(() => false)
+      if (!recovered) {
+        return c.json(
+          {
+            error: 'Unable to enqueue the X publish job or persist its failed state',
+            runId: claim.run.id,
+          },
+          500,
+        )
+      }
+      return c.json({ error: 'Unable to enqueue the X publish job' }, 503)
+    }
+
+    return c.json(
+      {
+        queued: true,
+        runId: claim.run.id,
+        postId: claim.post.id,
+        localDate,
+        account: { userId: account.userId, username: account.username },
+      },
+      202,
+    )
   })
   .post('/social/:postId/cancel', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()

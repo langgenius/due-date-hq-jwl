@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseSocialXCommand } from './social-x'
+import { parseSocialXCommand, requestFor } from './social-x'
 
 describe('parseSocialXCommand', () => {
   it('accepts the pnpm script-argument separator', () => {
@@ -25,6 +25,25 @@ describe('parseSocialXCommand', () => {
       kind: 'candidates',
       pulseId: 'pulse-1',
     })
+  })
+
+  it('supports a read-only OAuth account preflight', () => {
+    const command = parseSocialXCommand(['verify-account'])
+    expect(command).toEqual({ kind: 'verify-account' })
+    expect(requestFor(command)).toEqual({ path: '/api/ops/social/x/account', method: 'GET' })
+  })
+
+  it('requires an exact post ID for immediate publishing', () => {
+    const command = parseSocialXCommand(['publish-now', 'post-1'])
+    expect(command).toEqual({
+      kind: 'publish-now',
+      postId: 'post-1',
+    })
+    expect(requestFor(command)).toEqual({
+      path: '/api/ops/social/post-1/publish-now',
+      method: 'POST',
+    })
+    expect(() => parseSocialXCommand(['publish-now'])).toThrow(/publish-now requires a post ID/u)
   })
 
   it('refuses blind reconciliation of an ambiguous send', () => {

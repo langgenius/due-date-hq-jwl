@@ -332,7 +332,8 @@ Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► P
 approved, externally useful global Pulse
   -> deterministic social draft (D1 social_alert_post)
   -> operator marks ready
-  -> 09:00 ET unique daily slot (D1 social_publish_run)
+  -> 09:00 ET scheduler or exact-post publish-now control (D1 unique daily slot)
+  -> read-only OAuth 1.0a /2/users/me preflight before a manual live claim
   -> draft_only shadow OR SOCIAL_QUEUE -> X POST /2/tweets
   -> /alerts?ref=<opaque token>
   -> login / firm onboarding keeps intent
@@ -355,6 +356,11 @@ runtime validation 同时执行该闸门；
 优先、同优先级 FIFO；等待超过三个发布日会升为 urgent。X 返回明确 4xx 时当天记 failed 且
 不换发；timeout、网络中断、5xx 或成功响应缺 Post ID 时记 unknown 并停止自动重试，等待人工
 在 X 核对后执行 reconcile。
+
+Social Ops 的 `publish-now` 只能 claim 指定的 eligible `ready` Post，并仍受同一唯一键
+约束；同日同 Post 的 `draft_only` 只有在再次 approve 后才能原位升级为 `queued`，不能把影子
+槽位转给另一 Post。手动 claim 前先用 OAuth 1.0a 签名的只读 `/2/users/me` 核对固定账号，避免
+坏 credential 消耗当天槽位；真正写入 X 仍只发生在 serialized `SOCIAL_QUEUE` consumer。
 
 ## 5. 外部依赖清单
 
