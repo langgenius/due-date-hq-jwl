@@ -1137,6 +1137,20 @@
   .muted { color: var(--faint); }
   .toolsection { font-family: -apple-system, sans-serif; font-size: 14px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
   .toolsection a { color: var(--info); }
+  .revh2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 34px 0 10px; }
+  .proscons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 36px; max-width: 760px; margin: 0 0 10px; font-family: -apple-system, sans-serif; }
+  .proscons h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin: 10px 0 2px; color: var(--faint); }
+  .proscons ul { list-style: none; margin: 0; padding: 0; }
+  .proscons li { font-size: 14px; line-height: 1.5; color: var(--soft); padding: 8px 0 8px 20px; position: relative; border-top: 1px solid var(--line); }
+  .proscons li:first-child { border-top: 0; }
+  .pc-pro li::before { content: "+"; position: absolute; left: 2px; font-weight: 700; color: var(--open, #2e9960); }
+  .pc-con li::before { content: "\2212"; position: absolute; left: 2px; font-weight: 700; color: var(--faint); }
+  .usecase { max-width: 66ch; font-family: -apple-system, sans-serif; margin: 0 0 6px; }
+  .usecase h3 { font-size: 15px; font-weight: 600; margin: 18px 0 4px; }
+  .usecase p { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 0; }
+  .verdict { max-width: 66ch; font-family: -apple-system, sans-serif; border-left: 3px solid var(--accent); padding: 2px 0 2px 16px; margin: 12px 0 26px; }
+  .verdict p { font-size: 15px; line-height: 1.6; color: var(--ink); margin: 0; }
+  .disclose { max-width: 66ch; font-family: -apple-system, sans-serif; font-size: 13px; line-height: 1.5; color: var(--faint); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 0 0 22px; }
   .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
   .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
   .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
@@ -1203,6 +1217,8 @@
 <h1 class="gh1">Drake Tax alternatives</h1>
 
 <p class="toollede">Looking for an alternative to Drake Tax? Here are the other tax preparation tools US firms use — each with pricing and how open it is to integration, so you can compare on the axes that matter. Independent, no vendor pays to be here.</p>
+
+
 
 <ul class="toollist"><li><a href="/tools/lacerte">Lacerte</a> <span class="muted">— Custom · per-return · Local SDK · 15.8% share</span></li><li><a href="/tools/proconnect">ProConnect</a> <span class="muted">— Pay-per-return · No API yet · 3.8% share</span></li><li><a href="/tools/proseries">ProSeries</a> <span class="muted">— From $419/yr · Export only · 10.5% share</span></li><li><a href="/tools/ultratax-cs">UltraTax CS</a> <span class="muted">— Custom quote · Export only · 22.9% share</span></li><li><a href="/tools/cch-axcess">CCH Axcess</a> <span class="muted">— From $2,299/yr · Partner API · 12.5% share</span></li><li><a href="/tools/atx">ATX</a> <span class="muted">— From $939/yr · Export only · 4.6% share</span></li></ul>
 

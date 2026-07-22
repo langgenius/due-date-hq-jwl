@@ -31,6 +31,7 @@
 - [Xero vs Sage](https://cpafieldguide.com/xero-vs-sage)
 - [QuickBooks Online vs Sage](https://cpafieldguide.com/quickbooks-online-vs-sage)
 - [Karbon vs Jetpack Workflow](https://cpafieldguide.com/karbon-vs-jetpack-workflow)
+- [File In Time vs DueDateHQ](https://cpafieldguide.com/file-in-time-vs-duedatehq)
 - [TaxDome alternatives](https://cpafieldguide.com/taxdome-alternatives)
 - [Karbon alternatives](https://cpafieldguide.com/karbon-alternatives)
 - [Canopy alternatives](https://cpafieldguide.com/canopy-alternatives)
@@ -43,6 +44,8 @@
 - [Xero alternatives](https://cpafieldguide.com/xero-alternatives)
 - [Ignition alternatives](https://cpafieldguide.com/ignition-alternatives)
 - [Jetpack Workflow alternatives](https://cpafieldguide.com/jetpack-workflow-alternatives)
+- [File In Time alternatives](https://cpafieldguide.com/file-in-time-alternatives)
+- [ONESOURCE Calendar alternatives](https://cpafieldguide.com/onesource-calendar-alternatives)
 
 ## Data
 - [CPA software statistics 2026 (market share, pricing, APIs)](https://cpafieldguide.com/cpa-software-statistics)

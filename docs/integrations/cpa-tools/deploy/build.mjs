@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { toolContent } from './tool-content.mjs'
 const base = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = readFileSync(base + '/cpa-tools-directory.html', 'utf8')
 const DATE = '2026-07-22'
@@ -110,6 +111,20 @@ const navCss = `
   .muted { color: var(--faint); }
   .toolsection { font-family: -apple-system, sans-serif; font-size: 14px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
   .toolsection a { color: var(--info); }
+  .revh2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 34px 0 10px; }
+  .proscons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 36px; max-width: 760px; margin: 0 0 10px; font-family: -apple-system, sans-serif; }
+  .proscons h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin: 10px 0 2px; color: var(--faint); }
+  .proscons ul { list-style: none; margin: 0; padding: 0; }
+  .proscons li { font-size: 14px; line-height: 1.5; color: var(--soft); padding: 8px 0 8px 20px; position: relative; border-top: 1px solid var(--line); }
+  .proscons li:first-child { border-top: 0; }
+  .pc-pro li::before { content: "+"; position: absolute; left: 2px; font-weight: 700; color: var(--open, #2e9960); }
+  .pc-con li::before { content: "\\2212"; position: absolute; left: 2px; font-weight: 700; color: var(--faint); }
+  .usecase { max-width: 66ch; font-family: -apple-system, sans-serif; margin: 0 0 6px; }
+  .usecase h3 { font-size: 15px; font-weight: 600; margin: 18px 0 4px; }
+  .usecase p { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 0; }
+  .verdict { max-width: 66ch; font-family: -apple-system, sans-serif; border-left: 3px solid var(--accent); padding: 2px 0 2px 16px; margin: 12px 0 26px; }
+  .verdict p { font-size: 15px; line-height: 1.6; color: var(--ink); margin: 0; }
+  .disclose { max-width: 66ch; font-family: -apple-system, sans-serif; font-size: 13px; line-height: 1.5; color: var(--faint); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 0 0 22px; }
   .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
   .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
   .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
@@ -639,6 +654,7 @@ const VS_PAIRS = [
   ['xero', 'sage'],
   ['quickbooks-online', 'sage'],
   ['karbon', 'jetpack-workflow'],
+  ['file-in-time', 'duedatehq'],
 ]
 const ALT_SLUGS = [
   'taxdome',
@@ -653,7 +669,11 @@ const ALT_SLUGS = [
   'xero',
   'ignition',
   'jetpack-workflow',
+  'file-in-time',
+  'onesource-calendar',
 ]
+// any page that features DueDateHQ carries the affiliation up front (facts-only program red line)
+const DDHQ_DISCLOSURE = `<p class="disclose"><strong>Disclosure:</strong> DueDateHQ is built by the team that maintains this guide. Same sourced facts, same rules as every other tool on this page.</p>`
 const nameBySlug = Object.fromEntries(toolData.map((t) => [t.slug, t.name]))
 function crossLinksFor(slug) {
   const vs = VS_PAIRS.filter((p) => p.includes(slug)).map(([a, b]) => ({
@@ -706,6 +726,17 @@ for (const t of toolData) {
       `Who is ${t.name} best for?`,
       `${t.name} is built for ${t.seg.toLowerCase()} firms. ${t.desc}`,
     ],
+    ...(toolContent[t.slug]
+      ? [
+          [
+            `What are the main drawbacks of ${t.name}?`,
+            `The trade-offs firms weigh: ${toolContent[t.slug].cons
+              .slice(0, 3)
+              .map((c) => c.replace(/^([A-Z])/, (m) => m.toLowerCase()).replace(/\.$/, ''))
+              .join('; ')}.`,
+          ],
+        ]
+      : []),
   ]
   const tfaqHtml =
     `<div class="faq"><div class="wrap"><h2>${esc(t.name)} — FAQ</h2>` +
@@ -722,12 +753,24 @@ for (const t of toolData) {
       site,
       {
         '@type': 'SoftwareApplication',
+        '@id': url + '#app',
         name: t.name,
         applicationCategory: t.catLabel + ' software',
         url: t.url,
         sameAs: t.url,
         description: t.desc,
       },
+      ...(toolContent[t.slug]
+        ? [
+            {
+              '@type': 'Review',
+              itemReviewed: { '@id': url + '#app' },
+              author: { '@id': ORIGIN + '/#org' },
+              datePublished: DATE,
+              reviewBody: toolContent[t.slug].verdict,
+            },
+          ]
+        : []),
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
@@ -752,6 +795,23 @@ for (const t of toolData) {
   const screenshot = dshot
     ? `<figure class="toolshot"><img src="/detail-shots/${dshot}" alt="${esc(t.name)} interface" loading="lazy"><figcaption>${esc(t.name)} — product interface. Screenshot © ${esc(t.name)}; shown for identification.</figcaption></figure>`
     : ''
+  // editorial review sections (tool-content.mjs): pros/cons, scenarios, verdict
+  const tc = toolContent[t.slug]
+  const disclosure = tc?.disclosure
+    ? `<p class="disclose"><strong>Disclosure:</strong> ${esc(t.name)} is built by the team that maintains this guide. Its facts table and this review follow the same rules as every other tool here — and we say so wherever it appears.</p>`
+    : ''
+  const reviewHtml = tc
+    ? [
+        `<h2 class="revh2">${esc(t.name)} pros and cons</h2>`,
+        `<div class="proscons"><div class="pc-pro"><h3>Pros</h3><ul>${tc.pros.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div><div class="pc-con"><h3>Cons</h3><ul>${tc.cons.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div></div>`,
+        `<h2 class="revh2">Who ${esc(t.name)} is for — real-world scenarios</h2>`,
+        tc.scenarios
+          .map((s) => `<div class="usecase"><h3>${esc(s.h)}</h3><p>${esc(s.p)}</p></div>`)
+          .join('\n'),
+        `<h2 class="revh2">Bottom line</h2>`,
+        `<div class="verdict"><p>${esc(tc.verdict)}</p></div>`,
+      ].join('\n')
+    : ''
   const body = [
     topbar,
     catnav(t.catKey),
@@ -759,9 +819,11 @@ for (const t of toolData) {
     crumb,
     `<div class="toolhero">${logoBig}<div><h1>${esc(t.name)}</h1><div class="toolsub">${catHtml} · ${t.seg}</div></div></div>`,
     `<p class="toollede">${esc(t.desc)}</p>`,
+    disclosure,
     facts,
     connects,
     screenshot,
+    reviewHtml,
     '</main>',
     tfaqHtml,
     crossBlock,
@@ -771,9 +833,13 @@ for (const t of toolData) {
     revealScript,
     ld,
   ].join('\n\n')
-  const title = `${t.name} — Pricing, Features & Integration | CPA Field Guide`
+  const title = toolContent[t.slug]
+    ? `${t.name} Review (2026): Pricing, Pros & Cons | CPA Field Guide`
+    : `${t.name} — Pricing, Features & Integration | CPA Field Guide`
   const desc = esc(
-    `${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`,
+    toolContent[t.slug]
+      ? `${t.name} review for US firms: pros and cons, who it fits, pricing (${t.price}), and how open it is to integration. Independent — no vendor pays for placement.`
+      : `${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`,
   ).slice(0, 300)
   writeFileSync(
     base + '/deploy/tools/' + t.slug + '.html',
@@ -1088,6 +1154,7 @@ function vsPage(A, B) {
     crumb,
     `<h1 class="gh1">${esc(A.name)} vs ${esc(B.name)}</h1>`,
     `<p class="toollede">${esc(intro)}</p>`,
+    [A.slug, B.slug].includes('duedatehq') ? DDHQ_DISCLOSURE : '',
     table,
     choose,
     '</main>',
@@ -1221,6 +1288,7 @@ function altPage(T) {
     crumb,
     `<h1 class="gh1">${esc(T.name)} alternatives</h1>`,
     `<p class="toollede">${esc(intro)}</p>`,
+    T.slug === 'duedatehq' || alts.some((a) => a.slug === 'duedatehq') ? DDHQ_DISCLOSURE : '',
     list,
     '</main>',
     faqHtml,

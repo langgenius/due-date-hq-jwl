@@ -1137,6 +1137,20 @@
   .muted { color: var(--faint); }
   .toolsection { font-family: -apple-system, sans-serif; font-size: 14px; line-height: 1.55; color: var(--soft); max-width: 66ch; margin: 0 0 22px; }
   .toolsection a { color: var(--info); }
+  .revh2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 34px 0 10px; }
+  .proscons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 36px; max-width: 760px; margin: 0 0 10px; font-family: -apple-system, sans-serif; }
+  .proscons h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin: 10px 0 2px; color: var(--faint); }
+  .proscons ul { list-style: none; margin: 0; padding: 0; }
+  .proscons li { font-size: 14px; line-height: 1.5; color: var(--soft); padding: 8px 0 8px 20px; position: relative; border-top: 1px solid var(--line); }
+  .proscons li:first-child { border-top: 0; }
+  .pc-pro li::before { content: "+"; position: absolute; left: 2px; font-weight: 700; color: var(--open, #2e9960); }
+  .pc-con li::before { content: "\2212"; position: absolute; left: 2px; font-weight: 700; color: var(--faint); }
+  .usecase { max-width: 66ch; font-family: -apple-system, sans-serif; margin: 0 0 6px; }
+  .usecase h3 { font-size: 15px; font-weight: 600; margin: 18px 0 4px; }
+  .usecase p { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 0; }
+  .verdict { max-width: 66ch; font-family: -apple-system, sans-serif; border-left: 3px solid var(--accent); padding: 2px 0 2px 16px; margin: 12px 0 26px; }
+  .verdict p { font-size: 15px; line-height: 1.6; color: var(--ink); margin: 0; }
+  .disclose { max-width: 66ch; font-family: -apple-system, sans-serif; font-size: 13px; line-height: 1.5; color: var(--faint); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 0 0 22px; }
   .gh1 { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 6px; }
   .gh { font-size: 17px; font-weight: 600; margin: 26px 0 2px; }
   .toollist { font-family: -apple-system, sans-serif; list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
@@ -1203,6 +1217,8 @@
 <h1 class="gh1">TaxDome vs Canopy</h1>
 
 <p class="toollede">TaxDome and Canopy are both practice management tools. Here is how they compare on firm-size fit, pricing, and integration — sourced, with no vendor paying for placement.</p>
+
+
 
 <div class="tablewrap"><table class="cmp vs"><thead><tr><th></th><th><a href="/tools/taxdome">TaxDome</a></th><th><a href="/tools/canopy">Canopy</a></th></tr></thead><tbody><tr><th>Category</th><td>Practice Management</td><td>Practice Management</td></tr><tr><th>Best for</th><td>Solo · mid firms</td><td>Small · mid firms</td></tr><tr><th>Pricing</th><td>From $67/user/mo</td><td>From $45/user/mo</td></tr><tr><th>Integration</th><td>Open API</td><td>Gated API</td></tr><tr><th>Adoption</th><td>10,000+ firms</td><td>—</td></tr></tbody></table></div>
 
