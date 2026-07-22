@@ -1,6 +1,14 @@
 # DueDateHQ cold outreach — how this campaign runs
 
-**Status: LIVE.** Day 1 = 2026-07-02. Wave 1 (Track A 2 + Track B 63) sent 65/65, zero failures.
+> **⚠️ 2026-07-22 update — touches retired.** touch-2 is DEAD (Amplitude: generic touches
+> produced 0 human sessions vs 28 for disaster alerts — do not send the 198 due).
+> touch-3 (890 due) awaits an A/B decision: skip entirely, or rewrite as a farewell +
+> alert-opt-in email; the generic version must NOT be sent. Alert campaign complete at
+> 348/7 states; TX list (107) locked until the IRS notice actually posts (EM-3649 is an
+> EM, not a DR — IRS follow-up not guaranteed). Full status:
+> `docs/marketing/launch-runbook-2026-07-17.md` §B2.
+
+**Status: LIVE (alerts only).** Day 1 = 2026-07-02. Wave 1 (Track A 2 + Track B 63) sent 65/65, zero failures.
 Waves C1/C2 (70 + 70) complete the 205.
 
 ## The send path (script, not Mailmeteor)

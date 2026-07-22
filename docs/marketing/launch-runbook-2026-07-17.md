@@ -28,6 +28,30 @@ guard 0 regressions.)
 
 每批发完:commit `.outreach-state.json`(guard 会拦截任何回退)。
 
+## B2 · 状态更新 2026-07-22(覆盖上面 B 的发送日历)
+
+**Alert 战役完结:348 封 / 7 州**(LA 37 · MS 49 · WI 35 · WA 64 · GA 78 · MI 53 · HI 32),
+另 AZ 64 + MT 28 走 touch-1 通道。state 1090 条,worktree 与 main 副本已同步一致。
+
+**touch-2 已砍(07-22 决定,数据依据)**:Amplitude 中 `2026_07_cpa_outreach` 的 6 个会话全部
+0 秒(邮件安全扫描器),真人会话 0;真人全部来自 `disaster_alert`(28 会话、人均 21s)。
+到期未发的 198 封不发,AZ/MT 的 t2 一并取消。
+
+**touch-3(890 到期)待拍板**:A = 不发,冷邮件战役收官;B = 改写成「告别 + 一键订阅州级
+alert」(Formspree 表单现成),当作 alert 管线的入口发一轮。**禁止原样发通用版。**
+
+**TX 政策(EM ≠ DR)**:EM-3649(7/18)只是紧急声明,IRS 延期通常跟带个人援助的 DR,
+**不保证跟进**。107 人名单锁定,只在 IRS 通知落地当天首发 alert;"观察预警"角度只走
+免费渠道(X 帖 ③ / LinkedIn),不烧名单。监控 07-22 核实:IRS/FEMA 均无新增。
+
+**协会 4 封(07-21 复核)**:MSCPA/MICPA speed-gap 仍成立,LCPA 不变;**WICPA 已于 7/16
+发过 → 必须用 kit 里新加的 augment 版**(`society-distribution-kit-2026-07.md`)。
+
+**LinkedIn**:新渠道 kit `linkedin-post-kit-2026-07.md` —— 公司页发帖(团队无 CPA 背景,
+个人号发税务内容站不住),Yuqi 个人号以 builder 视角转发,链接放首条评论。
+
+**任何未来 touch 发送前置**:`outreach-suppress.txt` 最后更新 7/17,先从 Gmail 补齐回信者。
+
 ## C · 已在自动运行(勿重复建)
 
 - **每日 IRS 监控(8am)**:继续发现新灾害通知并产出 alert/协会/媒体材料；其中旧的 X/Jason
