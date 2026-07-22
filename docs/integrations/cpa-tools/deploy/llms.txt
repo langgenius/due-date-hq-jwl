@@ -3,7 +3,7 @@
 
 ## Categories
 - [Tax Preparation](https://cpafieldguide.com/tax-preparation-software): Professional tax preparation software for US CPA firms: Drake, Lacerte, ProConnect, ProSeries, UltraTax CS, CCH Axcess, and ATX — what each does, who it fits, and how open it is to integration.
-- [Deadline & Compliance Tracking](https://cpafieldguide.com/deadline-monitoring-software): Deadline tracking and compliance monitoring tools for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive trackers versus active monitors that watch the IRS, states, and FEMA.
+- [Deadline & Compliance Tracking](https://cpafieldguide.com/deadline-monitoring-software): Due date tracking and deadline monitoring software for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive due-date trackers versus active monitors that watch the IRS, states, and FEMA.
 - [Practice Management](https://cpafieldguide.com/practice-management-software): Practice management and workflow software for accounting firms: Karbon, TaxDome, Canopy, Financial Cents, Jetpack Workflow, Keeper, Firm360, Pixie, Aiwyn, and Ignition — features, firm-size fit, and API openness.
 - [Accounting & Bookkeeping](https://cpafieldguide.com/accounting-software): General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.
 
@@ -30,6 +30,7 @@
 - [Karbon vs Financial Cents](https://cpafieldguide.com/karbon-vs-financial-cents)
 - [Xero vs Sage](https://cpafieldguide.com/xero-vs-sage)
 - [QuickBooks Online vs Sage](https://cpafieldguide.com/quickbooks-online-vs-sage)
+- [Karbon vs Jetpack Workflow](https://cpafieldguide.com/karbon-vs-jetpack-workflow)
 - [TaxDome alternatives](https://cpafieldguide.com/taxdome-alternatives)
 - [Karbon alternatives](https://cpafieldguide.com/karbon-alternatives)
 - [Canopy alternatives](https://cpafieldguide.com/canopy-alternatives)
@@ -41,6 +42,7 @@
 - [Financial Cents alternatives](https://cpafieldguide.com/financial-cents-alternatives)
 - [Xero alternatives](https://cpafieldguide.com/xero-alternatives)
 - [Ignition alternatives](https://cpafieldguide.com/ignition-alternatives)
+- [Jetpack Workflow alternatives](https://cpafieldguide.com/jetpack-workflow-alternatives)
 
 ## Data
 - [CPA software statistics 2026 (market share, pricing, APIs)](https://cpafieldguide.com/cpa-software-statistics)

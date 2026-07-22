@@ -31,6 +31,7 @@
 - Karbon vs Financial Cents: https://cpafieldguide.com/karbon-vs-financial-cents
 - Xero vs Sage: https://cpafieldguide.com/xero-vs-sage
 - QuickBooks Online vs Sage: https://cpafieldguide.com/quickbooks-online-vs-sage
+- Karbon vs Jetpack Workflow: https://cpafieldguide.com/karbon-vs-jetpack-workflow
 
 ## Tools (full detail)
 ### Drake Tax

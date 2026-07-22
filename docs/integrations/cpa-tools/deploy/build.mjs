@@ -158,8 +158,8 @@ const cats = [
     label: 'Deadline & Compliance Tracking',
     nav: 'Deadlines & Monitoring',
     n: 3,
-    title: 'Tax Deadline & Compliance Monitoring Software — CPA Field Guide',
-    desc: 'Deadline tracking and compliance monitoring tools for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive trackers versus active monitors that watch the IRS, states, and FEMA.',
+    title: 'Tax Due Date & Deadline Tracking Software — CPA Field Guide',
+    desc: 'Due date tracking and deadline monitoring software for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive due-date trackers versus active monitors that watch the IRS, states, and FEMA.',
   },
   {
     key: 'pm',
@@ -283,7 +283,7 @@ const esc = (s) => String(s).replace(/&(?!amp;|lt;|gt;|#\d)/g, '&amp;')
 const footerNav =
   `<div class="footnav"><div class="wrap">` +
   `<div><h3>Categories</h3><ul>${cats.map((c) => `<li><a href="/${c.slug}">${c.nav}</a></li>`).join('')}</ul></div>` +
-  `<div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
+  `<div><h3>Guides</h3><ul><li><a href="/compare">Compare all tools</a></li><li><a href="/cpa-software-pricing">Pricing guide</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div>` +
   `<div><h3>Directory</h3><ul><li><a href="/">All ${toolData.length} tools</a></li><li><a href="/compare">Compare all</a></li><li><a href="/cpa-software-statistics">Statistics</a></li></ul></div>` +
   `</div></div>`
 const footerBlock = footerNav + '\n\n' + footer
@@ -492,7 +492,7 @@ let homeBody = fullBody
 // homepage: link the guide pages as a compact pill row (internal links so they aren't orphaned)
 homeBody = homeBody.replace(
   '<div class="faq">',
-  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="guidelinks"><li><a href="/compare">Compare all 25 tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>\n\n<div class="faq">`,
+  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="guidelinks"><li><a href="/compare">Compare all 25 tools</a></li><li><a href="/cpa-software-pricing">Pricing across all 25 tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>\n\n<div class="faq">`,
 )
 homeBody = homeBody.replace('<footer>', footerNav + '\n<footer>')
 const homeHtml =
@@ -593,6 +593,7 @@ for (const c of cats) {
     : ''
   const guideNav =
     `<div class="sibnav"><div class="wrap"><h2>Related guides</h2><ul>` +
+    `<li><a href="/cpa-software-pricing">Pricing across all 25 tools</a></li>` +
     `<li><a href="/cpa-software-with-open-api">Software with an open API</a></li>` +
     `<li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li>` +
     `<li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>`
@@ -637,6 +638,7 @@ const VS_PAIRS = [
   ['karbon', 'financial-cents'],
   ['xero', 'sage'],
   ['quickbooks-online', 'sage'],
+  ['karbon', 'jetpack-workflow'],
 ]
 const ALT_SLUGS = [
   'taxdome',
@@ -650,6 +652,7 @@ const ALT_SLUGS = [
   'financial-cents',
   'xero',
   'ignition',
+  'jetpack-workflow',
 ]
 const nameBySlug = Object.fromEntries(toolData.map((t) => [t.slug, t.name]))
 function crossLinksFor(slug) {
@@ -893,7 +896,41 @@ const seg = (key) =>
     h: c.label.replace('&', '&amp;'),
     items: toolData.filter((t) => t.catKey === c.key && t.dataSeg.split(',').includes(key)),
   }))
+const priceOf = (slug) => ((toolData.find((t) => t.slug === slug) || {}).price || '').toLowerCase()
+const bare = (slug) => priceOf(slug).replace(/^from /, '')
 const guideUrls = [
+  guidePage(
+    'cpa-software-pricing',
+    'CPA Software Pricing (2026): 25 Tools Compared — CPA Field Guide',
+    'CPA software pricing (2026)',
+    'Real starting prices for every tool in this guide, grouped by category — taken from public pricing pages, with custom-quote vendors marked as such. No vendor pays for placement.',
+    cats.map((c) => ({
+      h: c.label.replace('&', '&amp;'),
+      items: toolData.filter((t) => t.catKey === c.key),
+    })),
+    [
+      [
+        'How much does Lacerte cost?',
+        `Intuit does not publish a flat Lacerte price — it is quoted custom, per-return. Fixed-price tax-prep alternatives: ProSeries ${priceOf('proseries')}, Drake Tax ${priceOf('drake-tax')}.`,
+      ],
+      [
+        'How much does UltraTax CS cost?',
+        `Thomson Reuters prices UltraTax CS by ${priceOf('ultratax-cs')} only. Published-price alternatives: Drake Tax ${priceOf('drake-tax')}, CCH Axcess ${priceOf('cch-axcess')}, ATX ${priceOf('atx')}.`,
+      ],
+      [
+        'How much does Karbon cost?',
+        `Karbon starts ${priceOf('karbon')}. Other practice-management tools: TaxDome ${priceOf('taxdome')}, Canopy ${priceOf('canopy')}, Jetpack Workflow ${priceOf('jetpack-workflow')}, Financial Cents ${priceOf('financial-cents')}.`,
+      ],
+      [
+        'How much does Jetpack Workflow cost?',
+        `Jetpack Workflow starts ${priceOf('jetpack-workflow')} — one of the lower published prices in practice management; Financial Cents is lower still at ${priceOf('financial-cents')}.`,
+      ],
+      [
+        'What does CPA practice management software cost per user?',
+        `Published per-user starting prices run from ${bare('financial-cents')} (Financial Cents) to ${bare('taxdome')} (TaxDome); Karbon is ${bare('karbon')} and Canopy ${bare('canopy')}. Flat-priced options like Pixie (${priceOf('pixie')}) and Keeper (${priceOf('keeper')}) are not per-user.`,
+      ],
+    ],
+  ),
   guidePage(
     'cpa-software-with-open-api',
     'CPA & Accounting Software With an Open API (2026) — CPA Field Guide',
