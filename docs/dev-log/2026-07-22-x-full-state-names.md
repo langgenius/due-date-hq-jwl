@@ -16,6 +16,8 @@ official form identifiers and analytics attribution stable.
   operator-only exception.
 - Moved candidate draft refresh outside the 09:00 ET claim gate so the existing 30-minute Cron makes
   new drafts available for review before the next daily slot. Only `ready` Posts can still publish.
+- Pinned both local Playwright jobs to `X_POSTING_MODE=draft`; production remains `live`, while CI
+  does not require or expose production X credentials.
 
 Already published X Posts are intentionally unchanged. Existing drafts are rebuilt with the current
 deterministic template when an operator approves them.

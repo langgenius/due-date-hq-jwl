@@ -38,6 +38,7 @@ jobs:
           AUTH_URL=http://127.0.0.1:8787
           APP_URL=http://127.0.0.1:8787
           AUTH_SECRET=e2e-local-auth-secret-at-least-32-chars
+          X_POSTING_MODE=draft
           GOOGLE_CLIENT_ID=e2e-google-client
           GOOGLE_CLIENT_SECRET=e2e-google-secret
           EMAIL_FROM=noreply@duedatehq.test
@@ -120,6 +121,7 @@ jobs:
           AUTH_URL=http://127.0.0.1:8787
           APP_URL=http://127.0.0.1:8787
           AUTH_SECRET=e2e-local-auth-secret-at-least-32-chars
+          X_POSTING_MODE=draft
           GOOGLE_CLIENT_ID=e2e-google-client
           GOOGLE_CLIENT_SECRET=e2e-google-secret
           EMAIL_FROM=noreply@duedatehq.test
