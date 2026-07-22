@@ -27,6 +27,34 @@ describe('parseSocialXCommand', () => {
     })
   })
 
+  it('previews the next 14 ET publishing days by default', () => {
+    const command = parseSocialXCommand(['queue'])
+
+    expect(command).toEqual({ kind: 'queue', days: 14 })
+    expect(requestFor(command)).toEqual({
+      path: '/api/ops/social/queue?days=14',
+      method: 'GET',
+    })
+  })
+
+  it('accepts a bounded queue preview window', () => {
+    const command = parseSocialXCommand(['queue', '--days', '30'])
+
+    expect(command).toEqual({ kind: 'queue', days: 30 })
+    expect(requestFor(command)).toEqual({
+      path: '/api/ops/social/queue?days=30',
+      method: 'GET',
+    })
+  })
+
+  it('rejects invalid queue preview windows', () => {
+    for (const days of ['0', '101', '1.5', 'not-a-number']) {
+      expect(() => parseSocialXCommand(['queue', '--days', days])).toThrow(
+        /--days must be an integer from 1 to 100/u,
+      )
+    }
+  })
+
   it('supports a read-only OAuth account preflight', () => {
     const command = parseSocialXCommand(['verify-account'])
     expect(command).toEqual({ kind: 'verify-account' })

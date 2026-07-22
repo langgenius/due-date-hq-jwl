@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const dbMocks = vi.hoisted(() => ({
   createDb: vi.fn(() => ({ kind: 'db' })),
   listPosts: vi.fn(),
+  listReadyPostsForProjection: vi.fn(),
+  listDraftPostsForQueuePreview: vi.fn(),
+  listOccupiedPublishDates: vi.fn(),
   getEligibleCandidate: vi.fn(),
   getPost: vi.fn(),
   createDraft: vi.fn(),
@@ -21,6 +24,7 @@ const xMocks = vi.hoisted(() => ({
 vi.mock('@duedatehq/db', () => ({
   createDb: dbMocks.createDb,
   makeSocialOpsRepo: dbMocks.makeSocialOpsRepo,
+  SOCIAL_READY_AGING_MS: 3 * 24 * 60 * 60 * 1000,
 }))
 
 vi.mock('../jobs/pulse/backfill', () => ({
@@ -82,6 +86,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   dbMocks.makeSocialOpsRepo.mockReturnValue({
     listPosts: dbMocks.listPosts,
+    listReadyPostsForProjection: dbMocks.listReadyPostsForProjection,
+    listDraftPostsForQueuePreview: dbMocks.listDraftPostsForQueuePreview,
+    listOccupiedPublishDates: dbMocks.listOccupiedPublishDates,
     getEligibleCandidate: dbMocks.getEligibleCandidate,
     getPost: dbMocks.getPost,
     createDraft: dbMocks.createDraft,
@@ -97,6 +104,9 @@ beforeEach(() => {
     username: 'duedatehq',
   })
   dbMocks.markFailed.mockResolvedValue(true)
+  dbMocks.listReadyPostsForProjection.mockResolvedValue([])
+  dbMocks.listDraftPostsForQueuePreview.mockResolvedValue([])
+  dbMocks.listOccupiedPublishDates.mockResolvedValue([])
   dbMocks.getEligibleCandidate.mockResolvedValue(candidate())
   dbMocks.getPost.mockResolvedValue({
     id: POST_ID,
@@ -104,6 +114,10 @@ beforeEach(() => {
     refToken: 'social_ref_1234567890abcdef',
     status: 'draft',
   })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('social ops routes', () => {
@@ -114,10 +128,13 @@ describe('social ops routes', () => {
       { headers: { authorization: 'Bearer wrong-token' } },
       env(),
     )
+    const queueWithoutToken = await opsRoute.request('/social/queue', {}, env())
 
     expect(missing.status).toBe(404)
     expect(wrong.status).toBe(404)
+    expect(queueWithoutToken.status).toBe(404)
     expect(dbMocks.listPosts).not.toHaveBeenCalled()
+    expect(dbMocks.listReadyPostsForProjection).not.toHaveBeenCalled()
   })
 
   it('lists frozen candidates with an optional status filter', async () => {
@@ -134,6 +151,86 @@ describe('social ops routes', () => {
       posts: [{ id: POST_ID, status: 'draft' }],
     })
     expect(dbMocks.listPosts).toHaveBeenCalledWith({ channel: 'x', status: 'draft', limit: 10 })
+  })
+
+  it('previews eligible ready Posts by future ET slot and lists drafts without dates', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-24T12:00:00.000Z')) // Friday 08:00 ET
+    const ready = {
+      id: 'ready-1',
+      status: 'ready',
+      priority: 'normal',
+      readyAt: new Date('2026-07-20T12:00:00.000Z'),
+      createdAt: new Date('2026-07-20T11:00:00.000Z'),
+      postText: 'Ready public copy',
+      targetUrl: 'https://app.duedatehq.com/alerts?ref=ready',
+    }
+    const draft = {
+      id: 'draft-1',
+      status: 'draft',
+      priority: 'normal',
+      readyAt: null,
+      createdAt: new Date('2026-07-21T11:00:00.000Z'),
+      postText: 'Draft public copy',
+      targetUrl: 'https://app.duedatehq.com/alerts?ref=draft',
+    }
+    dbMocks.listReadyPostsForProjection.mockResolvedValueOnce([ready]).mockResolvedValueOnce([])
+    dbMocks.listDraftPostsForQueuePreview.mockResolvedValue([draft])
+    dbMocks.listOccupiedPublishDates.mockResolvedValue(['2026-07-24'])
+
+    const response = await opsRoute.request('/social/queue?days=3', authorizedInit(), env())
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({
+      asOf: '2026-07-24T12:00:00.000Z',
+      tentative: true,
+      timeZone: 'America/New_York',
+      dailySlot: '09:00',
+      days: 3,
+      readyBacklogTruncated: false,
+      draftBacklogTruncated: false,
+      occupiedLocalDates: ['2026-07-24'],
+      ready: [
+        {
+          position: 1,
+          projectedLocalDate: '2026-07-25',
+          projectedAt: '2026-07-25T13:00:00.000Z',
+          post: { id: 'ready-1', postText: 'Ready public copy' },
+        },
+      ],
+      drafts: [
+        {
+          projectedLocalDate: null,
+          reason: 'approval_required',
+          post: { id: 'draft-1', postText: 'Draft public copy' },
+        },
+      ],
+    })
+    expect(dbMocks.listReadyPostsForProjection).toHaveBeenNthCalledWith(1, {
+      channel: 'x',
+      priority: 'urgent',
+      limit: 4,
+    })
+    expect(dbMocks.listReadyPostsForProjection).toHaveBeenNthCalledWith(2, {
+      channel: 'x',
+      priority: 'normal',
+      limit: 4,
+    })
+    expect(dbMocks.listOccupiedPublishDates).toHaveBeenCalledWith({
+      channel: 'x',
+      fromLocalDate: '2026-07-24',
+      limit: 3,
+    })
+    expect(dbMocks.createDraft).not.toHaveBeenCalled()
+    expect(dbMocks.claimExactDailyReadyPost).not.toHaveBeenCalled()
+  })
+
+  it('rejects an invalid queue horizon before reading D1', async () => {
+    const response = await opsRoute.request('/social/queue?days=101', authorizedInit(), env())
+
+    expect(response.status).toBe(400)
+    expect(dbMocks.listReadyPostsForProjection).not.toHaveBeenCalled()
+    expect(dbMocks.listOccupiedPublishDates).not.toHaveBeenCalled()
   })
 
   it('requires an accountable reviewer before marking a draft ready', async () => {

@@ -30,6 +30,8 @@ Hard invariants:
   `ready` Post. `publish-now` is reserved for an explicit operator exception.
 - Draft refresh runs on every 30-minute tick so a newly approved Pulse can be reviewed before the
   next daily slot; draft creation never bypasses the explicit `draft -> ready` approval gate.
+- The future queue is a read-only projection of the current `ready` backlog. Viewing it never
+  reserves a future `social_publish_run` or sends a future `SOCIAL_QUEUE` message.
 
 ## Configuration
 
@@ -99,6 +101,33 @@ Cancel a bad/stale draft with an auditable reason:
 ```bash
 pnpm social:x -- cancel '<social post id>' --reason 'Pulse was superseded'
 ```
+
+## Future queue preview
+
+Preview the next 14 ET calendar days of approved Posts:
+
+```bash
+pnpm social:x -- queue --days 14
+```
+
+The command calls the token-protected, read-only `GET /api/ops/social/queue` endpoint. It shows each
+currently `ready` Post's frozen text and estimated `America/New_York` publication date in the same
+priority/FIFO order used by the daily claimant. It also lists eligible drafts under `drafts` with
+`reason: approval_required`; only `ready` Posts receive an estimated date. Use
+`candidates --status draft` for the focused approval view. A draft has no place or date in the
+publishing sequence until it is approved.
+
+For unusually large backlogs, `readyBacklogTruncated` or `draftBacklogTruncated` indicates that the
+JSON omits additional rows outside the requested horizon/view cap. The dated `ready` sequence is
+still selected from separate urgent and normal FIFO partitions, so a normal Post that ages into
+priority during the preview window is not hidden by a large urgent backlog.
+
+The displayed dates are a projection, not reserved appointments. A newly approved urgent Alert,
+the backlog aging rule, cancellation or loss of Pulse eligibility, `publish-now`, or a failed or
+unknown daily attempt can change later positions and dates. Run the command again for the current
+view. The preview performs no write, does not consume the daily unique slot, and does not enqueue X
+work ahead of time. The Worker still claims at most one item at 09:00 ET each calendar day; weekends
+are included.
 
 ## Immediate live publish
 

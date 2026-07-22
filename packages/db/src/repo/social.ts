@@ -32,7 +32,8 @@ import {
 
 const DEFAULT_LIST_LIMIT = 50
 const MAX_LIST_LIMIT = 100
-const AGING_PRIORITY_MS = 3 * 24 * 60 * 60 * 1000
+const MAX_PROJECTION_LIST_LIMIT = 101
+export const SOCIAL_READY_AGING_MS = 3 * 24 * 60 * 60 * 1000
 const SOCIAL_REF_PATTERN = /^[A-Za-z0-9_-]{16,128}$/u
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u
 const SOCIAL_EXCLUDED_CHANGE_KINDS: PulseChangeKind[] = [
@@ -137,6 +138,10 @@ function candidateConditions(since?: Date): SQL {
 
 function clampLimit(value: number | undefined): number {
   return Math.min(Math.max(value ?? DEFAULT_LIST_LIMIT, 1), MAX_LIST_LIMIT)
+}
+
+function clampProjectionLimit(value: number | undefined): number {
+  return Math.min(Math.max(value ?? DEFAULT_LIST_LIMIT, 1), MAX_PROJECTION_LIST_LIMIT)
 }
 
 function validPublicHttpUrl(value: string): boolean {
@@ -468,6 +473,77 @@ export function makeSocialOpsRepo(db: Db) {
         .limit(clampLimit(input.limit))
     },
 
+    async listReadyPostsForProjection(input: {
+      channel?: SocialChannel
+      limit?: number
+      priority: SocialAlertPriority
+    }): Promise<SocialAlertPost[]> {
+      const channel = input.channel ?? 'x'
+      const rows = await db
+        .select({ post: socialAlertPost, ...candidateSelection })
+        .from(socialAlertPost)
+        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+        .where(
+          and(
+            eq(socialAlertPost.channel, channel),
+            eq(socialAlertPost.status, 'ready'),
+            eq(socialAlertPost.priority, input.priority),
+            candidateConditions(),
+          ),
+        )
+        .orderBy(
+          asc(socialAlertPost.readyAt),
+          asc(socialAlertPost.createdAt),
+          asc(socialAlertPost.id),
+        )
+        .limit(clampProjectionLimit(input.limit))
+      return rows.filter(candidateIsRuntimeEligible).map((row) => row.post)
+    },
+
+    async listDraftPostsForQueuePreview(
+      input: {
+        channel?: SocialChannel
+        limit?: number
+      } = {},
+    ): Promise<SocialAlertPost[]> {
+      const channel = input.channel ?? 'x'
+      const rows = await db
+        .select({ post: socialAlertPost, ...candidateSelection })
+        .from(socialAlertPost)
+        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+        .where(
+          and(
+            eq(socialAlertPost.channel, channel),
+            eq(socialAlertPost.status, 'draft'),
+            candidateConditions(),
+          ),
+        )
+        .orderBy(asc(socialAlertPost.createdAt), asc(socialAlertPost.id))
+        .limit(clampProjectionLimit(input.limit))
+      return rows.filter(candidateIsRuntimeEligible).map((row) => row.post)
+    },
+
+    async listOccupiedPublishDates(input: {
+      channel?: SocialChannel
+      fromLocalDate: string
+      limit?: number
+    }): Promise<string[]> {
+      if (!isValidLocalDate(input.fromLocalDate)) throw new SocialOpsRepoError('invalid')
+      const channel = input.channel ?? 'x'
+      const rows = await db
+        .select({ localDate: socialPublishRun.localDate })
+        .from(socialPublishRun)
+        .where(
+          and(
+            eq(socialPublishRun.channel, channel),
+            gte(socialPublishRun.localDate, input.fromLocalDate),
+          ),
+        )
+        .orderBy(asc(socialPublishRun.localDate))
+        .limit(clampLimit(input.limit))
+      return rows.map((row) => row.localDate)
+    },
+
     async cancelIneligiblePosts(
       input: {
         channel?: SocialChannel
@@ -567,7 +643,7 @@ export function makeSocialOpsRepo(db: Db) {
       // This value is embedded in a raw CASE expression rather than compared
       // through a timestamp_ms column operator, so bind the encoded integer
       // explicitly. Passing Date here reaches the D1 driver unencoded.
-      const agedBeforeMs = input.now.getTime() - AGING_PRIORITY_MS
+      const agedBeforeMs = input.now.getTime() - SOCIAL_READY_AGING_MS
       const [candidate] = await db
         .select({ post: socialAlertPost })
         .from(socialAlertPost)

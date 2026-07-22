@@ -9,6 +9,7 @@ type Command =
       pulseId?: string
       priority?: 'normal' | 'urgent'
     }
+  | { kind: 'queue'; days: number }
   | { kind: 'approve'; postId: string; reviewer: string; priority?: 'normal' | 'urgent' }
   | { kind: 'verify-account' }
   | { kind: 'publish-now'; postId: string }
@@ -24,6 +25,7 @@ type Command =
 const USAGE = `Usage:
   pnpm social:x -- candidates [--status draft] [--limit 50]
   pnpm social:x -- candidates --pulse <pulse-id> [--priority urgent]
+  pnpm social:x -- queue [--days 14]
   pnpm social:x -- approve <post-id> [--reviewer <user-id>] [--priority urgent]
   pnpm social:x -- verify-account
   pnpm social:x -- publish-now <post-id>
@@ -87,6 +89,14 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
       ...(parsedPriority ? { priority: parsedPriority } : {}),
     }
   }
+  if (name === 'queue') {
+    const rawDays = option(commandArgs, '--days')
+    const days = rawDays === undefined ? 14 : Number(rawDays)
+    if (!Number.isInteger(days) || days < 1 || days > 100) {
+      throw new Error('--days must be an integer from 1 to 100.')
+    }
+    return { kind: 'queue', days }
+  }
   if (name === 'approve') {
     const parsedPriority = priority(option(commandArgs, '--priority'))
     return {
@@ -139,6 +149,12 @@ export function requestFor(command: Command): {
   method: 'GET' | 'POST'
   body?: unknown
 } {
+  if (command.kind === 'queue') {
+    return {
+      path: `/api/ops/social/queue?days=${command.days}`,
+      method: 'GET',
+    }
+  }
   if (command.kind === 'candidates' && command.pulseId) {
     return {
       path: '/api/ops/social/candidates',

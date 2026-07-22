@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { SQL } from 'drizzle-orm'
 import { SQLiteSyncDialect } from 'drizzle-orm/sqlite-core'
 import { makePulseRepo, PulseRepoError } from './pulse'
-import { isValidSocialAlertRef, makeSocialOpsRepo } from './social'
+import { isValidSocialAlertRef, makeSocialOpsRepo, SOCIAL_READY_AGING_MS } from './social'
 import type { SocialAlertPost, SocialPublishRun } from '../schema/social'
 
 const NOW = new Date('2026-07-21T13:00:00.000Z')
@@ -173,6 +173,59 @@ describe('makeSocialOpsRepo', () => {
     expect(rows.map((row) => row.pulseId)).toEqual(['pulse-1', 'entity-scope'])
   })
 
+  it('reads one ready priority partition in FIFO order for future-slot projection', async () => {
+    const urgent = { ...POST, id: 'post-urgent', priority: 'urgent' as const }
+    const { db, raw } = fakeDb({
+      selectResponses: [
+        [
+          { post: urgent, ...CANDIDATE },
+          { post: POST, ...CANDIDATE, sourceUrl: 'javascript:alert(1)' },
+        ],
+      ],
+    })
+
+    const posts = await makeSocialOpsRepo(db).listReadyPostsForProjection({
+      channel: 'x',
+      priority: 'urgent',
+      limit: 14,
+    })
+
+    expect(posts).toEqual([urgent])
+    const chain = raw.select.mock.results[0]?.value as ReturnType<typeof selectChain>
+    const condition = chain.where.mock.calls[0]?.[0] as SQL
+    const query = new SQLiteSyncDialect().sqlToQuery(condition)
+    expect(query.params).toContain('urgent')
+    expect(chain.orderBy.mock.calls[0]).toHaveLength(3)
+    expect(chain.limit).toHaveBeenCalledWith(14)
+  })
+
+  it('lists eligible drafts separately without assigning publication state', async () => {
+    const draft = { ...POST, status: 'draft' as const, readyAt: null, approvedAt: null }
+    const { db, raw } = fakeDb({ selectResponses: [[{ post: draft, ...CANDIDATE }]] })
+
+    await expect(
+      makeSocialOpsRepo(db).listDraftPostsForQueuePreview({ channel: 'x', limit: 20 }),
+    ).resolves.toEqual([draft])
+    expect(raw.insert).not.toHaveBeenCalled()
+    expect(raw.update).not.toHaveBeenCalled()
+  })
+
+  it('reads every occupied future daily slot regardless of run status', async () => {
+    const { db, raw } = fakeDb({
+      selectResponses: [[{ localDate: '2026-07-21' }, { localDate: '2026-07-23' }]],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).listOccupiedPublishDates({
+        channel: 'x',
+        fromLocalDate: '2026-07-21',
+        limit: 100,
+      }),
+    ).resolves.toEqual(['2026-07-21', '2026-07-23'])
+    expect(raw.insert).not.toHaveBeenCalled()
+    expect(raw.update).not.toHaveBeenCalled()
+  })
+
   it('creates an idempotent frozen draft from an eligible Pulse', async () => {
     const draft = { ...POST, status: 'draft' as const, readyAt: null, approvedAt: null }
     const { db, insertedValues } = fakeDb({
@@ -226,7 +279,7 @@ describe('makeSocialOpsRepo', () => {
     const candidateChain = raw.select.mock.results[1]?.value as ReturnType<typeof selectChain>
     const priorityExpression = candidateChain.orderBy.mock.calls[0]?.[0] as SQL
     const query = new SQLiteSyncDialect().sqlToQuery(priorityExpression)
-    expect(query.params).toContain(NOW.getTime() - 3 * 24 * 60 * 60 * 1000)
+    expect(query.params).toContain(NOW.getTime() - SOCIAL_READY_AGING_MS)
     expect(query.params.some((value) => value instanceof Date)).toBe(false)
     const postUpdate = raw.update.mock.results[0]?.value as MutationChain
     const postClaimCondition = postUpdate.where.mock.calls[0]?.[0] as SQL

@@ -2,13 +2,15 @@ import { Hono } from 'hono'
 import {
   createDb,
   makeSocialOpsRepo,
+  type SocialAlertPost,
   type SocialAlertPriority,
   type SocialAlertPostStatus,
 } from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
 import { buildXAlertPost, validateSocialCandidate } from '../jobs/social/content'
-import { easternTimeParts } from '../jobs/social/time'
+import { buildXQueuePreview } from '../jobs/social/queue-preview'
+import { easternTimeParts, nextXDailySlotLocalDate } from '../jobs/social/time'
 import {
   verifyXAccount,
   type XOAuthCredentials,
@@ -67,6 +69,18 @@ function optionalString(value: unknown): string | undefined {
 function boundedLimit(value: string | undefined): number {
   const parsed = Number(value ?? 50)
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 100 ? parsed : 50
+}
+
+function queuePreviewDays(value: string | undefined): number | null {
+  if (value === undefined) return 14
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 100 ? parsed : null
+}
+
+function isQueuePreviewPost(
+  post: SocialAlertPost,
+): post is SocialAlertPost & { status: 'draft' | 'ready' } {
+  return post.status === 'draft' || post.status === 'ready'
 }
 
 function socialPostStatus(value: string | undefined): SocialAlertPostStatus | undefined {
@@ -131,6 +145,45 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       )
     }
     return c.json({ account: { userId: result.userId, username: result.username } })
+  })
+  .get('/social/queue', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const days = queuePreviewDays(c.req.query('days'))
+    if (days === null) return c.json({ error: 'days must be an integer from 1 to 100' }, 400)
+
+    const now = new Date()
+    const repo = makeSocialOpsRepo(createDb(c.env.DB))
+    const readLimit = days + 1
+    const [urgentRows, normalRows, draftRows, occupiedLocalDates] = await Promise.all([
+      repo.listReadyPostsForProjection({
+        channel: 'x',
+        priority: 'urgent',
+        limit: readLimit,
+      }),
+      repo.listReadyPostsForProjection({
+        channel: 'x',
+        priority: 'normal',
+        limit: readLimit,
+      }),
+      repo.listDraftPostsForQueuePreview({ channel: 'x', limit: 101 }),
+      repo.listOccupiedPublishDates({
+        channel: 'x',
+        fromLocalDate: nextXDailySlotLocalDate(now),
+        limit: days,
+      }),
+    ])
+    const posts = [
+      ...urgentRows.slice(0, days),
+      ...normalRows.slice(0, days),
+      ...draftRows.slice(0, 100),
+    ].filter(isQueuePreviewPost)
+    const preview = buildXQueuePreview({ now, days, posts, occupiedLocalDates })
+    return c.json({
+      ...preview,
+      readyBacklogTruncated: urgentRows.length > days || normalRows.length > days,
+      draftBacklogTruncated: draftRows.length > 100,
+    })
   })
   .get('/social/candidates', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()
