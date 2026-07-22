@@ -8,8 +8,8 @@ two audit sweeps; see dev-log `2026-07-21-marketing-hero-rule-change-repositioni
 ## 1. Category & core rule
 
 - **Category self-description: `rule-change monitoring`** (for US CPA practices).
-- **The object/event rule:** *deadline* is the **object** (the thing that has a
-  source and gets applied to clients); *rule change* is the **event** (what we
+- **The object/event rule:** _deadline_ is the **object** (the thing that has a
+  source and gets applied to clients); _rule change_ is the **event** (what we
   catch). "Catches when the IRS, a state, or FEMA **changes a rule or moves a
   deadline**" — never "deadline monitoring" as the category.
 - Why: "deadline monitoring/tracking" is the passive-tracker category every CPA
@@ -20,14 +20,14 @@ two audit sweeps; see dev-log `2026-07-21-marketing-hero-rule-change-repositioni
 
 **Feature nouns** (one canonical name per capability; do not synonym-drift):
 
-| Noun | What it names |
-| --- | --- |
-| rule-change detection | watching IRS / 50 states / FEMA and catching what changed |
-| client impact matching | mapping each change to the specific clients on the roster |
-| risk triage | urgency-ranked ordering (URGENT/HIGH…) of what to handle first |
-| one-click apply | pushing the new dates to every affected client (a.k.a. apply to clients) |
-| multi-state coverage | IRS + all 50 states + DC + FEMA |
-| readiness checks | per-filing readiness status |
+| Noun                   | What it names                                                            |
+| ---------------------- | ------------------------------------------------------------------------ |
+| rule-change detection  | watching IRS / 50 states / FEMA and catching what changed                |
+| client impact matching | mapping each change to the specific clients on the roster                |
+| risk triage            | urgency-ranked ordering (URGENT/HIGH…) of what to handle first           |
+| one-click apply        | pushing the new dates to every affected client (a.k.a. apply to clients) |
+| multi-state coverage   | IRS + all 50 states + DC + FEMA                                          |
+| readiness checks       | per-filing readiness status                                              |
 
 **Product adjectives:** `proactive` · `precise` · `traceable`
 (each pairs with a noun on the hero strip: detection→proactive, matching→precise,
@@ -36,10 +36,10 @@ apply→traceable).
 **Banned / avoid:**
 
 - `deadline monitoring` / `deadline tracking` as self-category (tracker box) —
-  *exception:* deliberately-targeted SEO surfaces may keep the searched phrase
+  _exception:_ deliberately-targeted SEO surfaces may keep the searched phrase
   (QuickBooks-guide title/H1, state-page titles, URL slugs). Never in
   self-descriptions, schema, llms.txt, or OG art.
-- bare `alert monitoring` (commodity — every tool alerts; ours *name the client*)
+- bare `alert monitoring` (commodity — every tool alerts; ours _name the client_)
 - `predictive` / `forecasting` (we read published changes; we do not predict)
 - `radar` (brand-banned)
 - house verbs on how-it-works stay `Watch · Match · Rank · Apply`.
@@ -49,12 +49,12 @@ apply→traceable).
 - **H1:** `Catching every rule change. Naming every affected client.`
 - **Coverage badge:** `IRS · 50 states · DC · FEMA`
 - **Subhead:** `The moment the IRS, a state, or FEMA publishes a change, DueDateHQ
-  tells you exactly which clients are hit — and applies the new dates in one click.`
+tells you exactly which clients are hit — and applies the new dates in one click.`
 - **Keyword strip:** Rule-change detection — proactive, the moment it publishes ·
   Client impact matching — precise, down to the client · One-click apply —
   traceable, source on every date
 - **Org slogan / footer tagline:** `Rule-change monitoring for US CPA practices —
-  with a source on every date.`
+with a source on every date.`
 - **Close finale (hero bookend):** `Next time a rule changes, you'll know exactly who.`
 - zh-CN mirrors all of the above (hero: 抓住每一次规则变动。点名每一个受影响的客户。).
 - Disaster-page A/B candidate (NOT the homepage): "FEMA declared a disaster…

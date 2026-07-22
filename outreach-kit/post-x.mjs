@@ -72,7 +72,7 @@ function oauthHeader(method, url) {
     oauth_version: '1.0',
   }
   const paramStr = Object.keys(p)
-    .sort()
+    .toSorted()
     .map((k) => `${enc(k)}=${enc(p[k])}`)
     .join('&')
   const base = [method, enc(url), enc(paramStr)].join('&')
@@ -81,7 +81,7 @@ function oauthHeader(method, url) {
   return (
     'OAuth ' +
     Object.keys(p)
-      .sort()
+      .toSorted()
       .map((k) => `${enc(k)}="${enc(p[k])}"`)
       .join(', ')
   )

@@ -262,6 +262,9 @@ export default defineConfig({
       // Generated PH gallery artifacts — handwritten/compact HTML the formatter
       // would explode into thousands of lines; kept verbatim (see lint note above).
       'docs/marketing/product-hunt-launch/**',
+      // CPA Field Guide pages are compact build.mjs output. Formatting them
+      // rewrites roughly 200k lines and is undone by the next deterministic build.
+      'docs/integrations/cpa-tools/deploy/**/*.html',
     ],
   },
 

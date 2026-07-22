@@ -6,7 +6,7 @@
 **GSC input (28 days, 07-08→07-19):** 2 clicks / ~1,780 impressions. Key pattern:
 impressions ramped 186→400/day through 07-13 then collapsed to ~15/day from 07-15 —
 the classic new-site honeymoon test ending; Google re-evaluated and the site needs
-real content + authority to earn the positions back. Biggest cluster: lacerte*
+real content + authority to earn the positions back. Biggest cluster: lacerte\*
 (~175 impressions, /tools/lacerte pos ~24). /tools/cch-axcess pos 14, firm360
 pricing pos ~9, /tools/aiwyn took the only tool-page click.
 
@@ -19,6 +19,7 @@ and widely known product characteristics; qualitative only, no invented numbers
 not figures.
 
 Template additions in `build.mjs` tool pages:
+
 - "X pros and cons" two-column block (+ green / − gray, `.proscons`)
 - "Who X is for — real-world scenarios" (`.usecase`)
 - "Bottom line" verdict with accent border (`.verdict`)
@@ -44,6 +45,7 @@ proconnect exist).
 The duedatehq.com → cpafieldguide link on works-with-your-stack was intentionally
 removed on the marketing side, so presence is built inside the guide instead,
 disclosure-first:
+
 - VS_PAIRS + `file-in-time–duedatehq` (File In Time = our best-ranking tool page,
   pos ~12.5; the static-tracker vs active-monitor comparison is the honest frame)
 - ALT_SLUGS + `file-in-time`, `onesource-calendar` — DueDateHQ appears naturally

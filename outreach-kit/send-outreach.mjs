@@ -328,7 +328,7 @@ for (const r of rows) {
     const id = await sendOne(to, subject, text, html, attachments)
     log[`t${TOUCH}`] = Date.now()
     state.sent[key] = log
-    fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2))
+    fs.writeFileSync(STATE_PATH, `${JSON.stringify(state, null, 2)}\n`)
     console.log(`✓ sent ${to}  (${r.Firm})  id=${id}`)
     sent++
     await sleep(DELAY)
