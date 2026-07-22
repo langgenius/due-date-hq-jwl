@@ -39,26 +39,33 @@ duedatehq.com
 
 ### 2.2 核心承诺
 
-Homepage 只讲一个 offer：
+> **消息层（类目、词表、hero 文案、镜像面清单）的唯一权威是
+> `docs/marketing/messaging-canon.md`** —— 本节只记结构性结论，改文案先改 canon。
 
-> DueDateHQ helps CPA teams see deadline risk before it becomes a penalty.
+当前口径（2026-07-22 起）：类目 = **rule-change monitoring**（deadline 是对象、
+rule change 是事件；"deadline monitoring" 是被禁的 tracker 类目词）。Homepage
+只讲一个 offer：
+
+> Catching every rule change. Naming every affected client.
 
 中文工作口径：
 
-> 让 CPA 团队在罚款发生前看清截止日风险。
+> 抓住每一次规则变动。点名每一个受影响的客户。
 
 ### 2.3 首屏结构
 
-首屏必须让访客在 5 秒内理解三件事：
+首屏必须让访客在 5 秒内理解三件事（尤其邮件点进来的访客——hero 必须与邮件
+message-match，禁止读起来像"我已有的 tracker"）：
 
-1. 我们服务谁：CPA teams / practices。
-2. 解决什么：deadline risk, evidence gaps, filing-pressure triage。
-3. 下一步是什么：进入 app 或预约 demo。
+1. 我们服务谁：US CPA practices。
+2. 解决什么：抓官方源的规则/日期变动 → 点名受影响客户 → 一键应用（moat 链）。
+3. 下一步是什么：free start（beta）或 concierge 设置。
 
-首屏 H1 使用产品名或直接 offer，不写抽象口号。主 CTA：
+首屏 H1 使用直接 offer，不写抽象口号；hero 下方为三栏关键词带（feature 名词 ×
+产品形容词，见 canon §2-3）。主 CTA（当前实现）：
 
-- Primary：`Open the workbench` -> `https://app.duedatehq.com`
-- Secondary：`See the workflow` -> 页面内锚点
+- Primary：`Get 3 months free` -> app 注册
+- Secondary（ghost）：`We'll set it up with your list` -> concierge
 - Demo（条件展示）：`Try a live demo` -> `{PUBLIC_APP_URL}/api/demo?redirectTo=/today`。仅在
   `import.meta.env.DEV` 或 `PUBLIC_ENABLE_DEMO === 'true'` 时渲染（`Hero.astro`）。
   `GET /api/demo` 由 `apps/server` 签发短时只读 demo session（预置演示 firm，写操作 server 端
