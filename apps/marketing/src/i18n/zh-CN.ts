@@ -4,7 +4,7 @@ const zhCN: LandingCopy = {
   meta: {
     title: 'DueDateHQ — 抓住每一次税务截止日变化，并看清它影响谁',
     description:
-      '面向美国 CPA 团队的截止日变化监控。DueDateHQ 在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
+      '面向美国 CPA 团队的规则变化监控。DueDateHQ 在 IRS、州税或 FEMA 规则变动、截止日移动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
     ogImage: '/og/home.zh-CN.png',
   },
   nav: {
@@ -699,11 +699,11 @@ const zhCN: LandingCopy = {
     structuredData: {
       organizationName: 'DueDateHQ',
       organizationDescription:
-        'DueDateHQ 为美国 CPA 团队构建截止日变化监控软件，在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并显示它影响哪些客户。',
+        'DueDateHQ 为美国 CPA 团队构建规则变化监控软件，在 IRS、州税或 FEMA 规则变动、截止日移动时第一时间抓住，并显示它影响哪些客户。',
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
-        '面向 CPA 团队的截止日变化监控：在 IRS、州税或 FEMA 截止日发生变动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
+        '面向 CPA 团队的规则变化监控：在 IRS、州税或 FEMA 规则变动、截止日移动时第一时间抓住，并精确显示它影响哪些客户，每个日期都附官方来源 —— 叠加在你已经在用的工具之上。',
       audience: '美国 CPA 团队',
     },
     rules: {

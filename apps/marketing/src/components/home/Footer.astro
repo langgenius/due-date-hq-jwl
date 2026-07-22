@@ -43,13 +43,13 @@ const columns = [
 ]
 const copy = zh
   ? {
-      tagline: '为美国 CPA 事务所监控截止日变化 —— 每个日期都附官方来源。',
+      tagline: '为美国 CPA 事务所监控规则变化 —— 每个日期都附官方来源。',
       audience: '面向美国 CPA 事务所 · 联邦 + 50 州 + DC',
       legal: 'DueDateHQ 支持基于证据的复核;它不是税务建议,也不是报税系统。© 2026 DueDateHQ Inc.',
       note: '你的数据留在你的事务所',
     }
   : {
-      tagline: 'Deadline-change monitoring for US CPA practices — with a source on every date.',
+      tagline: 'Rule-change monitoring for US CPA practices — with a source on every date.',
       audience: 'For US CPA practices · FED + 50 states + DC',
       legal: 'DueDateHQ supports evidence-backed review; it is not tax advice or a filing system. © 2026 DueDateHQ Inc.',
       note: 'Your data stays in your practice',
@@ -76,21 +76,9 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
         </a>
         <p class="footer__tag">{copy.tagline}</p>
         <p class="footer__aud">{copy.audience}</p>
-        <a
-          class="footer__ph"
-          href="https://www.producthunt.com/products/duedatehq?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-duedatehq"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1181780&theme=neutral&t=1782489447252"
-            alt={zh ? 'DueDateHQ — Product Hunt 精选' : 'DueDateHQ — featured on Product Hunt'}
-            width="250"
-            height="54"
-            loading="lazy"
-            decoding="async"
-          />
-        </a>
+        {/* Product Hunt badge removed — the PH launch was withdrawn (2026-07-06);
+            a "featured" badge would claim a status we don't hold. Restore only if
+            the product actually ships a live PH launch. */}
       </div>
       {
         columns.map((c) => (
@@ -162,27 +150,6 @@ const { enHref, zhHref } = buildLocaleHrefPair(Astro.url.pathname)
     font-family: var(--m-font-mono);
     font-size: var(--m-text-xs);
     color: var(--m-faint);
-  }
-  /* Product Hunt "Featured" badge — official embed (img hot-linked from PH so it
-     stays current); CSP already allows https: images. Scaled down from native 250px. */
-  .footer__ph {
-    display: inline-block;
-    margin-top: 20px;
-    line-height: 0;
-    transition: opacity var(--m-dur-fast) var(--m-ease);
-  }
-  .footer__ph:hover {
-    opacity: 0.85;
-  }
-  .footer__ph:focus-visible {
-    outline: 2px solid var(--m-accent);
-    outline-offset: 3px;
-    border-radius: var(--m-radius-md);
-  }
-  .footer__ph img {
-    display: block;
-    width: 180px;
-    height: auto;
   }
   .footer__coltitle {
     font-size: var(--m-text-2xs);

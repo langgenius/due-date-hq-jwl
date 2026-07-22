@@ -2,9 +2,9 @@ import type { LandingCopy } from './types'
 
 const en: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — Catch every tax-deadline change and see who it affects',
+    title: 'DueDateHQ — Catch every rule change and see who it affects',
     description:
-      'Deadline-change monitoring for US CPA practices. DueDateHQ catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
+      'Rule-change monitoring for US CPA practices. DueDateHQ catches when the IRS, a state, or FEMA changes a rule or moves a deadline and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
     ogImage: '/og/home.en.png',
   },
   nav: {
@@ -723,7 +723,7 @@ const en: LandingCopy = {
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
-        'Deadline-change monitoring for CPA practices: it catches when an IRS, state, or FEMA deadline moves and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
+        'Rule-change monitoring for CPA practices: it catches when the IRS, a state, or FEMA changes a rule or moves a deadline and shows exactly which clients it affects, with a source on every date — layered on top of the tools you already use.',
       audience: 'US CPA practices',
     },
     rules: {

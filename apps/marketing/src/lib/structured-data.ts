@@ -65,7 +65,7 @@ function graph(nodes: Array<JsonLdDocument | null>): JsonLdDocument {
 // of what the company does (not claims we can't back): slogan mirrors the footer
 // tagline, knowsAbout lists the real subject areas. foundingDate / sameAs stay
 // out until we have a verifiable date and real off-repo profiles — never fabricated.
-const ORG_SLOGAN = 'Deadline-change monitoring for US CPA practices — with a source on every date.'
+const ORG_SLOGAN = 'Rule-change monitoring for US CPA practices — with a source on every date.'
 const ORG_KNOWS_ABOUT: readonly string[] = [
   'CPA tax deadline management',
   'IRS filing deadlines',

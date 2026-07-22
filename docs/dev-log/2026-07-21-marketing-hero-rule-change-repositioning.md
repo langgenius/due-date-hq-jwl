@@ -71,3 +71,22 @@ Exempt by design: `.nav__cta` scroll choreography (commented intent),
 `.mini__applybtn` (product-mock UI, not a marketing CTA), `.pr__toggle-btn`
 (control). Verified in dev: banner/nav/hero/WWS CTAs all share accent #22488c,
 pill radius, weight 500, in two size tiers (15px hero · 13px bars).
+
+## Full-site audit pass (2026-07-22)
+
+Walked every core surface (home ×9 sections, how-it-works, pricing, security,
+works-with-your-stack, state-coverage, 404, mobile) plus a rendered-link sweep
+(all internal links OK — earlier 404 reports were mis-guessed paths).
+
+- **P0 · integrity** — footer carried a live "featured on Product Hunt" badge,
+  but the PH launch was withdrawn 2026-07-06. Removed (restore only with a real
+  live launch).
+- **P1 · vocabulary bookends** — the hero's new rule-change language had stale
+  mirrors: Close finale ("Next time a deadline moves…" → "a rule changes"),
+  how-it-works H1/title/meta, footer tagline, pricing recap card, plus the
+  shared layer: site meta description, JSON-LD ORG_SLOGAN / productDescription
+  (en + zh). Event = rule change; deadline stays as the object.
+- **P2** — hero keyword strip: nouns now nowrap so the 3 columns align.
+- Verified: 209-page build clean, 24 i18n guardrail tests pass, zero stale
+  phrases in dist, mobile no h-scroll. GSAP reveal blankness during audit was a
+  backgrounded-tab compositor artifact, not a site bug.
