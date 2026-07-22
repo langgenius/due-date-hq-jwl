@@ -1,1 +1,6 @@
 .env*
+build.mjs
+tool-content.mjs
+DEPLOY.md
+ASSETS.md
+.gitignore
