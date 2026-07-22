@@ -49,6 +49,15 @@ export const overlayPopupBaseClassName =
 export const overlayPopupAnimationClassName =
   'origin-(--transform-origin) transition-[transform,scale,opacity] data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 motion-reduce:transition-none'
 
+/* Open / close transition for CENTERED modal surfaces (dialog, alert-dialog).
+ * Distinct from overlayPopupAnimationClassName on purpose: a modal has no
+ * anchor, so it scales from its own center (no --transform-origin), and the
+ * timing is asymmetric — a 250ms decelerating open so the surface reads as
+ * arriving, a 150ms close so dismissal feels immediate rather than replayed
+ * in reverse. (transitions.dev modal recipe, ease cubic-bezier(0.22,1,0.36,1).) */
+export const overlayModalAnimationClassName =
+  'transition-[scale,opacity] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] data-starting-style:scale-96 data-starting-style:opacity-0 data-ending-style:scale-96 data-ending-style:opacity-0 data-ending-style:duration-150 motion-reduce:transition-none'
+
 /* Backdrop for blocking overlays (alert-dialog, dialog, sheet). Picks up the
  * Dify-style background-overlay tint plus a soft blur where supported. */
 export const overlayBackdropClassName =

@@ -30,6 +30,17 @@
 > chevron rotate, and the dropdown/select indicator zoom. See
 > [2026-06-22-motion-resweep-delight](../dev-log/2026-06-22-motion-resweep-delight.md).
 
+> **Update — 2026-07-22: modal motion split from popup motion.** Dialog and
+> alert-dialog no longer share `overlayPopupAnimationClassName` (which is tuned
+> for anchored popovers: symmetric 150ms `ease`, anchor-side transform-origin).
+> New `overlayModalAnimationClassName` in `packages/ui/src/lib/overlay.ts`:
+> center origin, asymmetric timing — 250ms decelerating open
+> (`cubic-bezier(0.22,1,0.36,1)`, scale 0.96→1 + fade), 150ms close — so a modal
+> reads as _arriving_ and dismissal feels immediate rather than replayed in
+> reverse. Backdrop fade matches (250/150), scoped to the two dialog overlays;
+> sheet keeps its own timing. Anchored surfaces (popover, select, dropdown,
+> tooltip, preview-card) are untouched. Reduced-motion guard preserved.
+
 ## Shipped this pass (10)
 
 Curated for highest value × lowest risk × on-grammar, each verified (tsgo + build

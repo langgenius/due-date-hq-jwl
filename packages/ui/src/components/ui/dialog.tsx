@@ -5,7 +5,7 @@ import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { XIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
-import { overlayBackdropClassName, overlayPopupAnimationClassName } from '@duedatehq/ui/lib/overlay'
+import { overlayBackdropClassName, overlayModalAnimationClassName } from '@duedatehq/ui/lib/overlay'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 function Dialog({
@@ -55,7 +55,14 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       // `isolate` keeps the close-button button-shadow stack above the backdrop.
-      className={cn(overlayBackdropClassName, 'isolate', className)}
+      // Fade timing mirrors the popup's asymmetric open/close so the two
+      // surfaces move as one (duration override scoped here, not in the
+      // shared backdrop class — sheet keeps its own timing).
+      className={cn(
+        overlayBackdropClassName,
+        'isolate duration-250 data-ending-style:duration-150',
+        className,
+      )}
       {...props}
     />
   )
@@ -76,7 +83,7 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-lg border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-overlay outline-none',
-          overlayPopupAnimationClassName,
+          overlayModalAnimationClassName,
           className,
         )}
         {...props}

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { overlayBackdropClassName, overlayPopupAnimationClassName } from '@duedatehq/ui/lib/overlay'
+import { overlayBackdropClassName, overlayModalAnimationClassName } from '@duedatehq/ui/lib/overlay'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 type AlertDialogActionsRef = React.RefObject<AlertDialogPrimitive.Root.Actions | null>
@@ -55,7 +55,12 @@ function AlertDialogOverlay({
   return (
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
-      className={cn(overlayBackdropClassName, 'isolate', className)}
+      // Same asymmetric fade timing as the dialog backdrop (see dialog.tsx).
+      className={cn(
+        overlayBackdropClassName,
+        'isolate duration-250 data-ending-style:duration-150',
+        className,
+      )}
       forceRender={forceRender}
       onClick={handleClick}
       {...props}
@@ -78,7 +83,7 @@ function AlertDialogContent({
         data-size={size}
         className={cn(
           'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-lg border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-overlay outline-none data-[size=sm]:max-w-[min(400px,calc(100vw-2rem))]',
-          overlayPopupAnimationClassName,
+          overlayModalAnimationClassName,
           className,
         )}
         {...props}
