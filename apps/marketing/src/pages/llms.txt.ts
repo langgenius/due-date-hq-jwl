@@ -102,7 +102,7 @@ export function GET(): Response {
     '',
     `Last updated: ${CONTENT_REVIEWED_ON}`,
     '',
-    'DueDateHQ is deadline-change monitoring for US CPA practices: it watches official IRS, state tax-agency, and FEMA sources across all 50 states plus DC around the clock, catches when a filing deadline or rule moves, and shows exactly which of a firm’s clients each change affects — every deadline, rule, and alert traceable to its official source. It is not tax advice, not a filing system, and not a full practice-management suite.',
+    'DueDateHQ is rule-change monitoring for US CPA practices: it watches official IRS, state tax-agency, and FEMA sources across all 50 states plus DC around the clock, catches when a rule changes or a filing deadline moves, and shows exactly which of a firm’s clients each change affects — every deadline, rule, and alert traceable to its official source. It is not tax advice, not a filing system, and not a full practice-management suite.',
     '',
     'DueDateHQ is a deadline-and-rule-change monitoring layer on top of a firm’s existing Drake, UltraTax, or TaxDome — it replaces the spreadsheet-and-inbox patchwork used to catch what those tools miss, not the tools themselves.',
     '',

@@ -2307,7 +2307,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'Deadline monitoring for QuickBooks firms — DueDateHQ guide',
         description:
-          'QuickBooks keeps the books; it does not watch IRS and state deadline or rule changes. How CPA and bookkeeping firms add a source-backed deadline-change monitoring layer alongside QuickBooks with DueDateHQ.',
+          'QuickBooks keeps the books; it does not watch IRS and state deadline or rule changes. How CPA and bookkeeping firms add a source-backed rule-change monitoring layer alongside QuickBooks with DueDateHQ.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2320,7 +2320,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       sections: [
         {
           eyebrow: 'WHAT QUICKBOOKS DOES',
-          title: 'QuickBooks runs the ledger — not deadline-change monitoring.',
+          title: 'QuickBooks runs the ledger — not rule-change monitoring.',
           body: 'QuickBooks is accounting and bookkeeping software: the general ledger, reconciliations, invoicing, and (with add-ons) payroll. Watching government sources for deadline and rule changes is not the job it is built for.',
           items: [
             {
@@ -2395,7 +2395,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         },
       ],
       cta: {
-        title: 'Add deadline-change monitoring next to QuickBooks.',
+        title: 'Add rule-change monitoring next to QuickBooks.',
         body: 'DueDateHQ watches official IRS and state sources and routes each change to the clients it affects, with the source attached.',
         primary: 'See how it works',
         secondary: 'Open rule library',
@@ -3019,7 +3019,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: '面向 QuickBooks 事务所的截止日监控 — DueDateHQ 指南',
         description:
-          'QuickBooks 管的是账，不会监控 IRS 与各州的截止日或规则变化。了解 CPA 与记账事务所如何用 DueDateHQ 在 QuickBooks 旁边加上一层带来源的截止日变化监控。',
+          'QuickBooks 管的是账，不会监控 IRS 与各州的截止日或规则变化。了解 CPA 与记账事务所如何用 DueDateHQ 在 QuickBooks 旁边加上一层带来源的规则变化监控。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3032,7 +3032,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       sections: [
         {
           eyebrow: 'QuickBooks 做什么',
-          title: 'QuickBooks 跑的是账本，不是截止日变化监控。',
+          title: 'QuickBooks 跑的是账本，不是规则变化监控。',
           body: 'QuickBooks 是会计与记账软件：总账、对账、开票，以及（通过附加模块）工资。监控政府来源的截止日与规则变化，并不是它被设计来做的事。',
           items: [
             {
@@ -3107,7 +3107,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         },
       ],
       cta: {
-        title: '在 QuickBooks 旁边加上截止日变化监控。',
+        title: '在 QuickBooks 旁边加上规则变化监控。',
         body: 'DueDateHQ 监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，并附上来源。',
         primary: '看它如何运作',
         secondary: '打开规则库',
@@ -3125,7 +3125,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
       slug: spec.slug,
       meta: {
         title: `DueDateHQ vs ${spec.product} — 截止日运营对比`,
-        description: `把 DueDateHQ 作为 ${spec.product} 的截止日变化监控替代/补充来比较：CPA 截止日风险、官方来源证据、州级提醒复核、迁移成本与每周分诊——以及两者如何并用。`,
+        description: `把 DueDateHQ 作为 ${spec.product} 的规则变化监控替代/补充来比较：CPA 截止日风险、官方来源证据、州级提醒复核、迁移成本与每周分诊——以及两者如何并用。`,
         ogImage: '/og/home.zh-CN.png',
       },
       comparisonTable: {
@@ -3145,7 +3145,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
             theirs: spec.bestFitZh,
           },
           {
-            dimension: '官方来源级截止日变化监控',
+            dimension: '官方来源级规则变化监控',
             mine: '核心能力——全天候监控官方 IRS 与各州来源',
             theirs: '并非其重点',
           },
@@ -3254,7 +3254,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
     slug: spec.slug,
     meta: {
       title: `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
-      description: `How CPA firms compare ${spec.product} with DueDateHQ as a deadline-change monitoring alternative — deadline risk, official-source evidence, state coverage, and weekly triage, and how the two work together.`,
+      description: `How CPA firms compare ${spec.product} with DueDateHQ as a rule-change monitoring alternative — deadline risk, official-source evidence, state coverage, and weekly triage, and how the two work together.`,
       ogImage: '/og/home.en.png',
     },
     comparisonTable: {
@@ -3274,7 +3274,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
           theirs: cap(spec.bestFit),
         },
         {
-          dimension: 'Source-level deadline-change monitoring',
+          dimension: 'Source-level rule-change monitoring',
           mine: 'Core — watches official IRS and state sources around the clock',
           theirs: 'Not its focus',
         },
@@ -3391,7 +3391,7 @@ export const comparisonPages: Record<Locale, GuidePageCopy[]> = {
 // "Best [tool] alternatives" roundup pages — honest, plural-intent capture for
 // "{product} alternatives" searches. Each lists the tools commonly evaluated
 // together (by public positioning, no false claims) and positions DueDateHQ as
-// the deadline-change monitoring option, never as a full-suite replacement.
+// the rule-change monitoring option, never as a full-suite replacement.
 interface AlternativeRoundupSpec {
   slug: string
   subject: string
@@ -3484,7 +3484,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       slug: spec.slug,
       meta: {
         title: `${spec.subject} 替代方案：CPA 事务所怎么选 — DueDateHQ 指南`,
-        description: `面向 CPA 事务所的 ${spec.subject} 替代方案：常被一起评估的工具清单与各自适合的场景，以及 DueDateHQ 如何作为带来源的截止日变化监控层补位。`,
+        description: `面向 CPA 事务所的 ${spec.subject} 替代方案：常被一起评估的工具清单与各自适合的场景，以及 DueDateHQ 如何作为带来源的规则变化监控层补位。`,
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3521,7 +3521,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
         },
         {
           eyebrow: 'DueDateHQ 的位置',
-          title: 'DueDateHQ 补的是「截止日变化监控」这一块。',
+          title: 'DueDateHQ 补的是「规则变化监控」这一块。',
           body: '多数替代方案是更宽的 practice/workflow 平台。DueDateHQ 故意更窄：监控官方 IRS 与各州来源的截止日与规则变化，把每条变化路由到受影响的客户，并附上来源——叠加在你已有的工具之上。',
           items: [
             {
@@ -3547,7 +3547,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
         },
         {
           question: `DueDateHQ 是 ${spec.subject} 的替代方案吗？`,
-          answer: '在截止日变化监控这件事上可以；更广的工作流场景上它是补充而非完全替代。',
+          answer: '在规则变化监控这件事上可以；更广的工作流场景上它是补充而非完全替代。',
         },
         {
           question: `可以保留 ${spec.subject} 同时加上 DueDateHQ 吗？`,
@@ -3567,7 +3567,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
     slug: spec.slug,
     meta: {
       title: `The best ${spec.subject} alternatives for CPA firms — DueDateHQ guide`,
-      description: `${spec.subject} alternatives for CPA firms: the tools commonly evaluated together and where each fits, plus how DueDateHQ adds a source-backed deadline-change monitoring layer.`,
+      description: `${spec.subject} alternatives for CPA firms: the tools commonly evaluated together and where each fits, plus how DueDateHQ adds a source-backed rule-change monitoring layer.`,
       ogImage: '/og/guide.en.png',
     },
     hero: {
@@ -3604,7 +3604,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       },
       {
         eyebrow: 'WHERE DUEDATEHQ FITS',
-        title: 'Where DueDateHQ fits: the deadline-change monitoring gap.',
+        title: 'Where DueDateHQ fits: the rule-change monitoring gap.',
         body: 'Most alternatives are broader practice or workflow platforms. DueDateHQ is deliberately narrower: it watches official IRS and state sources for deadline and rule changes and routes each one to the clients it affects, with the source attached — on top of the tools you already run.',
         items: [
           {
@@ -3631,7 +3631,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       {
         question: `Is DueDateHQ a ${spec.subject} alternative?`,
         answer:
-          'For deadline-change monitoring, yes; for broader workflows it is a complement rather than a full replacement.',
+          'For rule-change monitoring, yes; for broader workflows it is a complement rather than a full replacement.',
       },
       {
         question: `Can I keep ${spec.subject} and add DueDateHQ?`,
@@ -3640,7 +3640,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       },
     ],
     cta: {
-      title: `See how DueDateHQ covers the ${spec.subject} deadline-monitoring gap`,
+      title: `See how DueDateHQ covers the ${spec.subject} rule-change monitoring gap`,
       body: 'It watches official sources and routes each deadline and rule change to the clients it affects, with the source attached.',
       primary: 'See the comparison',
       secondary: 'Browse all resources',

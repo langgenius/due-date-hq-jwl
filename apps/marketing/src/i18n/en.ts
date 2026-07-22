@@ -719,7 +719,7 @@ const en: LandingCopy = {
     structuredData: {
       organizationName: 'DueDateHQ',
       organizationDescription:
-        'DueDateHQ builds deadline-change monitoring software for US CPA practices, catching when an IRS, state, or FEMA deadline moves and showing which clients it affects.',
+        'DueDateHQ builds rule-change monitoring software for US CPA practices, catching when the IRS, a state, or FEMA changes a rule or moves a deadline and showing which clients it affects.',
       websiteName: 'DueDateHQ',
       productName: 'DueDateHQ',
       productDescription:
@@ -812,7 +812,7 @@ const en: LandingCopy = {
       meta: {
         title: 'DueDateHQ State Coverage — 50-state and DC filing signals',
         description:
-          'DueDateHQ monitors IRS and state tax-deadline changes across all 50 states and DC. Every change arrives with its official source URL and excerpt, routed through review.',
+          'DueDateHQ monitors IRS and state rule and deadline changes across all 50 states and DC. Every change arrives with its official source URL and excerpt, routed through review.',
         ogImage: '/og/home.en.png',
       },
       hero: {

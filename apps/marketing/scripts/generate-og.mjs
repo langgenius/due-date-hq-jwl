@@ -92,26 +92,26 @@ const CATEGORIES = [
   {
     key: 'home',
     en: {
-      eyebrow: 'DEADLINE-CHANGE MONITORING FOR US CPA PRACTICES',
-      headline: ['Catch every tax-deadline change —', 'and see exactly who it affects.'],
-      chips: ['FED + 50 states + DC', 'A source on every date'],
+      eyebrow: 'RULE-CHANGE MONITORING FOR US CPA PRACTICES',
+      headline: ['Catching every rule change.', 'Naming every affected client.'],
+      chips: ['IRS + 50 states + DC + FEMA', 'A source on every date'],
     },
     zh: {
-      eyebrow: '面向美国 CPA 事务所的截止日变化监控',
-      headline: ['抓住每一次税务截止日变化，', '看清它影响到哪些客户。'],
-      chips: ['联邦 + 50 州 + DC', '每个日期都附官方来源'],
+      eyebrow: '面向美国 CPA 事务所的规则变化监控',
+      headline: ['抓住每一次规则变动，', '点名每一个受影响的客户。'],
+      chips: ['IRS + 50 州 + DC + FEMA', '每个日期都附官方来源'],
     },
   },
   {
     key: 'how-it-works',
     en: {
       eyebrow: 'HOW IT WORKS · PRODUCT WALKTHROUGH',
-      headline: ['From a deadline change', 'to the clients it affects.'],
+      headline: ['From a rule change', 'to the clients it affects.'],
       chips: ['Watch · Match · Rank · Apply', 'A source on every date'],
     },
     zh: {
       eyebrow: '产品导览 · 如何运作',
-      headline: ['从一次截止日变化，', '到它牵动的每个客户。'],
+      headline: ['从一次规则变动，', '到它牵动的每个客户。'],
       chips: ['监测 · 匹配 · 排序 · 应用', '每个日期都附来源'],
     },
   },

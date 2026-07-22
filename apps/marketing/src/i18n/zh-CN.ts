@@ -26,7 +26,7 @@ const zhCN: LandingCopy = {
     eyebrow: '玻璃盒截止日智能',
     title: '在错过申报前看清截止日风险。',
     description:
-      'DueDateHQ 是为美国 CPA 团队打造的截止日监控工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的工作台里。',
+      'DueDateHQ 是为美国 CPA 团队打造的规则变化监控工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的工作台里。',
     positioning:
       '它是叠加在你现有 Drake、UltraTax 或 TaxDome 之上的「截止日与规则变化监控」——替换的是你用来兜住这些系统遗漏的 Excel + Outlook 拼凑流程，而不是你的系统。',
     primaryCta: '免费开始',

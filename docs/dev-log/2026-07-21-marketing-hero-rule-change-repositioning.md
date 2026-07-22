@@ -90,3 +90,22 @@ works-with-your-stack, state-coverage, 404, mobile) plus a rendered-link sweep
 - Verified: 209-page build clean, 24 i18n guardrail tests pass, zero stale
   phrases in dist, mobile no h-scroll. GSAP reveal blankness during audit was a
   backgrounded-tab compositor artifact, not a site bug.
+
+## Deep-audit round 2 (2026-07-22)
+
+Swept the layers the first pass missed; all category self-descriptions now say
+rule-change monitoring while deliberately-targeted SEO phrases (QuickBooks-guide
+title/H1, state-page titles, URL slugs) keep their searched wording:
+
+- **OG images** — home + how-it-works cards still rendered the old
+  "DEADLINE-CHANGE MONITORING / Catch every tax-deadline change" art (what email
+  and social previews show). Updated `scripts/generate-og.mjs` copy (en+zh, home
+  headline now mirrors the hero verbatim, chips add FEMA) and regenerated.
+- **GEO/SEO shared layer** — llms.txt + llms-full.txt identity line,
+  JSON-LD Service name/serviceType, org description, seo-content comparison/
+  alternatives/guide bodies (9 en + 9 zh), works-with-stack meta + CTA title
+  (en had a hyphenated "deadline-monitoring layer" that earlier greps missed),
+  zh product-strip line.
+- Verified: JSON-LD parses (7-type entity graph), founding-banner form posts to
+  live Formspree, zh-CN home fully mirrors the new hero, inner-page H1s clean,
+  209-page build + 24 guardrail tests green, dist sweep zero stale phrases.

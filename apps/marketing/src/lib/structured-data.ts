@@ -242,18 +242,18 @@ function articleNode(
 }
 
 // The product's core service, as a schema.org Service node — grounded in the
-// home page's own pitch (24/7 deadline-change monitoring, FED+50+DC). Strengthens
+// home page's own pitch (24/7 rule-change monitoring, FED+50+DC). Strengthens
 // the entity graph for AI/answer engines; no offers/ratings (nothing to cite).
 const SERVICE_COPY: Record<Locale, { name: string; serviceType: string; description: string }> = {
   en: {
-    name: 'Tax deadline-change monitoring for CPA practices',
-    serviceType: 'Tax deadline monitoring',
+    name: 'Tax rule-change monitoring for CPA practices',
+    serviceType: 'Tax rule-change monitoring',
     description:
       'Around-the-clock monitoring of IRS, state tax-agency, and FEMA disaster sources for filing-deadline and rule changes, showing which clients each change affects with a source on every date — across the federal government plus all 50 states and DC.',
   },
   'zh-CN': {
-    name: '面向 CPA 事务所的税务截止日变化监控',
-    serviceType: '税务截止日监控',
+    name: '面向 CPA 事务所的税务规则变化监控',
+    serviceType: '税务规则变化监控',
     description:
       '全天候监控 IRS、各州税务机关与 FEMA 灾害来源的申报截止日与规则变化，标出每条变化影响到哪些客户，并为每个日期附上官方来源——覆盖联邦加全部 50 个州与 DC。',
   },
