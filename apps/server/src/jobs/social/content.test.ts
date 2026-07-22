@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { STATE_RULE_SOURCE_SEEDS } from '@duedatehq/core/rules'
 import {
   buildXAlertPost,
   validateSocialCandidate,
@@ -138,6 +139,44 @@ describe('buildXAlertPost', () => {
     )
 
     expect(federal.text).toContain('IRS · Federal alert')
-    expect(state.text).toContain('OH tax agency · Ohio alert')
+    expect(state.text).toContain('Ohio tax agency · Ohio alert')
+  })
+
+  it.each(STATE_RULE_SOURCE_SEEDS)(
+    'uses the full state name for $jurisdiction in every visible header field',
+    ({ jurisdiction, name }) => {
+      const result = buildXAlertPost(
+        candidate({
+          agency: `${jurisdiction} tax agency`,
+          jurisdiction,
+          forms: [`${jurisdiction} Form 100`],
+        }),
+        { appUrl: 'https://app.duedatehq.com', refToken: `opaque-state-token-${jurisdiction}` },
+      )
+
+      expect(result.text).toContain(`${name} tax agency · ${name} alert`)
+      expect(result.text).toContain(`${jurisdiction} Form 100`)
+      expect(result.targetUrl).toContain(`utm_content=${jurisdiction.toLowerCase()}_deadline_shift`)
+      expect(result.weightedLength).toBeLessThanOrEqual(280)
+    },
+  )
+
+  it('expands state codes supplied in lowercase jurisdiction fields', () => {
+    const result = buildXAlertPost(candidate({ agency: 'CO tax agency', jurisdiction: 'co' }), {
+      appUrl: 'https://app.duedatehq.com',
+      refToken: 'opaque-token-colorado',
+    })
+
+    expect(result.text).toContain('Colorado tax agency · Colorado alert')
+  })
+
+  it('does not reinterpret a different state code embedded in an agency name', () => {
+    const result = buildXAlertPost(
+      candidate({ agency: 'LA County Tax Collector', jurisdiction: 'CA' }),
+      { appUrl: 'https://app.duedatehq.com', refToken: 'opaque-token-la-county' },
+    )
+
+    expect(result.text).toContain('LA County Tax Collector · California alert')
+    expect(result.text).not.toContain('Louisiana County')
   })
 })

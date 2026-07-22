@@ -51,7 +51,7 @@ function schedulerRepo(input: {
 }
 
 describe('runXSocialCron', () => {
-  it('does nothing outside the 09:00 ET half-hour slot', async () => {
+  it('refreshes drafts but does not claim outside the 09:00 ET half-hour slot', async () => {
     const repo = schedulerRepo({ candidates: [candidate('pulse-1')] })
 
     await expect(
@@ -59,7 +59,9 @@ describe('runXSocialCron', () => {
         repo,
       }),
     ).resolves.toEqual({ status: 'outside_slot' })
-    expect(repo.listEligibleCandidates).not.toHaveBeenCalled()
+    expect(repo.listEligibleCandidates).toHaveBeenCalledOnce()
+    expect(repo.createDraft).toHaveBeenCalledOnce()
+    expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
   })
 
   it('creates every new candidate draft but claims only one daily slot', async () => {
@@ -97,7 +99,7 @@ describe('runXSocialCron', () => {
 
   it('queues one live claim and marks a near deadline urgent', async () => {
     const repo = schedulerRepo({
-      candidates: [candidate('pulse-1')],
+      candidates: [candidate('pulse-1', { agency: 'CO tax agency', jurisdiction: 'CO' })],
       claim: { run: { id: 'run-live' }, post: { id: 'post-live' } },
     })
     const sent: XPublishQueueMessage[] = []
@@ -127,7 +129,11 @@ describe('runXSocialCron', () => {
       runId: 'run-live',
     })
     expect(repo.createDraft).toHaveBeenCalledWith(
-      expect.objectContaining({ pulseId: 'pulse-1', priority: 'urgent' }),
+      expect.objectContaining({
+        pulseId: 'pulse-1',
+        priority: 'urgent',
+        postText: expect.stringContaining('Colorado tax agency · Colorado alert'),
+      }),
     )
     expect(sent).toEqual([{ type: 'social.x.publish', runId: 'run-live' }])
   })

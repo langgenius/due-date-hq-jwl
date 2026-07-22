@@ -2,8 +2,8 @@
 
 ## Scope and invariants
 
-The SaaS Worker is the only scheduling authority. Its existing 30-minute Cron creates deterministic
-drafts and, at 09:00 America/New_York, reserves at most one D1 publishing slot. A separate serialized
+The SaaS Worker is the only scheduling authority. Its 30-minute Cron refreshes deterministic drafts
+and, at 09:00 America/New_York, reserves at most one D1 publishing slot. A separate serialized
 `SOCIAL_QUEUE` performs the remote X create. The `pnpm social:x` script is an operator control plane;
 do not schedule that script with Codex, launchd, GitHub Actions, or another cron.
 
@@ -24,6 +24,12 @@ Hard invariants:
   that have not yet been attributed to a tax filing or deadline change, so they never enter the
   social outbox. `action_mode='review_only'` alone does not disqualify an otherwise useful source
   change.
+- Public header copy expands two-letter state codes to full state names. Official form identifiers
+  and `utm_content` keep their stable state codes.
+- Normal live operation uses the 09:00 ET slot and publishes at most one previously approved
+  `ready` Post. `publish-now` is reserved for an explicit operator exception.
+- Draft refresh runs on every 30-minute tick so a newly approved Pulse can be reviewed before the
+  next daily slot; draft creation never bypasses the explicit `draft -> ready` approval gate.
 
 ## Configuration
 

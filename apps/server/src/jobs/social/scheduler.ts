@@ -41,7 +41,6 @@ export async function runXSocialCron(
     randomRefToken?: () => string
   } = {},
 ): Promise<XSocialCronResult> {
-  if (!shouldRunXDailySlot(now)) return { status: 'outside_slot' }
   if (!env.X_SOCIAL_START_AT) return { status: 'disabled', reason: 'missing_cutover' }
 
   const since = new Date(env.X_SOCIAL_START_AT)
@@ -84,6 +83,11 @@ export async function runXSocialCron(
     })
     draftsCreated += 1
   }
+
+  // Refresh the review queue on every 30-minute Worker tick so operators can
+  // approve new Alerts before the next publishing window. Claiming and remote
+  // publishing remain restricted to the single 09:00 ET slot below.
+  if (!shouldRunXDailySlot(now)) return { status: 'outside_slot' }
 
   const { localDate } = easternTimeParts(now)
   const mode = env.X_POSTING_MODE === 'live' ? 'live' : 'draft'

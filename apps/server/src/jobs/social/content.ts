@@ -1,4 +1,4 @@
-import { requiresReviewOnlyPulseAlert } from '@duedatehq/core/rules'
+import { requiresReviewOnlyPulseAlert, STATE_RULE_SOURCE_SEEDS } from '@duedatehq/core/rules'
 import {
   alertSourceAdapterMetadataById,
   listAlertSourceCatalog,
@@ -13,6 +13,12 @@ const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/iu
 const SENSITIVE_IDENTIFIER_PATTERN = /\b(?:\d[ -]?){9}\b/u
 const EMOJI_GRAPHEME_PATTERN = /(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|\uFE0F)/u
 const SOCIAL_REF_PATTERN = /^[A-Za-z0-9_-]{16,128}$/u
+const STATE_NAME_BY_CODE: ReadonlyMap<string, string> = new Map(
+  STATE_RULE_SOURCE_SEEDS.map((state) => [state.jurisdiction, state.name] as const),
+)
+const STATE_CODE_BY_NAME: ReadonlyMap<string, string> = new Map(
+  STATE_RULE_SOURCE_SEEDS.map((state) => [state.name.toLowerCase(), state.jurisdiction] as const),
+)
 
 export interface SocialAlertCandidate {
   pulseId: string
@@ -150,8 +156,11 @@ export function buildXAlertPost(
   }
 
   const targetUrl = socialAlertTargetUrl(candidate, options)
-  const agency = truncateWeighted(resolvedPublicAgency(candidate), 36)
-  const jurisdiction = truncateWeighted(normalizeCopy(candidate.jurisdiction), 22)
+  const agency = truncateWeighted(
+    expandJurisdictionCodeToken(resolvedPublicAgency(candidate), candidate.jurisdiction),
+    36,
+  )
+  const jurisdiction = truncateWeighted(publicJurisdictionName(candidate.jurisdiction), 22)
   const scope = truncateWeighted(candidateScope(candidate), 40)
   const change = truncateWeighted(humanizeChangeKind(candidate.changeKind), 26)
   const dateChange = formatDateChange(candidate)
@@ -252,6 +261,28 @@ function fallbackPublicAgencyName(source: string, jurisdiction: string): string 
   if (prefix === 'fema') return 'FEMA'
   if (normalized.startsWith('fed.taxpayer_advocate')) return 'Taxpayer Advocate Service'
   return `${normalizeCopy(jurisdiction)} tax authority`
+}
+
+function publicJurisdictionName(value: string): string {
+  const normalized = normalizeCopy(value)
+  const stateName = STATE_NAME_BY_CODE.get(normalized.toUpperCase())
+  if (stateName) return stateName
+  if (normalized.toUpperCase() === 'FED') return 'Federal'
+  return normalized
+}
+
+function expandJurisdictionCodeToken(value: string, jurisdiction: string): string {
+  const normalized = normalizeCopy(value)
+  const normalizedJurisdiction = normalizeCopy(jurisdiction)
+  const jurisdictionCode =
+    (STATE_NAME_BY_CODE.has(normalizedJurisdiction.toUpperCase())
+      ? normalizedJurisdiction.toUpperCase()
+      : STATE_CODE_BY_NAME.get(normalizedJurisdiction.toLowerCase())) ?? null
+  if (!jurisdictionCode) return normalized
+  return normalized.replace(/\b[A-Z]{2}\b/gu, (code) => {
+    const stateName = STATE_NAME_BY_CODE.get(code)
+    return code === jurisdictionCode && stateName ? stateName : code
+  })
 }
 
 function normalizeCopy(value: string): string {
