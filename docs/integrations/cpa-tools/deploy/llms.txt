@@ -52,8 +52,7 @@
 
 ## Tools
 - [Drake Tax](https://cpafieldguide.com/tools/drake-tax): Tax Preparation. From $2,145/yr. Export only. 
-            Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole
-            practitioners.
+            Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
           
 - [Lacerte](https://cpafieldguide.com/tools/lacerte): Tax Preparation. Custom · per-return. Local SDK. 
             Intuit's high-end desktop tax software for complex individual and business returns.
@@ -75,15 +74,13 @@
             Records client due dates and rolls them forward each year — a classic passive tracker.
           
 - [DueDateHQ](https://cpafieldguide.com/tools/duedatehq): Deadline & Compliance Tracking. Free · beta. No API yet. 
-            Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits.
-            Free in beta.
+            Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits. Free in beta.
           
 - [ONESOURCE Calendar](https://cpafieldguide.com/tools/onesource-calendar): Deadline & Compliance Tracking. Custom quote. Gated API. 
             Thomson Reuters' enterprise compliance calendar for multi-entity tax deadlines.
           
 - [Karbon](https://cpafieldguide.com/tools/karbon): Practice Management. From $59/user/mo. Open API. 
-            All-in-one practice management — workflow, email, and billing — with the category's
-            deepest API.
+            All-in-one practice management — workflow, email, and billing — with the category's deepest API.
           
 - [TaxDome](https://cpafieldguide.com/tools/taxdome): Practice Management. From $67/user/mo. Open API. 
             All-in-one practice management with a client portal, e-signature, and invoicing.
@@ -119,6 +116,5 @@
             Accounting from small business (Sage Accounting) to mid-market (Sage Intacct).
           
 - [ProAdvisor](https://cpafieldguide.com/tools/proadvisor): Accounting & Bookkeeping. Free · program. Partner API. 
-            Intuit's free accountant program around QuickBooks — discounts, training, and firm
-            tools.
+            Intuit's free accountant program around QuickBooks — discounts, training, and firm tools.
           

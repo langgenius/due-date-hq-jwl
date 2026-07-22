@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22 · Executes the "build the actual list" step of
 `cpafieldguide-backlink-kit-2026-07-16.md` Tier 2. Pitch email template lives there —
-this doc supplies the *who* and the *angle*.
+this doc supplies the _who_ and the _angle_.
 
 **Red lines (unchanged):** every `{their actual article}` reference must be a piece
 you actually opened; one follow-up max; disclose the DueDateHQ affiliation; do NOT
@@ -41,6 +41,7 @@ sorting CPA tools by integration openness). Never "check out my directory."
    price + API openness." Personal-brand outlet, so write to Ryan by name.
 
 ## B. Established outlets — verify current masthead before sending
+
 (Names correct as of research cutoff; a 2-minute check of the site header/about
 page before emailing satisfies the no-stale-facts rule.)
 

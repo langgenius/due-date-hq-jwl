@@ -9,6 +9,19 @@ metadata:
 
 # Playwright Best Practices
 
+## DueDateHQ repository override
+
+When this skill is loaded through `.claude/skills/playwright-best-practices`, read the root
+`CLAUDE.md` and `AGENTS.md` first. Their project constraints supersede generic examples below.
+
+- Keep browser coverage under the existing `e2e/` setup and reuse `playwright.config.ts`, fixtures,
+  and page helpers before introducing another abstraction.
+- Prefer user-visible behavior, accessible locators, web-first assertions, and deterministic waits;
+  do not hide flakes with arbitrary sleeps or broad timeout increases.
+- Run focused tests while iterating, then `pnpm test:e2e` for browser-workflow changes and
+  `pnpm run ci` for the repository contract.
+- Treat a focused pass, the full E2E suite, the push, and hosted checks as distinct evidence states.
+
 This skill provides comprehensive guidance for all aspects of Playwright test development, from writing new tests to debugging and maintaining existing test suites.
 
 ## Activity-Based Reference Guide

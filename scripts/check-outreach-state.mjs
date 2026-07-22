@@ -28,7 +28,15 @@ if (!fs.existsSync(FILE)) {
   console.log(`[outreach-state-guard] ${FILE} not present — nothing to check.`)
   process.exit(0)
 }
-const cur = summarize(JSON.parse(fs.readFileSync(FILE, 'utf8')))
+const currentText = fs.readFileSync(FILE, 'utf8')
+const currentJson = JSON.parse(currentText)
+const canonicalText = `${JSON.stringify(currentJson, null, 2)}\n`
+if (currentText !== canonicalText) {
+  console.error(`[outreach-state-guard] FAIL — ${FILE} is not canonically serialized.`)
+  console.error('  Write it with JSON.stringify(state, null, 2) plus one trailing newline.')
+  process.exit(1)
+}
+const cur = summarize(currentJson)
 
 let base = null
 try {

@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo 'pre-push: the worktree and index must be clean so validation matches the commit being pushed.' >&2
+  exit 1
+fi
+
+if [ ! -x node_modules/.bin/vp ]; then
+  echo 'pre-push: node_modules/.bin/vp is missing; run pnpm install before pushing.' >&2
+  exit 1
+fi
+
+echo 'pre-push: running the repository CI contract for the checked-out commit...'
+pnpm run prepush

@@ -5,6 +5,18 @@ description: Implement internationalization with Lingui in React and JavaScript 
 
 # Lingui Best Practices
 
+## DueDateHQ repository override
+
+When this skill is loaded through `.claude/skills/lingui-best-practices`, read the root `CLAUDE.md`
+and `AGENTS.md` first. Their project constraints supersede generic examples below.
+
+- Do not introduce React `useEffect`; preserve the repository's existing locale-loading flow.
+- Reuse the current Lingui provider, configuration, macro imports, and catalog layout.
+- After changing translatable source or catalogs, run
+  `pnpm --filter @duedatehq/app i18n:extract`,
+  `pnpm --filter @duedatehq/app i18n:compile`, and `pnpm run ci`.
+- Missing translations and uncommitted catalog drift are failures, not warnings to ignore.
+
 Lingui is a powerful internationalization (i18n) framework for JavaScript. This skill covers best practices for implementing i18n in React and vanilla JavaScript applications.
 
 ## Quick Start Workflow

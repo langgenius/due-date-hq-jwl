@@ -27,8 +27,9 @@ Queue / Vectorize 绑定，不要依赖继承。
 | 步骤                                                                    | 工具                         | 失败影响              |
 | ----------------------------------------------------------------------- | ---------------------------- | --------------------- |
 | `vp install --frozen-lockfile`                                          | Vite+ (`vp`) 代理 pnpm       | block                 |
-| `vp run ci` = `vp check && vp run -r test && vp run build`              | 见下行拆解                   | block                 |
+| `vp run ci` = check + generated drift + test + build                    | 见下行拆解                   | block                 |
 | ├ `vp check`（fmt + lint + tsgolint，`&&` 短路）                        | Oxfmt / Oxlint / tsgolint    | block（并掩盖后续层） |
+| ├ `pnpm generated:check`（隔离重建并比对 generator-owned output）       | Node generator contract      | block                 |
 | ├ `vp run -r test`（Vitest + pool-workers）                             | Vitest                       | block                 |
 | └ `vp run build`（app → server dry-run → marketing）                    | Vite 8 / Rolldown / wrangler | block                 |
 | `gitleaks detect --source . --no-git --redact`（在 `vp run ci` 之后）   | gitleaks                     | block                 |
@@ -151,10 +152,24 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   `core.hooksPath` 指向 `.vite-hooks/_`；`.vite-hooks/pre-commit` 的内容就是一行 `vp staged`。
 - `vp staged` 只接收 staged 文件，按根 `vite.config.ts` 的 `staged` 块执行：`'*'` →
   `vp check --fix`，`DESIGN.md` → `npx --yes @google/design.md lint`；全仓检查归 CI。
+- 版本控制中的 `.vite-hooks/pre-push` 在 push 前运行 `pnpm run prepush`，即完整
+  `pnpm run ci`（含 generated-artifact drift）再加已提交 `HEAD` 的 `git show --check`。它是
+  本地第二层防线，hosted CI / required checks 仍是服务器端最终边界。
 - agent 会话内禁止绕过：`.claude/settings.json` 注册了 PreToolUse(Bash) hook
   `.claude/hooks/no-verify-guard.sh`，对携带 `--no-verify` / `-n` 的 `git commit` 直接
   deny（这是 Claude Code 层守卫，不是 git 机制；commit message 里提到该 flag 不会误伤）。
 - worktree 没有 node_modules 时先 symlink 主 checkout 的依赖再正常 commit，不要绕过 hook。
+
+### 2.5 Generator contract
+
+- `docs/integrations/cpa-tools/deploy/build.mjs --out-dir <dir>` 把 generator-owned
+  HTML、`llms*.txt` 与 `sitemap.xml` 写入指定目录，并统一保留一个尾换行；默认仍写回
+  `deploy/`。从 source HTML 抽取的纯文本字段会归一化 formatting whitespace，避免 formatter
+  换行改变 `llms*.txt` 或 JSON-LD 的语义内容。
+- `pnpm generated:check` 使用临时目录重建后逐字节对照已提交输出，也拒绝 generator 已不再
+  产生的陈旧页面；检查过程中不修改工作树。
+- 同一检查要求 `outreach-kit/.outreach-state.json` 保持 `JSON.stringify(value, null, 2)` 加一个
+  尾换行的 canonical serialization。sender 与 outreach-state PR guard 使用相同契约。
 
 ---
 

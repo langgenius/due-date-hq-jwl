@@ -3,6 +3,20 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { toolContent } from './tool-content.mjs'
 const base = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const deployRoot = resolve(base, 'deploy')
+const outDirIndex = process.argv.indexOf('--out-dir')
+if (outDirIndex >= 0 && !process.argv[outDirIndex + 1]) {
+  throw new Error('--out-dir requires a path')
+}
+const outputRoot = resolve(outDirIndex >= 0 ? process.argv[outDirIndex + 1] : deployRoot)
+
+function writeGeneratedFile(relativePath, content) {
+  const target = resolve(outputRoot, relativePath)
+  mkdirSync(dirname(target), { recursive: true })
+  const text = String(content)
+  writeFileSync(target, text.endsWith('\n') ? text : `${text}\n`)
+}
+
 const src = readFileSync(base + '/cpa-tools-directory.html', 'utf8')
 const DATE = '2026-07-22'
 const ORIGIN = 'https://cpafieldguide.com'
@@ -15,7 +29,7 @@ let fullBody = src.slice(iStyleEnd).trim()
 // ---- auto-wire real logo/screenshot files when present (deploy/logos/<slug>.*, deploy/shots/<slug>.*) ----
 // Drop a file named by the tool slug and it renders; otherwise the branded panel/tile shows. No HTML edits.
 function assetMap(dir) {
-  const d = resolve(base, 'deploy', dir)
+  const d = resolve(deployRoot, dir)
   if (!existsSync(d)) return {}
   const m = {}
   for (const f of readdirSync(d)) {
@@ -261,6 +275,7 @@ fullBody = normLabels(fullBody)
 for (const k of Object.keys(sections)) sections[k] = normLabels(sections[k])
 
 const toolData = []
+const unwrapFormattingLineBreaks = (value) => value.replace(/(\S)[ \t]*\n[ \t]+(?=\S)/g, '$1 ')
 for (const c of cats) {
   const sec = sections[c.key] || ''
   ;(sec.match(/<article class="card"[\s\S]*?<\/article>/g) || []).forEach((card) => {
@@ -274,7 +289,7 @@ for (const c of cats) {
       catLabel: c.label,
       catSlug: c.slug,
       seg: g(/<div class="seg">([^<]+)<\/div>/),
-      desc: g(/<p class="desc">([\s\S]*?)<\/p>/),
+      desc: unwrapFormattingLineBreaks(g(/<p class="desc">([\s\S]*?)<\/p>/)),
       price: g(/<span class="price">([^<]+)<\/span>/),
       share: g(/<span class="share">([^<]+)<\/span>/),
       openClass: g(/<span class="tag"><span class="dot (d-[a-z]+)"><\/span>/),
@@ -519,7 +534,7 @@ const homeHtml =
   '\n<body>\n' +
   homeBody +
   '\n</body>\n</html>\n'
-writeFileSync(base + '/deploy/index.html', homeHtml)
+writeGeneratedFile('index.html', homeHtml)
 
 // ---------- CATEGORY PAGES ----------
 for (const c of cats) {
@@ -628,7 +643,7 @@ for (const c of cats) {
     ld,
   ].join('\n\n')
   const page = head(c.title, c.desc, url) + '\n<body>\n' + body + '\n</body>\n</html>\n'
-  writeFileSync(base + '/deploy/' + c.slug + '.html', page)
+  writeGeneratedFile(c.slug + '.html', page)
 }
 
 // ---------- cross-link data (head-to-head + alternatives) ----------
@@ -685,7 +700,7 @@ function crossLinksFor(slug) {
 }
 
 // ---------- TOOL PAGES (/tools/<slug>) ----------
-mkdirSync(base + '/deploy/tools', { recursive: true })
+mkdirSync(resolve(outputRoot, 'tools'), { recursive: true })
 for (const t of toolData) {
   const url = `${ORIGIN}/tools/${t.slug}`
   const catHtml = t.catLabel.replace('&', '&amp;')
@@ -841,8 +856,8 @@ for (const t of toolData) {
       ? `${t.name} review for US firms: pros and cons, who it fits, pricing (${t.price}), and how open it is to integration. Independent — no vendor pays for placement.`
       : `${t.name}: ${t.desc} Pricing: ${t.price}. Who it's for and how open it is to integration.`,
   ).slice(0, 300)
-  writeFileSync(
-    base + '/deploy/tools/' + t.slug + '.html',
+  writeGeneratedFile(
+    'tools/' + t.slug + '.html',
     head(esc(title), desc, url) + '\n<body>\n' + body + '\n</body>\n</html>\n',
   )
 }
@@ -942,8 +957,8 @@ function guidePage(slug, title, h1, intro, groups, faq) {
     revealScript,
     ld,
   ].join('\n\n')
-  writeFileSync(
-    base + '/deploy/' + slug + '.html',
+  writeGeneratedFile(
+    slug + '.html',
     head(
       esc(title),
       esc(intro)
@@ -1165,8 +1180,8 @@ function vsPage(A, B) {
     revealScript,
     ld,
   ].join('\n\n')
-  writeFileSync(
-    base + '/deploy/' + slug + '.html',
+  writeGeneratedFile(
+    slug + '.html',
     head(
       `${A.name} vs ${B.name} (2026): Pricing, Features & API — CPA Field Guide`,
       esc(intro).slice(0, 300),
@@ -1298,8 +1313,8 @@ function altPage(T) {
     revealScript,
     ld,
   ].join('\n\n')
-  writeFileSync(
-    base + '/deploy/' + slug + '.html',
+  writeGeneratedFile(
+    slug + '.html',
     head(
       `${T.name} Alternatives (2026): Compared for US Firms — CPA Field Guide`,
       esc(intro).slice(0, 300),
@@ -1412,8 +1427,8 @@ const statsUrl = ORIGIN + '/cpa-software-statistics'
     revealScript,
     ld,
   ].join('\n\n')
-  writeFileSync(
-    base + '/deploy/cpa-software-statistics.html',
+  writeGeneratedFile(
+    'cpa-software-statistics.html',
     head(
       'CPA & Accounting Software Statistics 2026 (Market Share, Pricing, APIs) — CPA Field Guide',
       'Data on US tax and accounting software: tax-prep market share (2025 AICPA survey), integration openness, and pricing across 25 tools. Sourced, independent.',
@@ -1506,8 +1521,8 @@ const compareUrl = ORIGIN + '/compare'
     revealScript,
     ld,
   ].join('\n\n')
-  writeFileSync(
-    base + '/deploy/compare.html',
+  writeGeneratedFile(
+    'compare.html',
     head(
       'Compare 25 CPA & Accounting Software Tools — Pricing & Integration | CPA Field Guide',
       'Side-by-side comparison of 25 US tax and accounting tools: category, firm-size fit, starting price, and integration openness. Independent, no pay-to-list.',
@@ -1542,7 +1557,7 @@ ${altList.map((a) => `- [${a.name} alternatives](${a.url})`).join('\n')}
 ## Tools
 ${toolData.map((t) => `- [${t.name}](${ORIGIN}/tools/${t.slug}): ${t.catLabel}. ${t.price}. ${t.openLabel}. ${t.desc}`).join('\n')}
 `
-writeFileSync(base + '/deploy/llms.txt', llms)
+writeGeneratedFile('llms.txt', llms)
 
 // ---------- llms-full.txt (full machine-readable dump for GEO) ----------
 const llmsFull = `# CPA Field Guide — full index
@@ -1575,7 +1590,7 @@ ${t.share ? `- Adoption: ${t.share}\n` : ''}- Summary: ${t.desc}`,
   )
   .join('\n\n')}
 `
-writeFileSync(base + '/deploy/llms-full.txt', llmsFull)
+writeGeneratedFile('llms-full.txt', llmsFull)
 
 // ---------- branded 404 ----------
 const notFound =
@@ -1585,7 +1600,7 @@ const notFound =
     ORIGIN + '/404',
   ) +
   `\n<body>\n${topbar}\n\n${catnav('')}\n\n<main class="wrap"><div style="padding:56px 0 40px"><h1 class="gh1">Page not found</h1><p class="toollede">That page does not exist. Try the <a href="/">full directory</a>, or pick a category above.</p></div></main>\n\n${footerBlock}\n</body>\n</html>\n`
-writeFileSync(base + '/deploy/404.html', notFound)
+writeGeneratedFile('404.html', notFound)
 
 // ---------- sitemap (home + categories + guides + tools) ----------
 const entries = [
@@ -1603,7 +1618,7 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 ${entries.map((e) => `  <url><loc>${e.u}</loc><lastmod>${DATE}</lastmod><changefreq>weekly</changefreq><priority>${e.p}</priority></url>`).join('\n')}
 </urlset>
 `
-writeFileSync(base + '/deploy/sitemap.xml', sitemap)
+writeGeneratedFile('sitemap.xml', sitemap)
 
 console.log(
   'pages:',

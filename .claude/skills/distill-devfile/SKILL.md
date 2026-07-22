@@ -16,10 +16,11 @@ weeks self-correct — the window just grows.
 
 ## 0. Preflight
 
-- Sync with `origin/main` first. If the main working tree holds another session's
-  uncommitted WIP, work in a worktree and FF-push; otherwise commit directly to main
-  (repo convention: no branches). `git commit --no-verify` is blocked; the pre-commit
-  hook needs `node_modules/.bin` on PATH.
+- Read the root `CLAUDE.md` and follow its Git workflow.
+- Confirm the working tree is clean and synchronize with `origin/main` before starting.
+- Prefer a feature branch and pull request. Push directly to `main` only when the user explicitly
+  asks for it.
+- Never bypass hooks; `node_modules/.bin` must be available for the tracked hooks.
 - Volumes 09 and 10 are bannered historical snapshots — never update them, never bump
   their stamps.
 
@@ -85,6 +86,12 @@ Per-agent rules (put these in every agent prompt):
 
 - `vp fmt --write` on touched docs only (vp panics when output is piped — redirect to a
   file). Do not run repo-wide `--fix`: it may sweep up other sessions' files.
+- Run `pnpm run ci`, `pnpm generated:check`, and `git diff --check` before committing; the tracked
+  pre-push hook rechecks the committed `HEAD`.
 - One commit: `docs(dev-file): distill <from>..<to>` with per-volume highlights.
-- Push to main with a fetch → rebase → retry loop.
-- Final report to the user: per-volume changes, skipped volumes, hygiene flags.
+- Push the current feature branch and open a pull request unless the user explicitly requested a
+  direct push to `main`.
+- If the remote advanced, synchronize with `origin/main`, rerun the checks, and push again.
+- Do not skip hooks or force-push. Wait for the tracked pre-push hook and hosted checks.
+- Final report to the user: per-volume changes, skipped volumes, hygiene flags, and exact validation
+  results.

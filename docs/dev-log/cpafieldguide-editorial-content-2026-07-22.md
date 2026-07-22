@@ -99,6 +99,7 @@ rebranding. Verify before renaming anything on the site.
 
 Escalated sourcing beyond marketing pages to vendor documentation and live public
 surfaces:
+
 - **TaxDome** — full Insights-dashboard screenshot from their own Help Center
   navigation article (help.taxdome.com; marketing site is bot-blocked but docs
   aren't).

@@ -9,6 +9,10 @@ Operational CLI utilities (docs/dev-file/08 §1).
   `pnpm cf:ensure-queues` and `workspace-deploy`.
 - `pulse-inbound-email-smoke.mjs` — posts RFC 5322 email fixtures to a local Wrangler Email
   Routing handler at `/cdn-cgi/handler/email`. Used by `docs/ops/runbooks/pulse-email-inbound.md`.
+- `check-generated-artifacts.mjs` — runs the CPA Field Guide generator in an isolated temporary
+  directory, compares generator-owned HTML/text/XML with committed output, rejects stale pages, and
+  verifies canonical serialization of the outreach send-state JSON. Wired into
+  `pnpm generated:check`, `pnpm run ci`, and the tracked pre-push hook.
 
 Planned (Phase 0 / Phase 1):
 

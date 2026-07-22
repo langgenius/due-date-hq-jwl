@@ -18,6 +18,9 @@ Use pnpm with Node `>=22.19.0`.
 - `pnpm check:fix`: apply automatic lint fixes.
 - `pnpm format` / `pnpm format:fix`: check or write formatting.
 - `pnpm ready`: run checks, tests, and builds before handoff.
+- `pnpm generated:check`: rebuild generated artifacts in a temporary directory and fail on drift.
+- `pnpm run prepush`: run the repository CI contract plus a committed-`HEAD` whitespace check; the
+  tracked pre-push hook invokes this automatically.
 - `pnpm check:deps`: validate internal package dependency direction.
 - `pnpm db:migrate:local`, `pnpm db:seed:demo`: apply hand-authored D1 migrations and seed demo data.
 - `pnpm --filter @duedatehq/app i18n:extract`, `pnpm --filter @duedatehq/app i18n:compile`: clean obsolete Lingui entries, refresh catalogs, and compile with `--strict` so any missing translation fails; CI should fail on missing translations or uncommitted catalog drift after these commands.

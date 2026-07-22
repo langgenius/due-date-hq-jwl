@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ci": "vp check && vp run -r test && vp run build",
-    "ready": "vp check && vp run -r test && vp run build",
+    "ci": "vp check && pnpm run generated:check && vp run -r test && vp run build",
+    "ready": "pnpm run ci",
+    "prepush": "pnpm run ci && git show --check --format= HEAD",
+    "generated:check": "node scripts/check-generated-artifacts.mjs",
     "dev": "vp run -r dev",
     "build": "vp run @duedatehq/app#build && vp run @duedatehq/server#build && vp run @duedatehq/marketing#build",
     "test": "vp run -r test",

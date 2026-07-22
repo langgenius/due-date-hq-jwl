@@ -39,6 +39,10 @@ duedatehq/
 ├── mock/                           # GENERATED demo.sql（packages/db/seed/generate-demo.ts 产出，勿手改）
 ├── .github/
 │   └── workflows/
+├── .agents/skills/                  # canonical project skills shared across agent clients
+├── .claude/skills/                  # Claude skills plus bridges to canonical project skills
+├── .vite-hooks/                    # tracked Vite+ pre-commit / pre-push entry scripts
+├── CLAUDE.md                       # Claude Code completion and CI submission contract
 ├── pnpm-workspace.yaml
 ├── playwright.config.ts
 ├── vite.config.ts                  # Vite+ task graph / lint / fmt / staged
@@ -650,9 +654,11 @@ proposed | accepted | deprecated | superseded by #NNN
 ## 11. 代码规范强制链
 
 1. `vp check`：**一条命令等同 oxfmt + oxlint + tsgolint**（由根 `vite.config.ts` 的 `lint.options.typeCheck: true` 启用）。本地 `vp` 安装的 staged git hook 用 `vp check --fix` 处理 staged files；CI 跑全量 `vp check`。
-2. `vp run -r test`：递归跑 Vitest（`apps/server` 走 `@cloudflare/vitest-pool-workers`）。
-3. `gitleaks`：CI full scan + 手动 `pnpm secrets:scan`（外部 CLI；staged hook 内目前不跑 gitleaks）。
-4. `pnpm -F <pkg> exec tsc --noEmit`：手动 fallback，不作为默认门禁。
+2. `pnpm generated:check`：在临时目录重建 CPA Field Guide generator-owned output，逐字节对照已提交文件，并检查 outreach state canonical JSON；不修改工作树。
+3. `vp run -r test`：递归跑 Vitest（`apps/server` 走 `@cloudflare/vitest-pool-workers`）。
+4. `.vite-hooks/pre-push`：push 前运行 `pnpm run prepush`（完整 `pnpm run ci` + 已提交 `HEAD` 的 `git show --check`）。
+5. `gitleaks`：CI full scan + 手动 `pnpm secrets:scan`（外部 CLI；staged hook 内目前不跑 gitleaks）。
+6. `pnpm -F <pkg> exec tsc --noEmit`：手动 fallback，不作为默认门禁。
 
 `tsgolint` 已经在 `vp check` 里默认启用，与 oxlint 的 type-aware 规则互补。不再引入独立 typed ESLint。
 
@@ -701,6 +707,13 @@ pre-push:
 ```
 
 原则：staged hook 必须 < 3s（Vite+ 默认 staged 行为已满足），不能跑全仓 typecheck；CI 才跑 `vp check` 的全量（含 tsgolint）。
+
+### 11.2 Vite+ `pre-push`（全仓第二层防线）
+
+`.vite-hooks/pre-push` 是版本控制入口；`vp config` 生成的内部 dispatcher 会调用它。pre-push
+要求本地依赖已安装，然后运行 `pnpm run prepush`。该命令检查完整 workspace，而不是只检查
+staged files，因此能捕获未安装/绕过 pre-commit 后进入 commit 的格式、类型、测试、build 与
+generator drift。它仍可被本地 Git 机制绕过，服务器端 required checks 才是不可替代的最终边界。
 
 ---
 

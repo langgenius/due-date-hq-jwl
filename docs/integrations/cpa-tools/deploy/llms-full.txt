@@ -44,8 +44,7 @@
 - Integration: Export only — It has no public API; data moves in and out by file export.
 - Adoption: 16.3% share
 - Summary: 
-            Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole
-            practitioners.
+            Full 1040 and business tax-prep suite — the high-volume, low-cost favorite of sole practitioners.
           
 
 ### Lacerte
@@ -137,8 +136,7 @@
 - Pricing: Free · beta
 - Integration: No API yet — It has no public API yet.
 - Summary: 
-            Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits.
-            Free in beta.
+            Monitors the IRS, states, and FEMA and flags which clients a filing-date change hits. Free in beta.
           
 
 ### ONESOURCE Calendar
@@ -160,8 +158,7 @@
 - Pricing: From $59/user/mo
 - Integration: Open API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
 - Summary: 
-            All-in-one practice management — workflow, email, and billing — with the category's
-            deepest API.
+            All-in-one practice management — workflow, email, and billing — with the category's deepest API.
           
 
 ### TaxDome
@@ -311,6 +308,5 @@
 - Integration: Partner API — It offers a self-serve public API, so it is among the easiest tools here to connect to.
 - Adoption: 500k+ members
 - Summary: 
-            Intuit's free accountant program around QuickBooks — discounts, training, and firm
-            tools.
+            Intuit's free accountant program around QuickBooks — discounts, training, and firm tools.
           
