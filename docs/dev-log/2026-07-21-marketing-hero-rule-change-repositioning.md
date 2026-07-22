@@ -52,3 +52,22 @@ Avoid: "deadline monitoring/tracking" (tracker category), bare "alert monitoring
 
 - A/B candidate for the disaster pages: "FEMA declared a disaster… which of your
   clients qualify?" (kept off the homepage).
+
+## CTA unification pass (same day)
+
+Audit found three drifts against the two-tier button system (`.m-cta` pill for
+hero/finale-level CTAs, `.m-btn` dense 8px for page-level):
+
+- **FoundingBanner `.fb-bar__cta`** — used `--m-brand` (reserved for the wordmark
+  per the token contract) with an 8px radius next to pill nav CTAs. Now: accent
+  fill, pill radius, weight 500, system hover — joins the compact-pill family
+  (same 7px/14px tier as `.nav__cta`).
+- **WorksWithStack CTAs** — hand-rolled pill duplicating `.m-cta` at 12px/22px.
+  Replaced with `.m-cta m-cta--primary` / `m-cta--ghost`; one-off CSS deleted.
+- **TrustPage `.trustpg__close-btn`** — `.m-btn` metrics but 20px inline padding;
+  aligned to 18px + token-based transition (kept as the on-dark inversion).
+
+Exempt by design: `.nav__cta` scroll choreography (commented intent),
+`.mini__applybtn` (product-mock UI, not a marketing CTA), `.pr__toggle-btn`
+(control). Verified in dev: banner/nav/hero/WWS CTAs all share accent #22488c,
+pill radius, weight 500, in two size tiers (15px hero · 13px bars).

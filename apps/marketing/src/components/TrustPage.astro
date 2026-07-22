@@ -585,20 +585,22 @@ const pad = (n: number) => String(n).padStart(2, '0')
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.78);
   }
+  /* .m-btn metrics (44px / 8px / 18px inline), inverted for the navy card —
+     white fill is the on-dark variant of .m-btn--primary */
   .trustpg__close-btn {
     margin-top: 28px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     height: 44px;
-    padding-inline: 20px;
+    padding-inline: 18px;
     border-radius: 8px;
     background: #fff;
     color: var(--m-accent);
     font-size: var(--m-text-base);
     font-weight: 500;
     transition:
-      background 0.18s ease,
+      background var(--m-dur-fast) var(--m-ease),
       transform 0.12s ease;
   }
   .trustpg__close-btn span {

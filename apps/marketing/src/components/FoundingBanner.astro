@@ -206,8 +206,9 @@ const c = zh
   .fb-bar__text strong {
     font-weight: 700;
   }
-  /* solid navy button — small radius (not a pill); anchors the CTA with real
-     weight so the bar reads composed, not like loose text */
+  /* compact bar-level CTA — joins the pill family (same 7px/14px metrics as
+     .nav__cta) with the shared accent fill; --m-brand stays reserved for the
+     wordmark per the token contract */
   .fb-bar__cta {
     flex: none;
     display: inline-flex;
@@ -215,22 +216,19 @@ const c = zh
     gap: 6px;
     margin-left: 4px;
     padding: 7px 14px;
-    border-radius: var(--m-radius-md);
-    background: var(--m-brand);
+    border-radius: 999px;
+    background: var(--m-accent);
     color: #fff;
     font-size: var(--m-text-sm);
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    transition:
-      background var(--m-dur-fast) var(--m-ease),
-      transform var(--m-dur-fast) var(--m-ease);
+    transition: background var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta svg {
     transition: transform var(--m-dur-fast) var(--m-ease);
   }
   .fb-bar__cta:hover {
-    background: #16213f;
-    transform: translateY(-1px);
+    background: var(--m-accent-strong);
   }
   .fb-bar__cta:hover svg {
     transform: translateX(2px);

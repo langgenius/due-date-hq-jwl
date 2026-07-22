@@ -186,8 +186,8 @@ const faq = zh
       <h2 class="m-display-2 wws-cta__title">{c.ctaTitle}</h2>
       <p class="wws-cta__body">{c.ctaBody}</p>
       <div class="wws-cta__actions">
-        <a class="wws-cta__primary" href={ctaHref}>{c.ctaPrimary}</a>
-        <a class="wws-cta__secondary" href={`${base}/how-it-works`}>{c.ctaSecondary}</a>
+        <a class="m-cta m-cta--primary" href={ctaHref}>{c.ctaPrimary}</a>
+        <a class="m-cta m-cta--ghost" href={`${base}/how-it-works`}>{c.ctaSecondary}</a>
       </div>
       <p class="wws-cta__contact">
         {c.contactPre}<a href="mailto:hello@duedatehq.com">hello@duedatehq.com</a>{c.contactMid}{' '}
@@ -368,36 +368,5 @@ const faq = zh
     gap: 12px;
     justify-content: center;
   }
-  .wws-cta__primary,
-  .wws-cta__secondary {
-    display: inline-flex;
-    align-items: center;
-    padding: 12px 22px;
-    border-radius: var(--m-radius-pill);
-    font-size: var(--m-text-md);
-    font-weight: 500;
-    text-decoration: none;
-    transition:
-      transform var(--m-dur-fast) var(--m-ease),
-      background var(--m-dur-fast) var(--m-ease),
-      border-color var(--m-dur-fast) var(--m-ease);
-  }
-  .wws-cta__primary {
-    background: var(--m-accent);
-    color: var(--m-on-accent);
-  }
-  .wws-cta__primary:hover {
-    background: var(--m-accent-strong);
-    transform: translateY(-2px);
-  }
-  .wws-cta__secondary {
-    border: 1px solid var(--m-hairline);
-    background: var(--m-surface);
-    color: var(--m-ink);
-  }
-  .wws-cta__secondary:hover {
-    border-color: var(--m-accent);
-    color: var(--m-accent);
-    transform: translateY(-2px);
-  }
+  /* buttons use the shared .m-cta pill primitive (marketing.css) — no local styles */
 </style>
