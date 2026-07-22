@@ -269,7 +269,7 @@ describe('social ops routes', () => {
     expect(dbMocks.listOccupiedPublishDates).not.toHaveBeenCalled()
   })
 
-  it('seeds the latest three valid eligible Pulses as deterministic drafts', async () => {
+  it('seeds the latest three valid Pulses without applying the daily cutover', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-25T12:00:00.000Z'))
     dbMocks.listEligibleCandidates.mockResolvedValue([
@@ -307,11 +307,7 @@ describe('social ops routes', () => {
         { id: 'post-pulse-oldest' },
       ])
 
-    const response = await opsRoute.request(
-      '/social/drafts/seed',
-      authorizedInit({}),
-      env({ X_SOCIAL_START_AT: '2026-07-21T00:00:00.000Z' }),
-    )
+    const response = await opsRoute.request('/social/drafts/seed', authorizedInit({}), env())
 
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toMatchObject({
@@ -329,7 +325,7 @@ describe('social ops routes', () => {
     })
     expect(dbMocks.listEligibleCandidates).toHaveBeenCalledWith({
       channel: 'x',
-      since: new Date('2026-07-21T00:00:00.000Z'),
+      since: new Date(0),
       now: new Date('2026-07-25T12:00:00.000Z'),
       limit: 100,
     })
@@ -348,6 +344,7 @@ describe('social ops routes', () => {
         channel: 'x',
         bufferSize: 3,
         priority: 'normal',
+        since: new Date(0),
         postText: expect.stringContaining('Which client deadlines may be affected?'),
         targetUrl: expect.stringContaining('utm_source=x'),
       })
@@ -407,7 +404,7 @@ describe('social ops routes', () => {
     })
   })
 
-  it('validates the seed count and cutover before reading D1', async () => {
+  it('validates the seed count before reading D1', async () => {
     const invalidCountResponses = [
       await opsRoute.request(
         '/social/drafts/seed',
@@ -434,19 +431,6 @@ describe('social ops routes', () => {
       expect(response.status).toBe(400)
     }
 
-    const missingCutover = await opsRoute.request(
-      '/social/drafts/seed',
-      authorizedInit({ count: 3 }),
-      env(),
-    )
-    const invalidCutover = await opsRoute.request(
-      '/social/drafts/seed',
-      authorizedInit({ count: 3 }),
-      env({ X_SOCIAL_START_AT: 'not-a-date' }),
-    )
-
-    expect(missingCutover.status).toBe(503)
-    expect(invalidCutover.status).toBe(503)
     expect(dbMocks.listEligibleCandidates).not.toHaveBeenCalled()
   })
 

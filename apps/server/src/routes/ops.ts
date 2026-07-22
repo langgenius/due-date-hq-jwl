@@ -216,15 +216,10 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       return c.json({ error: 'count must be an integer from 1 to 14' }, 400)
     }
 
-    if (!c.env.X_SOCIAL_START_AT) {
-      return c.json({ error: 'X social publishing cutover is not configured' }, 503)
-    }
-    const since = new Date(c.env.X_SOCIAL_START_AT)
-    if (Number.isNaN(since.getTime())) {
-      return c.json({ error: 'X social publishing cutover is invalid' }, 503)
-    }
-
     const now = new Date()
+    // This endpoint is an explicit operator-authorized backfill. Unlike the
+    // daily scheduler, it may fill the review buffer from pre-cutover Alerts.
+    const since = new Date(0)
     const repo = makeSocialOpsRepo(createDb(c.env.DB))
     await repo.cancelIneligiblePosts({
       channel: 'x',

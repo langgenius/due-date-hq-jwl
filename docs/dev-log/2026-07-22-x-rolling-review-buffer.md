@@ -53,6 +53,8 @@ read-only and does not generate content while it is being viewed.
 - Operator seeding applies the same sweep, counts only drafts whose joined Pulse still satisfies
   candidate policy inside the atomic insert, and re-reads the eligible projection before reporting
   the final buffer. Concurrent seed requests therefore report the durable shared result.
+- Because seeding is a token-gated operator backfill, it can fill the initial buffer from the newest
+  pre-cutover Alerts; the unattended daily scheduler alone enforces `X_SOCIAL_START_AT`.
 - Live enqueue or later Queue failures return the attempted Post to draft and consume that ET day's
   slot. It can sit beside the already-created rolling draft; both remain visible for explicit review
   instead of being discarded.

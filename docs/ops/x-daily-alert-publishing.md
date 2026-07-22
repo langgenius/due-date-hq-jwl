@@ -105,7 +105,8 @@ pnpm social:x -- candidates --pulse '<pulse id>'
 
 Ensure that the current review buffer contains three drafts, filling any missing positions from the
 newest eligible Alerts. This is useful immediately after the first deployment. It is an explicit
-operator mutation; normal operation relies on the one-per-day scheduler:
+operator mutation and may deliberately backfill Alerts from before `X_SOCIAL_START_AT`; normal
+operation relies on the one-per-day scheduler and continues to enforce that cutover:
 
 ```bash
 pnpm social:x -- seed-drafts
