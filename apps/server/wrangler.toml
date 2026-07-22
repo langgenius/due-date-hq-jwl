@@ -200,10 +200,9 @@ AI_SYSTEM_DAILY_LIMIT = "1500"
 # this to "true", AND (3) set marketing PUBLIC_ENABLE_DEMO="true" so the Hero
 # "Try a live demo" button appears. The demo session is server-enforced read-only.
 ENABLE_PUBLIC_DEMO = "false"
-# Social posting fails closed in draft mode. After the seven-day shadow review,
-# switch to "live" only after setting X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN,
-# X_ACCESS_TOKEN_SECRET and SOCIAL_OPS_TOKEN with `wrangler secret put`.
-X_POSTING_MODE = "draft"
+# Social posting fails closed unless the operator has configured all four OAuth
+# 1.0a user credentials plus SOCIAL_OPS_TOKEN and verified the fixed account.
+X_POSTING_MODE = "live"
 # Pulse rows older than this deployment cutover never enter the automatic social
 # candidate scan; operators can still add a specific historical Pulse manually.
 X_SOCIAL_START_AT = "2026-07-21T00:00:00.000Z"
