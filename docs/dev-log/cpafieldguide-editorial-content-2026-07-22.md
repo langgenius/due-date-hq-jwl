@@ -94,3 +94,24 @@ Drake, TaxDome (bot-blocked), Pixie (SVG mockups only), Aiwyn, Sage (403), ProAd
 
 Also noticed: keeper.app's og-image now brands as "double" — Keeper appears to be
 rebranding. Verify before renaming anything on the site.
+
+## Addendum 2 (same day): second push on the hard 13 — coverage now 16/25
+
+Escalated sourcing beyond marketing pages to vendor documentation and live public
+surfaces:
+- **TaxDome** — full Insights-dashboard screenshot from their own Help Center
+  navigation article (help.taxdome.com; marketing site is bot-blocked but docs
+  aren't).
+- **ProSeries** — real Federal Information Worksheet screenshot from Intuit's own
+  support article (accountants.intuit.com help-article).
+- **Pixie** — official product-mockup hero rendered from their homepage SVG via
+  Playwright element screenshot.
+- **ProAdvisor** — live capture of the public Find-a-ProAdvisor directory
+  (proadvisor.intuit.com), the program's actual artifact; cropped to the filter UI.
+
+Dead ends, documented so nobody re-treads them: QBO test-drive sits behind
+reCAPTCHA (did not bypass — that's a line); Lacerte support-article images load
+inside a dynamic component the scraper can't reach (got a lightbulb icon);
+Drake KB image viewer likewise; CCH Axcess / ATX / Sage / ONESOURCE / Aiwyn public
+pages contain only stock photos, badges, or SVG illustrations. Remaining 9 need
+frames from official demo videos (manual).
