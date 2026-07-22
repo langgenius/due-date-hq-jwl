@@ -42,6 +42,9 @@ const c = zh
       foundingCta: '成为 founding user',
       missingNote:
         '没看到你用的工具？监控层与工具无关——DueDateHQ 监控的是官方来源，不依赖你运行哪套软件。',
+      fieldGuidePre: '还在选型？我们团队也维护 ',
+      fieldGuideLink: 'CPA Field Guide',
+      fieldGuidePost: '——按价格与 API 开放度对比 25 款 CPA 工具的独立指南，不收厂商的排位费。',
     }
   : {
       eyebrow: 'Works with your stack',
@@ -65,6 +68,10 @@ const c = zh
       foundingCta: 'become a founding user',
       missingNote:
         "Don't see your tool? The monitoring layer is tool-agnostic — DueDateHQ watches the official sources, not whichever software you run.",
+      fieldGuidePre: 'Still choosing between tools? Our team also maintains ',
+      fieldGuideLink: 'CPA Field Guide',
+      fieldGuidePost:
+        ' — an independent comparison of 25 CPA tools by pricing and API openness. No vendor pays for placement.',
     }
 
 const faq = zh
@@ -171,6 +178,12 @@ const faq = zh
 
   <section class="m-section wws-note">
     <p>{c.missingNote}</p>
+    <p>
+      {c.fieldGuidePre}<a
+        href="https://cpafieldguide.com/cpa-software-with-open-api"
+        rel="noopener">{c.fieldGuideLink}</a
+      >{c.fieldGuidePost}
+    </p>
   </section>
 
   <section class="m-section m-page-block wws-faq" id="faq">

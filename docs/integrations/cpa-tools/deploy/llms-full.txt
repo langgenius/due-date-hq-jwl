@@ -1,5 +1,5 @@
 # CPA Field Guide — full index
-> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed 2026-07-08.
+> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed 2026-07-22.
 
 ## Key pages
 - Home: https://cpafieldguide.com/
@@ -21,6 +21,16 @@
 - QuickBooks Online vs Xero: https://cpafieldguide.com/quickbooks-online-vs-xero
 - Drake Tax vs UltraTax CS: https://cpafieldguide.com/drake-tax-vs-ultratax-cs
 - Lacerte vs ProSeries: https://cpafieldguide.com/lacerte-vs-proseries
+- ProConnect vs ProSeries: https://cpafieldguide.com/proconnect-vs-proseries
+- Lacerte vs ProConnect: https://cpafieldguide.com/lacerte-vs-proconnect
+- Drake Tax vs Lacerte: https://cpafieldguide.com/drake-tax-vs-lacerte
+- Drake Tax vs ProSeries: https://cpafieldguide.com/drake-tax-vs-proseries
+- UltraTax CS vs CCH Axcess: https://cpafieldguide.com/ultratax-cs-vs-cch-axcess
+- ATX vs Drake Tax: https://cpafieldguide.com/atx-vs-drake-tax
+- TaxDome vs Financial Cents: https://cpafieldguide.com/taxdome-vs-financial-cents
+- Karbon vs Financial Cents: https://cpafieldguide.com/karbon-vs-financial-cents
+- Xero vs Sage: https://cpafieldguide.com/xero-vs-sage
+- QuickBooks Online vs Sage: https://cpafieldguide.com/quickbooks-online-vs-sage
 
 ## Tools (full detail)
 ### Drake Tax

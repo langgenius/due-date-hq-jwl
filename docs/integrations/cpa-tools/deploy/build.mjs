@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 const base = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = readFileSync(base + '/cpa-tools-directory.html', 'utf8')
-const DATE = '2026-07-08'
+const DATE = '2026-07-22'
 const ORIGIN = 'https://cpafieldguide.com'
 
 // ---- extract shared parts by index (avoids nested-div regex pitfalls) ----
@@ -627,8 +627,30 @@ const VS_PAIRS = [
   ['quickbooks-online', 'xero'],
   ['drake-tax', 'ultratax-cs'],
   ['lacerte', 'proseries'],
+  ['proconnect', 'proseries'],
+  ['lacerte', 'proconnect'],
+  ['drake-tax', 'lacerte'],
+  ['drake-tax', 'proseries'],
+  ['ultratax-cs', 'cch-axcess'],
+  ['atx', 'drake-tax'],
+  ['taxdome', 'financial-cents'],
+  ['karbon', 'financial-cents'],
+  ['xero', 'sage'],
+  ['quickbooks-online', 'sage'],
 ]
-const ALT_SLUGS = ['taxdome', 'karbon', 'canopy', 'quickbooks-online', 'drake-tax']
+const ALT_SLUGS = [
+  'taxdome',
+  'karbon',
+  'canopy',
+  'quickbooks-online',
+  'drake-tax',
+  'lacerte',
+  'proseries',
+  'ultratax-cs',
+  'financial-cents',
+  'xero',
+  'ignition',
+]
 const nameBySlug = Object.fromEntries(toolData.map((t) => [t.slug, t.name]))
 function crossLinksFor(slug) {
   const vs = VS_PAIRS.filter((p) => p.includes(slug)).map(([a, b]) => ({

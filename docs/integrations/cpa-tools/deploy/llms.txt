@@ -1,5 +1,5 @@
 # CPA Field Guide
-> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms — tax preparation, deadline monitoring, practice management, and bookkeeping. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed 2026-07-08.
+> Independent, vendor-neutral directory of US tax & accounting software for CPA and accounting firms — tax preparation, deadline monitoring, practice management, and bookkeeping. Every tool is defined, priced, and rated for how open it is to integration. No vendor pays for placement. Reviewed 2026-07-22.
 
 ## Categories
 - [Tax Preparation](https://cpafieldguide.com/tax-preparation-software): Professional tax preparation software for US CPA firms: Drake, Lacerte, ProConnect, ProSeries, UltraTax CS, CCH Axcess, and ATX — what each does, who it fits, and how open it is to integration.
@@ -20,11 +20,27 @@
 - [QuickBooks Online vs Xero](https://cpafieldguide.com/quickbooks-online-vs-xero)
 - [Drake Tax vs UltraTax CS](https://cpafieldguide.com/drake-tax-vs-ultratax-cs)
 - [Lacerte vs ProSeries](https://cpafieldguide.com/lacerte-vs-proseries)
+- [ProConnect vs ProSeries](https://cpafieldguide.com/proconnect-vs-proseries)
+- [Lacerte vs ProConnect](https://cpafieldguide.com/lacerte-vs-proconnect)
+- [Drake Tax vs Lacerte](https://cpafieldguide.com/drake-tax-vs-lacerte)
+- [Drake Tax vs ProSeries](https://cpafieldguide.com/drake-tax-vs-proseries)
+- [UltraTax CS vs CCH Axcess](https://cpafieldguide.com/ultratax-cs-vs-cch-axcess)
+- [ATX vs Drake Tax](https://cpafieldguide.com/atx-vs-drake-tax)
+- [TaxDome vs Financial Cents](https://cpafieldguide.com/taxdome-vs-financial-cents)
+- [Karbon vs Financial Cents](https://cpafieldguide.com/karbon-vs-financial-cents)
+- [Xero vs Sage](https://cpafieldguide.com/xero-vs-sage)
+- [QuickBooks Online vs Sage](https://cpafieldguide.com/quickbooks-online-vs-sage)
 - [TaxDome alternatives](https://cpafieldguide.com/taxdome-alternatives)
 - [Karbon alternatives](https://cpafieldguide.com/karbon-alternatives)
 - [Canopy alternatives](https://cpafieldguide.com/canopy-alternatives)
 - [QuickBooks Online alternatives](https://cpafieldguide.com/quickbooks-online-alternatives)
 - [Drake Tax alternatives](https://cpafieldguide.com/drake-tax-alternatives)
+- [Lacerte alternatives](https://cpafieldguide.com/lacerte-alternatives)
+- [ProSeries alternatives](https://cpafieldguide.com/proseries-alternatives)
+- [UltraTax CS alternatives](https://cpafieldguide.com/ultratax-cs-alternatives)
+- [Financial Cents alternatives](https://cpafieldguide.com/financial-cents-alternatives)
+- [Xero alternatives](https://cpafieldguide.com/xero-alternatives)
+- [Ignition alternatives](https://cpafieldguide.com/ignition-alternatives)
 
 ## Data
 - [CPA software statistics 2026 (market share, pricing, APIs)](https://cpafieldguide.com/cpa-software-statistics)
