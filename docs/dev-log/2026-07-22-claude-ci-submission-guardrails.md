@@ -35,11 +35,18 @@ are tracked symlinks, keeping their reference libraries in one source while the 
 add DueDateHQ-specific commands and constraints. The existing `frontend-ui-engineering` skill now
 explicitly defers to the repository's no-`useEffect` rule.
 
+The Claude Code PreToolUse guard now enforces the no-bypass rule for both submission boundaries. It
+denies `git commit --no-verify`, commit `-n`, and `git push --no-verify`, while keeping the harmless
+`git push -n` dry-run available. A focused shell test covers denied commands, normal commit/push
+commands, compound commands, and commit messages that merely mention `--no-verify`. The focused
+test is part of `pnpm run ci`, preventing a later edit from silently weakening the guard.
+
 ## Validation
 
 - `node --check docs/integrations/cpa-tools/deploy/build.mjs`
 - `node --check scripts/check-generated-artifacts.mjs`
 - `node --check scripts/check-outreach-state.mjs`
+- `pnpm claude:guard:check`
 - `pnpm generated:check`
 - `pnpm run ci`
 - `pnpm run prepush`

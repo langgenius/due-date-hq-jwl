@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/no-verify-guard.sh\"",
-            "statusMessage": "Checking for --no-verify bypass"
+            "statusMessage": "Blocking git hook bypasses"
           }
         ]
       }

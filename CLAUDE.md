@@ -24,12 +24,14 @@ completion contract for Claude Code.
 1. Run `pnpm run ci`. A successful `build` alone is not CI verification.
 2. Run `pnpm generated:check` and `git diff --check`.
 3. Review `git status --short` and the staged diff so only intended files are included.
-4. Commit normally so `.vite-hooks/pre-commit` runs. Never use `--no-verify`, `-n`,
-   `VITE_GIT_HOOKS=0`, or another hook bypass.
+4. Commit normally so `.vite-hooks/pre-commit` runs. Never use `--no-verify`, commit `-n`,
+   `VITE_GIT_HOOKS=0`, or another hook bypass. The Claude PreToolUse guard rejects these commands;
+   a failing hook must be fixed, not skipped.
 5. Before pushing, commit every intended change and leave the worktree clean. The tracked pre-push
    hook rejects a dirty tree because uncommitted fixes could otherwise hide a broken commit.
-6. Let `.vite-hooks/pre-push` finish successfully. Do not report a push as successful until the
-   remote checks for that exact commit are green.
+6. Let `.vite-hooks/pre-push` finish successfully. Never use `git push --no-verify`; the Claude
+   PreToolUse guard rejects it. Do not report a push as successful until the remote checks for that
+   exact commit are green.
 
 If a check fails, fix the cause and rerun the full command. Do not describe a partial build,
 focused test, commit, push, merge, or deployment as if it proved a later stage.

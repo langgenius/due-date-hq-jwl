@@ -156,8 +156,10 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   `pnpm run ci`（含 generated-artifact drift）再加已提交 `HEAD` 的 `git show --check`。它是
   本地第二层防线，hosted CI / required checks 仍是服务器端最终边界。
 - agent 会话内禁止绕过：`.claude/settings.json` 注册了 PreToolUse(Bash) hook
-  `.claude/hooks/no-verify-guard.sh`，对携带 `--no-verify` / `-n` 的 `git commit` 直接
-  deny（这是 Claude Code 层守卫，不是 git 机制；commit message 里提到该 flag 不会误伤）。
+  `.claude/hooks/no-verify-guard.sh`，对携带 `--no-verify` 的 `git commit` / `git push`，以及
+  携带 `-n` 的 `git commit` 直接 deny（`git push -n` 只是 dry-run，保持允许）。这是 Claude
+  Code 层守卫，不是 git 机制；commit message 里提到该 flag 不会误伤。守卫行为由
+  `.claude/hooks/no-verify-guard.test.sh` 覆盖，并通过 `pnpm claude:guard:check` 纳入 CI。
 - worktree 没有 node_modules 时先 symlink 主 checkout 的依赖再正常 commit，不要绕过 hook。
 
 ### 2.5 Generator contract
