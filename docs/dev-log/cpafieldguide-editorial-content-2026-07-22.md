@@ -71,3 +71,24 @@ disclosure-first:
   resubmit.
 - Vendor screenshots for the remaining 22 tools (drop `detail-shots/<slug>.jpg`).
 - Backlink Tiers 1–2 (human-only) — unchanged.
+
+## Addendum (same day): vendor screenshots from public marketing assets
+
+Yuqi asked to source the missing vendor shots online (no product logins). Batch-fetched
+each vendor's own public marketing pages (curl + two Playwright rendered passes),
+visually triaged ~40 candidates, kept only genuine product-UI imagery — rejected
+headshots, award badges, logo cards, and stock photos. Installed 9:
+ultratax-cs (1120-S in-product), canopy (Inbox), file-in-time (classic desktop UI),
+firm360 (dashboard), financial-cents (workflow), bill-com (approve/deny), ignition
+(compliance dashboard), keeper (AI categorization), jetpack-workflow (My Work; has the
+vendor's own play-button overlay). All © vendor, captioned "shown for identification",
+takedown-responsive. Coverage now 12/25.
+
+Not covered (13) — their public pages ship people photos/badges, not UI: the Intuit
+trio (Lacerte/ProSeries/QBO — ProConnect already had a shot), Wolters Kluwer pair
+(CCH Axcess/ATX), Thomson Reuters pair (UltraTax has one, ONESOURCE Calendar no),
+Drake, TaxDome (bot-blocked), Pixie (SVG mockups only), Aiwyn, Sage (403), ProAdvisor
+(a program, not software). These would need manual capture from demo videos/webinars.
+
+Also noticed: keeper.app's og-image now brands as "double" — Keeper appears to be
+rebranding. Verify before renaming anything on the site.
