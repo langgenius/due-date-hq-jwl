@@ -207,13 +207,13 @@
 
 ### Keeper
 - Page: https://cpafieldguide.com/tools/keeper
-- Official site: https://keeper.app
+- Official site: https://doublehq.com
 - Category: Practice Management
 - Best for: Solo · small firms
 - Pricing: From $200/mo
 - Integration: Zapier only — It has no direct API; it connects to other tools through Zapier.
 - Summary: 
-            Month-end close and bookkeeping workflow with a two-way QuickBooks sync.
+            Month-end close and bookkeeping workflow with a two-way QuickBooks sync. Rebranded to Double in late 2025 — same product and pricing.
           
 
 ### Firm360

@@ -115,3 +115,21 @@ inside a dynamic component the scraper can't reach (got a lightbulb icon);
 Drake KB image viewer likewise; CCH Axcess / ATX / Sage / ONESOURCE / Aiwyn public
 pages contain only stock photos, badges, or SVG illustrations. Remaining 9 need
 frames from official demo videos (manual).
+
+## Addendum 3 (same day): demo-video frames — coverage 16/25 → 24/25
+
+yt-dlp + ffmpeg on OFFICIAL vendor channels only (channel verified before download),
+frame-extracted and hand-triaged: Drake Tax (official 38s demo — data entry + Tax
+Planner), Lacerte (Intuit "Introduction to Lacerte" webinar — client list + missing-
+data utility), CCH Axcess (WK "Tax Refresher" — worksheet view), QBOA (Intuit welcome
+tour — Work kanban), Aiwyn (their co-founder deep-dive — Firm Portal WIP, cropped to
+app), Sage (official Intacct Planning tour — P&L sheet; on-message since our verdict
+centers Intacct), ATX (WK rollover tutorial — Rollover Manager), Xero (official
+channel — bank-reconciliation match view). Rejected: talking-head and motion-graphics
+frames. ONESOURCE Calendar is the one remaining gap — every official video is pure
+marketing animation.
+
+Also fixed factual staleness: **Keeper rebranded to Double (Oct 2025, lawsuit-driven;
+product/pricing unchanged — confirmed via BusinessWire/CPA Practice Advisor)**. Kept
+slug/title "Keeper" (that's what GSC queries still say), updated official URL to
+doublehq.com, card desc + pros + verdict note the rebrand.

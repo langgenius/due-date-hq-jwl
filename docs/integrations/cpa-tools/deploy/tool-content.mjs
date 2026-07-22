@@ -416,6 +416,7 @@ export const toolContent = {
   keeper: {
     pros: [
       'Purpose-built for client accounting services: month-end close checklists, file review, and client questions in one loop',
+      'Rebranded to Double in late 2025 with product, pricing, and integrations unchanged — continuity, not a pivot',
       'Deep QuickBooks Online and Xero integration — it reads the actual books to power review',
       'Client portal shaped around bookkeeping questions rather than generic file exchange',
       'Flat firm pricing rather than per-user',
@@ -437,7 +438,7 @@ export const toolContent = {
       },
     ],
     verdict:
-      'The specialist for client accounting services — closer to the books than any general practice manager. Tax-led firms should treat it as a complement to their PM, not a replacement.',
+      'The specialist for client accounting services — closer to the books than any general practice manager (now sold as Double; same product under a new name). Tax-led firms should treat it as a complement to their PM, not a replacement.',
   },
 
   firm360: {

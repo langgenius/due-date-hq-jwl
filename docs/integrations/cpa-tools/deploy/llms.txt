@@ -94,7 +94,7 @@
           
 - [Jetpack Workflow](https://cpafieldguide.com/tools/jetpack-workflow): Practice Management. From $36/user/mo. Gated API. Simple recurring-job and deadline tracking built for small firms.
 - [Keeper](https://cpafieldguide.com/tools/keeper): Practice Management. From $200/mo. Zapier only. 
-            Month-end close and bookkeeping workflow with a two-way QuickBooks sync.
+            Month-end close and bookkeeping workflow with a two-way QuickBooks sync. Rebranded to Double in late 2025 — same product and pricing.
           
 - [Firm360](https://cpafieldguide.com/tools/firm360): Practice Management. From $49/user/mo. Zapier only. 
             All-in-one practice management — projects, documents, billing, and a portal.
