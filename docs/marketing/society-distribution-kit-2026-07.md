@@ -28,7 +28,7 @@ still live** (updated from Jul 8) — per our verified dataset.
 | 5   | **GSCPA** (Georgia)               | Brandi Kornegay, Mgr. Communications — bkornegay@gscpa.org                         | Only a stale Helene-era page; GA deadline Aug. 20 approaching                                                      |
 | 6   | **ASCPA** (Arizona)               | Rosa Hernandez — rhernandez@ascpa.com (magazine/eNews submissions route)           | Whitespace; AZ relief live to Sept. 28                                                                             |
 | 7   | **MTCPA** (Montana — montana.cpa) | erinn@montana.cpa (address to "marketing & comms team"; fallback info@montana.cpa) | Econnect weekly; no Fort Peck/Crow coverage (Sept. 28)                                                             |
-| 8   | **WICPA** (Wisconsin)             | communications@wicpa.org (no named editor)                                         | WI relief new Jul 13, nothing posted                                                                               |
+| 8   | **WICPA** (Wisconsin)             | communications@wicpa.org (no named editor)                                         | ⚠️ Published Jul 16 (3 days after IRS Jul 13) — speed-gap DEAD; use WICPA augment variant (verified 07-21)         |
 | 9   | **HSCPA** (Hawaii)                | info@hscpa.org                                                                     | News stale since 2023; HI relief **still live to Aug. 20** — "next time, same-day" pitch                           |
 
 ## Pitch email — MSCPA version (speed-gap; send first)
@@ -57,6 +57,23 @@ still live** (updated from Jul 8) — per our verified dataset.
 **LCPA variant (augmentation, not speed):** open by crediting their Jul 14 post, then: "next time
 I can save Ann the write-up — a verified, parish-level summary the same day the IRS posts, plus a
 live widget for your Disaster Response page."
+
+**WICPA variant (augmentation — they published Jul 16, verified 07-21):**
+
+> **Subject:** Same-day, county-level Wisconsin relief summaries — free for WICPA news
+>
+> Hi,
+>
+> Saw your July 16 item on the IRS relief for the April 13 storms — glad WICPA got it in front of
+> members. Next time I can save your team the write-up: we verify every IRS disaster-relief notice
+> against the irs.gov release the day it posts, and can send you a member-ready summary — dates,
+> counties, covered returns, source link — the same day. Free to run as-is or edited; a credit
+> line is appreciated but optional.
+>
+> There's also a small widget that keeps a live list of active Wisconsin relief on your site:
+> duedatehq.com/widget.
+>
+> Gigi · Co-Founder, DueDateHQ · a new product from Dify
 
 ## Ready-to-publish member notice — Mississippi (every fact from IRS MS-2026-02)
 
