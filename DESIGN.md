@@ -570,11 +570,18 @@ The spacing scale is based on 4px. Dashboard and Deadlines views are full-width 
 
 First screens must show useful work, not marketing chrome. Dashboard should reveal Alerts, the dollar risk hero, and at least eight customer rows. Deadlines should reveal at least twelve rows.
 
+**Cross-page title rhythm (2026-07-22).** Every top-level page lands its h1 on the same line: title top ≈56px from the viewport top at md+. Pages with an eyebrow line (greeting, sync stamp, breadcrumb) reach it via `pt-8` + eyebrow; pages without one use `pt-14` directly. Container horizontal canon for workbench pages is `max-w-page-expanded` + `px-4 md:px-8` (title x flush at the shared rail); narrow master-detail panes (/rules/library, /settings sub-nav) keep their own internal x. Never reintroduce a bare `pt-8` h1 — that was the pre-eyebrow avatar-centering tuning and it makes titles jump ~21px between page families.
+
 ## Elevation & Depth
 
 Use borders before shadows. Cards are flat: elevated surface plus a 1px border, no shadow. Drawers, popovers, and tooltips may use the subtle shadow. Modals and command palette may use the overlay shadow.
 
 Avoid nested cards and decorative depth. Depth exists to preserve focus and layering, not to create visual ornament.
+
+Two documented exceptions (2026-07-22 critique registration):
+
+- **Sticky decision-bar float shadow** `0 -10px 28px -16px rgba(16,24,40,0.18)` — the upward lift under a `sticky bottom-0` decision bar while it floats over a scrolling document (alert detail + deadline detail). Drops when the bar docks at the document end. This is the only sanctioned use of that literal; new float bars reuse it verbatim rather than minting a new rgba.
+- **Interactive-row inset accent bar** `inset 2px 0 0 var(--color-state-accent-solid)` — the hover/active left cue on full-bleed LIST ROWS (alerts list, clients table). This is an _interaction state on a flat row_, not a static side-stripe on a rounded card — the no-per-side-border rule still bans the latter. Never apply to `rounded-*` containers.
 
 ## Shapes
 

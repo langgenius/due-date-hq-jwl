@@ -36,7 +36,9 @@ export function SeverityChip({
   children,
   size = 'md',
   shape = 'pill',
+  tone = 'eyebrow',
   icon,
+  title,
   className,
 }: {
   level: SeverityLevel
@@ -46,14 +48,26 @@ export function SeverityChip({
   /** `pill` (rounded-full, default) for alert rows; `square` (rounded-sm) for
    * the registry-table eyebrow-tag treatment. */
   shape?: 'pill' | 'square'
+  /**
+   * `eyebrow` (default) — UPPERCASE, semibold, tracked: the URGENT/HIGH tier
+   * marker. `label` — sentence-case, font-medium, no tracking: a multi-word
+   * severity-toned tag ("Needs applicability review") where uppercase would
+   * shout a sentence. Added 2026-07-22 cross-surface sweep to absorb the
+   * rule-preview review-reason tags that hand-rolled this exact recipe.
+   */
+  tone?: 'eyebrow' | 'label'
   /** Optional leading glyph (size it `size-3`); rendered before the label. */
   icon?: ReactNode
+  /** Native title (hover) — e.g. the raw enum behind a humanized label. */
+  title?: string | undefined
   className?: string | undefined
 }) {
   return (
     <span
+      title={title}
       className={cn(
-        'inline-flex shrink-0 items-center gap-1 font-semibold tracking-eyebrow whitespace-nowrap uppercase',
+        'inline-flex shrink-0 items-center gap-1 whitespace-nowrap',
+        tone === 'eyebrow' ? 'font-semibold tracking-eyebrow uppercase' : 'font-medium normal-case',
         shape === 'pill' ? 'rounded-full' : 'rounded-sm',
         size === 'md' ? 'h-5 px-2 text-xs' : 'h-[18px] px-1.5 text-caption-xs',
         LEVEL_CLASS[level],

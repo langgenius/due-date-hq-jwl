@@ -436,7 +436,7 @@ function ProductStory() {
                 D
               </span>
               <span className="truncate text-sm font-medium text-text-primary">Whitmore CPA</span>
-              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-text-accent">
+              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-caption-xs font-bold tracking-wide text-text-accent">
                 PRO
               </span>
             </div>

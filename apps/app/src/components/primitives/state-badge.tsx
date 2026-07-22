@@ -353,14 +353,20 @@ export function getJurisdictionName(code: string): string {
  * is a different, denser treatment and stays inline.)
  */
 /**
- * JurisdictionChip — the canonical TEXT-ONLY jurisdiction code chip (CA /
- * FED / IRS) for rows, rails, cards, and table cells. One chrome
- * everywhere: `Badge variant="outline" shape="square"` (§4.10 ruled
- * jurisdiction codes are reference tags → neutral outline, never a tone
- * fill) in mono, with the full jurisdiction name as the hover tooltip.
+ * JurisdictionChip — the canonical jurisdiction code chip (CA / FED / IRS)
+ * for rows, rails, cards, and table cells. One chrome everywhere:
+ * `Badge variant="outline" shape="square"` (§4.10 ruled jurisdiction codes
+ * are reference tags → neutral outline, never a tone fill) in mono, with
+ * the full jurisdiction name as the hover tooltip.
+ *
+ * 2026-07-22 (Yuqi /alerts #3 "statebadge?"): the chip now carries the
+ * official SEAL ahead of the code — the same seal+code+frame anatomy the
+ * /today quiet rows established. FIXED width (w-14, sized to the widest
+ * code "FED" with the 12px seal) so chips stack into one aligned column
+ * in lists and tables; content centers in the frame.
  *
  * Family map — three jurisdiction treatments, each with ONE home:
- *   • `JurisdictionChip` — text-only code chip (this; the §4.11 entry)
+ *   • `JurisdictionChip` — framed seal + code chip (this; the §4.11 entry)
  *   • `JurisdictionLabel` — detail headers: seal + mono code + full name
  *   • `StateBadge`       — the bare circular seal (rails, coverage grid)
  *
@@ -375,11 +381,9 @@ export function JurisdictionChip({ code, className }: { code: string; className?
       variant="outline"
       shape="square"
       title={getJurisdictionName(upper)}
-      // min-w keeps 2-letter (CA) and 3-letter (FED) codes the same
-      // width so chips align in tabular columns (inherited from the
-      // rules-console JurisdictionCode it replaces).
-      className={cn('min-w-9 font-mono', className)}
+      className={cn('w-14 justify-center gap-1 px-1 font-mono', className)}
     >
+      <StateBadge code={upper} size="xs" preview={false} style={{ width: 12, height: 12 }} />
       {upper}
     </Badge>
   )

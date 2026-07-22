@@ -1,7 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowDownUpIcon, CheckIcon } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
 import {
   DropdownMenu,
@@ -27,8 +27,9 @@ import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { describeTaxCode } from '@/lib/tax-codes'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
-import { todayIsoDate } from '@/features/obligations/queue/helpers'
+import { deadlineDetailStateOrigin, todayIsoDate } from '@/features/obligations/queue/helpers'
 import { daysBetween } from '@/lib/utils'
 import {
   LIFECYCLE_V2_STATUS_SETS,
@@ -100,7 +101,7 @@ const STATUS_SORT_ORDER: readonly ObligationStatus[] = [
 type RailSort = 'due' | 'priority' | 'client' | 'status'
 
 function relativeDueLabel(row: ObligationQueueRow): {
-  text: string
+  days: number
   tone: 'late' | 'soon' | 'calm'
 } {
   // Live today-based count (matches the detail's date cards/banner) so the rail
@@ -110,9 +111,12 @@ function relativeDueLabel(row: ObligationQueueRow): {
   const today = todayIsoDate()
   const overdue = daysBetween(dueIso, today) // today − due, 0 when not past
   const until = daysBetween(today, dueIso) // due − today, 0 when not future
-  if (overdue > 0) return { text: `${overdue}d late`, tone: 'late' }
-  if (until === 0) return { text: 'Today', tone: 'soon' }
-  return { text: `in ${until}d`, tone: until <= 7 ? 'soon' : 'calm' }
+  // Return the SIGNED day count (neg = late, 0 = today, pos = future) so the
+  // wording comes from the canonical DueCountdownText (2026-07-22 sweep — the
+  // rail used to hand-roll "Today"/"in Nd", diverging from its sibling rails).
+  if (overdue > 0) return { days: -overdue, tone: 'late' }
+  if (until === 0) return { days: 0, tone: 'soon' }
+  return { days: until, tone: until <= 7 ? 'soon' : 'calm' }
 }
 
 /**
@@ -474,6 +478,8 @@ function DeadlineNavigatorRow({
   routeSearch: string
   statusLabel: string
 }) {
+  const location = useLocation()
+  const origin = deadlineDetailStateOrigin(location.state)
   const relative = relativeDueLabel(row)
   const showRelative = !RELATIVE_SUPPRESSED_STATUSES.has(row.status)
   // Arrival: scroll the opened deadline into view on the rail's first paint +
@@ -491,7 +497,9 @@ function DeadlineNavigatorRow({
     <Link
       ref={ref}
       to={deadlineDetailHref({ obligationId: row.id, tab: activeTab, search: routeSearch })}
-      state={{ obligationId: row.id }}
+      // Thread the launch origin (e.g. "/" when opened from /today) through
+      // rail hops so ✕/Esc still returns to the picker the user came from.
+      state={{ obligationId: row.id, ...(origin ? { from: origin } : {}) }}
       aria-current={active ? 'page' : undefined}
       className={cn(
         // Mirror the alert rail (AlertListRail) so both detail-page navigators
@@ -528,7 +536,7 @@ function DeadlineNavigatorRow({
                   : 'text-text-tertiary',
             )}
           >
-            {relative.text}
+            <DueCountdownText days={relative.days} />
           </span>
         ) : null}
       </div>

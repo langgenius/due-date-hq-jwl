@@ -1735,13 +1735,29 @@ export function AlertDetailDrawer({
             title leaf caps at 360px (batch 4 #12) so the crumb reads as a
             path, not a second full-width title. */}
         <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 cursor-pointer rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>Alerts</Trans>
-          </button>
+          {/* 2026-07-22 (critique: same alert opens as a drawer from /today
+              but a split view on /alerts, with no bridge between the two):
+              in SHEET mode the "Alerts" crumb is now a real link into the
+              canonical workspace with this alert focused (?alert=<id> is
+              the /alerts deep-link param), so the drawer is a preview you
+              can promote — not a dead end. Panel mode (already on /alerts)
+              keeps the close-to-list behaviour. */}
+          {mode === 'sheet' && detail ? (
+            <Link
+              to={`/alerts?alert=${encodeURIComponent(detail.alert.id)}`}
+              className="shrink-0 rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Alerts</Trans>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 cursor-pointer rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Alerts</Trans>
+            </button>
+          )}
           {/* The alert title reveals in the crumb ONLY once the hero title has
               scrolled out of view (Yuqi: "when you scroll up, still show the
               alert title, smaller"). At the top the big hero title is visible,
@@ -2743,8 +2759,12 @@ export function AlertDetailDrawer({
                 // (Yuqi 2026-06-23 "remove white background") — still opaque so it
                 // masks the document scrolling under it, but no longer reads as a
                 // distinct white bar against the gray body.
-                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t bg-background-section py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
-                decisionDocked ? 'border-transparent' : 'border-divider-subtle',
+                // 2026-07-22 (Yuqi: the decision bar had no separation from the
+                // document once docked — same gray bg + transparent border left
+                // the region borderless): the top hairline is now ALWAYS on;
+                // docking only drops the float shadow. One divider, per
+                // clear-sections-not-boxes.
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-col gap-3 border-t border-divider-regular bg-background-section py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
               )}
               // Float elevation as an inline style — an arbitrary
               // `shadow-[…rgba(…),…]` class gets dropped by tailwind-merge in cn()

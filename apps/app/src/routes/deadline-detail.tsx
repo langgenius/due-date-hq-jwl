@@ -20,7 +20,10 @@ import { DeadlineNavigatorRail } from '@/features/obligations/detail/DeadlineNav
 import { railListInputFromSearch } from '@/features/obligations/rail-list-input'
 import { ObligationQueueDetailDrawer } from '@/features/obligations/queue/ObligationQueueDetailDrawer'
 import { INITIAL_CURSOR } from '@/features/obligations/queue/constants'
-import { deadlineDetailStateObligationId } from '@/features/obligations/queue/helpers'
+import {
+  deadlineDetailStateObligationId,
+  deadlineDetailStateOrigin,
+} from '@/features/obligations/queue/helpers'
 import { orpc } from '@/lib/rpc'
 
 const RAIL_PAGE_SIZE = 50
@@ -88,6 +91,10 @@ export function DeadlineDetailRoute() {
   const obligationId =
     deadlineDetailStateObligationId(location.state, routeRef) ??
     findObligationIdByDeadlineRef(rows, routeRef)
+  // The picker this detail was launched from ("/" = /today). Close returns
+  // there; tab switches + prev/next paging thread it forward so the origin
+  // survives every in-detail navigation (2026-07-22 critique 进出不对称).
+  const detailOrigin = deadlineDetailStateOrigin(location.state)
 
   // 2026-06-16 (audit D1): when a deep-linked ref can't be resolved after the
   // list has fully loaded, the panel used to render a blank pane with no escape.
@@ -130,13 +137,20 @@ export function DeadlineDetailRoute() {
       if (!obligationId) return
       void navigate(deadlineDetailHref({ obligationId, tab, search: location.search }), {
         replace: true,
-        state: { obligationId },
+        state: { obligationId, ...(detailOrigin ? { from: detailOrigin } : {}) },
       })
     },
-    [navigate, obligationId, location.search],
+    [navigate, obligationId, location.search, detailOrigin],
   )
 
   const handleClose = useCallback(() => {
+    // Origin-aware close (2026-07-22 critique 进出不对称): a detail launched
+    // from /today (or any picker) closes back to that origin — closing onto
+    // the full /deadlines list lost the place the user actually came from.
+    if (detailOrigin) {
+      void navigate(detailOrigin)
+      return
+    }
     // Row-highlight round trip (ux-flow audit 2026-07-02): carry the open
     // obligation back as ?row=<id> so /deadlines lands with the origin row
     // scrolled into view + the one-time arrival wash — closing the detail
@@ -151,7 +165,7 @@ export function DeadlineDetailRoute() {
       return
     }
     void navigate(`/deadlines${cleaned}`)
-  }, [navigate, location.search, obligationId])
+  }, [navigate, location.search, obligationId, detailOrigin])
 
   // Prev/Next navigation across the loaded rows, in the same order the
   // rail shows. Clamped at the ends.
@@ -170,11 +184,11 @@ export function DeadlineDetailRoute() {
       void navigate(
         deadlineDetailHref({ obligationId: targetId, tab: activeTab, search: location.search }),
         {
-          state: { obligationId: targetId },
+          state: { obligationId: targetId, ...(detailOrigin ? { from: detailOrigin } : {}) },
         },
       )
     },
-    [navigate, activeTab, location.search],
+    [navigate, activeTab, location.search, detailOrigin],
   )
 
   return (

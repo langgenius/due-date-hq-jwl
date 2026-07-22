@@ -109,6 +109,27 @@ export function formatDatePretty(
   }).format(date)
 }
 
+/**
+ * Long dateline — "Wednesday, July 22, 2026". The canonical tier for a
+ * full spelled-out date (splash recap, welcome header). Uses the app
+ * locale (`intlLocale()`), not the browser default, so it matches every
+ * other formatter in this file rather than drifting per user browser.
+ * Date-only inputs are UTC-pinned (via parseDateInput) to avoid the
+ * western-timezone off-by-one; pass no argument for "today".
+ */
+export function formatDateLong(value?: string): string {
+  const date = value ? parseDateInput(value) : new Date()
+  if (!date) return value ?? ''
+  return new Intl.DateTimeFormat(intlLocale(), {
+    numberingSystem: 'latn',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    ...(value ? { timeZone: 'UTC' } : {}),
+  }).format(date)
+}
+
 function parseDateInput(value: string): Date | null {
   // Date-only inputs (`YYYY-MM-DD`) are normalized to UTC midnight so the
   // user's local time zone doesn't shift them a day backward. ISO-with-time

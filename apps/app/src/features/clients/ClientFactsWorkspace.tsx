@@ -1876,6 +1876,16 @@ function ClientsKpiStrip({
       label: t`Active deadlines`,
       value: activeObligations,
       sub: t`across ${statesCovered} jurisdictions`,
+      // 2026-07-22 (critique: 功能链路完整 — a number the CPA can read but
+      // not act on is a dead end): the count is an ENTRANCE to the queue.
+      href: '/deadlines',
+      ariaLabel: t`Open the deadlines queue`,
+      // This cell counts OPEN deadlines but the queue it links to opens
+      // at its all-statuses total (filed + extended included) — disclose
+      // the basis so the two numbers don't read as a mismatch (2026-07-22
+      // cross-surface sweep: open-vs-all disclosure, matching the sidebar
+      // badge's tooltip).
+      valueTooltip: t`Open deadlines across the firm — the queue also lists filed and extended`,
     },
     {
       key: 'risk',
@@ -1886,6 +1896,12 @@ function ClientsKpiStrip({
       ...(atRiskCount > 0 ? { valueClass: 'text-text-warning' } : {}),
       sub: atRiskCount > 0 ? t`need attention` : t`on track`,
       subClass: atRiskCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      // Lands on the overdue queue — the work that MAKES these clients
+      // at-risk. (The clients list has no risk facet; the deadline queue
+      // is where the risk is actionable.)
+      ...(atRiskCount > 0
+        ? { href: '/deadlines?due=overdue', ariaLabel: t`Open overdue deadlines` }
+        : {}),
     },
   ]
 

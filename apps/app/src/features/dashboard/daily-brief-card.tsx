@@ -163,21 +163,23 @@ export function DailyBriefCard({
           type="button"
           onClick={() => setCollapsed(false)}
           aria-expanded={false}
-          className="group/tab inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-state-accent-hover px-3 text-xs font-medium text-text-accent outline-none transition-colors hover:border-state-accent-border focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group/tab inline-flex h-7 min-w-0 max-w-full cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-state-accent-hover px-3 text-xs font-medium text-text-accent outline-none transition-colors hover:border-state-accent-border focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           {/* The masthead glyph — tilts a few degrees on hover, like picking
               the paper up off the mat. */}
           <NewspaperIcon
-            className="size-3.5 transition-transform group-hover/tab:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover/tab:rotate-0"
+            className="size-3.5 shrink-0 transition-transform group-hover/tab:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover/tab:rotate-0"
             aria-hidden
           />
-          <Trans>Daily Brief</Trans>
+          <span className="shrink-0">
+            <Trans>Daily Brief</Trans>
+          </span>
           {isPending ? (
             <RotateCwIcon className="size-3 animate-spin motion-reduce:animate-none" aria-hidden />
           ) : (
             <span
               className={cn(
-                'size-1.5 rounded-full',
+                'size-1.5 shrink-0 rounded-full',
                 // Failed = amber, not red: a missing optional AI sentence is
                 // not a destructive error (the rest of /today is unaffected).
                 brief?.status === 'failed' || brief?.status === 'stale'
@@ -187,9 +189,21 @@ export function DailyBriefCard({
               aria-hidden
             />
           )}
+          {/* All-quiet rides INSIDE the tab (Yuqi: the message belongs in the
+              Daily Brief frame, not floating beside it) — the folded paper
+              says its own one-liner. Neutral weight/color so the accent
+              label stays the chip's anchor. */}
+          {nothingToSay ? (
+            <span className="min-w-0 truncate font-normal text-text-secondary">
+              {/* A calm all-quiet line, not an apology: the brief self-heals
+                  server-side, so a missing AI sentence earns no "unavailable"
+                  framing here. */}
+              <Trans>All quiet — nothing new needs your attention right now.</Trans>
+            </span>
+          ) : null}
           {/* Chevron dips on hover — "pull down to unfold". */}
           <ChevronDownIcon
-            className="size-3.5 transition-transform group-hover/tab:translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tab:translate-y-0"
+            className="size-3.5 shrink-0 transition-transform group-hover/tab:translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tab:translate-y-0"
             aria-hidden
           />
         </button>
@@ -204,14 +218,7 @@ export function DailyBriefCard({
           >
             {teaser}
           </button>
-        ) : nothingToSay ? (
-          <p className="text-sm text-text-tertiary">
-            {/* A calm all-quiet line, not an apology: the brief self-heals
-                server-side, so a missing AI sentence earns no "unavailable"
-                framing here. */}
-            <Trans>All quiet — nothing new needs your attention right now.</Trans>
-          </p>
-        ) : (
+        ) : nothingToSay ? null : (
           // No AI headline yet (generating / couldn't update / firm scope) but
           // real work is pending — the tab still states the facts from the
           // deterministic counts instead of a blank line above the fold.
@@ -297,12 +304,11 @@ export function DailyBriefCard({
           and Priorities overdue bucket directly around this card). */}
         <BriefActionPills counts={todayCounts} scope={scope} />
 
-        {/* Failure footnote — a quiet caption, never the headline. */}
-        {aiEnabled && brief?.status === 'failed' && !brief.text ? (
-          <p className="text-sm leading-relaxed text-text-tertiary">
-            <Trans>Brief unavailable — we'll retry shortly.</Trans>
-          </p>
-        ) : null}
+        {/* 2026-07-22 (critique: double-messaging): the failure footnote
+            ("Brief unavailable — we'll retry shortly") is gone — the
+            "Couldn't update" freshness chip beside the title already
+            carries the status, and TodayLine renders its own retry note
+            in the lead slot. One home per fact. */}
       </section>
     </div>
   )

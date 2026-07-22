@@ -1,4 +1,5 @@
 import { Outlet, useNavigation, useNavigate, useLocation } from 'react-router'
+import { MenuIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Trans } from '@lingui/react/macro'
 
@@ -9,6 +10,7 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarProvider,
+  SidebarTrigger,
   useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
@@ -231,6 +233,19 @@ export function AppShell(props: AppShellProps) {
             touch consumer code. */}
         <SidebarInset className="relative bg-background-inset">
           {isReadOnlyDemoUser(props.user) ? <DemoSignupBanner /> : null}
+          {/* Mobile nav bar (Yuqi 2026-07-22: "更窄的话，哪里有nav?") — below
+              md the Sidebar renders as a Sheet drawer with NO desktop rail,
+              and until now nothing in the app mounted its trigger, so narrow
+              windows had no navigation entry point at all. This slim strip
+              is that entry: hamburger pinned above <main> (it does not
+              scroll away with content). md:hidden keeps it in exact
+              lockstep with useIsMobile's 768px cutover, so there is never a
+              rail AND a hamburger, or neither. */}
+          <div className="flex shrink-0 items-center px-4 pt-3 md:hidden">
+            <SidebarTrigger>
+              <MenuIcon className="size-4" aria-hidden />
+            </SidebarTrigger>
+          </div>
           {/* The notifications bell is NOT a floating top-right chip —
               that read as orphaned chrome with no neighbour and no
               navigation context. It lives in the sidebar footer

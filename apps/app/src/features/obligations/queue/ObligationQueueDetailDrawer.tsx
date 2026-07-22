@@ -63,7 +63,10 @@ import { tabsForObligationType } from '@/features/obligations/obligation-type'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
 import {
+  ALL_STATUSES,
+  LIFECYCLE_V2_STATUSES,
   type ObligationStatus,
+  ObligationQueueStatusControl,
   ObligationStatusReadBadge,
   useLifecycleV2StatusLabels,
   useStatusLabels,
@@ -453,12 +456,12 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  // 2026-05-26 (step-6 ux-flow audit Q7.1): removed dead
-  // `_statusDropdownOptions` computation. The drawer-header status
-  // pill was retired and the dropdown-options value was being
-  // computed only to immediately `void` it. If the pill comes back,
-  // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
-  // point — the cost is negligible.
+  // 2026-07-22 (Yuqi critique "详情页没有 status 控件"): the pill came back
+  // — as the INTERACTIVE ObligationQueueStatusControl in the page-mode
+  // header meta row, so the surface most read as "work on this deadline"
+  // finally exposes the change affordance (the queue rows had it; the
+  // detail didn't). Options re-derived per the 2026-05-26 note.
+  const statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   const [extensionDraft, setExtensionDraft] = useState(() => emptyExtensionPlanDraft())
   const [taxYearDraft, setTaxYearDraft] = useState<{
     obligationId: string
@@ -2409,15 +2412,26 @@ export function ObligationQueueDetailDrawer({
                   <Trans>Client record missing</Trans>
                 </span>
               ) : null}
-              {/* 2026-06-10 (Yuqi alert↔deadline parity #3 + critique
-                "de-dupe status"): the header status chip is dropped in page
-                mode — the full-bleed status banner above the header now
-                states status ONCE, in the same place the alert does. Panel /
-                sheet modes (no co-located banner pairing) keep the chip. */}
+              {/* 2026-07-22 (supersedes 2026-06-10 "de-dupe status"): page
+                mode gets the INTERACTIVE status control back. The banner
+                above frames urgency ("Past deadline · 71d late"); this pill
+                is the workflow ACTION — same control, chevron and all, as
+                the queue rows, so "you can change status here" is legible
+                on the one surface that most reads as the place to do it.
+                Sheet mode (no mutation wiring pairing) keeps the read badge. */}
               {mode === 'sheet' ? (
                 <ObligationStatusReadBadge
                   status={row.status}
                   className="h-6 text-caption-xs uppercase tracking-wide"
+                />
+              ) : isPageMode ? (
+                <ObligationQueueStatusControl
+                  row={row}
+                  labels={statusLabels}
+                  statuses={statusDropdownOptions}
+                  disabled={changeStatusMutation.isPending}
+                  onChange={(id, status) => changeStatus(id, status, row.status)}
+                  readOnly={!permission.can('obligation.status.update')}
                 />
               ) : null}
               {latestInputRequest ? (
@@ -2490,7 +2504,7 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                         <span className="text-text-tertiary">{entry.label}</span>
                         <span className="tabular-nums font-medium text-text-secondary">
-                          {formatDate(entry.iso)}
+                          {formatDatePretty(entry.iso, { alwaysShowYear: true })}
                         </span>
                       </span>
                     ))}
@@ -3093,7 +3107,7 @@ export function ObligationQueueDetailDrawer({
                                         {isDone && item.receivedAt ? (
                                           <span className="text-caption-xs text-text-tertiary">
                                             <Trans>
-                                              received {formatDate(item.receivedAt.slice(0, 10))}
+                                              received {formatDatePretty(item.receivedAt)}
                                             </Trans>
                                           </span>
                                         ) : null}

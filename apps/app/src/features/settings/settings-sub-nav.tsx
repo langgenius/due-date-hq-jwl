@@ -197,7 +197,7 @@ export function SettingsShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-10 md:flex-row md:gap-8 md:px-6 md:pt-8">
+        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-14 pb-10 md:flex-row md:gap-8 md:px-6">
           <aside className="shrink-0 md:sticky md:top-8 md:w-56 md:self-start">
             <SettingsSubNav />
           </aside>

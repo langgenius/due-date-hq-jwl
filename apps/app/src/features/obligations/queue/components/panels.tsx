@@ -542,7 +542,7 @@ export function PrimaryDeadlineStrip({
     // green Filed status appear three times.
     return (
       <div
-        aria-label={t`Filed on ${formatDate(filingIso)}`}
+        aria-label={t`Filed on ${formatDatePretty(filingIso, { alwaysShowYear: true })}`}
         // The compact hero is just info — date and relative time, no
         // surface needed — so it's an inline row of text with a
         // leading green check, no frame or background.
@@ -550,7 +550,9 @@ export function PrimaryDeadlineStrip({
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <ObligationStatusReadBadge status={row.status} />
-          <span className="tabular-nums text-text-secondary">{formatDate(filingIso)}</span>
+          <span className="tabular-nums text-text-secondary">
+            {formatDatePretty(filingIso, { alwaysShowYear: true })}
+          </span>
           {filingDays !== null && filingDays !== 0 ? (
             <>
               <span aria-hidden className="text-text-tertiary">
@@ -2847,7 +2849,7 @@ export function ActiveStageDetailCard({
                   ) : null}
                 </span>
                 <span className="shrink-0 tabular-nums text-text-tertiary">
-                  {formatDate(event.createdAt.slice(0, 10))}
+                  {formatDatePretty(event.createdAt)}
                 </span>
               </li>
             ))}
@@ -2921,7 +2923,7 @@ export function ActiveStageDetailCard({
                               ) : null}
                             </span>
                             <span className="shrink-0 tabular-nums text-text-tertiary">
-                              {formatDate(event.createdAt.slice(0, 10))}
+                              {formatDatePretty(event.createdAt)}
                             </span>
                           </li>
                         ))}

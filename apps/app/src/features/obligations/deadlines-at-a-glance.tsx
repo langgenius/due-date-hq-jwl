@@ -8,6 +8,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { formatDatePretty } from '@/lib/utils'
 
 /**
  * DeadlinesAtAGlance — the "AT A GLANCE" narrative tile row from the
@@ -138,7 +139,7 @@ export function DeadlinesAtAGlance({
             sub={
               mostOverdue ? (
                 <Trans>
-                  Most overdue open deadline · due {formatDueDate(mostOverdue.currentDueDate)}
+                  Most overdue open deadline · due {formatDatePretty(mostOverdue.currentDueDate)}
                 </Trans>
               ) : (
                 <Trans>No open deadline has slipped past its due date</Trans>
@@ -276,10 +277,4 @@ function NarrativeTile({
       </span>
     </button>
   )
-}
-
-function formatDueDate(value: string): string {
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date)
 }

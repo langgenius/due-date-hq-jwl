@@ -244,6 +244,24 @@ export function deadlineDetailStateObligationId(
   return obligationIdMatchesDeadlineRef(obligationId, routeRef) ? obligationId : null
 }
 
+/**
+ * The picker route the user launched the deadline detail FROM ("/", a
+ * client page, …), carried in history state by ObligationDrawerProvider's
+ * picker branch. The detail's close path returns here instead of dumping
+ * the user on the bare /deadlines list (2026-07-22 critique: 进出不对称).
+ * Only in-app absolute paths are honored — anything else returns null so
+ * a crafted history state can never turn ✕ into an external redirect.
+ */
+export function deadlineDetailStateOrigin(state: unknown): string | null {
+  if (!state || typeof state !== 'object') return null
+  const from = Reflect.get(state, 'from')
+  if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//')) return null
+  // Closing back onto the deadlines list itself is the default behaviour —
+  // treat it as "no special origin" so the search-preserving default runs.
+  if (from === '/deadlines' || from.startsWith('/deadlines?')) return null
+  return from
+}
+
 export function parseGeneratedReadinessChecklist(
   value: string | null,
 ): ReadinessChecklistItem[] | null {

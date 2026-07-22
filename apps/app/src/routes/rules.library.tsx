@@ -2763,7 +2763,18 @@ export function RulesLibraryRoute() {
           {/* Inner panel is centered + width-capped (like /today) so the
               overview reads as a focused dashboard with side breathing
               room, not an edge-to-edge wall. */}
-          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pt-8 pb-0 md:px-8 md:pb-0">
+          <div
+            className={cn(
+              'mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pb-0 md:px-8 md:pb-0',
+              // Cross-page title rhythm (2026-07-22 critique 页与页不连贯):
+              // the overview header has no eyebrow, so pt-14 (56px) lands
+              // "Rule library" on the same y as every other page title.
+              // The selected-jurisdiction header leads with its
+              // sync/coverage eyebrow — pt-8 + eyebrow reaches the same y
+              // naturally, like /today.
+              selectedGroup ? 'pt-8' : 'pt-14',
+            )}
+          >
             {selectedGroup ? (
               // Selected-jurisdiction header (Pencil O0pyRO `oJL8o`): a
               // sync/coverage eyebrow, the state name + mono code pill, and
@@ -4957,11 +4968,10 @@ function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
   const now = Date.now()
   if (effective <= now) return null
   const days = Math.max(1, Math.ceil((effective - now) / (24 * 60 * 60 * 1000)))
-  const effectiveLabel = new Date(effective).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  // Canonical pretty date (app locale, UTC-pinned) — was a browser-locale
+  // toLocaleDateString that diverged from every other rule date (2026-07-22
+  // cross-surface sweep).
+  const effectiveLabel = formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })
   return (
     <div className="shrink-0 px-5 pt-4">
       <Alert variant="warning" aria-label="Scheduled change">

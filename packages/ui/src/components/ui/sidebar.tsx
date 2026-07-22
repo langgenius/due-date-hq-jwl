@@ -65,7 +65,7 @@ import {
 //     the collapsed card with NO per-mode re-centering — the source of
 //     the old expand/collapse padding jump.
 const SIDEBAR_WIDTH = '16.5rem' // 264px — Pencil SidebarColumn (expanded), trimmed a touch
-const SIDEBAR_WIDTH_COLLAPSED = '5.125rem' // 82px — tuned so a left-aligned icon lands dead-center, so icons stay left-aligned in BOTH modes and never snap/drift during the collapse/expand width animation (Yuqi). Pencil baseline was 88px.
+const SIDEBAR_WIDTH_COLLAPSED = '5.75rem' // 92px — the labeled rail (Yuqi 2026-07-22 "Linear式 icon+微标签"): a 68px stacked icon+caption tile (widened from 64 so the longest one-line 11px caption, "Deadlines", clears the tile without truncating) plus card chrome. (The prior icon-only rail centered a left-aligned glyph; the stacked tile centers itself via mx-auto, so that tuning constraint is gone.)
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer matches expanded
 // Gutter inset of the floating card from its footprint, summed across
 // both sides (12px left + 12px right). Kept in sync with `inset-y-3
@@ -243,6 +243,10 @@ export function SidebarProvider({
     // "Deadlines" lands collapsed because Deadlines isn't Today.
     setManualOverride(null)
     setHovered(false)
+    // Mobile: the same nav click must also fold the Sheet drawer away —
+    // navigating and then landing UNDER a still-open drawer strands the
+    // user on chrome. No-op on desktop (openMobile is already false).
+    setOpenMobile(false)
   }, [])
 
   // Memoise the value so non-Provider subscribers don't re-render on every
@@ -439,7 +443,10 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           // px-2.5 py-1.5 (Yuqi "top/bottom padding too much"): trim the
           // card's vertical inner padding (10px → 6px) while keeping the
           // 10px sides; the header/footer no longer float in dead space.
-          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card px-2.5 py-1.5 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
+          // Collapsed (labeled rail): sides trim 10px → 4px so the 56px
+          // stacked tile fits the 64px card (88 − 24 inset) without
+          // clipping — the tile budget is card − 2×padding.
+          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card px-2.5 py-1.5 group-data-[collapsed=true]/sidebar:px-1 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
           // No hard border ("no board"). Separation comes from a soft
           // 1px ring-shadow (defines every edge subtly, no hard line)
           // plus a light blur lift — gentle when docked, a touch more when
@@ -711,16 +718,15 @@ const sidebarMenuButtonVariants = cva(
     // justify-center. SIDEBAR_WIDTH_COLLAPSED is tuned so a left-aligned icon
     // already sits on the rail centerline, so the glyph never snaps/drifts
     // during the width animation. Only the icon↔label gap collapses.
-    'group-data-[collapsed=true]/sidebar:gap-0',
-    // 2026-06-22 (Yuqi "collapsed selected box should be a square"): in the
-    // collapsed rail the row constrains to a centered 32×32 SQUARE (w-8 = h-8)
-    // so the active solid-accent pill and the hover wash read as a square tile,
-    // not a 38×32 stub of the expanded row-pill. The icon doesn't move: at
-    // px-[11px] in the full-width (38px) card the glyph already sits on the
-    // rail centerline; a centered w-8 box with px-2 ((32−16)/2 = 8) lands the
-    // glyph at the exact same x, so there's no snap on expand/collapse — only
-    // the highlight's right edge grows out into the pill.
-    'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:px-2',
+    // 2026-07-22 (Yuqi "nav 不太显眼 → Linear式 icon+微标签 rail"): the
+    // collapsed rail is no longer icons-only. Each row becomes a centered
+    // 64px-wide STACKED tile — glyph on top, 10px caption underneath — so
+    // every destination stays identifiable without the 264px footprint.
+    // Supersedes the 2026-06-22 32×32 square (that square existed to make
+    // the active pill read square around a lone icon; with a visible label
+    // the pill wraps icon+caption instead). h-auto + py: the tile is
+    // taller than the expanded h-8 row — height comes from content.
+    'group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:h-auto group-data-[collapsed=true]/sidebar:w-[68px] group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:py-1.5',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route
@@ -759,8 +765,12 @@ const sidebarMenuButtonVariants = cva(
     // bg-tint §1.2/§4.9 treatment): the active row is now a SOLID accent pill
     // with white label + icon (Acme-reference register). Chroma in the
     // container, white text — not colored-text-on-tint.
-    "data-[active=true]:bg-state-accent-solid data-[active=true]:font-medium data-[active=true]:text-text-inverted [&[data-active=true]_svg:not([class*='text-'])]:text-text-inverted",
-    "aria-[current=page]:bg-state-accent-solid aria-[current=page]:font-medium aria-[current=page]:text-text-inverted [&[aria-current=page]_svg:not([class*='text-'])]:text-text-inverted",
+    // 2026-07-22 (Yuqi "稍微强化激活态"): + shadow-sm — a micro-lift on the
+    // solid pill only (restrained-shadows allows micro-shadows on small
+    // affordances), so the current route reads a step above its siblings
+    // in both the labeled rail and the expanded list.
+    "data-[active=true]:bg-state-accent-solid data-[active=true]:font-medium data-[active=true]:text-text-inverted data-[active=true]:shadow-sm [&[data-active=true]_svg:not([class*='text-'])]:text-text-inverted",
+    "aria-[current=page]:bg-state-accent-solid aria-[current=page]:font-medium aria-[current=page]:text-text-inverted aria-[current=page]:shadow-sm [&[aria-current=page]_svg:not([class*='text-'])]:text-text-inverted",
     // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
     // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
     // `#eff4ff` tinted tile as expanded (just narrower) — the active
@@ -776,17 +786,20 @@ const sidebarMenuButtonVariants = cva(
     // fast against the 300ms aside transition, labels popped
     // before the rail finished moving.)
     '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-[360ms] [&>span:nth-child(2)]:ease-apple',
-    // 2026-06-09 (Yuqi "unify expanded/collapsed padding" + "copy
-    // exactly from pencil"): the button KEEPS its full metrics in
-    // collapsed mode — same h-10, same px-3, same gap-2.5. It is no
-    // longer shrunk to a centered 32×32 tile. Because the card is
-    // exactly icon + symmetric 12/12 item padding + 12/12 card padding
-    // wide when collapsed (Pencil §xiZyr), the left-aligned 16px icon
-    // lands dead-center automatically — no mx-auto / justify-center /
-    // gap-0 / px-0 gymnastics, and therefore no padding jump on toggle.
-    // Only the label hides: it fades to max-w-0 / opacity-0 (animated
-    // via the rule above) so the row visibly narrows with the rail.
-    'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:max-w-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:opacity-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:pointer-events-none group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:overflow-hidden',
+    // 2026-07-22 (labeled rail): the label NO LONGER hides in collapsed
+    // mode — it re-renders as the tile's 10px caption line (caption-xs,
+    // 500 weight so 10px stays legible, centered, truncating long names
+    // like "Rule library"). flex-none overrides the base flex-1 (which
+    // would stretch the span in the column layout), and text-center
+    // keeps captions centered under their glyphs. The old max-w-0 /
+    // opacity-0 fade-out rules are retired with it.
+    // 2026-07-22 ("歪了不好读"): ONE line, no wrap. The app supplies a short
+    // railLabel ("Rules") for any label that would wrap, so every caption is
+    // a single 11px line and the icon grid stays perfectly even (a 2-line
+    // wrap on one item was the only thing breaking the rhythm). truncate is
+    // the safety net for an unexpectedly long label. 11px (was 10) reads
+    // more comfortably at a glance.
+    'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:max-w-full group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:flex-none group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:text-[11px] group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:leading-none group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:font-medium group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:text-center group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:whitespace-nowrap group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:truncate',
   ),
   {
     variants: {

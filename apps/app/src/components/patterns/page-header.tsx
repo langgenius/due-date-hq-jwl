@@ -116,7 +116,10 @@ export function PageHeader({
        tight against the title block. */
     <header className={cn('flex flex-col gap-2', className)}>
       {eyebrowRow}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+      {/* md (was lg): the action cluster belongs ON the title row (Yuqi
+          2026-07-22 — a half-screen window pushed it under "Today"). Only
+          true phone widths stack; the title's min-w-0 truncates first. */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
         <div className="flex min-w-0 flex-col gap-2">
           {/* `min-w-0` so the title block can shrink when the actions
               cluster sits beside it at lg+ and the page narrows

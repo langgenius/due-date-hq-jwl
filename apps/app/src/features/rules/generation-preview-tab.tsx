@@ -53,6 +53,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { SeverityChip } from '@/components/primitives/severity-chip'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
@@ -1289,28 +1290,28 @@ function PreviewResultRow({
         {row.reviewReasons.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {row.reviewReasons.map((reason) => (
-              <span
+              // Canonical SeverityChip (label tone = sentence-case) — was a
+              // hand-rolled medium recipe (2026-07-22 sweep). Raw enum stays
+              // inspectable on hover; the chip speaks CPA.
+              <SeverityChip
                 key={reason}
-                // Raw enum stays inspectable on hover; the chip itself
-                // speaks CPA ("Needs applicability review"), not developer
-                // console ("rule_requires_applicability_review").
+                level="medium"
+                size="sm"
+                shape="square"
+                tone="label"
                 title={reason}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium"
               >
                 {reviewReasonLabel(reason, t)}
-              </span>
+              </SeverityChip>
             ))}
           </div>
         ) : null}
         {row.missingClientFacts.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {row.missingClientFacts.map((fact) => (
-              <span
-                key={fact}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium"
-              >
+              <SeverityChip key={fact} level="medium" size="sm" shape="square" tone="label">
                 {fact === 'fiscalYearEnd' ? t`Needs fiscal year end` : fact}
-              </span>
+              </SeverityChip>
             ))}
           </div>
         ) : null}

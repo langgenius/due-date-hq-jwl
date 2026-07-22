@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CalendarDaysIcon, UserRoundIcon } from 'lucide-react'
+import { CalendarDaysIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 import { type ReactNode } from 'react'
 
@@ -145,9 +145,9 @@ export function AssigneeQuickPicker({
             <Trans>Assign owner</Trans>
           </DropdownMenuLabel>
           <DropdownMenuRadioItem value="__unassigned__">
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-              <UserRoundIcon className="size-3" aria-hidden />
-            </span>
+            {/* Canonical avatar (name={null} → unassigned glyph), matching the
+                member rows below (2026-07-22 sweep — was a hand-rolled circle). */}
+            <AssigneeAvatar name={null} size="xs" title={t`Unassigned`} />
             <span>
               <Trans>Unassigned</Trans>
             </span>

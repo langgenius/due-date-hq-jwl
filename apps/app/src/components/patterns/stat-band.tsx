@@ -72,6 +72,15 @@ export interface StatBandItem {
   onClick?: () => void
   /** aria-label override for the interactive column. */
   ariaLabel?: string
+  /**
+   * Scope/basis disclosure for the value — the answer to "N of what?"
+   * (2026-07-22 cross-surface sweep). Rendered as the cell's native
+   * `title` AND folded into the computed aria-label, so a count whose
+   * basis differs from its click destination (e.g. an open-only count
+   * that links to an all-statuses queue) discloses that to both hover
+   * and screen readers instead of reading as a data mismatch.
+   */
+  valueTooltip?: string
 }
 
 /**
@@ -223,12 +232,20 @@ export function StatBand({
       'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
     )
 
+    // Fold the basis disclosure into the aria-label so it reaches screen
+    // readers, and expose it on hover via native title.
+    const composedAria =
+      stat.valueTooltip && stat.ariaLabel
+        ? `${stat.ariaLabel} — ${stat.valueTooltip}`
+        : (stat.ariaLabel ?? stat.valueTooltip)
+
     if (stat.href) {
       return (
         <Link
           key={stat.key}
           to={stat.href}
-          aria-label={stat.ariaLabel}
+          aria-label={composedAria}
+          title={stat.valueTooltip}
           className={interactiveClass}
         >
           {body}
@@ -241,7 +258,8 @@ export function StatBand({
           key={stat.key}
           type="button"
           onClick={stat.onClick}
-          aria-label={stat.ariaLabel}
+          aria-label={composedAria}
+          title={stat.valueTooltip}
           className={interactiveClass}
         >
           {body}
@@ -249,7 +267,7 @@ export function StatBand({
       )
     }
     return (
-      <div key={stat.key} className={columnClass}>
+      <div key={stat.key} className={columnClass} title={stat.valueTooltip}>
         {body}
       </div>
     )
@@ -344,6 +362,10 @@ export function StatSummaryStrip({
     >
       {visible.map((stat, index) => {
         const interactive = Boolean(stat.href || stat.onClick)
+        const composedAria =
+          stat.valueTooltip && stat.ariaLabel
+            ? `${stat.ariaLabel} — ${stat.valueTooltip}`
+            : (stat.ariaLabel ?? stat.valueTooltip)
         const body = (
           <>
             <span
@@ -377,20 +399,28 @@ export function StatSummaryStrip({
               </span>
             ) : null}
             {stat.href ? (
-              <Link to={stat.href} aria-label={stat.ariaLabel} className={interactiveClass}>
+              <Link
+                to={stat.href}
+                aria-label={composedAria}
+                title={stat.valueTooltip}
+                className={interactiveClass}
+              >
                 {body}
               </Link>
             ) : stat.onClick ? (
               <button
                 type="button"
                 onClick={stat.onClick}
-                aria-label={stat.ariaLabel}
+                aria-label={composedAria}
+                title={stat.valueTooltip}
                 className={interactiveClass}
               >
                 {body}
               </button>
             ) : (
-              <span className="inline-flex items-baseline gap-1.5">{body}</span>
+              <span className="inline-flex items-baseline gap-1.5" title={stat.valueTooltip}>
+                {body}
+              </span>
             )}
           </Fragment>
         )

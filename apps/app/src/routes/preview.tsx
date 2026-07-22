@@ -2730,7 +2730,7 @@ export function PreviewRoute() {
             <code className="font-mono">migration/</code> wizard (Wizard, WizardShell, Step1–4) →{' '}
             <code className="font-mono">/migration/new</code> ·{' '}
             <code className="font-mono">NeedsAttentionCard</code>,{' '}
-            <code className="font-mono">DashboardActionsList</code>,{' '}
+            <code className="font-mono">MergedBriefCard</code>,{' '}
             <code className="font-mono">ChangesSinceLastSection</code> →{' '}
             <code className="font-mono">/today</code> ·{' '}
             <code className="font-mono">CompletedKeyDates</code>,{' '}

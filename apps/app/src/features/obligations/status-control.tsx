@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { motion, useAnimationControls } from 'motion/react'
+import { ChevronDownIcon } from 'lucide-react'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic, ObligationQueueRow } from '@duedatehq/contracts'
@@ -329,6 +330,16 @@ function ObligationQueueStatusControl({
               className={STATUS_ICON_COLOR_ON_PILL[triggerStatus]}
             />
             {compact ? null : labels[triggerStatus]}
+            {/* 2026-07-22 (Yuqi: "很不明显你可以修改status"): a resting
+                chevron marks the pill as a CONTROL — before this the only
+                affordance was a hover ring, so the editable pill was
+                indistinguishable from the read-only StatusReadBadge. Muted
+                at rest, full strength on hover. Also rendered in compact
+                mode: the icon-only pill needs the cue even more. */}
+            <ChevronDownIcon
+              aria-hidden
+              className="shrink-0 opacity-50 transition-opacity group-hover/badge:opacity-100"
+            />
           </button>
         }
       />
@@ -429,7 +440,14 @@ function ObligationStatusReadBadge({
   // the fill.
   return (
     <motion.span animate={controls} className="inline-flex origin-center">
-      <Badge variant={STATUS_VARIANT[status]} className={className}>
+      {/* h-6 px-2.5 baked in (2026-07-22): Yuqi's "more generous status
+          padding" started as a /today-only override, which forked the same
+          status pill into two sizes across pages. The roomy size is now the
+          FAMILY default — it also matches the interactive
+          ObligationQueueStatusControl's h-6, so read and control pills
+          share one silhouette everywhere. Callers may still override via
+          className (the drawer's uppercase caption variant does). */}
+      <Badge variant={STATUS_VARIANT[status]} className={cn('h-6 px-2.5 text-xs', className)}>
         <StatusMark status={status} className={STATUS_ICON_COLOR_ON_PILL[status]} />
         {labels[status]}
       </Badge>

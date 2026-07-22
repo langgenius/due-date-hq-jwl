@@ -201,6 +201,7 @@ import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 // colocated test + existing './obligations' importers).
 import {
   URGENCY_BAND_ORDER,
+  deadlineDetailStateOrigin,
   urgencyBandOf,
   type UrgencyBand,
 } from '@/features/obligations/queue/helpers'
@@ -1093,6 +1094,10 @@ export function ObligationQueueRoute() {
   const routeObligationRef = normalizeDeadlineRef(routeParams.obligationRef)
   const routeDetailTab = normalizeDeadlineDetailTab(routeParams.detailTab)
   const routeStateObligationId = deadlineDetailStateObligationId(location.state, routeObligationRef)
+  // Where the user LAUNCHED this detail from (e.g. "/" when a /today
+  // priorities row navigated here). Close returns there; row-to-row
+  // switching threads it forward so the origin survives paging.
+  const detailOrigin = deadlineDetailStateOrigin(location.state)
   const queryClient = useQueryClient()
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
@@ -2174,18 +2179,23 @@ export function ObligationQueueRoute() {
   const openQueueDetail = useCallback(
     (obligationId: string, tab: ObligationQueueDetailTab = activeDetailTab) => {
       void navigate(deadlineDetailHref({ obligationId, tab, search: deadlineDetailSearch }), {
-        state: { obligationId },
+        // Thread the launch origin through row-to-row switches so ✕/Esc
+        // still returns to the picker the user actually came from.
+        state: { obligationId, ...(detailOrigin ? { from: detailOrigin } : {}) },
       })
     },
-    [activeDetailTab, deadlineDetailSearch, navigate],
+    [activeDetailTab, deadlineDetailSearch, detailOrigin, navigate],
   )
   const closeQueueDetail = useCallback(() => {
     if (routeObligationRef) {
-      void navigate(`/deadlines${deadlineDetailSearch}`)
+      // Origin-aware close (2026-07-22 critique 进出不对称): a detail
+      // launched from /today closes back to /today; launched from the
+      // queue it returns to the filtered list as before.
+      void navigate(detailOrigin ?? `/deadlines${deadlineDetailSearch}`)
       return
     }
     void setObligationQueueQuery({ drawer: null, id: null, row: null })
-  }, [deadlineDetailSearch, navigate, routeObligationRef, setObligationQueueQuery])
+  }, [deadlineDetailSearch, detailOrigin, navigate, routeObligationRef, setObligationQueueQuery])
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = functionalUpdate(updater, rowSelection)
@@ -2427,7 +2437,7 @@ export function ObligationQueueRoute() {
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${tableRow.original.clientName} details`}
                   title={t`Peek client details`}
-                  className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                  className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
                 >
                   <EyeIcon className="size-3.5" aria-hidden />
                 </Button>
@@ -3885,18 +3895,19 @@ export function ObligationQueueRoute() {
           replaced ON THIS SURFACE by a compact ~24px clickable stat strip. Same
           totals, same click-to-filter shortcuts, ~85px reclaimed → the table rises
           well up the fold. The shared StatBand stays on /clients · /rules · /alerts. */}
-      {!panelOpenIntent ? (
-        <div className="flex flex-col gap-2">
-          {/* Editorial one-liner — the week's read. 2026-06-29 (Yuqi "should be in
-              a long thin banner?"): a thin full-width banner (subtle wash +
-              hairline) instead of naked text, so the dismiss ✕ anchors to the
-              banner's right edge — short reads like "Nothing overdue" no longer
-              leave it floating in dead space. */}
+      {/* 2026-07-22 (Yuqi: the "15 Overdue · 23 In review · 6 Filed" strip
+          "感觉游离在外" — it floated as naked text under the framed banner):
+          the sentence and the portfolio strip now live in ONE framed
+          at-a-glance zone, split by a hairline. Dismissing ✕ folds away the
+          sentence row only; the strip (it's the click-to-filter shortcut
+          row, permanent) keeps the frame so it never floats unanchored. */}
+      {!panelOpenIntent && (!glanceDismissed || scopeTotal > 0) ? (
+        <section
+          aria-label={t`Deadlines at a glance`}
+          className="flex flex-col rounded-xl border border-divider-subtle bg-background-section"
+        >
           {!glanceDismissed ? (
-            <section
-              aria-label={t`Deadlines at a glance`}
-              className="flex items-center gap-2.5 rounded-xl border border-divider-subtle bg-background-section px-3.5 py-2"
-            >
+            <div className="flex items-center gap-2.5 px-3.5 py-2">
               <span
                 className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
                 aria-hidden
@@ -3908,23 +3919,29 @@ export function ObligationQueueRoute() {
                 ·
               </span>
               <p className="min-w-0 flex-1 truncate text-sm leading-snug text-text-primary">
+                {/* 2026-07-22 (Yuqi "不够直白"): plain statements — the fact,
+                    then the first move. The old editorial voice ("clear the
+                    urgent set to pull the week back on track") dressed the
+                    number in metaphor; a CPA scanning the queue wants the
+                    number and where to start, nothing else. */}
+                {/* "across the firm" names the SCOPE (2026-07-22 critique:
+                    /today shows a My-work overdue count, this page counts
+                    firm-wide — the same fact wore two unlabeled numbers, so
+                    the smaller one read as a data bug). */}
                 {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
                   <Trans>
-                    {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today
-                    — clear the urgent set to close the week strong.
+                    {deadlinesNarrative.overdue} overdue and {deadlinesNarrative.dueToday} due today
+                    across the firm — start with the overdue.
                   </Trans>
                 ) : deadlinesNarrative.overdue > 0 ? (
                   <Trans>
-                    {deadlinesNarrative.overdue} overdue — clear the urgent set to pull the week
-                    back on track.
+                    {deadlinesNarrative.overdue} deadlines overdue across the firm — start with the
+                    oldest.
                   </Trans>
                 ) : deadlinesNarrative.dueToday > 0 ? (
-                  <Trans>
-                    {deadlinesNarrative.dueToday} filing today — stay ahead to keep the week on
-                    track.
-                  </Trans>
+                  <Trans>{deadlinesNarrative.dueToday} deadlines due today across the firm.</Trans>
                 ) : (
-                  <Trans>Nothing overdue — the week is on track.</Trans>
+                  <Trans>Nothing overdue across the firm.</Trans>
                 )}
               </p>
               <Button
@@ -3937,20 +3954,31 @@ export function ObligationQueueRoute() {
               >
                 <XIcon className="size-3.5" aria-hidden />
               </Button>
-            </section>
+            </div>
           ) : null}
-          {/* Compact portfolio summary strip — the actionable triage states in
-              one line (each segment fires the same scope filter the StatBand cell
-              did). Hidden when there's nothing to summarise so the empty/loading
+          {/* Portfolio strip — the actionable triage states in one line (each
+              segment fires the same scope filter the StatBand cell did).
+              Hidden when there's nothing to summarise so the empty/loading
               state never shows "0 · 0 · 0 · 0 · 0". Shared `StatSummaryStrip`. */}
           {scopeTotal > 0 ? (
-            <StatSummaryStrip
-              stats={summaryStripCells}
-              loading={glanceQuery.isLoading || facetsQuery.isLoading}
-              ariaLabel={t`Deadlines portfolio summary`}
-            />
+            <div
+              className={cn(
+                'flex items-center gap-2.5 px-3.5 py-2',
+                !glanceDismissed && 'border-t border-divider-subtle',
+              )}
+            >
+              {/* Alignment ghost — same footprint as the sentence row's
+                  status dot (size-1.5 + the shared gap), so "15" starts on
+                  exactly the same x as "WED JUL 22" (Yuqi: 左边没有对齐). */}
+              <span className="size-1.5 shrink-0" aria-hidden />
+              <StatSummaryStrip
+                stats={summaryStripCells}
+                loading={glanceQuery.isLoading || facetsQuery.isLoading}
+                ariaLabel={t`Deadlines portfolio summary`}
+              />
+            </div>
           ) : null}
-        </div>
+        </section>
       ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:
@@ -5917,9 +5945,9 @@ function AssigneeQuickPicker({
             <Trans>Assign owner</Trans>
           </DropdownMenuLabel>
           <DropdownMenuRadioItem value="__unassigned__">
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-              <UserRoundIcon className="size-3" aria-hidden />
-            </span>
+            {/* Canonical avatar (name={null} → unassigned glyph), matching the
+                member rows below (2026-07-22 sweep — was a hand-rolled circle). */}
+            <AssigneeAvatar name={null} size="xs" title={t`Unassigned`} />
             <span>
               <Trans>Unassigned</Trans>
             </span>

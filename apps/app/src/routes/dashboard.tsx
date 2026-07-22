@@ -282,7 +282,11 @@ export function DashboardRoute() {
     // scrollable"). Header / Alerts / Daily Brief hold their natural height (no
     // min-h-0 → flex won't shrink them below content). Below xl we drop the frame
     // so narrow/short viewports scroll the page normally.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12 xl:h-full xl:min-h-0">
+    // Narrow screens tighten one step (gap-6 / pt-6 pb-10) — 32px section
+    // gaps cut a phone viewport into fragments; md restores the desktop
+    // rhythm (the pt-8 title↔sidebar-avatar eye-line only exists with the
+    // sidebar visible anyway).
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-10 md:gap-8 md:px-8 md:pt-8 md:pb-12 xl:h-full xl:min-h-0">
       {/* /today routes through the same `<PageHeader>` primitive as
           /clients, /deadlines, /alerts, and /rules/library — date sits
           in the canonical pill chip slot so it matches the family's

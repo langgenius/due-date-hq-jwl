@@ -113,11 +113,26 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       // Route doesn't own a panel mount. Navigate to the canonical
       // surface so the obligation always renders in a route layout,
       // never as a floating Sheet.
+      // `from` = the picker the user launched from (2026-07-22 critique:
+      // "进出不对称" — arriving from /today and closing onto the full
+      // /deadlines list lost the user's place). The detail route's close
+      // path returns here instead of the bare list.
       void navigate(deadlineDetailHref({ obligationId: nextObligationId }), {
-        state: { obligationId: nextObligationId },
+        state: {
+          obligationId: nextObligationId,
+          from: location.pathname + location.search,
+        },
       })
     },
-    [isQueueRoute, location.search, navigate, routeOwnsPanel, setSearchParams, urlObligationId],
+    [
+      isQueueRoute,
+      location.pathname,
+      location.search,
+      navigate,
+      routeOwnsPanel,
+      setSearchParams,
+      urlObligationId,
+    ],
   )
 
   const closeDrawer = useCallback(() => {

@@ -47,6 +47,15 @@ import { useKeyboardShell } from '@/components/patterns/keyboard-shell/hooks'
 type NavItem = {
   href: string
   label: string
+  /**
+   * Short label for the COLLAPSED icon+caption rail, where the full label
+   * would wrap to two lines and break the even icon grid (2026-07-22:
+   * "歪了不好读"). Only set it for labels that wrap at the ~56px tile
+   * width; expanded mode always shows the full `label`. The visual
+   * collapsed state (which flips on hover-expand) drives which shows, so
+   * hovering the rail reveals the full label.
+   */
+  railLabel?: string
   icon: LucideIcon
   end?: boolean
   badge?: string
@@ -510,6 +519,9 @@ function useNavItems(firm: FirmPublic): NavConfig {
         {
           href: '/rules/library',
           label: t`Rule library`,
+          // Collapsed rail shows "Rules" (one line) — "Rule library" wrapped
+          // to two lines and was the one item breaking the icon grid.
+          railLabel: t`Rules`,
           icon: BookOpenIcon,
           end: false,
           ...(ruleReviewBadge !== undefined
@@ -711,6 +723,9 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
   // /practice, /members, /workload, /billing, /reminders). data-active flips
   // the same styling as NavLink's aria-current.
   const extraActive = item.activeMatch?.(pathname) ?? false
+  // Today's rest-state distinction (see the Icon/label className below).
+  const isTodayItem = item.href === '/'
+  const isTodayActive = isTodayItem && pathname === '/'
 
   // On click, notify the sidebar context so the destination route's
   // auto-collapse-on-panel-mount is absorbed and the rail stays
@@ -747,8 +762,37 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
               className={cn(disabled && 'pointer-events-none')}
               title={tooltipDisabled ? tooltip : undefined}
             >
-              <Icon aria-hidden />
-              <span data-slot="sidebar-menu-label">{item.label}</span>
+              {/* Today reads one quiet step above its siblings at rest (Yuqi
+                  2026-07-22 "Today可以稍微不一样一点点"): primary-ink glyph +
+                  500 label vs the tertiary/400 default. Guarded off while
+                  ACTIVE — the `text-` class on the icon would otherwise beat
+                  the pill's not([class*='text-']) white-icon rule and leave a
+                  dark glyph on the navy pill. */}
+              <Icon
+                aria-hidden
+                className={isTodayItem && !isTodayActive ? 'text-text-primary' : undefined}
+              />
+              <span
+                data-slot="sidebar-menu-label"
+                className={cn(
+                  isTodayItem && 'font-medium',
+                  isTodayItem && !isTodayActive && 'text-text-primary',
+                )}
+              >
+                {item.railLabel ? (
+                  <>
+                    {/* Full label in expanded mode; short railLabel only in the
+                        visual-collapsed rail (data-collapsed toggles on hover-
+                        expand, so hovering reveals the full label). */}
+                    <span className="group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>
+                    <span className="hidden group-data-[collapsed=true]/sidebar:inline">
+                      {item.railLabel}
+                    </span>
+                  </>
+                ) : (
+                  item.label
+                )}
+              </span>
               {item.badge ? <NavItemBadge value={item.badge} tone={badgeTone} /> : null}
               {item.tag ? (
                 <span

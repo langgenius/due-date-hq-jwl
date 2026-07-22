@@ -8,7 +8,7 @@ import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contract
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
-import { StateBadge } from '@/components/primitives/state-badge'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
 import { fadeMotion } from '@/lib/motion'
 
@@ -109,14 +109,10 @@ export function ClientSummaryStrip({
         jurisdictions.length > 0 ? (
           <span className="flex flex-wrap items-center gap-2">
             {jurisdictions.map((code) => (
-              <span
-                key={code}
-                className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-1"
-              >
-                <StateBadge code={code} size="xs" preview={false} />
-                {/* Jurisdiction code is key data → 500 (font-medium), not 600. */}
-                <span className="text-sm font-medium text-text-primary">{code}</span>
-              </span>
+              // Canonical framed seal+code chip (2026-07-22 sweep — was a
+              // hand-rolled filled cluster that forked the jurisdiction look
+              // from every other surface).
+              <JurisdictionChip key={code} code={code} />
             ))}
           </span>
         ) : (

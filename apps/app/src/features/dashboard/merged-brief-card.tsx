@@ -203,8 +203,8 @@ export function MergedBriefCard({
               corner shape when the real selector lands. */}
           <Skeleton className="h-8 w-72 rounded-lg" />
         </div>
-        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-          <Table>
+        <div className="@container overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+          <Table className="@max-6xl:[&_td]:px-3 @max-6xl:[&_th]:px-3">
             <TableHeader>
               <TableRow>
                 <TableHead>
@@ -230,17 +230,17 @@ export function MergedBriefCard({
                     <Skeleton className="h-5 w-20 rounded" />
                   </TableCell>
                   <TableCell>
-                    <div className="flex w-[220px] flex-col gap-1.5 md:w-[300px] xl:w-[440px]">
+                    <div className="flex w-[150px] flex-col gap-1.5 @2xl:w-[180px] @3xl:w-[220px] @6xl:w-[440px]">
                       <Skeleton className="h-4 w-48" />
                       <Skeleton className="h-3 w-64" />
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-5 w-24 rounded" />
+                    <Skeleton className="h-6 w-24 rounded" />
                   </TableCell>
                   <TableCell aria-hidden className="p-0" />
                   <TableCell>
-                    <Skeleton className="size-5 rounded-full" />
+                    <Skeleton className="size-7 rounded-full" />
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-end gap-1.5">
@@ -501,9 +501,16 @@ export function MergedBriefCard({
           // frame: it absorbs leftover height and scrolls the table body
           // INTERNALLY (overflow-y), so the dashboard page itself never scrolls.
           // Below xl it's natural-height and the page scrolls normally.
-          className="scrollbar-designed overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
+          // @container: the column tiers + cell-padding trim key off the
+          // FRAME's own width, not the viewport — a viewport breakpoint
+          // can't see the sidebar (Yuqi 2026-07-22: an ~800px window with
+          // the rail open still sideways-scrolled the table).
+          className="@container scrollbar-designed overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none xl:min-h-0 xl:shrink xl:overflow-y-auto"
         >
-          <Table className="[&_tbody_tr]:even:bg-transparent">
+          {/* Below @6xl every horizontal pixel counts — trimming the
+              canonical px-5 cells to px-3 buys the width that keeps the six
+              columns inside the frame at tablet/half-screen widths. */}
+          <Table className="[&_tbody_tr]:even:bg-transparent @max-6xl:[&_td]:px-3 @max-6xl:[&_th]:px-3">
             <TableHeader>
               <TableRow>
                 <TableHead>
@@ -671,8 +678,18 @@ function BriefTableRow({
           absorbs the leftover width. Width steps DOWN with the viewport —
           a hard 440px at tablet width shoved STATUS/owner/DUE past the
           frame edge where overflow clipped them invisibly. */}
+      {/* Width tiers re-tuned 2026-07-22 (Yuqi: no sideways scroll in a
+          normal working window): CONTAINER tiers (@2xl/@3xl/@6xl track the
+          scroll frame, not the viewport) because the sidebar eats viewport
+          width a media query can't see. Fixed widths must stay (a
+          truncate/nowrap line propagates its FULL text width as the
+          column's min-content in auto table layout, so max-w caps can't
+          shrink the column) — so the tiers are honest: each step only
+          engages at a frame width where the six columns genuinely fit.
+          Below ~585px frame width the frame's overflow-x scroll takes
+          over (true phone widths). */}
       <TableCell>
-        <div className="flex w-[220px] min-w-0 flex-col gap-0.5 md:w-[300px] xl:w-[440px]">
+        <div className="flex w-[150px] min-w-0 flex-col gap-0.5 @2xl:w-[180px] @3xl:w-[220px] @6xl:w-[440px]">
           {/* 14/500, NOT text-row-anchor (14/600) — Yuqi 2026-06-12: "so many
               bold things on the page, people lost focus". Five 600-weight
               client names plus three card titles plus three section titles
@@ -721,7 +738,10 @@ function BriefTableRow({
       <TableCell>
         <div className="flex flex-col items-start gap-1">
           <div className="flex items-center gap-1.5">
-            <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
+            {/* Roomy h-6/px-2.5 now comes from the primitive itself (the
+                2026-07-22 family default) — no local size override, so this
+                pill can never drift from its siblings on other pages. */}
+            <ObligationStatusReadBadge status={row.status} className="w-fit" />
             {row.status === 'extended' ? <ExtensionChip /> : null}
           </div>
           {showPaymentLateChip ? (
@@ -743,7 +763,7 @@ function BriefTableRow({
             spacer broke the table's width math and pushed DUE past the
             frame edge (clipped countdowns). Absolute content keeps the
             spacer layout-empty while the button still appears in the gap. */}
-        <div className="absolute inset-y-0 right-4 flex items-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none">
+        <div className="absolute inset-y-0 right-4 flex items-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100 motion-reduce:transition-none">
           <Button
             type="button"
             size="xs"
@@ -759,11 +779,12 @@ function BriefTableRow({
           </Button>
         </div>
       </TableCell>
-      {/* OWNER — xs avatar with the is-mine ring, riding just left of the
+      {/* OWNER — sm avatar (28px; was xs/20px — Yuqi: the initials need more
+          air inside the disc) with the is-mine ring, riding just left of the
           date it answers for. */}
       <TableCell>
         <AssigneeAvatar
-          size="xs"
+          size="sm"
           name={row.assigneeName}
           isMine={isMine}
           title={

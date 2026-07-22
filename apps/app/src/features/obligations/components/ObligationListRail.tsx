@@ -15,7 +15,8 @@ import {
 import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
-import { StateBadge } from '@/components/primitives/state-badge'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import {
   dueCountdownTone,
   DUE_COUNTDOWN_TEXT_CLASS_QUIET,
@@ -175,12 +176,6 @@ export function ObligationListRail({
   )
 }
 
-function relativeDueLabel(daysUntilDue: number): { text: string; late: boolean } {
-  if (daysUntilDue < 0) return { text: `${Math.abs(daysUntilDue)}d late`, late: true }
-  if (daysUntilDue === 0) return { text: 'today', late: false }
-  return { text: `in ${daysUntilDue}d`, late: false }
-}
-
 function RailItem({
   row,
   active,
@@ -202,7 +197,6 @@ function RailItem({
     day: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${row.currentDueDate}T00:00:00.000Z`))
-  const relative = relativeDueLabel(row.daysUntilDue)
 
   return (
     <button
@@ -240,7 +234,10 @@ function RailItem({
             DUE_COUNTDOWN_TEXT_CLASS_QUIET[dueCountdownTone(row.daysUntilDue)],
           )}
         >
-          {relative.text}
+          {/* Canonical countdown (2026-07-22 sweep) — same "#d late/today/in #d"
+              wording as before, now i18n-correct and shared with every other
+              deadline surface. daysUntilDue is already signed (neg = late). */}
+          <DueCountdownText days={row.daysUntilDue} />
         </span>
       </div>
 
@@ -253,10 +250,7 @@ function RailItem({
           )}
         >
           {row.clientState ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
-              <StateBadge code={row.clientState} size="xs" style={{ width: 12, height: 12 }} />
-              {row.clientState}
-            </span>
+            <JurisdictionChip code={row.clientState} className="shrink-0" />
           ) : null}
           <TaxCodeBadge code={row.taxType} />
         </div>
@@ -271,7 +265,7 @@ function RailItem({
         >
           {row.clientName}
         </span>
-        <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
+        <ObligationStatusReadBadge status={row.status} className="w-fit" />
       </div>
     </button>
   )

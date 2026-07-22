@@ -104,12 +104,23 @@ export function RulesPageShell({
             as every other page in the app rather than a denser outlier. */}
         <div
           className={cn(
-            // 2026-06-12 (Yuqi /alerts #9): pt-8 (32px) centers the page
-            // title on the sidebar's firm avatar (title 32px tall at y34 →
-            // center 50 = avatar center 50); pb-5 (20px) matches the
-            // sidebar's ~18px bottom inset so the page and rail end
-            // together. /today + /deadlines moved to pt-8 in the same pass.
-            'mx-auto flex w-full flex-col gap-6 px-4 pt-8 pb-5 md:px-6',
+            // 2026-07-22 (critique: 页与页之间不连贯 — cross-page title
+            // rhythm): /today, /deadlines, and /clients all grew an eyebrow
+            // line (greeting / sync stamp) above the h1, which lands their
+            // titles at y≈56. The rules-shell pages (/alerts, /rules/*) had
+            // no eyebrow and kept the older pt-8 → title-at-y34 tuning
+            // (2026-06-12 avatar-centering, superseded by the eyebrow-era
+            // majority), so every hop between the two families made the
+            // page title jump ~21px vertically. pt-14 (56px) when there is
+            // no breadcrumb row drops these titles onto the SAME y as the
+            // eyebrow pages; with breadcrumbs the crumb line occupies the
+            // eyebrow band and pt-8 keeps the crumb at the eyebrow's y.
+            // pb-5 (20px) matches the sidebar's ~18px bottom inset so the
+            // page and rail end together.
+            // gap-6 md:gap-8 — the same inter-section rhythm as /today's
+            // container, so hopping between page families keeps one beat.
+            'mx-auto flex w-full flex-col gap-6 px-4 pb-5 md:gap-8 md:px-6',
+            breadcrumbs && breadcrumbs.length > 0 ? 'pt-8' : 'pt-14',
             wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,

@@ -893,7 +893,7 @@ export function AuditLogPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
+      <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-14 pb-4 md:px-8 md:pb-6">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-60 w-full rounded-lg" />
       </div>
@@ -923,7 +923,7 @@ export function AuditLogPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-14 pb-4 md:px-8 md:pb-6">
       <PageHeader
         // No "Settings" breadcrumb. Audit log is a top-level sidebar
         // destination; a crumb would claim a parent that the route doesn't

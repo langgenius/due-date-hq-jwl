@@ -17,7 +17,7 @@ import { useAlertsInvalidation } from '@/features/alerts/api'
 // truncated label with the URL on tooltip hover.
 import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
 import { SeverityChip } from '@/components/primitives/severity-chip'
-import { StateBadge } from '@/components/primitives/state-badge'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
 
@@ -231,7 +231,7 @@ function NeedsAttentionCard({
           event.stopPropagation()
           dismissMutation.mutate({ alertId: alert.id })
         }}
-        className="absolute top-3 right-3 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+        className="absolute top-3 right-3 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 pointer-coarse:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
       >
         <XIcon className="size-4" aria-hidden />
       </button>
@@ -257,34 +257,18 @@ function NeedsAttentionCard({
             </SeverityChip>
           ) : null}
 
-          {/* STATE — jurisdiction pill (seal + code; full name on hover). */}
-          <Tooltip>
-            <TooltipTrigger
-              render={(props) => (
-                <span
-                  className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-[0.2px] text-text-secondary outline-none"
-                  {...props}
-                >
-                  <StateBadge
-                    code={alert.jurisdiction}
-                    size="xs"
-                    preview={false}
-                    style={{ width: 14, height: 14 }}
-                  />
-                  {alert.jurisdiction}
-                </span>
-              )}
-            />
-            <TooltipContent>{alert.jurisdiction}</TooltipContent>
-          </Tooltip>
+          {/* STATE — the canonical framed seal+code chip (2026-07-22
+              convergence: the card wore a hand-rolled unframed cluster
+              while the quiet rows + /alerts rows wear JurisdictionChip —
+              same alert, three outfits). Full name rides the chip's own
+              title tooltip. */}
+          <JurisdictionChip code={alert.jurisdiction} className="shrink-0" />
 
-          {/* FORM badge — gray-filled code chip (TaxCodeBadge mono). */}
-          {alertForm ? (
-            <TaxCodeBadge
-              code={alertForm}
-              className="rounded-lg border-divider-subtle px-2 py-[2px] text-xs"
-            />
-          ) : null}
+          {/* FORM badge — canonical TaxCodeBadge. size="compact" is the ONE
+              sanctioned density for tight rows (2026-07-22 sweep — dropped a
+              freelanced rounded-lg/px-2/py-[2px] override that forked the
+              chip's radius+padding from every other surface). */}
+          {alertForm ? <TaxCodeBadge code={alertForm} size="compact" /> : null}
 
           {/* DATE — relative time inline (exact on tooltip), right after the
               form so the two read together rather than splitting the row.
@@ -480,25 +464,22 @@ function NeedsAttentionQuietRow({
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
       className={cn(
-        'flex h-10 min-w-0 cursor-pointer items-center gap-2.5 px-1 text-left',
+        'group flex h-10 min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 text-left',
         'transition-colors hover:bg-background-section',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
     >
-      {/* Same jurisdiction vocabulary as the card's meta row, one size down. */}
-      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-[0.2px] text-text-secondary">
-        <StateBadge
-          code={alert.jurisdiction}
-          size="xs"
-          preview={false}
-          style={{ width: 14, height: 14 }}
-        />
-        {alert.jurisdiction}
-      </span>
+      {/* Jurisdiction — the canonical framed seal+code chip (JurisdictionChip
+          gained the seal + fixed w-14 on 2026-07-22, so this row and the
+          /alerts rows now share one primitive). Fixed width keeps the chips
+          in one aligned column and every title starting on the same x. */}
+      <JurisdictionChip code={alert.jurisdiction} className="shrink-0" />
       <span className="min-w-0 flex-1 truncate text-sm text-text-primary" title={alert.title}>
         {dedupeTitleSource(alert.title, alert.source)}
       </span>
-      <span className="shrink-0 whitespace-nowrap text-xs text-text-tertiary tabular-nums">
+      {/* The published date steps up (tertiary → primary) on row hover —
+          "when did this land" is the datum the scanning eye checks next. */}
+      <span className="shrink-0 whitespace-nowrap text-xs text-text-tertiary tabular-nums transition-colors group-hover:text-text-primary">
         {formatRelativeTime(alert.publishedAt)}
       </span>
       {/* The zero answer keeps the same phrasing every alert surface uses. */}

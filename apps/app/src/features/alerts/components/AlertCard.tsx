@@ -17,7 +17,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { highlightCitations } from '@/components/primitives/legal-typography'
 import { SeverityChip } from '@/components/primitives/severity-chip'
-import { StateBadge } from '@/components/primitives/state-badge'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDate, formatRelativeTime } from '@/lib/utils'
@@ -281,20 +281,10 @@ export function AlertCard({
                   the workflow status word ("Open"/"Applied"/…) follows
                   via a flex-1 spacer. */}
               <div className="flex items-center gap-2">
-                {/* State pill aligned to canonical — no bg, no padding,
-                    16px circular motif, 12/700 mono code with
-                    tracking-eyebrow. Same primitive across /today +
-                    /alerts + drawer. */}
-                <span className="inline-flex h-[22px] shrink-0 items-center gap-1">
-                  <StateBadge
-                    code={alert.jurisdiction}
-                    size="xs"
-                    style={{ width: 16, height: 16 }}
-                  />
-                  <span className="font-mono text-sm font-semibold tracking-eyebrow text-text-secondary uppercase">
-                    {alert.jurisdiction}
-                  </span>
-                </span>
+                {/* Canonical framed seal+code chip (2026-07-22 sweep — was a
+                    hand-rolled cluster whose comment claimed parity it no
+                    longer had). */}
+                <JurisdictionChip code={alert.jurisdiction} className="shrink-0" />
                 <h3
                   className="line-clamp-1 min-w-0 text-xl leading-tight font-semibold tracking-title text-text-primary"
                   title={alert.title}

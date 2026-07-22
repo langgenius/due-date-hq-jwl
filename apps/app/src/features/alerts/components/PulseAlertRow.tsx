@@ -16,6 +16,7 @@ import type {
   PulsePriorityLevel,
   PulsePriorityReason,
 } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -665,12 +666,48 @@ function PulseAlertRow({
           {formLabel && !narrow ? <TaxCodeBadge code={formLabel} /> : null}
 
           {/* CHANGE KIND — icon + sentence-case medium secondary, matching the
-              detail hero. Dropped on the narrow map rail. */}
+              detail hero. Dropped on the narrow map rail.
+              2026-07-22 (Yuqi #4 "hover可以显示deadline change or that kind of
+              change?"): hovering the kind now surfaces WHAT actually changed —
+              the concrete old→new due-date shift (with the day delta) when the
+              detail is cached, else the effective date, else just the kind
+              label. The row stays quiet at rest; the specifics are one hover
+              away. */}
           {!narrow ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-              <ChangeKindIcon changeKind={alert.changeKind} />
-              {changeKindLabel(alert.changeKind)}
-            </span>
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary outline-none"
+                    {...props}
+                  >
+                    <ChangeKindIcon changeKind={alert.changeKind} />
+                    {changeKindLabel(alert.changeKind)}
+                  </span>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[280px] flex-col gap-0.5 text-left">
+                  <span className="font-medium">{changeKindLabel(alert.changeKind)}</span>
+                  {showDateRow ? (
+                    <span className="tabular-nums text-text-secondary">
+                      {daysDiff !== null && daysDiff !== 0 ? (
+                        <Trans>
+                          Due {oldDateLabel} → {newDateLabel} ({Math.abs(daysDiff)}{' '}
+                          {daysDiff < 0 ? 'days sooner' : 'days later'})
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          Due {oldDateLabel} → {newDateLabel}
+                        </Trans>
+                      )}
+                    </span>
+                  ) : effectiveLabel ? (
+                    <span className="text-text-secondary">{effectiveLabel}</span>
+                  ) : null}
+                </div>
+              </TooltipContent>
+            </Tooltip>
           ) : null}
 
           {/* CONFIDENCE FLAG (Pencil aUZTy) — categorical warning shown ONLY when
@@ -721,24 +758,17 @@ function PulseAlertRow({
             {actionText ? (
               <div className="flex">
                 {/* Suggested action (Pencil aUZTy) — the do-this affordance.
-                    2026-06-15 critique #5 dropped the filled accent pill (a wall
-                    of blue). 2026-06-29: even as accent TEXT it was still the most
-                    saturated thing on every row, repeated down the whole list — so
-                    the suggestion competed with the headline. Now it rests in a
-                    quiet SECONDARY tone (still scannable as the next step) and only
-                    goes accent when the row is engaged (hover / open), where "act
-                    here" actually means something. */}
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1.5 self-start text-sm font-medium transition-colors',
-                    active
-                      ? 'text-text-accent'
-                      : 'text-text-secondary group-hover/row:text-text-accent',
-                  )}
-                >
-                  <SparklesIcon className="size-3 shrink-0" aria-hidden />
+                    2026-07-22 (Yuqi: 浅蓝 + 更精巧): a soft blue-tint chip via
+                    the canonical Badge info variant — the palette's light-blue
+                    (components-badge-bg-blue-soft + text-accent). One size DOWN
+                    from the old text-sm line (Badge default = h-5/text-xs), so
+                    it reads as a delicate suggestion tag, not the 2026-06-15
+                    "wall of blue" filled-accent pill this row once dropped —
+                    tint contained in a small chip, headline still leads. */}
+                <Badge variant="info" className="self-start">
+                  <SparklesIcon aria-hidden />
                   {actionText}
-                </span>
+                </Badge>
               </div>
             ) : null}
           </div>
@@ -815,7 +845,9 @@ function PulseAlertRow({
           rows below. Fades in on row hover; each button stopPropagation so the
           row's onClick doesn't bubble. */}
       <span
-        className="absolute top-1/2 right-5 inline-flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100"
+        // pointer-coarse: touch has no hover — the action cluster is always
+        // visible there (2026-07-22 harden: hover-only affordance parity).
+        className="absolute top-1/2 right-5 inline-flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
         aria-hidden={!active}
       >
         {/* Dismiss uses the canonical <Button> primitive (outline xs) so it

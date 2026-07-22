@@ -11,7 +11,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatDateLong, formatRelativeTime } from '@/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 
 /**
@@ -95,13 +95,9 @@ export function SplashRoute() {
   }, [data])
 
   const todayLabel = useMemo(
-    () =>
-      new Date().toLocaleDateString(undefined, {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
+    // Canonical long dateline (app locale, not browser locale) — 2026-07-22
+    // cross-surface sweep.
+    () => formatDateLong(),
     [],
   )
 

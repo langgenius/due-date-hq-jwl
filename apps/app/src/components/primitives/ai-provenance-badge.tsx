@@ -4,7 +4,7 @@ import { SparklesIcon } from 'lucide-react'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 
 /**
  * AiProvenanceBadge — canonical "AI generated this value" marker.
@@ -50,7 +50,11 @@ export function AiProvenanceBadge({
   const generatedLabel = generatedAt
     ? firmTimezone
       ? formatDateTimeWithTimezone(generatedAt, firmTimezone)
-      : new Date(generatedAt).toLocaleString()
+      : // No firm timezone → the canonical relative tier for a generated-at
+        // stamp ("2h ago"), not a raw browser-locale toLocaleString (2026-07-22
+        // cross-surface sweep — the fallback used to diverge from every other
+        // provenance timestamp in the app).
+        formatRelativeTime(generatedAt)
     : null
 
   if (variant === 'chip') {

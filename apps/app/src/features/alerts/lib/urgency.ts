@@ -130,6 +130,13 @@ export function effectiveTier(
  * `Due today`. Returns `null` for `scheduled`/`none` (silence is the signal).
  * Caller owns color: red only for overdue/imminent, neutral otherwise, so the
  * pill and tag stay ONE cue (red-restraint rule).
+ *
+ * INTENTIONAL divergence from DueCountdownText ("in 3d / 3d late / today"),
+ * reviewed 2026-07-22 cross-surface sweep: this is the alert ACTION-WINDOW
+ * axis ("how long you have LEFT to act on a regulatory change"), semantically
+ * distinct from an obligation's FILING due date. "left"/"overdue" reads as a
+ * countdown-to-act; "in Nd"/"late" reads as a filing schedule. Forcing them
+ * onto one vocabulary would conflate two different questions. Do not "unify".
  */
 export function proximityTimeTag(result: ProximityResult): string | null {
   const { proximity, days } = result

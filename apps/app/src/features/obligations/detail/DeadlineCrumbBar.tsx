@@ -7,6 +7,7 @@ import { Link, useLocation } from 'react-router'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { cleanDeadlineDetailSearch } from '@/features/obligations/deadline-detail-url'
+import { deadlineDetailStateOrigin } from '@/features/obligations/queue/helpers'
 import { fadeMotion } from '@/lib/motion'
 
 /**
@@ -51,12 +52,32 @@ export function DeadlineCrumbBar({
   // drawer/id/row/tab params) so the crumb returns to the filtered list the
   // user came from, exactly like the drawer's onClose.
   const deadlinesHref = `/deadlines${cleanDeadlineDetailSearch(location.search)}`
+  // Origin-aware trail (2026-07-22 critique 进出不对称): when the detail was
+  // launched from /today (history state carries `from`), the crumb leads with
+  // a "Today" segment so the path back to where the user actually came from
+  // is visible, not just wired into ✕/Esc. Only the dashboard gets a labeled
+  // segment; other origins still get the behavioral return without a crumb.
+  const origin = deadlineDetailStateOrigin(location.state)
+  const originIsToday = origin === '/' || origin?.startsWith('/?') === true
 
   return (
     // Full-bleed CHROME band (px-5, no document cap): the crumb hugs the left
     // edge and the close ✕ the right — exactly like AlertDetailDrawer's top bar.
     <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-5">
       <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+        {originIsToday && origin ? (
+          <>
+            <Link
+              to={origin}
+              className="shrink-0 rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Today</Trans>
+            </Link>
+            <span className="shrink-0 text-text-muted" aria-hidden>
+              /
+            </span>
+          </>
+        ) : null}
         <Link
           to={deadlinesHref}
           className="shrink-0 rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
