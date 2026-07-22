@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addLocalCalendarDays,
+  easternDayBounds,
   easternTimeParts,
   nextXDailySlotLocalDate,
   shouldRunXDailySlot,
@@ -43,6 +44,18 @@ describe('Eastern daily X slot', () => {
     expect(xDailySlotInstant('2026-03-08').toISOString()).toBe('2026-03-08T13:00:00.000Z')
     expect(xDailySlotInstant('2026-11-01').toISOString()).toBe('2026-11-01T14:00:00.000Z')
     expect(xDailySlotInstant('2026-11-02').toISOString()).toBe('2026-11-02T14:00:00.000Z')
+  })
+
+  it('resolves ET day bounds across 23-hour and 25-hour DST days', () => {
+    const spring = easternDayBounds('2026-03-08')
+    expect(spring.start.toISOString()).toBe('2026-03-08T05:00:00.000Z')
+    expect(spring.end.toISOString()).toBe('2026-03-09T04:00:00.000Z')
+    expect(spring.end.getTime() - spring.start.getTime()).toBe(23 * 60 * 60 * 1000)
+
+    const fall = easternDayBounds('2026-11-01')
+    expect(fall.start.toISOString()).toBe('2026-11-01T04:00:00.000Z')
+    expect(fall.end.toISOString()).toBe('2026-11-02T05:00:00.000Z')
+    expect(fall.end.getTime() - fall.start.getTime()).toBe(25 * 60 * 60 * 1000)
   })
 
   it('rejects invalid calendar input', () => {

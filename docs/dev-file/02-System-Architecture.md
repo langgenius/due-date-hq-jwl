@@ -179,7 +179,7 @@ run_worker_first = ["/rpc/*", "/api/*"]
 
 **同一 Worker 的非 HTTP 入口**（`apps/server/src/index.ts`，单 Worker 导出四个 handler）：
 
-- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X 分支每 tick 刷新可审核 draft，但只在 `America/New_York` 09:00–09:29 抢当天唯一发布槽位；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
+- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X watchdog 每 tick 检查积压/unknown，发布与 draft 补充只在 `America/New_York` 09:00–09:29 运行：抢当天唯一发布槽位后、live enqueue 前（或 idle / shadow 时），以 D1 条件插入为当前 ET 自然日补充至多一条最新未入列 Alert 草稿；旧 draft 不阻止下一自然日补充，重复 Cron 不能在同一天重复补充；其他 tick 不批量生成；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
 - `queue()`（`jobs/queue.ts`）：消费 EMAIL / PULSE / DASHBOARD / AUDIT / SOCIAL 五条队列 + pulse/social DLQ（见 §2.1）
 - `email()`：Cloudflare Email Routing 入站 → `jobs/pulse/govdelivery.ts`，承接 `email_subscription` 类 Pulse 源（GovDelivery 订阅邮件 → raw 归档 → `pulse.extract`）
 
@@ -330,10 +330,15 @@ Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► P
 
 ```text
 approved, externally useful global Pulse
-  -> deterministic social draft with full state names in public header copy (D1 social_alert_post)
+  -> eligible, not-yet-outboxed candidate pool
+  -> 09:00 ET scheduler claims today's ready Post (D1 unique daily slot)
+  -> atomically create at most one deterministic review draft for this ET day
+     from the newest not-yet-outboxed Pulse
+     with full state names in public header copy (D1 social_alert_post)
+  -> GET /api/ops/social/queue shows the rolling draft without creating it
   -> operator marks ready
   -> GET /api/ops/social/queue projects future ET dates without writes or reservations
-  -> 09:00 ET scheduler or exact-post publish-now control (D1 unique daily slot)
+  -> next 09:00 ET scheduler or exact-post publish-now control
   -> read-only OAuth 1.0a /2/users/me preflight before a manual live claim
   -> draft_only shadow OR SOCIAL_QUEUE -> X POST /2/tweets
   -> /alerts?ref=<opaque token>
@@ -352,18 +357,24 @@ Social selection 通过共享 source policy 排除 `fema.declarations`、`govdel
 runtime validation 同时执行该闸门；
 `rule_source_drift` 等内部 change kind 仍单独排除。`action_mode='review_only'` 本身不是排除条件，
 避免误伤 filing requirement、applicability scope 等真实且适合公开介绍的来源变化。
+候选读取先按 `Pulse.created_at DESC, id DESC` 在 SQL 中排序，并在完整 PII/runtime 校验跳过整页时
+用同一复合键继续 keyset 翻页；因此 100 条较新的无效候选不会永久饿死后面的有效 Alert。
 
-每日上限由 `UNIQUE(channel, local_date)` 而不是 Cron 时间假设保证。`ready` backlog 按 urgent
-优先、同优先级 FIFO；等待达到 72 小时会进入同一个优先组。X 返回明确 4xx 时当天记 failed 且
-不换发；timeout、网络中断、5xx 或成功响应缺 Post ID 时记 unknown 并停止自动重试，等待人工
-在 X 核对后执行 reconcile。
+每日上限由 `UNIQUE(channel, local_date)` 而不是 Cron 时间假设保证。候选草稿、`ready` backlog、
+真实 claim 和 queue 预览全部按关联 Pulse 的 `created_at DESC, id DESC` 排序，因此后来进入系统的
+Alert 会先进入审核并先发布；`priority` 只保留为人工审核元数据，显式 `publish-now` 是唯一的人工
+顺序例外。X 返回明确 4xx 时当天记 failed 且不换发；timeout、网络中断、5xx 或成功响应缺 Post ID
+时记 unknown 并停止自动重试，等待人工在 X 核对后执行 reconcile。
 
 Social Ops 通过 `GET /api/ops/social/queue` 提供只读的等待序列，CLI 对应
-`pnpm social:x -- queue --days 14`。它使用真实 claim 的优先级/FIFO 规则，把当前 eligible
-`ready` Post 映射到预计的 ET 自然日；`draft` 仍处于待审核状态，因此没有预计日期。这个视图不
-写 `social_alert_post`、不提前创建未来 `social_publish_run`，也不提前向 `SOCIAL_QUEUE` 投递消息。
-预计日期不是锁定排期：新 urgent Post、backlog aging、取消/失去资格、`publish-now` 或当天
-failed/unknown 都会使后续位置变化。唯一真实排期动作仍是 Worker 在每天 09:00 ET claim 一条。
+`pnpm social:x -- queue`，固定展示未来 14 个 ET 自然日。它使用真实 claim 的最新 Pulse 优先规则，
+把当前 eligible `ready` Post 映射到预计日期，并在同一输出的 `drafts` 区块直接展示每日自动补充的
+待审核候选，无需先运行 `candidates --pulse`。每个 ET 自然日最多自动补充一条；旧 draft 可以继续
+等待审核，下一天仍会从当时最新的未入列 Alert 补一条。`draft` 没有预计日期，批准后才进入
+`ready` 序列。这个 GET 视图本身不写 `social_alert_post`、不提前创建未来 `social_publish_run`，也不
+提前向 `SOCIAL_QUEUE` 投递消息。预计日期不是锁定排期：更新的 Alert 被批准、取消/失去资格、
+`publish-now` 或当天 failed/unknown 都会使后续位置变化。唯一真实排期动作仍是 Worker 在每天
+09:00 ET claim 一条。
 
 Social Ops 的 `publish-now` 只能 claim 指定的 eligible `ready` Post，并仍受同一唯一键
 约束；同日同 Post 的 `draft_only` 只有在再次 approve 后才能原位升级为 `queued`，不能把影子

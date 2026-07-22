@@ -1,5 +1,9 @@
 # X publishing queue preview
 
+> Superseded later on 2026-07-22 by `2026-07-22-x-rolling-review-buffer.md`. The current CLI is
+> `pnpm social:x -- queue`, with a fixed 14-day horizon and newest-Pulse-first ordering. The
+> urgent/aging/FIFO behavior below records the earlier implementation only.
+
 **Date:** 2026-07-22 · Alert / acquisition / Social Ops
 
 ## Outcome

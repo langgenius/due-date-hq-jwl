@@ -1,11 +1,10 @@
-import { createDb, makeSocialOpsRepo } from '@duedatehq/db'
+import { createDb, makeSocialOpsRepo, SOCIAL_URGENT_WINDOW_MS } from '@duedatehq/db'
 import type { Env } from '../../env'
 import { dispatchOpsAlert } from '../ops-alerts'
 import { buildXAlertPost, validateSocialCandidate, type SocialAlertCandidate } from './content'
-import { easternTimeParts, shouldRunXDailySlot } from './time'
+import { easternDayBounds, easternTimeParts, shouldRunXDailySlot } from './time'
 
 const SOCIAL_CANDIDATE_BATCH_SIZE = 100
-const URGENT_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 const BACKLOG_ALERT_MS = 7 * 24 * 60 * 60 * 1000
 
 type SocialOpsRepo = ReturnType<typeof makeSocialOpsRepo>
@@ -13,7 +12,7 @@ type SocialSchedulerRepo = Pick<
   SocialOpsRepo,
   | 'cancelIneligiblePosts'
   | 'listEligibleCandidates'
-  | 'createDraft'
+  | 'createDailyDraft'
   | 'claimDailyReadyPost'
   | 'markFailed'
 >
@@ -45,56 +44,38 @@ export async function runXSocialCron(
 
   const since = new Date(env.X_SOCIAL_START_AT)
   if (Number.isNaN(since.getTime())) throw new Error('X_SOCIAL_START_AT must be a valid ISO date.')
+  if (!shouldRunXDailySlot(now)) return { status: 'outside_slot' }
+
   const repo = dependencies.repo ?? makeSocialOpsRepo(createDb(env.DB))
   await repo.cancelIneligiblePosts({ channel: 'x', limit: SOCIAL_CANDIDATE_BATCH_SIZE, now })
   const randomRefToken =
     dependencies.randomRefToken ?? (() => crypto.randomUUID().replaceAll('-', ''))
-  const candidates = await repo.listEligibleCandidates({
-    since,
-    limit: SOCIAL_CANDIDATE_BATCH_SIZE,
-    channel: 'x',
-  })
-  let draftsCreated = 0
-
-  for (const candidate of candidates) {
-    const validation = validateSocialCandidate(candidate)
-    if (!validation.eligible) {
-      console.warn(
-        JSON.stringify({
-          type: 'social.candidate_skipped',
-          pulseId: candidate.pulseId,
-          reasons: validation.reasons,
-        }),
-      )
-      continue
-    }
-    const refToken = randomRefToken()
-    const built = buildXAlertPost(candidate, { appUrl: env.APP_URL, refToken })
-    await repo.createDraft({
-      channel: 'x',
-      pulseId: candidate.pulseId,
-      refToken,
-      postText: built.text,
-      targetUrl: built.targetUrl,
-      teaser: built.teaser,
-      agency: built.agency,
-      priority: candidatePriority(candidate, now),
-      now,
-    })
-    draftsCreated += 1
-  }
-
-  // Refresh the review queue on every 30-minute Worker tick so operators can
-  // approve new Alerts before the next publishing window. Claiming and remote
-  // publishing remain restricted to the single 09:00 ET slot below.
-  if (!shouldRunXDailySlot(now)) return { status: 'outside_slot' }
 
   const { localDate } = easternTimeParts(now)
+  const dailyWindow = easternDayBounds(localDate)
   const mode = env.X_POSTING_MODE === 'live' ? 'live' : 'draft'
   const claim = await repo.claimDailyReadyPost({ channel: 'x', localDate, now, mode })
-  if (!claim) return { status: 'idle', localDate, draftsCreated }
+  if (!claim) {
+    const draftsCreated = await replenishReviewBuffer(
+      env,
+      repo,
+      since,
+      now,
+      dailyWindow,
+      randomRefToken,
+    )
+    return { status: 'idle', localDate, draftsCreated }
+  }
 
   if (mode === 'draft') {
+    const draftsCreated = await replenishReviewBuffer(
+      env,
+      repo,
+      since,
+      now,
+      dailyWindow,
+      randomRefToken,
+    )
     return { status: 'draft_only', localDate, draftsCreated, runId: claim.run.id }
   }
 
@@ -106,6 +87,16 @@ export async function runXSocialCron(
     })
     throw new Error('X_POSTING_MODE=live requires X OAuth credentials and SOCIAL_OPS_TOKEN.')
   }
+
+  const draftsCreated = await tryReplenishReviewBuffer(
+    env,
+    repo,
+    since,
+    now,
+    dailyWindow,
+    randomRefToken,
+    localDate,
+  )
 
   try {
     await (dependencies.queue ?? env.SOCIAL_QUEUE).send({
@@ -122,6 +113,89 @@ export async function runXSocialCron(
   }
 
   return { status: 'queued', localDate, draftsCreated, runId: claim.run.id }
+}
+
+async function tryReplenishReviewBuffer(
+  env: Env,
+  repo: SocialSchedulerRepo,
+  since: Date,
+  now: Date,
+  dailyWindow: { start: Date; end: Date },
+  randomRefToken: () => string,
+  localDate: string,
+): Promise<number> {
+  try {
+    return await replenishReviewBuffer(env, repo, since, now, dailyWindow, randomRefToken)
+  } catch (error) {
+    const reason =
+      error instanceof Error ? error.message : 'Unable to replenish the X review draft.'
+    const fields = { localDate, reason }
+    console.error(
+      JSON.stringify({ type: 'social.alert', name: 'social.x.draft_replenish_failed', ...fields }),
+    )
+    await dispatchOpsAlert(env, 'social.x.draft_replenish_failed', fields)
+    return 0
+  }
+}
+
+async function replenishReviewBuffer(
+  env: Env,
+  repo: SocialSchedulerRepo,
+  since: Date,
+  now: Date,
+  dailyWindow: { start: Date; end: Date },
+  randomRefToken: () => string,
+): Promise<number> {
+  let before: { createdAt: Date; pulseId: string } | undefined
+
+  while (true) {
+    const candidates = await repo.listEligibleCandidates({
+      since,
+      now,
+      limit: SOCIAL_CANDIDATE_BATCH_SIZE,
+      channel: 'x',
+      ...(before ? { before } : {}),
+    })
+    if (candidates.length === 0) return 0
+
+    for (const candidate of candidates) {
+      const validation = validateSocialCandidate(candidate)
+      if (!validation.eligible) {
+        console.warn(
+          JSON.stringify({
+            type: 'social.candidate_skipped',
+            pulseId: candidate.pulseId,
+            reasons: validation.reasons,
+          }),
+        )
+        continue
+      }
+
+      const refToken = randomRefToken()
+      const built = buildXAlertPost(candidate, { appUrl: env.APP_URL, refToken })
+      const result = await repo.createDailyDraft({
+        channel: 'x',
+        pulseId: candidate.pulseId,
+        refToken,
+        postText: built.text,
+        targetUrl: built.targetUrl,
+        teaser: built.teaser,
+        agency: built.agency,
+        priority: candidatePriority(candidate, now),
+        since,
+        dailyWindowStart: dailyWindow.start,
+        dailyWindowEnd: dailyWindow.end,
+        now,
+      })
+      if (result === 'created') return 1
+      if (result === 'daily_slot_filled') return 0
+    }
+
+    if (candidates.length < SOCIAL_CANDIDATE_BATCH_SIZE) return 0
+    const lastCandidate = candidates.at(-1)
+    if (!lastCandidate) return 0
+    before = { createdAt: lastCandidate.createdAt, pulseId: lastCandidate.pulseId }
+  }
 }
 
 export async function runXSocialWatchdog(
@@ -182,7 +256,10 @@ function candidatePriority(candidate: SocialAlertCandidate, now: Date): 'normal'
     candidate.effectiveUntil ??
     candidate.effectiveFrom
   if (!actionDate) return 'normal'
-  return actionDate.getTime() <= now.getTime() + URGENT_WINDOW_MS ? 'urgent' : 'normal'
+  const actionTime = actionDate.getTime()
+  return actionTime >= now.getTime() && actionTime <= now.getTime() + SOCIAL_URGENT_WINDOW_MS
+    ? 'urgent'
+    : 'normal'
 }
 
 function hasCompleteXCredentials(env: Env): boolean {

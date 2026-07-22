@@ -16,6 +16,8 @@ const SSN_VALUE = /^\s*\d{3}-\d{2}-\d{4}\s*$/
 const SSN_HEADER =
   /\b(ssn|social[\s_-]*security|itin|individual[\s_-]*taxpayer|taxpayer[\s_-]*identification|taxpayer[\s_-]*#)\b/i
 const EIN_VALUE = /^\d{2}-\d{7}$/
+const EMAIL_ADDRESS = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/iu
+const SENSITIVE_IDENTIFIER = /\b(?:\d[ -]?){9}\b/u
 
 export interface SsnDetection {
   /** Column indices that should be force-mapped to IGNORE before AI runs. */
@@ -61,4 +63,14 @@ export function validateEin(value: string | null | undefined): boolean {
 export function looksLikeSsn(value: string | null | undefined): boolean {
   if (value === null || value === undefined) return false
   return SSN_VALUE.test(value)
+}
+
+/** Conservative public-copy guard shared by Social selection and content generation. */
+export function containsPossibleEmailAddress(values: readonly string[]): boolean {
+  return EMAIL_ADDRESS.test(values.join(' '))
+}
+
+/** Detect nine-digit identifiers before any source-derived field is exposed publicly. */
+export function containsPossibleSensitiveIdentifier(values: readonly string[]): boolean {
+  return SENSITIVE_IDENTIFIER.test(values.join(' '))
 }

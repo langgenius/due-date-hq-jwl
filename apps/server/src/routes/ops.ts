@@ -5,6 +5,7 @@ import {
   type SocialAlertPost,
   type SocialAlertPriority,
   type SocialAlertPostStatus,
+  type SocialQueuePost,
 } from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
@@ -61,6 +62,9 @@ const SOCIAL_PRIORITY_VALUES = [
   'urgent',
 ] as const satisfies readonly SocialAlertPriority[]
 const SOCIAL_POST_STATUSES = new Set<string>(SOCIAL_POST_STATUS_VALUES)
+const DEFAULT_SOCIAL_DRAFT_SEED_COUNT = 3
+const MAX_SOCIAL_DRAFT_SEED_COUNT = 14
+const SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT = 100
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
@@ -71,6 +75,16 @@ function boundedLimit(value: string | undefined): number {
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 100 ? parsed : 50
 }
 
+function socialDraftSeedCount(value: unknown): number | null {
+  if (value === undefined) return DEFAULT_SOCIAL_DRAFT_SEED_COUNT
+  return typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= MAX_SOCIAL_DRAFT_SEED_COUNT
+    ? value
+    : null
+}
+
 function queuePreviewDays(value: string | undefined): number | null {
   if (value === undefined) return 14
   const parsed = Number(value)
@@ -78,8 +92,8 @@ function queuePreviewDays(value: string | undefined): number | null {
 }
 
 function isQueuePreviewPost(
-  post: SocialAlertPost,
-): post is SocialAlertPost & { status: 'draft' | 'ready' } {
+  post: SocialQueuePost,
+): post is SocialQueuePost & { status: 'draft' | 'ready' } {
   return post.status === 'draft' || post.status === 'ready'
 }
 
@@ -155,15 +169,9 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     const now = new Date()
     const repo = makeSocialOpsRepo(createDb(c.env.DB))
     const readLimit = days + 1
-    const [urgentRows, normalRows, draftRows, occupiedLocalDates] = await Promise.all([
+    const [readyRows, draftRows, occupiedLocalDates] = await Promise.all([
       repo.listReadyPostsForProjection({
         channel: 'x',
-        priority: 'urgent',
-        limit: readLimit,
-      }),
-      repo.listReadyPostsForProjection({
-        channel: 'x',
-        priority: 'normal',
         limit: readLimit,
       }),
       repo.listDraftPostsForQueuePreview({ channel: 'x', limit: 101 }),
@@ -173,15 +181,11 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
         limit: days,
       }),
     ])
-    const posts = [
-      ...urgentRows.slice(0, days),
-      ...normalRows.slice(0, days),
-      ...draftRows.slice(0, 100),
-    ].filter(isQueuePreviewPost)
+    const posts = [...readyRows, ...draftRows.slice(0, 100)].filter(isQueuePreviewPost)
     const preview = buildXQueuePreview({ now, days, posts, occupiedLocalDates })
     return c.json({
       ...preview,
-      readyBacklogTruncated: urgentRows.length > days || normalRows.length > days,
+      readyBacklogTruncated: readyRows.length > days,
       draftBacklogTruncated: draftRows.length > 100,
     })
   })
@@ -199,6 +203,111 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       ...(status ? { status } : {}),
     })
     return c.json({ posts })
+  })
+  .post('/social/drafts/seed', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const raw: unknown = await c.req.json().catch(() => undefined)
+    if (raw !== undefined && !isObjectLike(raw)) {
+      return c.json({ error: 'JSON body must be an object' }, 400)
+    }
+    const count = socialDraftSeedCount(raw?.count)
+    if (count === null) {
+      return c.json({ error: 'count must be an integer from 1 to 14' }, 400)
+    }
+
+    if (!c.env.X_SOCIAL_START_AT) {
+      return c.json({ error: 'X social publishing cutover is not configured' }, 503)
+    }
+    const since = new Date(c.env.X_SOCIAL_START_AT)
+    if (Number.isNaN(since.getTime())) {
+      return c.json({ error: 'X social publishing cutover is invalid' }, 503)
+    }
+
+    const now = new Date()
+    const repo = makeSocialOpsRepo(createDb(c.env.DB))
+    await repo.cancelIneligiblePosts({
+      channel: 'x',
+      limit: SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT,
+      now,
+    })
+    const existingDrafts = await repo.listDraftPostsForQueuePreview({ channel: 'x', limit: count })
+    const posts: SocialAlertPost[] = []
+    let skipped = 0
+    let bufferFull = existingDrafts.length >= count
+    let before: { createdAt: Date; pulseId: string } | undefined
+
+    while (!bufferFull && existingDrafts.length + posts.length < count) {
+      // eslint-disable-next-line no-await-in-loop
+      const candidatePage = await repo.listEligibleCandidates({
+        channel: 'x',
+        since,
+        now,
+        limit: SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT,
+        ...(before ? { before } : {}),
+      })
+      const candidates = candidatePage.toSorted(
+        (left, right) =>
+          right.createdAt.getTime() - left.createdAt.getTime() ||
+          right.pulseId.localeCompare(left.pulseId),
+      )
+      if (candidates.length === 0) break
+
+      for (const candidate of candidates) {
+        if (existingDrafts.length + posts.length >= count) break
+        const validation = validateSocialCandidate(candidate)
+        if (!validation.eligible) {
+          skipped += 1
+          continue
+        }
+
+        const refToken = crypto.randomUUID().replaceAll('-', '')
+        const built = buildXAlertPost(candidate, { appUrl: c.env.APP_URL, refToken })
+        // Keep this bounded operator mutation sequential so a partial D1 failure
+        // returns the exact prefix that was durably seeded instead of fanning out
+        // up to 14 competing read-then-insert operations.
+        // eslint-disable-next-line no-await-in-loop
+        const result = await repo.createDraftIfBufferBelow({
+          channel: 'x',
+          pulseId: candidate.pulseId,
+          refToken,
+          postText: built.text,
+          targetUrl: built.targetUrl,
+          teaser: built.teaser,
+          agency: built.agency,
+          priority: 'normal',
+          since,
+          bufferSize: count,
+          now,
+        })
+        if (result.status === 'created') {
+          posts.push(result.post)
+        } else if (result.status === 'buffer_full') {
+          bufferFull = true
+          break
+        }
+      }
+
+      if (bufferFull || candidates.length < SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT) break
+      const lastCandidate = candidates.at(-1)
+      if (!lastCandidate) break
+      before = { createdAt: lastCandidate.createdAt, pulseId: lastCandidate.pulseId }
+    }
+
+    const finalDrafts = await repo.listDraftPostsForQueuePreview({ channel: 'x', limit: count })
+    const total = finalDrafts.length
+    const targetReached = total >= count
+    const result = {
+      requested: count,
+      existing: existingDrafts.length,
+      created: posts.length,
+      total,
+      targetReached,
+      bufferFull: bufferFull || targetReached,
+      skipped,
+      posts,
+    }
+    return posts.length > 0 ? c.json(result, 201) : c.json(result)
   })
   .post('/social/candidates', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()

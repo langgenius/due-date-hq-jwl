@@ -30,29 +30,46 @@ describe('parseSocialXCommand', () => {
   it('previews the next 14 ET publishing days by default', () => {
     const command = parseSocialXCommand(['queue'])
 
-    expect(command).toEqual({ kind: 'queue', days: 14 })
+    expect(command).toEqual({ kind: 'queue' })
     expect(requestFor(command)).toEqual({
-      path: '/api/ops/social/queue?days=14',
+      path: '/api/ops/social/queue',
       method: 'GET',
     })
   })
 
-  it('accepts a bounded queue preview window', () => {
-    const command = parseSocialXCommand(['queue', '--days', '30'])
+  it('keeps the queue preview fixed at 14 days', () => {
+    expect(() => parseSocialXCommand(['queue', '--days', '30'])).toThrow(
+      /always previews the next 14 days/u,
+    )
+    expect(() => parseSocialXCommand(['queue', 'extra'])).toThrow(
+      /always previews the next 14 days/u,
+    )
+  })
 
-    expect(command).toEqual({ kind: 'queue', days: 30 })
+  it('seeds three latest eligible drafts by default', () => {
+    const command = parseSocialXCommand(['seed-drafts'])
+
+    expect(command).toEqual({ kind: 'seed-drafts', count: 3 })
     expect(requestFor(command)).toEqual({
-      path: '/api/ops/social/queue?days=30',
-      method: 'GET',
+      path: '/api/ops/social/drafts/seed',
+      method: 'POST',
+      body: { count: 3 },
     })
   })
 
-  it('rejects invalid queue preview windows', () => {
-    for (const days of ['0', '101', '1.5', 'not-a-number']) {
-      expect(() => parseSocialXCommand(['queue', '--days', days])).toThrow(
-        /--days must be an integer from 1 to 100/u,
+  it('accepts a bounded draft seed count', () => {
+    expect(parseSocialXCommand(['seed-drafts', '--count', '14'])).toEqual({
+      kind: 'seed-drafts',
+      count: 14,
+    })
+    for (const count of ['0', '15', '1.5', 'not-a-number']) {
+      expect(() => parseSocialXCommand(['seed-drafts', '--count', count])).toThrow(
+        /--count must be an integer from 1 to 14/u,
       )
     }
+    expect(() => parseSocialXCommand(['seed-drafts', '--count', '3', 'extra'])).toThrow(
+      /accepts only an optional --count/u,
+    )
   })
 
   it('supports a read-only OAuth account preflight', () => {

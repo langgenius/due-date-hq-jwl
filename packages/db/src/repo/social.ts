@@ -1,16 +1,21 @@
 import { REVIEW_ONLY_PULSE_SOURCE_IDS, requiresReviewOnlyPulseAlert } from '@duedatehq/core/rules'
 import {
+  containsPossibleEmailAddress,
+  containsPossibleSensitiveIdentifier,
+} from '@duedatehq/core/pii'
+import {
   and,
   asc,
   desc,
   eq,
+  gt,
   gte,
   inArray,
   isNull,
   like,
+  lt,
   lte,
   ne,
-  not,
   notInArray,
   or,
   sql,
@@ -33,7 +38,7 @@ import {
 const DEFAULT_LIST_LIMIT = 50
 const MAX_LIST_LIMIT = 100
 const MAX_PROJECTION_LIST_LIMIT = 101
-export const SOCIAL_READY_AGING_MS = 3 * 24 * 60 * 60 * 1000
+export const SOCIAL_URGENT_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 const SOCIAL_REF_PATTERN = /^[A-Za-z0-9_-]{16,128}$/u
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u
 const SOCIAL_EXCLUDED_CHANGE_KINDS: PulseChangeKind[] = [
@@ -80,6 +85,27 @@ export interface SocialPublishPayload {
   pulseId: string
   postText: string
   targetUrl: string
+}
+
+export type SocialDraftCreateResult = 'created' | 'daily_slot_filled' | 'candidate_conflict'
+export type SocialDraftBufferCreateResult =
+  | { status: 'created'; post: SocialAlertPost }
+  | { status: 'buffer_full' | 'candidate_conflict' }
+
+export interface SocialQueuePost extends SocialAlertPost {
+  pulseCreatedAt: Date
+}
+
+interface CreateSocialDraftInput {
+  pulseId: string
+  refToken: string
+  postText: string
+  targetUrl: string
+  teaser: string
+  agency: string
+  priority?: SocialAlertPriority
+  now?: Date
+  channel?: SocialChannel
 }
 
 const candidateSelection = {
@@ -153,6 +179,18 @@ function validPublicHttpUrl(value: string): boolean {
   }
 }
 
+function validateDraftInput(input: CreateSocialDraftInput): void {
+  if (
+    !isValidSocialAlertRef(input.refToken) ||
+    !input.postText.trim() ||
+    !input.teaser.trim() ||
+    !input.agency.trim() ||
+    !validPublicHttpUrl(input.targetUrl)
+  ) {
+    throw new SocialOpsRepoError('invalid')
+  }
+}
+
 export function isValidSocialAlertRef(value: string): boolean {
   return SOCIAL_REF_PATTERN.test(value)
 }
@@ -164,11 +202,24 @@ function isValidLocalDate(value: string): boolean {
 }
 
 function candidateIsRuntimeEligible(row: SocialAlertCandidateRow | undefined) {
+  const publicFields = row
+    ? [row.sourceId, row.jurisdiction, row.summary, ...row.forms, ...row.entityTypes]
+    : []
   return Boolean(
     row &&
+    row.status === 'approved' &&
+    !row.isSample &&
     !requiresReviewOnlyPulseAlert(row.sourceId) &&
+    !SOCIAL_EXCLUDED_CHANGE_KINDS.includes(row.changeKind) &&
+    Boolean(row.sourceId.trim()) &&
     validPublicHttpUrl(row.sourceUrl) &&
-    (row.forms.some((value) => value.trim()) || row.entityTypes.some((value) => value.trim())),
+    Boolean(row.summary.trim()) &&
+    Boolean(row.jurisdiction.trim()) &&
+    (row.forms.some((value) => value.trim()) || row.entityTypes.some((value) => value.trim())) &&
+    Boolean(row.newDueDate ?? row.actionDeadline ?? row.effectiveFrom ?? row.effectiveUntil) &&
+    (row.changeKind !== 'deadline_shift' || Boolean(row.originalDueDate && row.newDueDate)) &&
+    !containsPossibleEmailAddress(publicFields) &&
+    !containsPossibleSensitiveIdentifier(publicFields),
   )
 }
 
@@ -374,9 +425,17 @@ export function makeSocialOpsRepo(db: Db) {
   return {
     async listEligibleCandidates(input: {
       since: Date
+      now: Date
       limit?: number
       channel?: SocialChannel
+      before?: { createdAt: Date; pulseId: string }
     }): Promise<SocialAlertCandidateRow[]> {
+      if (
+        input.before &&
+        (Number.isNaN(input.before.createdAt.getTime()) || !input.before.pulseId.trim())
+      ) {
+        throw new SocialOpsRepoError('invalid')
+      }
       const channel = input.channel ?? 'x'
       const rows = await db
         .select(candidateSelection)
@@ -385,35 +444,33 @@ export function makeSocialOpsRepo(db: Db) {
           socialAlertPost,
           and(eq(socialAlertPost.pulseId, pulse.id), eq(socialAlertPost.channel, channel)),
         )
-        .where(and(candidateConditions(input.since), isNull(socialAlertPost.id)))
-        .orderBy(asc(pulse.createdAt), asc(pulse.id))
+        .where(
+          and(
+            candidateConditions(input.since),
+            isNull(socialAlertPost.id),
+            ...(input.before
+              ? [
+                  or(
+                    lt(pulse.createdAt, input.before.createdAt),
+                    and(
+                      eq(pulse.createdAt, input.before.createdAt),
+                      lt(pulse.id, input.before.pulseId),
+                    ),
+                  ),
+                ]
+              : []),
+          ),
+        )
+        .orderBy(desc(pulse.createdAt), desc(pulse.id))
         .limit(clampLimit(input.limit))
-      return rows.filter(candidateIsRuntimeEligible)
+      return rows
     },
 
     getEligibleCandidate,
     getPost,
 
-    async createDraft(input: {
-      pulseId: string
-      refToken: string
-      postText: string
-      targetUrl: string
-      teaser: string
-      agency: string
-      priority?: SocialAlertPriority
-      now?: Date
-      channel?: SocialChannel
-    }): Promise<SocialAlertPost> {
-      if (
-        !isValidSocialAlertRef(input.refToken) ||
-        !input.postText.trim() ||
-        !input.teaser.trim() ||
-        !input.agency.trim() ||
-        !validPublicHttpUrl(input.targetUrl)
-      ) {
-        throw new SocialOpsRepoError('invalid')
-      }
+    async createDraft(input: CreateSocialDraftInput): Promise<SocialAlertPost> {
+      validateDraftInput(input)
       const candidate = await getEligibleCandidate(input.pulseId)
       if (!candidate) throw new SocialOpsRepoError('ineligible')
 
@@ -452,6 +509,187 @@ export function makeSocialOpsRepo(db: Db) {
       return existing
     },
 
+    async createDailyDraft(
+      input: CreateSocialDraftInput & {
+        since: Date
+        dailyWindowStart: Date
+        dailyWindowEnd: Date
+      },
+    ): Promise<SocialDraftCreateResult> {
+      validateDraftInput(input)
+      if (
+        Number.isNaN(input.since.getTime()) ||
+        Number.isNaN(input.dailyWindowStart.getTime()) ||
+        Number.isNaN(input.dailyWindowEnd.getTime()) ||
+        input.dailyWindowStart.getTime() >= input.dailyWindowEnd.getTime()
+      ) {
+        throw new SocialOpsRepoError('invalid')
+      }
+      const candidate = await getEligibleCandidate(input.pulseId)
+      if (!candidate) return 'candidate_conflict'
+
+      const channel = input.channel ?? 'x'
+      const now = input.now ?? new Date()
+      const postId = crypto.randomUUID()
+      const result = await db.run(sql`
+        insert into ${socialAlertPost} (
+          id,
+          channel,
+          pulse_id,
+          ref_token,
+          post_text,
+          target_url,
+          teaser,
+          agency,
+          jurisdiction,
+          change_kind,
+          status,
+          priority,
+          created_at,
+          updated_at
+        )
+        select
+          ${postId},
+          ${channel},
+          ${candidate.pulseId},
+          ${input.refToken},
+          ${input.postText},
+          ${input.targetUrl},
+          ${input.teaser},
+          ${input.agency},
+          ${candidate.jurisdiction},
+          ${candidate.changeKind},
+          'draft',
+          ${input.priority ?? 'normal'},
+          ${now.getTime()},
+          ${now.getTime()}
+        from ${pulse}
+        where ${pulse.id} = ${candidate.pulseId}
+          and ${candidateConditions(input.since)}
+          and not exists (
+            select 1
+            from ${socialAlertPost}
+            where ${socialAlertPost.channel} = ${channel}
+              and ${socialAlertPost.createdAt} >= ${input.dailyWindowStart.getTime()}
+              and ${socialAlertPost.createdAt} < ${input.dailyWindowEnd.getTime()}
+          )
+          and not exists (
+            select 1
+            from ${socialAlertPost}
+            where ${socialAlertPost.channel} = ${channel}
+              and ${socialAlertPost.pulseId} = ${candidate.pulseId}
+          )
+        on conflict do nothing
+      `)
+      if (result.meta.changes > 0) return 'created'
+
+      const [existingDailyPost] = await db
+        .select({ id: socialAlertPost.id })
+        .from(socialAlertPost)
+        .where(
+          and(
+            eq(socialAlertPost.channel, channel),
+            gte(socialAlertPost.createdAt, input.dailyWindowStart),
+            lt(socialAlertPost.createdAt, input.dailyWindowEnd),
+          ),
+        )
+        .limit(1)
+      return existingDailyPost ? 'daily_slot_filled' : 'candidate_conflict'
+    },
+
+    async createDraftIfBufferBelow(
+      input: CreateSocialDraftInput & { since: Date; bufferSize: number },
+    ): Promise<SocialDraftBufferCreateResult> {
+      validateDraftInput(input)
+      if (
+        Number.isNaN(input.since.getTime()) ||
+        !Number.isInteger(input.bufferSize) ||
+        input.bufferSize < 1 ||
+        input.bufferSize > 14
+      ) {
+        throw new SocialOpsRepoError('invalid')
+      }
+      const candidate = await getEligibleCandidate(input.pulseId)
+      if (!candidate) return { status: 'candidate_conflict' }
+
+      const channel = input.channel ?? 'x'
+      const now = input.now ?? new Date()
+      const postId = crypto.randomUUID()
+      const result = await db.run(sql`
+        insert into ${socialAlertPost} (
+          id,
+          channel,
+          pulse_id,
+          ref_token,
+          post_text,
+          target_url,
+          teaser,
+          agency,
+          jurisdiction,
+          change_kind,
+          status,
+          priority,
+          created_at,
+          updated_at
+        )
+        select
+          ${postId},
+          ${channel},
+          ${candidate.pulseId},
+          ${input.refToken},
+          ${input.postText},
+          ${input.targetUrl},
+          ${input.teaser},
+          ${input.agency},
+          ${candidate.jurisdiction},
+          ${candidate.changeKind},
+          'draft',
+          ${input.priority ?? 'normal'},
+          ${now.getTime()},
+          ${now.getTime()}
+        from ${pulse}
+        where ${pulse.id} = ${candidate.pulseId}
+          and ${candidateConditions(input.since)}
+          and (
+            select count(*)
+            from ${socialAlertPost}
+            inner join ${pulse} on ${pulse.id} = ${socialAlertPost.pulseId}
+            where ${socialAlertPost.channel} = ${channel}
+              and ${socialAlertPost.status} = 'draft'
+              and ${candidateConditions()}
+          ) < ${input.bufferSize}
+          and not exists (
+            select 1
+            from ${socialAlertPost}
+            where ${socialAlertPost.channel} = ${channel}
+              and ${socialAlertPost.pulseId} = ${candidate.pulseId}
+          )
+        on conflict do nothing
+      `)
+      if (result.meta.changes > 0) {
+        const post = await getPost(postId)
+        if (!post) throw new SocialOpsRepoError('conflict')
+        return { status: 'created', post }
+      }
+
+      const currentDraftRows = await db
+        .select({ post: socialAlertPost, ...candidateSelection })
+        .from(socialAlertPost)
+        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+        .where(
+          and(
+            eq(socialAlertPost.channel, channel),
+            eq(socialAlertPost.status, 'draft'),
+            candidateConditions(),
+          ),
+        )
+        .limit(input.bufferSize)
+      const currentDrafts = currentDraftRows.filter(candidateIsRuntimeEligible)
+      return {
+        status: currentDrafts.length >= input.bufferSize ? 'buffer_full' : 'candidate_conflict',
+      }
+    },
+
     async listPosts(
       input: {
         status?: SocialAlertPostStatus
@@ -476,28 +714,24 @@ export function makeSocialOpsRepo(db: Db) {
     async listReadyPostsForProjection(input: {
       channel?: SocialChannel
       limit?: number
-      priority: SocialAlertPriority
-    }): Promise<SocialAlertPost[]> {
+    }): Promise<SocialQueuePost[]> {
       const channel = input.channel ?? 'x'
       const rows = await db
-        .select({ post: socialAlertPost, ...candidateSelection })
+        .select({ post: socialAlertPost, pulseCreatedAt: pulse.createdAt, ...candidateSelection })
         .from(socialAlertPost)
         .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
         .where(
           and(
             eq(socialAlertPost.channel, channel),
             eq(socialAlertPost.status, 'ready'),
-            eq(socialAlertPost.priority, input.priority),
             candidateConditions(),
           ),
         )
-        .orderBy(
-          asc(socialAlertPost.readyAt),
-          asc(socialAlertPost.createdAt),
-          asc(socialAlertPost.id),
-        )
+        .orderBy(desc(pulse.createdAt), desc(pulse.id))
         .limit(clampProjectionLimit(input.limit))
-      return rows.filter(candidateIsRuntimeEligible).map((row) => row.post)
+      return rows
+        .filter(candidateIsRuntimeEligible)
+        .map((row) => Object.assign({}, row.post, { pulseCreatedAt: row.pulseCreatedAt }))
     },
 
     async listDraftPostsForQueuePreview(
@@ -505,10 +739,10 @@ export function makeSocialOpsRepo(db: Db) {
         channel?: SocialChannel
         limit?: number
       } = {},
-    ): Promise<SocialAlertPost[]> {
+    ): Promise<SocialQueuePost[]> {
       const channel = input.channel ?? 'x'
       const rows = await db
-        .select({ post: socialAlertPost, ...candidateSelection })
+        .select({ post: socialAlertPost, pulseCreatedAt: pulse.createdAt, ...candidateSelection })
         .from(socialAlertPost)
         .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
         .where(
@@ -518,9 +752,11 @@ export function makeSocialOpsRepo(db: Db) {
             candidateConditions(),
           ),
         )
-        .orderBy(asc(socialAlertPost.createdAt), asc(socialAlertPost.id))
+        .orderBy(desc(pulse.createdAt), desc(pulse.id))
         .limit(clampProjectionLimit(input.limit))
-      return rows.filter(candidateIsRuntimeEligible).map((row) => row.post)
+      return rows
+        .filter(candidateIsRuntimeEligible)
+        .map((row) => Object.assign({}, row.post, { pulseCreatedAt: row.pulseCreatedAt }))
     },
 
     async listOccupiedPublishDates(input: {
@@ -552,31 +788,56 @@ export function makeSocialOpsRepo(db: Db) {
       } = {},
     ): Promise<number> {
       const channel = input.channel ?? 'x'
-      const posts = await db
-        .select({ id: socialAlertPost.id, pulseId: socialAlertPost.pulseId })
-        .from(socialAlertPost)
-        .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
-        .where(
-          and(
-            eq(socialAlertPost.channel, channel),
-            inArray(socialAlertPost.status, ['draft', 'ready']),
-            not(candidateConditions()),
-          ),
-        )
-        .orderBy(asc(socialAlertPost.createdAt), asc(socialAlertPost.id))
-        .limit(clampLimit(input.limit ?? MAX_LIST_LIMIT))
-
       let cancelled = 0
       const now = input.now ?? new Date()
-      // At most 100 rows per sweep and every write is one-row scoped, so this
-      // stays below D1's 100-bound-param ceiling. Repeated cron ticks drain a
-      // larger stale backlog without ever constructing an oversized IN list.
-      for (const post of posts) {
-        if (await cancelPost({ postId: post.id, reason: 'pulse_no_longer_social_eligible', now })) {
-          cancelled += 1
+      const pageSize = clampLimit(input.limit ?? MAX_LIST_LIMIT)
+      let after: { createdAt: Date; postId: string } | undefined
+
+      while (true) {
+        // eslint-disable-next-line no-await-in-loop -- keyset pages keep D1 reads bounded.
+        const rows = await db
+          .select({ post: socialAlertPost, ...candidateSelection })
+          .from(socialAlertPost)
+          .innerJoin(pulse, eq(socialAlertPost.pulseId, pulse.id))
+          .where(
+            and(
+              eq(socialAlertPost.channel, channel),
+              inArray(socialAlertPost.status, ['draft', 'ready']),
+              ...(after
+                ? [
+                    or(
+                      gt(socialAlertPost.createdAt, after.createdAt),
+                      and(
+                        eq(socialAlertPost.createdAt, after.createdAt),
+                        gt(socialAlertPost.id, after.postId),
+                      ),
+                    ),
+                  ]
+                : []),
+            ),
+          )
+          .orderBy(asc(socialAlertPost.createdAt), asc(socialAlertPost.id))
+          .limit(pageSize)
+
+        for (const row of rows) {
+          if (candidateIsRuntimeEligible(row)) continue
+          // eslint-disable-next-line no-await-in-loop -- each cancellation is independently audited.
+          if (
+            await cancelPost({
+              postId: row.post.id,
+              reason: 'pulse_no_longer_social_eligible',
+              now,
+            })
+          ) {
+            cancelled += 1
+          }
         }
+
+        if (rows.length < pageSize) return cancelled
+        const last = rows.at(-1)
+        if (!last) return cancelled
+        after = { createdAt: last.post.createdAt, postId: last.post.id }
       }
-      return cancelled
     },
 
     async approvePost(input: {
@@ -640,10 +901,6 @@ export function makeSocialOpsRepo(db: Db) {
         .limit(1)
       if (existingRun) return null
 
-      // This value is embedded in a raw CASE expression rather than compared
-      // through a timestamp_ms column operator, so bind the encoded integer
-      // explicitly. Passing Date here reaches the D1 driver unencoded.
-      const agedBeforeMs = input.now.getTime() - SOCIAL_READY_AGING_MS
       const [candidate] = await db
         .select({ post: socialAlertPost })
         .from(socialAlertPost)
@@ -655,14 +912,7 @@ export function makeSocialOpsRepo(db: Db) {
             candidateConditions(),
           ),
         )
-        .orderBy(
-          asc(
-            sql`case when ${socialAlertPost.priority} = 'urgent' or ${socialAlertPost.readyAt} <= ${agedBeforeMs} then 0 else 1 end`,
-          ),
-          asc(socialAlertPost.readyAt),
-          asc(socialAlertPost.createdAt),
-          asc(socialAlertPost.id),
-        )
+        .orderBy(desc(pulse.createdAt), desc(pulse.id))
         .limit(1)
       if (!candidate) return null
 

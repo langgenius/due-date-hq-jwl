@@ -7,10 +7,12 @@ function post(
 ): XQueuePreviewPost & { postText: string } {
   return {
     id,
+    pulseId: `pulse-${id}`,
     status: 'ready',
     priority: 'normal',
     readyAt: new Date('2026-07-20T12:00:00.000Z'),
     createdAt: new Date('2026-07-20T11:00:00.000Z'),
+    pulseCreatedAt: new Date('2026-07-20T10:00:00.000Z'),
     postText: `Copy for ${id}`,
     ...overrides,
   }
@@ -29,9 +31,9 @@ describe('buildXQueuePreview', () => {
     })
 
     expect(preview.ready.map((item) => [item.post.id, item.projectedLocalDate])).toEqual([
-      ['post-1', '2026-07-24'],
+      ['post-3', '2026-07-24'],
       ['post-2', '2026-07-25'],
-      ['post-3', '2026-07-26'],
+      ['post-1', '2026-07-26'],
     ])
     expect(preview.ready.map((item) => item.projectedAt.toISOString())).toEqual([
       '2026-07-24T13:00:00.000Z',
@@ -58,103 +60,77 @@ describe('buildXQueuePreview', () => {
 
     expect(preview.occupiedLocalDates).toEqual(['2026-07-24', '2026-07-26'])
     expect(preview.ready.map((item) => [item.post.id, item.projectedLocalDate])).toEqual([
-      ['post-1', '2026-07-25'],
-      ['post-2', '2026-07-27'],
+      ['post-2', '2026-07-25'],
+      ['post-1', '2026-07-27'],
     ])
   })
 
-  it('re-evaluates urgent and 72-hour aging priority at every projected slot', () => {
+  it('publishes newer Alerts before older Alerts regardless of approval age or priority', () => {
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T12:00:00.000Z'), // 08:00 ET
       days: 3,
       posts: [
-        post('urgent-first', {
+        post('old-urgent', {
           priority: 'urgent',
-          readyAt: new Date('2026-07-19T00:00:00.000Z'),
+          readyAt: new Date('2026-07-01T00:00:00.000Z'),
+          pulseCreatedAt: new Date('2026-07-19T00:00:00.000Z'),
         }),
-        post('normal-aging', {
-          priority: 'normal',
-          // 71 hours old at the first slot, 95 hours old at the second.
-          readyAt: new Date('2026-07-18T14:00:00.000Z'),
+        post('new-normal', {
+          readyAt: new Date('2026-07-20T12:00:00.000Z'),
+          pulseCreatedAt: new Date('2026-07-21T00:00:00.000Z'),
         }),
-        post('urgent-later', {
-          priority: 'urgent',
+        post('middle-normal', {
           readyAt: new Date('2026-07-20T00:00:00.000Z'),
+          pulseCreatedAt: new Date('2026-07-20T00:00:00.000Z'),
         }),
       ],
     })
 
-    // On day two the older normal Post has aged into the same rank as urgent,
-    // then wins on readyAt exactly as the production SQL claim does.
     expect(preview.ready.map((item) => item.post.id)).toEqual([
-      'urgent-first',
-      'normal-aging',
-      'urgent-later',
+      'new-normal',
+      'middle-normal',
+      'old-urgent',
     ])
   })
 
-  it('matches the claim boundary by aging a Post at exactly 72 hours', () => {
-    const now = new Date('2026-07-21T12:00:00.000Z')
-    const urgent = post('urgent', {
-      priority: 'urgent',
-      readyAt: new Date('2026-07-19T00:00:00.000Z'),
-    })
-    const exactBoundary = buildXQueuePreview({
-      now,
-      days: 2,
-      posts: [
-        urgent,
-        post('normal-exactly-aged', { readyAt: new Date('2026-07-18T13:00:00.000Z') }),
-      ],
-    })
-    const oneMillisecondShort = buildXQueuePreview({
-      now,
-      days: 2,
-      posts: [
-        urgent,
-        post('normal-not-yet-aged', { readyAt: new Date('2026-07-18T13:00:00.001Z') }),
-      ],
-    })
-
-    expect(exactBoundary.ready.map((item) => item.post.id)).toEqual([
-      'normal-exactly-aged',
-      'urgent',
-    ])
-    expect(oneMillisecondShort.ready.map((item) => item.post.id)).toEqual([
-      'urgent',
-      'normal-not-yet-aged',
-    ])
-  })
-
-  it('uses readyAt, createdAt, then id as deterministic tie-breakers', () => {
-    const readyAt = new Date('2026-07-15T00:00:00.000Z')
-    const firstCreatedAt = new Date('2026-07-14T00:00:00.000Z')
+  it('uses Pulse ID and Post ID as deterministic newest-first tie-breakers', () => {
+    const pulseCreatedAt = new Date('2026-07-20T00:00:00.000Z')
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T12:00:00.000Z'),
       days: 3,
       posts: [
-        post('post-b', { readyAt, createdAt: firstCreatedAt }),
-        post('post-c', { readyAt, createdAt: new Date('2026-07-14T01:00:00.000Z') }),
-        post('post-a', { readyAt, createdAt: firstCreatedAt }),
+        post('post-a', { pulseId: 'pulse-a', pulseCreatedAt }),
+        post('post-b', { pulseId: 'pulse-b', pulseCreatedAt }),
+        post('post-c', { pulseId: 'pulse-c', pulseCreatedAt }),
       ],
     })
 
-    expect(preview.ready.map((item) => item.post.id)).toEqual(['post-a', 'post-b', 'post-c'])
+    expect(preview.ready.map((item) => item.post.id)).toEqual(['post-c', 'post-b', 'post-a'])
     expect(preview.ready.map((item) => item.position)).toEqual([1, 2, 3])
   })
 
   it('lists drafts without dates and reports ready Posts beyond the horizon', () => {
-    const draft = post('draft-1', { status: 'draft', readyAt: null })
+    const olderDraft = post('draft-old', {
+      status: 'draft',
+      readyAt: null,
+      pulseCreatedAt: new Date('2026-07-19T00:00:00.000Z'),
+    })
+    const newerDraft = post('draft-new', {
+      status: 'draft',
+      readyAt: null,
+      pulseCreatedAt: new Date('2026-07-21T00:00:00.000Z'),
+    })
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T12:00:00.000Z'),
       days: 1,
-      posts: [draft, post('ready-1'), post('ready-2')],
+      posts: [olderDraft, post('ready-1'), newerDraft, post('ready-2')],
     })
 
     expect(preview.drafts).toEqual([
-      { projectedLocalDate: null, reason: 'approval_required', post: draft },
+      { projectedLocalDate: null, reason: 'approval_required', post: newerDraft },
+      { projectedLocalDate: null, reason: 'approval_required', post: olderDraft },
     ])
-    expect(preview.ready.map((item) => item.post.id)).toEqual(['ready-1'])
+    expect(preview.ready.map((item) => item.post.id)).toEqual(['ready-2'])
     expect(preview.visibleReadyBeyondWindowCount).toBe(1)
   })
 

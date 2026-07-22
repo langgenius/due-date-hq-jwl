@@ -1,4 +1,3 @@
-import { SOCIAL_READY_AGING_MS } from '@duedatehq/db'
 import {
   addLocalCalendarDays,
   EASTERN_TIME_ZONE,
@@ -10,10 +9,12 @@ export const X_QUEUE_DAILY_SLOT = '09:00' as const
 
 export interface XQueuePreviewPost {
   id: string
+  pulseId: string
   status: 'draft' | 'ready'
   priority: 'normal' | 'urgent'
   readyAt: Date | null
   createdAt: Date
+  pulseCreatedAt: Date
 }
 
 export interface XQueueProjectedPost<TPost extends XQueuePreviewPost = XQueuePreviewPost> {
@@ -53,9 +54,9 @@ export interface BuildXQueuePreviewInput<TPost extends XQueuePreviewPost = XQueu
 /**
  * Produce a read-only snapshot of the normal daily X queue.
  *
- * No future run rows are reserved here. Every projected slot re-evaluates the
- * same dynamic priority expression used by the D1 claim: manual urgent or
- * ready for at least 72 hours, followed by readyAt, createdAt, and id.
+ * No future run rows are reserved here. Ready and draft rows use the same
+ * newest-Pulse-first order as the D1 claim, so the projection matches the
+ * order that the normal Cron will use if no newer Alert arrives.
  */
 export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
   input: BuildXQueuePreviewInput<TPost>,
@@ -89,9 +90,7 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
     if (remaining.length === 0) continue
 
     const projectedAt = xDailySlotInstant(localDate)
-    const post = remaining.toSorted((left, right) =>
-      comparePostsForSlot(left, right, projectedAt),
-    )[0]
+    const post = remaining.toSorted(compareNewestPulseFirst)[0]
     if (!post) continue
     ready.push({
       position: ready.length + 1,
@@ -112,30 +111,16 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
     throughLocalDate,
     occupiedLocalDates: occupiedInWindow,
     ready,
-    drafts: drafts.toSorted(
-      (left, right) =>
-        left.post.createdAt.getTime() - right.post.createdAt.getTime() ||
-        compareIds(left.post.id, right.post.id),
-    ),
+    drafts: drafts.toSorted((left, right) => compareNewestPulseFirst(left.post, right.post)),
     visibleReadyBeyondWindowCount: remaining.length,
   }
 }
 
-function comparePostsForSlot(
-  left: XQueuePreviewPost,
-  right: XQueuePreviewPost,
-  slot: Date,
-): number {
-  const leftReadyAt = requiredReadyAt(left)
-  const rightReadyAt = requiredReadyAt(right)
-  const agedBeforeMs = slot.getTime() - SOCIAL_READY_AGING_MS
-  const leftRank = left.priority === 'urgent' || leftReadyAt.getTime() <= agedBeforeMs ? 0 : 1
-  const rightRank = right.priority === 'urgent' || rightReadyAt.getTime() <= agedBeforeMs ? 0 : 1
+function compareNewestPulseFirst(left: XQueuePreviewPost, right: XQueuePreviewPost): number {
   return (
-    leftRank - rightRank ||
-    leftReadyAt.getTime() - rightReadyAt.getTime() ||
-    left.createdAt.getTime() - right.createdAt.getTime() ||
-    compareIds(left.id, right.id)
+    right.pulseCreatedAt.getTime() - left.pulseCreatedAt.getTime() ||
+    compareIds(right.pulseId, left.pulseId) ||
+    compareIds(right.id, left.id)
   )
 }
 
@@ -149,6 +134,9 @@ function requiredReadyAt(post: XQueuePreviewPost): Date {
 function validatePostDates(post: XQueuePreviewPost): void {
   if (Number.isNaN(post.createdAt.getTime())) {
     throw new Error(`Social Post ${post.id} requires a valid createdAt.`)
+  }
+  if (Number.isNaN(post.pulseCreatedAt.getTime())) {
+    throw new Error(`Social Post ${post.id} requires a valid pulseCreatedAt.`)
   }
   if (post.status === 'ready') requiredReadyAt(post)
 }

@@ -1,5 +1,9 @@
 import { requiresReviewOnlyPulseAlert, STATE_RULE_SOURCE_SEEDS } from '@duedatehq/core/rules'
 import {
+  containsPossibleEmailAddress,
+  containsPossibleSensitiveIdentifier,
+} from '@duedatehq/core/pii'
+import {
   alertSourceAdapterMetadataById,
   listAlertSourceCatalog,
 } from '../pulse/rule-source-adapters'
@@ -9,8 +13,6 @@ const X_SHORT_URL_LENGTH = 23
 const EXCLUDED_CHANGE_KINDS = new Set(['source_status', 'rule_source_drift', 'threshold_advisory'])
 
 const URL_PATTERN = /https?:\/\/[^\s]+/giu
-const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/iu
-const SENSITIVE_IDENTIFIER_PATTERN = /\b(?:\d[ -]?){9}\b/u
 const EMOJI_GRAPHEME_PATTERN = /(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|\uFE0F)/u
 const SOCIAL_REF_PATTERN = /^[A-Za-z0-9_-]{16,128}$/u
 const STATE_NAME_BY_CODE: ReadonlyMap<string, string> = new Map(
@@ -118,9 +120,11 @@ export function validateSocialCandidate(
     candidate.summary,
     ...candidate.forms,
     ...(candidate.entityTypes ?? []),
-  ].join(' ')
-  if (EMAIL_PATTERN.test(publicFields)) reasons.push('possible_email_address')
-  if (SENSITIVE_IDENTIFIER_PATTERN.test(publicFields)) reasons.push('possible_sensitive_identifier')
+  ]
+  if (containsPossibleEmailAddress(publicFields)) reasons.push('possible_email_address')
+  if (containsPossibleSensitiveIdentifier(publicFields)) {
+    reasons.push('possible_sensitive_identifier')
+  }
 
   return reasons.length === 0 ? { eligible: true } : { eligible: false, reasons }
 }

@@ -9,7 +9,8 @@ type Command =
       pulseId?: string
       priority?: 'normal' | 'urgent'
     }
-  | { kind: 'queue'; days: number }
+  | { kind: 'queue' }
+  | { kind: 'seed-drafts'; count: number }
   | { kind: 'approve'; postId: string; reviewer: string; priority?: 'normal' | 'urgent' }
   | { kind: 'verify-account' }
   | { kind: 'publish-now'; postId: string }
@@ -25,7 +26,8 @@ type Command =
 const USAGE = `Usage:
   pnpm social:x -- candidates [--status draft] [--limit 50]
   pnpm social:x -- candidates --pulse <pulse-id> [--priority urgent]
-  pnpm social:x -- queue [--days 14]
+  pnpm social:x -- queue
+  pnpm social:x -- seed-drafts [--count 3]
   pnpm social:x -- approve <post-id> [--reviewer <user-id>] [--priority urgent]
   pnpm social:x -- verify-account
   pnpm social:x -- publish-now <post-id>
@@ -90,12 +92,21 @@ export function parseSocialXCommand(args: string[], env = process.env): Command 
     }
   }
   if (name === 'queue') {
-    const rawDays = option(commandArgs, '--days')
-    const days = rawDays === undefined ? 14 : Number(rawDays)
-    if (!Number.isInteger(days) || days < 1 || days > 100) {
-      throw new Error('--days must be an integer from 1 to 100.')
+    if (commandArgs.length !== 1) {
+      throw new Error('queue does not accept arguments; it always previews the next 14 days.')
     }
-    return { kind: 'queue', days }
+    return { kind: 'queue' }
+  }
+  if (name === 'seed-drafts') {
+    if (commandArgs.length !== 1 && !(commandArgs.length === 3 && commandArgs[1] === '--count')) {
+      throw new Error('seed-drafts accepts only an optional --count value.')
+    }
+    const rawCount = option(commandArgs, '--count')
+    const count = rawCount === undefined ? 3 : Number(rawCount)
+    if (!Number.isInteger(count) || count < 1 || count > 14) {
+      throw new Error('--count must be an integer from 1 to 14.')
+    }
+    return { kind: 'seed-drafts', count }
   }
   if (name === 'approve') {
     const parsedPriority = priority(option(commandArgs, '--priority'))
@@ -151,8 +162,15 @@ export function requestFor(command: Command): {
 } {
   if (command.kind === 'queue') {
     return {
-      path: `/api/ops/social/queue?days=${command.days}`,
+      path: '/api/ops/social/queue',
       method: 'GET',
+    }
+  }
+  if (command.kind === 'seed-drafts') {
+    return {
+      path: '/api/ops/social/drafts/seed',
+      method: 'POST',
+      body: { count: command.count },
     }
   }
   if (command.kind === 'candidates' && command.pulseId) {

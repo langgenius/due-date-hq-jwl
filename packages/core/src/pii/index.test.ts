@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { detectSsnColumns, looksLikeSsn, validateEin } from './index'
+import {
+  containsPossibleEmailAddress,
+  containsPossibleSensitiveIdentifier,
+  detectSsnColumns,
+  looksLikeSsn,
+  validateEin,
+} from './index'
 
 describe('detectSsnColumns', () => {
   it('flags columns whose header matches SSN label patterns', () => {
@@ -78,5 +84,20 @@ describe('looksLikeSsn', () => {
   })
   it.each(['12-3456789', '1234-56-7890', '12 34 5678'])('rejects %s', (v) => {
     expect(looksLikeSsn(v)).toBe(false)
+  })
+})
+
+describe('public-copy PII guards', () => {
+  it('detects an email address across public source-derived fields', () => {
+    expect(containsPossibleEmailAddress(['Deadline changed', 'Contact private@example.com'])).toBe(
+      true,
+    )
+    expect(containsPossibleEmailAddress(['Form 1040', 'Individual'])).toBe(false)
+  })
+
+  it('detects compact and separated nine-digit identifiers', () => {
+    expect(containsPossibleSensitiveIdentifier(['Reference 123456789'])).toBe(true)
+    expect(containsPossibleSensitiveIdentifier(['Reference 123 45 6789'])).toBe(true)
+    expect(containsPossibleSensitiveIdentifier(['Deadline 2026-10-15'])).toBe(false)
   })
 })

@@ -59,12 +59,24 @@ export function addLocalCalendarDays(localDate: string, days: number): string {
 
 /** Resolve the normal 09:00 America/New_York publishing slot to an exact instant. */
 export function xDailySlotInstant(localDate: string): Date {
+  return easternLocalInstant(localDate, X_DAILY_SLOT_HOUR)
+}
+
+/** Resolve one ET calendar day's exact UTC bounds without assuming a 24-hour DST day. */
+export function easternDayBounds(localDate: string): { start: Date; end: Date } {
+  return {
+    start: easternLocalInstant(localDate, 0),
+    end: easternLocalInstant(addLocalCalendarDays(localDate, 1), 0),
+  }
+}
+
+function easternLocalInstant(localDate: string, hour: number): Date {
   const { year, month, day } = parseLocalDate(localDate)
-  const targetLocalMs = Date.UTC(year, month - 1, day, X_DAILY_SLOT_HOUR)
+  const targetLocalMs = Date.UTC(year, month - 1, day, hour)
   let candidateMs = targetLocalMs
 
   // Iteratively correct the UTC guess by the wall-clock difference returned
-  // by Intl. 09:00 ET is outside DST's skipped/repeated early-morning hours,
+  // by Intl. Midnight and 09:00 ET are outside DST's skipped/repeated hours,
   // so this converges to one unambiguous instant in at most two passes.
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const parts = easternTimeParts(new Date(candidateMs))
