@@ -6136,6 +6136,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     id: 'ri.tax_disaster_advisories',
     jurisdiction: 'RI',
     title: 'Rhode Island Division of Taxation Advisories (Disaster Relief)',
+    // tax.ri.gov currently challenges datacenter/Worker egress even with the
+    // production browser UA. The server config routes this id through
+    // Cloudflare Browser Rendering; keep this official disaster-specific index
+    // instead of weakening coverage to the broader press-release stream only.
     url: 'https://tax.ri.gov/guidance/advisories',
     sourceType: 'emergency_relief',
     acquisitionMethod: 'html_watch',

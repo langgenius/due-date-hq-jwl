@@ -217,15 +217,16 @@ export const RATE_LIMIT = {
 
 ### 4.2 按源分级的反爬预案
 
-| 源类型                                      | 风险                                                                   | 预案                                                                                                                                               |
-| ------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `irs.disaster` / `irs.newsroom`             | 几乎不封，但偶发 WAF 503                                               | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                |
-| `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                                            | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                     |
-| `ar.temporary_announcements`                | 新闻 HTML 体积大、含税种导航噪声，datacenter/browserless 曾被 WAF 拦截 | 直接抓 DFA 官方 WordPress `news` custom-post RSS；仅接受同源 `/news/<slug>` 条目，并继续执行 tax relevance filter                                  |
-| `ny.dtf.press`                              | HTML archive 结构可能调整                                              | 不假设 RSS；HTML selector fallback + NY Email Services 并行信号                                                                                    |
-| `tx.cpa.rss`                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed               | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤 |
-| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                                    | 每条 selector 必须附 **selector fallback chain**（见 §6.2），并配置官方邮件并行信号；必要时再走 Browserless / 人工录入                             |
-| `fema.*` / `weather.*`                      | 官方 API，稳定                                                         | 标准 REST + 指数退避                                                                                                                               |
+| 源类型                                                      | 风险                                                                   | 预案                                                                                                                                                                                |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `irs.disaster` / `irs.newsroom`                             | 几乎不封，但偶发 WAF 503                                               | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                                                 |
+| `ca.ftb.*` / `ca.cdtfa.news`                                | 偶尔触发 Akamai Bot Manager                                            | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                                                      |
+| `ar.temporary_announcements`                                | 新闻 HTML 体积大、含税种导航噪声，datacenter/browserless 曾被 WAF 拦截 | 直接抓 DFA 官方 WordPress `news` custom-post RSS；仅接受同源 `/news/<slug>` 条目，并继续执行 tax relevance filter                                                                   |
+| `ri.temporary_announcements` / `ri.tax_disaster_advisories` | `dor.ri.gov` / `tax.ri.gov` 对 Worker egress 返回 Cloudflare challenge | 两个 RI web source 均进入 `PULSE_BROWSERLESS_SOURCE_IDS`，通过 Cloudflare Browser Rendering `/content`（network-idle 后取 HTML）；direct fetch 只作未配置 render 时的失败可观测降级 |
+| `ny.dtf.press`                                              | HTML archive 结构可能调整                                              | 不假设 RSS；HTML selector fallback + NY Email Services 并行信号                                                                                                                     |
+| `tx.cpa.rss`                                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed               | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤                                  |
+| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press`                 | 中风险，页面结构年度改版或 WAF 挑战                                    | 每条 selector 必须附 **selector fallback chain**（见 §6.2），并配置官方邮件并行信号；必要时再走 Browserless / 人工录入                                                              |
+| `fema.*` / `weather.*`                                      | 官方 API，稳定                                                         | 标准 REST + 指数退避                                                                                                                                                                |
 
 ### 4.3 Cloudflare Worker 出口 IP 的风险
 
@@ -274,13 +275,13 @@ export const SOURCE_FETCHER: Record<SourceId, FetcherId> = {
 
 ### 5.1 单源失败场景
 
-| 失败类型                | 检测方式                                    | 响应                                                                          | 用户可见影响                                                  |
-| ----------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| HTTP 5xx / timeout      | worker 直接 catch                           | 退避 + 重试 3 次；失败 → Sentry                                               | `Last checked X min ago` 显示真实时间（诚实）                 |
-| HTTP 403 / 429（反爬）  | status code                                 | 退避 15min + 切 `browserless` fetcher（Phase 2）                              | 同上                                                          |
-| 结构变更（selector 挂） | 解析后字段为空 / hash 长期不变              | worker 主动报 `selector-drift` 事件；降级 mock 数据（仅 Demo 环境）           | CPA UI 仍显示 watched；source diagnostics 记录 failure metric |
-| 内容污染（钓鱼页）      | AI SDK Extract `confidence < 0.3` 连续 3 次 | 该源打入 `quarantined` 状态，下次 cron 跳过，创建 owner/manager review task   | 源从 Feed 隐藏                                                |
-| 法律下架（Takedown）    | owner/manager 手动触发                      | 源 `disabled`，历史 Pulse 保留但打 `source_revoked` 标记，Evidence 链保留快照 | Evidence Drawer 显示 "Source no longer live"                  |
+| 失败类型                | 检测方式                                    | 响应                                                                                     | 用户可见影响                                                  |
+| ----------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| HTTP 5xx / timeout      | worker 直接 catch                           | 退避 + 重试 3 次；失败 → Sentry                                                          | `Last checked X min ago` 显示真实时间（诚实）                 |
+| HTTP 403 / 429（反爬）  | status code / `cf-mitigated: challenge`     | 已知 WAF 源进入 Cloudflare Browser Rendering allowlist；未配置 render 时记录原错误并退避 | 同上                                                          |
+| 结构变更（selector 挂） | 解析后字段为空 / hash 长期不变              | worker 主动报 `selector-drift` 事件；降级 mock 数据（仅 Demo 环境）                      | CPA UI 仍显示 watched；source diagnostics 记录 failure metric |
+| 内容污染（钓鱼页）      | AI SDK Extract `confidence < 0.3` 连续 3 次 | 该源打入 `quarantined` 状态，下次 cron 跳过，创建 owner/manager review task              | 源从 Feed 隐藏                                                |
+| 法律下架（Takedown）    | owner/manager 手动触发                      | 源 `disabled`，历史 Pulse 保留但打 `source_revoked` 标记，Evidence 链保留快照            | Evidence Drawer 显示 "Source no longer live"                  |
 
 ### 5.2 可观测指标（上报到 07-DevOps-Testing）
 

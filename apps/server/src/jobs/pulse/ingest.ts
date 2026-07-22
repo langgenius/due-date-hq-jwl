@@ -345,14 +345,37 @@ async function ingestAdapter(
   opts: { force?: boolean; browserlessSourceIds?: ReadonlySet<string> } = {},
 ): Promise<IngestCounts> {
   const checkedAt = new Date()
-  const state = await repo.ensureSourceState({
-    sourceId: adapter.id,
-    tier: adapter.tier,
-    jurisdiction: adapter.jurisdiction,
-    cadenceMs: adapter.cronIntervalMs,
-    ...(adapter.initialBaselineMode ? { baselineMode: adapter.initialBaselineMode } : {}),
-    now: checkedAt,
-  })
+  let state
+  try {
+    // Cron already batch-ensures every source before enqueueing. Read first so
+    // the consumer does one D1 operation in steady state instead of an upsert +
+    // read-back for every delivery; retain the ensure fallback for manual runs,
+    // newly deployed sources and legacy in-flight messages.
+    state =
+      (await repo.getSourceState(adapter.id)) ??
+      (await repo.ensureSourceState({
+        sourceId: adapter.id,
+        tier: adapter.tier,
+        jurisdiction: adapter.jurisdiction,
+        cadenceMs: adapter.cronIntervalMs,
+        ...(adapter.initialBaselineMode ? { baselineMode: adapter.initialBaselineMode } : {}),
+        now: checkedAt,
+      }))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown D1 source-state error.'
+    console.error('pulse.ingest.source_state_load_failed', {
+      sourceId: adapter.id,
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    recordPulseMetric('pulse.ingest.source_state_load_failed', {
+      sourceId: adapter.id,
+      error: message,
+    })
+    throw new Error(`pulse.ingest.source_state_load_failed for ${adapter.id}: ${message}`, {
+      cause: error,
+    })
+  }
   if (!state.enabled || (!opts.force && !sourceIsDue(state, checkedAt))) {
     return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
   }
@@ -372,7 +395,19 @@ async function ingestAdapter(
         ? { govdeliveryFetch: (input, init) => govdeliveryFetch(input, init) }
         : {}),
     })({ ...adapter, fetcher: effectiveFetcher })
-    const adapterCtx: IngestCtx = { ...ctx, fetch: sourceFetch }
+    const adapterCtx: IngestCtx = {
+      ...ctx,
+      fetch: sourceFetch,
+      // Reuse the state loaded above for conditional request headers. Without
+      // this override fetchTextSnapshot performs a second point read for the
+      // same source during every queue delivery.
+      getSourceState: async (sourceId) => {
+        if (sourceId === adapter.id) {
+          return { etag: state.etag, lastModified: state.lastModified }
+        }
+        return (await ctx.getSourceState?.(sourceId)) ?? null
+      },
+    }
     const rawSnapshots = await adapter.fetch(adapterCtx)
     const parsedGroups = await Promise.all(
       rawSnapshots.map(async (rawSnapshot) => ({
@@ -540,23 +575,44 @@ async function ingestAdapter(
     // long enough to stop the churn, short enough to notice if the policy
     // ever changes. Everything else keeps the fast retry.
     const isRobotsDisallow = error instanceof Error && /robots\.txt disallows/i.test(error.message)
-    await repo.recordSourceFailure({
-      sourceId: adapter.id,
-      checkedAt,
-      nextCheckAt: nextCheckAt(
+    const sourceError = error instanceof Error ? error.message : 'Pulse ingest failed.'
+    try {
+      await repo.recordSourceFailure({
+        sourceId: adapter.id,
         checkedAt,
-        isRobotsDisallow
-          ? ROBOTS_DISALLOW_BACKOFF_MS
-          : Math.min(adapter.cronIntervalMs, PULSE_SOURCE_FAILURE_RETRY_MS),
-      ),
-      error: error instanceof Error ? error.message : 'Pulse ingest failed.',
-    })
+        nextCheckAt: nextCheckAt(
+          checkedAt,
+          isRobotsDisallow
+            ? ROBOTS_DISALLOW_BACKOFF_MS
+            : Math.min(adapter.cronIntervalMs, PULSE_SOURCE_FAILURE_RETRY_MS),
+        ),
+        error: sourceError,
+      })
+    } catch (stateError) {
+      const stateMessage =
+        stateError instanceof Error ? stateError.message : 'Unknown D1 source-state write error.'
+      console.error('pulse.ingest.source_failure_state_write_failed', {
+        sourceId: adapter.id,
+        sourceError,
+        stateError: stateMessage,
+        stack: stateError instanceof Error ? stateError.stack : undefined,
+      })
+      recordPulseMetric('pulse.ingest.source_failure_state_write_failed', {
+        sourceId: adapter.id,
+        sourceError,
+        stateError: stateMessage,
+      })
+      throw new Error(
+        `pulse.ingest.source_failure_state_write_failed for ${adapter.id}: ${stateMessage}; source_error: ${sourceError}`,
+        { cause: stateError },
+      )
+    }
     recordPulseMetric('pulse.ingest.fetch_result', {
       sourceId: adapter.id,
       result: 'failure',
       fetcher: resolveFetcherForAdapter(adapter, ctx, opts.browserlessSourceIds),
       durationMs: Date.now() - checkedAt.getTime(),
-      error: error instanceof Error ? error.message : 'Pulse ingest failed.',
+      error: sourceError,
     })
     return { snapshots: 0, queued: 0, duplicates: 0, failures: 1 }
   }

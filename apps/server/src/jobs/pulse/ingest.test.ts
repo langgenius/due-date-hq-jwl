@@ -159,6 +159,65 @@ describe('runPulseIngest', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
+  it('reuses an existing source state without a steady-state D1 upsert', async () => {
+    repoMocks.getSourceState.mockResolvedValue({
+      sourceId: 'fema.declarations',
+      enabled: true,
+      nextCheckAt: null,
+      etag: 'etag-existing',
+      lastModified: null,
+    })
+
+    await runPulseIngest(env(), [adapter()])
+
+    expect(repoMocks.getSourceState).toHaveBeenCalledWith('fema.declarations')
+    expect(repoMocks.ensureSourceState).not.toHaveBeenCalled()
+  })
+
+  it('surfaces the source and D1 stage when source-state loading fails', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    repoMocks.getSourceState.mockRejectedValue(new Error('D1_ERROR: read unavailable'))
+
+    await expect(runPulseIngest(env(), [adapter()])).rejects.toThrow(
+      'pulse.ingest.source_state_load_failed for fema.declarations: D1_ERROR: read unavailable',
+    )
+    expect(repoMocks.ensureSourceState).not.toHaveBeenCalled()
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.ingest.source_state_load_failed',
+      {
+        sourceId: 'fema.declarations',
+        error: 'D1_ERROR: read unavailable',
+      },
+    )
+    error.mockRestore()
+  })
+
+  it('preserves both the source failure and D1 failure-state write error', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    repoMocks.recordSourceFailure.mockRejectedValue(new Error('D1_ERROR: write unavailable'))
+
+    await expect(
+      runPulseIngest(env(), [
+        adapter({
+          async fetch() {
+            throw new Error('403 — Just a moment')
+          },
+        }),
+      ]),
+    ).rejects.toThrow(
+      'pulse.ingest.source_failure_state_write_failed for fema.declarations: D1_ERROR: write unavailable; source_error: 403 — Just a moment',
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.ingest.source_failure_state_write_failed',
+      {
+        sourceId: 'fema.declarations',
+        sourceError: '403 — Just a moment',
+        stateError: 'D1_ERROR: write unavailable',
+      },
+    )
+    error.mockRestore()
+  })
+
   // Detail enrichment: announcement link items (enrichFromUrl + dedupeText)
   // swap their index excerpt for the detail page when genuinely NEW, so the
   // extractor sees the real announcement (dates included) instead of the
@@ -413,7 +472,7 @@ describe('runPulseIngest', () => {
     ])
   })
 
-  it('routes configured source ids through Browserless without changing adapter code', async () => {
+  it('routes the RI disaster advisory source through Browser Rendering', async () => {
     const fetchMock = vi.fn(async () => {
       return new Response('<main>Browserless body</main>', {
         headers: {
@@ -429,17 +488,17 @@ describe('runPulseIngest', () => {
         ...env(),
         PULSE_BROWSERLESS_URL: 'https://browserless.test/content',
         PULSE_BROWSERLESS_TOKEN: 'browserless-token',
-        PULSE_BROWSERLESS_SOURCE_IDS: 'ny.dtf.press',
+        PULSE_BROWSERLESS_SOURCE_IDS: 'ri.tax_disaster_advisories',
       },
       [
         adapter({
-          id: 'ny.dtf.press',
-          jurisdiction: 'NY',
+          id: 'ri.tax_disaster_advisories',
+          jurisdiction: 'RI',
           async fetch(ctx) {
-            const response = await ctx.fetch('https://www.tax.ny.gov/press/')
+            const response = await ctx.fetch('https://tax.ri.gov/guidance/advisories')
             return [
               {
-                sourceId: 'ny.dtf.press',
+                sourceId: 'ri.tax_disaster_advisories',
                 fetchedAt: new Date('2026-04-30T00:00:00.000Z'),
                 contentHash: 'raw-hash',
                 r2Key: 'raw.html',
@@ -459,7 +518,7 @@ describe('runPulseIngest', () => {
       'https://browserless.test/content?token=browserless-token',
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('"url":"https://www.tax.ny.gov/press/"'),
+        body: expect.stringContaining('"url":"https://tax.ri.gov/guidance/advisories"'),
       }),
     )
   })

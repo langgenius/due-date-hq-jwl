@@ -8,6 +8,7 @@ import type { Env } from '../env'
 import { dashboardBriefDebounceKey } from './dashboard-brief/enqueue'
 import {
   assertQueueDispatchable,
+  dispatchMessage,
   drainDeadLetterBatch,
   isPulseDeadLetterQueue,
   isSocialDeadLetterQueue,
@@ -233,6 +234,105 @@ describe('queue consumer', () => {
       messageType: 'pulse.extract',
       snapshotId: 's1',
     })
+    warn.mockRestore()
+  })
+
+  it('uses the fourth delivery as a final processing attempt and acks success', async () => {
+    const dispatchBody = vi.fn().mockResolvedValue(undefined)
+    const dispatchAlert = vi.fn()
+    const ack = vi.fn()
+    const retry = vi.fn()
+    const message = {
+      id: 'message-final-success',
+      body: {
+        type: 'pulse.ingest.source',
+        sourceId: 'ri.tax_disaster_advisories',
+        reason: 'cadence_due',
+      },
+      attempts: 4,
+      ack,
+      retry,
+    } as unknown as Message
+
+    await dispatchMessage(message, {} as Env, 'due-date-hq-pulse-staging-v2', {
+      dispatchBody,
+      dispatchAlert,
+    })
+
+    expect(dispatchBody).toHaveBeenCalledWith(message.body, {})
+    expect(ack).toHaveBeenCalledOnce()
+    expect(retry).not.toHaveBeenCalled()
+    expect(dispatchAlert).not.toHaveBeenCalled()
+  })
+
+  it('includes the terminal error and message identity when the fourth attempt fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const dispatchBody = vi.fn().mockRejectedValue(new Error('D1_ERROR: database unavailable'))
+    const dispatchAlert = vi.fn().mockResolvedValue(undefined)
+    const ack = vi.fn()
+    const retry = vi.fn()
+    const message = {
+      id: 'message-final-failure',
+      body: {
+        type: 'pulse.ingest.source',
+        sourceId: 'ri.tax_disaster_advisories',
+        reason: 'cadence_due',
+      },
+      attempts: 4,
+      ack,
+      retry,
+    } as unknown as Message
+
+    await dispatchMessage(message, {} as Env, 'due-date-hq-pulse-staging-v2', {
+      dispatchBody,
+      dispatchAlert,
+    })
+
+    const fields = {
+      queue: 'due-date-hq-pulse-staging-v2',
+      messageId: 'message-final-failure',
+      messageType: 'pulse.ingest.source',
+      attempts: 4,
+      sourceId: 'ri.tax_disaster_advisories',
+      error: 'D1_ERROR: database unavailable',
+    }
+    expect(dispatchAlert).toHaveBeenCalledWith({}, 'queue.dispatch.dropped', fields)
+    expect(JSON.parse((warn.mock.calls[0]?.[0] as string) ?? '{}')).toMatchObject({
+      type: 'pulse.alert',
+      name: 'queue.dispatch.dropped',
+      ...fields,
+    })
+    expect(ack).toHaveBeenCalledOnce()
+    expect(retry).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('logs diagnostic fields and retries failures before the final attempt', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const dispatchBody = vi.fn().mockRejectedValue(new Error('temporary D1 error'))
+    const ack = vi.fn()
+    const retry = vi.fn()
+    const message = {
+      id: 'message-retry',
+      body: { type: 'pulse.extract', snapshotId: 'snapshot-1' },
+      attempts: 3,
+      ack,
+      retry,
+    } as unknown as Message
+
+    await dispatchMessage(message, {} as Env, 'due-date-hq-pulse-staging-v2', { dispatchBody })
+
+    expect(JSON.parse((warn.mock.calls[0]?.[0] as string) ?? '{}')).toMatchObject({
+      type: 'queue.metric',
+      name: 'queue.dispatch.retry',
+      queue: 'due-date-hq-pulse-staging-v2',
+      messageId: 'message-retry',
+      messageType: 'pulse.extract',
+      attempts: 3,
+      error: 'temporary D1 error',
+    })
+    expect(retry).toHaveBeenCalledOnce()
+    expect(ack).not.toHaveBeenCalled()
     warn.mockRestore()
   })
 

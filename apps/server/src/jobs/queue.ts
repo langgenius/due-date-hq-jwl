@@ -108,14 +108,28 @@ export function isSocialDeadLetterQueue(queueName: string): boolean {
   return queueName.includes('social') && queueName.includes('dlq')
 }
 
-function recordQueueRetry(body: unknown, error: unknown): void {
+function queueErrorMessage(error: unknown): string {
+  return (error instanceof Error ? error.message : 'Queue dispatch failed.').slice(0, 500)
+}
+
+function queueFailureFields(queueName: string, message: Message, error: unknown) {
+  return {
+    queue: queueName,
+    messageId: message.id,
+    messageType: queueMessageType(message.body),
+    attempts: message.attempts,
+    sourceId: queueMessageSourceId(message.body),
+    error: queueErrorMessage(error),
+  }
+}
+
+function recordQueueRetry(queueName: string, message: Message, error: unknown): void {
   console.warn(
     JSON.stringify({
       type: 'queue.metric',
       name: 'queue.dispatch.retry',
       at: new Date().toISOString(),
-      messageType: queueMessageType(body),
-      error: error instanceof Error ? error.message : 'Queue dispatch failed.',
+      ...queueFailureFields(queueName, message, error),
     }),
   )
 }
@@ -133,6 +147,7 @@ export async function drainDeadLetterBatch(
     }
     const fields = {
       queue: batch.queue,
+      messageId: message.id,
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
       sourceId: queueMessageSourceId(message.body),
@@ -160,64 +175,75 @@ export async function queue(batch: MessageBatch, env: Env, _ctx: ExecutionContex
     return
   }
   assertQueueDispatchable(batch)
-  await Promise.all(batch.messages.map((message) => dispatchMessage(message, env)))
+  await Promise.all(batch.messages.map((message) => dispatchMessage(message, env, batch.queue)))
 }
 
-// A persistently-failing message (e.g. AI provider down) must not retry forever.
-// After this many delivery attempts we drop it (ack) instead of retrying. Backs
-// up the queue's own max_retries (wrangler.toml) at the application layer.
-const MAX_DISPATCH_ATTEMPTS = 3
+// Cloudflare's max_retries=3 produces four deliveries including the original.
+// Process all four: the old pre-dispatch `attempts > 3` gate threw the final
+// recovery opportunity away and could not include the actual terminal error in
+// its ops email. On the fourth failed PROCESSING attempt we alert + ack instead
+// of asking Cloudflare for a retry that would only route to the DLQ.
+const MAX_DISPATCH_PROCESSING_ATTEMPTS = 4
 
-async function dispatchMessage(message: Message, env: Env): Promise<void> {
-  if (message.attempts > MAX_DISPATCH_ATTEMPTS) {
-    const fields = {
-      messageType: queueMessageType(message.body),
-      attempts: message.attempts,
-      sourceId: queueMessageSourceId(message.body),
-    }
-    recordPulseAlert('queue.dispatch.dropped', fields)
-    await dispatchOpsAlert(env, 'queue.dispatch.dropped', fields)
-    message.ack()
-    return
-  }
+type DispatchMessageDependencies = {
+  dispatchBody?: (body: unknown, env: Env) => Promise<void>
+  dispatchAlert?: typeof dispatchOpsAlert
+}
+
+export async function dispatchMessage(
+  message: Message,
+  env: Env,
+  queueName: string,
+  dependencies: DispatchMessageDependencies = {},
+): Promise<void> {
   try {
-    const body = message.body
-    if (isAiInsightRefreshMessage(body)) {
-      await consumeAiInsightRefresh(body, env)
-    }
-    if (isDashboardBriefRefreshMessage(body)) {
-      await consumeDashboardBriefRefresh(body, env)
-    }
-    if (isPulseIngestSourceMessage(body)) {
-      await consumePulseIngestSource(env, body)
-    }
-    if (isPulseExtractMessage(body)) {
-      await extractPulseSnapshot(env, body.snapshotId)
-    }
-    if (isRuleConcreteDraftGenerateMessage(body)) {
-      await consumeRuleConcreteDraftGenerate(body, env)
-    }
-    if (isPulseRuleSourceScanMessage(body)) {
-      await consumePulseRuleSourceScan(body, env)
-    }
-    if (isRuleRegistryCatalogSyncMessage(body)) {
-      await consumeRuleRegistryCatalogSync(body, env)
-    }
-    if (isRuleDateReconciliationMessage(body)) {
-      await consumeRuleDateReconciliation(body, env)
-    }
-    if (isXPublishQueueMessage(body)) {
-      await consumeXPublish(body, env)
-    }
-    if (isEmailFlushMessage(body)) {
-      await flushEmailOutbox(env)
-    }
-    if (isAuditPackageGenerateMessage(body)) {
-      await generateAuditEvidencePackage(env, body.packageId)
-    }
+    await (dependencies.dispatchBody ?? dispatchMessageBody)(message.body, env)
     message.ack()
   } catch (error) {
-    recordQueueRetry(message.body, error)
+    if (message.attempts >= MAX_DISPATCH_PROCESSING_ATTEMPTS) {
+      const fields = queueFailureFields(queueName, message, error)
+      recordPulseAlert('queue.dispatch.dropped', fields)
+      await (dependencies.dispatchAlert ?? dispatchOpsAlert)(env, 'queue.dispatch.dropped', fields)
+      message.ack()
+      return
+    }
+    recordQueueRetry(queueName, message, error)
     message.retry()
+  }
+}
+
+async function dispatchMessageBody(body: unknown, env: Env): Promise<void> {
+  if (isAiInsightRefreshMessage(body)) {
+    await consumeAiInsightRefresh(body, env)
+  }
+  if (isDashboardBriefRefreshMessage(body)) {
+    await consumeDashboardBriefRefresh(body, env)
+  }
+  if (isPulseIngestSourceMessage(body)) {
+    await consumePulseIngestSource(env, body)
+  }
+  if (isPulseExtractMessage(body)) {
+    await extractPulseSnapshot(env, body.snapshotId)
+  }
+  if (isRuleConcreteDraftGenerateMessage(body)) {
+    await consumeRuleConcreteDraftGenerate(body, env)
+  }
+  if (isPulseRuleSourceScanMessage(body)) {
+    await consumePulseRuleSourceScan(body, env)
+  }
+  if (isRuleRegistryCatalogSyncMessage(body)) {
+    await consumeRuleRegistryCatalogSync(body, env)
+  }
+  if (isRuleDateReconciliationMessage(body)) {
+    await consumeRuleDateReconciliation(body, env)
+  }
+  if (isXPublishQueueMessage(body)) {
+    await consumeXPublish(body, env)
+  }
+  if (isEmailFlushMessage(body)) {
+    await flushEmailOutbox(env)
+  }
+  if (isAuditPackageGenerateMessage(body)) {
+    await generateAuditEvidencePackage(env, body.packageId)
   }
 }
