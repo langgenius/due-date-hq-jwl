@@ -76,6 +76,50 @@ Same content engine as X, adapted to LinkedIn mechanics:
 
 ---
 
+## Template C — 规则变动 newsjack (non-deadline rule change)
+
+For IRS rule changes that trend but AREN'T deadline shifts (mileage rates, inflation
+adjustments, form-instruction changes). These do NOT go through the automated X outbox
+(deadline-only by design) — post them manually here. **Honesty rule:** frame as useful
+commentary; the credit line says we monitor _deadline_ changes — never imply the product
+auto-tracked a rate. Every figure must trace to the IRS release.
+
+### 填好的现成版(mid-year mileage rate,可发)
+
+> The IRS just changed the standard mileage rate in the middle of the year. That's rare —
+> it's only happened four times since 2005.
+>
+> Effective **July 1, 2026** (Announcement 2026-11, modifying Notice 2026-10):
+>
+> → Business: **72.5¢ → 76¢** per mile
+> → Medical & moving: **20.5¢ → 23.5¢** per mile
+> → Charitable: **14¢** — unchanged (fixed by statute, not inflation)
+>
+> The trigger was fuel: gas ran up roughly 38% from January to July. The last mid-year
+> split was July 2022.
+>
+> Two practical notes for anyone reconciling 2026 mileage:
+> • You'll apply **two rates** to one tax year — 72.5¢ through June 30, 76¢ from July 1.
+> • Reimbursement policies pinned to "the IRS rate" just moved — worth a check before month-end.
+>
+> Source in the comments.
+>
+> #TaxPros #CPA #IRS #SmallBusiness
+
+**首条评论:** Official IRS release (Announcement 2026-11, in IRB 2026-29):
+https://www.irs.gov/tax-professionals/standard-mileage-rates — rule-change data verified
+against the IRS source by DueDateHQ, which monitors IRS + state filing-deadline changes for
+CPA firms: https://duedatehq.com/?utm_source=linkedin&utm_medium=social&utm_campaign=li_mileage
+
+**Personal reshare (builder angle):** "The mid-year mileage change is a good reminder that
+'the rules' aren't static — they move mid-stream, and someone has to catch it. It's why we're
+building DueDateHQ."
+
+⚠️ Before posting: open the IRS link and confirm Announcement 2026-11 is live there (or grab
+the direct IRB 2026-29 URL). Verify the _link_, not the facts — figures are confirmed.
+
+---
+
 ## 后续弹药(数据型变体,从 51 州矩阵取)
 
 - "5 states where the individual deadline is NOT April 15" (IA 4/30, VA 5/1, HI 4/20, DE 4/30, LA 5/15)
