@@ -18,10 +18,27 @@ completion contract for Claude Code.
   `docs/dev-file/` when an implementation changes current architectural truth.
 - Treat checked-in generated files as generator-owned. Change the generator or source inputs,
   regenerate, and run `pnpm generated:check`; do not hand-format generated output.
+- Treat every Lingui message change as a bilingual change. Use Lingui macros for user-visible app
+  text, keep interpolated labels translated instead of inserting raw English strings inside
+  `<Trans>`, and update both `en` and `zh-CN` catalogs in the same task.
+
+## Lingui hard requirements
+
+- After adding, removing, or changing user-visible text under `apps/app/src`, run
+  `pnpm run i18n:check`. Do not commit while extraction reports missing `zh-CN` messages or strict
+  compilation fails.
+- Never leave an extracted `msgstr` empty, copy English into `zh-CN` as a placeholder, hand-edit
+  compiled `messages.ts`, or suppress/remove a message merely to make compilation pass.
+- Review and stage every intended generated change under `apps/app/src/i18n/locales`, including
+  obsolete-message cleanup from `lingui extract --clean`.
+- The Claude PreToolUse guard reruns the Lingui contract before app-source commits and rejects
+  missing translations or unstaged generated catalog output. Fix the catalog; do not work around
+  the guard.
 
 ## Before committing or pushing
 
-1. Run `pnpm run ci`. A successful `build` alone is not CI verification.
+1. Run `pnpm run ci`. It includes Lingui extraction and strict compilation; a successful `build`
+   alone is not CI verification.
 2. Run `pnpm generated:check` and `git diff --check`.
 3. Review `git status --short` and the staged diff so only intended files are included.
 4. Commit normally so `.vite-hooks/pre-commit` runs. Never use `--no-verify`, commit `-n`,

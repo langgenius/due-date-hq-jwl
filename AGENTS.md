@@ -19,6 +19,8 @@ Use pnpm with Node `>=22.19.0`.
 - `pnpm format` / `pnpm format:fix`: check or write formatting.
 - `pnpm ready`: run checks, tests, and builds before handoff.
 - `pnpm generated:check`: rebuild generated artifacts in a temporary directory and fail on drift.
+- `pnpm i18n:check`: extract Lingui catalogs with obsolete-message cleanup and compile with
+  `--strict`; any missing `zh-CN` translation fails.
 - `pnpm run prepush`: run the repository CI contract plus a committed-`HEAD` whitespace check; the
   tracked pre-push hook invokes this automatically.
 - `pnpm check:deps`: validate internal package dependency direction.

@@ -27,8 +27,9 @@ Queue / Vectorize 绑定，不要依赖继承。
 | 步骤                                                                    | 工具                         | 失败影响              |
 | ----------------------------------------------------------------------- | ---------------------------- | --------------------- |
 | `vp install --frozen-lockfile`                                          | Vite+ (`vp`) 代理 pnpm       | block                 |
-| `vp run ci` = check + generated drift + test + build                    | 见下行拆解                   | block                 |
+| `vp run ci` = check + Lingui + generated drift + test + build           | 见下行拆解                   | block                 |
 | ├ `vp check`（fmt + lint + tsgolint，`&&` 短路）                        | Oxfmt / Oxlint / tsgolint    | block（并掩盖后续层） |
+| ├ `pnpm run i18n:check`（extract clean + compile strict）               | Lingui                       | block                 |
 | ├ `pnpm generated:check`（隔离重建并比对 generator-owned output）       | Node generator contract      | block                 |
 | ├ `vp run -r test`（Vitest + pool-workers）                             | Vitest                       | block                 |
 | └ `vp run build`（app → server dry-run → marketing）                    | Vite 8 / Rolldown / wrangler | block                 |
@@ -43,6 +44,10 @@ Lingui drift gate 的步骤是：`vp run @duedatehq/app#i18n:extract`（`lingui 
 `vp run @duedatehq/app#i18n:compile`（`lingui compile --strict`）→
 `git diff --exit-code -- apps/app/src/i18n/locales`。要求所有 message 已翻译且 `.po` + 编译产物
 `.ts` 均已提交、可幂等重建。
+
+同一严格 extract/compile 已通过 `pnpm run i18n:check` 纳入根 `pnpm run ci`。pre-push 从干净
+worktree 开始，在 CI 后再次对 `apps/app/src/i18n/locales` 执行 `git diff --exit-code`，因此本地
+生成出的未提交 catalog drift 会阻断 push，不再等独立 hosted workflow 才发现。
 
 ### 2.2 Staging 管线（当前阶段：main push 自动部署，按改动路径门控）
 
@@ -160,6 +165,10 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   携带 `-n` 的 `git commit` 直接 deny（`git push -n` 只是 dry-run，保持允许）。这是 Claude
   Code 层守卫，不是 git 机制；commit message 里提到该 flag 不会误伤。守卫行为由
   `.claude/hooks/no-verify-guard.test.sh` 覆盖，并通过 `pnpm claude:guard:check` 纳入 CI。
+- 同一 Claude PreToolUse 层的 `.claude/hooks/lingui-commit-guard.sh` 会在 app 源码或 catalog
+  参与提交时先运行 `pnpm run i18n:check`；缺失 `zh-CN` 翻译、strict compile 失败，或 extract
+  后 catalog 与 index 不一致都会 deny commit。它是 Claude 的提前反馈层，根 CI / pre-push /
+  hosted Lingui workflow 仍是不可替代的仓库边界。
 - worktree 没有 node_modules 时先 symlink 主 checkout 的依赖再正常 commit，不要绕过 hook。
 
 ### 2.5 Generator contract

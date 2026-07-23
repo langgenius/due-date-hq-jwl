@@ -694,7 +694,7 @@ function PulseAlertRow({
                       {daysDiff !== null && daysDiff !== 0 ? (
                         <Trans>
                           Due {oldDateLabel} → {newDateLabel} ({Math.abs(daysDiff)}{' '}
-                          {daysDiff < 0 ? 'days sooner' : 'days later'})
+                          {daysDiff < 0 ? t`days sooner` : t`days later`})
                         </Trans>
                       ) : (
                         <Trans>

@@ -12,10 +12,15 @@ and `AGENTS.md` first. Their project constraints supersede generic examples belo
 
 - Do not introduce React `useEffect`; preserve the repository's existing locale-loading flow.
 - Reuse the current Lingui provider, configuration, macro imports, and catalog layout.
-- After changing translatable source or catalogs, run
-  `pnpm --filter @duedatehq/app i18n:extract`,
-  `pnpm --filter @duedatehq/app i18n:compile`, and `pnpm run ci`.
+- After changing translatable source or catalogs, run `pnpm run i18n:check` and `pnpm run ci`.
 - Missing translations and uncommitted catalog drift are failures, not warnings to ignore.
+- A Lingui change is complete only when extraction reports `zh-CN Missing 0`, strict compilation
+  succeeds, and all generated `messages.po` / `messages.ts` changes are reviewed and staged.
+- Never leave an empty `msgstr`, use untranslated English as a temporary `zh-CN` value, hand-edit
+  compiled `messages.ts`, or delete/suppress a message to make CI pass.
+- Interpolated user-visible labels must be translated before interpolation. Do not place raw
+  English branches such as `{condition ? 'days sooner' : 'days later'}` inside `<Trans>`; translate
+  each branch with `t` or model the choice with the appropriate Lingui macro.
 
 Lingui is a powerful internationalization (i18n) framework for JavaScript. This skill covers best practices for implementing i18n in React and vanilla JavaScript applications.
 
