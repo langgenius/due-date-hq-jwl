@@ -543,10 +543,15 @@ function SourceRow({
               the denser workbench client-name scale. With the title at its
               proper weight the row fills the same ~67px pitch as
               /rules/library and /deadlines. */}
-          <span className="block truncate text-base font-semibold text-text-primary">
+          <span
+            title={source.title}
+            className="block truncate text-base font-semibold text-text-primary"
+          >
             {source.title}
           </span>
-          <span className="block truncate font-mono text-sm text-text-tertiary">{source.id}</span>
+          <span title={source.id} className="block truncate font-mono text-sm text-text-tertiary">
+            {source.id}
+          </span>
         </a>
         {/* Internal "Feeds N rules" link — the de-isolation path into the rule
             library, filtered to this source (?source=). Sibling of the external

@@ -41,3 +41,21 @@ export const fadeMotion = {
   exit: { opacity: 0 },
   transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
 } as const
+
+/**
+ * scrollIntoView that respects prefers-reduced-motion (2026-07-24 interaction
+ * audit #8). CSSOM-View: an explicit `behavior` option overrides the CSS
+ * `scroll-behavior`, so hardcoded `behavior:'smooth'` ignores the user's OS
+ * reduced-motion setting. This forces `behavior:'auto'` (instant) for those
+ * users and keeps smooth for everyone else. Use for every in-app section jump.
+ */
+export function scrollIntoViewMotionSafe(
+  el: Element | null | undefined,
+  options: Omit<ScrollIntoViewOptions, 'behavior'> = { block: 'start' },
+): void {
+  if (!el) return
+  const reduce =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+  el.scrollIntoView({ ...options, behavior: reduce ? 'auto' : 'smooth' })
+}

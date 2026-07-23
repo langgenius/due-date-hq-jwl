@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { scrollIntoViewMotionSafe } from '@/lib/motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { LayoutDashboardIcon, TimerIcon, TriangleAlertIcon } from 'lucide-react'
@@ -415,7 +416,7 @@ function RailRow({
   const shouldReveal = selected && Boolean(code)
   useEffect(() => {
     if (shouldReveal) {
-      rowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      scrollIntoViewMotionSafe(rowRef.current, { block: 'nearest' })
     }
   }, [shouldReveal])
 

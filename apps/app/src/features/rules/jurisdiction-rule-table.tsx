@@ -670,12 +670,17 @@ function JurisdictionRuleRow({
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-2">
             <JurisdictionChip code={rule.jurisdiction} />
-            <span className="min-w-0 truncate text-base font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
+            <span
+              title={displayTitle}
+              className="min-w-0 truncate text-base font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline"
+            >
               {displayTitle}
             </span>
           </div>
           {rule.defaultTip ? (
-            <span className="line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</span>
+            <span title={rule.defaultTip} className="line-clamp-1 text-sm text-text-tertiary">
+              {rule.defaultTip}
+            </span>
           ) : null}
         </div>
       </TableCell>

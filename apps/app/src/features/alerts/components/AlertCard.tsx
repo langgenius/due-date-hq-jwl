@@ -21,6 +21,7 @@ import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDate, formatRelativeTime } from '@/lib/utils'
+import { scrollIntoViewMotionSafe } from '@/lib/motion'
 
 import { AlertConfidencePill } from './AlertConfidencePill'
 import { AlertReadinessChip } from './AlertReadinessStatus'
@@ -165,7 +166,7 @@ export function AlertCard({
   const cardRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
     if (!active) return
-    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    scrollIntoViewMotionSafe(cardRef.current, { block: 'center' })
   }, [active])
   return (
     <article

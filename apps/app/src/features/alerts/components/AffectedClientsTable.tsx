@@ -403,7 +403,7 @@ export function AffectedClientsTable({
                           rel="noopener noreferrer"
                           onClick={(event) => event.stopPropagation()}
                           aria-label={t`Open ${row.clientName} in deadlines in a new tab`}
-                          className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
+                          className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary opacity-0 pointer-coarse:opacity-100 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
                         >
                           <ArrowUpRightIcon className="size-3.5" aria-hidden />
                         </Link>

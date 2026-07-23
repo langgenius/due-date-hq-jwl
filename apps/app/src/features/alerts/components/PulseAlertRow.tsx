@@ -434,7 +434,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,box-shadow]',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-[color,background-color,box-shadow]',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'

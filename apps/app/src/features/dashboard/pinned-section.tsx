@@ -105,7 +105,10 @@ export function PinnedSection({
                     className="flex min-w-0 flex-1 items-center gap-3 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-text-primary">
+                      <span
+                        title={row.clientName}
+                        className="block truncate text-sm font-medium text-text-primary"
+                      >
                         {row.clientName}
                       </span>
                       <span className="mt-0.5 flex items-center gap-1.5">

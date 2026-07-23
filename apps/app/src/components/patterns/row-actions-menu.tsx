@@ -131,7 +131,11 @@ export function RowActionsMenu({
               'data-[popup-open]:bg-state-base-hover data-[popup-open]:text-text-secondary data-[popup-open]:opacity-100',
               alwaysVisible
                 ? null
-                : 'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100',
+                : // pointer-coarse:opacity-100 — touch devices have no hover, so
+                  // the ⋯ trigger must stay visible there (2026-07-24 interaction
+                  // audit #4). Fixes every non-alwaysVisible row-actions menu at
+                  // the primitive.
+                  'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 pointer-coarse:opacity-100',
               triggerClassName,
             )}
           />

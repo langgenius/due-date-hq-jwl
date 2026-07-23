@@ -69,7 +69,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { EASE_APPLE, MOTION_DURATION, fadeMotion } from '@/lib/motion'
+import { EASE_APPLE, MOTION_DURATION, fadeMotion, scrollIntoViewMotionSafe } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -1517,9 +1517,7 @@ export function AlertDetailDrawer({
   // jumps to the Source section. Shared by the gate dialog + the apply-gate nudge.
   const goToSource = () => {
     setReviewVerified(true)
-    document
-      .getElementById('alert-section-source')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollIntoViewMotionSafe(document.getElementById('alert-section-source'), { block: 'start' })
   }
 
   // Make the footer's `A` / `D` keyboard hints real (they were decorative).
@@ -1701,7 +1699,7 @@ export function AlertDetailDrawer({
     // pinned under the sticky nav); at the top, switching tabs just swaps the
     // content in place. And the scroll is SMOOTH, matching scroll-spy mode.
     if (heroScrolled) {
-      document.getElementById(activeSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      document.getElementById(scrollIntoViewMotionSafe(activeSection), { block: 'start' })
     }
     if (pending.focus) document.getElementById(`alert-tab-${activeSection}`)?.focus()
   }, [activeSection, heroScrolled])
@@ -2125,10 +2123,12 @@ export function AlertDetailDrawer({
                       // Scroll-spy: move the underline immediately (it otherwise
                       // lags until the smooth-scroll settles), then scroll.
                       setActiveSection(item.id)
-                      event.currentTarget
-                        .closest('[class*="overflow-y-auto"]')
-                        ?.querySelector(`#${item.id}`)
-                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      scrollIntoViewMotionSafe(
+                        event.currentTarget
+                          .closest('[class*="overflow-y-auto"]')
+                          ?.querySelector(`#${item.id}`),
+                        { block: 'start' },
+                      )
                     }}
                     className={cn(
                       'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',

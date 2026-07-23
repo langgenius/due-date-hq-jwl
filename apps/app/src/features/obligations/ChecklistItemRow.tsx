@@ -206,7 +206,7 @@ export function ChecklistItemRow({
                 variant="ghost"
                 size="icon-xs"
                 aria-label={t`More actions for ${item.label}`}
-                className="shrink-0 opacity-0 transition-opacity focus-visible:opacity-100 group-hover/checklist-item:opacity-100"
+                className="shrink-0 opacity-0 pointer-coarse:opacity-100 transition-opacity focus-visible:opacity-100 group-hover/checklist-item:opacity-100"
                 onClick={(event) => event.stopPropagation()}
               >
                 <EllipsisVerticalIcon className="size-4" aria-hidden />

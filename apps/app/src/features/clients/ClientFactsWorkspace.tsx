@@ -571,7 +571,7 @@ export function ClientFactsWorkspace({
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${row.original.name} details`}
                   title={t`Peek details (without leaving the list)`}
-                  className="ml-auto shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:text-text-primary focus-visible:opacity-100"
+                  className="ml-auto shrink-0 text-text-tertiary opacity-0 pointer-coarse:opacity-100 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:text-text-primary focus-visible:opacity-100"
                 >
                   <EyeIcon className="size-4" aria-hidden />
                 </Button>
@@ -1223,7 +1223,7 @@ export function ClientFactsWorkspace({
                         // on hover; the inset 2px shadow adds the left
                         // accent bar without shifting layout (border
                         // would).
-                        className="group/row h-14 cursor-pointer outline-none hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        className="group/row h-14 cursor-pointer outline-none transition-[color,background-color,box-shadow] hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={() => {
                           // 2026-06-16 (audit): on the /clients route the peek
                           // drawer is suppressed (the list defers to the full

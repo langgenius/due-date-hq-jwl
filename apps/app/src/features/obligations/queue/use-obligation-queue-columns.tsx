@@ -283,7 +283,7 @@ export function useObligationQueueColumns(
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${tableRow.original.clientName} details`}
                   title={t`Peek client details`}
-                  className="shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-primary focus-visible:opacity-100"
+                  className="shrink-0 text-text-tertiary opacity-0 pointer-coarse:opacity-100 transition-opacity group-hover:opacity-100 hover:text-text-primary focus-visible:opacity-100"
                 >
                   <EyeIcon className="size-3.5" aria-hidden />
                 </Button>
@@ -689,7 +689,7 @@ export function useObligationQueueColumns(
               {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
                 <Badge
                   variant="success-solid"
-                  className="text-caption-xs"
+                  className="h-5 px-1.5 text-caption-xs"
                   title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
                 >
                   <CircleCheckIcon className="size-3" aria-hidden />

@@ -81,7 +81,7 @@ import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns
 import { PageHeader } from '@/components/patterns/page-header'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { fadeMotion } from '@/lib/motion'
+import { fadeMotion, scrollIntoViewMotionSafe } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -501,9 +501,9 @@ export function ClientDetailWorkspace({
   const openFilingJurisdictions = useCallback(() => {
     void setActiveTab('info')
     window.requestAnimationFrame(() => {
-      document
-        .getElementById('client-filing-jurisdictions')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollIntoViewMotionSafe(document.getElementById('client-filing-jurisdictions'), {
+        block: 'start',
+      })
     })
   }, [setActiveTab])
 

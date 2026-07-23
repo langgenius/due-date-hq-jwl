@@ -50,7 +50,12 @@ import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
-import { contentEnterMotion, EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+import {
+  contentEnterMotion,
+  EASE_APPLE,
+  MOTION_DURATION,
+  scrollIntoViewMotionSafe,
+} from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -1873,9 +1878,12 @@ export function ObligationQueueDetailDrawer({
       if (analyticsTab) {
         track(ANALYTICS_EVENTS.deadlineDetailTabViewed, { tab: analyticsTab })
       }
-      scrollContainerRef.current
-        ?.querySelector(`#deadline-section-${tab}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollIntoViewMotionSafe(
+        scrollContainerRef.current?.querySelector(`#deadline-section-${tab}`),
+        {
+          block: 'start',
+        },
+      )
     },
     [onTabChange],
   )
@@ -3298,7 +3306,7 @@ export function ObligationQueueDetailDrawer({
                                 </span>
                               </span>
                               <ExternalLinkIcon
-                                className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                                className="size-3.5 shrink-0 text-text-tertiary opacity-0 pointer-coarse:opacity-100 transition-opacity group-hover:opacity-100"
                                 aria-hidden
                               />
                             </Link>
@@ -3319,7 +3327,7 @@ export function ObligationQueueDetailDrawer({
                                   </span>
                                 </span>
                                 <ExternalLinkIcon
-                                  className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                                  className="size-3.5 shrink-0 text-text-tertiary opacity-0 pointer-coarse:opacity-100 transition-opacity group-hover:opacity-100"
                                   aria-hidden
                                 />
                               </Link>
