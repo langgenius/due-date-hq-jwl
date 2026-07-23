@@ -56,18 +56,25 @@ worktree 开始，在 CI 后再次对 `apps/app/src/i18n/locales` 执行 `git di
 `America/New_York` best-effort 读取 production Social queue，并把未同步 draft revision 写入一个
 公开 Issue；另有 `workflow_dispatch` 和仅在 mirror 文件变化时生效的 scoped main-push trigger。
 固定 concurrency group 串行所有入口，第二次 probe 用于吸收 Worker/Actions 延迟。
+production `pnpm social:x -- approve` 成功后还会用已登录的 `gh` best-effort 触发
+`workflow_dispatch(post_id, draft_updated_at)`；这只加速 presentation 更新，不参与审批事务。
 
 job 使用 `due-date-hq-staging` environment；`GITHUB_TOKEN` 只给 `contents: read` /
 `issues: write`，Social bearer 只用于 `GET /api/ops/social/queue`。它不运行 `pnpm social:x`，
 不把 raw queue payload 打进公开 Actions log，也不允许 PR/fork code 获取 environment secret。
 Issue 通过隐藏 body marker 复用，closed issue 自动 reopen；comment 通过
 `postId + updatedAt` marker 去重，因此同 revision 的两次 probe 不重复，失败后回到 draft 的新
-revision 仍会再次通知。Issues/comments 都以 100 行分页完整读取。
+revision 仍会再次通知。targeted dispatch 从 token-gated single-Post allowlist 读取 approval 后的
+最终 frozen copy，以 `postId + approvedAt` marker 幂等 PATCH exact bot comment；找不到原 comment
+时才新建 approved snapshot。Issue/comment marker 只信任 `github-actions[bot]` author，
+Issues/comments 都以 100 行分页完整读取。
 
 `pnpm test:automation` 覆盖 public comment allowlist/code block、Issue 创建与 reopen、revision
-幂等、credential origin 隔离、response error redaction、无效 queue fail-closed，以及脚本 import
-不会触发真实请求。workflow run 同时报告 `draftBacklogTruncated`；truncated 时 Issue 只是最新可见
-slice，不声称是完整历史。
+幂等、targeted status PATCH、approval-boundary frozen copy、伪造 marker 隔离、credential origin
+隔离、response error redaction、无效 queue fail-closed，以及脚本 import 不会触发真实请求。
+Vitest 另覆盖 approve 2xx 后才 dispatch、4xx 不 dispatch、本地 origin 不触发、Social secrets
+不进入 `gh` child env，以及 GitHub dispatch 失败不伪装成 D1 approval 失败。workflow run 同时
+报告 `draftBacklogTruncated`；truncated 时 Issue 只是最新可见 slice，不声称是完整历史。
 
 ### 2.2 Staging 管线（当前阶段：main push 自动部署，按改动路径门控）
 

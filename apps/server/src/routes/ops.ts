@@ -204,6 +204,24 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     })
     return c.json({ posts })
   })
+  .get('/social/:postId/review-status', async (c) => {
+    if (!hasSocialOpsAccess(c)) return c.notFound()
+
+    const post = await makeSocialOpsRepo(createDb(c.env.DB)).getPost(c.req.param('postId'))
+    if (!post) return c.notFound()
+    // This narrow DTO is the only single-Post payload consumed by the public
+    // GitHub review mirror. Keep tenant data, reviewer IDs, ref tokens, Pulse
+    // metadata, source details, and X credentials out of this boundary.
+    return c.json({
+      post: {
+        id: post.id,
+        status: post.status,
+        postText: post.postText,
+        approvedAt: post.approvedAt?.toISOString() ?? null,
+        updatedAt: post.updatedAt.toISOString(),
+      },
+    })
+  })
   .post('/social/drafts/seed', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()
 
@@ -385,7 +403,14 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       now: new Date(),
     })
     if (!post) return c.json({ error: 'Draft was not found or cannot be approved' }, 409)
-    return c.json({ post })
+    return c.json({
+      post,
+      transition: {
+        postId: post.id,
+        draftUpdatedAt: draft.updatedAt.toISOString(),
+        approvedAt: post.approvedAt?.toISOString() ?? null,
+      },
+    })
   })
   .post('/social/:postId/publish-now', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()

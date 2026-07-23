@@ -89,6 +89,11 @@
 - GitHub 可见性与审核授权完全分离：comment、reaction、label、close/reopen 都不能触发
   `draft -> ready`。唯一批准路径仍要求 Social bearer + 真实 reviewer user id；已公开的历史
   comment 不会因后续 cancel、source revoke 或 Pulse 失效而自动删除。
+- 生产 CLI 只在 approve 已成功后，用参数数组调用固定仓库/main 的 workflow；input 只有
+  `postId + draftUpdatedAt`，child process 显式移除 Social bearer 与 reviewer。workflow 再从
+  token-gated 单 Post endpoint 读取 `id/status/postText/approvedAt/updatedAt` allowlist，不信任
+  本地传入的文案或状态，不公开 `approvedBy`。状态 marker 只在 `github-actions[bot]` 创建的
+  Issue/comment 上生效，公开用户伪造 marker 不能抑制或劫持同步。
 - `verify-account` 与 `publish-now` 的 preflight 使用 OAuth 1.0a 签名读取 X `/2/users/me`；响应
   只回传 user id / username。`publish-now` 在 Post/Pulse 校验和账号核验都通过后才 claim D1
   日槽，远端写操作仍由 `SOCIAL_QUEUE` 执行。
@@ -465,6 +470,9 @@ per-plan `aiDailyRunLimit` + `AI_SYSTEM_DAILY_LIMIT` 预算层兜底（`packages
   不输出 response body、header、token 或 raw queue payload。由于 `SOCIAL_OPS_TOKEN` 同时具有
   mutation 权限，任何要执行 fork/PR code 的 future workflow 必须先拆独立只读 credential，
   不能扩大当前信任边界。
+  targeted approval dispatch 的 `post_id / draft_updated_at` 不是 credential；workflow 仍用
+  Social bearer 读取服务端权威 public-copy allowlist。GitHub 写失败不会回滚 D1 approve，且 CLI
+  只显示无 secret 的精确重试命令，避免操作员误把已成功审批当成失败后重复提交。
 - **轮换**：季度轮换 `AUTH_SECRET`；轮换流程先新增 secondary → 验证 → 删除 primary（原 `VAPID_PRIVATE_KEY` 已随 Web Push 从 Phase 0 移除）
 - **扫描**：`pnpm secrets:scan`（= `gitleaks detect --source . --no-git --redact`），改动配置前手动跑；CI 安装固定版本 gitleaks 再扫一次。pre-commit hook 是 `vp staged`（对 staged 文件跑 `vp check --fix`），不含 gitleaks
 

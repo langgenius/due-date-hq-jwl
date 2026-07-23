@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { parseSocialXCommand, requestFor } from './social-x'
+import {
+  dispatchXDraftReviewSync,
+  parseSocialXCommand,
+  requestFor,
+  runSocialXCommand,
+} from './social-x'
 
 describe('parseSocialXCommand', () => {
   it('accepts the pnpm script-argument separator', () => {
@@ -101,5 +106,158 @@ describe('parseSocialXCommand', () => {
     expect(() => parseSocialXCommand(['cancel', '--reason', 'superseded'])).toThrow(
       /cancel requires a post ID/,
     )
+  })
+
+  it('queues an exact main-branch review workflow after a successful production approval', async () => {
+    const calls: Array<{ file: string; args: string[]; env: NodeJS.ProcessEnv }> = []
+    const triggered = await dispatchXDraftReviewSync(
+      {
+        postId: 'post-1',
+        draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+      },
+      {
+        SOCIAL_OPS_URL: 'https://app.duedatehq.com',
+        SOCIAL_OPS_TOKEN: 'must-not-reach-gh',
+        SOCIAL_OPS_REVIEWER: 'user-1',
+      },
+      async (file, args, options) => {
+        calls.push({ file, args, env: options.env })
+      },
+    )
+
+    expect(triggered).toBe(true)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toMatchObject({
+      file: 'gh',
+      args: [
+        'workflow',
+        'run',
+        'x-draft-review.yml',
+        '--repo',
+        'langgenius/due-date-hq-jwl',
+        '--ref',
+        'main',
+        '-f',
+        'post_id=post-1',
+        '-f',
+        'draft_updated_at=2026-07-22T07:21:28.141Z',
+      ],
+    })
+    expect(calls[0]?.env.SOCIAL_OPS_TOKEN).toBeUndefined()
+    expect(calls[0]?.env.SOCIAL_OPS_REVIEWER).toBeUndefined()
+  })
+
+  it('does not trigger the production Issue workflow for a local approval', async () => {
+    const triggered = await dispatchXDraftReviewSync(
+      {
+        postId: 'post-1',
+        draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+      },
+      { SOCIAL_OPS_URL: 'http://localhost:8787' },
+      async () => {
+        throw new Error('gh must not run')
+      },
+    )
+
+    expect(triggered).toBe(false)
+  })
+
+  it('rejects an unsafe workflow Post ID before starting GitHub CLI', async () => {
+    let ghCalls = 0
+
+    await expect(
+      dispatchXDraftReviewSync(
+        {
+          postId: 'post-1;touch-owned',
+          draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+        },
+        { SOCIAL_OPS_URL: 'https://app.duedatehq.com' },
+        async () => {
+          ghCalls += 1
+        },
+      ),
+    ).rejects.toThrow(/Social Post ID is invalid/u)
+    expect(ghCalls).toBe(0)
+  })
+
+  it('dispatches only after the approve endpoint returns a successful transition', async () => {
+    const events: string[] = []
+    const warnings: string[] = []
+
+    await runSocialXCommand({
+      args: ['approve', 'post-1'],
+      env: {
+        SOCIAL_OPS_URL: 'https://app.duedatehq.com',
+        SOCIAL_OPS_TOKEN: 'social-token',
+        SOCIAL_OPS_REVIEWER: 'user-1',
+      },
+      fetchImpl: async () => {
+        events.push('approve')
+        return Response.json({
+          post: { id: 'post-1', status: 'ready' },
+          transition: {
+            postId: 'post-1',
+            draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+          },
+        })
+      },
+      log: () => events.push('output'),
+      warn: (message) => warnings.push(message),
+      dispatchReviewSync: async (transition) => {
+        events.push(`dispatch:${transition.postId}`)
+        return true
+      },
+    })
+
+    expect(events).toEqual(['approve', 'output', 'dispatch:post-1'])
+    expect(warnings).toEqual(['Approval succeeded; GitHub Issue status sync queued.'])
+  })
+
+  it('never dispatches after a failed approval request', async () => {
+    let dispatchCount = 0
+
+    await expect(
+      runSocialXCommand({
+        args: ['approve', 'post-1'],
+        env: { SOCIAL_OPS_REVIEWER: 'user-1' },
+        fetchImpl: async () => Response.json({ error: 'conflict' }, { status: 409 }),
+        log: () => undefined,
+        warn: () => undefined,
+        dispatchReviewSync: async () => {
+          dispatchCount += 1
+          return true
+        },
+      }),
+    ).rejects.toThrow(/Social ops request failed \(409\)/u)
+    expect(dispatchCount).toBe(0)
+  })
+
+  it('reports GitHub sync failure without reclassifying a successful approval', async () => {
+    const warnings: string[] = []
+
+    await expect(
+      runSocialXCommand({
+        args: ['approve', 'post-1'],
+        env: { SOCIAL_OPS_REVIEWER: 'user-1' },
+        fetchImpl: async () =>
+          Response.json({
+            post: { id: 'post-1', status: 'ready' },
+            transition: {
+              postId: 'post-1',
+              draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+            },
+          }),
+        log: () => undefined,
+        warn: (message) => warnings.push(message),
+        dispatchReviewSync: async () => {
+          throw new Error('gh unavailable')
+        },
+      }),
+    ).resolves.toBeUndefined()
+    expect(warnings).toEqual([
+      'Approval succeeded, but GitHub Issue status sync could not be queued. ' +
+        'Retry: gh workflow run x-draft-review.yml --repo langgenius/due-date-hq-jwl ' +
+        '--ref main -f post_id=post-1 -f draft_updated_at=2026-07-22T07:21:28.141Z',
+    ])
   })
 })

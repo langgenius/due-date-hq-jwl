@@ -120,7 +120,10 @@ beforeEach(() => {
     id: POST_ID,
     pulseId: 'pulse-1',
     refToken: 'social_ref_1234567890abcdef',
+    postText: 'Frozen public copy',
     status: 'draft',
+    approvedAt: null,
+    updatedAt: new Date('2026-07-22T07:21:28.141Z'),
   })
 })
 
@@ -137,6 +140,11 @@ describe('social ops routes', () => {
       env(),
     )
     const queueWithoutToken = await opsRoute.request('/social/queue', {}, env())
+    const reviewStatusWithoutToken = await opsRoute.request(
+      `/social/${POST_ID}/review-status`,
+      {},
+      env(),
+    )
     const seedWithoutToken = await opsRoute.request(
       '/social/drafts/seed',
       { method: 'POST', body: '{}' },
@@ -146,6 +154,7 @@ describe('social ops routes', () => {
     expect(missing.status).toBe(404)
     expect(wrong.status).toBe(404)
     expect(queueWithoutToken.status).toBe(404)
+    expect(reviewStatusWithoutToken.status).toBe(404)
     expect(seedWithoutToken.status).toBe(404)
     expect(dbMocks.listPosts).not.toHaveBeenCalled()
     expect(dbMocks.listReadyPostsForProjection).not.toHaveBeenCalled()
@@ -166,6 +175,39 @@ describe('social ops routes', () => {
       posts: [{ id: POST_ID, status: 'draft' }],
     })
     expect(dbMocks.listPosts).toHaveBeenCalledWith({ channel: 'x', status: 'draft', limit: 10 })
+  })
+
+  it('returns only the public review status allowlist for one exact Post', async () => {
+    dbMocks.getPost.mockResolvedValue({
+      id: POST_ID,
+      pulseId: 'pulse-1',
+      refToken: 'must-not-leak',
+      postText: 'Frozen public copy',
+      targetUrl: 'https://app.duedatehq.com/alerts?ref=must-not-leak',
+      status: 'ready',
+      approvedBy: 'user-1',
+      approvedAt: new Date('2026-07-23T02:30:00.000Z'),
+      updatedAt: new Date('2026-07-23T02:30:00.000Z'),
+    })
+
+    const response = await opsRoute.request(
+      `/social/${POST_ID}/review-status`,
+      authorizedInit(),
+      env(),
+    )
+
+    expect(response.status).toBe(200)
+    const payload = await response.json()
+    expect(payload).toEqual({
+      post: {
+        id: POST_ID,
+        status: 'ready',
+        postText: 'Frozen public copy',
+        approvedAt: '2026-07-23T02:30:00.000Z',
+        updatedAt: '2026-07-23T02:30:00.000Z',
+      },
+    })
+    expect(JSON.stringify(payload)).not.toMatch(/pulse|refToken|targetUrl|approvedBy|user-1/u)
   })
 
   it('uses a 14-day queue preview when the CLI omits a horizon', async () => {
@@ -442,7 +484,11 @@ describe('social ops routes', () => {
     )
     expect(missingReviewer.status).toBe(400)
 
-    dbMocks.approvePost.mockResolvedValue({ id: POST_ID, status: 'ready' })
+    dbMocks.approvePost.mockResolvedValue({
+      id: POST_ID,
+      status: 'ready',
+      approvedAt: new Date('2026-07-23T02:30:00.000Z'),
+    })
     const approved = await opsRoute.request(
       `/social/${POST_ID}/approve`,
       authorizedInit({ approvedBy: 'user-1', priority: 'urgent' }),
@@ -458,6 +504,13 @@ describe('social ops routes', () => {
         targetUrl: expect.stringContaining('ref=social_ref_1234567890abcdef'),
       }),
     )
+    await expect(approved.json()).resolves.toMatchObject({
+      transition: {
+        postId: POST_ID,
+        draftUpdatedAt: '2026-07-22T07:21:28.141Z',
+        approvedAt: '2026-07-23T02:30:00.000Z',
+      },
+    })
   })
 
   it('verifies the configured OAuth account without returning credentials', async () => {

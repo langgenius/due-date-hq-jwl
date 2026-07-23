@@ -26,6 +26,11 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
 - Create or reopen the Issue by a stable body marker. Add one comment for each unseen
   `postId + updatedAt` revision so duplicate probes are idempotent and a Post returning to draft is
   reviewed again.
+- A successful production `pnpm social:x -- approve` best-effort dispatches the same workflow with
+  only the exact `postId + draftUpdatedAt`. The workflow re-reads the server's narrow
+  `/api/ops/social/:postId/review-status` allowlist, then updates that bot-owned comment with the
+  final approval-boundary copy and an idempotent `postId + approvedAt` state marker. A missing
+  draft comment produces a new approved-state comment rather than editing another revision.
 - Allowlist only the exact deterministic X copy, a non-reserved earliest queue horizon, and the
   operator approval command. Never dump the raw queue row or include Pulse/source, reviewer,
   credential, firm, client, or email data.
@@ -33,6 +38,8 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
   target and its text cannot trigger `@mention` notifications.
 - Treat Issue comments, reactions, labels, and state as presentation only. Explicit token-gated
   Social Ops approval with a real Better Auth reviewer remains the only `draft -> ready` transition.
+- Trust hidden markers only on Issues/comments authored by `github-actions[bot]`; public users can
+  copy a marker, but cannot suppress a notification or redirect a status update.
 - Use the protected `due-date-hq-staging` environment for the existing Social bearer, restrict the
   workflow to default-branch schedule/dispatch/scoped push, disable redirects, and grant the
   short-lived `GITHUB_TOKEN` only `contents: read` plus `issues: write`.
@@ -40,6 +47,9 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
 ## Consequences
 
 - The operator can review the new daily draft from GitHub without running the queue CLI.
+- After a CLI approval, the same comment normally changes to `approved · ready` and shows the
+  final frozen copy. GitHub dispatch/PATCH failure is reported separately and never rolls back the
+  already-committed D1 approval.
 - Notification failure cannot block or duplicate X publication; the CLI remains the canonical
   fallback.
 - Draft copy and its ref URL become intentionally public before X approval and remain in Issue

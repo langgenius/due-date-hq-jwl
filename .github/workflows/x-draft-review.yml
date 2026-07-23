@@ -7,7 +7,16 @@ on:
   schedule:
     - cron: '17,47 9 * * *'
       timezone: 'America/New_York'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: Exact approved Social Post to refresh
+        required: false
+        type: string
+      draft_updated_at:
+        description: Original draft revision used to locate its Issue comment
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -35,8 +44,10 @@ jobs:
       GITHUB_API_URL: ${{ github.api_url }}
       SOCIAL_OPS_URL: https://app.duedatehq.com
       SOCIAL_OPS_TOKEN: ${{ secrets.SOCIAL_OPS_TOKEN }}
+      SOCIAL_POST_ID: ${{ inputs.post_id }}
+      SOCIAL_DRAFT_UPDATED_AT: ${{ inputs.draft_updated_at }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Mirror unseen X drafts into the review issue
+      - name: Mirror X drafts and approval status into the review issue
         run: node scripts/social-x-github-review.mjs

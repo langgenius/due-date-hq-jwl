@@ -1,3 +1,4 @@
+import { execFile } from 'node:child_process'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
@@ -22,6 +23,30 @@ type Command =
       externalPostId?: string
       reason?: string
     }
+
+interface ApprovalTransition {
+  postId: string
+  draftUpdatedAt: string
+}
+
+interface RunSocialXOptions {
+  args?: string[]
+  env?: NodeJS.ProcessEnv
+  fetchImpl?: typeof fetch
+  log?: (message: string) => void
+  warn?: (message: string) => void
+  dispatchReviewSync?: (transition: ApprovalTransition, env: NodeJS.ProcessEnv) => Promise<boolean>
+}
+
+type ExecFileRunner = (
+  file: string,
+  args: string[],
+  options: { env: NodeJS.ProcessEnv; timeout: number; windowsHide: boolean },
+) => Promise<void>
+
+const SOCIAL_PRODUCTION_ORIGIN = 'https://app.duedatehq.com'
+const SOCIAL_REVIEW_REPOSITORY = 'langgenius/due-date-hq-jwl'
+const SOCIAL_REVIEW_WORKFLOW = 'x-draft-review.yml'
 
 const USAGE = `Usage:
   pnpm social:x -- candidates [--status draft] [--limit 50]
@@ -223,20 +248,60 @@ export function requestFor(command: Command): {
   }
 }
 
-async function main() {
-  const command = parseSocialXCommand(process.argv.slice(2))
+export async function dispatchXDraftReviewSync(
+  transition: ApprovalTransition,
+  env = process.env,
+  execFileRunner: ExecFileRunner = runExecFile,
+): Promise<boolean> {
+  const origin = new URL(env.SOCIAL_OPS_URL ?? 'http://localhost:8787').origin
+  if (origin !== SOCIAL_PRODUCTION_ORIGIN) return false
+  const postId = requiredSafePostId(transition.postId)
+  const draftUpdatedAt = requiredDate(transition.draftUpdatedAt, 'Draft update time').toISOString()
+  const childEnv = { ...env }
+  delete childEnv.SOCIAL_OPS_TOKEN
+  delete childEnv.SOCIAL_OPS_REVIEWER
+
+  await execFileRunner(
+    'gh',
+    [
+      'workflow',
+      'run',
+      SOCIAL_REVIEW_WORKFLOW,
+      '--repo',
+      SOCIAL_REVIEW_REPOSITORY,
+      '--ref',
+      'main',
+      '-f',
+      `post_id=${postId}`,
+      '-f',
+      `draft_updated_at=${draftUpdatedAt}`,
+    ],
+    { env: childEnv, timeout: 15_000, windowsHide: true },
+  )
+  return true
+}
+
+export async function runSocialXCommand({
+  args = process.argv.slice(2),
+  env = process.env,
+  fetchImpl = fetch,
+  log = console.log,
+  warn = console.warn,
+  dispatchReviewSync = dispatchXDraftReviewSync,
+}: RunSocialXOptions = {}): Promise<void> {
+  const command = parseSocialXCommand(args, env)
   const request = requestFor(command)
   const timeoutMs =
     command.kind === 'verify-account' || command.kind === 'publish-now' ? 45_000 : 15_000
-  const origin = process.env.SOCIAL_OPS_URL ?? 'http://localhost:8787'
+  const origin = env.SOCIAL_OPS_URL ?? 'http://localhost:8787'
   const url = new URL(request.path, origin)
   const headers = new Headers({ accept: 'application/json' })
-  if (process.env.SOCIAL_OPS_TOKEN) {
-    headers.set('authorization', `Bearer ${process.env.SOCIAL_OPS_TOKEN}`)
+  if (env.SOCIAL_OPS_TOKEN) {
+    headers.set('authorization', `Bearer ${env.SOCIAL_OPS_TOKEN}`)
   }
   if (request.body !== undefined) headers.set('content-type', 'application/json')
 
-  const response = await fetch(url, {
+  const response = await fetchImpl(url, {
     method: request.method,
     headers,
     ...(request.body === undefined ? {} : { body: JSON.stringify(request.body) }),
@@ -252,7 +317,84 @@ async function main() {
   if (!response.ok) {
     throw new Error(`Social ops request failed (${response.status}): ${JSON.stringify(payload)}`)
   }
-  console.log(JSON.stringify(payload, null, 2))
+  log(JSON.stringify(payload, null, 2))
+
+  if (command.kind === 'approve') {
+    let transition: ApprovalTransition | undefined
+    try {
+      transition = requiredApprovalTransition(payload, command.postId)
+      if (await dispatchReviewSync(transition, env)) {
+        warn('Approval succeeded; GitHub Issue status sync queued.')
+      }
+    } catch {
+      warn(
+        'Approval succeeded, but GitHub Issue status sync could not be queued. ' +
+          (transition
+            ? `Retry: ${reviewSyncCommand(transition)}`
+            : 'Run the review workflow manually after checking the approval response.'),
+      )
+    }
+  }
+}
+
+function reviewSyncCommand(transition: ApprovalTransition): string {
+  return [
+    'gh workflow run',
+    SOCIAL_REVIEW_WORKFLOW,
+    '--repo',
+    SOCIAL_REVIEW_REPOSITORY,
+    '--ref main',
+    `-f post_id=${transition.postId}`,
+    `-f draft_updated_at=${transition.draftUpdatedAt}`,
+  ].join(' ')
+}
+
+function requiredApprovalTransition(payload: unknown, expectedPostId: string): ApprovalTransition {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('Approval response must be an object.')
+  }
+  const transition = Reflect.get(payload, 'transition')
+  if (!transition || typeof transition !== 'object' || Array.isArray(transition)) {
+    throw new Error('Approval response is missing transition metadata.')
+  }
+  const rawPostId = Reflect.get(transition, 'postId')
+  const postId = requiredSafePostId(typeof rawPostId === 'string' ? rawPostId : undefined)
+  if (postId !== expectedPostId) throw new Error('Approval response returned the wrong Post.')
+  const rawDraftUpdatedAt = Reflect.get(transition, 'draftUpdatedAt')
+  const draftUpdatedAt = requiredDate(
+    typeof rawDraftUpdatedAt === 'string' ? rawDraftUpdatedAt : undefined,
+    'Draft update time',
+  ).toISOString()
+  return { postId, draftUpdatedAt }
+}
+
+function requiredSafePostId(value: string | undefined): string {
+  const postId = required(value, 'A Social Post ID is required.')
+  if (!/^[A-Za-z0-9_-]{1,200}$/u.test(postId)) throw new Error('Social Post ID is invalid.')
+  return postId
+}
+
+function requiredDate(value: string | undefined, label: string): Date {
+  const date = new Date(required(value, `${label} is required.`))
+  if (Number.isNaN(date.getTime())) throw new Error(`${label} must be a valid date.`)
+  return date
+}
+
+function runExecFile(
+  file: string,
+  args: string[],
+  options: { env: NodeJS.ProcessEnv; timeout: number; windowsHide: boolean },
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, options, (error) => {
+      if (error) reject(error)
+      else resolve()
+    })
+  })
+}
+
+async function main() {
+  await runSocialXCommand()
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

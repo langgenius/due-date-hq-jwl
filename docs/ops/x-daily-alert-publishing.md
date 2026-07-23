@@ -57,6 +57,10 @@ Hard invariants:
 - A GitHub issue snapshot is public visibility, not editorial approval. A comment, reaction, label,
   or issue state change never moves a Post from `draft` to `ready`; only the token-gated Social Ops
   approve endpoint with a real Better Auth reviewer can do that.
+- After a successful production CLI approval, the CLI best-effort dispatches the same default-branch
+  review workflow with only `postId + draftUpdatedAt`. The workflow re-reads the exact Post through a
+  token-gated, public-field allowlist and updates the bot-owned draft comment. GitHub failure never
+  rolls back or reclassifies an already-committed D1 approval.
 
 ## Configuration
 
@@ -94,6 +98,17 @@ repository `GITHUB_TOKEN` only `contents: read` plus `issues: write`. Never prin
 the raw queue payload. `SOCIAL_OPS_TOKEN` remains a broad operator credential, so any future
 workflow that needs PR or fork code must use a separate read-only credential rather than expanding
 this trust boundary.
+
+Immediate post-approval status refresh also requires an authenticated GitHub CLI on the operator
+machine:
+
+```bash
+gh auth status
+```
+
+The CLI invokes only the fixed `x-draft-review.yml` workflow in
+`langgenius/due-date-hq-jwl@main`. It removes `SOCIAL_OPS_TOKEN` and `SOCIAL_OPS_REVIEWER` from the
+child process environment and never passes either value as a workflow input.
 
 Verify the fixed account with a signed, read-only OAuth 1.0a request. The command returns only the X
 user ID and username; it never prints credentials:
@@ -137,6 +152,19 @@ Approve exactly the draft intended for a future slot:
 ```bash
 pnpm social:x -- approve '<social post id>'
 ```
+
+On a successful production approval, this command prints the authoritative Social Ops response and
+then queues a targeted GitHub workflow dispatch. “Issue status sync queued” means GitHub accepted
+the workflow event, not that the Issue PATCH has already completed. The workflow uses the approval
+response's original draft revision to update the exact bot comment to `approved · ready`, replaces
+the draft snapshot with the final copy rebuilt and frozen at approval, and shows the current
+tentative slot when it remains in the 14-day projection. The `post_id` and `draft_updated_at`
+dispatch inputs are accepted only as a pair. The workflow never publishes to X.
+
+If `gh` is missing, unauthenticated, times out, or GitHub rejects the dispatch, the approval remains
+successful and the CLI emits a separate Issue-sync warning; do not retry the approval. Fix GitHub
+CLI access and manually dispatch `x-draft-review.yml` with the reported Post/revision if needed.
+The scheduled mirror also reconciles approved Posts that remain in its visible queue slice.
 
 Optional manual priority override:
 
@@ -195,6 +223,21 @@ comment contains a strict allowlist:
 - the exact `pnpm social:x -- approve '<post id>'` command;
 - an opaque hidden marker derived from Post ID plus `updatedAt`.
 
+After approval, the targeted workflow queries
+`GET /api/ops/social/:postId/review-status`, whose response is restricted to Post ID, status,
+frozen public copy, `approvedAt`, and `updatedAt`. It updates the exact bot-owned draft comment in
+place with:
+
+- `approved` plus the current `ready / scheduled / published / unknown / cancelled` state;
+- the final frozen X copy rebuilt at the approval boundary;
+- `approvedAt`, and a tentative slot/position only when visible in the queue projection;
+- an idempotency marker derived from `postId + approvedAt`.
+
+If the original comment is absent, the workflow creates an approved-state comment rather than
+editing an unrelated revision. Only issues and comments authored by `github-actions[bot]` are
+trusted for hidden-marker matching, so a public user cannot suppress or redirect synchronization
+by copying a marker.
+
 The repository and issue are public. The tracked `/alerts?ref=...` URL is therefore disclosed before
 X publication, but it remains a non-authorizing locator into the protected registration/login
 flow. Rendering the copy as code prevents casual clicks and `@mention` notifications; manually
@@ -203,10 +246,10 @@ raw queue row, Pulse ID, reviewer, OAuth/Social Ops credentials, tenant fields, 
 client data, or email addresses. Cancelling a draft does not erase its already-public issue history.
 
 The issue is a snapshot, not the source of truth. Approval rebuilds the deterministic copy from the
-current Pulse, so rerun `pnpm social:x -- queue` or the focused candidate view before approving if
-the GitHub comment is no longer fresh. If `draftBacklogTruncated=true`, the workflow reports the
-truncation in its run result; the newest daily draft remains in the visible newest-first slice, but
-the Issue is not a complete historical backlog.
+current Pulse; the targeted approval refresh replaces the comment with that final frozen copy. If
+`draftBacklogTruncated=true`, the workflow reports the truncation in its run result; the newest
+daily draft remains in the visible newest-first slice, but the Issue is not a complete historical
+backlog.
 
 ## Immediate live publish
 

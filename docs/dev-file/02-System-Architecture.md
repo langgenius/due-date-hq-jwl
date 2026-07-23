@@ -341,6 +341,8 @@ approved, externally useful global Pulse
      -> GitHub Actions read-only snapshot -> one public GitHub review issue
         (visibility only; no state transition or future slot)
   -> operator marks ready
+     -> CLI best-effort workflow_dispatch(postId, draftUpdatedAt)
+     -> token-gated single-Post review status -> exact bot comment becomes approved/ready
   -> GET /api/ops/social/queue projects future ET dates without writes or reservations
   -> next 09:00 ET scheduler or exact-post publish-now control
   -> read-only OAuth 1.0a /2/users/me preflight before a manual live claim
@@ -387,6 +389,14 @@ projection，并把当前可见的未同步 draft revision 镜像为公开 GitHu
 回到 `ready`，Actions 延迟或失败也不阻断 Worker。公开镜像是刻意新增的 pre-publication surface：
 tracked ref URL 会提前出现在不可点击的 code block 中，但 ref 不是授权凭证，完整 Alert 仍经过登录、
 firm 与 tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威。
+
+生产 CLI 的 approve 成功后，响应带回原 draft 的 `postId + draftUpdatedAt`，随后 best-effort
+触发同一 default-branch workflow。workflow 不信任本地文案，而是调用 token-gated
+`GET /api/ops/social/:postId/review-status`；该接口只返回 ID、当前状态、最终冻结 public copy、
+`approvedAt / updatedAt`。脚本按 exact draft revision 找到由 `github-actions[bot]` 创建的评论，
+以 `postId + approvedAt` 幂等 PATCH 为 `approved · ready`；原评论缺失时新增 approved snapshot，
+不误改同一 Post 的旧 revision。dispatch/PATCH 失败只影响 GitHub presentation，不回滚已经提交的
+D1 approval，CLI 会明确输出 targeted retry 命令。
 
 Social Ops 的 `publish-now` 只能 claim 指定的 eligible `ready` Post，并仍受同一唯一键
 约束；同日同 Post 的 `draft_only` 只有在再次 approve 后才能原位升级为 `queued`，不能把影子
