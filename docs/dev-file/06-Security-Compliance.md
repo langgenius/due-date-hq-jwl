@@ -80,6 +80,15 @@
 - `/api/ops/social/*` 与 `/api/e2e/*` 完全分钥匙：非 development 只接受
   `Authorization: Bearer <SOCIAL_OPS_TOKEN>`，token 缺失/错误统一 404。approve 还必须提交真实
   Better Auth reviewer user id；X OAuth credential 从不进入 ops request、D1、URL 或日志。
+- 公开仓库中的固定 GitHub Issue 是刻意新增的 pre-publication review surface。default-branch
+  workflow 只允许把通过同一 eligibility/PII guard 的确定性 X copy、非锁定 queue horizon 和
+  operator approve command 镜像为 comment；禁止输出 raw queue row、Pulse/source detail、
+  reviewer、firm/client/email 或任何 credential。正文放在 Markdown code block，避免自动链接
+  与 `@mention`，但其中 tracked ref URL 仍会在正式 X 发布前公开且可被索引；手工复制访问会污染
+  `utm_source=x` 归因。ref 仍只是 locator，不是读取 Alert 的授权。
+- GitHub 可见性与审核授权完全分离：comment、reaction、label、close/reopen 都不能触发
+  `draft -> ready`。唯一批准路径仍要求 Social bearer + 真实 reviewer user id；已公开的历史
+  comment 不会因后续 cancel、source revoke 或 Pulse 失效而自动删除。
 - `verify-account` 与 `publish-now` 的 preflight 使用 OAuth 1.0a 签名读取 X `/2/users/me`；响应
   只回传 user id / username。`publish-now` 在 Post/Pulse 校验和账号核验都通过后才 claim D1
   日槽，远端写操作仍由 `SOCIAL_QUEUE` 执行。
@@ -290,7 +299,9 @@ contract，不包含 Drizzle schema、DB factory 或 Worker runtime；
 - 这是 IRC §7216 + FTC Safeguards Rule 的工程落地
 - Social copy 不调用第二次自由生成；确定性模板只消费已审核 Pulse 字段，并在建 draft 前拒绝
   email-like / 9-digit identifier、sample、内部运维 change kind、无有效官方 URL 或缺 scope/date
-  的候选。X URL 的 UTM 只到 campaign/content，不带 user、email、firm 或 client 标识。
+  的候选。X URL 的 UTM 只到 campaign/content，不带 user、email、firm 或 client 标识。公开
+  GitHub mirror 只消费已经通过该 gate 的 `postText` allowlist，不消费任意 source text 或第二次
+  模型输出；后续撤销不会追溯抹除已经进入公共 Issue 的 snapshot。
 
 ### 5.3 加密
 
@@ -447,6 +458,13 @@ per-plan `aiDailyRunLimit` + `AI_SYSTEM_DAILY_LIMIT` 预算层兜底（`packages
 - **X social**：`X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET` 必须四项
   all-or-none；`X_POSTING_MODE=live` 时四项必填。`SOCIAL_OPS_TOKEN` 独立生成、独立轮换，不复用
   `AUTH_SECRET`、`E2E_SEED_TOKEN` 或 X token；默认 `draft` 无 X credential 也可影子运行。
+- **X GitHub review mirror**：只在 default branch 的 schedule / workflow dispatch / scoped
+  main push 运行，无 PR trigger；从受保护的 `due-date-hq-staging` environment 读取
+  `SOCIAL_OPS_TOKEN`，并严格只向 production queue GET 发送该 bearer。短时 `GITHUB_TOKEN`
+  权限限定为 `contents: read` + `issues: write`。请求禁 redirect、设 15 秒 timeout，错误和日志
+  不输出 response body、header、token 或 raw queue payload。由于 `SOCIAL_OPS_TOKEN` 同时具有
+  mutation 权限，任何要执行 fork/PR code 的 future workflow 必须先拆独立只读 credential，
+  不能扩大当前信任边界。
 - **轮换**：季度轮换 `AUTH_SECRET`；轮换流程先新增 secondary → 验证 → 删除 primary（原 `VAPID_PRIVATE_KEY` 已随 Web Push 从 Phase 0 移除）
 - **扫描**：`pnpm secrets:scan`（= `gitleaks detect --source . --no-git --redact`），改动配置前手动跑；CI 安装固定版本 gitleaks 再扫一次。pre-commit hook 是 `vp staged`（对 staged 文件跑 `vp check --fix`），不含 gitleaks
 

@@ -34,11 +34,12 @@ duedatehq/
 │   ├── Design/                    # 设计系统与界面 spec
 │   ├── ops/                       # Runbook / 演练报告
 │   └── IA/ · html/ · pitch-deck/ · report/                          # 信息架构 / 早期调研与演示等历史资产
-├── scripts/                        # 运维 CLI（check-dep-direction / check-rule-sources / backfill-* / smoke 工具）
+├── scripts/                        # 运维 CLI / 自动化 helper（含 social-x 与 GitHub review mirror）
 ├── e2e/                            # Playwright E2E（tests / fixtures / pages，见 §8）
 ├── mock/                           # GENERATED demo.sql（packages/db/seed/generate-demo.ts 产出，勿手改）
 ├── .github/
 │   └── workflows/
+│       └── x-draft-review.yml      # 09:00 ET 后把 Social draft 镜像到固定公开 Issue
 ├── .agents/skills/                  # canonical project skills shared across agent clients
 ├── .claude/skills/                  # Claude skills plus bridges to canonical project skills
 ├── .vite-hooks/                    # tracked Vite+ pre-commit / pre-push entry scripts

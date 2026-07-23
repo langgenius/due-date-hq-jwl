@@ -24,19 +24,20 @@ Queue / Vectorize 绑定，不要依赖继承。
 
 ### 2.1 CI 管线（`.github/workflows/ci.yml` + `e2e.yml` + `i18n-catalog-drift.yml`）
 
-| 步骤                                                                    | 工具                         | 失败影响              |
-| ----------------------------------------------------------------------- | ---------------------------- | --------------------- |
-| `vp install --frozen-lockfile`                                          | Vite+ (`vp`) 代理 pnpm       | block                 |
-| `vp run ci` = check + Lingui + generated drift + test + build           | 见下行拆解                   | block                 |
-| ├ `vp check`（fmt + lint + tsgolint，`&&` 短路）                        | Oxfmt / Oxlint / tsgolint    | block（并掩盖后续层） |
-| ├ `pnpm run i18n:check`（extract clean + compile strict）               | Lingui                       | block                 |
-| ├ `pnpm generated:check`（隔离重建并比对 generator-owned output）       | Node generator contract      | block                 |
-| ├ `vp run -r test`（Vitest + pool-workers）                             | Vitest                       | block                 |
-| └ `vp run build`（app → server dry-run → marketing）                    | Vite 8 / Rolldown / wrangler | block                 |
-| `gitleaks detect --source . --no-git --redact`（在 `vp run ci` 之后）   | gitleaks                     | block                 |
-| 上传 staging build artifact（仅 main push）                             | actions/upload-artifact      | block                 |
-| E2E 全量 suite（独立 `.github/workflows/e2e.yml`，并行运行）            | Playwright                   | 独立 status check     |
-| Lingui catalog drift（独立 `.github/workflows/i18n-catalog-drift.yml`） | lingui + git diff            | 独立 status check     |
+| 步骤                                                                       | 工具                         | 失败影响              |
+| -------------------------------------------------------------------------- | ---------------------------- | --------------------- |
+| `vp install --frozen-lockfile`                                             | Vite+ (`vp`) 代理 pnpm       | block                 |
+| `vp run ci` = check + Lingui + generated drift + automation + test + build | 见下行拆解                   | block                 |
+| ├ `vp check`（fmt + lint + tsgolint，`&&` 短路）                           | Oxfmt / Oxlint / tsgolint    | block（并掩盖后续层） |
+| ├ `pnpm run i18n:check`（extract clean + compile strict）                  | Lingui                       | block                 |
+| ├ `pnpm generated:check`（隔离重建并比对 generator-owned output）          | Node generator contract      | block                 |
+| ├ `pnpm test:automation`（repo-level Actions/helper contract）             | Node `node:test`             | block                 |
+| ├ `vp run -r test`（Vitest + pool-workers）                                | Vitest                       | block                 |
+| └ `vp run build`（app → server dry-run → marketing）                       | Vite 8 / Rolldown / wrangler | block                 |
+| `gitleaks detect --source . --no-git --redact`（在 `vp run ci` 之后）      | gitleaks                     | block                 |
+| 上传 staging build artifact（仅 main push）                                | actions/upload-artifact      | block                 |
+| E2E 全量 suite（独立 `.github/workflows/e2e.yml`，并行运行）               | Playwright                   | 独立 status check     |
+| Lingui catalog drift（独立 `.github/workflows/i18n-catalog-drift.yml`）    | lingui + git diff            | 独立 status check     |
 
 `vp check` 默认同时跑 oxfmt / oxlint / tsgolint（由 `vite.config.ts` 的 `lint.options.typeCheck: true` 启用）。注意 `vp run ci` 内部 `&&` 短路：format 红会掩盖 type / test / build 的红。需要稳定 `tsc --noEmit` 时临时 `pnpm -F <pkg> exec tsc --noEmit` 即可，不进 CI 默认路径。
 
@@ -48,6 +49,25 @@ Lingui drift gate 的步骤是：`vp run @duedatehq/app#i18n:extract`（`lingui 
 同一严格 extract/compile 已通过 `pnpm run i18n:check` 纳入根 `pnpm run ci`。pre-push 从干净
 worktree 开始，在 CI 后再次对 `apps/app/src/i18n/locales` 执行 `git diff --exit-code`，因此本地
 生成出的未提交 catalog drift 会阻断 push，不再等独立 hosted workflow 才发现。
+
+#### X draft review notifier（`.github/workflows/x-draft-review.yml`）
+
+该 workflow 不是 CI status check、deploy job 或 X scheduler。它在 09:17 / 09:47
+`America/New_York` best-effort 读取 production Social queue，并把未同步 draft revision 写入一个
+公开 Issue；另有 `workflow_dispatch` 和仅在 mirror 文件变化时生效的 scoped main-push trigger。
+固定 concurrency group 串行所有入口，第二次 probe 用于吸收 Worker/Actions 延迟。
+
+job 使用 `due-date-hq-staging` environment；`GITHUB_TOKEN` 只给 `contents: read` /
+`issues: write`，Social bearer 只用于 `GET /api/ops/social/queue`。它不运行 `pnpm social:x`，
+不把 raw queue payload 打进公开 Actions log，也不允许 PR/fork code 获取 environment secret。
+Issue 通过隐藏 body marker 复用，closed issue 自动 reopen；comment 通过
+`postId + updatedAt` marker 去重，因此同 revision 的两次 probe 不重复，失败后回到 draft 的新
+revision 仍会再次通知。Issues/comments 都以 100 行分页完整读取。
+
+`pnpm test:automation` 覆盖 public comment allowlist/code block、Issue 创建与 reopen、revision
+幂等、credential origin 隔离、response error redaction、无效 queue fail-closed，以及脚本 import
+不会触发真实请求。workflow run 同时报告 `draftBacklogTruncated`；truncated 时 Issue 只是最新可见
+slice，不声称是完整历史。
 
 ### 2.2 Staging 管线（当前阶段：main push 自动部署，按改动路径门控）
 
@@ -119,6 +139,8 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   `X_ACCESS_TOKEN_SECRET`、`SOCIAL_OPS_TOKEN` 也按需存在即上传；四项 X OAuth credential
   all-or-none，`SOCIAL_OPS_TOKEN` 独立。默认 `X_POSTING_MODE=draft`，所以未配置 X credential
   不阻塞部署，但 deployed Social Ops 会在 token 缺失时 fail closed。
+  同一个 environment 的 `X Draft Review Issue` job 读取 `SOCIAL_OPS_TOKEN`，但只执行 queue
+  GET；secret 缺失/错误时 job fail closed，不创建不完整 comment，也不影响 Worker 发布。
   `AI_GATEWAY_API_KEY` 仅在启用 Cloudflare Authenticated Gateway 或切回 Unified provider
   时使用。注意：CI deploy 当前**不**传 `STRIPE_PRICE_SOLO_*` 与 `STRIPE_PRICE_TEAM_YEARLY`
   （代码仍支持这些 env，要启用须把对应 secret 加回 `ci.yml`）。
@@ -207,17 +229,18 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 
 ### 4.2 关键 SLO / 告警
 
-| 指标                  | 阈值             | 告警                                                         |
-| --------------------- | ---------------- | ------------------------------------------------------------ |
-| Dashboard P95 latency | > 1.5s           | ops alert email（OPS_ALERT_EMAIL）                           |
-| Worker error rate     | > 1% / 5min      | ops alert email（OPS_ALERT_EMAIL）                           |
-| D1 query P95          | > 200ms          | Logpush 查询 + Slack                                         |
-| AI fail rate          | > 5% / hour      | Workers Logs / Analytics Engine → ops alert mail             |
-| Dashboard Brief DLQ   | 任意消息进入 DLQ | 参照 `docs/ops/dashboard-brief-queue-runbook.md`             |
-| Email outbox stuck    | 未 flush > 5min  | Queue consumer 告警                                          |
-| Pulse ingest idle     | Cron 未运行 > 2h | Cron health check                                            |
-| X social backlog      | 最老 ready > 7d  | `social.x.backlog_stale` ops alert + Workers Logs            |
-| X ambiguous publish   | 任意 `unknown`   | 停止重试；按 `docs/ops/x-daily-alert-publishing.md` 人工对账 |
+| 指标                  | 阈值                                            | 告警                                                         |
+| --------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| Dashboard P95 latency | > 1.5s                                          | ops alert email（OPS_ALERT_EMAIL）                           |
+| Worker error rate     | > 1% / 5min                                     | ops alert email（OPS_ALERT_EMAIL）                           |
+| D1 query P95          | > 200ms                                         | Logpush 查询 + Slack                                         |
+| AI fail rate          | > 5% / hour                                     | Workers Logs / Analytics Engine → ops alert mail             |
+| Dashboard Brief DLQ   | 任意消息进入 DLQ                                | 参照 `docs/ops/dashboard-brief-queue-runbook.md`             |
+| Email outbox stuck    | 未 flush > 5min                                 | Queue consumer 告警                                          |
+| Pulse ingest idle     | Cron 未运行 > 2h                                | Cron health check                                            |
+| X social backlog      | 最老 ready > 7d                                 | `social.x.backlog_stale` ops alert + Workers Logs            |
+| X ambiguous publish   | 任意 `unknown`                                  | 停止重试；按 `docs/ops/x-daily-alert-publishing.md` 人工对账 |
+| X draft issue mirror  | run failed / >24h 无成功 / draft view truncated | GitHub Actions 告警；CLI queue fallback，不阻断 X            |
 
 ### 4.3 Worker request observability
 

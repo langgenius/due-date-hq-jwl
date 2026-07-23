@@ -1,0 +1,42 @@
+name: X Draft Review Issue
+
+# The Cloudflare Worker remains the only X scheduling authority. This workflow
+# mirrors its read-only review queue into one public GitHub issue after the
+# 09:00 ET Worker slot. Two idempotent probes cover delayed Cron/Actions delivery.
+on:
+  schedule:
+    - cron: '17,47 9 * * *'
+      timezone: 'America/New_York'
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/x-draft-review.yml'
+      - 'scripts/social-x-github-review.mjs'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: x-draft-review
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    if: github.repository == 'langgenius/due-date-hq-jwl' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: due-date-hq-staging
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_API_URL: ${{ github.api_url }}
+      SOCIAL_OPS_URL: https://app.duedatehq.com
+      SOCIAL_OPS_TOKEN: ${{ secrets.SOCIAL_OPS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Mirror unseen X drafts into the review issue
+        run: node scripts/social-x-github-review.mjs

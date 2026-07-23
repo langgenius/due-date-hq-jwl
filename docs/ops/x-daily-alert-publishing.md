@@ -10,6 +10,10 @@ not-yet-outboxed Alert. Older drafts may remain in review; they do not block the
 A separate serialized `SOCIAL_QUEUE` performs the remote X create.
 The `pnpm social:x` script is an operator control plane; do not schedule that script with Codex,
 launchd, GitHub Actions, or another cron.
+`.github/workflows/x-draft-review.yml` is the narrow exception for visibility only: it reads the
+existing queue projection after the daily slot and mirrors unseen drafts to one GitHub issue. It
+never runs the operator CLI, mutates D1, reserves a date, approves a Post, or enqueues X work.
+Actions delay or failure therefore does not affect the Worker publishing path.
 
 Hard invariants:
 
@@ -50,6 +54,9 @@ Hard invariants:
   reuse the consumed ET slot.
 - The future queue is a read-only projection of the current `ready` backlog. Viewing it never
   creates a draft, reserves a future `social_publish_run`, or sends a future `SOCIAL_QUEUE` message.
+- A GitHub issue snapshot is public visibility, not editorial approval. A comment, reaction, label,
+  or issue state change never moves a Post from `draft` to `ready`; only the token-gated Social Ops
+  approve endpoint with a real Better Auth reviewer can do that.
 
 ## Configuration
 
@@ -79,6 +86,14 @@ X_ACCESS_TOKEN_SECRET=
 ```
 
 Never pass secrets as command arguments or put them in a tracked file.
+
+The GitHub mirror reads the same token from the protected `due-date-hq-staging` environment. The
+workflow has no `pull_request` trigger, checks out only the default branch revision that triggered
+the run, sends the Social bearer only to `https://app.duedatehq.com`, and gives the short-lived
+repository `GITHUB_TOKEN` only `contents: read` plus `issues: write`. Never print either token or
+the raw queue payload. `SOCIAL_OPS_TOKEN` remains a broad operator credential, so any future
+workflow that needs PR or fork code must use a separate read-only credential rather than expanding
+this trust boundary.
 
 Verify the fixed account with a signed, read-only OAuth 1.0a request. The command returns only the X
 user ID and username; it never prints credentials:
@@ -164,6 +179,35 @@ change later positions and dates. Run the command again for the current view. Th
 no write, does not consume the daily unique slot, and does not enqueue X work ahead of time. The
 Worker still claims at most one item at 09:00 ET each calendar day; weekends are included.
 
+## Public GitHub draft mirror
+
+After the Worker daily slot, the `X Draft Review Issue` workflow probes the queue at 09:17 and 09:47
+`America/New_York`. The second probe covers a delayed Worker or Actions run; both probes are
+serialized and revision-idempotent. GitHub schedule delivery is best effort, so these times are a
+review-notification window rather than a publishing SLA. `workflow_dispatch` is the manual fallback.
+
+The workflow creates one stable issue on its first successful run, reopens that issue if it was
+closed, and adds one comment for every unseen draft revision in the visible queue response. The
+comment contains a strict allowlist:
+
+- the exact deterministic X copy in a Markdown code block;
+- the earliest queue horizon and the fact that no publication date is reserved;
+- the exact `pnpm social:x -- approve '<post id>'` command;
+- an opaque hidden marker derived from Post ID plus `updatedAt`.
+
+The repository and issue are public. The tracked `/alerts?ref=...` URL is therefore disclosed before
+X publication, but it remains a non-authorizing locator into the protected registration/login
+flow. Rendering the copy as code prevents casual clicks and `@mention` notifications; manually
+copying that URL can still contaminate `utm_source=x` attribution. The mirror never includes the
+raw queue row, Pulse ID, reviewer, OAuth/Social Ops credentials, tenant fields, source detail,
+client data, or email addresses. Cancelling a draft does not erase its already-public issue history.
+
+The issue is a snapshot, not the source of truth. Approval rebuilds the deterministic copy from the
+current Pulse, so rerun `pnpm social:x -- queue` or the focused candidate view before approving if
+the GitHub comment is no longer fresh. If `draftBacklogTruncated=true`, the workflow reports the
+truncation in its run result; the newest daily draft remains in the visible newest-first slice, but
+the Issue is not a complete historical backlog.
+
 ## Immediate live publish
 
 `publish-now` is an operator override for the normal 09:00 ET claim time, not an override for the
@@ -237,6 +281,11 @@ backlog older than seven days emit ops alerts when `OPS_ALERT_EMAIL` is configur
 failure also emits `social.x.draft_replenish_failed` while allowing today's already-claimed live Post
 to continue to Queue. A stale draft is still an approval/cancellation decision, but it does not
 block the next ET day's newest eligible draft from appearing.
+
+Also monitor the `X Draft Review Issue` workflow for a failed run, no successful run for 24 hours,
+or `draftBacklogTruncated=true`. These are review-notification failures, not X publishing failures;
+use `pnpm social:x -- queue` as the canonical fallback and do not rerun or bypass the Worker
+scheduler to compensate.
 
 Useful D1 checks:
 
