@@ -383,21 +383,40 @@ function patchStatusInListCache(
 // CONDITIONALLY: the ref is null on first mount, the effect early-returns,
 // and it never re-fires because its dep (the ref object) is stable —
 // leaving page size stuck at MIN (8 rows).
-function useResponsivePageSize(): [number, (element: HTMLElement | null) => void] {
+function useResponsivePageSize(): [number, number, (element: HTMLElement | null) => void] {
   const [pageSize, setPageSize] = useState<number>(CLIENT_PAGE_SIZE_MIN)
+  // Card width drives the narrow-viewport column ladder (2026-07-24 interaction
+  // audit #1: a table-fixed table in an overflow-clip card cropped the last
+  // STATUS column with no scroll recourse when the card was narrower than the
+  // fixed-column sum). Infinity until measured → no column hiding on first paint.
+  const [cardWidth, setCardWidth] = useState<number>(Number.POSITIVE_INFINITY)
   const [element, setElement] = useState<HTMLElement | null>(null)
   useEffect(() => {
     if (typeof window === 'undefined') return () => {}
     if (!element) return () => {}
     const measure = (): void => {
       setPageSize(computeResponsivePageSize(element.clientHeight))
+      // Measure the PARENT (the viewport-driven queue column), not the card
+      // itself: in full-page mode the card is a flex item that can shrink to
+      // its table content, so measuring the card width feedback-loops — hiding
+      // columns narrows the table, which would keep the card "narrow" and never
+      // let the columns return. The parent width tracks available space only.
+      setCardWidth(element.parentElement?.clientWidth ?? element.clientWidth)
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(element)
-    return () => observer.disconnect()
+    // window resize as a belt-and-suspenders re-measure: a viewport-width
+    // change (or sidebar collapse/expand) reflows the card, and this
+    // guarantees the width-driven column ladder re-runs even in environments
+    // where the ResizeObserver is slow to fire on a width-only change.
+    window.addEventListener('resize', measure)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
   }, [element])
-  return [pageSize, setElement]
+  return [pageSize, cardWidth, setElement]
 }
 
 export function isInternalExtensionTargetDateValid(value: string, filingDueDate: string): boolean {
@@ -527,6 +546,21 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   // state-cluster columns and comes back when the panel closes.
   'filingDueDate',
 ] as const
+// 2026-07-24 interaction audit #1: in FULL-PAGE mode (panel closed) the
+// fixed-width columns sum to ~1300px; below that card width the overflow-clip
+// card cropped the trailing STATUS column with no scroll recourse (exposed by
+// an expanded sidebar or a <1300px window). Hide the secondary columns first
+// so the row anchor — Form + Client + Internal due + Status — always fits.
+// Narrower than the panel-open set (that view is ~2/5 width and drops more).
+const NARROW_CARD_AUTO_HIDDEN_COLUMN_IDS = [
+  'clientState',
+  'clientCounty',
+  'taxCategory',
+  'assigneeName',
+  'filingDueDate',
+] as const
+// The card width below which the narrow ladder engages (full-page mode only).
+const NARROW_CARD_WIDTH_PX = 1300
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 
@@ -1290,7 +1324,7 @@ export function ObligationQueueRoute() {
   // a callback ref because the table-card mounts inside a conditional ternary
   // (loading/success) — a ref-object pattern would early-return with null on
   // first paint and never re-fire. See useResponsivePageSize above.
-  const [, setTableCardElement] = useResponsivePageSize()
+  const [, tableCardWidth, setTableCardElement] = useResponsivePageSize()
   // Ref targets the always-mounted fixed-row search field — no open-state shim
   // needed.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
@@ -1347,9 +1381,16 @@ export function ObligationQueueRoute() {
       for (const id of PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS) {
         base[id] = false
       }
+    } else if (!userExplicitlyShowAll && tableCardWidth < NARROW_CARD_WIDTH_PX) {
+      // Full-page mode, narrow card (expanded sidebar / small window): shed the
+      // secondary columns so STATUS never crops off the overflow-clip edge
+      // (interaction audit #1). Skipped when the user chose Show all.
+      for (const id of NARROW_CARD_AUTO_HIDDEN_COLUMN_IDS) {
+        base[id] = false
+      }
     }
     return base
-  }, [hiddenColumns, panelOpenIntent])
+  }, [hiddenColumns, panelOpenIntent, tableCardWidth])
   const columnLabels = useMemo(
     () => ({
       clientName: t`Client`,
