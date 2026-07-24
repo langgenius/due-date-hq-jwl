@@ -180,6 +180,14 @@ const T = LIGHT
     }
 const WM = wmInner.replaceAll('#1F315C', T.wmInk).replaceAll('#F2F4ED', T.wmBar)
 
+// 官方州徽(state badge，引用 app 的 state-seals），内嵌为 data URI；无则留空
+const sealPath = path.join(ROOT, `apps/app/src/components/primitives/state-seals/${lead.abbr}.png`)
+const SEAL = fs.existsSync(sealPath)
+  ? `data:image/png;base64,${fs.readFileSync(sealPath).toString('base64')}`
+  : ''
+const sealBadge = SEAL ? `<img class=seal src="${SEAL}" alt="">` : ''
+const sealBg = SEAL ? `<img class=seal-bg src="${SEAL}" alt="">` : ''
+
 // ---------- shared style ----------
 const base = `
   *{margin:0;padding:0;box-sizing:border-box}
@@ -202,20 +210,28 @@ const base = `
   .tick .t{font-size:17px;color:${T.sub};display:flex;gap:10px}
   .tick .t i{font-style:normal;color:${T.ink2};font-weight:600;min-width:74px}
   .foot{font-size:14px;color:${T.mut}}
+  /* 精致细节：州徽 medallion + 背景水印 + masthead 细线 */
+  .card > :not(.seal-bg){position:relative;z-index:1}
+  .seal-bg{position:absolute;right:-58px;bottom:-52px;width:340px;height:340px;object-fit:contain;opacity:.06;z-index:0;pointer-events:none}
+  .subj{display:flex;align-items:center;gap:16px}
+  .seal{width:48px;height:48px;border-radius:999px;background:#fff;object-fit:contain;padding:2px;box-shadow:0 1px 3px rgba(30,33,72,.12),0 0 0 1px rgba(30,33,72,.10);flex:0 0 auto}
+  .rule{height:1px;background:${T.line};margin-top:20px}
 `
 
 // 小红书 3:4
 const xhs = `<!doctype html><meta charset=utf8><style>${base}
   .xhs{width:540px;height:720px;padding:46px 44px}
-  .xhs .headline{margin-top:30px;font-size:23px;font-weight:700;letter-spacing:.03em;line-height:1.2}
-  .xhs .cd{margin-top:4px}
-  .xhs .facts{margin-top:26px}.xhs .tick{margin-top:auto}
+  .xhs .subj{margin-top:22px}
+  .xhs .headline{font-size:23px;font-weight:700;letter-spacing:.03em;line-height:1.2}
+  .xhs .cd{margin-top:2px}
+  .xhs .facts{margin-top:18px}.xhs .tick{margin-top:auto}
   .xhs .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card xhs" style="width:540px;height:720px">
+  ${sealBg}
   <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.dateCN}</span></div>
-  <div class=eyebrow style="margin-top:30px"><span class=live><span class=dot></span>每日播报</span><span class=kick>IRS 报税截止日</span></div>
-  <div class=headline>${D.leadCN}报税截止日</div>
+  <div class=eyebrow style="margin-top:26px"><span class=live><span class=dot></span>每日播报</span><span class=kick>IRS 报税截止日</span></div>
+  <div class=subj>${sealBadge}<div class=headline>${D.leadCN}报税截止日</div></div>
   <div class="cd num"><span class=lead>还剩</span><b>${D.daysLeft}</b><s>天</s></div>
   <div class=facts>
     <div class=f><b>${D.deadlineCN}</b>到期 · ${D.countyN} 个县 · 灾害延期 ${D.code}</div>
@@ -231,16 +247,18 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
 // LinkedIn 1:1
 const li = `<!doctype html><meta charset=utf8><style>${base}
   .li{width:540px;height:675px;padding:44px 42px}
-  .li .headline{margin-top:30px;font-size:23px;font-weight:700;letter-spacing:.07em;line-height:1.15;color:${T.ink};text-transform:uppercase}
+  .li .subj{margin-top:24px}
+  .li .headline{font-size:23px;font-weight:700;letter-spacing:.07em;line-height:1.15;color:${T.ink};text-transform:uppercase}
   .li .cd{margin-top:2px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
-  .li .facts{margin-top:30px}.li .facts .f{font-size:18px}
+  .li .facts{margin-top:22px}.li .facts .f{font-size:18px}
   .li .tick{margin-top:auto}.li .tick .t{font-size:15px}.li .tick .t i{min-width:66px}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card li" style="width:540px;height:675px">
+  ${sealBg}
   <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayEN}, ${D.year}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
-  <div class=headline>${D.leadEN}</div>
+  <div class=subj>${sealBadge}<div class=headline>${D.leadEN}</div></div>
   <div class="cd num"><b>${D.daysLeft}</b><s>days left</s></div>
   <div class=facts>
     <div class=f>Due <b>${D.deadlineEN}</b> · ${D.countyN} counties · relief ${D.code}</div>
@@ -259,7 +277,12 @@ async function shot(htmlStr, sel, file) {
   const p = await browser.newPage({ viewport: { width: 640, height: 820 }, deviceScaleFactor: 2 })
   await p.setContent(htmlStr, { waitUntil: 'networkidle' })
   const el = await p.$(sel)
-  const of = await el.evaluate((e) => e.scrollHeight - e.clientHeight)
+  // 真实内容溢出(忽略故意溢出画布的背景水印 .seal-bg)
+  const of = await el.evaluate((e) => {
+    const kids = [...e.children].filter((c) => !c.classList.contains('seal-bg'))
+    const bottom = Math.max(...kids.map((c) => c.offsetTop + c.offsetHeight))
+    return Math.max(0, Math.round(bottom - e.clientHeight))
+  })
   await el.screenshot({ path: path.join(OUT, file) })
   await p.close()
   return of
