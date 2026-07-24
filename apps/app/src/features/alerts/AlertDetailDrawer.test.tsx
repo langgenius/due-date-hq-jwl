@@ -523,10 +523,13 @@ describe('AlertDetailDrawer hotkeys behind modal layers', () => {
     } satisfies PulseDetail)
 
     await renderHotkeyDrawer()
-    await waitForText('Import clients')
+    // The fallback (no migration provider in scope) links to the clients LIST,
+    // so its label reads "View clients" — matching the destination, not
+    // promising an import flow it can't open (audit P3).
+    await waitForText('View clients')
 
     const importLink = Array.from(document.querySelectorAll('a')).find(
-      (candidate) => candidate.textContent?.trim() === 'Import clients',
+      (candidate) => candidate.textContent?.trim() === 'View clients',
     )
     expect(importLink?.getAttribute('href')).toBe('/clients')
   })
