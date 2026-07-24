@@ -23,37 +23,131 @@ const argDate = process.argv.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a))
 const today = argDate ? new Date(argDate + 'T12:00:00Z') : new Date()
 const iso = today.toISOString().slice(0, 10)
 
-const CN = { AL:'阿拉巴马',AK:'阿拉斯加',AZ:'亚利桑那',AR:'阿肯色',CA:'加利福尼亚',CO:'科罗拉多',CT:'康涅狄格',DE:'特拉华',FL:'佛罗里达',GA:'佐治亚',HI:'夏威夷',ID:'爱达荷',IL:'伊利诺伊',IN:'印第安纳',IA:'爱荷华',KS:'堪萨斯',KY:'肯塔基',LA:'路易斯安那',ME:'缅因',MD:'马里兰',MA:'马萨诸塞',MI:'密歇根',MN:'明尼苏达',MS:'密西西比',MO:'密苏里',MT:'蒙大拿',NE:'内布拉斯加',NV:'内华达',NH:'新罕布什尔',NJ:'新泽西',NM:'新墨西哥',NY:'纽约',NC:'北卡罗来纳',ND:'北达科他',OH:'俄亥俄',OK:'俄克拉何马',OR:'俄勒冈',PA:'宾夕法尼亚',RI:'罗得岛',SC:'南卡罗来纳',SD:'南达科他',TN:'田纳西',TX:'德克萨斯',UT:'犹他',VT:'佛蒙特',VA:'弗吉尼亚',WA:'华盛顿',WV:'西弗吉尼亚',WI:'威斯康星',WY:'怀俄明',DC:'华盛顿特区',PR:'波多黎各',MP:'北马里亚纳群岛',VI:'美属维尔京群岛',GU:'关岛',AS:'美属萨摩亚' }
-const TERR = new Set(['PR','MP','VI','GU','AS','DC'])
+const CN = {
+  AL: '阿拉巴马',
+  AK: '阿拉斯加',
+  AZ: '亚利桑那',
+  AR: '阿肯色',
+  CA: '加利福尼亚',
+  CO: '科罗拉多',
+  CT: '康涅狄格',
+  DE: '特拉华',
+  FL: '佛罗里达',
+  GA: '佐治亚',
+  HI: '夏威夷',
+  ID: '爱达荷',
+  IL: '伊利诺伊',
+  IN: '印第安纳',
+  IA: '爱荷华',
+  KS: '堪萨斯',
+  KY: '肯塔基',
+  LA: '路易斯安那',
+  ME: '缅因',
+  MD: '马里兰',
+  MA: '马萨诸塞',
+  MI: '密歇根',
+  MN: '明尼苏达',
+  MS: '密西西比',
+  MO: '密苏里',
+  MT: '蒙大拿',
+  NE: '内布拉斯加',
+  NV: '内华达',
+  NH: '新罕布什尔',
+  NJ: '新泽西',
+  NM: '新墨西哥',
+  NY: '纽约',
+  NC: '北卡罗来纳',
+  ND: '北达科他',
+  OH: '俄亥俄',
+  OK: '俄克拉何马',
+  OR: '俄勒冈',
+  PA: '宾夕法尼亚',
+  RI: '罗得岛',
+  SC: '南卡罗来纳',
+  SD: '南达科他',
+  TN: '田纳西',
+  TX: '德克萨斯',
+  UT: '犹他',
+  VT: '佛蒙特',
+  VA: '弗吉尼亚',
+  WA: '华盛顿',
+  WV: '西弗吉尼亚',
+  WI: '威斯康星',
+  WY: '怀俄明',
+  DC: '华盛顿特区',
+  PR: '波多黎各',
+  MP: '北马里亚纳群岛',
+  VI: '美属维尔京群岛',
+  GU: '关岛',
+  AS: '美属萨摩亚',
+}
+const TERR = new Set(['PR', 'MP', 'VI', 'GU', 'AS', 'DC'])
 const cn = (a) => CN[a] || a
-const mdY = (s) => { const [ , m, d ] = s.split('-'); return `${+m}月${+d}日` }
-const enMD = (s) => { const [ , m, d ] = s.split('-'); return ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m] + ' ' + (+d) }
+const mdY = (s) => {
+  const [, m, d] = s.split('-')
+  return `${+m}月${+d}日`
+}
+const enMD = (s) => {
+  const [, m, d] = s.split('-')
+  return (
+    ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m] +
+    ' ' +
+    +d
+  )
+}
 const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00Z') - a) / 86400000)
 
 // ---------- data ----------
-const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'outreach-kit/disaster-notices.json'), 'utf8'))
+const raw = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'outreach-kit/disaster-notices.json'), 'utf8'),
+)
 const notices = Array.isArray(raw) ? raw : raw.notices || Object.values(raw)
 const juris = [...new Set(notices.map((n) => n.abbr))]
 const stateCount = juris.filter((a) => !TERR.has(a)).length
 const terrCount = juris.filter((a) => TERR.has(a)).length
 
-const upcoming = notices.filter((n) => n.deadline >= iso).sort((a, b) => a.deadline.localeCompare(b.deadline))
+const upcoming = notices
+  .filter((n) => n.deadline >= iso)
+  .sort((a, b) => a.deadline.localeCompare(b.deadline))
 const lead = upcoming[0] || [...notices].sort((a, b) => b.deadline.localeCompare(a.deadline))[0]
 const daysLeft = Math.max(0, daysBetween(today, lead.deadline))
 const countyN = (lead.affectedArea.match(/,/g) || []).length + 1
 // 下一批：lead 之后的第一个不同截止日
 const nextDate = upcoming.map((n) => n.deadline).find((d) => d !== lead.deadline)
-const nextStatesCN = nextDate ? [...new Set(upcoming.filter((n) => n.deadline === nextDate).map((n) => cn(n.abbr)))].join(' · ') : ''
-const nextStatesEN = nextDate ? [...new Set(upcoming.filter((n) => n.deadline === nextDate).map((n) => n.state))].join(' & ') : ''
+const nextStatesCN = nextDate
+  ? [...new Set(upcoming.filter((n) => n.deadline === nextDate).map((n) => cn(n.abbr)))].join(' · ')
+  : ''
+const nextStatesEN = nextDate
+  ? [...new Set(upcoming.filter((n) => n.deadline === nextDate).map((n) => n.state))].join(' & ')
+  : ''
 
-const D = { iso, leadCN: cn(lead.abbr), leadEN: lead.state, daysLeft, countyN, code: lead.code,
-  deadlineCN: mdY(lead.deadline), deadlineEN: enMD(lead.deadline),
-  nextCN: nextStatesCN, nextDateCN: nextDate ? mdY(nextDate) : '', nextEN: nextStatesEN, nextDateEN: nextDate ? enMD(nextDate) : '',
-  active: notices.length, stateCount, terrCount }
+const D = {
+  iso,
+  leadCN: cn(lead.abbr),
+  leadEN: lead.state,
+  daysLeft,
+  countyN,
+  code: lead.code,
+  deadlineCN: mdY(lead.deadline),
+  deadlineEN: enMD(lead.deadline),
+  nextCN: nextStatesCN,
+  nextDateCN: nextDate ? mdY(nextDate) : '',
+  nextEN: nextStatesEN,
+  nextDateEN: nextDate ? enMD(nextDate) : '',
+  active: notices.length,
+  stateCount,
+  terrCount,
+}
 
 // ---------- wordmark ----------
-const wmSrc = fs.readFileSync(path.join(ROOT, 'packages/ui/src/assets/brand/brand-wordmark.svg'), 'utf8')
-const wmInner = wmSrc.slice(wmSrc.indexOf('>', wmSrc.indexOf('<svg')) + 1, wmSrc.lastIndexOf('</svg>')).replace(/<title>.*?<\/title>/s, '').trim()
+const wmSrc = fs.readFileSync(
+  path.join(ROOT, 'packages/ui/src/assets/brand/brand-wordmark.svg'),
+  'utf8',
+)
+const wmInner = wmSrc
+  .slice(wmSrc.indexOf('>', wmSrc.indexOf('<svg')) + 1, wmSrc.lastIndexOf('</svg>'))
+  .replace(/<title>.*?<\/title>/s, '')
+  .trim()
 const WM = wmInner.replaceAll('#1F315C', '#f2f4ee').replaceAll('#F2F4ED', '#2e368c')
 
 // ---------- shared style ----------
@@ -112,7 +206,7 @@ const li = `<!doctype html><meta charset=utf8><style>${base}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card li" style="width:540px;height:540px">
-  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.deadlineEN.split(' ')[0]} ${D.iso.slice(0,4)}</span></div>
+  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.deadlineEN.split(' ')[0]} ${D.iso.slice(0, 4)}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
   <div class=headline>${D.leadEN} filing deadline:<br/><span style="color:#14c5f6">${D.daysLeft} days out</span></div>
   <div class=facts>
@@ -164,7 +258,12 @@ Full verified list (every date sourced to irs.gov) in the comments 👇
 
 【first comment】https://duedatehq.com/irs-disaster-relief?utm_source=linkedin&utm_medium=social&utm_campaign=daily_broadcast`
 
-fs.writeFileSync(path.join(OUT, `PACK-${iso}.md`), `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书图：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1080）\n\n${liCap}\n`)
+fs.writeFileSync(
+  path.join(OUT, `PACK-${iso}.md`),
+  `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书图：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1080）\n\n${liCap}\n`,
+)
 console.log(`✓ 今日播报 ${iso}：${D.leadEN} 倒计时 ${D.daysLeft} 天`)
-console.log(`✓ 图：broadcast/xhs-${iso}.png (溢出${of1}) · broadcast/linkedin-${iso}.png (溢出${of2})`)
+console.log(
+  `✓ 图：broadcast/xhs-${iso}.png (溢出${of1}) · broadcast/linkedin-${iso}.png (溢出${of2})`,
+)
 console.log(`✓ 配文：broadcast/PACK-${iso}.md`)

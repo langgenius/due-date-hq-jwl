@@ -52,7 +52,7 @@ Fix (`routes/obligations.tsx`): bind the Columns-menu checkbox to the user's
 now writes `hide` directly, so it is immune to the layout overlay — and it drops
 the panel-strip dance in `onColumnVisibilityChange`, since user intent never
 contains an overlay-hidden column. The narrow/panel ladders still drive what's
-*rendered*; they no longer masquerade as user column preferences.
+_rendered_; they no longer masquerade as user column preferences.
 
 ## Lesson
 
