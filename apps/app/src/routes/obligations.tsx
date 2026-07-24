@@ -547,11 +547,16 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'filingDueDate',
 ] as const
 // 2026-07-24 interaction audit #1: in FULL-PAGE mode (panel closed) the
-// fixed-width columns sum to ~1300px; below that card width the overflow-clip
-// card cropped the trailing STATUS column with no scroll recourse (exposed by
-// an expanded sidebar or a <1300px window). Hide the secondary columns first
-// so the row anchor — Form + Client + Internal due + Status — always fits.
-// Narrower than the panel-open set (that view is ~2/5 width and drops more).
+// overflow-clip card cropped the trailing STATUS column with no scroll
+// recourse once the fixed columns no longer fit. Measured min widths (all at
+// min-content): the DEFAULT-visible set — select 40 · Form 168 · Client 232 ·
+// State 92 · Internal due 128 · Official due 116 · Assignee 76 · Status 240 —
+// floors at ~1092px, so it fits comfortably down to that width and clips only
+// below it. (The first pass guessed ~1300px and so stripped columns at a plain
+// 1440px window, where the card is ~1282px and everything fits — that vanished
+// Assignee/State/Official due on mainstream laptops.) Engage the ladder just
+// above the real floor and hide the secondary columns first, so the row anchor
+// — Form + Client + Internal due + Status — always survives.
 const NARROW_CARD_AUTO_HIDDEN_COLUMN_IDS = [
   'clientState',
   'clientCounty',
@@ -560,7 +565,9 @@ const NARROW_CARD_AUTO_HIDDEN_COLUMN_IDS = [
   'filingDueDate',
 ] as const
 // The card width below which the narrow ladder engages (full-page mode only).
-const NARROW_CARD_WIDTH_PX = 1300
+// Just above the ~1092px default-set floor, so a standard 1440px window (card
+// ~1282px) keeps every default column and only genuinely narrow cards ladder.
+const NARROW_CARD_WIDTH_PX = 1120
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 

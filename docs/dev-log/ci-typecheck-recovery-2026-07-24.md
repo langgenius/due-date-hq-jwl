@@ -54,6 +54,29 @@ the panel-strip dance in `onColumnVisibilityChange`, since user intent never
 contains an overlay-hidden column. The narrow/panel ladders still drive what's
 _rendered_; they no longer masquerade as user column preferences.
 
+## The threshold was also wrong (the deeper fix)
+
+With the menu decoupled, the test advanced to line 183 and failed differently:
+after a bulk owner-assign it asserts the `Assignee` cell is visible, but the
+column simply wasn't rendered at 1440px. Measured in the browser at 1440×900
+(sidebar collapsed, 92px): the table card is **1282px** — and audit #1 hid the
+secondary columns below **1300px**, so a plain mainstream-laptop window lost
+Assignee, State, and Official due, dropping the queue to four columns.
+
+Measured the real floor instead of guessing it: the default-visible set floors
+around **1092px** of min-content and only overflows the overflow-clip card below
+that. Crucially, at 1282px the card overflows its `scrollWidth` by ~9px, but the
+STATUS pills themselves sit at x≈1239–1395 inside a card whose right edge is
+1407 — the 9px is trailing cell padding, not cropped status. Lowered
+`NARROW_CARD_WIDTH_PX` from 1300 to **1120** (just above the floor). Verified
+live: 1440px → 8 columns incl. Assignee, status pills fully visible; 1080px
+(card 922) → laddered to the four-column row anchor with every status pill still
+inside the card.
+
+Note the ResizeObserver width only re-measures on load/observed resize, so
+_resizing the window without reloading_ can leave a stale column set until the
+next paint — the E2E is unaffected because every `goto()` is a fresh load.
+
 ## Lesson
 
 Trust the remote `CI` typecheck over a backgrounded local one that may have been
