@@ -304,7 +304,7 @@ function buildHtml(d) {
     '\n'
   )
 }
-function years0(d) {
+function years0(_d) {
   const ys = Object.keys(byYear).map(Number)
   return Math.min(...ys)
 }
@@ -326,7 +326,6 @@ function xhsCaption(d) {
 #美国报税 #注册会计师 #CPA #EA #在美华人 #税务 #会计 #报税季 #美国生活`
 }
 function linkedin(d) {
-  const soon = d.groups[0]
   return `【LinkedIn · 公司页发，个人号转，链接放首条评论】
 
 We read every IRS disaster-relief notice since ${years0(d)}. All ${d.total} of them.

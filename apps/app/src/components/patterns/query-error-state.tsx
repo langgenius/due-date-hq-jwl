@@ -44,10 +44,10 @@ export function QueryErrorState({
   what: ReactNode
   /** The query's error — its message renders below the title when short. */
   error?: unknown
-  /** Wire to the query's `refetch`. */
-  onRetry: () => void
+  /** Wire to the query's `refetch`. When omitted, the Retry control is hidden. */
+  onRetry?: (() => void) | undefined
   /** Pass the query's `isFetching`/`isRefetching` so Retry can't double-fire. */
-  retrying?: boolean
+  retrying?: boolean | undefined
   size?: 'block' | 'inline'
   /**
    * Drops the dashed card frame (block only) for hosts that already carry a
@@ -99,28 +99,29 @@ export function QueryErrorState({
       >
         {message ?? <Trans>Try again in a moment. If it keeps failing, contact support.</Trans>}
       </p>
-      {isInline ? (
-        <TextLink
-          variant="accent"
-          size="sm"
-          onClick={onRetry}
-          className={cn('mt-1', retrying && 'pointer-events-none opacity-50')}
-          aria-disabled={retrying || undefined}
-        >
-          <Trans>Retry</Trans>
-        </TextLink>
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mt-1"
-          onClick={onRetry}
-          disabled={retrying}
-        >
-          <Trans>Retry</Trans>
-        </Button>
-      )}
+      {onRetry &&
+        (isInline ? (
+          <TextLink
+            variant="accent"
+            size="sm"
+            onClick={onRetry}
+            className={cn('mt-1', retrying && 'pointer-events-none opacity-50')}
+            aria-disabled={retrying || undefined}
+          >
+            <Trans>Retry</Trans>
+          </TextLink>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-1"
+            onClick={onRetry}
+            disabled={retrying}
+          >
+            <Trans>Retry</Trans>
+          </Button>
+        ))}
     </div>
   )
 }

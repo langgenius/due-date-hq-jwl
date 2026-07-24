@@ -1699,7 +1699,7 @@ export function AlertDetailDrawer({
     // pinned under the sticky nav); at the top, switching tabs just swaps the
     // content in place. And the scroll is SMOOTH, matching scroll-spy mode.
     if (heroScrolled) {
-      document.getElementById(scrollIntoViewMotionSafe(activeSection), { block: 'start' })
+      scrollIntoViewMotionSafe(document.getElementById(activeSection), { block: 'start' })
     }
     if (pending.focus) document.getElementById(`alert-tab-${activeSection}`)?.focus()
   }, [activeSection, heroScrolled])
