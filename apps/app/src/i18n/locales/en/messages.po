@@ -2020,6 +2020,10 @@ msgstr "Active sessions"
 msgid "Active stage detail"
 msgstr "Active stage detail"
 
+#: src/features/audit/entity-audit-activity-panel.tsx
+msgid "activity"
+msgstr "activity"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -5103,9 +5107,17 @@ msgstr "Couldn't load reminder templates"
 msgid "Couldn't load rule sources"
 msgstr "Couldn't load rule sources"
 
+#: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "Couldn't load rules."
+msgstr "Couldn't load rules."
+
 #: src/routes/clients.tsx
 msgid "Couldn't load sample data"
 msgstr "Couldn't load sample data"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Couldn't load team notes."
+msgstr "Couldn't load team notes."
 
 #: src/features/workload/workload-page.tsx
 msgid "Couldn't load team workload"
@@ -5114,6 +5126,10 @@ msgstr "Couldn't load team workload"
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Couldn't load temporary rules"
 msgstr "Couldn't load temporary rules"
+
+#: src/features/obligations/BlockerContextCard.tsx
+msgid "Couldn't load the blocking deadline."
+msgstr "Couldn't load the blocking deadline."
 
 #: src/routes/obligations.tsx
 msgid "Couldn't load the extension preview"
@@ -6966,6 +6982,10 @@ msgstr "Every signed-in browser and device EXCEPT this one will lose access imme
 #: src/routes/dashboard.tsx
 msgid "Everyone"
 msgstr "Everyone"
+
+#: src/features/evidence/EvidenceDrawerProvider.tsx
+msgid "evidence"
+msgstr "evidence"
 
 #: src/features/concepts/concept-help.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
@@ -13427,11 +13447,14 @@ msgstr "Retracted"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/components/patterns/query-error-state.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/AlertTeamNotes.tsx
+#: src/features/alerts/components/ReverifyRulesSection.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/features/obligations/BlockerContextCard.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -15868,6 +15891,10 @@ msgstr "The AI parsed this update with low confidence ({0}%). Open the source an
 #: src/features/migration/Step4Preview.tsx
 msgid "The audit log records every mapping and value change"
 msgstr "The audit log records every mapping and value change"
+
+#: src/features/evidence/EvidenceDrawerProvider.tsx
+msgid "the audit timeline"
+msgstr "the audit timeline"
 
 #. placeholder {0}: detail.alert.source
 #. placeholder {1}: getJurisdictionName(detail.jurisdiction)
