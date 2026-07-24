@@ -209,9 +209,9 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
 // LinkedIn 1:1
 const li = `<!doctype html><meta charset=utf8><style>${base}
   .li{width:540px;height:675px;padding:44px 42px}
-  .li .headline{margin-top:22px;font-size:34px;font-weight:700;line-height:1.15}
-  .li .cd{margin-top:14px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
-  .li .facts{margin-top:26px}.li .facts .f{font-size:18px}
+  .li .headline{margin-top:26px;font-size:25px;font-weight:600;line-height:1.2;color:${T.sub}}
+  .li .cd{margin-top:6px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
+  .li .facts{margin-top:30px}.li .facts .f{font-size:18px}
   .li .tick{margin-top:auto}.li .tick .t{font-size:15px}.li .tick .t i{min-width:66px}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
