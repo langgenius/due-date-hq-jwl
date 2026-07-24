@@ -850,10 +850,12 @@ function ActiveMembersTable({
               <TableHead className="w-44">
                 <Trans>Role</Trans>
               </TableHead>
-              <TableHead className="w-32">
+              {/* Status + Joined shed below lg (audit #3) so the Name/Email
+                  anchor never scrolls off a narrow container. */}
+              <TableHead className="hidden w-32 lg:table-cell">
                 <Trans>Status</Trans>
               </TableHead>
-              <TableHead className="w-44">
+              <TableHead className="hidden w-44 lg:table-cell">
                 <Trans>Joined</Trans>
               </TableHead>
               {/* "Last active" column is hidden until real data lands — the
@@ -883,14 +885,14 @@ function ActiveMembersTable({
                       onChange={(role) => onRoleChange(member.id, role)}
                     />
                   </TableCell>
-                  <TableCell className="py-1.5">
+                  <TableCell className="hidden py-1.5 lg:table-cell">
                     <MemberStatusPill status={member.status} />
                   </TableCell>
                   {/* JOINED uses relative time ("3 weeks ago") — an
                     engineering-precise timestamp is unparseable at a glance.
                     The exact value lives on the tooltip via <RelativeTime>. No
                     font-mono — this column reads as recency, not as data. */}
-                  <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-tertiary">
+                  <TableCell className="hidden py-1.5 text-xs whitespace-nowrap text-text-tertiary lg:table-cell">
                     <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
                   </TableCell>
                   <TableCell className="py-1.5 pr-2">
@@ -942,10 +944,12 @@ function PendingInvitationsTable({
               <TableHead className="w-44">
                 <Trans>Role</Trans>
               </TableHead>
-              <TableHead className="w-32">
+              {/* Invited-by + Sent·Expires shed below lg (audit #3) so the
+                  Email anchor stays visible on a narrow container. */}
+              <TableHead className="hidden w-32 lg:table-cell">
                 <Trans>Invited by</Trans>
               </TableHead>
-              <TableHead className="w-44">
+              <TableHead className="hidden w-44 lg:table-cell">
                 <Trans>Sent · Expires</Trans>
               </TableHead>
               <TableHead className="w-24">
@@ -972,10 +976,10 @@ function PendingInvitationsTable({
                 <TableCell className="py-2">
                   <RoleDisplay role={invitation.role} />
                 </TableCell>
-                <TableCell className="py-2 text-xs text-text-secondary">
+                <TableCell className="hidden py-2 text-xs text-text-secondary lg:table-cell">
                   {inviterName(members, invitation.inviterId)}
                 </TableCell>
-                <TableCell className="py-2 font-mono text-xs leading-4">
+                <TableCell className="hidden py-2 font-mono text-xs leading-4 lg:table-cell">
                   <span className="block text-text-secondary">
                     <Trans>Sent {formatInvitationDate(invitation.createdAt, firmTimezone)}</Trans>
                   </span>

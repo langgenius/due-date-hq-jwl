@@ -302,10 +302,13 @@ export function SettingsPermissionsRoute() {
         {/* Matrix */}
         <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <div className="overflow-x-auto">
-            <div className="min-w-[760px]">
+            {/* Leading Scope column + min-width narrow on phone (audit #6) so
+                the permission toggles are reachable without a long sideways
+                scroll past a 260px scope column. */}
+            <div className="min-w-[520px] sm:min-w-[760px]">
               {/* Header */}
               <div className="flex items-center bg-background-section px-5 py-4">
-                <div className="w-[260px] shrink-0 pr-3">
+                <div className="w-[150px] shrink-0 sm:w-[260px] pr-3">
                   <CapsFieldLabel as="span" variant="group">
                     <Trans>Scope</Trans>
                   </CapsFieldLabel>
@@ -325,7 +328,7 @@ export function SettingsPermissionsRoute() {
                   key={scope.key}
                   className="flex items-center border-t border-divider-subtle px-5"
                 >
-                  <div className="flex w-[260px] shrink-0 items-center gap-3 py-4 pr-3">
+                  <div className="flex w-[150px] shrink-0 sm:w-[260px] items-center gap-3 py-4 pr-3">
                     <span
                       aria-hidden
                       className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-section text-text-secondary"

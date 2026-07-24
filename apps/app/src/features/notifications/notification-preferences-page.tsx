@@ -521,7 +521,7 @@ function TypesMatrixCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="overflow-x-auto">
-          <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
+          <div className="min-w-[440px] overflow-hidden rounded-xl border border-divider-regular sm:min-w-[640px]">
             {/* Header */}
             <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
               <CapsFieldLabel as="span" variant="group" className="flex-1 text-text-secondary">
