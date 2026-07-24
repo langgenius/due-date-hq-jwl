@@ -12,10 +12,20 @@
   navy 6 图卡片模板，playwright 导出 1080×1440 PNG，并生成小红书配文 + LinkedIn 帖 +
   发布 checklist 到 `docs/marketing/xiaohongshu/LATEST-PACK.md`。`--light` 出浅色版。
   卡片自检溢出 = 0。
-- **活页面** GitHub Issue #120「📣 Manual social queue · 小红书 + LinkedIn」——
-  镜像 #119：每次生成/发布追加一条评论，Issue 即运行日志。
 - **卡片模板** `docs/marketing/xiaohongshu/card-template{,-light}.html` +
   导出 `exports/` `exports-light/`（各 6 张）。
+- **每日播报引擎** `scripts/daily-broadcast.mjs`——把 alert 当每日新闻播：跑一次
+  出当天倒计时播报卡(小红书中文 `broadcast/xhs-<date>.png` 1080×1440 +
+  LinkedIn 英文 `broadcast/linkedin-<date>.png` 1080×1080)+ 两条配文。头条=最紧
+  截止日倒计时(每天自动变)，同源 `disaster-notices.json`。
+
+## 更正：不建 GitHub Issue 当"活页面"
+
+初版建了 Issue #120 镜像 X 的 #119，**已关闭**。原因：#119 之所以需要，是因为 X
+**自动**发布，机器生成草稿要人工审核闸门 + 审计留痕；而小红书/LinkedIn 是**纯手动**，
+没有自动流程要拦，Issue 只剩"手动回写日志"这一弱用途，现实中不会维护。真正的机制 =
+**生成器 + 「get ready」交互 + git 历史**(每日 PACK/PNG 一提交即带时间戳)。要台账用
+单个 `POSTED-LOG.md` 比 Issue 轻。#119(X)保留不动。
 
 ## Why
 
