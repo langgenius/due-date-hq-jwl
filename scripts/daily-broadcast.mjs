@@ -4,7 +4,7 @@
  *
  * 每天一条播报，把 alert 当新闻播出去。产物是「已渲染的成品图」：
  *   - 小红书：中文，1080×1440 (3:4)
- *   - LinkedIn：英文配图，1080×1080 (方) + 英文正文
+ *   - LinkedIn：英文配图，1080×1350 (4:5) + 英文正文
  * 头条 = 当前最紧的截止日倒计时(每天自动变)；ticker = 下一批 + 在生效快照。
  * 数据源与 X / social-manual 一致：outreach-kit/disaster-notices.json。
  *
@@ -152,31 +152,35 @@ const wmInner = wmSrc
   .slice(wmSrc.indexOf('>', wmSrc.indexOf('<svg')) + 1, wmSrc.lastIndexOf('</svg>'))
   .replace(/<title>.*?<\/title>/s, '')
   .trim()
-const WM = wmInner.replaceAll('#1F315C', '#f2f4ee').replaceAll('#F2F4ED', '#2e368c')
+const LIGHT = !process.argv.includes('--dark')  // 浅色默认；--dark 出深色
+const T = LIGHT
+  ? { page: '#e6e4dc', bg: '#f4f3ee', ink: '#1e2138', ink2: '#33364a', sub: '#5a5d70', mut: '#8a8d9c', accent: '#2e368c', line: '#e5e1d7', wmInk: '#2e368c', wmBar: '#f4f3ee' }
+  : { page: '#0f1016', bg: '#2e368c', ink: '#ffffff', ink2: '#eef0fb', sub: '#c2c6ee', mut: '#8f95cf', accent: '#14c5f6', line: 'rgba(255,255,255,.14)', wmInk: '#f2f4ee', wmBar: '#2e368c' }
+const WM = wmInner.replaceAll('#1F315C', T.wmInk).replaceAll('#F2F4ED', T.wmBar)
 
 // ---------- shared style ----------
 const base = `
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0f1016;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
+  body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-  .card{background:#2e368c;color:#fff;overflow:hidden;display:flex;flex-direction:column;position:relative}
-  .wm{width:112px;height:15px;display:block;opacity:.85}
-  .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.06em;color:#c2c6ee}
-  .live{display:inline-flex;align-items:center;gap:7px;color:#14c5f6}
-  .dot{width:8px;height:8px;border-radius:999px;background:#14c5f6;display:inline-block}
-  .kick{color:#8f95cf;font-weight:500}
+  .card{background:${T.bg};color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .wm{width:112px;height:15px;display:block;opacity:${LIGHT ? '.8' : '.85'}}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.06em;color:${T.sub}}
+  .live{display:inline-flex;align-items:center;gap:7px;color:${T.accent}}
+  .dot{width:8px;height:8px;border-radius:999px;background:${T.accent};display:inline-block}
+  .kick{color:${T.mut};font-weight:500}
   .cd{display:flex;align-items:baseline;gap:12px;margin-top:20px}
-  .cd b{font-size:128px;font-weight:800;color:#14c5f6;line-height:.9;letter-spacing:-.03em}
+  .cd b{font-size:128px;font-weight:800;color:${T.accent};line-height:.9;letter-spacing:-.03em}
   .cd s{text-decoration:none;font-size:40px;font-weight:700}
-  .cd .lead{font-size:34px;font-weight:600;color:#fff;margin-right:6px}
+  .cd .lead{font-size:34px;font-weight:600;color:${T.ink};margin-right:6px}
   .facts{display:flex;flex-direction:column;gap:12px}
-  .facts .f{font-size:20px;color:#eef0fb;line-height:1.5;position:relative;padding-left:18px}
-  .facts .f::before{content:'';position:absolute;left:0;top:8px;width:3px;height:22px;background:#14c5f6}
-  .facts .f b{color:#fff;font-weight:700}
-  .tick{border-top:1px solid rgba(255,255,255,.14);padding-top:20px;display:flex;flex-direction:column;gap:12px}
-  .tick .t{font-size:17px;color:#c2c6ee;display:flex;gap:10px}
-  .tick .t i{font-style:normal;color:#14c5f6;font-weight:700;min-width:74px}
-  .foot{font-size:14px;color:#8f95cf}
+  .facts .f{font-size:20px;color:${T.ink2};line-height:1.5;position:relative;padding-left:18px}
+  .facts .f::before{content:'';position:absolute;left:0;top:8px;width:3px;height:22px;background:${T.accent}}
+  .facts .f b{color:${T.ink};font-weight:700}
+  .tick{border-top:1px solid ${T.line};padding-top:20px;display:flex;flex-direction:column;gap:12px}
+  .tick .t{font-size:17px;color:${T.sub};display:flex;gap:10px}
+  .tick .t i{font-style:normal;color:${T.accent};font-weight:700;min-width:74px}
+  .foot{font-size:14px;color:${T.mut}}
 `
 
 // 小红书 3:4
@@ -204,17 +208,17 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
 
 // LinkedIn 1:1
 const li = `<!doctype html><meta charset=utf8><style>${base}
-  .li{width:540px;height:540px;padding:40px 42px}
+  .li{width:540px;height:675px;padding:44px 42px}
   .li .headline{margin-top:20px;font-size:33px;font-weight:700;line-height:1.18}
   .li .cd b{font-size:112px}.li .cd s{font-size:30px}
   .li .facts{margin-top:16px}.li .facts .f{font-size:17px}
   .li .tick{margin-top:auto}.li .tick .t{font-size:15px}.li .tick .t i{min-width:66px}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
-<div class="card li" style="width:540px;height:540px">
+<div class="card li" style="width:540px;height:675px">
   <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayEN}, ${D.year}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
-  <div class=headline>${D.leadEN} filing deadline:<br/><span style="color:#14c5f6">${D.daysLeft} days out</span></div>
+  <div class=headline>${D.leadEN} filing deadline:<br/><span style="color:${T.accent}">${D.daysLeft} days out</span></div>
   <div class=facts>
     <div class=f>Due <b>${D.deadlineEN}</b> · ${D.countyN} counties · relief ${D.code}</div>
     <div class=f>Covers individual, corporate, partnership, trust, payroll &amp; estimated returns</div>
@@ -237,8 +241,9 @@ async function shot(htmlStr, sel, file) {
   await p.close()
   return of
 }
-const of1 = await shot(xhs, '.card', `xhs-${iso}.png`)
-const of2 = await shot(li, '.card', `linkedin-${iso}.png`)
+const sfx = LIGHT ? '' : '-dark'
+const of1 = await shot(xhs, '.card', `xhs-${iso}${sfx}.png`)
+const of2 = await shot(li, '.card', `linkedin-${iso}${sfx}.png`)
 await browser.close()
 
 // ---------- captions ----------
