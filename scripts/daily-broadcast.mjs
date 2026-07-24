@@ -137,6 +137,9 @@ const D = {
   active: notices.length,
   stateCount,
   terrCount,
+  todayEN: enMD(iso),
+  todayMonthEN: enMD(iso).split(' ')[0],
+  year: iso.slice(0, 4),
 }
 
 // ---------- wordmark ----------
@@ -206,7 +209,7 @@ const li = `<!doctype html><meta charset=utf8><style>${base}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card li" style="width:540px;height:540px">
-  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.deadlineEN.split(' ')[0]} ${D.iso.slice(0, 4)}</span></div>
+  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayMonthEN} ${D.year}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
   <div class=headline>${D.leadEN} filing deadline:<br/><span style="color:#14c5f6">${D.daysLeft} days out</span></div>
   <div class=facts>
@@ -247,7 +250,7 @@ const xhsCap = `【标题】倒计时${D.daysLeft}天⏰${D.leadCN}报税DDL要�
 收藏，报税季不漏单👇
 #美国报税 #CPA #EA #在美华人 #税务 #报税季`
 
-const liCap = `📅 IRS Deadline Daily — ${D.deadlineEN.split(' ')[0]} ${new Date(iso).getUTCDate()}
+const liCap = `📅 IRS Deadline Daily — ${D.todayEN}
 
 The soonest active IRS disaster-relief deadline is ${D.daysLeft} days out: ${D.countyN} ${D.leadEN} counties have until ${D.deadlineEN} to file federal returns (relief ${D.code}). Next up: ${D.nextEN} on ${D.nextDateEN}.
 
