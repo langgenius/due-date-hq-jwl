@@ -195,9 +195,9 @@ const base = `
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-  .card{background:${T.bg};background-image:repeating-linear-gradient(0deg,${T.lines} 0 1px,transparent 1px 46px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .card{background:${T.bg};background-image:repeating-linear-gradient(90deg,${T.lines} 0 1px,transparent 1px 54px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
   .wm{width:112px;height:15px;display:block;opacity:${LIGHT ? '.8' : '.85'}}
-  .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.06em;color:${T.sub}}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.02em;color:${T.sub}}
   .live{display:inline-flex;align-items:center;gap:7px;color:${T.accent}}
   .dot{width:8px;height:8px;border-radius:999px;background:${T.accent};display:inline-block}
   .kick{color:${T.mut};font-weight:500}
@@ -215,7 +215,7 @@ const base = `
   /* 精致细节：州徽 medallion + 背景水印 + masthead 细线 */
   .card > :not(.seal-bg){position:relative;z-index:1}
   .subj{display:flex;align-items:center;gap:16px}
-  .seal{width:36px;height:36px;border-radius:999px;background:#fff;object-fit:contain;padding:1px;box-shadow:0 1px 3px rgba(30,33,72,.12),0 0 0 1px rgba(30,33,72,.10);flex:0 0 auto}
+  .seal{width:28px;height:28px;border-radius:999px;background:#fff;object-fit:contain;padding:1px;box-shadow:0 1px 3px rgba(30,33,72,.12),0 0 0 1px rgba(30,33,72,.10);flex:0 0 auto}
   .rule{height:1px;background:${T.line};margin-top:20px}
 `
 
@@ -223,7 +223,7 @@ const base = `
 const xhs = `<!doctype html><meta charset=utf8><style>${base}
   .xhs{width:540px;height:720px;padding:46px 44px}
   .xhs .subj{margin-top:22px}
-  .xhs .headline{font-size:23px;font-weight:700;letter-spacing:.03em;line-height:1.2}
+  .xhs .headline{font-size:23px;font-weight:700;letter-spacing:0;line-height:1.2}
   .xhs .cd{margin-top:2px}
   .xhs .facts{margin-top:18px}.xhs .tick{margin-top:auto}
   .xhs .top{display:flex;justify-content:space-between;align-items:center}
@@ -249,7 +249,7 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
 const li = `<!doctype html><meta charset=utf8><style>${base}
   .li{width:540px;height:675px;padding:44px 42px}
   .li .subj{margin-top:24px}
-  .li .headline{font-size:23px;font-weight:700;letter-spacing:.07em;line-height:1.15;color:${T.ink};text-transform:uppercase}
+  .li .headline{font-size:23px;font-weight:700;letter-spacing:.02em;line-height:1.15;color:${T.ink};text-transform:uppercase}
   .li .cd{margin-top:2px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
   .li .facts{margin-top:22px}.li .facts .f{font-size:18px}
   .li .tick{margin-top:auto}.li .tick .t{font-size:15px}.li .tick .t i{min-width:66px}
