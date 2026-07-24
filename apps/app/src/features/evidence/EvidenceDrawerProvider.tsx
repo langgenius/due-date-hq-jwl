@@ -26,6 +26,7 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { orpc } from '@/lib/rpc'
 import { formatCents, formatDateTimeWithTimezone } from '@/lib/utils'
 import { buildAuditChangeView } from '@/features/audit/audit-change-view'
@@ -105,10 +106,19 @@ function EvidenceDrawer({
           <EvidenceTimeline
             evidence={evidenceQuery.data?.evidence ?? []}
             loading={evidenceQuery.isLoading}
+            error={evidenceQuery.isError ? evidenceQuery.error : null}
+            retrying={evidenceQuery.isFetching}
+            onRetry={() => void evidenceQuery.refetch()}
             focusEvidenceId={request?.focusEvidenceId ?? null}
           />
           <Separator />
-          <AuditTimeline events={auditQuery.data?.events ?? []} loading={auditQuery.isLoading} />
+          <AuditTimeline
+            events={auditQuery.data?.events ?? []}
+            loading={auditQuery.isLoading}
+            error={auditQuery.isError ? auditQuery.error : null}
+            retrying={auditQuery.isFetching}
+            onRetry={() => void auditQuery.refetch()}
+          />
         </div>
       </SheetContent>
     </Sheet>
@@ -136,10 +146,16 @@ function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
 function EvidenceTimeline({
   evidence,
   loading,
+  error,
+  retrying,
+  onRetry,
   focusEvidenceId,
 }: {
   evidence: EvidencePublic[]
   loading: boolean
+  error?: unknown
+  retrying?: boolean
+  onRetry?: () => void
   focusEvidenceId: string | null
 }) {
   return (
@@ -152,7 +168,18 @@ function EvidenceTimeline({
         </h3>
         <Badge variant="outline">{evidence.length}</Badge>
       </div>
-      {loading ? (
+      {/* Error FIRST (audit #2): a failed load must not fall through to the
+          empty "No evidence linked yet" — a false all-clear that hides real
+          evidence behind a transient failure. */}
+      {error ? (
+        <QueryErrorState
+          what={<Trans>evidence</Trans>}
+          error={error}
+          onRetry={onRetry}
+          retrying={retrying}
+          frameless
+        />
+      ) : loading ? (
         <div className="grid gap-2">
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -629,7 +656,19 @@ function formatNullableNumber(value: number | null): ReadableValue {
     : { key: String(value), node: String(value) }
 }
 
-function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loading: boolean }) {
+function AuditTimeline({
+  events,
+  loading,
+  error,
+  retrying,
+  onRetry,
+}: {
+  events: AuditEventPublic[]
+  loading: boolean
+  error?: unknown
+  retrying?: boolean
+  onRetry?: () => void
+}) {
   const practiceTimezone = usePracticeTimezone()
   const actionLabels = useAuditActionLabels()
   // v2-aware status labels — audit timeline reads the same vocabulary
@@ -652,7 +691,15 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
         </h3>
         <Badge variant="outline">{events.length}</Badge>
       </div>
-      {loading ? (
+      {error ? (
+        <QueryErrorState
+          what={<Trans>the audit timeline</Trans>}
+          error={error}
+          onRetry={onRetry}
+          retrying={retrying}
+          frameless
+        />
+      ) : loading ? (
         <Skeleton className="h-20 w-full" />
       ) : events.length === 0 ? (
         <EmptyState title={<Trans>No audit events recorded for this deadline.</Trans>} />

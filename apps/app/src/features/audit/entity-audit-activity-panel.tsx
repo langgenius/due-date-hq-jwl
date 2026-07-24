@@ -7,6 +7,7 @@ import type { AuditRange } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
@@ -60,6 +61,20 @@ export function EntityAuditActivityPanel({
         icon={ClipboardCheckIcon}
         title={<Trans>Audit access is role-gated</Trans>}
         description={<Trans>Owners, partners, managers, and preparers can inspect activity.</Trans>}
+      />
+    )
+  }
+  // Error before loading/empty (audit #5): a failed audit fetch must not fall
+  // through to the empty state — a false "no activity yet" that hides real
+  // history behind a transient failure. Shared panel → fixes all 3 consumers.
+  if (auditQuery.isError) {
+    return (
+      <QueryErrorState
+        what={<Trans>activity</Trans>}
+        error={auditQuery.error}
+        onRetry={() => void auditQuery.refetch()}
+        retrying={auditQuery.isFetching}
+        frameless
       />
     )
   }

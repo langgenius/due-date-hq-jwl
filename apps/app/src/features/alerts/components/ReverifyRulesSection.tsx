@@ -110,7 +110,21 @@ export function ReverifyRulesSection({
           </li>
         ))}
       </ul>
-      {rulesQuery.isLoading && rules.length === 0 ? (
+      {rulesQuery.isError && rules.length === 0 ? (
+        // Error state (audit #5): a failed rules fetch left this silent, so the
+        // re-verify list just looked empty. Name the failure + offer Retry.
+        <p className="text-xs text-text-secondary">
+          <Trans>Couldn't load rules.</Trans>{' '}
+          <button
+            type="button"
+            onClick={() => void rulesQuery.refetch()}
+            disabled={rulesQuery.isFetching}
+            className="cursor-pointer font-medium text-text-accent underline-offset-2 hover:underline disabled:opacity-50"
+          >
+            <Trans>Retry</Trans>
+          </button>
+        </p>
+      ) : rulesQuery.isLoading && rules.length === 0 ? (
         <p className="text-xs text-text-secondary">
           <Trans>Loading rules…</Trans>
         </p>

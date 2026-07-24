@@ -83,7 +83,21 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
         </span>
       </header>
 
-      {notes.length > 0 ? (
+      {notesQuery.isError ? (
+        // Error before empty (audit #5): a failed notes fetch must not read as
+        // "No team notes yet" — a false all-clear hiding real colleague notes.
+        <p className="text-base text-text-tertiary">
+          <Trans>Couldn't load team notes.</Trans>{' '}
+          <button
+            type="button"
+            onClick={() => void notesQuery.refetch()}
+            disabled={notesQuery.isFetching}
+            className="cursor-pointer font-medium text-text-accent underline-offset-2 hover:underline disabled:opacity-50"
+          >
+            <Trans>Retry</Trans>
+          </button>
+        </p>
+      ) : notes.length > 0 ? (
         <ol className="flex flex-col gap-3">
           {notes.map((note) => (
             <li key={note.id} className="flex flex-col gap-1">

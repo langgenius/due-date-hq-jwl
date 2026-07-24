@@ -57,7 +57,27 @@ export function BlockerContextCard({
   const labels = useLifecycleV2StatusLabels()
   const blocker = detailQuery.data?.row ?? null
   const auditEvents = detailQuery.data?.auditEvents ?? []
-  if (detailQuery.isLoading || !blocker) {
+  // Error before the loading guard (audit #5): on a failed fetch the old
+  // `isLoading || !blocker` guard left `blocker` null forever, so the card
+  // hung on the loading skeleton with no recourse. Show a compact retry line.
+  if (detailQuery.isError) {
+    return (
+      <div className="rounded-lg border border-divider-subtle bg-background-subtle p-3 text-caption text-text-secondary">
+        <span>
+          <Trans>Couldn't load the blocking deadline.</Trans>
+        </span>{' '}
+        <button
+          type="button"
+          onClick={() => void detailQuery.refetch()}
+          disabled={detailQuery.isFetching}
+          className="cursor-pointer font-medium text-text-accent underline-offset-2 hover:underline disabled:opacity-50"
+        >
+          <Trans>Retry</Trans>
+        </button>
+      </div>
+    )
+  }
+  if (detailQuery.isLoading) {
     return (
       <div
         role="status"
@@ -69,6 +89,7 @@ export function BlockerContextCard({
       </div>
     )
   }
+  if (!blocker) return null
   return (
     <button
       type="button"
