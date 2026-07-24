@@ -152,10 +152,32 @@ const wmInner = wmSrc
   .slice(wmSrc.indexOf('>', wmSrc.indexOf('<svg')) + 1, wmSrc.lastIndexOf('</svg>'))
   .replace(/<title>.*?<\/title>/s, '')
   .trim()
-const LIGHT = !process.argv.includes('--dark')  // 浅色默认；--dark 出深色
+const LIGHT = !process.argv.includes('--dark') // 浅色默认；--dark 出深色
 const T = LIGHT
-  ? { page: '#e6e4dc', bg: '#f4f3ee', ink: '#1e2138', ink2: '#33364a', sub: '#5a5d70', mut: '#8a8d9c', accent: '#2e368c', line: '#e5e1d7', wmInk: '#2e368c', wmBar: '#f4f3ee' }
-  : { page: '#0f1016', bg: '#2e368c', ink: '#ffffff', ink2: '#eef0fb', sub: '#c2c6ee', mut: '#8f95cf', accent: '#14c5f6', line: 'rgba(255,255,255,.14)', wmInk: '#f2f4ee', wmBar: '#2e368c' }
+  ? {
+      page: '#e6e4dc',
+      bg: '#f4f3ee',
+      ink: '#1e2138',
+      ink2: '#33364a',
+      sub: '#5a5d70',
+      mut: '#8a8d9c',
+      accent: '#2e368c',
+      line: '#e5e1d7',
+      wmInk: '#2e368c',
+      wmBar: '#f4f3ee',
+    }
+  : {
+      page: '#0f1016',
+      bg: '#2e368c',
+      ink: '#ffffff',
+      ink2: '#eef0fb',
+      sub: '#c2c6ee',
+      mut: '#8f95cf',
+      accent: '#14c5f6',
+      line: 'rgba(255,255,255,.14)',
+      wmInk: '#f2f4ee',
+      wmBar: '#2e368c',
+    }
 const WM = wmInner.replaceAll('#1F315C', T.wmInk).replaceAll('#F2F4ED', T.wmBar)
 
 // ---------- shared style ----------
@@ -178,7 +200,7 @@ const base = `
   .facts .f b{color:${T.ink};font-weight:700}
   .tick{border-top:1px solid ${T.line};padding-top:20px;display:flex;flex-direction:column;gap:12px}
   .tick .t{font-size:17px;color:${T.sub};display:flex;gap:10px}
-  .tick .t i{font-style:normal;color:${T.mut};font-weight:600;min-width:74px}
+  .tick .t i{font-style:normal;color:${T.ink2};font-weight:600;min-width:74px}
   .foot{font-size:14px;color:${T.mut}}
 `
 
@@ -280,10 +302,27 @@ console.log(
 console.log(`✓ 配文：broadcast/PACK-${iso}.md`)
 
 // ---------- 自检：源数据 vs 卡片(每次自动核对，确保信息正确) ----------
-const covMap = { 个人: '1040', 公司: '1120', 合伙: '1065', 信托: '1041', 工资税: '941', 预估税: 'Estimate' }
+const covMap = {
+  个人: '1040',
+  公司: '1120',
+  合伙: '1065',
+  信托: '1041',
+  工资税: '941',
+  预估税: 'Estimate',
+}
 const formsStr = (lead.forms || []).join(' ')
-const unbacked = Object.entries(covMap).filter(([, f]) => !formsStr.includes(f)).map(([k]) => k)
+const unbacked = Object.entries(covMap)
+  .filter(([, f]) => !formsStr.includes(f))
+  .map(([k]) => k)
 console.log('— 自检（对 disaster-notices.json）—')
-console.log(`  头条: ${D.leadEN} · 截止 ${lead.deadline} · 倒计时 ${daysLeft}天 · ${countyN}县 · ${lead.code}`)
-console.log(`  下一批: ${nextStatesEN || '(无)'} ${nextDate || ''} · 生效 ${notices.length}份 / ${stateCount}州+${terrCount}地区`)
-console.log(unbacked.length ? `  ⚠ 覆盖列表有源数据未包含的类型: ${unbacked.join(',')}` : '  ✓ 覆盖列表逐项均有源数据支撑（列表非穷举，卡片已标「等」）')
+console.log(
+  `  头条: ${D.leadEN} · 截止 ${lead.deadline} · 倒计时 ${daysLeft}天 · ${countyN}县 · ${lead.code}`,
+)
+console.log(
+  `  下一批: ${nextStatesEN || '(无)'} ${nextDate || ''} · 生效 ${notices.length}份 / ${stateCount}州+${terrCount}地区`,
+)
+console.log(
+  unbacked.length
+    ? `  ⚠ 覆盖列表有源数据未包含的类型: ${unbacked.join(',')}`
+    : '  ✓ 覆盖列表逐项均有源数据支撑（列表非穷举，卡片已标「等」）',
+)
