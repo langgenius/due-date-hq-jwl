@@ -209,8 +209,8 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
 // LinkedIn 1:1
 const li = `<!doctype html><meta charset=utf8><style>${base}
   .li{width:540px;height:675px;padding:44px 42px}
-  .li .headline{margin-top:26px;font-size:25px;font-weight:600;line-height:1.2;color:${T.sub}}
-  .li .cd{margin-top:6px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
+  .li .headline{margin-top:30px;font-size:23px;font-weight:700;letter-spacing:.07em;line-height:1.15;color:${T.ink};text-transform:uppercase}
+  .li .cd{margin-top:2px}.li .cd b{font-size:150px}.li .cd s{font-size:34px;font-weight:700}
   .li .facts{margin-top:30px}.li .facts .f{font-size:18px}
   .li .tick{margin-top:auto}.li .tick .t{font-size:15px}.li .tick .t i{min-width:66px}
   .li .top{display:flex;justify-content:space-between;align-items:center}
@@ -218,7 +218,7 @@ const li = `<!doctype html><meta charset=utf8><style>${base}
 <div class="card li" style="width:540px;height:675px">
   <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayEN}, ${D.year}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
-  <div class=headline>${D.leadEN} filing deadline</div>
+  <div class=headline>${D.leadEN}</div>
   <div class="cd num"><b>${D.daysLeft}</b><s>days left</s></div>
   <div class=facts>
     <div class=f>Due <b>${D.deadlineEN}</b> · ${D.countyN} counties · relief ${D.code}</div>
