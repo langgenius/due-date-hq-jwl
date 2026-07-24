@@ -21,9 +21,11 @@ const t = zh
       headItal: '规则变动。',
       headAfter: '点名每一个受影响的客户。',
       headCoverage: 'IRS · 50 个州 · DC · FEMA',
-      subLead: '',
-      subEm: 'IRS、各州或 FEMA 一发布变动，',
-      subRest: 'DueDateHQ 立刻告诉你哪些客户受影响 —— 并一键应用新日期。',
+      subOpen: 'IRS、各州或 FEMA 一发布变动，DueDateHQ 立刻告诉你',
+      subVal1: '哪些客户受影响',
+      subMid: ' —— 并',
+      subVal2: '一键应用新日期',
+      subEnd: '。',
       subStrong: '自己来：粘贴客户名单，约 10 分钟出第一条带来源的截止日。',
       points: [
         { strong: '规则变动侦测', rest: '—— 主动，发布那一刻就抓到' },
@@ -84,10 +86,11 @@ const t = zh
       headItal: 'rule change.',
       headAfter: 'Naming every affected client.',
       headCoverage: 'IRS · 50 states · DC · FEMA',
-      subLead: '',
-      subEm: 'The moment the IRS, a state, or FEMA publishes a change,',
-      subRest:
-        'DueDateHQ tells you exactly which clients are hit — and applies the new dates in one click.',
+      subOpen: 'The moment the IRS, a state, or FEMA publishes a change, DueDateHQ tells you ',
+      subVal1: 'exactly which clients are hit',
+      subMid: ' — and applies the new dates in ',
+      subVal2: 'one click',
+      subEnd: '.',
       subStrong:
         'Do it yourself: paste your client list, first sourced deadline in ~10 minutes.',
       points: [
@@ -155,7 +158,7 @@ const alerts = t.alerts
         <span class="hero__head-cov">{t.headCoverage}</span>
       </h1>
       <p class="hero__sub">
-        {t.subLead} <em>{t.subEm}</em> {t.subRest}
+        {t.subOpen}<strong>{t.subVal1}</strong>{t.subMid}<strong>{t.subVal2}</strong>{t.subEnd}
       </p>
 
       <div class="hero__cta">
@@ -340,18 +343,25 @@ const alerts = t.alerts
     /* Italic display cut reads tighter — pull a hair of optical spacing back. */
     letter-spacing: 0.002em;
   }
-  /* coverage spec under the positioning line — set in mono + accent so it reads as
-     a precise jurisdiction stamp (echoing the panel's mono jurisdiction chips),
-     distinct from the serif statement above it. */
+  /* coverage spec under the positioning line — a QUIET mono credential stamp
+     (2026-07-22 hierarchy pass): was 21px full-accent, reading as a second
+     headline that broke the flow from the serif statement to the sub. Now
+     smaller, uppercase, letter-spaced, and in secondary ink — a precise
+     coverage byline that supports the headline instead of competing with it.
+     The accent budget concentrates on the actions (CTA + links) below. */
   .hero__head-cov {
     display: block;
-    margin-top: clamp(10px, 1vw, 16px);
+    margin-top: clamp(14px, 1.3vw, 20px);
     font-family: var(--m-font-mono);
-    font-size: clamp(14px, 1.45vw, 21px);
+    font-size: clamp(12.5px, 1vw, 14px);
     font-weight: 500;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     line-height: 1.2;
-    color: var(--m-accent);
+    /* A muted brand tint (accent blended toward the supporting gray) — enough
+       brand life to read as a credential the product owns, not a dead spec
+       line, but nowhere near the full-accent "second headline" it was. */
+    color: color-mix(in srgb, var(--m-accent) 52%, var(--m-muted));
   }
   /* zh: mono stack carries no CJK glyphs, so inherit the head's CJK serif and keep
      the accent emphasis (mirrors the .ital colour-not-italic guard). */
@@ -378,12 +388,15 @@ const alerts = t.alerts
     line-height: 1.6;
     color: var(--m-ink-2);
   }
+  /* 2026-07-22 hierarchy pass: the sub's lead clause was a full 8-word italic
+     run, a second italic voice competing with the headline's ONE italic
+     moment ("rule change"). Emphasis is now colour only — the setup clause
+     sits in primary ink, the payoff in secondary — so italic stays reserved
+     for the display headline and the sub reads as one calm roman voice. */
   .hero__sub em {
-    font-style: italic;
+    font-style: normal;
     color: var(--m-ink);
   }
-  /* zh: CJK has no italic — the synthesized oblique reads broken, so keep the
-     emphasis as colour/weight only (mirrors the .ital faux-italic guard). */
   html[lang='zh-CN'] .hero__sub em {
     font-style: normal;
     font-weight: 500;
