@@ -174,12 +174,11 @@ const base = `
   .cd s{text-decoration:none;font-size:40px;font-weight:700}
   .cd .lead{font-size:34px;font-weight:600;color:${T.ink};margin-right:6px}
   .facts{display:flex;flex-direction:column;gap:12px}
-  .facts .f{font-size:20px;color:${T.ink2};line-height:1.5;position:relative;padding-left:18px}
-  .facts .f::before{content:'';position:absolute;left:0;top:8px;width:3px;height:22px;background:${T.accent}}
+  .facts .f{font-size:20px;color:${T.ink2};line-height:1.5}
   .facts .f b{color:${T.ink};font-weight:700}
   .tick{border-top:1px solid ${T.line};padding-top:20px;display:flex;flex-direction:column;gap:12px}
   .tick .t{font-size:17px;color:${T.sub};display:flex;gap:10px}
-  .tick .t i{font-style:normal;color:${T.accent};font-weight:700;min-width:74px}
+  .tick .t i{font-style:normal;color:${T.mut};font-weight:600;min-width:74px}
   .foot{font-size:14px;color:${T.mut}}
 `
 
