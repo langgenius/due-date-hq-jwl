@@ -163,6 +163,7 @@ const T = LIGHT
       mut: '#8a8d9c',
       accent: '#2e368c',
       line: '#e5e1d7',
+      lines: 'rgba(30,33,72,.045)',
       wmInk: '#2e368c',
       wmBar: '#f4f3ee',
     }
@@ -175,6 +176,7 @@ const T = LIGHT
       mut: '#8f95cf',
       accent: '#14c5f6',
       line: 'rgba(255,255,255,.14)',
+      lines: 'rgba(255,255,255,.05)',
       wmInk: '#f2f4ee',
       wmBar: '#2e368c',
     }
@@ -186,14 +188,14 @@ const SEAL = fs.existsSync(sealPath)
   ? `data:image/png;base64,${fs.readFileSync(sealPath).toString('base64')}`
   : ''
 const sealBadge = SEAL ? `<img class=seal src="${SEAL}" alt="">` : ''
-const sealBg = SEAL ? `<img class=seal-bg src="${SEAL}" alt="">` : ''
+const sealBg = '' // 背景改为卡片上的账本横线（见 .card background-image）
 
 // ---------- shared style ----------
 const base = `
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-  .card{background:${T.bg};color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .card{background:${T.bg};background-image:repeating-linear-gradient(0deg,${T.lines} 0 1px,transparent 1px 46px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
   .wm{width:112px;height:15px;display:block;opacity:${LIGHT ? '.8' : '.85'}}
   .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.06em;color:${T.sub}}
   .live{display:inline-flex;align-items:center;gap:7px;color:${T.accent}}
@@ -212,9 +214,8 @@ const base = `
   .foot{font-size:14px;color:${T.mut}}
   /* 精致细节：州徽 medallion + 背景水印 + masthead 细线 */
   .card > :not(.seal-bg){position:relative;z-index:1}
-  .seal-bg{position:absolute;right:-58px;bottom:-52px;width:340px;height:340px;object-fit:contain;opacity:.06;z-index:0;pointer-events:none}
   .subj{display:flex;align-items:center;gap:16px}
-  .seal{width:48px;height:48px;border-radius:999px;background:#fff;object-fit:contain;padding:2px;box-shadow:0 1px 3px rgba(30,33,72,.12),0 0 0 1px rgba(30,33,72,.10);flex:0 0 auto}
+  .seal{width:36px;height:36px;border-radius:999px;background:#fff;object-fit:contain;padding:1px;box-shadow:0 1px 3px rgba(30,33,72,.12),0 0 0 1px rgba(30,33,72,.10);flex:0 0 auto}
   .rule{height:1px;background:${T.line};margin-top:20px}
 `
 
