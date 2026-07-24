@@ -77,6 +77,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { InfoBanner } from '@/components/patterns/info-banner'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -986,6 +987,9 @@ export function ClientDetailWorkspace({
               client={client}
               obligations={obligations}
               isLoading={obligationsQuery.isLoading}
+              isError={obligationsQuery.isError}
+              onRetry={() => void obligationsQuery.refetch()}
+              retrying={obligationsQuery.isFetching}
             />
 
             {/* Body split: the filing-plan tabs on the left, the per-client
@@ -1373,6 +1377,9 @@ export function ClientDetailWorkspace({
                         events={auditQuery.data?.events ?? []}
                         canReadAudit={canReadAudit}
                         isLoading={auditQuery.isLoading}
+                        isError={auditQuery.isError}
+                        onRetry={() => void auditQuery.refetch()}
+                        retrying={auditQuery.isFetching}
                         firmTimezone={firmTimezone}
                       />
                     </HistoryCard>
@@ -2055,11 +2062,17 @@ function ClientActivityPanel({
   events,
   canReadAudit,
   isLoading,
+  isError,
+  onRetry,
+  retrying,
   firmTimezone,
 }: {
   events: readonly AuditEventPublic[]
   canReadAudit: boolean
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
+  retrying?: boolean
   firmTimezone: string
 }) {
   const actionLabels = useAuditActionLabels()
@@ -2084,6 +2097,18 @@ function ClientActivityPanel({
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
       </div>
+    )
+  }
+  if (isError) {
+    // A failed audit fetch must not read as an empty "No changes yet" trail (audit P3).
+    return (
+      <QueryErrorState
+        what={<Trans>this client's activity</Trans>}
+        onRetry={onRetry}
+        retrying={retrying}
+        size="inline"
+        frameless
+      />
     )
   }
   if (events.length === 0) {

@@ -369,7 +369,7 @@ function NeedsAttentionCard({
             invisible at rest and fades in on card hover. opacity-0 reserves
             the layout width so the row doesn't shift; the tier color resolves
             on hover via confidenceHoverToneClass. */}
-        <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100">
           <span aria-hidden className="text-text-muted">
             ·
           </span>

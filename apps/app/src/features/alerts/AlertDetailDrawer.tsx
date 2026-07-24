@@ -1015,6 +1015,12 @@ export function AlertDetailDrawer({
   })
   const reverifyIncomplete = useMemo(() => {
     if (!reverifyRuleIds || reverifyRuleIds.length === 0) return false
+    // The gate proves each implicated rule was re-verified. If that proof
+    // hasn't SUCCEEDED — still loading, or the load errored — treat the gate
+    // as unsatisfied so a failed/pending check can't default open and let the
+    // alert be marked reviewed while the rule is still stale (audit P1). The
+    // shared ReverifyRulesSection surfaces the error + retry.
+    if (reverifyRulesQuery.isError || reverifyRulesQuery.isPending) return true
     const rules = reverifyRulesQuery.data ?? []
     return reverifyRuleIds.some((ruleId) =>
       rules.some(
@@ -1022,7 +1028,12 @@ export function AlertDetailDrawer({
           rule.id === ruleId && (rule.status === 'candidate' || rule.status === 'pending_review'),
       ),
     )
-  }, [reverifyRuleIds, reverifyRulesQuery.data])
+  }, [
+    reverifyRuleIds,
+    reverifyRulesQuery.data,
+    reverifyRulesQuery.isError,
+    reverifyRulesQuery.isPending,
+  ])
 
   const [selection, setSelection] = useState<Set<string>>(() => new Set())
   const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(() => new Set())
@@ -2646,6 +2657,8 @@ export function AlertDetailDrawer({
                               className={cn(
                                 'absolute top-2 right-2 opacity-0 transition-opacity',
                                 'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
+                                // Touch has no hover/focus — always show (audit P2).
+                                'pointer-coarse:opacity-100',
                               )}
                             >
                               <CopyIcon aria-hidden />
@@ -3688,6 +3701,9 @@ function NoAffectedClientsPrompt({ onImport }: { onImport?: (() => void) | undef
           <Trans>Import clients</Trans>
         </Button>
       ) : (
+        // Fallback (only if the migration provider isn't in scope): this lands on
+        // the clients LIST, not the importer, so the label matches the
+        // destination rather than promising an import flow it can't open (audit P3).
         <Button
           nativeButton={false}
           size="sm"
@@ -3695,7 +3711,7 @@ function NoAffectedClientsPrompt({ onImport }: { onImport?: (() => void) | undef
           className="shrink-0"
           render={<Link to="/clients" />}
         >
-          <Trans>Import clients</Trans>
+          <Trans>View clients</Trans>
         </Button>
       )}
     </div>

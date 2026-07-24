@@ -652,7 +652,9 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-divider-regular">
-      <div className="grid grid-cols-7 gap-0 border-b border-divider-regular bg-background-subtle">
+      {/* Ladder the 7-up metric strip down on narrow widths so labels stop
+          amputating ("SOURCE DEAD…") at phone size (audit P3). */}
+      <div className="grid grid-cols-2 border-b border-divider-regular bg-background-subtle sm:grid-cols-4 lg:grid-cols-7">
         <RolloverMetric
           // "Source deadlines" truncated to "SOURCE DEAD…" in the 7-up
           // metric grid — an unfortunate word to amputate in a deadlines

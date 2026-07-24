@@ -449,6 +449,7 @@ function SuggestionCombobox<TOption extends SuggestionOption>({
             id={id}
             type="button"
             role="combobox"
+            aria-haspopup="listbox"
             aria-expanded={open}
             aria-invalid={invalid || undefined}
             className={cn(
@@ -610,6 +611,7 @@ function SuggestionMultiSelect<TOption extends SuggestionOption>({
             id={id}
             type="button"
             role="combobox"
+            aria-haspopup="listbox"
             aria-expanded={open}
             aria-invalid={invalid || undefined}
             className={cn(

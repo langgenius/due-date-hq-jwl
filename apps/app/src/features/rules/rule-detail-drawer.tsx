@@ -1078,7 +1078,17 @@ function RulePracticeReviewCard({
           button label). They previously mixed text-base + text-caption, so a
           single row read at two scales. */}
       <div className="flex items-center gap-3">
-        {notes.length > 0 ? (
+        {notesQuery.isError ? (
+          // Don't let a failed notes load read as "No team notes yet" — that
+          // hides existing review-decision notes a CPA relies on (audit P2).
+          <TextLink
+            variant="accent"
+            onClick={() => void notesQuery.refetch()}
+            className="text-xs text-text-destructive"
+          >
+            <Trans>Couldn't load team notes — retry</Trans>
+          </TextLink>
+        ) : notes.length > 0 ? (
           <TextLink
             variant="accent"
             onClick={() => setShowNotes((value) => !value)}

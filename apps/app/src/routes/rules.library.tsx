@@ -1186,7 +1186,7 @@ function OverviewRecentChangesCard({
                 ) : null}
                 <ChevronRightIcon
                   aria-hidden
-                  className="size-3.5 shrink-0 text-text-muted transition-[transform,color] group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
+                  className="size-3.5 shrink-0 text-text-muted transition-[transform,color] group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary motion-reduce:transition-none"
                 />
               </button>
             </li>
@@ -2977,7 +2977,10 @@ export function RulesLibraryRoute() {
                 )}
 
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                  <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                  {/* overflow-auto (both axes): the fixed-width jurisdiction rule
+                      table can exceed the pane on narrow widths — scroll it here
+                      instead of clipping Status + ⋯ off-screen (audit P2). */}
+                  <div className="flex min-h-0 flex-1 flex-col overflow-auto">
                     {rulesQuery.isLoading || coverageQuery.isLoading ? (
                       <LoadingState />
                     ) : selectedGroup ? (

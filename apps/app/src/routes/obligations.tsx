@@ -7963,6 +7963,17 @@ function CalendarSyncPopover() {
                 <Skeleton className="h-3 w-32 rounded-full" />
                 <Skeleton className="h-9 w-full" />
               </div>
+            ) : subscriptionsQuery.isError ? (
+              // Don't offer "Enable subscription" on a failed load — the user may
+              // already have one, and enabling again risks a duplicate (audit P3).
+              <QueryErrorState
+                what={<Trans>your calendar subscription</Trans>}
+                error={subscriptionsQuery.error}
+                onRetry={() => void subscriptionsQuery.refetch()}
+                retrying={subscriptionsQuery.isFetching}
+                size="inline"
+                frameless
+              />
             ) : feedUrl ? (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">

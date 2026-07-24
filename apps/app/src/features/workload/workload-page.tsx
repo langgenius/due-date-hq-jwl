@@ -74,6 +74,30 @@ export function WorkloadPage() {
     )
   }
 
+  // A firm-list load FAILURE leaves currentFirm null → paid=false. Surface the
+  // error (with retry) instead of falsely telling a paying user to upgrade
+  // (audit P2). Only fall through to the upgrade panel once the firm is known.
+  if (firmsQuery.isError) {
+    return (
+      <section className="mx-auto grid w-full max-w-page-wide gap-6 px-4 pt-8 pb-12 md:px-6">
+        <Alert variant="destructive">
+          <AlertTitle>
+            <Trans>Couldn't load your workspace</Trans>
+          </AlertTitle>
+          <AlertDescription className="flex flex-col items-start gap-3">
+            <span>
+              {rpcErrorMessage(firmsQuery.error) ??
+                t`Try again in a moment. If it keeps failing, contact support.`}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => void firmsQuery.refetch()}>
+              <Trans>Retry</Trans>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </section>
+    )
+  }
+
   if (!paid) {
     return <WorkloadUpgradePanel />
   }
@@ -144,93 +168,106 @@ export function WorkloadPage() {
         </Alert>
       ) : null}
 
-      {/* 2026-06-16 (audit): converged off bespoke bordered MetricCard tiles
+      {/* The summary strip + owner-workload table stay hidden while the load has
+          errored — otherwise they render confident zeros and a "No deadlines"
+          empty state directly beneath the error (audit P3). The Alert above is
+          the whole story until the retry succeeds. */}
+      {workloadQuery.isError ? null : (
+        <>
+          {/* 2026-06-16 (audit): converged off bespoke bordered MetricCard tiles
           onto the shared borderless StatBand so the team-workload summary reads
           the same as /clients, /rules, /sources, /audit. Values stay neutral;
           chromatic intent (only when non-zero — red economy) moves to the sub
           caption, matching the /clients "AT RISK · need attention" grammar. */}
-      <StatSummaryStrip
-        ariaLabel={t`Team workload summary`}
-        loading={workloadQuery.isLoading}
-        stats={[
-          { key: 'open', label: t`Open`, value: data?.summary.open ?? 0 },
-          { key: 'due-soon', label: t`Due soon`, value: data?.summary.dueSoon ?? 0 },
-          {
-            key: 'overdue',
-            label: t`Overdue`,
-            value: data?.summary.overdue ?? 0,
-            // Tone moves from the (dropped) sub onto the value for the strip.
-            ...(data?.summary.overdue ? { valueClass: 'text-text-destructive' } : {}),
-          },
-          { key: 'waiting', label: t`Waiting`, value: data?.summary.waiting ?? 0 },
-          { key: 'review', label: t`Review`, value: data?.summary.review ?? 0 },
-          {
-            key: 'unassigned',
-            label: t`Unassigned`,
-            value: data?.summary.unassigned ?? 0,
-            ...(data?.summary.unassigned ? { valueClass: 'text-text-warning' } : {}),
-          },
-        ]}
-      />
+          <StatSummaryStrip
+            ariaLabel={t`Team workload summary`}
+            loading={workloadQuery.isLoading}
+            stats={[
+              { key: 'open', label: t`Open`, value: data?.summary.open ?? 0 },
+              { key: 'due-soon', label: t`Due soon`, value: data?.summary.dueSoon ?? 0 },
+              {
+                key: 'overdue',
+                label: t`Overdue`,
+                value: data?.summary.overdue ?? 0,
+                // Tone moves from the (dropped) sub onto the value for the strip.
+                ...(data?.summary.overdue ? { valueClass: 'text-text-destructive' } : {}),
+              },
+              { key: 'waiting', label: t`Waiting`, value: data?.summary.waiting ?? 0 },
+              { key: 'review', label: t`Review`, value: data?.summary.review ?? 0 },
+              {
+                key: 'unassigned',
+                label: t`Unassigned`,
+                value: data?.summary.unassigned ?? 0,
+                ...(data?.summary.unassigned ? { valueClass: 'text-text-warning' } : {}),
+              },
+            ]}
+          />
 
-      {data?.managerInsights ? (
-        <ManagerInsights insights={data.managerInsights} rows={data.rows} />
-      ) : null}
+          {data?.managerInsights ? (
+            <ManagerInsights insights={data.managerInsights} rows={data.rows} />
+          ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Trans>Owner workload</Trans>
-          </CardTitle>
-          <CardDescription>
-            <Trans>
-              Aggregated from open deadlines and client owner labels. Open any row in Deadlines to
-              triage the underlying deadlines.
-            </Trans>
-          </CardDescription>
-          <CardAction>
-            <Button
-              nativeButton={false}
-              variant="outline"
-              size="sm"
-              render={<Link to="/deadlines" />}
-            >
-              <Trans>Open deadlines</Trans>
-              <ArrowRightIcon data-icon="inline-end" />
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          {/* Skeleton rows for parity with the rest of the app's list-loading
-              rhythm. */}
-          {workloadQuery.isLoading ? (
-            <div
-              className="grid gap-2"
-              role="status"
-              aria-live="polite"
-              aria-label={t`Loading workload metrics`}
-            >
-              {['r1', 'r2', 'r3', 'r4', 'r5', 'r6'].map((key) => (
-                <Skeleton key={key} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : data && data.rows.length > 0 ? (
-            <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
-          ) : (
-            // Empty state gets icon + description so it reads as a polished
-            // surface, not a bare title.
-            <EmptyState
-              icon={ClipboardListIcon}
-              title={<Trans>No deadlines due in the selected window.</Trans>}
-              description={
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Trans>Owner workload</Trans>
+              </CardTitle>
+              <CardDescription>
                 <Trans>
-                  Workload updates as deadlines approach. Add clients, or widen the window above.
+                  Aggregated from open deadlines and client owner labels. Open any row in Deadlines
+                  to triage the underlying deadlines.
                 </Trans>
-              }
-            />
-          )}
-        </CardContent>
-      </Card>
+              </CardDescription>
+              <CardAction>
+                <Button
+                  nativeButton={false}
+                  variant="outline"
+                  size="sm"
+                  render={<Link to="/deadlines" />}
+                >
+                  <Trans>Open deadlines</Trans>
+                  <ArrowRightIcon data-icon="inline-end" />
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              {/* Skeleton rows for parity with the rest of the app's list-loading
+              rhythm. */}
+              {workloadQuery.isLoading ? (
+                <div
+                  className="grid gap-2"
+                  role="status"
+                  aria-live="polite"
+                  aria-label={t`Loading workload metrics`}
+                >
+                  {['r1', 'r2', 'r3', 'r4', 'r5', 'r6'].map((key) => (
+                    <Skeleton key={key} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : data && data.rows.length > 0 ? (
+                <WorkloadTable
+                  rows={data.rows}
+                  asOfDate={data.asOfDate}
+                  windowDays={data.windowDays}
+                />
+              ) : (
+                // Empty state gets icon + description so it reads as a polished
+                // surface, not a bare title.
+                <EmptyState
+                  icon={ClipboardListIcon}
+                  title={<Trans>No deadlines due in the selected window.</Trans>}
+                  description={
+                    <Trans>
+                      Workload updates as deadlines approach. Add clients, or widen the window
+                      above.
+                    </Trans>
+                  }
+                />
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </section>
   )
 }
@@ -405,114 +442,118 @@ function WorkloadTable({
   const topAssignedId = rows.find((r) => r.kind === 'assignee')?.id ?? null
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>
-            <Trans>Owner</Trans>
-          </TableHead>
-          <TableHead className="text-right">
-            <Trans>Open</Trans>
-          </TableHead>
-          <TableHead className="text-right">
-            <Trans>Due soon</Trans>
-          </TableHead>
-          <TableHead className="text-right">
-            <Trans>Overdue</Trans>
-          </TableHead>
-          <TableHead className="text-right">
-            <Trans>Waiting</Trans>
-          </TableHead>
-          <TableHead className="text-right">
-            <Trans>Review</Trans>
-          </TableHead>
-          <TableHead className="w-[180px]">
-            {/* Share-of-MAX normalization (busiest owner = 100%), NOT
+    // Wide 8-column table — scroll it inside its own frame so the /workload page
+    // body never scrolls horizontally on a phone (audit P2).
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <Trans>Owner</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Open</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Due soon</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Overdue</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Waiting</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Review</Trans>
+            </TableHead>
+            <TableHead className="w-[180px]">
+              {/* Share-of-MAX normalization (busiest owner = 100%), NOT
                 share-of-total and NOT capacity. "Share of open work" was
                 wrong twice over — it implied the bars sum to 100% (they sum
                 to ~167% across owners) and that 100% = maxed out. "Relative
                 load" is the honest name for a busiest-anchored bar. */}
-            <Trans>Relative load</Trans>
-          </TableHead>
-          <TableHead className="w-[128px] text-right">
-            <Trans>Action</Trans>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody className="[&_td]:py-3">
-        {rows.map((row) => {
-          const isTop = row.id === topAssignedId && row.loadScore === 100
-          const isUnassigned = row.kind === 'unassigned'
-          return (
-            <TableRow
-              key={row.id}
-              className={cn(
-                // Top assigned row: quiet background wash so the busiest
-                // owner stands out as the load-spine anchor. No border or
-                // shadow — bg contrast does the lift.
-                isTop && 'bg-background-subtle',
-                // Unassigned row: muted tone signals it's a risk bucket,
-                // not a person's row. The "Risk" label + outline badge
-                // already distinguish it; the tone helps at a glance.
-                isUnassigned && 'opacity-75',
-              )}
-            >
-              <TableCell>
-                <div className="flex min-w-0 items-center gap-2">
-                  {/* AssigneeAvatar replaces the generic UserRoundIcon —
+              <Trans>Relative load</Trans>
+            </TableHead>
+            <TableHead className="w-[128px] text-right">
+              <Trans>Action</Trans>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="[&_td]:py-3">
+          {rows.map((row) => {
+            const isTop = row.id === topAssignedId && row.loadScore === 100
+            const isUnassigned = row.kind === 'unassigned'
+            return (
+              <TableRow
+                key={row.id}
+                className={cn(
+                  // Top assigned row: quiet background wash so the busiest
+                  // owner stands out as the load-spine anchor. No border or
+                  // shadow — bg contrast does the lift.
+                  isTop && 'bg-background-subtle',
+                  // Unassigned row: muted tone signals it's a risk bucket,
+                  // not a person's row. The "Risk" label + outline badge
+                  // already distinguish it; the tone helps at a glance.
+                  isUnassigned && 'opacity-75',
+                )}
+              >
+                <TableCell>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {/* AssigneeAvatar replaces the generic UserRoundIcon —
                       it picks a deterministic per-name tint for human rows
                       and renders the canonical unassigned glyph for the
                       risk bucket. */}
-                  <AssigneeAvatar
-                    name={isUnassigned ? null : (row.assigneeName ?? row.ownerLabel)}
-                    title={row.ownerLabel}
+                    <AssigneeAvatar
+                      name={isUnassigned ? null : (row.assigneeName ?? row.ownerLabel)}
+                      title={row.ownerLabel}
+                      size="sm"
+                    />
+                    <span className="truncate font-medium text-text-primary">{row.ownerLabel}</span>
+                    {isUnassigned ? (
+                      <Badge variant="outline">
+                        <Trans>Unassigned</Trans>
+                      </Badge>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <NumericCell value={row.open} href={workloadRowHref(row)} />
+                <NumericCell
+                  value={row.dueSoon}
+                  href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
+                />
+                <NumericCell
+                  value={row.overdue}
+                  href={workloadRowOverdueHref(row, asOfDate)}
+                  danger
+                />
+                <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
+                <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
+                <TableCell>
+                  {/* Progress primitive (shared with members SeatStat / rules coverage). */}
+                  <div className="flex items-center gap-2">
+                    <Progress value={row.loadScore} className="flex-1" />
+                    <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
+                      {isUnassigned ? t`Risk` : `${row.loadScore}%`}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    nativeButton={false}
+                    variant="outline"
                     size="sm"
-                  />
-                  <span className="truncate font-medium text-text-primary">{row.ownerLabel}</span>
-                  {isUnassigned ? (
-                    <Badge variant="outline">
-                      <Trans>Unassigned</Trans>
-                    </Badge>
-                  ) : null}
-                </div>
-              </TableCell>
-              <NumericCell value={row.open} href={workloadRowHref(row)} />
-              <NumericCell
-                value={row.dueSoon}
-                href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
-              />
-              <NumericCell
-                value={row.overdue}
-                href={workloadRowOverdueHref(row, asOfDate)}
-                danger
-              />
-              <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
-              <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
-              <TableCell>
-                {/* Progress primitive (shared with members SeatStat / rules coverage). */}
-                <div className="flex items-center gap-2">
-                  <Progress value={row.loadScore} className="flex-1" />
-                  <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
-                    {isUnassigned ? t`Risk` : `${row.loadScore}%`}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  nativeButton={false}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  render={<Link to={workloadRowHref(row)} />}
-                >
-                  <Trans>Open</Trans>
-                </Button>
-              </TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+                    className="text-xs"
+                    render={<Link to={workloadRowHref(row)} />}
+                  >
+                    <Trans>Open</Trans>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
 

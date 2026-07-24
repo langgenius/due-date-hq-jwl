@@ -939,7 +939,7 @@ function LiveGenesisOverlay({
   // across the app.)
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
-      <div className="grid gap-3 text-center">
+      <div className="grid gap-3 text-center" role="status" aria-live="polite" aria-busy="true">
         <div className="text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
           {genesis.clientCount}
         </div>

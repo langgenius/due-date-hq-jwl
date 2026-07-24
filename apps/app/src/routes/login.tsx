@@ -432,11 +432,11 @@ function ProductStory() {
           {/* Sidebar */}
           <aside className="flex w-[212px] shrink-0 flex-col gap-3 border-r border-divider-subtle bg-bg-subtle/50 p-3">
             <div className="flex items-center gap-2 px-1.5 pt-1">
-              <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-caption-xs font-bold text-text-primary-on-surface">
+              <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-caption-xs font-semibold text-text-primary-on-surface">
                 D
               </span>
               <span className="truncate text-sm font-medium text-text-primary">Whitmore CPA</span>
-              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-caption-xs font-bold tracking-wide text-text-accent">
+              <span className="rounded bg-state-accent-hover px-1.5 py-0.5 text-caption-xs font-medium tracking-wide text-text-accent">
                 PRO
               </span>
             </div>

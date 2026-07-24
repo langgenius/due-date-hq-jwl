@@ -115,7 +115,13 @@ export function AlertsRoute() {
             track(ANALYTICS_EVENTS.sourcesHealthChipClicked, {
               // Non-PII rollup of the monitoring chip's status (the live
               // green/amber signal), not a raw source list.
-              health: !sourceHealthLoaded ? 'checking' : allSourcesHealthy ? 'healthy' : 'degraded',
+              health: sourceHealthQuery.isError
+                ? 'error'
+                : !sourceHealthLoaded
+                  ? 'checking'
+                  : allSourcesHealthy
+                    ? 'healthy'
+                    : 'degraded',
             })
           }
         >
@@ -123,7 +129,11 @@ export function AlertsRoute() {
             to="/rules/sources"
             ariaLabel={t`Monitoring: Federal · 50 States · DC`}
             tooltip={
-              !sourceHealthLoaded ? (
+              // A failed health load must not read as "Checking source health…"
+              // forever (audit P3) — say the status couldn't be loaded.
+              sourceHealthQuery.isError ? (
+                <Trans>Couldn't load source health — showing last known status.</Trans>
+              ) : !sourceHealthLoaded ? (
                 <Trans>Checking source health…</Trans>
               ) : allSourcesHealthy ? (
                 <Trans>All {monitoredSources.length} monitored sources operational</Trans>

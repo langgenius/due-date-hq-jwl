@@ -448,8 +448,10 @@ function RailRow({
       ) : null}
       <span
         className={cn(
-          'min-w-0 flex-1 truncate text-base',
-          selected ? 'font-semibold text-text-accent' : 'font-medium text-text-secondary',
+          'min-w-0 flex-1 truncate text-base font-medium',
+          // Selection = accent color only; keep weight constant so it isn't
+          // double-highlighted (weight + color) — canon (audit P3).
+          selected ? 'text-text-accent' : 'text-text-secondary',
         )}
       >
         {label}

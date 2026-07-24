@@ -1020,8 +1020,10 @@ export function PathToFilingSummary({
   // small text line beneath the state word ("ACTIVE / Awaiting IRS").
   const activeSubStatus = subStatusForActiveStage(row, t)
   return (
-    <div aria-label={t`Milestone timeline`} className="pb-1">
-      <div className="grid grid-cols-6 gap-0">
+    <div aria-label={t`Milestone timeline`} className="overflow-x-auto pb-1">
+      {/* min-w keeps each of the 6 stages readable and scrolls the strip inside
+          the drawer instead of crushing labels to ~55px on phones (audit P3). */}
+      <div className="grid min-w-[480px] grid-cols-6 gap-0">
         {stages.map((stage, i) => {
           // The state map consults the audit-event stamps so stages the
           // row never sat in aren't shown as "done". A row that goes
@@ -2574,7 +2576,7 @@ export function ActiveStageDetailCard({
           </div>
           <div className="h-1 w-full overflow-hidden rounded-full bg-divider-subtle">
             <div
-              className="h-full rounded-full bg-state-success-solid transition-[width]"
+              className="h-full rounded-full bg-state-success-solid transition-[width] duration-300 ease-apple motion-reduce:transition-none"
               style={{
                 width: `${Math.round((readinessCounts.received / readinessCounts.total) * 100)}%`,
               }}

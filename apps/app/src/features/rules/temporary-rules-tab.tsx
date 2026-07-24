@@ -100,52 +100,56 @@ export function TemporaryRulesTab() {
         </span>
       </div>
       <SectionFrame>
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <Trans>Temporary rule</Trans>
-              </TableHead>
-              <TableHead className="w-[74px] text-center">
-                <Trans>Jur</Trans>
-              </TableHead>
-              <TableHead className="w-[118px] text-center">
-                <Trans>Override</Trans>
-              </TableHead>
-              <TableHead className="w-[106px] text-center">
-                <Trans>Deadlines</Trans>
-              </TableHead>
-              <TableHead className="w-[96px] text-center">
-                <Trans>Status</Trans>
-              </TableHead>
-              <TableHead className="w-[112px] text-center">
-                <Trans>Updated</Trans>
-              </TableHead>
-              <TableHead className="w-[96px]" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRules.length === 0 ? (
-              // 2026-06-16 (audit): the all-rules-empty case is handled by the
-              // EmptyState above; this covers filter-excludes-everything, which
-              // previously rendered a blank table body with no explanation.
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="py-8 text-center text-sm text-text-tertiary">
-                  <Trans>No temporary rules match this filter.</Trans>
-                </TableCell>
+        {/* Scroll the fixed-width columns instead of clipping the trailing
+            Status column inside the overflow-hidden frame on phones (audit P3). */}
+        <div className="overflow-x-auto">
+          <Table className="table-fixed">
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Trans>Temporary rule</Trans>
+                </TableHead>
+                <TableHead className="w-[74px] text-center">
+                  <Trans>Jur</Trans>
+                </TableHead>
+                <TableHead className="w-[118px] text-center">
+                  <Trans>Override</Trans>
+                </TableHead>
+                <TableHead className="w-[106px] text-center">
+                  <Trans>Deadlines</Trans>
+                </TableHead>
+                <TableHead className="w-[96px] text-center">
+                  <Trans>Status</Trans>
+                </TableHead>
+                <TableHead className="w-[112px] text-center">
+                  <Trans>Updated</Trans>
+                </TableHead>
+                <TableHead className="w-[96px]" />
               </TableRow>
-            ) : (
-              filteredRules.map((rule) => (
-                <TemporaryRuleRow
-                  key={rule.id}
-                  rule={rule}
-                  practiceTimezone={practiceTimezone}
-                  onOpenAlert={openDrawer}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredRules.length === 0 ? (
+                // 2026-06-16 (audit): the all-rules-empty case is handled by the
+                // EmptyState above; this covers filter-excludes-everything, which
+                // previously rendered a blank table body with no explanation.
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={7} className="py-8 text-center text-sm text-text-tertiary">
+                    <Trans>No temporary rules match this filter.</Trans>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredRules.map((rule) => (
+                  <TemporaryRuleRow
+                    key={rule.id}
+                    rule={rule}
+                    practiceTimezone={practiceTimezone}
+                    onOpenAlert={openDrawer}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </SectionFrame>
     </div>
   )

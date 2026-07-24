@@ -197,6 +197,17 @@ export function ClientsRoute() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [alertDetailsKey],
   )
+  // The card grid enriches each client with open-deadline counts + alert flags
+  // from these secondary queries. If they fail, every card silently shows 0
+  // deadlines and no alert badge (audit P2) — surface a quiet, non-blocking
+  // banner with retry rather than letting the portfolio read falsely calm.
+  const enrichmentFailed =
+    obligationsListQuery.isError || alertHistoryQuery.isError || alertDetailsBatchQuery.isError
+  const retryEnrichment = () => {
+    if (obligationsListQuery.isError) void obligationsListQuery.refetch()
+    if (alertHistoryQuery.isError) void alertHistoryQuery.refetch()
+    if (alertDetailsBatchQuery.isError) void alertDetailsBatchQuery.refetch()
+  }
   const affectedClientIds = useMemo<ReadonlySet<string>>(() => {
     if (alertMatchesByClient.size === 0) return EMPTY_AFFECTED_CLIENT_IDS
     return new Set(alertMatchesByClient.keys())
@@ -591,6 +602,29 @@ export function ClientsRoute() {
               size="sm"
               className="h-auto p-0 align-baseline"
               onClick={() => void clientsQuery.refetch()}
+            >
+              <Trans>Retry</Trans>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!clientsQuery.isError && enrichmentFailed ? (
+        <Alert>
+          <CircleAlertIcon />
+          <AlertTitle>
+            <Trans>Deadline &amp; alert data didn't load</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <Trans>
+              Client cards may show 0 open deadlines and no alert flags until this loads.
+            </Trans>{' '}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={retryEnrichment}
             >
               <Trans>Retry</Trans>
             </Button>

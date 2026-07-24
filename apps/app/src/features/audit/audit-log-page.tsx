@@ -900,6 +900,22 @@ export function AuditLogPage() {
     )
   }
 
+  // A firm-lookup FAILURE leaves currentFirm undefined → canReadAudit=false,
+  // which would dress a transient network error as an access denial (audit P2).
+  // Surface the error with retry before the permission gate.
+  if (firmsQuery.isError) {
+    return (
+      <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-14 pb-4 md:px-8 md:pb-6">
+        <QueryErrorState
+          what={t`the audit log`}
+          error={firmsQuery.error}
+          onRetry={() => void firmsQuery.refetch()}
+          retrying={firmsQuery.isFetching}
+        />
+      </div>
+    )
+  }
+
   if (!canReadAudit) {
     return (
       <PermissionGate

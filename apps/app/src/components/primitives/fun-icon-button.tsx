@@ -72,11 +72,11 @@ const CHIP_TONE: Record<FunIconButtonTone, { gradient: string; ring: string; glo
 
 const SIZE = {
   md: {
-    track: 'h-11 gap-2.5 rounded-2xl pr-4 pl-1.5 text-sm',
+    track: 'h-11 gap-2.5 rounded-xl pr-4 pl-1.5 text-sm',
     chip: 'size-8 rounded-xl [&>svg]:size-[18px]',
   },
   lg: {
-    track: 'h-13 gap-3 rounded-2xl pr-5 pl-2 text-base font-semibold',
+    track: 'h-13 gap-3 rounded-xl pr-5 pl-2 text-base font-medium',
     chip: 'size-10 rounded-xl [&>svg]:size-5',
   },
 } as const

@@ -203,7 +203,9 @@ export function DashboardRoute() {
   // and returns zero rows, /today leads with the get-started hero instead of
   // three silent sections (onboarding gap #1). Gated on `!isLoading` so the hero
   // never flashes before the count lands.
-  const clientsResolved = !clientsProbeQuery.isLoading
+  // Gated on `!isError` too: a failed probe must not resolve to "0 clients" and
+  // stand the get-started hero up in front of an established firm (audit P2).
+  const clientsResolved = !clientsProbeQuery.isLoading && !clientsProbeQuery.isError
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const showFirstRun = clientsResolved && !hasClients
   // Second first-run state (onboarding gap #2): clients are in, but no rules
@@ -217,8 +219,14 @@ export function DashboardRoute() {
     (sum, row) => sum + (row.activeRuleCount ?? 0),
     0,
   )
+  // `!isError` too: a failed coverage load falls back to activeRuleTotal===0,
+  // which would nudge a firm that HAS rules to "set up rules" (audit P3).
   const needsRules =
-    clientsResolved && hasClients && !coverageQuery.isLoading && activeRuleTotal === 0
+    clientsResolved &&
+    hasClients &&
+    !coverageQuery.isLoading &&
+    !coverageQuery.isError &&
+    activeRuleTotal === 0
   // Firm identity for analytics — reuses the layout's `firms.listMine` cache
   // key (no extra fetch). Used only to scope the once-per-firm activation
   // milestone; null until the cache warms.

@@ -479,7 +479,7 @@ export function AlertCard({
               'font-medium transition-opacity focus-visible:underline',
               active
                 ? 'opacity-100'
-                : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',
+                : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100',
             )}
           >
             <Trans>Review →</Trans>
@@ -490,7 +490,7 @@ export function AlertCard({
                 'shrink-0 transition-opacity',
                 active
                   ? 'opacity-100'
-                  : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',
+                  : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100',
               )}
               onClick={(event) => event.stopPropagation()}
             >

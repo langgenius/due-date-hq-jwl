@@ -171,8 +171,13 @@ export function ReadinessPortalRoute() {
           // need a motion signal so the page doesn't read as static. The
           // Loader2Icon spin gives an unambiguous "system is working" beat.
           <Card>
-            <CardContent className="flex flex-col items-center gap-3 py-10 text-center text-sm text-text-tertiary">
-              <Loader2Icon className="size-5 animate-spin" aria-hidden />
+            <CardContent
+              className="flex flex-col items-center gap-3 py-10 text-center text-sm text-text-tertiary"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <Loader2Icon className="size-5 animate-spin motion-reduce:animate-none" aria-hidden />
               <Trans>Loading readiness check…</Trans>
             </CardContent>
           </Card>

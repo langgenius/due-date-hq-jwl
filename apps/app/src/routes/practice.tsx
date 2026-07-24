@@ -1277,8 +1277,15 @@ function SmartPriorityRedactedContent() {
 }
 
 function ProfileSkeleton() {
+  const { t } = useLingui()
   return (
-    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6">
+    <div
+      className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-12 md:px-6"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label={t`Loading practice profile`}
+    >
       <Skeleton className="h-10 w-56" />
       <Skeleton className="h-52 w-full rounded-lg" />
       <Skeleton className="h-40 w-full rounded-lg" />

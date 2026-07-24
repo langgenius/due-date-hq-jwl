@@ -4207,6 +4207,10 @@ msgstr "Client assignments and existing work"
 msgid "Client batch created"
 msgstr "Client batch created"
 
+#: src/routes/clients.tsx
+msgid "Client cards may show 0 open deadlines and no alert flags until this loads."
+msgstr "Client cards may show 0 open deadlines and no alert flags until this loads."
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/dashboard/add-menu.tsx
 #: src/features/dashboard/create-choice-cards.tsx
@@ -5115,6 +5119,14 @@ msgstr "Couldn't load rules."
 msgid "Couldn't load sample data"
 msgstr "Couldn't load sample data"
 
+#: src/routes/alerts.tsx
+msgid "Couldn't load source health — showing last known status."
+msgstr "Couldn't load source health — showing last known status."
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Couldn't load team notes — retry"
+msgstr "Couldn't load team notes — retry"
+
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "Couldn't load team notes."
 msgstr "Couldn't load team notes."
@@ -5168,6 +5180,10 @@ msgstr "Couldn't load Today"
 #: src/features/dashboard/merged-brief-card.tsx
 msgid "Couldn't load your priorities"
 msgstr "Couldn't load your priorities"
+
+#: src/features/workload/workload-page.tsx
+msgid "Couldn't load your workspace"
+msgstr "Couldn't load your workspace"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
@@ -5817,6 +5833,10 @@ msgstr "Deadline"
 msgid "Deadline · Client"
 msgstr "Deadline · Client"
 
+#: src/routes/clients.tsx
+msgid "Deadline & alert data didn't load"
+msgstr "Deadline & alert data didn't load"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Deadline added"
 msgstr "Deadline added"
@@ -6015,6 +6035,11 @@ msgstr "deadlines generated"
 #: src/routes/obligations.tsx
 msgid "Deadlines portfolio summary"
 msgstr "Deadlines portfolio summary"
+
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Deadlines unavailable"
+msgstr "Deadlines unavailable"
 
 #: src/routes/practice.tsx
 msgid "Deadlines whose rank shifts > 5 places"
@@ -9100,6 +9125,10 @@ msgstr "Loading annual rollover preview…"
 msgid "Loading blocker details"
 msgstr "Loading blocker details"
 
+#: src/routes/clients.$clientId.tsx
+msgid "Loading client"
+msgstr "Loading client"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Loading client tax types…"
 msgstr "Loading client tax types…"
@@ -9140,6 +9169,10 @@ msgstr "Loading inbox"
 #: src/routes/accept-invite.tsx
 msgid "Loading invitation"
 msgstr "Loading invitation"
+
+#: src/routes/practice.tsx
+msgid "Loading practice profile"
+msgstr "Loading practice profile"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13458,6 +13491,7 @@ msgstr "Retracted"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
+#: src/features/workload/workload-page.tsx
 #: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -15888,6 +15922,10 @@ msgstr "The AI flagged {0} as needing human review. Confirming marks the client 
 msgid "The AI parsed this update with low confidence ({0}%). Open the source and confirm the parsed fields are right — marking it reviewed logs your decision and moves it to Alert history."
 msgstr "The AI parsed this update with low confidence ({0}%). Open the source and confirm the parsed fields are right — marking it reviewed logs your decision and moves it to Alert history."
 
+#: src/features/audit/audit-log-page.tsx
+msgid "the audit log"
+msgstr "the audit log"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "The audit log records every mapping and value change"
 msgstr "The audit log records every mapping and value change"
@@ -16190,6 +16228,14 @@ msgstr "This client may have been deleted or you may not have access."
 #: src/features/alerts/components/AlertCard.tsx
 msgid "This client needs review"
 msgstr "This client needs review"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "this client's activity"
+msgstr "this client's activity"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "this client's deadlines"
+msgstr "this client's deadlines"
 
 #: src/routes/deadline-detail.tsx
 msgid "this deadline"
@@ -17254,6 +17300,10 @@ msgstr "View blocked deadlines"
 msgid "View breakdown"
 msgstr "View breakdown"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "View clients"
+msgstr "View clients"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "View deadline"
 msgstr "View deadline"
@@ -17867,6 +17917,10 @@ msgstr "Your account isn't linked to a practice yet."
 #: src/routes/obligations.tsx
 msgid "Your assigned deadlines, in Google, Apple, or Outlook."
 msgstr "Your assigned deadlines, in Google, Apple, or Outlook."
+
+#: src/routes/obligations.tsx
+msgid "your calendar subscription"
+msgstr "your calendar subscription"
 
 #: src/features/auth/auth-chrome.tsx
 msgid "Your client data never leaves your jurisdiction"

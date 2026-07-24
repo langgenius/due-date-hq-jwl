@@ -8,6 +8,7 @@ import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contract
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { CapsFieldLabel } from '@/components/primitives/caps-field-label'
+import { QueryErrorState } from '@/components/patterns/query-error-state'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
 import { fadeMotion } from '@/lib/motion'
@@ -62,12 +63,20 @@ export function ClientSummaryStrip({
   client,
   obligations,
   isLoading,
+  isError,
+  onRetry,
+  retrying,
 }: {
   client: ClientPublic
   obligations: readonly ObligationInstancePublic[]
   /** In-flight obligations fetch — shows a skeleton panel instead of computing
    *  falsely-calm zeros from an empty obligation set. */
   isLoading?: boolean
+  /** Obligations fetch failed — surface an error instead of falsely-calm zeros
+   *  (a "0 overdue / 0 needs-review" all-clear on a tax-deadline app). */
+  isError?: boolean
+  onRetry?: () => void
+  retrying?: boolean
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -99,6 +108,20 @@ export function ClientSummaryStrip({
 
   if (isLoading) {
     return <Skeleton className="h-[84px] w-full rounded-xl" />
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-divider-regular bg-background-subtle">
+        <QueryErrorState
+          what={t`this client's deadlines`}
+          onRetry={onRetry}
+          retrying={retrying}
+          size="inline"
+          frameless
+        />
+      </div>
+    )
   }
 
   const cells: SummaryCell[] = [

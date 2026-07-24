@@ -141,11 +141,14 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
             useful state signal at this scan distance. Entity type is
             not repeated here; the chip row below carries it. */}
         <span className="text-xs text-text-secondary">
-          {openCount === 0
-            ? t`No open deadlines`
-            : openCount === 1
-              ? t`1 open deadline`
-              : t`${openCount} open deadlines`}
+          {/* A deadline-load failure must not read as "No open deadlines" (audit P2). */}
+          {obligationsQuery.isError
+            ? t`Deadlines unavailable`
+            : openCount === 0
+              ? t`No open deadlines`
+              : openCount === 1
+                ? t`1 open deadline`
+                : t`${openCount} open deadlines`}
         </span>
         {/* Payment-overdue line. Surfaces "Filed but payment overdue
             on N filings" inline with the identity subtitle so the peek

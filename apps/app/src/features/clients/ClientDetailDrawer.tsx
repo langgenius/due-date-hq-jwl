@@ -129,11 +129,15 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                 </SheetTitle>
                 <SheetDescription className="text-xs text-text-secondary">
                   {entityLabels[client.entityType]} ·{' '}
-                  {openCount === 0
-                    ? t`No open deadlines`
-                    : openCount === 1
-                      ? t`1 open deadline`
-                      : t`${openCount} open deadlines`}
+                  {/* Don't read a deadline-load FAILURE as "No open deadlines"
+                      (a false all-clear) — say the count is unavailable (audit P2). */}
+                  {obligationsQuery.isError
+                    ? t`Deadlines unavailable`
+                    : openCount === 0
+                      ? t`No open deadlines`
+                      : openCount === 1
+                        ? t`1 open deadline`
+                        : t`${openCount} open deadlines`}
                 </SheetDescription>
                 {/* Payment-overdue line. Mirrors ClientPeekHoverCard so
                     the SAME client renders the SAME urgency cue whether
