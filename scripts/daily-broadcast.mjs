@@ -140,6 +140,7 @@ const D = {
   todayEN: enMD(iso),
   todayMonthEN: enMD(iso).split(' ')[0],
   year: iso.slice(0, 4),
+  dateCN: `${iso.slice(0, 4)}年${+iso.slice(5, 7)}月${+iso.slice(8, 10)}日`,
 }
 
 // ---------- wordmark ----------
@@ -164,11 +165,13 @@ const base = `
   .live{display:inline-flex;align-items:center;gap:7px;color:#14c5f6}
   .dot{width:8px;height:8px;border-radius:999px;background:#14c5f6;display:inline-block}
   .kick{color:#8f95cf;font-weight:500}
-  .cd{display:flex;align-items:baseline;gap:10px;margin-top:8px}
-  .cd b{font-size:150px;font-weight:800;color:#14c5f6;line-height:.82;letter-spacing:-.03em}
+  .cd{display:flex;align-items:baseline;gap:12px;margin-top:20px}
+  .cd b{font-size:128px;font-weight:800;color:#14c5f6;line-height:.9;letter-spacing:-.03em}
   .cd s{text-decoration:none;font-size:40px;font-weight:700}
+  .cd .lead{font-size:34px;font-weight:600;color:#fff;margin-right:6px}
   .facts{display:flex;flex-direction:column;gap:12px}
-  .facts .f{font-size:20px;color:#eef0fb;line-height:1.5}
+  .facts .f{font-size:20px;color:#eef0fb;line-height:1.5;position:relative;padding-left:18px}
+  .facts .f::before{content:'';position:absolute;left:0;top:8px;width:3px;height:22px;background:#14c5f6}
   .facts .f b{color:#fff;font-weight:700}
   .tick{border-top:1px solid rgba(255,255,255,.14);padding-top:20px;display:flex;flex-direction:column;gap:12px}
   .tick .t{font-size:17px;color:#c2c6ee;display:flex;gap:10px}
@@ -179,18 +182,18 @@ const base = `
 // 小红书 3:4
 const xhs = `<!doctype html><meta charset=utf8><style>${base}
   .xhs{width:540px;height:720px;padding:46px 44px}
-  .xhs .headline{margin-top:26px;font-size:40px;font-weight:700;line-height:1.2}
+  .xhs .headline{margin-top:24px;font-size:40px;font-weight:700;line-height:1.2}
   .xhs .facts{margin-top:22px}.xhs .tick{margin-top:auto}
   .xhs .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card xhs" style="width:540px;height:720px">
-  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.iso}</span></div>
+  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.dateCN}</span></div>
   <div class=eyebrow style="margin-top:30px"><span class=live><span class=dot></span>每日播报</span><span class=kick>IRS 报税截止日</span></div>
-  <div class=headline>${D.leadCN}报税截止日<br/>还有</div>
-  <div class="cd num"><b>${D.daysLeft}</b><s>天</s></div>
+  <div class=headline>${D.leadCN}报税截止日</div>
+  <div class="cd num"><span class=lead>还剩</span><b>${D.daysLeft}</b><s>天</s></div>
   <div class=facts>
-    <div class=f>📌 <b>${D.deadlineCN}</b>到期 · ${D.countyN} 个县 · 灾害延期 ${D.code}</div>
-    <div class=f>📌 覆盖 个人 / 公司 / 合伙 / 信托 / 工资税 / 预估税</div>
+    <div class=f><b>${D.deadlineCN}</b>到期 · ${D.countyN} 个县 · 灾害延期 ${D.code}</div>
+    <div class=f>覆盖 个人 / 公司 / 合伙 / 信托 / 工资税 / 预估税</div>
   </div>
   <div class=tick>
     ${D.nextCN ? `<div class=t><i>下一批</i><span>${D.nextCN} · ${D.nextDateCN}</span></div>` : ''}
@@ -209,7 +212,7 @@ const li = `<!doctype html><meta charset=utf8><style>${base}
   .li .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card li" style="width:540px;height:540px">
-  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayMonthEN} ${D.year}</span></div>
+  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="foot num">${D.todayEN}, ${D.year}</span></div>
   <div class=eyebrow style="margin-top:22px"><span class=live><span class=dot></span>IRS DEADLINE DAILY</span></div>
   <div class=headline>${D.leadEN} filing deadline:<br/><span style="color:#14c5f6">${D.daysLeft} days out</span></div>
   <div class=facts>
