@@ -4384,15 +4384,32 @@ export function ObligationQueueRoute() {
                                 .filter((column) => column.getCanHide())
                                 .map((column) => {
                                   const label = columnLabel(column.id, columnLabels)
+                                  // Bind the checkbox to the USER's hide intent
+                                  // (the `hide` URL param), NOT the rendered
+                                  // visibility. The narrow-card / panel-open
+                                  // ladders auto-hide columns for layout, but
+                                  // that overlay must not make a column read as
+                                  // "you hid this" — otherwise the toggle lies
+                                  // (a checkbox already unchecked can't be
+                                  // hidden) and never writes the URL. Writing
+                                  // `hide` directly also skips the panel-strip
+                                  // dance in onColumnVisibilityChange: user
+                                  // intent never contains the overlay columns.
+                                  const userHidden = hiddenColumns.includes(column.id)
                                   return (
                                     <DropdownMenuCheckboxItem
                                       key={column.id}
                                       aria-label={label}
-                                      checked={column.getIsVisible()}
+                                      checked={!userHidden}
                                       closeOnClick={false}
-                                      onCheckedChange={(checked) =>
-                                        column.toggleVisibility(checked)
-                                      }
+                                      onCheckedChange={(checked) => {
+                                        const nextHidden = checked
+                                          ? hiddenColumns.filter((id) => id !== column.id)
+                                          : userHidden
+                                            ? hiddenColumns
+                                            : [...hiddenColumns, column.id]
+                                        void setObligationQueueQuery({ hide: nextHidden })
+                                      }}
                                     >
                                       <span>{label}</span>
                                     </DropdownMenuCheckboxItem>

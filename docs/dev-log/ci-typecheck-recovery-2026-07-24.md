@@ -35,6 +35,25 @@ the typecheck stage. Fixed here so `vp check` is `0 errors`.
   all non-blocking and left untouched to avoid altering another session's generator
   logic and pre-existing marketing/motion code.
 
+## E2E regression from the narrow-card column ladder (audit #1)
+
+`obligations.spec.ts › hides columns and bulk updates rows` failed:
+`setColumnVisible('Assignee', false)` no longer wrote `?hide=…assigneeName` to
+the URL. Root cause: audit #1's `NARROW_CARD_AUTO_HIDDEN_COLUMN_IDS` overlay
+auto-hides `assigneeName` (and the other secondary columns) when the table card
+is under 1300px. At the 1440px E2E viewport with the sidebar expanded, the card
+drops below that, so the column was **already** auto-hidden — its menu checkbox
+read unchecked, the helper saw "already in desired state", and the toggle never
+fired. The same wart hit real users: the Columns checkbox lied about what you'd
+hidden, and re-hiding an auto-hidden column was impossible.
+
+Fix (`routes/obligations.tsx`): bind the Columns-menu checkbox to the user's
+`hide` intent (the URL param), not the rendered `column.getIsVisible()`. Toggling
+now writes `hide` directly, so it is immune to the layout overlay — and it drops
+the panel-strip dance in `onColumnVisibilityChange`, since user intent never
+contains an overlay-hidden column. The narrow/panel ladders still drive what's
+*rendered*; they no longer masquerade as user column preferences.
+
 ## Lesson
 
 Trust the remote `CI` typecheck over a backgrounded local one that may have been
