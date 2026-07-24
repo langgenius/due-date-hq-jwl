@@ -207,8 +207,9 @@ const base = `
 // 小红书 3:4
 const xhs = `<!doctype html><meta charset=utf8><style>${base}
   .xhs{width:540px;height:720px;padding:46px 44px}
-  .xhs .headline{margin-top:24px;font-size:40px;font-weight:700;line-height:1.2}
-  .xhs .facts{margin-top:22px}.xhs .tick{margin-top:auto}
+  .xhs .headline{margin-top:30px;font-size:23px;font-weight:700;letter-spacing:.03em;line-height:1.2}
+  .xhs .cd{margin-top:4px}
+  .xhs .facts{margin-top:26px}.xhs .tick{margin-top:auto}
   .xhs .top{display:flex;justify-content:space-between;align-items:center}
 </style>
 <div class="card xhs" style="width:540px;height:720px">
