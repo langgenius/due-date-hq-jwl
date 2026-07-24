@@ -7122,6 +7122,29 @@ function ObligationFiltersPopover({
           // labels are self-explanatory, so dropping the icons fits the whole
           // row with slack and reads cleaner. `px-1` lands the first tab's label
           // on the header title's 16px inset.
+          // Roving-tabindex keyboard nav (audit #12): a role=tablist must
+          // answer Arrow/Home/End. Automatic activation (focus === select),
+          // matching the WAI-ARIA tabs pattern for a small, cheap-to-switch set.
+          onKeyDown={(event) => {
+            const keys = ['ArrowRight', 'ArrowLeft', 'Home', 'End']
+            if (!keys.includes(event.key)) return
+            const tabs = Array.from(
+              event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+            )
+            if (tabs.length === 0) return
+            const current = tabs.findIndex((el) => el === document.activeElement)
+            const from =
+              current === -1 ? tabs.findIndex((el) => el.ariaSelected === 'true') : current
+            let nextIndex = from
+            if (event.key === 'ArrowRight') nextIndex = (from + 1) % tabs.length
+            else if (event.key === 'ArrowLeft') nextIndex = (from - 1 + tabs.length) % tabs.length
+            else if (event.key === 'Home') nextIndex = 0
+            else if (event.key === 'End') nextIndex = tabs.length - 1
+            event.preventDefault()
+            const nextTab = tabs[nextIndex]
+            nextTab?.focus()
+            nextTab?.click()
+          }}
           className="flex items-center gap-0.5 overflow-x-auto border-b border-divider-subtle px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {facetTabs.map((tab) => (
@@ -7322,6 +7345,9 @@ function ObligationFilterTab({
       type="button"
       role="tab"
       aria-selected={active}
+      // Roving tabindex (audit #12): only the active tab is in the Tab order;
+      // Arrow keys move between the rest (handled on the tablist).
+      tabIndex={active ? 0 : -1}
       onClick={onClick}
       // Per `xrMoD`/`vjMXx`: 13px label + count pill, with the active tab
       // carrying a 2px bottom rule, bold dark label, and an inset negative

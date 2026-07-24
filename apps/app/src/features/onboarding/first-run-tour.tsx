@@ -90,6 +90,12 @@ export function FirstRunTour() {
   const [index, setIndex] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
   const startedRef = useRef(false)
+  // Focus management (audit #11): the role=dialog aria-modal overlay never
+  // moved focus into itself, so screen-reader + keyboard users couldn't reach
+  // it and Tab wandered onto the blocked page behind. Capture the pre-open
+  // focus, move it into the dialog on open, and restore it on close.
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
 
   // Start once, shortly after mount, if unseen and the first target is anchorable.
   useEffect(() => {
@@ -159,17 +165,49 @@ export function FirstRunTour() {
       if (e.key === 'Escape') {
         e.preventDefault()
         finish()
-      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+      } else if (e.key === 'ArrowRight') {
         e.preventDefault()
         next()
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         back()
+      } else if (e.key === 'Tab') {
+        // Contain Tab within the dialog (audit #11): cycle across the tour's
+        // own focusables so focus can't escape to the blocked page behind.
+        const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),textarea,input,select,[tabindex]:not([tabindex="-1"])',
+        )
+        if (!focusables || focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        const activeEl = document.activeElement
+        if (e.shiftKey && (activeEl === first || !dialogRef.current?.contains(activeEl))) {
+          e.preventDefault()
+          last?.focus()
+        } else if (!e.shiftKey && activeEl === last) {
+          e.preventDefault()
+          first?.focus()
+        }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [active, finish, next, back])
+
+  // Move focus into the dialog on open; restore it on close (audit #11).
+  useEffect(() => {
+    if (!active) return undefined
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    // Focus the dialog container (tabIndex=-1) so SR announces it and Tab
+    // starts inside. rAF so the node is mounted.
+    const raf = requestAnimationFrame(() => dialogRef.current?.focus())
+    return () => {
+      cancelAnimationFrame(raf)
+      returnFocusRef.current?.focus?.()
+      returnFocusRef.current = null
+    }
+  }, [active])
 
   if (!active || !step || !rect) return null
 
@@ -187,7 +225,9 @@ export function FirstRunTour() {
 
   return (
     <div
-      className="fixed inset-0 z-[100]"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[100] outline-none"
       role="dialog"
       aria-modal="true"
       aria-label={t`Quick tour`}
