@@ -15,6 +15,7 @@ below (two are deferred with rationale).
 ## P2 — false data / lockouts / touch
 
 State coverage (all: add an honest error branch):
+
 - `routes/clients.tsx` — non-blocking banner when the card-enrichment queries fail (was: every card silently 0 deadlines + no alert badge).
 - `routes/dashboard.tsx` — first-run hero no longer stands in for a failed clients-probe (`clientsResolved` gates on `!isError`).
 - `features/workload/workload-page.tsx` — a firm-list failure shows an error+retry, not the upgrade panel, so a paying user isn't told to upgrade.
@@ -23,14 +24,17 @@ State coverage (all: add an honest error branch):
 - `features/rules/rule-detail-drawer.tsx` — "Couldn't load team notes — retry" instead of "No team notes yet".
 
 Touch-unreachable actions (add `pointer-coarse:` fallback):
+
 - `features/alerts/components/AlertCard.tsx` — Archive/Dismiss now reveal on touch.
 - `features/alerts/AlertDetailDrawer.tsx` — the copy-source-excerpt button reveals on touch.
 
 Responsive:
+
 - `features/workload/workload-page.tsx` — the 8-column owner table scrolls inside its own frame (was: full-page horizontal scroll).
 - `routes/rules.library.tsx` — the fixed-width jurisdiction rule table scrolls both axes instead of clipping Status + ⋯ off-screen.
 
 Visual:
+
 - `routes/login.tsx` — dropped `font-bold` double-highlight on the PRO badge + firm monogram (canon caps weight at 600).
 
 ## P3 — polish
