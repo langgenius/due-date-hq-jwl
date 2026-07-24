@@ -520,8 +520,75 @@ function TypesMatrixCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="overflow-x-auto">
-          <div className="min-w-[440px] overflow-hidden rounded-xl border border-divider-regular sm:min-w-[640px]">
+        {/* Mobile (< sm): each type stacks into its own card — Email + In-app
+            cells and the cadence chip sit below the name, so nothing is behind
+            a sideways scroll (audit #6). */}
+        <div className="flex flex-col gap-3 sm:hidden">
+          {rows.map((row) => {
+            const flag = row.flag
+            const typeOn = flag ? preferences[flag] : true
+            const toggle = flag ? () => onUpdate({ [flag]: !typeOn }) : undefined
+            return (
+              <div
+                key={row.id}
+                className="rounded-xl border border-divider-regular bg-background-default p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-secondary">
+                    <row.icon className="size-3.5" aria-hidden />
+                  </span>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span
+                      id={`notif-type-m-${row.id}`}
+                      className="text-base font-medium text-text-primary"
+                    >
+                      {row.name}
+                    </span>
+                    <span className="text-xs text-text-secondary">{row.detail}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-divider-subtle pt-3">
+                  <div className="flex items-center gap-2">
+                    <span
+                      id={`notif-m-email-${row.id}`}
+                      className="text-xs font-medium tracking-wide text-text-secondary uppercase"
+                    >
+                      <Trans>Email</Trans>
+                    </span>
+                    <MatrixCell
+                      on={typeOn && preferences.emailEnabled}
+                      interactive={Boolean(flag)}
+                      onToggle={toggle}
+                      labelledBy={`notif-m-email-${row.id} notif-type-m-${row.id}`}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      id={`notif-m-inapp-${row.id}`}
+                      className="text-xs font-medium tracking-wide text-text-secondary uppercase"
+                    >
+                      <Trans>In-app</Trans>
+                    </span>
+                    <MatrixCell
+                      on={typeOn && preferences.inAppEnabled}
+                      interactive={Boolean(flag)}
+                      onToggle={toggle}
+                      labelledBy={`notif-m-inapp-${row.id} notif-type-m-${row.id}`}
+                    />
+                  </div>
+                  <span className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
+                    <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
+                    {row.cadence}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* sm+: the full matrix table. */}
+        <div className="hidden overflow-x-auto sm:block">
+          <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
             {/* Header */}
             <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
               <CapsFieldLabel as="span" variant="group" className="flex-1 text-text-secondary">

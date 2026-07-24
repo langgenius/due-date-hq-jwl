@@ -56,6 +56,7 @@ export function scrollIntoViewMotionSafe(
   if (!el) return
   const reduce =
     typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
   el.scrollIntoView({ ...options, behavior: reduce ? 'auto' : 'smooth' })
 }

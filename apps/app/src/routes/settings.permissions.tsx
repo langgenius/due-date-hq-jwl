@@ -299,16 +299,55 @@ export function SettingsPermissionsRoute() {
           </div>
         </div>
 
-        {/* Matrix */}
-        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+        {/* Matrix — below sm, each scope stacks into its own card (audit #6:
+            a 6-column grid can't scroll comfortably on a phone). From sm up,
+            the full matrix table returns. */}
+        {/* Mobile: one card per scope, actions in a two-up label + pill grid. */}
+        <div className="flex flex-col gap-3 sm:hidden">
+          {SCOPES.map((scope) => (
+            <div
+              key={scope.key}
+              className="rounded-xl border border-divider-regular bg-background-default p-4"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-section text-text-secondary"
+                >
+                  <scope.Icon className="size-4" />
+                </span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-base font-medium text-text-primary">
+                    {i18n._(scope.label)}
+                  </span>
+                  <span className="text-xs text-text-tertiary">{i18n._(scope.description)}</span>
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-x-4 border-t border-divider-subtle pt-3">
+                {ACTIONS.map((action) => (
+                  <div key={action} className="flex items-center justify-between gap-2 py-1.5">
+                    <span className="text-xs text-text-secondary">
+                      {i18n._(ACTION_LABELS[action])}
+                    </span>
+                    <PermissionPill
+                      state={can(scope.cells[action])}
+                      actionLabel={i18n._(ACTION_LABELS[action])}
+                      scopeLabel={i18n._(scope.label)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* sm+: the full matrix table. */}
+        <div className="hidden overflow-hidden rounded-xl border border-divider-regular bg-background-default sm:block">
           <div className="overflow-x-auto">
-            {/* Leading Scope column + min-width narrow on phone (audit #6) so
-                the permission toggles are reachable without a long sideways
-                scroll past a 260px scope column. */}
-            <div className="min-w-[520px] sm:min-w-[760px]">
+            <div className="min-w-[760px]">
               {/* Header */}
               <div className="flex items-center bg-background-section px-5 py-4">
-                <div className="w-[150px] shrink-0 sm:w-[260px] pr-3">
+                <div className="w-[260px] shrink-0 pr-3">
                   <CapsFieldLabel as="span" variant="group">
                     <Trans>Scope</Trans>
                   </CapsFieldLabel>
@@ -328,7 +367,7 @@ export function SettingsPermissionsRoute() {
                   key={scope.key}
                   className="flex items-center border-t border-divider-subtle px-5"
                 >
-                  <div className="flex w-[150px] shrink-0 sm:w-[260px] items-center gap-3 py-4 pr-3">
+                  <div className="flex w-[260px] shrink-0 items-center gap-3 py-4 pr-3">
                     <span
                       aria-hidden
                       className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-section text-text-secondary"
