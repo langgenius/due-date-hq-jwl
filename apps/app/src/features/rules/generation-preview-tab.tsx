@@ -293,86 +293,91 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
           ) : null}
         </div>
 
-        <div className="grid grid-cols-[140px_140px_minmax(220px,1fr)_auto_auto] gap-3">
-          <PreviewField label={t`SOURCE FILING YEAR`} htmlFor="annual-source-year">
-            <Input
-              id="annual-source-year"
-              type="number"
-              min={1900}
-              max={2100}
-              value={sourceFilingYear}
-              aria-invalid={!yearsValid}
-              className="h-8 font-mono text-xs tabular-nums"
-              onChange={(event) => {
-                const next = boundedYear(event.currentTarget.value, sourceFilingYear, 1900, 2100)
-                setSourceFilingYear(next)
-                setTargetFilingYear(next + 1)
-              }}
-            />
-          </PreviewField>
-          <PreviewField label={t`TARGET FILING YEAR`} htmlFor="annual-target-year">
-            <Input
-              id="annual-target-year"
-              type="number"
-              min={1901}
-              max={2101}
-              value={targetFilingYear}
-              aria-invalid={!yearsValid}
-              className="h-8 font-mono text-xs tabular-nums"
-              onChange={(event) =>
-                setTargetFilingYear(
-                  boundedYear(event.currentTarget.value, targetFilingYear, 1901, 2101),
-                )
-              }
-            />
-          </PreviewField>
-          <PreviewField label={t`CLIENT FILTER`}>
-            <Select
-              value={selectedClientId}
-              onValueChange={(value) => {
-                if (value) setSelectedClientId(value)
-              }}
-            >
-              <SelectTrigger className="h-8 w-full rounded-lg text-xs">
-                <SelectValue>{selectedClientLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value={ALL_ROLLOVER_CLIENTS}>
-                    <Trans>All clients</Trans>
-                  </SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      <span className="flex min-w-0 flex-col leading-tight">
-                        <span className="truncate">{client.name}</span>
-                        <span className="font-mono text-caption text-text-tertiary">
-                          {client.state ?? t`No filing state`}
-                        </span>
-                      </span>
+        {/* overflow-x-auto + min-w-max: the fixed 140px tracks don't shrink, so
+            below the shell width this row scrolls instead of clipping under
+            the RulesPageShell's overflow-hidden (audit #13). */}
+        <div className="overflow-x-auto">
+          <div className="grid min-w-max grid-cols-[140px_140px_minmax(220px,1fr)_auto_auto] gap-3">
+            <PreviewField label={t`SOURCE FILING YEAR`} htmlFor="annual-source-year">
+              <Input
+                id="annual-source-year"
+                type="number"
+                min={1900}
+                max={2100}
+                value={sourceFilingYear}
+                aria-invalid={!yearsValid}
+                className="h-8 font-mono text-xs tabular-nums"
+                onChange={(event) => {
+                  const next = boundedYear(event.currentTarget.value, sourceFilingYear, 1900, 2100)
+                  setSourceFilingYear(next)
+                  setTargetFilingYear(next + 1)
+                }}
+              />
+            </PreviewField>
+            <PreviewField label={t`TARGET FILING YEAR`} htmlFor="annual-target-year">
+              <Input
+                id="annual-target-year"
+                type="number"
+                min={1901}
+                max={2101}
+                value={targetFilingYear}
+                aria-invalid={!yearsValid}
+                className="h-8 font-mono text-xs tabular-nums"
+                onChange={(event) =>
+                  setTargetFilingYear(
+                    boundedYear(event.currentTarget.value, targetFilingYear, 1901, 2101),
+                  )
+                }
+              />
+            </PreviewField>
+            <PreviewField label={t`CLIENT FILTER`}>
+              <Select
+                value={selectedClientId}
+                onValueChange={(value) => {
+                  if (value) setSelectedClientId(value)
+                }}
+              >
+                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+                  <SelectValue>{selectedClientLabel}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={ALL_ROLLOVER_CLIENTS}>
+                      <Trans>All clients</Trans>
                     </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </PreviewField>
-          <Button
-            type="button"
-            variant="secondary"
-            className="self-end"
-            disabled={previewQuery.isFetching}
-            onClick={runPreview}
-          >
-            {previewQuery.isFetching ? <Trans>Previewing…</Trans> : <Trans>Preview</Trans>}
-          </Button>
-          <Button
-            type="button"
-            variant="accent"
-            className="self-end"
-            disabled={!canGenerate}
-            onClick={generate}
-          >
-            {createMutation.isPending ? <Trans>Generating…</Trans> : <Trans>Generate</Trans>}
-          </Button>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        <span className="flex min-w-0 flex-col leading-tight">
+                          <span className="truncate">{client.name}</span>
+                          <span className="font-mono text-caption text-text-tertiary">
+                            {client.state ?? t`No filing state`}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </PreviewField>
+            <Button
+              type="button"
+              variant="secondary"
+              className="self-end"
+              disabled={previewQuery.isFetching}
+              onClick={runPreview}
+            >
+              {previewQuery.isFetching ? <Trans>Previewing…</Trans> : <Trans>Preview</Trans>}
+            </Button>
+            <Button
+              type="button"
+              variant="accent"
+              className="self-end"
+              disabled={!canGenerate}
+              onClick={generate}
+            >
+              {createMutation.isPending ? <Trans>Generating…</Trans> : <Trans>Generate</Trans>}
+            </Button>
+          </div>
         </div>
 
         {!yearsValid ? (
@@ -465,109 +470,113 @@ function GenerationPreviewForm({
             void form.handleSubmit()
           }}
         >
-          <div className="grid grid-cols-[220px_110px_110px_220px_120px] gap-3">
-            <PreviewField label={t`CLIENT`}>
-              <Select
-                value={clientIdValue}
-                onValueChange={(value) => {
-                  const client = clients.find((item) => item.id === value)
-                  if (!client || !isPreviewReadyClient(client)) return
-                  onSelectClient(client.id)
-                }}
-              >
-                <SelectTrigger className="h-8 w-full rounded-lg font-mono text-xs">
-                  <SelectValue>{selectedClientLabel}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {clients.map((client) => (
-                      <SelectItem
-                        key={client.id}
-                        value={client.id}
-                        disabled={!isPreviewReadyClient(client)}
-                      >
-                        <span className="flex min-w-0 flex-col leading-tight">
-                          <span className="truncate">{client.name}</span>
-                          <span className="font-mono text-caption text-text-tertiary">
-                            {client.state ?? t`Needs filing state`} ·{' '}
-                            {previewEntityLabel(client.entityType)}
+          {/* overflow-x-auto + min-w-max: fixed px tracks scroll instead of
+              clipping below the shell width (audit #13). */}
+          <div className="overflow-x-auto">
+            <div className="grid min-w-max grid-cols-[220px_110px_110px_220px_120px] gap-3">
+              <PreviewField label={t`CLIENT`}>
+                <Select
+                  value={clientIdValue}
+                  onValueChange={(value) => {
+                    const client = clients.find((item) => item.id === value)
+                    if (!client || !isPreviewReadyClient(client)) return
+                    onSelectClient(client.id)
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full rounded-lg font-mono text-xs">
+                    <SelectValue>{selectedClientLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {clients.map((client) => (
+                        <SelectItem
+                          key={client.id}
+                          value={client.id}
+                          disabled={!isPreviewReadyClient(client)}
+                        >
+                          <span className="flex min-w-0 flex-col leading-tight">
+                            <span className="truncate">{client.name}</span>
+                            <span className="font-mono text-caption text-text-tertiary">
+                              {client.state ?? t`Needs filing state`} ·{' '}
+                              {previewEntityLabel(client.entityType)}
+                            </span>
                           </span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </PreviewField>
-            <PreviewField label={t`ENTITY`}>
-              <Select
-                value={entityTypeValue}
-                onValueChange={(value) => {
-                  if (isEntityOption(value)) {
-                    form.setFieldValue('entityType', value)
-                  }
-                }}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </PreviewField>
+              <PreviewField label={t`ENTITY`}>
+                <Select
+                  value={entityTypeValue}
+                  onValueChange={(value) => {
+                    if (isEntityOption(value)) {
+                      form.setFieldValue('entityType', value)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+                    <SelectValue>{previewEntityLabel(entityTypeValue)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {PREVIEW_ENTITY_OPTIONS.map((entity) => (
+                        <SelectItem key={entity} value={entity}>
+                          {previewEntityLabel(entity)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </PreviewField>
+              <PreviewField label={t`STATE`}>
+                <Select
+                  value={stateValue}
+                  onValueChange={(value) => {
+                    if (isGenerationState(value)) {
+                      form.setFieldValue('state', value)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full rounded-lg text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {RULE_GENERATION_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </PreviewField>
+              <PreviewField label={t`TAX YEAR`} htmlFor="preview-tax-year">
+                <TaxYearCalendarSelect
+                  id="preview-tax-year"
+                  value={previewTaxYear}
+                  taxYearStart={taxYearStart}
+                  taxYearEnd={taxYearEnd}
+                  invalid={taxYearInvalid}
+                  onValueChange={(year) => {
+                    const dates = previewTaxYearToFormDates(year)
+                    form.setFieldValue('taxYearStart', dates.taxYearStart)
+                    form.setFieldValue('taxYearEnd', dates.taxYearEnd)
+                  }}
+                />
+              </PreviewField>
+              <Button
+                type="submit"
+                variant="accent"
+                className="self-end"
+                disabled={previewQuery.isFetching}
               >
-                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
-                  <SelectValue>{previewEntityLabel(entityTypeValue)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {PREVIEW_ENTITY_OPTIONS.map((entity) => (
-                      <SelectItem key={entity} value={entity}>
-                        {previewEntityLabel(entity)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </PreviewField>
-            <PreviewField label={t`STATE`}>
-              <Select
-                value={stateValue}
-                onValueChange={(value) => {
-                  if (isGenerationState(value)) {
-                    form.setFieldValue('state', value)
-                  }
-                }}
-              >
-                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {RULE_GENERATION_STATES.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </PreviewField>
-            <PreviewField label={t`TAX YEAR`} htmlFor="preview-tax-year">
-              <TaxYearCalendarSelect
-                id="preview-tax-year"
-                value={previewTaxYear}
-                taxYearStart={taxYearStart}
-                taxYearEnd={taxYearEnd}
-                invalid={taxYearInvalid}
-                onValueChange={(year) => {
-                  const dates = previewTaxYearToFormDates(year)
-                  form.setFieldValue('taxYearStart', dates.taxYearStart)
-                  form.setFieldValue('taxYearEnd', dates.taxYearEnd)
-                }}
-              />
-            </PreviewField>
-            <Button
-              type="submit"
-              variant="accent"
-              className="self-end"
-              disabled={previewQuery.isFetching}
-            >
-              {previewQuery.isFetching ? <Trans>Running…</Trans> : <Trans>Run preview</Trans>}
-              <CornerDownLeftIcon data-icon="inline-end" aria-hidden />
-            </Button>
+                {previewQuery.isFetching ? <Trans>Running…</Trans> : <Trans>Run preview</Trans>}
+                <CornerDownLeftIcon data-icon="inline-end" aria-hidden />
+              </Button>
+            </div>
           </div>
 
           <PreviewField label={t`TAX TYPES`} htmlFor="preview-tax-types">

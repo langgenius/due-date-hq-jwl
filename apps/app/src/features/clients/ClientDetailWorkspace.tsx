@@ -1531,9 +1531,19 @@ export function ClientDetailWorkspace({
             <AlertDialogAction
               variant="destructive-primary"
               disabled={deleteMutation.isPending || archiveMutation.isPending}
+              aria-busy={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate({ id: client.id })}
             >
-              <Trash2Icon data-icon="inline-start" />
+              {/* Spinner in-flight (audit #9) — a disabled static-icon button on
+                  a slow delete read as a dead click. */}
+              {deleteMutation.isPending ? (
+                <Loader2Icon
+                  data-icon="inline-start"
+                  className="animate-spin motion-reduce:animate-none"
+                />
+              ) : (
+                <Trash2Icon data-icon="inline-start" />
+              )}
               <Trans>Delete client</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>

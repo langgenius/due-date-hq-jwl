@@ -355,6 +355,7 @@ export function SignatureReminderDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() => {
               // Single: first click on a recently-reminded client just confirms.
               if (needsResendConfirm) {
@@ -368,6 +369,14 @@ export function SignatureReminderDialog({
               })
             }}
           >
+            {/* Spinner in-flight (audit #9) — the button was disabled during
+                send with no feedback, reading as a dead click. */}
+            {sending ? (
+              <Loader2Icon
+                data-icon="inline-start"
+                className="animate-spin motion-reduce:animate-none"
+              />
+            ) : null}
             {needsResendConfirm ? (
               <Trans>Send anyway</Trans>
             ) : isBulk ? (
@@ -527,6 +536,7 @@ export function BulkExtensionDialog({
           </Button>
           <Button
             disabled={!canSend}
+            aria-busy={sending}
             onClick={() =>
               onSend({
                 memo: memo.trim(),
@@ -535,6 +545,13 @@ export function BulkExtensionDialog({
               })
             }
           >
+            {/* Spinner in-flight (audit #9). */}
+            {sending ? (
+              <Loader2Icon
+                data-icon="inline-start"
+                className="animate-spin motion-reduce:animate-none"
+              />
+            ) : null}
             <Trans>Decide extensions</Trans>
           </Button>
         </DialogFooter>

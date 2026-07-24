@@ -354,7 +354,7 @@ export function DeadlineRow({
                 onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
               )}
               aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
-              className="flex min-w-0 items-center gap-2 justify-self-start rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="flex min-w-0 items-center gap-2 justify-self-start rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <AssigneeAvatar
                 name={deadline.assigneeName}
@@ -450,7 +450,7 @@ export function DeadlineRow({
               onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
             )}
             aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
-            className="flex shrink-0 items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="flex shrink-0 items-center gap-2 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <AssigneeAvatar
               name={deadline.assigneeName}

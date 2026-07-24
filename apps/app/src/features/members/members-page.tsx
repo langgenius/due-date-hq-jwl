@@ -1081,7 +1081,9 @@ function RoleControl({
         if (isManagedRole(value) && value !== role) onChange(value)
       }}
     >
-      <SelectTrigger size="sm" className="h-6 w-[140px] rounded-sm bg-transparent px-2 text-xs">
+      {/* size="sm" (h-8/32px) not h-6/24px — a 24px trigger was below the
+          touch-target floor (audit #15). min-h-9 (36px) pads the hit area. */}
+      <SelectTrigger size="sm" className="min-h-9 w-[140px] rounded-sm bg-transparent px-2 text-xs">
         <SelectValue>{roleLabel(role)}</SelectValue>
       </SelectTrigger>
       <SelectContent align="start">

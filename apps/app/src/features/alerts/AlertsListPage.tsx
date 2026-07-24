@@ -2033,8 +2033,9 @@ function SkeletonAlertRow() {
       data-skeleton="alert"
       className="flex gap-[10px] border-b border-divider-subtle px-5 py-3 last:border-b-0"
     >
-      {/* Time rail — 100px column matching PulseAlertRow */}
-      <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
+      {/* Time rail — 90px, matching PulseAlertRow's real rail (was w-[100px],
+          which shifted every row's content column left ~10px on load — audit #16). */}
+      <div className="flex w-[90px] shrink-0 flex-col gap-1.5">
         <Skeleton aria-hidden className="h-3 w-12 rounded-full" />
         <Skeleton aria-hidden className="h-2 w-10 rounded-full" />
       </div>
