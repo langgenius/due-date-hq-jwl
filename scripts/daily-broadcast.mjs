@@ -271,7 +271,7 @@ Full verified list (every date sourced to irs.gov) in the comments 👇
 
 fs.writeFileSync(
   path.join(OUT, `PACK-${iso}.md`),
-  `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书图：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1080）\n\n${liCap}\n`,
+  `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书图：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1350 · 4:5）\n\n${liCap}\n`,
 )
 console.log(`✓ 今日播报 ${iso}：${D.leadEN} 倒计时 ${D.daysLeft} 天`)
 console.log(
