@@ -645,7 +645,6 @@ function BriefTableRow({
   const showPaymentLateChip = paymentLate && (d >= 0 || paymentLateDays !== -d)
   return (
     <TableRow
-      role="button"
       onClick={() => onOpen(row.obligationId)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {

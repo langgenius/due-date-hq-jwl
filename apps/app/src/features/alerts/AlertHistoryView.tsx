@@ -436,7 +436,6 @@ function HistoryRow({
 
   return (
     <TableRow
-      role="button"
       tabIndex={0}
       aria-label={t`Alert: ${alert.title}`}
       onClick={onOpen}
