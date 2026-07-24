@@ -27,11 +27,11 @@ describe('buildXOAuthHeader', () => {
 
 describe('createXPost', () => {
   it('returns the X Post ID after an accepted request', async () => {
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ data: { id: 'post-123', text: 'hello' } }), { status: 201 }),
-      )
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ data: { id: '2012345678901234567', text: 'hello' } }), {
+        status: 201,
+      }),
+    )
 
     await expect(
       createXPost('hello', CREDENTIALS, {
@@ -39,7 +39,11 @@ describe('createXPost', () => {
         now: new Date('2026-07-21T13:00:00.000Z'),
         nonce: 'nonce',
       }),
-    ).resolves.toEqual({ kind: 'published', externalPostId: 'post-123', text: 'hello' })
+    ).resolves.toEqual({
+      kind: 'published',
+      externalPostId: '2012345678901234567',
+      text: 'hello',
+    })
     expect(fetcher).toHaveBeenCalledOnce()
     const [, init] = fetcher.mock.calls[0]!
     expect(init?.method).toBe('POST')
@@ -89,17 +93,20 @@ describe('createXPost', () => {
     expect(fetcher).toHaveBeenCalledOnce()
   })
 
-  it('classifies a successful response without a Post ID as unknown', async () => {
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(new Response(JSON.stringify({ data: { text: 'hello' } }), { status: 201 }))
+  it.each([{ text: 'hello' }, { id: 'not-a-decimal-id', text: 'hello' }])(
+    'classifies a successful response without a valid decimal Post ID as unknown',
+    async (data) => {
+      const fetcher = vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response(JSON.stringify({ data }), { status: 201 }))
 
-    await expect(createXPost('hello', CREDENTIALS, { fetch: fetcher })).resolves.toEqual({
-      kind: 'unknown',
-      httpStatus: 201,
-      reason: 'X API returned success without a Post ID.',
-    })
-  })
+      await expect(createXPost('hello', CREDENTIALS, { fetch: fetcher })).resolves.toEqual({
+        kind: 'unknown',
+        httpStatus: 201,
+        reason: 'X API returned success without a valid decimal Post ID.',
+      })
+    },
+  )
 })
 
 describe('verifyXAccount', () => {

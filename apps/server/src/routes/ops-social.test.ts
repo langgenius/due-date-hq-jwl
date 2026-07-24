@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const dbMocks = vi.hoisted(() => ({
   createDb: vi.fn(() => ({ kind: 'db' })),
   listPosts: vi.fn(),
+  listRecentPublishedPostsForReview: vi.fn(),
   listReadyPostsForProjection: vi.fn(),
   listDraftPostsForQueuePreview: vi.fn(),
   listOccupiedPublishDates: vi.fn(),
@@ -26,6 +27,7 @@ const xMocks = vi.hoisted(() => ({
 
 vi.mock('@duedatehq/db', () => ({
   createDb: dbMocks.createDb,
+  isValidXPostId: (value: string) => /^\d{1,30}$/u.test(value),
   makeSocialOpsRepo: dbMocks.makeSocialOpsRepo,
 }))
 
@@ -89,6 +91,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   dbMocks.makeSocialOpsRepo.mockReturnValue({
     listPosts: dbMocks.listPosts,
+    listRecentPublishedPostsForReview: dbMocks.listRecentPublishedPostsForReview,
     listReadyPostsForProjection: dbMocks.listReadyPostsForProjection,
     listDraftPostsForQueuePreview: dbMocks.listDraftPostsForQueuePreview,
     listOccupiedPublishDates: dbMocks.listOccupiedPublishDates,
@@ -112,6 +115,7 @@ beforeEach(() => {
   dbMocks.markFailed.mockResolvedValue(true)
   dbMocks.cancelIneligiblePosts.mockResolvedValue(0)
   dbMocks.listReadyPostsForProjection.mockResolvedValue([])
+  dbMocks.listRecentPublishedPostsForReview.mockResolvedValue([])
   dbMocks.listDraftPostsForQueuePreview.mockResolvedValue([])
   dbMocks.listOccupiedPublishDates.mockResolvedValue([])
   dbMocks.listEligibleCandidates.mockResolvedValue([])
@@ -157,6 +161,7 @@ describe('social ops routes', () => {
     expect(reviewStatusWithoutToken.status).toBe(404)
     expect(seedWithoutToken.status).toBe(404)
     expect(dbMocks.listPosts).not.toHaveBeenCalled()
+    expect(dbMocks.listRecentPublishedPostsForReview).not.toHaveBeenCalled()
     expect(dbMocks.listReadyPostsForProjection).not.toHaveBeenCalled()
     expect(dbMocks.listEligibleCandidates).not.toHaveBeenCalled()
   })
@@ -187,6 +192,8 @@ describe('social ops routes', () => {
       status: 'ready',
       approvedBy: 'user-1',
       approvedAt: new Date('2026-07-23T02:30:00.000Z'),
+      xPostId: 'must-not-appear-before-published',
+      publishedAt: new Date('2026-07-23T02:31:00.000Z'),
       updatedAt: new Date('2026-07-23T02:30:00.000Z'),
     })
 
@@ -204,10 +211,92 @@ describe('social ops routes', () => {
         status: 'ready',
         postText: 'Frozen public copy',
         approvedAt: '2026-07-23T02:30:00.000Z',
+        xPostId: null,
+        publishedAt: null,
         updatedAt: '2026-07-23T02:30:00.000Z',
       },
     })
     expect(JSON.stringify(payload)).not.toMatch(/pulse|refToken|targetUrl|approvedBy|user-1/u)
+  })
+
+  it('returns the X Post ID and publication time for an exact published Post', async () => {
+    dbMocks.getPost.mockResolvedValue({
+      id: POST_ID,
+      pulseId: 'pulse-1',
+      refToken: 'must-not-leak',
+      postText: 'Frozen public copy',
+      targetUrl: 'https://app.duedatehq.com/alerts?ref=must-not-leak',
+      status: 'published',
+      approvedBy: 'user-1',
+      approvedAt: new Date('2026-07-23T02:30:00.000Z'),
+      xPostId: '2068886465254150144',
+      publishedAt: new Date('2026-07-24T13:00:03.000Z'),
+      updatedAt: new Date('2026-07-24T13:00:03.000Z'),
+    })
+
+    const response = await opsRoute.request(
+      `/social/${POST_ID}/review-status`,
+      authorizedInit(),
+      env(),
+    )
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      post: {
+        id: POST_ID,
+        status: 'published',
+        postText: 'Frozen public copy',
+        approvedAt: '2026-07-23T02:30:00.000Z',
+        xPostId: '2068886465254150144',
+        publishedAt: '2026-07-24T13:00:03.000Z',
+        updatedAt: '2026-07-24T13:00:03.000Z',
+      },
+    })
+  })
+
+  it('optionally returns only recent published review fields for the GitHub mirror', async () => {
+    dbMocks.listRecentPublishedPostsForReview.mockResolvedValue([
+      {
+        id: POST_ID,
+        status: 'published',
+        postText: 'Frozen public copy',
+        approvedAt: new Date('2026-07-23T02:30:00.000Z'),
+        xPostId: '2068886465254150144',
+        publishedAt: new Date('2026-07-24T13:00:03.000Z'),
+        updatedAt: new Date('2026-07-24T13:00:03.000Z'),
+        pulseId: 'must-not-leak',
+        refToken: 'must-not-leak',
+        targetUrl: 'https://app.duedatehq.com/alerts?ref=must-not-leak',
+        approvedBy: 'user-1',
+      },
+    ])
+
+    const response = await opsRoute.request(
+      '/social/queue?includePublished=true',
+      authorizedInit(),
+      env(),
+    )
+
+    expect(response.status).toBe(200)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      published: [
+        {
+          id: POST_ID,
+          status: 'published',
+          postText: 'Frozen public copy',
+          approvedAt: '2026-07-23T02:30:00.000Z',
+          xPostId: '2068886465254150144',
+          publishedAt: '2026-07-24T13:00:03.000Z',
+          updatedAt: '2026-07-24T13:00:03.000Z',
+        },
+      ],
+    })
+    expect(JSON.stringify(payload)).not.toMatch(/pulse|refToken|targetUrl|approvedBy|user-1/u)
+    expect(dbMocks.listRecentPublishedPostsForReview).toHaveBeenCalledWith({
+      channel: 'x',
+      limit: 100,
+    })
   })
 
   it('uses a 14-day queue preview when the CLI omits a horizon', async () => {
@@ -724,10 +813,21 @@ describe('social ops routes', () => {
     )
     expect(invalid.status).toBe(400)
 
+    const malformed = await opsRoute.request(
+      `/social/${POST_ID}/reconcile`,
+      authorizedInit({ outcome: 'published', externalPostId: 'not-a-decimal-id' }),
+      env(),
+    )
+    expect(malformed.status).toBe(400)
+    await expect(malformed.json()).resolves.toEqual({
+      error: 'externalPostId must contain only decimal digits',
+    })
+    expect(dbMocks.reconcilePost).not.toHaveBeenCalled()
+
     dbMocks.reconcilePost.mockResolvedValue(true)
     const reconciled = await opsRoute.request(
       `/social/${POST_ID}/reconcile`,
-      authorizedInit({ outcome: 'published', externalPostId: 'x-123' }),
+      authorizedInit({ outcome: 'published', externalPostId: '2012345678901234567' }),
       env(),
     )
     expect(reconciled.status).toBe(200)
@@ -735,7 +835,7 @@ describe('social ops routes', () => {
       expect.objectContaining({
         postId: POST_ID,
         outcome: 'published',
-        externalPostId: 'x-123',
+        externalPostId: '2012345678901234567',
       }),
     )
   })

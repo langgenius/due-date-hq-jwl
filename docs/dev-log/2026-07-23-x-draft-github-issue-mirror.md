@@ -27,6 +27,10 @@ publishing authority.
 - The workflow now updates the exact bot-owned draft comment to
   `approved · ready` using a stable `postId + approvedAt` marker. A missing original comment creates
   an approved snapshot; a forged public marker is ignored.
+- Follow-up on 2026-07-24 extended the same presentation path through publication: normal probes
+  read a bounded D1-backed published allowlist and PATCH an existing bot comment with
+  `postId + publishedAt`, the public X link, and publication time. The Worker still has no GitHub
+  credential, and an HTTP 202 enqueue response is not treated as published.
 - Revision markers use `postId + updatedAt`: duplicate probes do not repeat a comment, while a
   definite publish failure that returns the same Post to draft produces a new review notification.
 - The public comment allowlist contains the exact deterministic copy in a Markdown code block, a

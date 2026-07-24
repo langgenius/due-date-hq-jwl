@@ -347,6 +347,8 @@ approved, externally useful global Pulse
   -> next 09:00 ET scheduler or exact-post publish-now control
   -> read-only OAuth 1.0a /2/users/me preflight before a manual live claim
   -> draft_only shadow OR SOCIAL_QUEUE -> X POST /2/tweets
+     -> Queue consumer records published + xPostId + publishedAt in D1
+     -> later GitHub Actions read-only probe -> same bot comment becomes published with X link
   -> /alerts?ref=<opaque token>
   -> login / firm onboarding keeps intent
   -> protected pulse.resolveSocialAlert
@@ -383,20 +385,28 @@ Social Ops 通过 `GET /api/ops/social/queue` 提供只读的等待序列，CLI 
 09:00 ET claim 一条。
 
 `.github/workflows/x-draft-review.yml` 在 09:00 ET 日槽之后两次 best-effort 读取同一个 queue
-projection，并把当前可见的未同步 draft revision 镜像为公开 GitHub Issue comment。该旁路按
-`postId + updatedAt` 幂等，评论正文只取确定性 X copy、非锁定的最早 queue horizon 和人工 approve
-命令；不 dump Social row，也不写 D1。Issue comment / reaction / label / open-close 没有任何箭头
-回到 `ready`，Actions 延迟或失败也不阻断 Worker。公开镜像是刻意新增的 pre-publication surface：
-tracked ref URL 会提前出现在不可点击的 code block 中，但 ref 不是授权凭证，完整 Alert 仍经过登录、
-firm 与 tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威。
+projection，并把当前可见的未同步 draft revision 镜像为公开 GitHub Issue comment。它同时用
+`includePublished=true` 读取最近 100 条 D1 `published` 的窄字段 projection；若其中 Post 已有
+bot comment，就把同一条评论更新为 `published`，展示 `publishedAt` 和由数字 `xPostId` 构成的 X
+链接，不为从未镜像的历史 published Post 补建评论。draft 旁路按 `postId + updatedAt` 幂等，
+approved 按 `postId + approvedAt` 幂等，published 按 `postId + publishedAt` 幂等；评论正文只取
+确定性 X copy、公开 lifecycle 字段、非锁定的最早 queue horizon 和人工 approve 命令，不 dump
+Social row，也不写 D1。Issue comment / reaction / label / open-close 没有任何箭头回到 `ready`，
+Actions 延迟或失败也不阻断 Worker。公开镜像是刻意新增的 pre-publication surface：tracked ref
+URL 会提前出现在不可点击的 code block 中，但 ref 不是授权凭证，完整 Alert 仍经过登录、firm 与
+tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威。
 
 生产 CLI 的 approve 成功后，响应带回原 draft 的 `postId + draftUpdatedAt`，随后 best-effort
 触发同一 default-branch workflow。workflow 不信任本地文案，而是调用 token-gated
 `GET /api/ops/social/:postId/review-status`；该接口只返回 ID、当前状态、最终冻结 public copy、
-`approvedAt / updatedAt`。脚本按 exact draft revision 找到由 `github-actions[bot]` 创建的评论，
-以 `postId + approvedAt` 幂等 PATCH 为 `approved · ready`；原评论缺失时新增 approved snapshot，
-不误改同一 Post 的旧 revision。dispatch/PATCH 失败只影响 GitHub presentation，不回滚已经提交的
-D1 approval，CLI 会明确输出 targeted retry 命令。
+`approvedAt / xPostId / publishedAt / updatedAt`。脚本按 exact draft revision 找到由
+`github-actions[bot]` 创建的评论，以 `postId + approvedAt` 幂等 PATCH 为 `approved · ready`；
+原评论缺失时新增 approved snapshot，不误改同一 Post 的旧 revision。发布接口的 HTTP 202 只代表
+Queue 已接收，不会提前更新 GitHub 为 published；只有 Queue consumer 或显式 reconcile 已把
+`status=published`、`xPostId`、`publishedAt` 写入 D1 后，后续 schedule / scoped push / manual
+workflow 才会更新评论。Worker 不持有 GitHub PAT 或写凭据，所有 Issue PATCH 只发生在 Actions。
+dispatch/PATCH 失败只影响 GitHub presentation，不回滚已经提交的 D1 状态，CLI 会明确输出
+targeted retry 命令。
 
 Social Ops 的 `publish-now` 只能 claim 指定的 eligible `ready` Post，并仍受同一唯一键
 约束；同日同 Post 的 `draft_only` 只有在再次 approve 后才能原位升级为 `queued`，不能把影子

@@ -53,7 +53,7 @@ describe('consumeXPublish', () => {
     const socialRepo = repo()
     const createPost = vi.fn().mockResolvedValue({
       kind: 'published',
-      externalPostId: 'x-123',
+      externalPostId: '2012345678901234567',
       text: 'frozen post text',
     })
     const now = NOW
@@ -64,7 +64,11 @@ describe('consumeXPublish', () => {
         createPost,
         now,
       }),
-    ).resolves.toEqual({ status: 'published', runId: 'run-1', externalPostId: 'x-123' })
+    ).resolves.toEqual({
+      status: 'published',
+      runId: 'run-1',
+      externalPostId: '2012345678901234567',
+    })
     expect(createPost).toHaveBeenCalledOnce()
     expect(socialRepo.markSending).toHaveBeenCalledWith({
       runId: 'run-1',
@@ -73,7 +77,7 @@ describe('consumeXPublish', () => {
     })
     expect(socialRepo.markPublished).toHaveBeenCalledWith({
       runId: 'run-1',
-      externalPostId: 'x-123',
+      externalPostId: '2012345678901234567',
       now,
     })
   })

@@ -50,27 +50,34 @@ Lingui drift gate 的步骤是：`vp run @duedatehq/app#i18n:extract`（`lingui 
 worktree 开始，在 CI 后再次对 `apps/app/src/i18n/locales` 执行 `git diff --exit-code`，因此本地
 生成出的未提交 catalog drift 会阻断 push，不再等独立 hosted workflow 才发现。
 
-#### X draft review notifier（`.github/workflows/x-draft-review.yml`）
+#### X review lifecycle notifier（`.github/workflows/x-draft-review.yml`）
 
 该 workflow 不是 CI status check、deploy job 或 X scheduler。它在 09:17 / 09:47
-`America/New_York` best-effort 读取 production Social queue，并把未同步 draft revision 写入一个
-公开 Issue；另有 `workflow_dispatch` 和仅在 mirror 文件变化时生效的 scoped main-push trigger。
-固定 concurrency group 串行所有入口，第二次 probe 用于吸收 Worker/Actions 延迟。
+`America/New_York` best-effort 读取 production Social queue，并把未同步 draft revision 与
+D1 已确认的 published lifecycle 写入一个公开 Issue；另有 `workflow_dispatch` 和仅在 mirror
+文件变化时生效的 scoped main-push trigger。固定 concurrency group 串行所有入口，第二次 probe
+用于吸收 Worker/X Queue/Actions 延迟。
 production `pnpm social:x -- approve` 成功后还会用已登录的 `gh` best-effort 触发
 `workflow_dispatch(post_id, draft_updated_at)`；这只加速 presentation 更新，不参与审批事务。
 
 job 使用 `due-date-hq-staging` environment；`GITHUB_TOKEN` 只给 `contents: read` /
-`issues: write`，Social bearer 只用于 `GET /api/ops/social/queue`。它不运行 `pnpm social:x`，
-不把 raw queue payload 打进公开 Actions log，也不允许 PR/fork code 获取 environment secret。
+`issues: write`，Social bearer 只用于 `GET /api/ops/social/queue?includePublished=true` 和
+targeted review-status GET。Worker 不持有 GitHub PAT/write credential。workflow 不运行
+`pnpm social:x`，不把 raw queue payload 打进公开 Actions log，也不允许 PR/fork code 获取
+environment secret。
 Issue 通过隐藏 body marker 复用，closed issue 自动 reopen；comment 通过
 `postId + updatedAt` marker 去重，因此同 revision 的两次 probe 不重复，失败后回到 draft 的新
 revision 仍会再次通知。targeted dispatch 从 token-gated single-Post allowlist 读取 approval 后的
 最终 frozen copy，以 `postId + approvedAt` marker 幂等 PATCH exact bot comment；找不到原 comment
-时才新建 approved snapshot。Issue/comment marker 只信任 `github-actions[bot]` author，
-Issues/comments 都以 100 行分页完整读取。
+时才新建 approved snapshot。普通 probe 另外读取最多 100 条最近 published allowlist，并仅在已有
+bot comment 时以 `postId + publishedAt` marker PATCH 同一条评论，展示 validated X Post link 与
+published timestamp，不补建历史评论。HTTP 202 queued 不算 published；必须先由 Queue consumer
+或 reconcile 将 `status=published / xPostId / publishedAt` 写入 D1。Issue/comment marker 只信任
+`github-actions[bot]` author，Issues/comments 都以 100 行分页完整读取。
 
-`pnpm test:automation` 覆盖 public comment allowlist/code block、Issue 创建与 reopen、revision
-幂等、targeted status PATCH、approval-boundary frozen copy、伪造 marker 隔离、credential origin
+`pnpm test:automation` 覆盖 public comment allowlist/code block、Issue 创建与 reopen、draft /
+approved / published marker 幂等、same-comment publication PATCH、published time/X link、
+targeted status PATCH、approval-boundary frozen copy、伪造 marker 隔离、credential origin
 隔离、response error redaction、无效 queue fail-closed，以及脚本 import 不会触发真实请求。
 Vitest 另覆盖 approve 2xx 后才 dispatch、4xx 不 dispatch、本地 origin 不触发、Social secrets
 不进入 `gh` child env，以及 GitHub dispatch 失败不伪装成 D1 approval 失败。workflow run 同时
@@ -247,7 +254,7 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 | Pulse ingest idle     | Cron 未运行 > 2h                                | Cron health check                                            |
 | X social backlog      | 最老 ready > 7d                                 | `social.x.backlog_stale` ops alert + Workers Logs            |
 | X ambiguous publish   | 任意 `unknown`                                  | 停止重试；按 `docs/ops/x-daily-alert-publishing.md` 人工对账 |
-| X draft issue mirror  | run failed / >24h 无成功 / draft view truncated | GitHub Actions 告警；CLI queue fallback，不阻断 X            |
+| X review issue mirror | run failed / >24h 无成功 / draft view truncated | GitHub Actions 告警；CLI queue fallback，不阻断 X            |
 
 ### 4.3 Worker request observability
 

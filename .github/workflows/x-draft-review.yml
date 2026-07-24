@@ -1,8 +1,9 @@
 name: X Draft Review Issue
 
 # The Cloudflare Worker remains the only X scheduling authority. This workflow
-# mirrors its read-only review queue into one public GitHub issue after the
-# 09:00 ET Worker slot. Two idempotent probes cover delayed Cron/Actions delivery.
+# mirrors its read-only review lifecycle into one public GitHub issue after the
+# 09:00 ET Worker slot. Two idempotent probes cover delayed Cron, X Queue, and
+# Actions delivery.
 on:
   schedule:
     - cron: '17,47 9 * * *'
@@ -49,5 +50,5 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Mirror X drafts and approval status into the review issue
+      - name: Mirror X draft and publication status into the review issue
         run: node scripts/social-x-github-review.mjs

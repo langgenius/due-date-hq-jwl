@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import {
   createDb,
+  isValidXPostId,
   makeSocialOpsRepo,
   type SocialAlertPost,
   type SocialAlertPriority,
   type SocialAlertPostStatus,
   type SocialQueuePost,
+  type SocialReviewPost,
 } from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
@@ -65,6 +67,7 @@ const SOCIAL_POST_STATUSES = new Set<string>(SOCIAL_POST_STATUS_VALUES)
 const DEFAULT_SOCIAL_DRAFT_SEED_COUNT = 3
 const MAX_SOCIAL_DRAFT_SEED_COUNT = 14
 const SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT = 100
+const SOCIAL_PUBLISHED_REVIEW_LIMIT = 100
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
@@ -95,6 +98,19 @@ function isQueuePreviewPost(
   post: SocialQueuePost,
 ): post is SocialQueuePost & { status: 'draft' | 'ready' } {
   return post.status === 'draft' || post.status === 'ready'
+}
+
+function socialReviewPostPayload(post: SocialReviewPost) {
+  const isPublished = post.status === 'published'
+  return {
+    id: post.id,
+    status: post.status,
+    postText: post.postText,
+    approvedAt: post.approvedAt?.toISOString() ?? null,
+    xPostId: isPublished ? (post.xPostId ?? null) : null,
+    publishedAt: isPublished ? (post.publishedAt?.toISOString() ?? null) : null,
+    updatedAt: post.updatedAt.toISOString(),
+  }
 }
 
 function socialPostStatus(value: string | undefined): SocialAlertPostStatus | undefined {
@@ -165,11 +181,16 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
 
     const days = queuePreviewDays(c.req.query('days'))
     if (days === null) return c.json({ error: 'days must be an integer from 1 to 100' }, 400)
+    const rawIncludePublished = c.req.query('includePublished')
+    if (rawIncludePublished && rawIncludePublished !== 'true') {
+      return c.json({ error: 'includePublished must be true when provided' }, 400)
+    }
+    const includePublished = rawIncludePublished === 'true'
 
     const now = new Date()
     const repo = makeSocialOpsRepo(createDb(c.env.DB))
     const readLimit = days + 1
-    const [readyRows, draftRows, occupiedLocalDates] = await Promise.all([
+    const [readyRows, draftRows, occupiedLocalDates, publishedRows] = await Promise.all([
       repo.listReadyPostsForProjection({
         channel: 'x',
         limit: readLimit,
@@ -180,11 +201,20 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
         fromLocalDate: nextXDailySlotLocalDate(now),
         limit: days,
       }),
+      includePublished
+        ? repo.listRecentPublishedPostsForReview({
+            channel: 'x',
+            limit: SOCIAL_PUBLISHED_REVIEW_LIMIT,
+          })
+        : Promise.resolve([]),
     ])
     const posts = [...readyRows, ...draftRows.slice(0, 100)].filter(isQueuePreviewPost)
     const preview = buildXQueuePreview({ now, days, posts, occupiedLocalDates })
     return c.json({
       ...preview,
+      ...(includePublished
+        ? { published: publishedRows.map((post) => socialReviewPostPayload(post)) }
+        : {}),
       readyBacklogTruncated: readyRows.length > days,
       draftBacklogTruncated: draftRows.length > 100,
     })
@@ -212,15 +242,7 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     // This narrow DTO is the only single-Post payload consumed by the public
     // GitHub review mirror. Keep tenant data, reviewer IDs, ref tokens, Pulse
     // metadata, source details, and X credentials out of this boundary.
-    return c.json({
-      post: {
-        id: post.id,
-        status: post.status,
-        postText: post.postText,
-        approvedAt: post.approvedAt?.toISOString() ?? null,
-        updatedAt: post.updatedAt.toISOString(),
-      },
-    })
+    return c.json({ post: socialReviewPostPayload(post) })
   })
   .post('/social/drafts/seed', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()
@@ -523,6 +545,9 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     const reason = optionalString(raw.reason)
     if (outcome === 'published' && !externalPostId) {
       return c.json({ error: 'externalPostId is required for a published outcome' }, 400)
+    }
+    if (outcome === 'published' && externalPostId && !isValidXPostId(externalPostId)) {
+      return c.json({ error: 'externalPostId must contain only decimal digits' }, 400)
     }
     if (outcome === 'not_published' && !reason) {
       return c.json({ error: 'reason is required for a not_published outcome' }, 400)

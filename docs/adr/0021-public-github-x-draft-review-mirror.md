@@ -20,7 +20,8 @@ manually copied URL can contaminate `utm_source=x` attribution.
 Use one stable public GitHub Issue as a best-effort review-notification mirror.
 
 - The Cloudflare Worker, D1 outbox, and `SOCIAL_QUEUE` remain the only scheduling and publishing
-  authority. The GitHub workflow reads `GET /api/ops/social/queue` and never calls a Social mutation.
+  authority. The GitHub workflow reads `GET /api/ops/social/queue?includePublished=true` and never
+  calls a Social mutation.
 - Run two serialized probes at 09:17 and 09:47 `America/New_York`, plus a manual dispatch fallback.
   GitHub schedule timing is not a publication SLA.
 - Create or reopen the Issue by a stable body marker. Add one comment for each unseen
@@ -31,6 +32,11 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
   `/api/ops/social/:postId/review-status` allowlist, then updates that bot-owned comment with the
   final approval-boundary copy and an idempotent `postId + approvedAt` state marker. A missing
   draft comment produces a new approved-state comment rather than editing another revision.
+- A scheduled, scoped-push, or manual probe also reads the server's bounded list of recent
+  D1-confirmed `published` Posts. When the corresponding bot comment exists, the workflow updates
+  that same comment with `postId + publishedAt`, the publication timestamp, and a validated
+  `https://x.com/i/web/status/<xPostId>` link. It does not create comments for older published Posts
+  that were never mirrored.
 - Allowlist only the exact deterministic X copy, a non-reserved earliest queue horizon, and the
   operator approval command. Never dump the raw queue row or include Pulse/source, reviewer,
   credential, firm, client, or email data.
@@ -42,7 +48,8 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
   copy a marker, but cannot suppress a notification or redirect a status update.
 - Use the protected `due-date-hq-staging` environment for the existing Social bearer, restrict the
   workflow to default-branch schedule/dispatch/scoped push, disable redirects, and grant the
-  short-lived `GITHUB_TOKEN` only `contents: read` plus `issues: write`.
+  short-lived `GITHUB_TOKEN` only `contents: read` plus `issues: write`. Do not place a GitHub PAT
+  or GitHub write credential in the Worker; all Issue writes remain inside GitHub Actions.
 
 ## Consequences
 
@@ -50,6 +57,9 @@ Use one stable public GitHub Issue as a best-effort review-notification mirror.
 - After a CLI approval, the same comment normally changes to `approved · ready` and shows the
   final frozen copy. GitHub dispatch/PATCH failure is reported separately and never rolls back the
   already-committed D1 approval.
+- After the Queue consumer has recorded both `xPostId` and `publishedAt` in D1, a later workflow
+  probe normally changes that comment to `published` and links the public X Post. An HTTP 202 from
+  `publish-now` means only `queued` and is not sufficient to show a published status.
 - Notification failure cannot block or duplicate X publication; the CLI remains the canonical
   fallback.
 - Draft copy and its ref URL become intentionally public before X approval and remain in Issue

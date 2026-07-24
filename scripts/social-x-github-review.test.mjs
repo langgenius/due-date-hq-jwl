@@ -7,6 +7,7 @@ import {
   buildDraftReviewComment,
   draftCommentMarker,
   planApprovedCommentSync,
+  publishedCommentMarker,
   selectUnmirroredDrafts,
   syncXDraftReviewIssue,
   X_DRAFT_REVIEW_ISSUE_MARKER,
@@ -39,6 +40,13 @@ const READY_POST = {
   readyAt: '2026-07-23T14:00:00.000Z',
   updatedAt: '2026-07-23T14:00:00.000Z',
 }
+const PUBLISHED_POST = {
+  ...READY_POST,
+  status: 'published',
+  xPostId: '2012345678901234567',
+  publishedAt: '2026-07-24T13:00:03.000Z',
+  updatedAt: '2026-07-24T13:00:03.000Z',
+}
 const DRAFT = {
   projectedLocalDate: null,
   reason: 'approval_required',
@@ -49,6 +57,10 @@ const READY = {
   projectedLocalDate: '2026-07-24',
   projectedAt: '2026-07-24T13:00:00.000Z',
   post: READY_POST,
+}
+const PUBLISHED = {
+  existingCommentRequired: true,
+  post: PUBLISHED_POST,
 }
 const QUEUE = {
   fromLocalDate: '2026-07-24',
@@ -141,6 +153,7 @@ describe('X draft GitHub review mirror', () => {
       issueUrl: ISSUE.html_url,
       draftsSeen: 1,
       approvedSeen: 0,
+      publishedSeen: 0,
       draftBacklogTruncated: false,
       commentsCreated: 1,
       commentsUpdated: 0,
@@ -261,6 +274,67 @@ describe('X draft GitHub review mirror', () => {
     assert.doesNotMatch(body, /approve 'post-1'|approvedBy|user-1|pulse-1/u)
   })
 
+  it('updates the same approved comment after X publication with link and terminal time', async () => {
+    const draftMarker = draftCommentMarker('post-1', DRAFT_POST.updatedAt)
+    const approvedBody = buildApprovedReviewComment(READY, QUEUE, draftMarker)
+    const publishedQueue = {
+      ...QUEUE,
+      drafts: [],
+      ready: [],
+      published: [PUBLISHED_POST],
+    }
+    const calls = []
+    const fetchImpl = async (input, init = {}) => {
+      const url = new URL(String(input))
+      const method = init.method ?? 'GET'
+      calls.push({ url, method, body: init.body })
+
+      if (url.origin === 'https://app.duedatehq.com') return jsonResponse(publishedQueue)
+      if (url.pathname.endsWith('/issues') && method === 'GET') return jsonResponse([ISSUE])
+      if (url.pathname.endsWith('/issues/42/comments') && method === 'GET') {
+        return jsonResponse([botComment(approvedBody)])
+      }
+      if (url.pathname.endsWith('/issues/comments/500') && method === 'PATCH') {
+        return jsonResponse({
+          ...botComment(JSON.parse(init.body).body),
+          body: JSON.parse(init.body).body,
+        })
+      }
+      throw new Error(`Unexpected request: ${method} ${url}`)
+    }
+
+    const result = await syncXDraftReviewIssue({ env: ENV, fetchImpl })
+    const update = calls.find(
+      (call) => call.method === 'PATCH' && call.url.pathname.endsWith('/issues/comments/500'),
+    )
+    const body = JSON.parse(update.body).body
+
+    assert.equal(result.publishedSeen, 1)
+    assert.equal(result.approvedSeen, 1)
+    assert.equal(result.commentsUpdated, 1)
+    assert.equal(result.commentsCreated, 0)
+    assert.equal(calls.filter((call) => call.method === 'POST').length, 0)
+    assert.equal(
+      calls
+        .find((call) => call.url.origin === 'https://app.duedatehq.com')
+        .url.searchParams.get('includePublished'),
+      'true',
+    )
+    assert.match(body, /## X Alert · published/u)
+    assert.match(body, /Publishing status: ✅ `published` on X/u)
+    assert.match(body, /Final frozen X copy/u)
+    assert.match(body, new RegExp(`https://x\\.com/i/web/status/${PUBLISHED_POST.xPostId}`, 'u'))
+    assert.match(body, new RegExp(PUBLISHED_POST.approvedAt, 'u'))
+    assert.match(body, new RegExp(PUBLISHED_POST.publishedAt, 'u'))
+    assert.match(body, new RegExp(draftMarker, 'u'))
+    assert.match(body, new RegExp(approvedCommentMarker('post-1', PUBLISHED_POST.approvedAt), 'u'))
+    assert.match(
+      body,
+      new RegExp(publishedCommentMarker('post-1', PUBLISHED_POST.publishedAt), 'u'),
+    )
+    assert.doesNotMatch(body, /Current tentative slot|Current queue position/u)
+  })
+
   it('uses the targeted status endpoint and exact draft revision outside the queue horizon', async () => {
     const olderDraftAt = '2026-07-20T10:00:00.000Z'
     const targetPost = {
@@ -362,6 +436,85 @@ describe('X draft GitHub review mirror', () => {
         [{ ...forged, body: draftCommentMarker('post-1', DRAFT_POST.updatedAt) }],
       ).length,
       1,
+    )
+  })
+
+  it('does not repeat a published revision and ignores forged public published markers', () => {
+    const draftMarker = draftCommentMarker('post-1', DRAFT_POST.updatedAt)
+    const approvedBody = buildApprovedReviewComment(READY, QUEUE, draftMarker)
+    const publishedBody = buildApprovedReviewComment(PUBLISHED, QUEUE, draftMarker)
+    const stateMarker = publishedCommentMarker('post-1', PUBLISHED_POST.publishedAt)
+    const forged = {
+      id: 900,
+      body: `${stateMarker}\nForged`,
+      user: { login: 'attacker', type: 'User' },
+    }
+
+    assert.equal(planApprovedCommentSync([PUBLISHED], [botComment(publishedBody)], QUEUE).length, 0)
+
+    const plans = planApprovedCommentSync([PUBLISHED], [forged, botComment(approvedBody)], QUEUE)
+    assert.equal(plans.length, 1)
+    assert.equal(plans[0].kind, 'update')
+    assert.equal(plans[0].commentId, 500)
+    assert.match(plans[0].body, new RegExp(stateMarker, 'u'))
+  })
+
+  it('updates the original draft directly when the approval refresh was missed', () => {
+    const originalDraftBody = buildDraftReviewComment(DRAFT, QUEUE)
+    const plans = planApprovedCommentSync([PUBLISHED], [botComment(originalDraftBody)], QUEUE)
+
+    assert.equal(plans.length, 1)
+    assert.equal(plans[0].kind, 'update')
+    assert.equal(plans[0].commentId, 500)
+    assert.match(plans[0].body, /## X Alert · published/u)
+    assert.match(
+      plans[0].body,
+      new RegExp(publishedCommentMarker('post-1', PUBLISHED_POST.publishedAt), 'u'),
+    )
+    assert.match(
+      plans[0].body,
+      new RegExp(approvedCommentMarker('post-1', PUBLISHED_POST.approvedAt), 'u'),
+    )
+    assert.match(plans[0].body, new RegExp(draftCommentMarker('post-1', DRAFT_POST.updatedAt), 'u'))
+  })
+
+  it('does not create a historical published comment when no bot comment exists', () => {
+    assert.deepEqual(planApprovedCommentSync([PUBLISHED], [], QUEUE), [])
+  })
+
+  it('rejects invalid published metadata before any GitHub read or write', async () => {
+    const invalidPosts = [
+      {
+        post: { ...PUBLISHED_POST, xPostId: 'not-an-x-post-id' },
+        expected: /X Post ID must contain only decimal digits/u,
+      },
+      {
+        post: { ...PUBLISHED_POST, publishedAt: '' },
+        expected: /Social Post publication time is required/u,
+      },
+    ]
+
+    await Promise.all(
+      invalidPosts.map(async (invalid) => {
+        const calls = []
+        const fetchImpl = async (input, init = {}) => {
+          const url = new URL(String(input))
+          calls.push({ url, method: init.method ?? 'GET' })
+          if (url.origin === 'https://app.duedatehq.com') {
+            return jsonResponse({
+              ...QUEUE,
+              drafts: [],
+              ready: [],
+              published: [invalid.post],
+            })
+          }
+          throw new Error('GitHub must not be called for invalid published metadata')
+        }
+
+        await assert.rejects(syncXDraftReviewIssue({ env: ENV, fetchImpl }), invalid.expected)
+        assert.equal(calls.length, 1)
+        assert.equal(calls[0].url.origin, 'https://app.duedatehq.com')
+      }),
     )
   })
 

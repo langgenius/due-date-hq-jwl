@@ -23,7 +23,7 @@ import {
 } from './repo/reminders'
 import { makeRulesOpsRepo, makeRulesRepo } from './repo/rules'
 import { makeCalendarFeedRepo, makeCalendarRepo } from './repo/calendar'
-import { makeSocialOpsRepo, SOCIAL_URGENT_WINDOW_MS } from './repo/social'
+import { isValidXPostId, makeSocialOpsRepo, SOCIAL_URGENT_WINDOW_MS } from './repo/social'
 
 export { createDb } from './client'
 export { scoped } from './scoped'
@@ -56,7 +56,7 @@ export { makeRuleConcreteDraftRepo }
 export { makeRemindersRepo, renderReminderTemplate, DEFAULT_REMINDER_TEMPLATES }
 export { makeRulesRepo }
 export { makeRulesOpsRepo }
-export { makeSocialOpsRepo }
+export { isValidXPostId, makeSocialOpsRepo }
 export { SOCIAL_URGENT_WINDOW_MS }
 export type {
   SocialAlertCandidateRow,
@@ -65,6 +65,7 @@ export type {
   SocialOpsRepo,
   SocialPublishPayload,
   SocialQueuePost,
+  SocialReviewPost,
 } from './repo/social'
 export type {
   SocialAlertPost,

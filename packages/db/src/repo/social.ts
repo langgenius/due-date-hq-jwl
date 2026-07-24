@@ -40,6 +40,7 @@ const MAX_LIST_LIMIT = 100
 const MAX_PROJECTION_LIST_LIMIT = 101
 export const SOCIAL_URGENT_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 const SOCIAL_REF_PATTERN = /^[A-Za-z0-9_-]{16,128}$/u
+const X_POST_ID_PATTERN = /^\d{1,30}$/u
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u
 const SOCIAL_EXCLUDED_CHANGE_KINDS: PulseChangeKind[] = [
   'source_status',
@@ -96,6 +97,16 @@ export interface SocialQueuePost extends SocialAlertPost {
   pulseCreatedAt: Date
 }
 
+export interface SocialReviewPost {
+  id: string
+  status: SocialAlertPostStatus
+  postText: string
+  approvedAt: Date | null
+  xPostId: string | null
+  publishedAt: Date | null
+  updatedAt: Date
+}
+
 interface CreateSocialDraftInput {
   pulseId: string
   refToken: string
@@ -126,6 +137,16 @@ const candidateSelection = {
   effectiveUntil: pulse.parsedEffectiveUntil,
   actionDeadline: pulse.protectiveActionDeadline,
   createdAt: pulse.createdAt,
+}
+
+const socialReviewPostSelection = {
+  id: socialAlertPost.id,
+  status: socialAlertPost.status,
+  postText: socialAlertPost.postText,
+  approvedAt: socialAlertPost.approvedAt,
+  xPostId: socialAlertPost.xPostId,
+  publishedAt: socialAlertPost.publishedAt,
+  updatedAt: socialAlertPost.updatedAt,
 }
 
 function candidateConditions(since?: Date): SQL {
@@ -193,6 +214,10 @@ function validateDraftInput(input: CreateSocialDraftInput): void {
 
 export function isValidSocialAlertRef(value: string): boolean {
   return SOCIAL_REF_PATTERN.test(value)
+}
+
+export function isValidXPostId(value: string): boolean {
+  return X_POST_ID_PATTERN.test(value)
 }
 
 function isValidLocalDate(value: string): boolean {
@@ -318,7 +343,7 @@ export function makeSocialOpsRepo(db: Db) {
     httpStatus?: number | null
     now?: Date
   }): Promise<boolean> {
-    if (!input.externalPostId.trim()) throw new SocialOpsRepoError('invalid')
+    if (!isValidXPostId(input.externalPostId)) throw new SocialOpsRepoError('invalid')
     const run = await getRun(input.runId)
     if (!run) return false
     if (run.status === 'published') return run.xPostId === input.externalPostId
@@ -708,6 +733,21 @@ export function makeSocialOpsRepo(db: Db) {
           ),
         )
         .orderBy(asc(socialAlertPost.createdAt), asc(socialAlertPost.id))
+        .limit(clampLimit(input.limit))
+    },
+
+    async listRecentPublishedPostsForReview(
+      input: {
+        channel?: SocialChannel
+        limit?: number
+      } = {},
+    ): Promise<SocialReviewPost[]> {
+      const channel = input.channel ?? 'x'
+      return db
+        .select(socialReviewPostSelection)
+        .from(socialAlertPost)
+        .where(and(eq(socialAlertPost.channel, channel), eq(socialAlertPost.status, 'published')))
+        .orderBy(desc(socialAlertPost.publishedAt), desc(socialAlertPost.id))
         .limit(clampLimit(input.limit))
     },
 

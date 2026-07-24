@@ -131,7 +131,7 @@ function fakeDb(input: {
   const insertedValues: unknown[] = []
   const updatedValues: unknown[] = []
   const db = {
-    select: vi.fn(() => selectChain(selectResponses.shift() ?? [])),
+    select: vi.fn((_selection?: unknown) => selectChain(selectResponses.shift() ?? [])),
     insert: vi.fn(() => mutationChain(insertResponses.shift() ?? [], insertedValues)),
     update: vi.fn(() => mutationChain(updateResponses.shift() ?? [], updatedValues)),
     batch: vi.fn(async (statements: Array<PromiseLike<unknown>>) => Promise.all(statements)),
@@ -230,6 +230,46 @@ describe('makeSocialOpsRepo', () => {
     expect(query.params).not.toContain('urgent')
     expect(chain.orderBy.mock.calls[0]).toHaveLength(2)
     expect(chain.limit).toHaveBeenCalledWith(14)
+  })
+
+  it('reads a narrow recent-published slice for review status synchronization', async () => {
+    const published = {
+      id: POST.id,
+      status: 'published' as const,
+      postText: POST.postText,
+      approvedAt: NOW,
+      xPostId: '2068886465254150144',
+      publishedAt: NOW,
+      updatedAt: NOW,
+    }
+    const { db, raw } = fakeDb({ selectResponses: [[published]] })
+
+    await expect(
+      makeSocialOpsRepo(db).listRecentPublishedPostsForReview({
+        channel: 'x',
+        limit: 100,
+      }),
+    ).resolves.toEqual([published])
+
+    expect(Object.keys(raw.select.mock.calls[0]?.[0] ?? {})).toEqual([
+      'id',
+      'status',
+      'postText',
+      'approvedAt',
+      'xPostId',
+      'publishedAt',
+      'updatedAt',
+    ])
+    const chain = raw.select.mock.results[0]?.value as ReturnType<typeof selectChain>
+    const condition = chain.where.mock.calls[0]?.[0] as SQL
+    const query = new SQLiteSyncDialect().sqlToQuery(condition)
+    expect(query.params).toEqual(expect.arrayContaining(['x', 'published']))
+    expect(
+      (chain.orderBy.mock.calls[0] as SQL[]).map(
+        (item) => new SQLiteSyncDialect().sqlToQuery(item).sql,
+      ),
+    ).toEqual(['"social_alert_post"."published_at" desc', '"social_alert_post"."id" desc'])
+    expect(chain.limit).toHaveBeenCalledWith(100)
   })
 
   it('lists eligible drafts separately without assigning publication state', async () => {
@@ -626,6 +666,20 @@ describe('makeSocialOpsRepo', () => {
     expect(updatedValues[0]).toMatchObject({ status: 'sending', lastAttemptAt: NOW })
   })
 
+  it('rejects a non-decimal X Post ID before reading or writing publication state', async () => {
+    const { db, raw } = fakeDb({})
+
+    await expect(
+      makeSocialOpsRepo(db).markPublished({
+        runId: RUN.id,
+        externalPostId: 'not-a-decimal-id',
+        now: NOW,
+      }),
+    ).rejects.toMatchObject({ code: 'invalid' })
+    expect(raw.select).not.toHaveBeenCalled()
+    expect(raw.update).not.toHaveBeenCalled()
+  })
+
   it('reconciles an ambiguous post to the published terminal state', async () => {
     const unknownRun = { ...RUN, status: 'unknown' as const }
     const { db, updatedValues } = fakeDb({
@@ -636,14 +690,14 @@ describe('makeSocialOpsRepo', () => {
     const result = await makeSocialOpsRepo(db).reconcilePost({
       postId: POST.id,
       outcome: 'published',
-      externalPostId: 'x-post-1',
+      externalPostId: '2012345678901234567',
       now: NOW,
     })
 
     expect(result).toBe(true)
     expect(updatedValues).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ status: 'published', xPostId: 'x-post-1' }),
+        expect.objectContaining({ status: 'published', xPostId: '2012345678901234567' }),
       ]),
     )
   })
@@ -695,7 +749,7 @@ describe('makeSocialOpsRepo', () => {
     await expect(
       makeSocialOpsRepo(publishAttempt.db).markPublished({
         runId: RUN.id,
-        externalPostId: 'x-post-1',
+        externalPostId: '2012345678901234567',
         now: NOW,
       }),
     ).resolves.toBe(false)

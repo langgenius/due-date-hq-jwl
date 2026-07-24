@@ -11,9 +11,10 @@ A separate serialized `SOCIAL_QUEUE` performs the remote X create.
 The `pnpm social:x` script is an operator control plane; do not schedule that script with Codex,
 launchd, GitHub Actions, or another cron.
 `.github/workflows/x-draft-review.yml` is the narrow exception for visibility only: it reads the
-existing queue projection after the daily slot and mirrors unseen drafts to one GitHub issue. It
-never runs the operator CLI, mutates D1, reserves a date, approves a Post, or enqueues X work.
-Actions delay or failure therefore does not affect the Worker publishing path.
+existing queue projection and the bounded published projection after the daily slot, then mirrors
+their lifecycle into one GitHub issue. It never runs the operator CLI, mutates D1, reserves a date,
+approves a Post, or enqueues X work. Actions delay or failure therefore does not affect the Worker
+publishing path.
 
 Hard invariants:
 
@@ -61,6 +62,12 @@ Hard invariants:
   review workflow with only `postId + draftUpdatedAt`. The workflow re-reads the exact Post through a
   token-gated, public-field allowlist and updates the bot-owned draft comment. GitHub failure never
   rolls back or reclassifies an already-committed D1 approval.
+- A Post is shown as published in the Issue only after Social Ops returns the authoritative D1
+  `published` state with both `xPostId` and `publishedAt`. An HTTP 202 enqueue response is still
+  `queued`; it never makes the Issue claim that the Post is live.
+- X API success handling, operator reconciliation, and the repository terminal write all require
+  `xPostId` to contain 1–30 decimal digits. An invalid ID cannot enter the published projection and
+  block unrelated Issue updates.
 
 ## Configuration
 
@@ -97,7 +104,8 @@ the run, sends the Social bearer only to `https://app.duedatehq.com`, and gives 
 repository `GITHUB_TOKEN` only `contents: read` plus `issues: write`. Never print either token or
 the raw queue payload. `SOCIAL_OPS_TOKEN` remains a broad operator credential, so any future
 workflow that needs PR or fork code must use a separate read-only credential rather than expanding
-this trust boundary.
+this trust boundary. The Worker has no GitHub PAT or GitHub write credential; Issue mutations run
+only inside this GitHub Action.
 
 Immediate post-approval status refresh also requires an authenticated GitHub CLI on the operator
 machine:
@@ -207,12 +215,13 @@ change later positions and dates. Run the command again for the current view. Th
 no write, does not consume the daily unique slot, and does not enqueue X work ahead of time. The
 Worker still claims at most one item at 09:00 ET each calendar day; weekends are included.
 
-## Public GitHub draft mirror
+## Public GitHub lifecycle mirror
 
 After the Worker daily slot, the `X Draft Review Issue` workflow probes the queue at 09:17 and 09:47
-`America/New_York`. The second probe covers a delayed Worker or Actions run; both probes are
-serialized and revision-idempotent. GitHub schedule delivery is best effort, so these times are a
-review-notification window rather than a publishing SLA. `workflow_dispatch` is the manual fallback.
+`America/New_York`. The second probe covers delayed Worker, Queue, or Actions work; both probes are
+serialized and state-idempotent. GitHub schedule delivery is best effort, so these times are a
+review/status-notification window rather than a publishing SLA. A scoped default-branch push and
+`workflow_dispatch` are the other supported triggers.
 
 The workflow creates one stable issue on its first successful run, reopens that issue if it was
 closed, and adds one comment for every unseen draft revision in the visible queue response. The
@@ -225,10 +234,10 @@ comment contains a strict allowlist:
 
 After approval, the targeted workflow queries
 `GET /api/ops/social/:postId/review-status`, whose response is restricted to Post ID, status,
-frozen public copy, `approvedAt`, and `updatedAt`. It updates the exact bot-owned draft comment in
-place with:
+frozen public copy, `approvedAt`, `xPostId`, `publishedAt`, and `updatedAt`. It updates the exact
+bot-owned draft comment in place with:
 
-- `approved` plus the current `ready / scheduled / published / unknown / cancelled` state;
+- `approved` plus the current non-published lifecycle state;
 - the final frozen X copy rebuilt at the approval boundary;
 - `approvedAt`, and a tentative slot/position only when visible in the queue projection;
 - an idempotency marker derived from `postId + approvedAt`.
@@ -238,6 +247,23 @@ editing an unrelated revision. Only issues and comments authored by `github-acti
 trusted for hidden-marker matching, so a public user cannot suppress or redirect synchronization
 by copying a marker.
 
+Each normal probe requests
+`GET /api/ops/social/queue?includePublished=true`. The opt-in `published` field is a bounded,
+newest-first allowlist of up to 100 D1-confirmed published Posts; the ordinary operator queue
+preview does not include this history. If a published row matches an existing bot-owned draft or
+approved comment, the workflow PATCHes that same comment with:
+
+- `published` as the X lifecycle status;
+- the exact frozen copy, without a tentative slot or queue position;
+- `approvedAt` and `publishedAt`;
+- a numeric-ID-validated `https://x.com/i/web/status/<xPostId>` link;
+- an idempotency marker derived from `postId + publishedAt`.
+
+The scheduled projection never creates a new comment solely because an older Post appears in the
+published window, which prevents rollout from backfilling historical posts into the Issue. A
+published marker copied by a public user is ignored because marker matching still trusts only bot
+comments.
+
 The repository and issue are public. The tracked `/alerts?ref=...` URL is therefore disclosed before
 X publication, but it remains a non-authorizing locator into the protected registration/login
 flow. Rendering the copy as code prevents casual clicks and `@mention` notifications; manually
@@ -246,10 +272,13 @@ raw queue row, Pulse ID, reviewer, OAuth/Social Ops credentials, tenant fields, 
 client data, or email addresses. Cancelling a draft does not erase its already-public issue history.
 
 The issue is a snapshot, not the source of truth. Approval rebuilds the deterministic copy from the
-current Pulse; the targeted approval refresh replaces the comment with that final frozen copy. If
-`draftBacklogTruncated=true`, the workflow reports the truncation in its run result; the newest
-daily draft remains in the visible newest-first slice, but the Issue is not a complete historical
-backlog.
+current Pulse; the targeted approval refresh replaces the comment with that final frozen copy.
+Publication appears only after the Queue consumer or an explicit reconciliation has persisted
+`status=published`, `xPostId`, and `publishedAt` to D1. In particular, the HTTP 202 returned by
+`publish-now` means only that the message was queued; the next probe continues to show the
+approved/non-published state until D1 confirms publication. If `draftBacklogTruncated=true`, the
+workflow reports the truncation in its run result; the newest daily draft remains in the visible
+newest-first slice, but the Issue is not a complete historical backlog.
 
 ## Immediate live publish
 
@@ -266,7 +295,9 @@ pnpm social:x -- publish-now '<social post id>'
 The endpoint revalidates that exact Post and its Pulse, verifies the authenticated X account with a
 read-only request, atomically reserves the current ET date, and enqueues `social.x.publish`. HTTP 202
 means queued; the serialized Queue consumer performs the remote create and records `published`,
-`failed`, or `unknown`.
+`failed`, or `unknown`. The GitHub Issue remains at its approved/non-published status after that
+HTTP 202. A later scheduled, scoped-push, or manual mirror run updates the same comment only after
+the D1 row is `published` with its X Post ID and publication time.
 
 If today's shadow run already used this same Post, first approve the returned draft again. The exact
 same `draft_only` ledger row is then promoted to `queued`; no second daily row is created. A shadow or

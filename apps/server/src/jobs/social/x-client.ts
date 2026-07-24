@@ -1,6 +1,7 @@
 const X_CREATE_POST_URL = 'https://api.x.com/2/tweets'
 const X_AUTHENTICATED_USER_URL = 'https://api.x.com/2/users/me?user.fields=username'
 const DEFAULT_TIMEOUT_MS = 15_000
+const X_POST_ID_PATTERN = /^\d{1,30}$/u
 
 export interface XOAuthCredentials {
   apiKey: string
@@ -140,11 +141,11 @@ export async function createXPost(
 
     const parsed = parseJsonRecord(responseText)
     const data = parsed && isRecord(parsed.data) ? parsed.data : null
-    if (!data || typeof data.id !== 'string' || !data.id) {
+    if (!data || typeof data.id !== 'string' || !X_POST_ID_PATTERN.test(data.id)) {
       return {
         kind: 'unknown',
         httpStatus: response.status,
-        reason: 'X API returned success without a Post ID.',
+        reason: 'X API returned success without a valid decimal Post ID.',
       }
     }
 

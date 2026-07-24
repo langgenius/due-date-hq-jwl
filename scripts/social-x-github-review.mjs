@@ -5,6 +5,7 @@ export const X_DRAFT_REVIEW_ISSUE_TITLE = 'X daily Alert draft review'
 export const X_DRAFT_REVIEW_ISSUE_MARKER = '<!-- duedatehq-x-draft-review-issue -->'
 const X_DRAFT_COMMENT_MARKER_PREFIX = 'duedatehq-x-draft:'
 const X_APPROVED_COMMENT_MARKER_PREFIX = 'duedatehq-x-approved:'
+const X_PUBLISHED_COMMENT_MARKER_PREFIX = 'duedatehq-x-published:'
 const GITHUB_ACTIONS_BOT_LOGIN = 'github-actions[bot]'
 const GITHUB_ACTIONS_BOT_TYPE = 'Bot'
 const APPROVED_POST_STATUSES = new Set(['ready', 'scheduled', 'published', 'unknown', 'cancelled'])
@@ -23,6 +24,7 @@ export function buildReviewIssueBody() {
     '',
     '- The draft must still be explicitly approved before it enters the `ready` queue.',
     '- A successful CLI approval queues this workflow to mark the same comment `approved · ready`.',
+    '- After D1 confirms X publication, a later probe marks that same comment `published`.',
     '- Issue comments, reactions, labels, and closing this issue never approve or cancel a draft.',
     '- A newer approved Alert can move ahead of an older ready Post.',
     '- The exact tracked URL is shown inside a code block to avoid accidental GitHub clicks.',
@@ -40,6 +42,12 @@ export function approvedCommentMarker(postId, approvedAt) {
   requiredSafePostId(postId)
   const revision = requiredDate(approvedAt, 'Social Post approval time').toISOString()
   return `<!-- ${X_APPROVED_COMMENT_MARKER_PREFIX}${postId}:${revision} -->`
+}
+
+export function publishedCommentMarker(postId, publishedAt) {
+  requiredSafePostId(postId)
+  const revision = requiredDate(publishedAt, 'Social Post publication time').toISOString()
+  return `<!-- ${X_PUBLISHED_COMMENT_MARKER_PREFIX}${postId}:${revision} -->`
 }
 
 export function buildDraftReviewComment(draft, queue) {
@@ -88,6 +96,11 @@ export function buildApprovedReviewComment(review, queue, previousDraftMarker) {
   const postId = requiredString(post.id, 'Approved Social Post ID')
   const postText = requiredText(post.postText, 'Approved Social Post text')
   const approvedAt = requiredDate(post.approvedAt, 'Social Post approval time')
+  const isPublished = post.status === 'published'
+  const publishedAt = isPublished
+    ? requiredDate(post.publishedAt, 'Social Post publication time')
+    : undefined
+  const xPostId = isPublished ? requiredXPostId(post.xPostId) : undefined
   const projectedLocalDate = optionalLocalDate(review?.projectedLocalDate)
   const position = optionalPositiveInteger(review?.position, 'Queue position')
   const timeZone = requiredString(queue?.timeZone, 'Queue time zone')
@@ -96,21 +109,34 @@ export function buildApprovedReviewComment(review, queue, previousDraftMarker) {
   const preservedMarker = previousDraftMarker
     ? requiredDraftMarker(previousDraftMarker, postId)
     : undefined
+  const statusDetails = isPublished
+    ? [
+        '- Publishing status: ✅ `published` on X',
+        `- X Post: [Open the published Post on X](https://x.com/i/web/status/${encodeURIComponent(
+          xPostId,
+        )})`,
+        `- Approved at: \`${approvedAt.toISOString()}\``,
+        `- Published at: \`${publishedAt.toISOString()}\``,
+      ]
+    : [
+        approvalPublishingStatus(post.status),
+        projectedLocalDate
+          ? `- Current tentative slot: \`${projectedLocalDate} 09:00 ${timeZone}\``
+          : '- Current tentative slot: not visible in the current 14-day projection',
+        position
+          ? `- Current queue position: \`${position}\`; a newer approved Alert can move ahead`
+          : undefined,
+        `- Approved at: \`${approvedAt.toISOString()}\``,
+      ]
 
   return [
     preservedMarker,
     approvedCommentMarker(postId, approvedAt.toISOString()),
-    `## X Alert draft · approved · ${post.status}`,
+    publishedAt ? publishedCommentMarker(postId, publishedAt.toISOString()) : undefined,
+    isPublished ? '## X Alert · published' : `## X Alert draft · approved · ${post.status}`,
     '',
     '- Review status: ✅ `approved`',
-    approvalPublishingStatus(post.status),
-    projectedLocalDate
-      ? `- Current tentative slot: \`${projectedLocalDate} 09:00 ${timeZone}\``
-      : '- Current tentative slot: not visible in the current 14-day projection',
-    position
-      ? `- Current queue position: \`${position}\`; a newer approved Alert can move ahead`
-      : undefined,
-    `- Approved at: \`${approvedAt.toISOString()}\``,
+    ...statusDetails,
     '',
     '### Exact frozen X post copy',
     '',
@@ -157,7 +183,11 @@ export function planApprovedCommentSync(reviewRows, comments, queue, draftRevisi
     if (seenPostIds.has(postId)) continue
     seenPostIds.add(postId)
 
-    const stateMarker = approvedCommentMarker(postId, approvedAt.toISOString())
+    const approvalMarker = approvedCommentMarker(postId, approvedAt.toISOString())
+    const stateMarker =
+      post.status === 'published'
+        ? publishedCommentMarker(postId, post.publishedAt)
+        : approvalMarker
     if (trustedComments.some((comment) => comment.body?.includes(stateMarker))) continue
 
     const exactDraftRevision = draftRevisionByPostId[postId]
@@ -165,12 +195,16 @@ export function planApprovedCommentSync(reviewRows, comments, queue, draftRevisi
       ? trustedComments.filter((comment) =>
           comment.body?.includes(draftCommentMarker(postId, exactDraftRevision)),
         )
-      : trustedComments.filter((comment) => draftMarkerFromBody(comment.body, postId))
+      : trustedComments.filter(
+          (comment) =>
+            comment.body?.includes(approvalMarker) || draftMarkerFromBody(comment.body, postId),
+        )
     const existingComment = matchingComments.at(-1)
     const previousDraftMarker = existingComment
       ? draftMarkerFromBody(existingComment.body, postId)
       : undefined
     const body = buildApprovedReviewComment(review, queue, previousDraftMarker)
+    if (!existingComment && review?.existingCommentRequired === true) continue
 
     plans.push(
       existingComment
@@ -204,6 +238,7 @@ export async function syncXDraftReviewIssue({ env = process.env, fetchImpl = fet
   }
 
   const queueUrl = new URL('/api/ops/social/queue', socialOpsUrl)
+  queueUrl.searchParams.set('includePublished', 'true')
   const queue = await requestJson(
     fetchImpl,
     queueUrl,
@@ -220,10 +255,22 @@ export async function syncXDraftReviewIssue({ env = process.env, fetchImpl = fet
   const queuePayload = requiredObject(queue, 'Social queue response')
   const drafts = Array.isArray(queuePayload.drafts) ? queuePayload.drafts : null
   const readyRows = Array.isArray(queuePayload.ready) ? queuePayload.ready : null
+  const publishedPosts =
+    queuePayload.published === undefined
+      ? []
+      : Array.isArray(queuePayload.published)
+        ? queuePayload.published
+        : null
   if (!drafts) throw new Error('Social queue response is missing drafts.')
   if (!readyRows) throw new Error('Social queue response is missing ready Posts.')
+  if (!publishedPosts) throw new Error('Social queue response has invalid published Posts.')
+  const publishedRows = publishedPosts.map((post) => ({
+    existingCommentRequired: true,
+    post,
+  }))
   for (const draft of drafts) buildDraftReviewComment(draft, queuePayload)
   for (const ready of readyRows) buildApprovedReviewComment(ready, queuePayload)
+  for (const published of publishedRows) buildApprovedReviewComment(published, queuePayload)
 
   let targetedReview
   if (targetPostId) {
@@ -276,8 +323,12 @@ export async function syncXDraftReviewIssue({ env = process.env, fetchImpl = fet
   const issue = await ensureReviewIssue(github)
   const comments = await github.listIssueComments(issue.number)
   const reviewRows = targetedReview
-    ? [targetedReview, ...readyRows.filter((ready) => ready?.post?.id !== targetPostId)]
-    : readyRows
+    ? [
+        targetedReview,
+        ...publishedRows.filter((published) => published?.post?.id !== targetPostId),
+        ...readyRows.filter((ready) => ready?.post?.id !== targetPostId),
+      ]
+    : [...publishedRows, ...readyRows]
   const draftRevisionByPostId = targetPostId
     ? {
         [targetPostId]: requiredDate(
@@ -327,6 +378,7 @@ export async function syncXDraftReviewIssue({ env = process.env, fetchImpl = fet
     issueUrl: issue.html_url,
     draftsSeen: drafts.length,
     approvedSeen: reviewRows.length,
+    publishedSeen: publishedRows.length,
     draftBacklogTruncated: queuePayload.draftBacklogTruncated === true,
     commentsCreated: createdComments.length,
     commentsUpdated: updatedComments.length,
@@ -479,6 +531,14 @@ function requiredSafePostId(value) {
     throw new Error('A safe social Post ID is required for the GitHub comment marker.')
   }
   return postId
+}
+
+function requiredXPostId(value) {
+  const xPostId = requiredString(value, 'X Post ID')
+  if (!/^\d{1,30}$/u.test(xPostId)) {
+    throw new Error('X Post ID must contain only decimal digits.')
+  }
+  return xPostId
 }
 
 function requiredObject(value, label) {
