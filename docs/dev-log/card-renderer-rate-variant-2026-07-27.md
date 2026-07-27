@@ -29,6 +29,18 @@ X 每天发的是**州级规则变更** alert(来自已核准 Pulse),不是灾�
 小红书 payload 拆成 p1(rate,去掉 tip,留白聚焦)+ p2(note,4 条要点);LinkedIn
 仍单图(en,tip 内嵌)。`note` 跳过 forms/tip/stamp。
 
+## 追加:封面钩子(cover)+ LinkedIn 横版(wide)(同日)
+
+用户反馈:小红书封面不够"勾人",瀑布流里没人点进来;LinkedIn 竖版偏窄,横版更好。
+- **`kind: "cover"`**:小红书轮播第 1 页 = 大字新闻式钩子(128px)+ lime 高亮关键数字
+  (标题用 `[[…]]` 包住的片段套高亮)+ eyebrow 标签 + 针对性 sub("有 X 客户的会计师
+  先收藏")。钩子标题写成短行数组(每行 ≤6 CJK,避免自动换行产生孤字)。轮播结构
+  变 封面 → 数据 → 实务提示(3 页)。
+- **`format: "wide"`**:LinkedIn 横版 16:9(1920×1080)。模板把主体裹进 `.ddhq__lead`
+  (竖版 `display:contents` 透明、不影响原布局;横版才变 2 栏 grid:左标题+变化,
+  右实务提示面板)。规则 12 行数上限横版放宽到 8(右栏纵向有空间)。
+- 成品归档:`docs/marketing/xiaohongshu/posts/2026-07-27/`(12 图 + README 含全部配文)。
+
 ## 验证
 
 `validate.test.mjs` / `resolve-counties.test.mjs` 仍全过。北卡两张卡经 T1 闸门(EN 版

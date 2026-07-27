@@ -1,5 +1,15 @@
 [
   {
+    "id": "wa-storm-2026-07-27-cover",
+    "kind": "cover",
+    "locale": "zh",
+    "format": "xhs",
+    "eyebrow": "IRS 灾害延期 · 华盛顿",
+    "title": ["华盛顿风暴区", "报税延到", "[[8月5日]]"],
+    "sub": "24 个受灾县,IRS 自动延期到 8/5 —— 距新截止日只剩 9 天,有客户在灾区的赶紧核对。",
+    "footer": "WA-2025-03 · 距 8/5 还剩 9 天"
+  },
+  {
     "id": "wa-storm-2026-07-27-p1",
     "kind": "delay",
     "locale": "zh",
@@ -41,7 +51,7 @@
     "id": "wa-storm-2026-07-27-en",
     "kind": "delay",
     "locale": "en",
-    "format": "li",
+    "format": "wide",
     "source": { "level": "Federal", "org": "IRS", "noticeId": "WA-2025-03", "verified": true },
     "reason": "Storms and flooding · Disaster relief",
     "map": {

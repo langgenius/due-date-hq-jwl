@@ -1,5 +1,15 @@
 [
   {
+    "id": "nc-meck-2026-07-27-cover",
+    "kind": "cover",
+    "locale": "zh",
+    "format": "xhs",
+    "eyebrow": "州税变更 · 北卡罗来纳",
+    "title": ["夏洛特销售税", "7/1 涨到", "[[8.25%]]"],
+    "sub": "在北卡有客户的会计师,这条先收藏 —— 7/1 起用新表,别报错税率。",
+    "footer": "梅克伦堡县 · 来源 NCDOR"
+  },
+  {
     "id": "nc-meck-2026-07-27-p1",
     "kind": "rate",
     "locale": "zh",
@@ -35,7 +45,7 @@
     "id": "nc-meck-2026-07-27-en",
     "kind": "rate",
     "locale": "en",
-    "format": "li",
+    "format": "wide",
     "source": { "level": "State", "org": "NC Dept. of Revenue", "noticeId": "NCDOR", "verified": true },
     "reason": "Local sales tax · Rate change",
     "map": { "state": "NC", "counties": ["37119"] },

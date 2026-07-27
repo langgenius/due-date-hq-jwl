@@ -70,7 +70,9 @@ for (let i = 0; i < items.length; i++) {
       return lh ? Math.round(el.getBoundingClientRect().height / lh) : el.getClientRects().length
     })
     if (lines != null) {
-      const r = validate(items[i], { tipLines: lines })
+      // 横版提示在独立右栏,纵向有空间,放宽到 8 行;竖版仍 4 行。
+      const tipMaxLines = items[i].format === 'wide' ? 8 : 4
+      const r = validate(items[i], { tipLines: lines, tipMaxLines })
       const over = r.errors.find((e) => e.startsWith('规则12'))
       if (over) {
         console.error(`✕ ${name}: ${over} — 跳过,不出图`)
@@ -81,8 +83,9 @@ for (let i = 0; i < items.length; i++) {
   }
 
   await pg.locator('.ddhq').screenshot({ path: path.join(outDir, `${name}.png`) })
-  const h = items[i].format === 'li' ? 1350 : 1440
-  console.log(`${name}.png  ${1080 * scale}x${h * scale}`)
+  const h = items[i].format === 'wide' ? 1080 : items[i].format === 'li' ? 1350 : 1440
+  const w = items[i].format === 'wide' ? 1920 : 1080
+  console.log(`${name}.png  ${w * scale}x${h * scale}`)
 }
 await br.close()
 server.close()

@@ -99,6 +99,7 @@ export async function renderCard(data) {
   const format = data.format || 'xhs';
   const isCorrection = kind === 'correction';
 
+  const src = data.source || {}; // cover 页没有 source
   const icon = data.map
     ? await stateIcon(data.map.state, data.map.counties || [])
     : '';
@@ -107,13 +108,13 @@ export async function renderCard(data) {
     ${icon ? `<div class="ddhq__icon">${icon}</div>` : ''}
     <div>
       <div class="ddhq__srcline">
-        <span class="ddhq__lvl">${esc(data.source.level)}</span>
-        <span class="ddhq__org">${esc(data.source.org)}</span>
+        <span class="ddhq__lvl">${esc(src.level)}</span>
+        <span class="ddhq__org">${esc(src.org)}</span>
       </div>
       <div class="ddhq__why">${esc(data.reason)}</div>
     </div>
-    <div class="ddhq__nid"><span class="mono">${esc(data.source.noticeId)}</span>${
-      data.source.verified ? '<span style="color:var(--g2)"> ✓</span>' : ''
+    <div class="ddhq__nid"><span class="mono">${esc(src.noticeId)}</span>${
+      src.verified ? '<span style="color:var(--g2)"> ✓</span>' : ''
     }</div>
   </div>`;
 
@@ -200,15 +201,37 @@ export async function renderCard(data) {
 
   const el = document.createElement('div');
   el.className = `ddhq ddhq--${kind} ddhq--${locale} ddhq--${format}`;
-  el.innerHTML = `${grainLayer()}<div class="ddhq__card">
-    ${head}
-    <div class="ddhq__titlewrap">${titleInner}${kind === 'multi' ? stamp : ''}</div>
-    ${body}${tags}
-    <div class="ddhq__base">${kind === 'multi' ? '' : stamp}${tip}</div>
-    <div class="ddhq__ft">
+  const footer = `<div class="ddhq__ft">
       <div class="ddhq__fl">${esc(data.footer)}</div>
       <div class="ddhq__fr">${wordmark}</div>
-    </div></div>`;
+    </div>`;
+
+  if (kind === 'cover') {
+    /* 小红书封面:大字钩子优先(瀑布流里靠这张拿到点击)。可选 eyebrow + sub。
+       hook 里用 [[…]] 包住的片段会套 lime 高亮。 */
+    const raw = (Array.isArray(data.title) ? data.title : [data.title]);
+    const hook = raw.map((line) =>
+      esc(line).replace(/\[\[(.+?)\]\]/g,
+        (_, m) => `<span class="ddhq__cvhl">${highlighter('var(--lime)')}<span class="ddhq__cvhlt">${m}</span></span>`)
+    ).join('<br>');
+    el.innerHTML = `${grainLayer()}<div class="ddhq__card">
+      ${data.eyebrow ? `<div class="ddhq__cveb">${esc(data.eyebrow)}</div>` : ''}
+      <div class="ddhq__cvmid">
+        <div class="ddhq__cvhook">${hook}</div>
+        ${data.sub ? `<div class="ddhq__cvsub">${esc(data.sub)}</div>` : ''}
+      </div>
+      ${footer}</div>`;
+    return el;
+  }
+
+  el.innerHTML = `${grainLayer()}<div class="ddhq__card">
+    ${head}
+    <div class="ddhq__lead">
+      <div class="ddhq__titlewrap">${titleInner}${kind === 'multi' ? stamp : ''}</div>
+      ${body}${tags}
+    </div>
+    <div class="ddhq__base">${kind === 'multi' ? '' : stamp}${tip}</div>
+    ${footer}</div>`;
   return el;
 }
 

@@ -1,22 +1,63 @@
 [
   {
-    "id": "ga-wildfire-2026-07-27",
+    "id": "ga-wildfire-2026-07-27-cover",
+    "kind": "cover",
+    "locale": "zh",
+    "format": "xhs",
+    "eyebrow": "IRS 灾害延期 · 佐治亚",
+    "title": ["佐治亚野火区", "报税延到", "[[8月20日]]"],
+    "sub": "有客户在 Clinch、Echols、Brantley 三县的会计师注意 —— 联邦申报自动延期,别按原截止日催客户。",
+    "footer": "GA-2026-03 · 来源 IRS"
+  },
+  {
+    "id": "ga-wildfire-2026-07-27-p1",
     "kind": "delay",
+    "locale": "zh",
+    "format": "xhs",
     "source": { "level": "联邦", "org": "IRS", "noticeId": "GA-2026-03", "verified": true },
     "reason": "野火 · 灾害减免",
-    "map": {
-      "state": "GA",
-      "counties": ["13065", "13101", "13025"]
-    },
+    "map": { "state": "GA", "counties": ["13065", "13101", "13025"] },
     "title": ["佐治亚 3 个县", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "6月15日",
     "newDate": "8月20日",
     "forms": ["预缴", "941", "990"],
-    "tip": {
-      "label": "实务提示",
-      "body": "受灾期(4月18日起)原本到期的联邦申报与缴款,统一延至 8月20日。地址在这三个县内的自动适用;县外但账册或记账人在县内的,需主动致电 IRS 灾害热线申请。注意:4月15日个人报税截止日在灾害发生前,不在延期范围。"
-    },
     "footer": "距 8月20日 截止还剩 24 天 · IRS 灾害减免"
+  },
+  {
+    "id": "ga-wildfire-2026-07-27-p2",
+    "kind": "note",
+    "locale": "zh",
+    "format": "xhs",
+    "source": { "level": "联邦", "org": "IRS", "noticeId": "GA-2026-03", "verified": true },
+    "reason": "野火 · 灾害减免",
+    "map": { "state": "GA", "counties": ["13065", "13101", "13025"] },
+    "title": ["实务提示"],
+    "points": [
+      "受灾期(2026 年 4月18日 起)原本到期的联邦申报与缴款,统一延至 8月20日。",
+      "地址在 Clinch / Echols / Brantley 三县内的自动适用,无需申请;县外但账册或记账人在县内的,需致电 IRS 灾害热线申请。",
+      "覆盖第二季度预缴(原 6/15)、季度工资税 941(原 4/30、7/31)、免税组织 990(原 5/15)等受灾期内到期项。",
+      "注意:4月15日 个人报税截止日在灾害发生(4/18)之前,不在本次延期范围。"
+    ],
+    "footer": "来源:IRS 公告 GA-2026-03 · 8月20日 截止"
+  },
+  {
+    "id": "ga-wildfire-2026-07-27-en",
+    "kind": "delay",
+    "locale": "en",
+    "format": "wide",
+    "source": { "level": "Federal", "org": "IRS", "noticeId": "GA-2026-03", "verified": true },
+    "reason": "Southeast Georgia wildfires · Disaster relief",
+    "map": { "state": "GA", "counties": ["13065", "13101", "13025"] },
+    "title": ["3 Georgia counties", "Filing postponed"],
+    "dateLabel": "FEDERAL FILING DEADLINE",
+    "oldDate": "Jun 15",
+    "newDate": "Aug 20",
+    "forms": ["Estimated", "941", "990"],
+    "tip": {
+      "label": "PRACTITIONER NOTE",
+      "body": "Covers federal returns and payments due on or after April 18 through Aug 20, 2026 — automatic for taxpayers in Clinch, Echols, and Brantley counties. The April 15 individual deadline fell before the April 18 incident, so it is not postponed."
+    },
+    "footer": "24 days to the Aug 20 deadline · IRS disaster relief"
   }
 ]
