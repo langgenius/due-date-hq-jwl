@@ -23,6 +23,12 @@ const OFFER_PRICE_CURRENCY = 'USD'
 // Stable @id anchors so every node resolves to one shared entity in the graph.
 const ORG_ID = `${SITE}/#organization`
 const WEBSITE_ID = `${SITE}/#website`
+const SOFTWARE_ID = `${SITE}/#software`
+
+// Name variants people and AI engines type for the same entity. Real spellings
+// of "DueDateHQ" only — never invented brands — so entity resolution folds them
+// into one node instead of splitting or colliding with similarly named products.
+const ORG_ALTERNATE_NAMES: readonly string[] = ['Due Date HQ', 'DueDate HQ', 'Duedatehq']
 
 // Entity sameAs — fill with the real off-repo profile URLs once they exist
 // (LinkedIn / Crunchbase / G2 / Capterra). Left empty (never fabricated) so the
@@ -81,6 +87,7 @@ function organizationNode(t: LandingCopy): JsonLdDocument {
     '@type': 'Organization',
     '@id': ORG_ID,
     name: t.geo.structuredData.organizationName,
+    alternateName: [...ORG_ALTERNATE_NAMES],
     url: SITE,
     logo: { '@type': 'ImageObject', url: `${SITE}/favicon.svg` },
     description: t.geo.structuredData.organizationDescription,
@@ -114,6 +121,7 @@ function webSiteNode(t: LandingCopy, lang: Locale): JsonLdDocument {
 function softwareApplicationNode(t: LandingCopy, lang: Locale): JsonLdDocument {
   return {
     '@type': 'SoftwareApplication',
+    '@id': SOFTWARE_ID,
     name: t.geo.structuredData.productName,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
@@ -121,6 +129,7 @@ function softwareApplicationNode(t: LandingCopy, lang: Locale): JsonLdDocument {
     inLanguage: lang,
     description: t.geo.structuredData.productDescription,
     publisher: { '@id': ORG_ID },
+    brand: { '@id': ORG_ID },
     audience: {
       '@type': 'Audience',
       audienceType: t.geo.structuredData.audience,
