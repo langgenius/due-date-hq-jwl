@@ -195,7 +195,7 @@ const base = `
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-  .card{background:${T.bg};background-image:repeating-linear-gradient(90deg,${T.lines} 0 1px,transparent 1px 54px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .card{background:${T.bg};background-image:repeating-linear-gradient(90deg,${T.lines} 0 1px,transparent 1px 150px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
   .wm{width:112px;height:15px;display:block;opacity:${LIGHT ? '.8' : '.85'}}
   .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.02em;color:${T.sub}}
   .live{display:inline-flex;align-items:center;gap:7px;color:${T.accent}}
