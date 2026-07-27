@@ -191,6 +191,15 @@ const SEAL = fs.existsSync(sealPath)
   : ''
 const sealBadge = SEAL ? `<img class=seal src="${SEAL}" alt="">` : ''
 const sealBg = '' // 背景改为卡片上的账本横线（见 .card background-image）
+// 灾害事件 → 短语（中/英）+ 美国地图（引用 docs/marketing/assets/us-map.svg）
+const EVCN = [['tornado','龙卷风'],['hurricane','飓风'],['typhoon','台风'],['wildfire','野火'],['winter storm','冬季风暴'],['ice storm','冰暴'],['storm','风暴'],['flood','洪水'],['landslide','滑坡'],['mudslide','泥石流'],['straight-line wind','直线风']]
+const EVEN = [['tornado','tornadoes'],['hurricane','a hurricane'],['typhoon','a typhoon'],['wildfire','wildfires'],['winter storm','a winter storm'],['ice storm','an ice storm'],['storm','storms'],['flood','flooding'],['landslide','landslides'],['mudslide','mudslides']]
+const pick = (ev, tbl, n, sep) => { const t=(ev||'').toLowerCase(); const o=[]; for(const [k,v] of tbl){ if(t.includes(k)&&!o.includes(v)) o.push(v) } return o.slice(0,n).join(sep) }
+const leadEventCN = pick(lead.event, EVCN, 2, '·') || '灾害'
+const leadEventEN = pick(lead.event, EVEN, 2, ' and ') || 'a disaster'
+const mapSvg = fs.readFileSync(path.join(ROOT, 'docs/marketing/assets/us-map.svg'), 'utf8')
+const mapInner = mapSvg.slice(mapSvg.indexOf('>', mapSvg.indexOf('<svg')) + 1, mapSvg.lastIndexOf('</svg>')).replace(/fill:#[0-9a-fA-F]{3,8}/g, '')
+const MAP = `<svg viewBox="0 0 1000 589" preserveAspectRatio="xMidYMid meet" class=usmap>${mapInner}</svg>`
 
 // ---------- shared style ----------
 const base = MONO_FACE + `
@@ -238,7 +247,8 @@ const xhs = `<!doctype html><meta charset=utf8><style>${base}
   <div class=subj>${sealBadge}<div class=headline>${D.leadCN}报税截止日</div></div>
   <div class="cd num"><span class=lead>还剩</span><b>${D.daysLeft}</b><s>天</s></div>
   <div class=facts>
-    <div class=f><b>${D.deadlineCN}</b>到期 · ${D.countyN} 个县 · 灾害延期 ${D.code}</div>
+    <div class=f>因<b>${leadEventCN}</b>，IRS 延期 · <b>${D.code}</b></div>
+    <div class=f>新截止日 <b>${D.deadlineCN}</b> · ${D.countyN} 个县</div>
     <div class=f>覆盖 个人 / 公司 / 合伙 / 信托 / 工资税 / 预估税 等</div>
   </div>
   <div class=tick>
@@ -265,14 +275,42 @@ const li = `<!doctype html><meta charset=utf8><style>${base}
   <div class=subj>${sealBadge}<div class=headline>${D.leadEN}</div></div>
   <div class="cd num"><b>${D.daysLeft}</b><s>days left</s></div>
   <div class=facts>
-    <div class=f>Due <b>${D.deadlineEN}</b> · ${D.countyN} counties · relief ${D.code}</div>
-    <div class=f>Covers individual, corporate, partnership, trust, payroll, estimated &amp; more</div>
+    <div class=f>After ${leadEventEN}, IRS postponed the deadline · <b>${D.code}</b></div>
+    <div class=f>New deadline <b>${D.deadlineEN}</b> · ${D.countyN} counties</div>
+    <div class=f>Covers individual, corporate, partnership, trust, payroll &amp; more</div>
   </div>
   <div class=tick>
     ${D.nextEN ? `<div class=t><i>Next</i><span>${D.nextEN} — ${D.nextDateEN}</span></div>` : ''}
     <div class=t><i>Active</i><span>${D.active} reliefs across ${D.stateCount} states + ${D.terrCount} territory</span></div>
   </div>
   <div class=foot style="margin-top:18px">DueDateHQ · daily · duedatehq.com/irs-disaster-relief</div>
+</div>`
+
+// 地图封面（alert-first）：美国地图 + 高亮州 + 灾害/延期语境
+const seal34 = sealBadge ? sealBadge.replace('class=seal', 'class=sl') : ''
+const xhsCover = `<!doctype html><meta charset=utf8><style>${MONO_FACE}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;padding:40px}
+.cnum{font-family:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.card{width:540px;height:720px;background:${T.bg};background-image:repeating-linear-gradient(90deg,${T.lines} 0 1px,transparent 1px 150px);padding:46px 44px;display:flex;flex-direction:column;overflow:hidden;color:${T.ink}}
+.top{display:flex;justify-content:space-between;align-items:center}
+.wm{width:112px;height:15px;opacity:.8}.date{font-size:14px;color:${T.mut}}
+.hl{display:flex;align-items:center;gap:11px;margin-top:30px;font-size:19px;font-weight:700;color:${T.accent}}
+.hl .dot{width:11px;height:11px;border-radius:999px;background:${T.accent};flex:0 0 auto}
+.sent{margin-top:18px;font-size:25px;line-height:1.55;color:${T.ink};font-weight:500}
+.sent b{color:${T.accent};font-weight:700}
+.mw{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:8px}
+.usmap{width:452px;height:auto;display:block}
+.usmap path{fill:#dbd8cd;stroke:${T.bg};stroke-width:1.3;stroke-linejoin:round}
+.usmap #${lead.abbr}{fill:${T.accent}}
+.ft{margin-top:12px;font-size:14px;color:${T.mut}}
+</style>
+<div class=card>
+  <div class=top><svg class=wm viewBox="0 0 1165 154">${WM}</svg><span class="date cnum">${D.dateCN}</span></div>
+  <div class=hl><span class=dot></span>IRS 延期播报 · ${D.leadCN}</div>
+  <div class=sent>因<b>${leadEventCN}</b>，IRS 把${D.leadCN} ${D.countyN} 县的联邦报税截止日<b>延后到 ${D.deadlineCN}</b>（${D.code}）。距新截止日<b>还剩 ${D.daysLeft} 天</b>。</div>
+  <div class=mw>${MAP}</div>
+  <div class=ft>美国报税不漏DDL · 每天播报</div>
 </div>`
 
 // ---------- render ----------
@@ -292,25 +330,26 @@ async function shot(htmlStr, sel, file) {
   return of
 }
 const sfx = LIGHT ? '' : '-dark'
+const ofc = await shot(xhsCover, '.card', `cover-${iso}${sfx}.png`)
 const of1 = await shot(xhs, '.card', `xhs-${iso}${sfx}.png`)
 const of2 = await shot(li, '.card', `linkedin-${iso}${sfx}.png`)
 await browser.close()
 
 // ---------- captions ----------
-const xhsCap = `【标题】倒计时${D.daysLeft}天⏰${D.leadCN}报税DDL要到了
+const xhsCap = `【标题】${D.leadCN}报税截止日已延至${D.deadlineCN}，还剩${D.daysLeft}天⏰
 
-手上有${D.leadCN}客户的注意：${D.deadlineCN}，这 ${D.countyN} 个县的联邦报税截止日就到了（灾害延期 ${D.code}）。
+${D.leadCN}有客户的注意：因${leadEventCN}，IRS 早前把${D.leadCN} ${D.countyN} 个县的联邦报税截止日延后到了 ${D.deadlineCN}（灾害延期 ${D.code}）——现在距新截止日只剩 ${D.daysLeft} 天。
 
 📌 延期按 address of record 自动生效——先逐个核对客户地址
-📌 覆盖个人/公司/合伙/信托/工资税/预估税等，窗口内到期的一并顺延
+📌 覆盖个人/公司/合伙/信托/工资税/预估税 等
 📌 下一批：${D.nextCN} ${D.nextDateCN}
 
-收藏，报税季不漏单👇
+我每天播报 IRS 报税延期 alert，关注不漏单👇
 #美国报税 #CPA #EA #在美华人 #税务 #报税季`
 
 const liCap = `📅 IRS Deadline Daily — ${D.todayEN}
 
-The soonest active IRS disaster-relief deadline is ${D.daysLeft} days out: ${D.countyN} ${D.leadEN} counties have until ${D.deadlineEN} to file federal returns (relief ${D.code}). Next up: ${D.nextEN} on ${D.nextDateEN}.
+${D.leadEN}: after ${leadEventEN}, the IRS postponed federal filing deadlines for ${D.countyN} counties to ${D.deadlineEN} (relief ${D.code}) — now ${D.daysLeft} days away. Next up: ${D.nextEN} on ${D.nextDateEN}.
 
 ${D.active} reliefs are active right now across ${D.stateCount} states + ${D.terrCount} territory. If you have clients there, check their counties.
 
@@ -321,7 +360,7 @@ Full verified list (every date sourced to irs.gov) in the comments 👇
 
 fs.writeFileSync(
   path.join(OUT, `PACK-${iso}.md`),
-  `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书图：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1350 · 4:5）\n\n${liCap}\n`,
+  `# 每日播报 · ${iso}\n\n自检溢出：小红书 ${of1}px / LinkedIn ${of2}px（应为 0）\n\n## 小红书（图1 封面 + 图2 详情）\n\n封面：\`broadcast/cover-${iso}.png\`（地图·高亮州）\n详情：\`broadcast/xhs-${iso}.png\`（1080×1440）\n\n${xhsCap}\n\n---\n\n## LinkedIn 图：\`broadcast/linkedin-${iso}.png\`（1080×1350 · 4:5）\n\n${liCap}\n`,
 )
 console.log(`✓ 今日播报 ${iso}：${D.leadEN} 倒计时 ${D.daysLeft} 天`)
 console.log(
