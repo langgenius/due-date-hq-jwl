@@ -181,6 +181,8 @@ const T = LIGHT
       wmBar: '#2e368c',
     }
 const WM = wmInner.replaceAll('#1F315C', T.wmInk).replaceAll('#F2F4ED', T.wmBar)
+const gmFont = (w) => fs.readFileSync(path.join(ROOT, `.claude/skills/canvas-design/canvas-fonts/GeistMono-${w}.ttf`)).toString('base64')
+const MONO_FACE = `@font-face{font-family:'Geist Mono';font-weight:400;font-display:block;src:url(data:font/ttf;base64,${gmFont('Regular')}) format('truetype')}@font-face{font-family:'Geist Mono';font-weight:700;font-display:block;src:url(data:font/ttf;base64,${gmFont('Bold')}) format('truetype')}`
 
 // 官方州徽(state badge，引用 app 的 state-seals），内嵌为 data URI；无则留空
 const sealPath = path.join(ROOT, `apps/app/src/components/primitives/state-seals/${lead.abbr}.png`)
@@ -191,10 +193,10 @@ const sealBadge = SEAL ? `<img class=seal src="${SEAL}" alt="">` : ''
 const sealBg = '' // 背景改为卡片上的账本横线（见 .card background-image）
 
 // ---------- shared style ----------
-const base = `
+const base = MONO_FACE + `
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:${T.page};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;display:flex;gap:34px;padding:40px;align-items:flex-start}
-  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .num{font-family:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
   .card{background:${T.bg};background-image:repeating-linear-gradient(90deg,${T.lines} 0 1px,transparent 1px 150px);color:${T.ink};overflow:hidden;display:flex;flex-direction:column;position:relative}
   .wm{width:112px;height:15px;display:block;opacity:${LIGHT ? '.8' : '.85'}}
   .eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:.02em;color:${T.sub}}
@@ -202,9 +204,10 @@ const base = `
   .dot{width:8px;height:8px;border-radius:999px;background:${T.accent};display:inline-block}
   .kick{color:${T.mut};font-weight:500}
   .cd{display:flex;align-items:baseline;gap:12px;margin-top:20px}
-  .cd b{font-size:128px;font-weight:800;color:${T.accent};line-height:.9;letter-spacing:-.03em}
+  .cd b{font-size:128px;font-weight:700;color:${T.accent};line-height:.9;letter-spacing:-.03em}
   .cd s{text-decoration:none;font-size:40px;font-weight:700}
   .cd .lead{font-size:34px;font-weight:600;color:${T.ink};margin-right:6px}
+  .cd .lead,.cd s{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
   .facts{display:flex;flex-direction:column;gap:12px}
   .facts .f{font-size:20px;color:${T.ink2};line-height:1.5}
   .facts .f b{color:${T.ink};font-weight:700}
