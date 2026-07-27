@@ -1,29 +1,5 @@
 [
   {
-    "abbr": "WA",
-    "state": "Washington",
-    "code": "WA-2025-03",
-    "event": "Severe storms, straight-line winds, flooding, landslides and mudslides",
-    "deadline": "2026-08-05",
-    "deadlineLabel": "Aug. 5, 2026",
-    "affectedArea": "Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania, and Wahkiakum counties",
-    "forms": [
-      "1040",
-      "1120",
-      "1065",
-      "1120-S",
-      "1041",
-      "706 / 709",
-      "990",
-      "941 / 940",
-      "Estimates",
-      "IRA / HSA"
-    ],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026",
-    "fema": "3629-EM",
-    "slug": "washington-severe-storms-flooding-landslides"
-  },
-  {
     "abbr": "GA",
     "state": "Georgia",
     "code": "GA-2026-03",
@@ -45,19 +21,6 @@
     "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20",
     "issuedOn": "May 6, 2026",
     "slug": "georgia-southeast-wildfires"
-  },
-  {
-    "abbr": "HI",
-    "state": "Hawaii",
-    "code": "HI-2026-01",
-    "event": "Severe storms, flooding and mudslides",
-    "deadline": "2026-08-20",
-    "deadlineLabel": "Aug. 20, 2026",
-    "affectedArea": "Hawaii, Honolulu, Kauai, and Maui counties",
-    "forms": ["1040", "941 / 940", "706 / 709", "990"],
-    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026",
-    "issuedOn": "April 10, 2026",
-    "slug": "hawaii-severe-storms-flooding-mudslides"
   },
   {
     "abbr": "AZ",
@@ -116,7 +79,15 @@
     "deadline": "2026-09-28",
     "deadlineLabel": "Sept. 28, 2026",
     "affectedArea": "Individuals and households that reside or have a business in the Crow Reservation in southcentral Montana",
-    "forms": ["1040", "1120", "1120-S", "1065", "1041", "941 / 940", "Estimates"],
+    "forms": [
+      "1040",
+      "1120",
+      "1120-S",
+      "1065",
+      "1041",
+      "941 / 940",
+      "Estimates"
+    ],
     "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026",
     "issuedOn": "June 16, 2026",
     "fema": "4915-DR",
