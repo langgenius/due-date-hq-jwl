@@ -112,6 +112,10 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   // dateModified is set independently in lib/stack-structured-data.ts; this entry
   // aligns the sitemap lastmod to the real publish date.
   'works-with-your-stack': { publishedOn: '2026-07-07', reviewedOn: '2026-07-07' },
+  // Category-definition (GEO pillar) pages added 2026-07-27. JSON-LD dateModified
+  // is set from getContentDates() in each page; these entries align sitemap lastmod.
+  'what-is-deadline-monitoring': { publishedOn: '2026-07-27', reviewedOn: '2026-07-27' },
+  'what-is-rule-change-monitoring': { publishedOn: '2026-07-27', reviewedOn: '2026-07-27' },
 }
 
 export interface ContentDates {

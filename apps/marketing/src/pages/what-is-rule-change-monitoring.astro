@@ -1,0 +1,49 @@
+---
+/**
+ * /what-is-rule-change-monitoring — category-definition (GEO pillar) page. Owns
+ * the "rule-change monitoring" term: the superset of which a moved deadline is
+ * one kind. Content in lib/category-explainer.ts; schema in
+ * lib/category-explainer-structured-data.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import CategoryExplainer from '../components/CategoryExplainer.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getCategoryContent } from '../lib/category-explainer'
+import { categoryStructuredData } from '../lib/category-explainer-structured-data'
+import { getContentDates } from '../lib/content-metadata'
+
+const locale = 'en'
+const content = getCategoryContent('rule-change-monitoring', locale)
+const ctaHref = getStartedHref()
+const pathname = `/${content.slug}`
+const title = 'What is rule-change monitoring for CPA firms? — DueDateHQ'
+const description =
+  'Rule-change monitoring watches official IRS, state, and FEMA sources for changes to the rules that govern filing — moved deadlines, new forms, thresholds, disaster relief — and maps each to the clients it affects.'
+const { reviewedOn } = getContentDates(content.slug)
+const structuredData = categoryStructuredData({
+  lang: locale,
+  slug: content.slug,
+  title,
+  description,
+  term: content.term,
+  definition: content.definition,
+  reviewedOn,
+  faq: content.faq,
+})
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <CategoryExplainer content={content} locale={locale} ctaHref={ctaHref} />
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,48 @@
+---
+/**
+ * /what-is-deadline-monitoring — category-definition (GEO pillar) page. Owns the
+ * "deadline monitoring" term: active monitoring vs passive due-date tracking.
+ * Content in lib/category-explainer.ts; schema in lib/category-explainer-structured-data.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import CategoryExplainer from '../components/CategoryExplainer.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getCategoryContent } from '../lib/category-explainer'
+import { categoryStructuredData } from '../lib/category-explainer-structured-data'
+import { getContentDates } from '../lib/content-metadata'
+
+const locale = 'en'
+const content = getCategoryContent('deadline-monitoring', locale)
+const ctaHref = getStartedHref()
+const pathname = `/${content.slug}`
+const title = 'What is deadline monitoring? Active monitoring vs due-date tracking — DueDateHQ'
+const description =
+  'Deadline monitoring watches official IRS, state, and FEMA sources for filing-date changes and shows which clients each one affects — unlike passive due-date tracking. Here is how it works.'
+const { reviewedOn } = getContentDates(content.slug)
+const structuredData = categoryStructuredData({
+  lang: locale,
+  slug: content.slug,
+  title,
+  description,
+  term: content.term,
+  definition: content.definition,
+  reviewedOn,
+  faq: content.faq,
+})
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <CategoryExplainer content={content} locale={locale} ctaHref={ctaHref} />
+  <Footer />
+</BaseLayout>

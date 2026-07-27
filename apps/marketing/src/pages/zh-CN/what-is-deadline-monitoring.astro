@@ -1,0 +1,45 @@
+---
+/** /zh-CN/what-is-deadline-monitoring — zh-CN mirror of the deadline-monitoring
+ *  category-definition page. See ../what-is-deadline-monitoring.astro. */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import CategoryExplainer from '../../components/CategoryExplainer.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getCategoryContent } from '../../lib/category-explainer'
+import { categoryStructuredData } from '../../lib/category-explainer-structured-data'
+import { getContentDates } from '../../lib/content-metadata'
+
+const locale = 'zh-CN'
+const content = getCategoryContent('deadline-monitoring', locale)
+const ctaHref = getStartedHref()
+const pathname = `/zh-CN/${content.slug}`
+const title = '什么是截止日监控？主动监控 vs 被动记录 — DueDateHQ'
+const description =
+  '截止日监控盯着官方 IRS、各州与 FEMA 来源，捕捉报税截止日变化，并显示每条变化影响到哪些客户——区别于只存下你录入日期的被动截止日记录。'
+const { reviewedOn } = getContentDates(content.slug)
+const structuredData = categoryStructuredData({
+  lang: locale,
+  slug: content.slug,
+  title,
+  description,
+  term: content.term,
+  definition: content.definition,
+  reviewedOn,
+  faq: content.faq,
+})
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <CategoryExplainer content={content} locale={locale} ctaHref={ctaHref} />
+  <Footer />
+</BaseLayout>

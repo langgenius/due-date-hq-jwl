@@ -1,0 +1,302 @@
+---
+/**
+ * CategoryExplainer — shared renderer for the "what is …" category-definition
+ * pages (EN + zh-CN), driven by a CategoryContent object from lib/category-explainer.ts.
+ * Uses the shared .m-* long-tail content kit + tokens; only structural extras
+ * (definition callout, monitoring-vs-tracking table, cross-link, related list)
+ * are scoped here. Answers/paragraphs may carry inline <em>/<a>, so they render
+ * via set:html.
+ */
+import FaqAccordion from './FaqAccordion.astro'
+import type { CategoryContent } from '../lib/category-explainer'
+
+interface Props {
+  content: CategoryContent
+  locale?: 'en' | 'zh-CN'
+  ctaHref: string
+}
+const { content: c, locale = 'en', ctaHref } = Astro.props
+const base = locale === 'zh-CN' ? '/zh-CN' : ''
+const faqEyebrow = locale === 'zh-CN' ? '常见问题' : 'FAQ'
+const defLabel = locale === 'zh-CN' ? '定义' : 'Definition'
+---
+
+<main class="ce">
+  <section class="m-section m-page-hero">
+    <p class="m-eyebrow">{c.eyebrow}</p>
+    <h1 class="m-page-title">{c.title}</h1>
+    <p class="m-page-lead">{c.lead}</p>
+  </section>
+
+  <section class="m-section ce-body">
+    <div class="ce-def">
+      <p class="ce-def__label">{defLabel}</p>
+      <p class="ce-def__term">{c.term}</p>
+      <p class="ce-def__text">{c.definition}</p>
+    </div>
+
+    {
+      c.sections.map((s) => (
+        <div class="ce-block">
+          <h2 class="ce-h2">{s.heading}</h2>
+          {s.paragraphs?.map((p) => <p class="ce-p" set:html={p} />)}
+          {s.bullets && (
+            <ul class="ce-list">
+              {s.bullets.map((b) => (
+                <li set:html={b} />
+              ))}
+            </ul>
+          )}
+        </div>
+      ))
+    }
+
+    {
+      c.compare && (
+        <div class="ce-block">
+          <div class="ce-table-wrap">
+            <table class="ce-table">
+              <caption class="ce-table__cap">{c.compare.caption}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="ce-table__axis" />
+                  <th scope="col">{c.compare.passiveLabel}</th>
+                  <th scope="col" class="ce-table__active">
+                    {c.compare.activeLabel}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {c.compare.rows.map((r) => (
+                  <tr>
+                    <th scope="row" class="ce-table__axis">
+                      {r.axis}
+                    </th>
+                    <td>{r.passive}</td>
+                    <td class="ce-table__active">{r.active}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )
+    }
+
+    <p class="ce-cross">
+      {c.crosslink.lead}{' '}
+      <a href={`${base}${c.crosslink.link.href}`}>{c.crosslink.link.label}</a>.
+    </p>
+  </section>
+
+  <section class="m-section ce-faq">
+    <p class="m-eyebrow">{faqEyebrow}</p>
+    <FaqAccordion items={c.faq} />
+  </section>
+
+  <section class="m-section ce-tail">
+    <p class="m-eyebrow">{c.relatedHeading}</p>
+    <ul class="ce-related">
+      {
+        c.related.map((r) => (
+          <li>
+            <a href={`${base}${r.href}`}>{r.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="ce-cta">
+      <p class="m-display-2 ce-cta__title">{c.cta.title}</p>
+      <p class="ce-cta__body">{c.cta.body}</p>
+      <div class="ce-cta__actions">
+        <a class="m-cta m-cta--primary" href={ctaHref}>{c.cta.primary}</a>
+        <a class="m-cta m-cta--ghost" href={`${base}${c.cta.secondaryHref}`}>{c.cta.secondary}</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  .ce-body {
+    padding-block: clamp(8px, 2vw, 20px) clamp(40px, 6vw, 72px);
+  }
+  /* Definition callout — left accent rule, no box (clear-sections-not-boxes). */
+  .ce-def {
+    max-width: var(--m-measure);
+    border-left: 3px solid var(--m-accent);
+    padding: 2px 0 2px 20px;
+    margin-bottom: clamp(36px, 5vw, 56px);
+  }
+  .ce-def__label {
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin: 0 0 8px;
+  }
+  .ce-def__term {
+    font-family: var(--m-font-sans);
+    font-size: clamp(19px, 1.8vw, 23px);
+    font-weight: 600;
+    color: var(--m-ink);
+    margin: 0 0 6px;
+  }
+  .ce-def__text {
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-ink-2);
+    margin: 0;
+  }
+  .ce-block {
+    max-width: var(--m-measure);
+    margin-top: clamp(36px, 5vw, 56px);
+  }
+  .ce-h2 {
+    font-family: var(--m-font-sans);
+    font-weight: 600;
+    font-size: clamp(21px, 2.2vw, 28px);
+    line-height: 1.12;
+    letter-spacing: var(--m-tracking-tight);
+    color: var(--m-ink);
+    margin: 0 0 14px;
+  }
+  .ce-p {
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-ink-2);
+    margin: 0 0 14px;
+  }
+  .ce-p :global(em) {
+    font-style: italic;
+    color: var(--m-ink);
+  }
+  .ce-list {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ce-list li {
+    position: relative;
+    padding-left: 20px;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: var(--m-leading-normal);
+    color: var(--m-ink-2);
+  }
+  .ce-list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--m-accent);
+  }
+  /* Monitoring-vs-tracking table — hairline rows, active column tinted. */
+  .ce-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--m-hairline);
+    border-radius: var(--m-radius-md);
+  }
+  .ce-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: var(--m-text-sm);
+  }
+  .ce-table__cap {
+    caption-side: top;
+    text-align: left;
+    padding: 14px 16px 0;
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .ce-table thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    color: var(--m-muted);
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .ce-table tbody th,
+  .ce-table tbody td {
+    padding: 13px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--m-hairline);
+    color: var(--m-ink-2);
+  }
+  .ce-table tbody tr:last-child th,
+  .ce-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .ce-table__axis {
+    font-weight: 600;
+    color: var(--m-ink);
+    white-space: nowrap;
+  }
+  .ce-table__active {
+    background: var(--m-accent-tint);
+    color: var(--m-ink);
+  }
+  .ce-cross {
+    max-width: var(--m-measure);
+    margin-top: clamp(36px, 5vw, 56px);
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: var(--m-leading-relaxed);
+    color: var(--m-muted);
+  }
+  .ce-cross a {
+    color: var(--m-accent);
+    font-weight: 500;
+  }
+  .ce-faq {
+    padding-block: clamp(40px, 6vw, 72px);
+    border-top: 1px solid var(--m-hairline);
+    max-width: min(var(--m-maxw), 820px);
+  }
+  .ce-tail {
+    padding-top: clamp(8px, 2vw, 16px);
+  }
+  .ce-related {
+    list-style: none;
+    margin: 0 0 clamp(44px, 6vw, 72px);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px 32px;
+    max-width: 760px;
+  }
+  .ce-related a {
+    font-size: clamp(15px, 1.2vw, 17px);
+    font-weight: 500;
+    color: var(--m-accent);
+  }
+  .ce-cta {
+    max-width: var(--m-measure);
+  }
+  .ce-cta__title {
+    max-width: 22ch;
+  }
+  .ce-cta__body {
+    margin: 14px 0 22px;
+    max-width: 56ch;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: var(--m-leading-normal);
+    color: var(--m-ink-2);
+  }
+  .ce-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>

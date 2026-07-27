@@ -50,6 +50,18 @@ const corePages = [
     description:
       'answers which state filing updates DueDateHQ monitors and how Alerts route them into client-impact review.',
   },
+  {
+    label: 'What is deadline monitoring',
+    pathname: '/what-is-deadline-monitoring',
+    description:
+      'defines deadline monitoring — watching official IRS/state/FEMA sources for filing-date changes and routing each to the affected clients — versus passive due-date tracking.',
+  },
+  {
+    label: 'What is rule-change monitoring',
+    pathname: '/what-is-rule-change-monitoring',
+    description:
+      'defines rule-change monitoring — the superset of which a moved deadline is one kind (new forms, thresholds, eligibility, disaster relief) — mapped to the clients each change affects.',
+  },
 ]
 
 const trustPages = [
@@ -85,6 +97,8 @@ const zhMirror: Array<readonly [string, string]> = [
   ['资源 (Resources)', '/zh-CN/resources'],
   ['规则库 (Rule library)', '/zh-CN/rules'],
   ['州覆盖 (State coverage)', '/zh-CN/state-coverage'],
+  ['什么是截止日监控 (What is deadline monitoring)', '/zh-CN/what-is-deadline-monitoring'],
+  ['什么是规则变化监控 (What is rule-change monitoring)', '/zh-CN/what-is-rule-change-monitoring'],
   ...getGuidePages(zhCN, 'zh-CN').map((g) => [g.hero.title, `/zh-CN/guides/${g.slug}`] as const),
   ...getComparisonPages('zh-CN').map((c) => [c.hero.title, `/zh-CN/compare/${c.slug}`] as const),
   ...getRuleReferencePages('zh-CN').map((r) => [r.hero.title, `/zh-CN/rules/${r.slug}`] as const),

@@ -1,0 +1,46 @@
+---
+/** /zh-CN/what-is-rule-change-monitoring — zh-CN mirror of the
+ *  rule-change-monitoring category-definition page. See
+ *  ../what-is-rule-change-monitoring.astro. */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import CategoryExplainer from '../../components/CategoryExplainer.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getCategoryContent } from '../../lib/category-explainer'
+import { categoryStructuredData } from '../../lib/category-explainer-structured-data'
+import { getContentDates } from '../../lib/content-metadata'
+
+const locale = 'zh-CN'
+const content = getCategoryContent('rule-change-monitoring', locale)
+const ctaHref = getStartedHref()
+const pathname = `/zh-CN/${content.slug}`
+const title = '什么是规则变化监控？（面向 CPA 事务所）— DueDateHQ'
+const description =
+  '规则变化监控盯着官方 IRS、各州与 FEMA 来源，捕捉左右申报的规则变化——被推迟的截止日、新表格、阈值、灾情减免——并把每条变化映射到受影响的客户。'
+const { reviewedOn } = getContentDates(content.slug)
+const structuredData = categoryStructuredData({
+  lang: locale,
+  slug: content.slug,
+  title,
+  description,
+  term: content.term,
+  definition: content.definition,
+  reviewedOn,
+  faq: content.faq,
+})
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <CategoryExplainer content={content} locale={locale} ctaHref={ctaHref} />
+  <Footer />
+</BaseLayout>
