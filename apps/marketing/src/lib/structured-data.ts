@@ -30,10 +30,11 @@ const SOFTWARE_ID = `${SITE}/#software`
 // into one node instead of splitting or colliding with similarly named products.
 const ORG_ALTERNATE_NAMES: readonly string[] = ['Due Date HQ', 'DueDate HQ', 'Duedatehq']
 
-// Entity sameAs — fill with the real off-repo profile URLs once they exist
-// (LinkedIn / Crunchbase / G2 / Capterra). Left empty (never fabricated) so the
-// Organization node never claims a profile that does not exist.
-const ORG_SAME_AS: readonly string[] = []
+// Entity sameAs — real off-repo profiles only, never fabricated. LinkedIn is
+// live (confirmed by the owner, 2026-07-27); add Crunchbase / G2 / Capterra here
+// as each is created. Populating this is the strongest entity-resolution signal
+// for AI answer engines and Google's Knowledge Graph.
+const ORG_SAME_AS: readonly string[] = ['https://www.linkedin.com/company/duedatehq/']
 const ORG_SUPPORT_EMAIL = 'support@duedatehq.com'
 
 // Breadcrumb labels are localized here; leaf crumbs use page-provided copy.
