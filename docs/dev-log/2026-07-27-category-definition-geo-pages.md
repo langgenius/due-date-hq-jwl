@@ -14,9 +14,9 @@ category term. Decision (Yuqi): ship the term as a **linked pair**, distinct sco
 Two new EN + zh-CN category-definition pages (4 routes), each with `WebPage` + `DefinedTerm` + `FAQPage` +
 `BreadcrumbList` JSON-LD:
 
-- **`/what-is-deadline-monitoring`** — the *dates* axis: active monitoring vs passive due-date **tracking**.
+- **`/what-is-deadline-monitoring`** — the _dates_ axis: active monitoring vs passive due-date **tracking**.
   Carries a monitoring-vs-tracking comparison table. Owns "monitors IRS deadline changes."
-- **`/what-is-rule-change-monitoring`** — the *rules* superset: a moved deadline is one kind of rule change
+- **`/what-is-rule-change-monitoring`** — the _rules_ superset: a moved deadline is one kind of rule change
   (also new/retired forms, thresholds, conformity/eligibility, disaster relief). Source-first framing. Owns
   "IRS / state filing change alerts."
 
@@ -52,7 +52,7 @@ all render.
 ## Not done (next)
 
 - **Inbound internal links** — pages are discoverable via sitemap + llms.txt + cross-links, but no existing
-  page links *in* yet. Add to footer / resources / nav (deferred to avoid racing the parallel session's
+  page links _in_ yet. Add to footer / resources / nav (deferred to avoid racing the parallel session's
   shared-component edits).
 - **Dedicated OG art** — currently reuse `how-it-works.{lang}.png`; per-page-type OG is a Phase-2 task.
 - **`sameAs`** — still gated on Yuqi creating the off-repo company profiles.
