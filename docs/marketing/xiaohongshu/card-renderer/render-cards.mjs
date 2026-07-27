@@ -81,7 +81,8 @@ for (let i = 0; i < items.length; i++) {
   }
 
   await pg.locator('.ddhq').screenshot({ path: path.join(outDir, `${name}.png`) })
-  console.log(`${name}.png  ${1080 * scale}x${1440 * scale}`)
+  const h = items[i].format === 'li' ? 1350 : 1440
+  console.log(`${name}.png  ${1080 * scale}x${h * scale}`)
 }
 await br.close()
 server.close()

@@ -93,11 +93,21 @@ export function validate(data, opts = {}) {
       W(`规则2:公告号含年份 ${yrM[1]},但 payload 无 publishedAt/year 可核对`)
   }
 
-  // ── 规则 3:forms ⊆ 白名单,无自由文本 ──────────────────────────
+  // ── 规则 3:forms 受控,无自由文本 ────────────────────────────
+  // 联邦(IRS/FEMA)卡:严格对齐联邦表单白名单,拦住不存在的表号。
+  // 州级卡:表单是州表单代码(E-500 / E-500E / DR-… 等),放行短代码与「州…」
+  //   描述,但仍拦自由文本(带空格或中文句子的长串)。
+  const isFederal = /联邦|federal/i.test(src.level || '') || /^(irs|fema)\b/i.test((src.org || '').trim())
+  const isFormCode = (f) => /^[A-Za-z0-9][A-Za-z0-9./-]{0,15}$/.test(f)
   if (Array.isArray(data.forms)) {
-    for (const f of data.forms)
-      if (!FORM_WHITELIST.has(f) && !isStateForm(f))
-        E(`规则3:表单「${f}」不在白名单内(禁止自由文本)`)
+    for (const f of data.forms) {
+      if (isFederal) {
+        if (!FORM_WHITELIST.has(f) && !isStateForm(f))
+          E(`规则3:联邦表单「${f}」不在白名单内(禁止自由文本)`)
+      } else if (!isStateForm(f) && !isFormCode(f) && !FORM_WHITELIST.has(f)) {
+        E(`规则3:表单「${f}」不是受控表单代码(禁止自由文本)`)
+      }
+    }
   } else if (kind === 'delay' || kind === 'correction') {
     W('规则3:delay/correction 通常应带 forms 数组')
   }

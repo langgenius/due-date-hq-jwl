@@ -102,7 +102,7 @@ export async function renderCard(data) {
       <div class="ddhq__why">${esc(data.reason)}</div>
     </div>
     <div class="ddhq__nid"><span class="mono">${esc(data.source.noticeId)}</span>${
-      data.source.verified ? '<span style="color:var(--g2)"> @</span>' : ''
+      data.source.verified ? '<span style="color:var(--g2)"> ✓</span>' : ''
     }</div>
   </div>`;
 

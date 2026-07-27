@@ -1,0 +1,40 @@
+[
+  {
+    "id": "nc-meck-2026-07-27",
+    "kind": "rate",
+    "locale": "zh",
+    "format": "xhs",
+    "source": { "level": "州", "org": "北卡州税局", "noticeId": "NCDOR", "verified": true },
+    "reason": "地方销售税 · 税率变更",
+    "map": { "state": "NC", "counties": ["37119"] },
+    "title": ["梅克伦堡县", "销售税率上调"],
+    "dateLabel": "合并销售与使用税率",
+    "oldDate": "7.25%",
+    "newDate": "8.25%",
+    "forms": ["E-500", "E-500E"],
+    "tip": {
+      "label": "实务提示",
+      "body": "自 2026 年 7月1日起的税期须用新版 E-500 / E-500E(NCDOR 预计 8月1日 发布)。新增 1% 适用多数应税商品;符合条件食品仍按 2%,电力、天然气、电信维持 7%,且不替代现有 0.5% 交通税。"
+    },
+    "footer": "2026 年 7月1日起生效 · 夏洛特 28 年来首次上调"
+  },
+  {
+    "id": "nc-meck-2026-07-27-en",
+    "kind": "rate",
+    "locale": "en",
+    "format": "li",
+    "source": { "level": "State", "org": "NC Dept. of Revenue", "noticeId": "NCDOR", "verified": true },
+    "reason": "Local sales tax · Rate change",
+    "map": { "state": "NC", "counties": ["37119"] },
+    "title": ["Mecklenburg County", "Sales tax increase"],
+    "dateLabel": "COMBINED SALES & USE TAX RATE",
+    "oldDate": "7.25%",
+    "newDate": "8.25%",
+    "forms": ["E-500", "E-500E"],
+    "tip": {
+      "label": "PRACTITIONER NOTE",
+      "body": "Use the updated E-500 / E-500E for periods on or after July 1, 2026 (available Aug 1). The added 1% hits most taxable goods; food stays at 2% and utilities and telecom keep 7%. It does not replace the 0.5% transit tax."
+    },
+    "footer": "Effective July 1, 2026 · Charlotte's first increase in 28 years"
+  }
+]
