@@ -1,0 +1,186 @@
+[
+  {
+    "id": "wa-storm-delay",
+    "kind": "delay",
+    "source": {
+      "level": "联邦",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "风暴洪水 · 灾害减免",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53007",
+        "53009",
+        "53027",
+        "53031",
+        "53033",
+        "53035",
+        "53045",
+        "53053",
+        "53067"
+      ]
+    },
+    "title": [
+      "华盛顿 9 个县",
+      "报税延期"
+    ],
+    "dateLabel": "联邦报税截止日",
+    "oldDate": "4月15日",
+    "newDate": "8月5日",
+    "forms": [
+      "1040",
+      "1120",
+      "1065",
+      "预缴"
+    ],
+    "tip": {
+      "label": "实务提示",
+      "body": "客户地址在灾区外、但账册或记账人在灾区内的，不会自动适用，需主动致电 IRS 灾害热线单独申请。"
+    },
+    "detected": {
+      "date": "7/18",
+      "time": "09:14 ET"
+    },
+    "footer": "本月第 7 次变更 · 51 个辖区监测中"
+  },
+  {
+    "id": "wa-storm-correction",
+    "kind": "correction",
+    "source": {
+      "level": "联邦",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": false
+    },
+    "reason": "对 7/20 已发布内容的更正",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53007",
+        "53009",
+        "53027",
+        "53031",
+        "53033",
+        "53035",
+        "53045",
+        "53053",
+        "53067"
+      ]
+    },
+    "title": [
+      "上一条",
+      "日期有误"
+    ],
+    "dateLabel": "我们此前写作 8月5日，官方公告为",
+    "oldDate": "8月5日",
+    "newDate": "8月15日",
+    "forms": [
+      "1040",
+      "1120",
+      "1065",
+      "预缴"
+    ],
+    "tip": {
+      "label": "已处理",
+      "body": "更正已推送给全部订阅者，原推送已标记撤回。若已按 8/5 安排排期，请重新确认受影响客户。"
+    },
+    "detected": {
+      "date": "7/22",
+      "time": "14:03 ET"
+    },
+    "footer": "本月第 8 次变更 · 51 个辖区监测中"
+  },
+  {
+    "id": "nc-pending",
+    "kind": "pending",
+    "source": {
+      "level": "州",
+      "org": "NC DOR",
+      "noticeId": "待公告",
+      "verified": false
+    },
+    "reason": "飓风 · 州级申报",
+    "map": {
+      "state": "NC",
+      "counties": []
+    },
+    "title": [
+      "北卡全州",
+      "将延期"
+    ],
+    "dateLabel": "州级申报截止日",
+    "oldDate": "4月15日",
+    "newDate": "日期待公布",
+    "forms": [
+      "州所得税",
+      "州预缴"
+    ],
+    "tip": {
+      "label": "现在该做什么",
+      "body": "州税局已宣布将延期但未给出日期。先按原截止日 4/15 备件，勿等公告；日期公布后我们会自动补发。"
+    },
+    "detected": {
+      "date": "7/24",
+      "time": "11:37 ET"
+    },
+    "footer": "本月第 9 次变更 · 51 个辖区监测中"
+  },
+  {
+    "id": "fema-multi",
+    "kind": "multi",
+    "source": {
+      "level": "联邦",
+      "org": "FEMA",
+      "noticeId": "DR-4901",
+      "verified": true
+    },
+    "reason": "飓风 · 灾害减免",
+    "map": {
+      "state": "FL",
+      "counties": []
+    },
+    "title": [
+      "4 州延期",
+      "日期各不同"
+    ],
+    "rows": [
+      {
+        "state": "FL",
+        "name": "佛罗里达",
+        "scope": "全州",
+        "date": "8月1日"
+      },
+      {
+        "state": "GA",
+        "name": "佐治亚",
+        "scope": "14 县",
+        "date": "8月1日"
+      },
+      {
+        "state": "SC",
+        "name": "南卡",
+        "scope": "全州",
+        "date": "8月15日"
+      },
+      {
+        "state": "NC",
+        "name": "北卡",
+        "scope": "9 县",
+        "date": "9月2日"
+      }
+    ],
+    "tip": {
+      "label": "实务提示",
+      "body": "同一次灾害下各州日期不一致，按客户所在州逐一核对，勿套用最早或最晚的那个。"
+    },
+    "detected": {
+      "date": "7/26",
+      "time": "08:02 ET",
+      "size": 158
+    },
+    "footer": "本月第 10 次变更 · 51 个辖区监测中"
+  }
+]

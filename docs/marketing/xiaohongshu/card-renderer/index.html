@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DueDateHQ 变更卡 · 预览</title>
+<link rel="stylesheet" href="card.css">
+<style>
+  body { margin:0; padding:40px 28px; background:#EFEDE7;
+    font-family:"Noto Sans SC",-apple-system,sans-serif; }
+  .grid { display:flex; flex-wrap:wrap; gap:44px; justify-content:center; align-items:flex-start; }
+  .slot { width:432px; }
+  .holder { width:432px; height:576px; overflow:hidden; }
+  .holder .ddhq { transform:scale(0.4); transform-origin:top left; }
+  .cap { font-size:12px; color:#8C8A80; text-align:center; margin-top:12px; letter-spacing:.06em; }
+  .thumbs { display:flex; gap:22px; justify-content:center; margin-top:52px; }
+  .tholder { width:172px; height:229px; overflow:hidden; }
+  .tholder .ddhq { transform:scale(0.15926); transform-origin:top left; }
+</style>
+<div class="grid" id="grid"></div>
+<div class="thumbs" id="thumbs"></div>
+<script type="module">
+  import { renderCard } from './card.js';
+  const data = await (await fetch('./samples.json')).json();
+  for (const d of data) {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    const h = document.createElement('div');
+    h.className = 'holder';
+    h.appendChild(await renderCard(d));
+    slot.append(h, Object.assign(document.createElement('div'),
+      { className: 'cap', textContent: d.id }));
+    grid.appendChild(slot);
+
+    const t = document.createElement('div');
+    t.className = 'tholder';
+    t.appendChild(await renderCard(d));
+    thumbs.appendChild(t);
+  }
+</script>

@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  /* surface */
+  --navy: #212D57;
+  --paper: #FFFFFF;
+  --ink: #161614;
+
+  /* accent — lime is the only bright colour in the system */
+  --lime: #E4EE9C;
+  --lime-pale: #F5F8DC;
+  --lime-ink: #454E07;
+
+  /* semantic — red means "this is wrong", never "this is news" */
+  --red: #B7382A;
+  --red-pale: #F7DEDA;
+  --red-wash: #FBF0EE;
+  --stamp-ink: #2B3A6B;
+
+  /* neutrals */
+  --g1: #8E8C85;
+  --g2: #B6B4AC;
+  --rule: #E6E4DD;
+  --chip: #F2F1EC;
+  --map-off: #D3D1C8;
+  --map-on: #212D57;
+
+  /* type scale — four steps, nothing between them */
+  --s-display: 108px;
+  --s-title: 47px;
+  --s-body: 31px;
+  --s-meta: 23px;
+  /* numerals are their own step */
+  --s-date-new: 94px;
+  --s-date-old: 40px;
+
+  /* 副轴：日期块相对标题右移，形成阅读阶梯 */
+  --step: 104px;
+
+  /* canvas */
+  --canvas-w: 1080px;
+  --canvas-h: 1440px;
+
+  --font-serif-cjk: "Noto Serif SC", serif;
+  --font-serif-lat: "Source Serif 4", "Noto Serif SC", serif;
+  --font-sans: "Noto Sans SC", -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.ddhq, .ddhq *, .ddhq *::before, .ddhq *::after { box-sizing: border-box; }
+
+.ddhq {
+  position: relative;
+  width: var(--canvas-w);
+  height: var(--canvas-h);
+  background: var(--navy);
+  padding: 40px;
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  overflow: hidden;
+}
+
+.ddhq__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .045;
+  mix-blend-mode: multiply;
+  z-index: 3;
+}
+
+.ddhq__card {
+  position: relative;
+  height: 100%;
+  background: var(--paper);
+  border-radius: 40px;
+  padding: 62px 58px 54px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.serif { font-family: var(--font-serif-lat); font-variant-numeric: tabular-nums; }
+.mono  { font-family: var(--font-mono); }
+
+/* ---- source row ---- */
+.ddhq__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  border-bottom: 2px solid var(--rule);
+  padding-bottom: 28px;
+}
+.ddhq__icon { flex-shrink: 0; }
+.ddhq__icon svg { width: 104px; height: auto; display: block; }
+.ddhq__srcline { display: flex; align-items: baseline; gap: 16px; }
+.ddhq__lvl {
+  font-size: 20px; letter-spacing: .16em;
+  color: var(--lime-ink); background: var(--lime); padding: 4px 14px;
+}
+.ddhq__org { font-size: var(--s-body); font-weight: 500; letter-spacing: .04em; color: var(--ink); }
+.ddhq__why { font-size: var(--s-meta); color: var(--g1); margin-top: 10px; }
+.ddhq__nid { margin-left: auto; text-align: right; font-size: var(--s-meta); color: var(--g2); }
+
+/* ---- headline ---- */
+.ddhq__h {
+  font-family: var(--font-serif-cjk);
+  font-weight: 900;
+  font-size: var(--s-display);
+  line-height: 1.24;
+  /* CJK 不用负字距：负值会让宋体的细笔画互相粘连 */
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-top: 46px;
+}
+.ddhq--correction .ddhq__h { color: var(--red); }
+
+.ddhq__lab {
+  font-size: var(--s-meta); color: var(--g1);
+  letter-spacing: .08em; margin-top: 46px;
+  margin-left: var(--step);
+}
+
+/* ---- dates ---- */
+.ddhq__dates {
+  display: flex; align-items: flex-end; gap: 28px;
+  margin-top: 18px; margin-left: var(--step);
+}
+.ddhq__old {
+  font-size: var(--s-date-old); color: var(--g2); padding-bottom: 16px;
+  text-decoration: line-through; text-decoration-thickness: 4px;
+  text-decoration-color: var(--g2);
+}
+.ddhq--correction .ddhq__old { color: #C4948E; text-decoration-color: var(--red); }
+.ddhq__arw { font-size: 34px; color: var(--g2); padding-bottom: 18px; }
+
+.ddhq__new { position: relative; display: inline-block; padding: 6px 26px 10px; }
+.ddhq__hl { position: absolute; inset: 0; z-index: 0; }
+.ddhq__hl svg { width: 100%; height: 100%; display: block; }
+.ddhq__newtx {
+  position: relative; z-index: 1;
+  font-size: var(--s-date-new); font-weight: 700;
+  line-height: 1.1; letter-spacing: -.02em; color: var(--ink);
+}
+.ddhq__pend {
+  border: 4px dashed var(--g2); padding: 18px 32px;
+  font-size: var(--s-title); color: var(--g1);
+}
+
+/* ---- multi-jurisdiction rows ---- */
+.ddhq__rows { margin-top: 18px; }
+.ddhq__rows--two {
+  display: grid; grid-template-columns: 1fr 1fr;
+  column-gap: 44px; margin-top: 14px;
+}
+.ddhq__rows--compact .ddhq__r { padding: 7px 0; }
+.ddhq__rows--compact .ddhq__rs { font-size: 27px; }
+.ddhq__rows--compact .ddhq__rs svg { width: 38px; }
+.ddhq__rows--compact .ddhq__rd { font-size: 36px; }
+.ddhq__rows--two .ddhq__r { padding: 8px 0; }
+.ddhq__rows--two .ddhq__rs { font-size: 23px; gap: 12px; }
+.ddhq__rows--two .ddhq__rs svg { width: 30px; }
+.ddhq__rows--two .ddhq__rq { font-size: 19px; }
+.ddhq__rows--two .ddhq__rd { font-size: 29px; }
+.ddhq__more {
+  grid-column: 1 / -1; font-size: var(--s-meta);
+  color: var(--g1); padding-top: 10px;
+}
+.ddhq__r {
+  display: flex; align-items: baseline; justify-content: space-between;
+  border-bottom: 2px solid var(--rule); padding: 20px 0;
+}
+.ddhq__rs { display: flex; align-items: baseline; gap: 18px; font-size: var(--s-body); color: #37352F; }
+.ddhq__rs svg { width: 46px; height: auto; align-self: center; }
+.ddhq__rq { font-size: var(--s-meta); color: var(--g2); }
+.ddhq__rd { font-size: var(--s-title); font-weight: 700; color: var(--ink); }
+
+/* ---- forms ---- */
+.ddhq__tags { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 46px; }
+.ddhq__tag {
+  background: var(--chip); color: #3A3830; font-size: 27px;
+  padding: 10px 26px; border-radius: 14px;
+}
+
+/* ---- tip ---- */
+/* 印章挂在这个容器上，永远落在提示块正上方的空白里，不随内容高度撞上文字 */
+.ddhq__base { margin-top: auto; position: relative; }
+.ddhq__tip { background: var(--lime-pale); border-radius: 28px; padding: 32px 36px; }
+.ddhq--correction .ddhq__tip { background: var(--red-wash); }
+.ddhq__tl { font-size: 20px; letter-spacing: .14em; color: var(--lime-ink); margin-bottom: 14px; }
+.ddhq--correction .ddhq__tl { color: var(--red); }
+.ddhq__tb { font-size: var(--s-body); color: #2B2A26; line-height: 1.75; }
+
+/* ---- footer ---- */
+.ddhq__ft {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-top: 2px solid var(--rule); margin-top: 36px; padding-top: 28px;
+}
+.ddhq__fl { font-size: var(--s-meta); color: var(--g1); }
+.ddhq__fr { font-size: var(--s-body); font-weight: 700; color: var(--navy); }
+
+/* ---- stamp ---- */
+.ddhq__stamp {
+  position: absolute; z-index: 2; transform: rotate(-9deg); opacity: .9;
+  right: 4px; bottom: calc(100% + 30px);
+}
+/* 多州卡的空白在标题右侧，不在提示块上方 */
+.ddhq--multi .ddhq__stamp { right: 8px; bottom: auto; top: -700px; }
+.ddhq__stamp svg { display: block; }
+
+/* preview scaling only — never applied on export */
+.ddhq--scaled { transform-origin: top left; }
