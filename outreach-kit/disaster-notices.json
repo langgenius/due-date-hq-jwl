@@ -6,7 +6,7 @@
     "event": "Severe storms, straight-line winds, flooding, landslides and mudslides",
     "deadline": "2026-08-05",
     "deadlineLabel": "Aug. 5, 2026",
-    "affectedArea": "Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania, and Wahkiakum counties",
+    "affectedArea": "Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Samish, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations",
     "forms": [
       "1040",
       "1120",
@@ -54,7 +54,17 @@
     "deadline": "2026-08-20",
     "deadlineLabel": "Aug. 20, 2026",
     "affectedArea": "Hawaii, Honolulu, Kauai, and Maui counties",
-    "forms": ["1040", "941 / 940", "706 / 709", "990"],
+    "forms": [
+      "1040",
+      "1120",
+      "1120-S",
+      "1065",
+      "1041",
+      "706 / 709",
+      "990",
+      "941 / 940",
+      "Estimates"
+    ],
     "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026",
     "issuedOn": "April 10, 2026",
     "slug": "hawaii-severe-storms-flooding-mudslides"

@@ -12,8 +12,17 @@
  * verbatim phrasing for display. Re-verify against the cited URL before editing.
  *
  * Live vs expired is derived, not stored: a notice is "live" while its postponed
- * deadline is on/after `today` (see `isLive` / `getNoticeStatus`). As of the
- * 2026-07-06 build: AZ/GA/HI/WA/NMI are live; MO-2025-03 has expired.
+ * deadline is on/after `today` (see `isLive` / `getNoticeStatus`). As of 2026-07-27 all
+ * eleven notices are live, WA-2025-03 (Aug. 5, 2026) being the nearest.
+ *
+ * TRANSCRIBING GOTCHA — the IRS revises releases in place, and the revision lives in an
+ * "Updated M/D/YY:" banner ABOVE the body while the body prose keeps the ORIGINAL date.
+ * The page title and URL slug keep the original date too. So a release whose slug and
+ * body both say "May 1, 2026" may actually be Aug. 5, 2026 (WA-2025-03, updated 5/1/26),
+ * and the /newsroom/tax-relief-in-disaster-situations index titles lag the same way.
+ * Always read the banner first; an update can also ADD counties (WA's 5/1/26 update added
+ * nine counties and 25 tribal nations to the 17 the body names). Two entries here were
+ * briefly "corrected" to their stale body dates on 2026-07-27 before this was understood.
  */
 
 /** The IRS return/payment categories a relief notice can postpone. Each maps to
@@ -115,6 +124,11 @@ export interface DisasterNotice {
   incidentStart: string
   /** Verbatim affected-area sentence from the release (counties / tribe / islands). */
   affectedArea: string
+  /** Short stand-in for `affectedArea` in the meta description only, for notices whose
+   *  verbatim area is a long county list (WA-2025-03 names 25 counties). The page body,
+   *  H1, and structured data always use the full `affectedArea`; this exists purely so
+   *  the SERP description stays inside ~155 chars. Omit unless the full area is long. */
+  affectedAreaShort?: string
   /** Filing categories the release names as postponed. */
   affectedReturns: FilingType[]
   /** FEMA declaration number if the release states one; omit otherwise. */
@@ -131,9 +145,20 @@ export interface DisasterNotice {
 export const DISASTER_NOTICES: DisasterNotice[] = [
   {
     // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-flooding-landslides-and-mudslides-in-the-state-of-washington-various-deadlines-postponed-to-may-1-2026
-    // Verified 2026-07-14: code WA-2025-03; issued Dec. 23, 2025; deadline Aug. 5, 2026;
-    // incident December 9, 2025; FEMA 3629-EM. Area: Asotin, Clark, Cowlitz, Garfield,
-    // Klickitat, Pacific, Pend Oreille, Skamania, and Wahkiakum counties
+    // Re-verified 2026-07-27: code WA-2025-03; issued Dec. 23, 2025; deadline Aug. 5, 2026;
+    // incident December 9, 2025; FEMA 3629-EM.
+    //
+    // READ THE UPDATE BANNER. This release carries "Updated 5/1/26: ... updated to change
+    // the filing and payment deadlines from May 1, 2026, to Aug. 5, 2026", and the 5/1/26
+    // update ALSO added counties and 25 tribal nations. The body prose below the banner
+    // still says May 1, 2026 in 23 places and still lists only the original 17 counties —
+    // transcribing the body alone yields a deadline three months stale. Aug. 5, 2026 is
+    // correct. (The slug likewise still says "postponed-to-may-1-2026"; the URL is not the
+    // fact.) Verified 2026-07-27 that no separate WA notice exists for DR-4906.
+    //
+    // 2026-07-27: `affectedArea` previously listed ONLY the nine counties the 5/1/26 update
+    // added, omitting the 17 in the original release — so a CPA in King or Pierce County
+    // read our page as not covered. Now carries both sets plus the tribal-nation count.
     slug: 'washington-severe-storms-flooding-landslides',
     code: 'WA-2025-03',
     state: 'Washington',
@@ -144,7 +169,8 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     deadlineLabel: 'Aug. 5, 2026',
     incidentStart: 'December 9, 2025',
     affectedArea:
-      'Asotin, Clark, Cowlitz, Garfield, Klickitat, Pacific, Pend Oreille, Skamania, and Wahkiakum counties',
+      'Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Samish, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations',
+    affectedAreaShort: '25 Washington counties and 25 tribal nations',
     affectedReturns: [
       'individual',
       'corporate',
@@ -191,8 +217,21 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
   },
   {
     // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026
-    // Verified 2026-07-14: code HI-2026-01 (issued April 10, 2026); deadline Aug. 20, 2026;
-    // incident March 10, 2026. Area: Hawaii, Honolulu, Kauai, and Maui counties
+    // Re-verified 2026-07-27: code HI-2026-01 (issued April 10, 2026); deadline Aug. 20,
+    // 2026; incident March 10, 2026. Area: Hawaii, Honolulu, Kauai, and Maui counties.
+    // The release states no FEMA declaration number, so none is stored.
+    //
+    // READ THE UPDATE BANNER. Same trap as WA-2025-03: "Updated 5/12/26: ... updated to
+    // change the filing and payment deadlines from July 8, 2026, to Aug. 20, 2026." The
+    // body prose still says July 8, 2026 in 24 places and the slug still says
+    // "postponed-to-july-8-2026". Aug. 20, 2026 is correct; the 5/12/26 update changed
+    // no counties.
+    //
+    // 2026-07-27: `affectedReturns` was under-inclusive (individual / payroll-excise /
+    // estate-gift / tax-exempt only). The release's section 7508A paragraph also names
+    // corporate, S corporation, partnership, and estate & trust returns, and postpones
+    // estimated payments — all now listed. It does not mention IRA/HSA contributions, so
+    // `retirement-hsa` stays off.
     slug: 'hawaii-severe-storms-flooding-mudslides',
     code: 'HI-2026-01',
     state: 'Hawaii',
@@ -203,7 +242,17 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     deadlineLabel: 'Aug. 20, 2026',
     incidentStart: 'March 10, 2026',
     affectedArea: 'Hawaii, Honolulu, Kauai, and Maui counties',
-    affectedReturns: ['individual', 'payroll-excise', 'estate-gift', 'tax-exempt'],
+    affectedReturns: [
+      'individual',
+      'corporate',
+      's-corp',
+      'partnership',
+      'estate-trust',
+      'estate-gift',
+      'tax-exempt',
+      'payroll-excise',
+      'estimated',
+    ],
     sourceHref:
       'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-in-the-state-of-hawaii-various-deadlines-postponed-to-july-8-2026',
   },
@@ -521,7 +570,9 @@ export function getNoticeMeta(notice: DisasterNotice): DisasterNoticeMeta {
     // in the SERP). The full event name + notice code stay in the H1, body, and
     // structured data.
     title: `IRS ${notice.state} Disaster Tax Relief ${yr}: Deadline ${notice.deadlineLabel}${disambig}`,
-    description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${notice.affectedArea.replace(/^The /, '')} after ${notice.event.toLowerCase()} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
+    // `affectedAreaShort` keeps this inside ~155 chars for notices whose verbatim area is
+    // a long county list; the full area still renders on the page and in the JSON-LD.
+    description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${(notice.affectedAreaShort ?? notice.affectedArea).replace(/^The /, '')} after ${notice.event.toLowerCase()} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
   }
 }
 
