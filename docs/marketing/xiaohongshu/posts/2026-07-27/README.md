@@ -52,6 +52,8 @@ What practitioners and retailers need to know:
 • Sourcing: the new rate applies to sales sourced to Mecklenburg County. Update POS and tax tables before July 1; periods ending on/before June 30, 2026 are unchanged.
 
 Source: NCDOR Important Notice — Mecklenburg County Sales and Use Tax Increase.
+
+#SalesTax #SALT #CPA #TaxCompliance #NorthCarolina
 ```
 
 ---
@@ -97,6 +99,8 @@ Two things practitioners often miss:
 • The April 15 individual filing deadline fell before the April 18 incident, so it is not postponed.
 
 Source: IRS notice GA-2026-03.
+
+#IRS #DisasterRelief #TaxDeadline #CPA #Georgia
 ```
 
 ---
@@ -139,4 +143,6 @@ Two practitioner notes:
 • Confirm the full county list against the IRS release before relying on it.
 
 Source: IRS notice WA-2025-03.
+
+#IRS #DisasterRelief #TaxDeadline #CPA #Washington
 ```
