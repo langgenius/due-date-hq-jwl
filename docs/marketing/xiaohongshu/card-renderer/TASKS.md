@@ -7,12 +7,15 @@
 
 ---
 
-## T1 · 发布前校验 `validate.js`
+## T1 · 发布前校验 `validate.js` —— ✅ 已完成
 
 **最高优先级,先于任何视觉工作。**
 
-新增 `validate.js`,导出 `validate(data) -> {ok, errors[]}`。`export.py` 在渲染前
-调用,任一失败则**阻断**,不生成图。
+新增 `validate.js`,导出 `validate(data, opts) -> {ok, errors[], warnings[]}`。
+`render-cards.mjs` 在渲染前调用,任一硬错即**阻断**,不生成图(调试可加
+`--no-validate` 逃生阀)。规则 12(tip 行数)在渲染后用真实 DOM 实测行数回填再判。
+规则 7(联网核对)见 `checkNoticeLive()`,异步单独跑。
+验收:`node validate.test.mjs` —— 4 条合法样例全过,12 条各违一规则的 payload 全部拦下。
 
 必须实现的规则:
 
@@ -36,7 +39,13 @@
 
 ---
 
-## T2 · 县名 → FIPS 解析 `resolve-counties.js`
+## T2 · 县名 → FIPS 解析 `resolve-counties.js` —— ✅ 已完成
+
+导出 `resolveCounties(state, names) -> {fips[], errors[]}`,先按完整 `namelsad`
+精确匹配(区分独立市 vs 同名县),再按裸名匹配;不唯一即报错不猜。附
+`checkFips(state, fips[])` 供 `validate.js` 复用(规则 5/6)。
+验收:`node resolve-counties.test.mjs` —— VA/MD/MO 市县、LA parish、真实 WA 9 县、
+歧义/未匹配/未知州全部正确。
 
 IRS 公告只给县名,不给 FIPS。映射表在 `county-index.json`。
 
