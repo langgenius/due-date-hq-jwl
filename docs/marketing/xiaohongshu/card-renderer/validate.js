@@ -13,20 +13,42 @@ import { checkFips } from './resolve-counties.js'
 
 // 允许的表单白名单(规则 3)。联邦表号 + 两个受控中文税种描述。禁止自由文本。
 const FORM_WHITELIST = new Set([
-  '1040', '1040-SR', '1041', '1065', '1120', '1120-S', '990',
-  '941', '940', '5500', '706', '709', '预缴', 'Estimated',
+  '1040',
+  '1040-SR',
+  '1041',
+  '1065',
+  '1120',
+  '1120-S',
+  '990',
+  '941',
+  '940',
+  '5500',
+  '706',
+  '709',
+  '预缴',
+  'Estimated',
 ])
 // 州级描述走单独一类(以「州」开头),同样是受控词,不是自由文本。
-const isStateForm = (f) => /^州/.test(f)
+const isStateForm = (f) => f.startsWith('州')
+// 受控表单代码:短、无空格、无中文(规则 3 州级放行判据)。纯函数,置于模块作用域。
+const isFormCode = (f) => /^[A-Za-z0-9][A-Za-z0-9./-]{0,15}$/.test(f)
 
 // 法定截止日表(历年制,联邦;规则 4)。值为 'M/D' 集合;[] 表示因个案而异、不约束。
 const STATUTORY = {
-  '1040': ['4/15'], '1040-SR': ['4/15'],
-  '1120': ['4/15'], '1120-S': ['3/15'], '1065': ['3/15'],
-  '1041': ['4/15'], '990': ['5/15'],
-  '941': ['4/30', '7/31', '10/31', '1/31'], '940': ['1/31'], '5500': ['7/31'],
-  '706': [], '709': ['4/15'],
-  '预缴': ['4/15', '6/15', '9/15', '1/15'], 'Estimated': ['4/15', '6/15', '9/15', '1/15'],
+  1040: ['4/15'],
+  '1040-SR': ['4/15'],
+  1120: ['4/15'],
+  '1120-S': ['3/15'],
+  1065: ['3/15'],
+  1041: ['4/15'],
+  990: ['5/15'],
+  941: ['4/30', '7/31', '10/31', '1/31'],
+  940: ['1/31'],
+  5500: ['7/31'],
+  706: [],
+  709: ['4/15'],
+  预缴: ['4/15', '6/15', '9/15', '1/15'],
+  Estimated: ['4/15', '6/15', '9/15', '1/15'],
 }
 
 // 「8月5日」/「8/5」/「Aug 5」-> {m,d};占位符(待公布/待公告/TBD)-> null。
@@ -39,7 +61,20 @@ function parseMD(s) {
   if (m) return { m: +m[1], d: +m[2] }
   m = str.match(/^(\d{1,2})\/(\d{1,2})$/)
   if (m) return { m: +m[1], d: +m[2] }
-  const MON = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 }
+  const MON = {
+    jan: 1,
+    feb: 2,
+    mar: 3,
+    apr: 4,
+    may: 5,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    sep: 9,
+    oct: 10,
+    nov: 11,
+    dec: 12,
+  }
   m = str.match(/([a-z]{3})[a-z]*\.?\s+(\d{1,2})/i)
   if (m && MON[m[1].toLowerCase()]) return { m: MON[m[1].toLowerCase()], d: +m[2] }
   return null
@@ -63,7 +98,8 @@ export function validate(data, opts = {}) {
   const E = (msg) => errors.push(msg)
   const W = (msg) => warnings.push(msg)
 
-  if (!data || typeof data !== 'object') return { ok: false, errors: ['payload 为空或非对象'], warnings }
+  if (!data || typeof data !== 'object')
+    return { ok: false, errors: ['payload 为空或非对象'], warnings }
   const kind = data.kind
   const src = data.source || {}
   const noticeId = src.noticeId
@@ -86,7 +122,8 @@ export function validate(data, opts = {}) {
     const yrM = String(noticeId).match(/(20\d{2})/)
     const pubYear =
       (data.publishedAt && String(data.publishedAt).match(/^(20\d{2})/)?.[1]) ||
-      (data.year && String(data.year)) || null
+      (data.year && String(data.year)) ||
+      null
     if (yrM && pubYear && yrM[1] !== pubYear)
       E(`规则2:公告号年份 ${yrM[1]} ≠ 发布年份 ${pubYear}(${noticeId})`)
     else if (yrM && !pubYear)
@@ -97,8 +134,8 @@ export function validate(data, opts = {}) {
   // 联邦(IRS/FEMA)卡:严格对齐联邦表单白名单,拦住不存在的表号。
   // 州级卡:表单是州表单代码(E-500 / E-500E / DR-… 等),放行短代码与「州…」
   //   描述,但仍拦自由文本(带空格或中文句子的长串)。
-  const isFederal = /联邦|federal/i.test(src.level || '') || /^(irs|fema)\b/i.test((src.org || '').trim())
-  const isFormCode = (f) => /^[A-Za-z0-9][A-Za-z0-9./-]{0,15}$/.test(f)
+  const isFederal =
+    /联邦|federal/i.test(src.level || '') || /^(irs|fema)\b/i.test((src.org || '').trim())
   if (Array.isArray(data.forms)) {
     for (const f of data.forms) {
       if (isFederal) {
@@ -134,21 +171,24 @@ export function validate(data, opts = {}) {
       const r = checkFips(state, counties)
       if (!r.ok) r.errors.forEach((e) => E(`规则5/6:${e}`))
     }
-    const titleNum = (Array.isArray(data.title) ? data.title.join(' ') : '')
-      .match(/(\d+)\s*(?:个县|县|counties|county)/i)
+    const titleNum = (Array.isArray(data.title) ? data.title.join(' ') : '').match(
+      /(\d+)\s*(?:个县|县|counties|county)/i,
+    )
     if (titleNum && +titleNum[1] !== counties.length)
       E(`规则5:标题写「${titleNum[1]} 县」但 map.counties 有 ${counties.length} 个`)
   }
 
   // ── 规则 8/9:时间戳顺序与时区 ──────────────────────────────────
   const detAt = data.detectedAt || (data.detected && data.detected.time)
-  const pubAt = data.publishedAt
-  if (data.detectedAt && !hasTz(data.detectedAt)) E(`规则9:detectedAt 必须带时区:「${data.detectedAt}」`)
-  if (data.publishedAt && !hasTz(data.publishedAt)) E(`规则9:publishedAt 必须带时区:「${data.publishedAt}」`)
+  if (data.detectedAt && !hasTz(data.detectedAt))
+    E(`规则9:detectedAt 必须带时区:「${data.detectedAt}」`)
+  if (data.publishedAt && !hasTz(data.publishedAt))
+    E(`规则9:publishedAt 必须带时区:「${data.publishedAt}」`)
   if (data.detected && data.detected.time && !hasTz(data.detected.time))
     E(`规则9:detected.time 必须带时区:「${data.detected.time}」`)
   if (data.detectedAt && data.publishedAt) {
-    const dt = Date.parse(data.detectedAt), pt = Date.parse(data.publishedAt)
+    const dt = Date.parse(data.detectedAt),
+      pt = Date.parse(data.publishedAt)
     if (!Number.isNaN(dt) && !Number.isNaN(pt) && pt < dt)
       E(`规则8:publishedAt 早于 detectedAt(${data.publishedAt} < ${data.detectedAt})`)
   }
@@ -161,7 +201,8 @@ export function validate(data, opts = {}) {
 
   // ── 规则 11:同一 noticeId 已发过 → 必须 correction ──────────────
   if (noticeId && opts.publishedLedger) {
-    const ledger = opts.publishedLedger instanceof Set ? opts.publishedLedger : new Set(opts.publishedLedger)
+    const ledger =
+      opts.publishedLedger instanceof Set ? opts.publishedLedger : new Set(opts.publishedLedger)
     if (ledger.has(noticeId) && kind !== 'correction')
       E(`规则11:公告 ${noticeId} 已发布过,再次发布必须 kind=correction`)
   }
@@ -174,7 +215,8 @@ export function validate(data, opts = {}) {
         E(`规则12:tip.body 渲染后 ${opts.tipLines} 行,超过 ${maxLines} 行上限`)
     } else {
       W('规则12:未提供实测行数(opts.tipLines),仅按字符粗估;请在渲染后回填')
-      if (String(data.tip.body).length > 120) W(`规则12:tip.body ${String(data.tip.body).length} 字,偏长,注意实测行数`)
+      if (String(data.tip.body).length > 120)
+        W(`规则12:tip.body ${String(data.tip.body).length} 字,偏长,注意实测行数`)
     }
   }
 
@@ -190,7 +232,8 @@ export async function checkNoticeLive(noticeId, fetchImpl = globalThis.fetch) {
   if (!noticeId || PLACEHOLDER.test(noticeId)) return { ok: true, skipped: true }
   // 只对形如 XX-YYYY-NN 的 IRS 州级公告号联网核对;DR-/EM- 等走 FEMA,另议。
   if (!/^[A-Z]{2}-20\d{2}-\d+$/.test(noticeId)) return { ok: true, skipped: true }
-  if (typeof fetchImpl !== 'function') return { ok: false, error: '规则7:无 fetch 可用,无法联网核对' }
+  if (typeof fetchImpl !== 'function')
+    return { ok: false, error: '规则7:无 fetch 可用,无法联网核对' }
   const url = 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations'
   try {
     const res = await fetchImpl(url, { redirect: 'follow' })

@@ -73,11 +73,11 @@ payload 改成两个字段:`detectedAt`(可为 null)、`publishedAt`(必填)。
 
 `card.js` 按此选印章:
 
-| 条件 | 印章 | 颜色 | footer |
-|---|---|---|---|
-| `detectedAt` 存在,与 `publishedAt` 相差 ≤48h | `DETECTED` + 时间 | 墨蓝 `--stamp-ink` | 本月第 N 次变更 · 51 个辖区监测中 |
-| `detectedAt` 为 null | `ON FILE` + `publishedAt`,不显示时间 | 中性灰 `#8E8C85` | 归档记录 · 51 个辖区全年可查 |
-| `detectedAt` 存在但滞后 >48h | `DETECTED` + 时间,如实显示 | 墨蓝 | 同第一行 |
+| 条件                                         | 印章                                 | 颜色               | footer                            |
+| -------------------------------------------- | ------------------------------------ | ------------------ | --------------------------------- |
+| `detectedAt` 存在,与 `publishedAt` 相差 ≤48h | `DETECTED` + 时间                    | 墨蓝 `--stamp-ink` | 本月第 N 次变更 · 51 个辖区监测中 |
+| `detectedAt` 为 null                         | `ON FILE` + `publishedAt`,不显示时间 | 中性灰 `#8E8C85`   | 归档记录 · 51 个辖区全年可查      |
+| `detectedAt` 存在但滞后 >48h                 | `DETECTED` + 时间,如实显示           | 墨蓝               | 同第一行                          |
 
 第三种不要粉饰。滞后就是滞后,掩盖一次比承认一次贵得多。
 

@@ -26,29 +26,30 @@ python3 -m http.server 8899   # 然后开 localhost:8899 看预览
 
 ```jsonc
 {
-  "id": "wa-storm-delay",          // 输出文件名
-  "kind": "delay",                 // delay | correction | pending | multi
-  "locale": "zh",                  // zh (默认) | en
-  "format": "xhs",                 // xhs = 1080×1440 (默认) | li = 1080×1350
+  "id": "wa-storm-delay", // 输出文件名
+  "kind": "delay", // delay | correction | pending | multi
+  "locale": "zh", // zh (默认) | en
+  "format": "xhs", // xhs = 1080×1440 (默认) | li = 1080×1350
   "source": {
-    "level": "联邦",               // 联邦 | 州 | 地方
+    "level": "联邦", // 联邦 | 州 | 地方
     "org": "IRS",
     "noticeId": "WA-2025-03",
-    "verified": true               // true 时公告号后加 @ = 已比对官方原文
+    "verified": true, // true 时公告号后加 @ = 已比对官方原文
   },
   "reason": "风暴洪水 · 灾害减免",
-  "map": { "state": "WA", "counties": ["53033", "53053"] },  // FIPS
-  "title": ["华盛顿", "9 个县"],   // 数组 = 强制换行位置
+  "map": { "state": "WA", "counties": ["53033", "53053"] }, // FIPS
+  "title": ["华盛顿", "9 个县"], // 数组 = 强制换行位置
   "dateLabel": "联邦报税截止日",
   "oldDate": "4月15日",
   "newDate": "8月5日",
-  "rows": [                        // 仅 kind=multi，此时忽略 oldDate/newDate
-    { "state": "FL", "name": "佛罗里达", "scope": "全州", "date": "8月1日" }
+  "rows": [
+    // 仅 kind=multi，此时忽略 oldDate/newDate
+    { "state": "FL", "name": "佛罗里达", "scope": "全州", "date": "8月1日" },
   ],
   "forms": ["1040", "1120", "1065", "预缴"],
   "tip": { "label": "实务提示", "body": "…" },
   "detected": { "date": "7/18", "time": "09:14 ET" },
-  "footer": "本月第 7 次变更 · 51 个辖区监测中"
+  "footer": "本月第 7 次变更 · 51 个辖区监测中",
 }
 ```
 

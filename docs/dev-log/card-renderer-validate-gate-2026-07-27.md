@@ -13,6 +13,7 @@
 ## 做了什么
 
 **T2 · `resolve-counties.js`** —— 县名→FIPS。IRS 公告只给县名,渲染要 FIPS。
+
 - `resolveCounties(state, names) -> {fips[], errors[]}`:先按完整 `namelsad` 精确
   匹配,能区分独立市 vs 同名县(Richmond city 51760 / Richmond County 51159);
   再按去后缀的裸名匹配。**匹配不唯一时报错,不猜。**
@@ -26,6 +27,7 @@ oldDate 命中法定截止日表(内建历年制联邦截止日表)、FIPS 有�
 FIPS 州前缀、时间戳顺序与时区、detectedAt 空时禁「实时监测」措辞、重复公告强制
 correction、tip 按**渲染后实测行数**卡。需 I/O 或历史状态的三条(7 联网、11 重复、
 12 行数)通过 opts / 异步 `checkNoticeLive()` 传入。
+
 - 关键修正:规则 4(法定截止日)只对 `kind=delay`;correction 的 oldDate 是上一条
   被更正的延期日,本就不是法定截止日,不能套表(否则误杀合法更正卡)。
 - 验收 `validate.test.mjs`:4 条合法样例全过,12 条各违一规则的 payload 全部拦下,

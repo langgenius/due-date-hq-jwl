@@ -5,11 +5,11 @@
 **小红书 = 3 页轮播**:`-cover`(封面钩子)→ `-p1`(数据卡)→ `-p2`(实务提示)。
 **LinkedIn = 横版 16:9**:`-en`。链接放 LinkedIn **首条评论**,不放正文。
 
-| 州 | 类型 | 小红书轮播 | LinkedIn |
-|---|---|---|---|
-| 北卡 | 州销售税率变更 | `nc-meck-…-cover / -p1 / -p2` | `nc-meck-…-en` |
-| 佐治亚 | IRS 灾害延期 | `ga-wildfire-…-cover / -p1 / -p2` | `ga-wildfire-…-en` |
-| 华盛顿 | IRS 灾害延期 | `wa-storm-…-cover / -p1 / -p2` | `wa-storm-…-en` |
+| 州     | 类型           | 小红书轮播                        | LinkedIn           |
+| ------ | -------------- | --------------------------------- | ------------------ |
+| 北卡   | 州销售税率变更 | `nc-meck-…-cover / -p1 / -p2`     | `nc-meck-…-en`     |
+| 佐治亚 | IRS 灾害延期   | `ga-wildfire-…-cover / -p1 / -p2` | `ga-wildfire-…-en` |
+| 华盛顿 | IRS 灾害延期   | `wa-storm-…-cover / -p1 / -p2`    | `wa-storm-…-en`    |
 
 ---
 
@@ -18,6 +18,7 @@
 **小红书标题**:`夏洛特销售税 7/1 涨到 8.25% 📈`(备选:`北卡有客户的会计师注意⚠️销售税涨了`)
 
 **小红书配文**
+
 ```
 夏洛特销售税涨了 📈 7月1日起,梅克伦堡县合并税率从 7.25% 升到 8.25%。在北卡有客户的会计师,这条建议先收藏。
 
@@ -39,6 +40,7 @@
 ```
 
 **LinkedIn 配文**
+
 ```
 North Carolina sales tax alert — Mecklenburg County.
 
@@ -59,6 +61,7 @@ Source: NCDOR Important Notice — Mecklenburg County Sales and Use Tax Increase
 **小红书标题**:`佐治亚 3 县报税延到 8月20日 🔥`(备选:`有佐治亚客户的会计师⚠️报税延期了`)
 
 **小红书配文**
+
 ```
 佐治亚野火灾区,报税能晚点了 🔥→🗓 IRS 把 Clinch、Echols、Brantley 三县的联邦报税延到 8月20日。有这三县客户的会计师注意,别按原截止日催客户。
 
@@ -78,6 +81,7 @@ Source: NCDOR Important Notice — Mecklenburg County Sales and Use Tax Increase
 ```
 
 **LinkedIn 配文**
+
 ```
 IRS disaster relief update — Southeast Georgia.
 
@@ -104,6 +108,7 @@ Source: IRS notice GA-2026-03.
 **小红书标题**:`华盛顿报税延到 8/5 ⏳只剩 9 天`(备选:`华盛顿 24 县报税延期,别催客户`)
 
 **小红书配文**
+
 ```
 华盛顿风暴灾区,联邦报税延到 8/5 —— 但只剩 9 天了 ⏳ 24 个受灾县,IRS 自动延期。有客户在灾区的赶紧核对。
 
@@ -121,6 +126,7 @@ Source: IRS notice GA-2026-03.
 ```
 
 **LinkedIn 配文**
+
 ```
 IRS disaster relief — Washington State.
 

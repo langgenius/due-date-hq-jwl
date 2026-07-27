@@ -25,7 +25,9 @@ const errMatches = (e, rule) => {
 const expectCatch = (rule, name, data, opts) => {
   const r = validate(data, opts)
   const found = !r.ok && r.errors.find((e) => errMatches(e, rule))
-  console.log(`${found ? 'ok  ' : 'FAIL'}  规则${rule}·${name}${found ? ' → ' + found : ' 未拦下! errors=' + JSON.stringify(r.errors)}`)
+  console.log(
+    `${found ? 'ok  ' : 'FAIL'}  规则${rule}·${name}${found ? ' → ' + found : ' 未拦下! errors=' + JSON.stringify(r.errors)}`,
+  )
   if (!found) fail++
 }
 
@@ -44,9 +46,22 @@ expectCatch(4, '假截止日', clone({ oldDate: '4月5日' }))
 // 5 标题县数与 counties 数不符
 expectCatch(5, '县数不符', clone({ title: ['华盛顿 12 个县', '报税延期'] }))
 // 6 FIPS 州前缀错(用了俄勒冈 41xxx 挂在 WA)
-expectCatch(6, 'FIPS州前缀错', clone({ map: { state: 'WA', counties: ['41007', '41009', '41027', '41031', '41033', '41035', '41045', '41053', '41067'] } }))
+expectCatch(
+  6,
+  'FIPS州前缀错',
+  clone({
+    map: {
+      state: 'WA',
+      counties: ['41007', '41009', '41027', '41031', '41033', '41035', '41045', '41053', '41067'],
+    },
+  }),
+)
 // 8 publishedAt 早于 detectedAt
-expectCatch(8, '时间倒挂', clone({ detectedAt: '2025-07-18T09:14:00-04:00', publishedAt: '2025-07-18T08:00:00-04:00' }))
+expectCatch(
+  8,
+  '时间倒挂',
+  clone({ detectedAt: '2025-07-18T09:14:00-04:00', publishedAt: '2025-07-18T08:00:00-04:00' }),
+)
 // 9 时间戳缺时区
 expectCatch(9, '缺时区', clone({ detectedAt: '2025-07-18T09:14:00' }))
 // 11 重复公告未标 correction
@@ -54,7 +69,11 @@ expectCatch(11, '重复公告', clone({}), { publishedLedger: ['WA-2025-03'] })
 // 12 tip 实测行数超限
 expectCatch(12, 'tip超行', clone({}), { tipLines: 6, tipMaxLines: 4 })
 // T3 detectedAt 空却声称实时监测
-expectCatch('3', '空detected却称实时', clone({ detected: undefined, footer: '我们第一时间监测到本次变更' }))
+expectCatch(
+  '3',
+  '空detected却称实时',
+  clone({ detected: undefined, footer: '我们第一时间监测到本次变更' }),
+)
 // 6b 未知州代码
 expectCatch(6, '未知州', clone({ map: { state: 'ZZ', counties: ['53007'] } }))
 

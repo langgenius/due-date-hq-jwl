@@ -46,7 +46,12 @@
     "kind": "rate",
     "locale": "en",
     "format": "wide",
-    "source": { "level": "State", "org": "NC Dept. of Revenue", "noticeId": "NCDOR", "verified": true },
+    "source": {
+      "level": "State",
+      "org": "NC Dept. of Revenue",
+      "noticeId": "NCDOR",
+      "verified": true
+    },
     "reason": "Local sales tax · Rate change",
     "map": { "state": "NC", "counties": ["37119"] },
     "title": ["Mecklenburg, NC", "Sales tax increase"],

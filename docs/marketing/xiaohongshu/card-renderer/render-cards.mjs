@@ -9,7 +9,9 @@ import { validate } from './validate.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const [payloadArg, outArg] = process.argv.slice(2).filter((a) => !a.startsWith('--'))
-const scale = process.argv.includes('--scale') ? Number(process.argv[process.argv.indexOf('--scale') + 1]) : 1
+const scale = process.argv.includes('--scale')
+  ? Number(process.argv[process.argv.indexOf('--scale') + 1])
+  : 1
 const noValidate = process.argv.includes('--no-validate') // 逃生阀,仅调试用
 let items = JSON.parse(fs.readFileSync(path.resolve(payloadArg), 'utf8'))
 if (!Array.isArray(items)) items = [items]
@@ -23,7 +25,9 @@ if (!noValidate) {
   for (const it of items) {
     const { ok, errors, warnings } = validate(it)
     // 规则 12 的行数在渲染后循环里实测,这里的粗估告警是噪音,略去。
-    warnings.filter((w) => !w.startsWith('规则12')).forEach((w) => console.warn(`⚠︎ ${it.id || '?'}: ${w}`))
+    warnings
+      .filter((w) => !w.startsWith('规则12'))
+      .forEach((w) => console.warn(`⚠︎ ${it.id || '?'}: ${w}`))
     if (!ok) errors.forEach((e) => blockers.push(`${it.id || '?'}: ${e}`))
   }
   if (blockers.length) {
@@ -34,16 +38,27 @@ if (!noValidate) {
   }
 }
 
-const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.json': 'application/json' }
+const MIME = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'text/javascript',
+  '.svg': 'image/svg+xml',
+  '.json': 'application/json',
+}
 const server = http.createServer((req, res) => {
   const fp = path.join(HERE, decodeURIComponent(req.url.split('?')[0]))
   fs.readFile(fp, (e, buf) => {
-    if (e) { res.writeHead(404); res.end() } else { res.writeHead(200, { 'content-type': MIME[path.extname(fp)] || 'application/octet-stream' }); res.end(buf) }
+    if (e) {
+      res.writeHead(404)
+      res.end()
+    } else {
+      res.writeHead(200, { 'content-type': MIME[path.extname(fp)] || 'application/octet-stream' })
+      res.end(buf)
+    }
   })
 })
 await new Promise((r) => server.listen(0, '127.0.0.1', r))
 const port = server.address().port
-
 
 const br = await chromium.launch()
 const pg = await br.newPage({ viewport: { width: 1180, height: 1540 }, deviceScaleFactor: scale })
@@ -89,4 +104,7 @@ for (let i = 0; i < items.length; i++) {
 }
 await br.close()
 server.close()
-if (renderErrors) { console.error(`\n${renderErrors} 张因校验被跳过。`); process.exit(1) }
+if (renderErrors) {
+  console.error(`\n${renderErrors} 张因校验被跳过。`)
+  process.exit(1)
+}

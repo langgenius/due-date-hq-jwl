@@ -13,7 +13,7 @@
 HI 的 sourceHref URL slug 是 `...postponed-to-july-8-2026` 却填 8/20,是"内部矛盾"。
 再用多来源新闻搜索三角验证,真相是**两条都被 IRS 延期过**:
 
-- **WA-2025-03**:原 5/1 → **延至 8/5**("IRS extends WA tax deadline *again*",
+- **WA-2025-03**:原 5/1 → **延至 8/5**("IRS extends WA tax deadline _again_",
   MyNorthwest/KIRO7/Yahoo 均报)。**现行、未过期**(距今 +9 天)。
 - **HI-2026-01**:原始新闻稿 **5/12 更新**,把 7/8 → **8/20**(Governor Green
   新闻稿 + Ascensus 证实)。**现行、未过期**(+24 天)。
