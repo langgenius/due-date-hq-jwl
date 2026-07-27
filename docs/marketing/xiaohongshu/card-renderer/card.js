@@ -58,17 +58,18 @@ function highlighter(fill = 'var(--lime)') {
     </svg></span>`;
 }
 
-function stampSvg({ date, time, ink = 'var(--stamp-ink)', size = 188 }, uid) {
+function stampSvg({ date, time, label = 'DETECTED',
+                    ink = 'var(--stamp-ink)', size = 188 }, uid) {
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}"
-    role="img" aria-label="监测时间 ${esc(date)} ${esc(time)}"
+    role="img" aria-label="${esc(label)} ${esc(date)} ${esc(time)}"
     xmlns="http://www.w3.org/2000/svg">
-    <title>DETECTED ${esc(date)} ${esc(time)}</title>
+    <title>${esc(label)} ${esc(date)} ${esc(time)}</title>
     <defs><path id="ddhqArc${uid}" d="M 18 52 A 32 32 0 0 1 82 52" fill="none"/></defs>
     <circle cx="50" cy="50" r="47" fill="none" stroke="${ink}" stroke-width="1.5"/>
     <circle cx="50" cy="50" r="42" fill="none" stroke="${ink}" stroke-width="3"/>
     <text class="mono" font-size="8.6" fill="${ink}" letter-spacing="2.2"
       ><textPath href="#ddhqArc${uid}" startOffset="50%"
-      text-anchor="middle">DETECTED</textPath></text>
+      text-anchor="middle">${esc(label)}</textPath></text>
     <line x1="18" y1="44" x2="82" y2="44" stroke="${ink}" stroke-width="1.2"/>
     <line x1="18" y1="74" x2="82" y2="74" stroke="${ink}" stroke-width="1.2"/>
     <text class="mono" x="50" y="61.5" font-size="19" fill="${ink}"
@@ -83,6 +84,8 @@ export async function renderCard(data) {
   grainDefs();
   const uid = ++uidSeq;
   const kind = data.kind || 'delay';
+  const locale = data.locale || 'zh';
+  const format = data.format || 'xhs';
   const isCorrection = kind === 'correction';
 
   const icon = data.map
@@ -103,7 +106,7 @@ export async function renderCard(data) {
     }</div>
   </div>`;
 
-  const title = `<div class="ddhq__h">${
+  const titleInner = `<div class="ddhq__h">${
     (Array.isArray(data.title) ? data.title : [data.title])
       .map(esc).join('<br>')
   }</div>`;
@@ -125,7 +128,9 @@ export async function renderCard(data) {
         <div class="ddhq__rd serif">${esc(r.date)}</div></div>`;
     }));
     const more = all.length > CAP
-      ? `<div class="ddhq__more">另有 ${all.length - CAP} 个辖区，见主页合集</div>`
+      ? `<div class="ddhq__more">${locale === 'en'
+          ? `${all.length - CAP} more jurisdictions — see profile`
+          : `另有 ${all.length - CAP} 个辖区，见主页合集`}</div>`
       : '';
     body = `<div class="ddhq__rows${density}">${rows.join('')}${more}</div>`;
   } else {
@@ -156,22 +161,31 @@ export async function renderCard(data) {
        <div class="ddhq__tb">${esc(data.tip.body)}</div></div>`
     : '';
 
-  const stamp = data.detected
-    ? `<div class="ddhq__stamp"${
-        data.detected.position ? ` style="${data.detected.position}"` : ''
-      }>${stampSvg({
-        date: data.detected.date,
-        time: data.detected.time,
+  /* 补录的历史公告不能盖 DETECTED —— 那枚章宣称的是"我们第一时间发现了"。
+     没有 detected 时改盖中性灰的 ON FILE，显示官方发布日，不显示时间。 */
+  const mark = data.detected && data.detected.date
+    ? { date: data.detected.date, time: data.detected.time,
+        label: 'DETECTED',
         ink: isCorrection ? 'var(--red)' : 'var(--stamp-ink)',
-        size: data.detected.size || 188,
-      }, uid)}</div>`
+        size: data.detected.size || 188 }
+    : data.publishedAt
+      ? { date: data.publishedAt, time: '', label: 'ON FILE',
+          ink: 'var(--g1)', size: 188 }
+      : null;
+
+  const stamp = mark
+    ? `<div class="ddhq__stamp"${
+        data.detected?.position ? ` style="${data.detected.position}"` : ''
+      }>${stampSvg(mark, uid)}</div>`
     : '';
 
   const el = document.createElement('div');
-  el.className = `ddhq ddhq--${kind}`;
+  el.className = `ddhq ddhq--${kind} ddhq--${locale} ddhq--${format}`;
   el.innerHTML = `${grainLayer()}<div class="ddhq__card">
-    ${head}${title}${body}${tags}
-    <div class="ddhq__base">${stamp}${tip}</div>
+    ${head}
+    <div class="ddhq__titlewrap">${titleInner}${kind === 'multi' ? stamp : ''}</div>
+    ${body}${tags}
+    <div class="ddhq__base">${kind === 'multi' ? '' : stamp}${tip}</div>
     <div class="ddhq__ft">
       <div class="ddhq__fl">${esc(data.footer)}</div>
       <div class="ddhq__fr">DueDateHQ</div>

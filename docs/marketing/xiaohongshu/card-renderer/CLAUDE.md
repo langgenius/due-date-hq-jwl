@@ -47,7 +47,9 @@ python3 check-collisions.py          # 改版式后必跑
 | 红色只表示"这是错的" | `--red`, `.ddhq--correction` | 延期是好消息,用红色会让第一秒的情绪读取和消息性质相反 |
 | 柠檬绿是唯一亮色 | `--lime` | 只用于来源层级标签和新日期高亮条,不要扩散 |
 | 日期块右移 `--step: 104px` | `.ddhq__lab`, `.ddhq__dates` | 拉回左对齐会让整版塌在一条轴上,失去阅读引导 |
-| 印章挂在 `.ddhq__base` 上 | `.ddhq__stamp` | 改回写死的绝对偏移会随内容高度撞上文字(已经发生过一次) |
+| 印章挂在 `.ddhq__base` / `.ddhq__titlewrap` 上 | `.ddhq__stamp` | 改回写死的绝对偏移会随内容高度撞上文字。已经发生过两次:一次是提示块高度变化,一次是中英标题字号不同 |
+| 英文写 `postponed` 不写 `extended` | caption + payload | extension 在 CPA 语境里特指 Form 4868,用错会立刻暴露不是圈内人 |
+| LinkedIn 画布 1080×1350 | `format: li` | 4:5 是 LinkedIn 竖图上限,3:4 会被裁 |
 
 **印章那条特别说明:** 它是事务所收件章的移植,不是 UI 徽章。旋转 -9°、不加纹理、
 不写品牌名。正着放会立刻退化成一个普通角标。
@@ -116,6 +118,33 @@ IRS 公告只给县名不给 FIPS。映射表在 `us-county-maps/index.json`。
   自动插入,或用 `text-autospace`。
 
 ---
+
+## 3.6 双平台
+
+同一个 payload 出两张图,只改 `locale` 和 `format`。**不要维护两份数据。**
+
+| 平台 | `format` | 画布 | `locale` | 标题字体 | 字号 |
+|---|---|---|---|---|---|
+| 小红书 | `xhs` | 1080×1440 (3:4) | `zh` | 思源宋体 900 | 108px |
+| LinkedIn | `li` | 1080×1350 (4:5) | `en` | Source Serif 4 700 | 76px |
+
+4:5 是 LinkedIn 竖图上限,3:4 会被裁。西文标题更长,所以降一档字号、
+`--step` 收到 72px。西文可以用轻微负字距(-.015em),CJK 不行。
+
+**英文术语强制表**,不得替换:
+
+| 概念 | 用 | 不要用 |
+|---|---|---|
+| 灾害减免的日期变动 | `postponed` | `extended`（那指 Form 4868 主动申请） |
+| 覆盖范围 | `covered disaster area` | `affected area` |
+| 适用人群 | `affected taxpayers` | `eligible people` |
+| 预缴 | `estimated payments` | `prepayment` |
+
+`postponed` / `extended` 这条最关键。LinkedIn 上的读者是本土 CPA,
+用错这个词一眼看出不是圈内人,而产品卖的就是圈内可信度。
+
+英文 caption 另有约束:无 emoji、hashtag 三个以内或不加、不放 URL
+(LinkedIn 压制带外链的帖子,链接放评论区)、开头 140 字符内必须有钩子句。
 
 ## 4. 内容节奏
 

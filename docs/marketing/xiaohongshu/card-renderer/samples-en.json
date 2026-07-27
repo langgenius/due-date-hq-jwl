@@ -1,0 +1,236 @@
+[
+  {
+    "id": "wa-storm-delay-en",
+    "kind": "delay",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "Storms and flooding · Disaster relief",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53007",
+        "53009",
+        "53027",
+        "53031",
+        "53033",
+        "53035",
+        "53045",
+        "53053",
+        "53067"
+      ]
+    },
+    "title": [
+      "Nine Washington counties",
+      "Filing postponed"
+    ],
+    "dateLabel": "FEDERAL FILING DEADLINE",
+    "oldDate": "Apr 15",
+    "newDate": "Aug 5",
+    "forms": [
+      "1040",
+      "1120",
+      "1065",
+      "Estimated"
+    ],
+    "tip": {
+      "label": "MOST FIRMS MISS THIS",
+      "body": "If a client's address sits outside the covered area but their records — or their bookkeeper — are inside it, relief is not automatic. Call the IRS disaster line to request it."
+    },
+    "detected": {
+      "date": "7/18",
+      "time": "09:14 ET"
+    },
+    "footer": "7th change logged this month · 51 jurisdictions monitored",
+    "caption": {
+      "extras": [
+        "符合条件的自动适用，无需申请",
+        "已收滞纳金通知的可致电撤销"
+      ],
+      "tags": [
+        "tax",
+        "CPA",
+        "IRS"
+      ]
+    }
+  },
+  {
+    "id": "wa-storm-correction-en",
+    "kind": "correction",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": false
+    },
+    "reason": "Correction to our July 20 post",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53007",
+        "53009",
+        "53027",
+        "53031",
+        "53033",
+        "53035",
+        "53045",
+        "53053",
+        "53067"
+      ]
+    },
+    "title": [
+      "Our last post",
+      "had the wrong date"
+    ],
+    "dateLabel": "WE PUBLISHED AUG 5. THE NOTICE SAYS",
+    "oldDate": "Aug 5",
+    "newDate": "Aug 15",
+    "forms": [
+      "1040",
+      "1120",
+      "1065",
+      "Estimated"
+    ],
+    "tip": {
+      "label": "HANDLED",
+      "body": "The correction went out to all subscribers and the original post is flagged as withdrawn. If you scheduled work around Aug 5, re-check the affected clients."
+    },
+    "detected": {
+      "date": "7/22",
+      "time": "14:03 ET"
+    },
+    "footer": "8th change logged this month · 51 jurisdictions monitored",
+    "caption": {
+      "extras": [
+        "原推送已标记撤回",
+        "按 8/5 排期的客户请重新确认"
+      ],
+      "tags": [
+        "tax",
+        "CPA",
+        "IRS"
+      ]
+    }
+  },
+  {
+    "id": "nc-pending-en",
+    "kind": "pending",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "State",
+      "org": "NC DOR",
+      "noticeId": "Pending",
+      "verified": false
+    },
+    "reason": "Hurricane · State filing",
+    "map": {
+      "state": "NC",
+      "counties": []
+    },
+    "title": [
+      "North Carolina",
+      "Postponement coming"
+    ],
+    "dateLabel": "STATE FILING DEADLINE",
+    "oldDate": "Apr 15",
+    "newDate": "Date not yet set",
+    "forms": [
+      "State income tax",
+      "State estimated"
+    ],
+    "tip": {
+      "label": "WHAT TO DO NOW",
+      "body": "The state has announced relief but not a date. Prepare to the original Apr 15 deadline — don't wait on the notice. We'll post again the moment a date lands."
+    },
+    "detected": {
+      "date": "7/24",
+      "time": "11:37 ET"
+    },
+    "footer": "9th change logged this month · 51 jurisdictions monitored",
+    "caption": {
+      "extras": [
+        "先按原截止日备件，勿等公告",
+        "日期公布后我们会自动补发"
+      ],
+      "tags": [
+        "tax",
+        "CPA",
+        "IRS"
+      ]
+    }
+  },
+  {
+    "id": "fema-multi-en",
+    "kind": "multi",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "FEMA",
+      "noticeId": "DR-4901",
+      "verified": true
+    },
+    "reason": "Hurricane · Disaster relief",
+    "map": {
+      "state": "FL",
+      "counties": []
+    },
+    "title": [
+      "Four states postponed",
+      "Dates differ"
+    ],
+    "rows": [
+      {
+        "state": "FL",
+        "name": "Florida",
+        "scope": "statewide",
+        "date": "Aug 1"
+      },
+      {
+        "state": "GA",
+        "name": "Georgia",
+        "scope": "14 counties",
+        "date": "Aug 1"
+      },
+      {
+        "state": "SC",
+        "name": "South Carolina",
+        "scope": "statewide",
+        "date": "Aug 15"
+      },
+      {
+        "state": "NC",
+        "name": "North Carolina",
+        "scope": "9 counties",
+        "date": "Sep 2"
+      }
+    ],
+    "tip": {
+      "label": "MOST FIRMS MISS THIS",
+      "body": "One disaster, four different dates. Check each client against their own state — don't apply the earliest or the latest across the board."
+    },
+    "detected": {
+      "date": "7/26",
+      "time": "08:02 ET"
+    },
+    "footer": "10th change logged this month · 51 jurisdictions monitored",
+    "caption": {
+      "extras": [
+        "逐州核对，勿套用最早或最晚的那个"
+      ],
+      "tags": [
+        "tax",
+        "CPA",
+        "IRS"
+      ]
+    }
+  }
+]

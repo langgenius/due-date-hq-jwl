@@ -18,11 +18,13 @@ HERE = pathlib.Path(__file__).parent.resolve()
 
 RENDER = """async (d) => {
   const { renderCard } = await import('./card.js');
+  const { buildCaption } = await import('./caption.js');
   const root = document.getElementById('root');
   root.innerHTML = '';
   root.appendChild(await renderCard(d));
   await document.fonts.ready;
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  return buildCaption(d);
 }"""
 
 
@@ -53,16 +55,20 @@ def main():
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         br = p.chromium.launch()
-        pg = br.new_page(viewport={'width': 1180, 'height': 1540},
+        pg = br.new_page(viewport={'width': 1180, 'height': 1560},
                          device_scale_factor=a.scale)
         pg.goto(f'http://127.0.0.1:{a.port}/export.html')
         for i, d in enumerate(items):
-            pg.evaluate(RENDER, d)
+            cap = pg.evaluate(RENDER, d)
             pg.wait_for_timeout(400)
             name = d.get('id') or f'card-{i+1}'
             path = out / f'{name}.png'
+            box = pg.locator('.ddhq').bounding_box()
             pg.locator('.ddhq').screenshot(path=str(path))
-            print(f'{path}  {1080*a.scale}x{1440*a.scale}')
+            (out / f'{name}.txt').write_text(cap['text'], encoding='utf-8')
+            w, h = int(box['width']) * a.scale, int(box['height']) * a.scale
+            flag = '  !! ' + '; '.join(cap['warnings']) if cap['warnings'] else ''
+            print(f'{path}  {w}x{h}  +caption{flag}')
         br.close()
     httpd.shutdown()
 

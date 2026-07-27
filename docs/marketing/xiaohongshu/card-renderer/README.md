@@ -28,6 +28,8 @@ python3 -m http.server 8899   # 然后开 localhost:8899 看预览
 {
   "id": "wa-storm-delay",          // 输出文件名
   "kind": "delay",                 // delay | correction | pending | multi
+  "locale": "zh",                  // zh (默认) | en
+  "format": "xhs",                 // xhs = 1080×1440 (默认) | li = 1080×1350
   "source": {
     "level": "联邦",               // 联邦 | 州 | 地方
     "org": "IRS",
@@ -94,6 +96,17 @@ python3 -m http.server 8899   # 然后开 localhost:8899 看预览
 **标题字重是 900，不是 700。** 思源宋体在 108px 下 700 偏轻，撑不住整版。
 自托管时务必把 900 一起打包——缺了会静默回退到 700，视觉上只是"稍微弱一点"，
 最难发现。
+
+**两个画布尺寸。** 小红书 `xhs` 用 3:4 (1080×1440)；LinkedIn 竖图上限是 4:5，
+超过会被裁，所以 `li` 用 1080×1350。切换靠 `format` 字段，不要手动改 `--canvas-h`。
+
+**英文版不是翻译，是另一套排版。** `locale: en` 时标题走 `--font-serif-lat`，
+字号从 108 降到 76（英文标题更长，需要三到四行），`--step` 从 104 收到 72。
+
+**英文术语强制。** 灾害减免的日期变动一律写 `postponed`，**禁止写 `extended`**
+——在 CPA 语境里 extension 特指 Form 4868 那种主动申请的延期，用错这个词
+懂行的人一眼看出不是圈内人。另：`covered disaster area`、`affected taxpayers`、
+`estimated payments`（不要把"预缴"直译）。
 
 **州图标是锚点不是数据。** 104px 下县界读不出来，它的职责只是让人一眼认出
 是哪个州。要展示县级信息就用文字或另开一张。

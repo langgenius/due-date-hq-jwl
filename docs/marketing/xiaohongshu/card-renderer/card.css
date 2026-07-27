@@ -37,7 +37,7 @@
   /* 副轴：日期块相对标题右移，形成阅读阶梯 */
   --step: 104px;
 
-  /* canvas */
+  /* canvas — xhs 3:4，li 4:5（LinkedIn 竖图上限，超过会被裁） */
   --canvas-w: 1080px;
   --canvas-h: 1440px;
 
@@ -48,6 +48,28 @@
 }
 
 .ddhq, .ddhq *, .ddhq *::before, .ddhq *::after { box-sizing: border-box; }
+
+/* ---- 画布变体 ---- */
+.ddhq--li { --canvas-h: 1350px; }
+.ddhq--li .ddhq__h { margin-top: 34px; }
+.ddhq--li .ddhq__lab { margin-top: 34px; }
+.ddhq--li .ddhq__tags { margin-top: 34px; }
+.ddhq--li .ddhq__tip { padding: 26px 32px; }
+.ddhq--li .ddhq__ft { margin-top: 26px; padding-top: 22px; }
+
+/* ---- 语言变体：西文标题走 Source Serif，字号降一档，阶梯收窄 ---- */
+.ddhq--en {
+  --s-display: 76px;
+  --step: 72px;
+}
+.ddhq--en .ddhq__h {
+  font-family: var(--font-serif-lat);
+  font-weight: 700;
+  line-height: 1.14;
+  /* 西文可以用轻微负字距，CJK 不行 */
+  letter-spacing: -.015em;
+}
+.ddhq--en .ddhq__org { letter-spacing: .02em; }
 
 .ddhq {
   position: relative;
@@ -204,9 +226,34 @@
   position: absolute; z-index: 2; transform: rotate(-9deg); opacity: .9;
   right: 4px; bottom: calc(100% + 30px);
 }
-/* 多州卡的空白在标题右侧，不在提示块上方 */
-.ddhq--multi .ddhq__stamp { right: 8px; bottom: auto; top: -700px; }
+/* 多州卡的空白在标题右侧，不在提示块上方。
+   锚到标题容器而不是写死偏移——中英标题字号不同，写死会撞上下方的行。 */
+.ddhq__titlewrap { position: relative; }
+.ddhq--multi .ddhq__stamp { right: 8px; top: 6px; bottom: auto; }
 .ddhq__stamp svg { display: block; }
+
+/* ---- 变体：画布与语言 ---- */
+
+/* LinkedIn 竖图上限是 4:5，超过会被裁 */
+.ddhq--li { --canvas-h: 1350px; }
+.ddhq--li .ddhq__h { margin-top: 34px; }
+.ddhq--li .ddhq__lab { margin-top: 34px; }
+.ddhq--li .ddhq__tags { margin-top: 34px; }
+.ddhq--li .ddhq__tip { padding: 28px 32px; }
+.ddhq--li .ddhq__ft { margin-top: 26px; padding-top: 22px; }
+.ddhq--li .ddhq__stamp { bottom: calc(100% + 22px); }
+
+/* 英文：拉丁衬线，标题更长所以字号降一档，阶梯同步收窄 */
+.ddhq--en { --step: 72px; }
+.ddhq--en .ddhq__h {
+  font-family: var(--font-serif-lat);
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 1.14;
+  letter-spacing: -.015em;
+}
+.ddhq--en .ddhq__lvl { letter-spacing: .1em; }
+.ddhq--en .ddhq__tl { letter-spacing: .1em; }
 
 /* preview scaling only — never applied on export */
 .ddhq--scaled { transform-origin: top left; }
