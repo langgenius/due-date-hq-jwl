@@ -515,6 +515,25 @@ const viewToggleHtml =
   '<button data-view="rows" aria-pressed="false" aria-label="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>' +
   '</div>'
 
+// Curated internal links from the homepage (the most-crawled page) straight to the
+// high-intent comparison / alternatives pages. Those pages are otherwise 2+ clicks
+// from home (linked only from tool profiles and /compare), which leaves them
+// "Discovered – currently not indexed" in GSC. Category-balanced; weighted toward
+// the pages Google has discovered but not yet crawled.
+const POPULAR_COMPARISONS = [
+  { href: '/drake-tax-vs-lacerte', label: 'Drake Tax vs Lacerte' },
+  { href: '/lacerte-vs-proconnect', label: 'Lacerte vs ProConnect' },
+  { href: '/ultratax-cs-vs-cch-axcess', label: 'UltraTax CS vs CCH Axcess' },
+  { href: '/proconnect-vs-proseries', label: 'ProConnect vs ProSeries' },
+  { href: '/taxdome-vs-financial-cents', label: 'TaxDome vs Financial Cents' },
+  { href: '/karbon-vs-jetpack-workflow', label: 'Karbon vs Jetpack Workflow' },
+  { href: '/quickbooks-online-vs-sage', label: 'QuickBooks Online vs Sage' },
+  { href: '/xero-vs-sage', label: 'Xero vs Sage' },
+  { href: '/ultratax-cs-alternatives', label: 'UltraTax CS alternatives' },
+  { href: '/lacerte-alternatives', label: 'Lacerte alternatives' },
+  { href: '/xero-alternatives', label: 'Xero alternatives' },
+]
+
 // ---------- HOMEPAGE ----------
 // The homepage carries its own in-page section nav (scroll-spy) + firm-size filter in the
 // sticky control bar, so it does NOT get the top catnav or per-heading "View all" links.
@@ -522,7 +541,10 @@ let homeBody = fullBody
 // homepage: link the guide pages as a compact pill row (internal links so they aren't orphaned)
 homeBody = homeBody.replace(
   '<div class="faq">',
-  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="guidelinks"><li><a href="/compare">Compare all 25 tools</a></li><li><a href="/cpa-software-pricing">Pricing across all 25 tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>\n\n<div class="faq">`,
+  `<div class="guides"><div class="wrap"><h2>Guides</h2><ul class="guidelinks"><li><a href="/compare">Compare all 25 tools</a></li><li><a href="/cpa-software-pricing">Pricing across all 25 tools</a></li><li><a href="/cpa-software-with-open-api">Software with an open API</a></li><li><a href="/best-cpa-software-for-solo-firms">Best for solo firms</a></li><li><a href="/best-cpa-software-for-small-firms">Best for small firms</a></li></ul></div></div>\n\n` +
+    `<div class="guides"><div class="wrap"><h2>Popular comparisons</h2><ul class="guidelinks">` +
+    POPULAR_COMPARISONS.map((c) => `<li><a href="${c.href}">${c.label}</a></li>`).join('') +
+    `</ul></div></div>\n\n<div class="faq">`,
 )
 homeBody = homeBody.replace('<footer>', footerNav + '\n<footer>')
 const homeHtml =
