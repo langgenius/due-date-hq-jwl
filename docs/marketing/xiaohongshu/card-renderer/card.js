@@ -8,6 +8,17 @@ const iconCache = new Map();
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+let wordmarkCache;
+/* 页脚 DueDateHQ 标识 = 官方 wordmark SVG(内联,渲染前就在 DOM 里)。 */
+async function loadWordmark() {
+  if (wordmarkCache === undefined) {
+    wordmarkCache = fetch(new URL('./brand-wordmark.svg', import.meta.url).href)
+      .then((r) => (r.ok ? r.text() : 'DueDateHQ'))
+      .catch(() => 'DueDateHQ');
+  }
+  return wordmarkCache;
+}
+
 async function loadIcon(code) {
   if (!iconCache.has(code)) {
     iconCache.set(code, fetch(`${ICON_BASE}${code}.svg`).then((r) => {
@@ -179,6 +190,8 @@ export async function renderCard(data) {
       }>${stampSvg(mark, uid)}</div>`
     : '';
 
+  const wordmark = await loadWordmark();
+
   const el = document.createElement('div');
   el.className = `ddhq ddhq--${kind} ddhq--${locale} ddhq--${format}`;
   el.innerHTML = `${grainLayer()}<div class="ddhq__card">
@@ -188,7 +201,7 @@ export async function renderCard(data) {
     <div class="ddhq__base">${kind === 'multi' ? '' : stamp}${tip}</div>
     <div class="ddhq__ft">
       <div class="ddhq__fl">${esc(data.footer)}</div>
-      <div class="ddhq__fr">DueDateHQ</div>
+      <div class="ddhq__fr">${wordmark}</div>
     </div></div>`;
   return el;
 }
