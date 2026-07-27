@@ -123,7 +123,13 @@ export async function renderCard(data) {
   }</div>`;
 
   let body = '';
-  if (kind === 'multi') {
+  if (kind === 'note') {
+    /* 第 2 页:实务提示单独成页。编号要点,字号放大到整页可读。 */
+    const pts = (data.points || []).map((p, i) =>
+      `<div class="ddhq__np"><span class="ddhq__nn">${i + 1}</span>
+         <span class="ddhq__nx">${esc(p)}</span></div>`).join('');
+    body = `<div class="ddhq__notes">${pts}</div>`;
+  } else if (kind === 'multi') {
     const all = data.rows || [];
     /* 版面容量：4 行常规，6 行紧凑，12 行双栏，超出则截断并注明。 */
     const CAP = 12;
@@ -161,13 +167,13 @@ export async function renderCard(data) {
         <span class="ddhq__arw">&#8594;</span>${newSlot}</div>`;
   }
 
-  const tags = (data.forms || []).length
+  const tags = kind !== 'note' && (data.forms || []).length
     ? `<div class="ddhq__tags">${data.forms.map((f) =>
         `<span class="ddhq__tag${/^[\d-]/.test(f) ? ' mono' : ''}">${esc(f)}</span>`
       ).join('')}</div>`
     : '';
 
-  const tip = data.tip
+  const tip = kind !== 'note' && data.tip
     ? `<div class="ddhq__tip"><div class="ddhq__tl">${esc(data.tip.label)}</div>
        <div class="ddhq__tb">${esc(data.tip.body)}</div></div>`
     : '';

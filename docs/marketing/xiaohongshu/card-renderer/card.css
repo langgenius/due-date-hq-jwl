@@ -215,6 +215,17 @@
 .ddhq--correction .ddhq__tl { color: var(--red); }
 .ddhq__tb { font-size: 27px; color: #2B2A26; line-height: 1.7; }
 
+/* ---- note page (第 2 页:实务提示单独成页) ---- */
+.ddhq__notes { margin-top: 44px; display: flex; flex-direction: column; gap: 34px; }
+.ddhq__np { display: flex; gap: 24px; align-items: flex-start; }
+.ddhq__nn {
+  flex-shrink: 0; width: 46px; height: 46px; border-radius: 999px;
+  background: var(--lime); color: var(--lime-ink);
+  font-size: 24px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.ddhq__nx { font-size: 33px; line-height: 1.55; color: #2B2A26; padding-top: 2px; }
+
 /* ---- footer ---- */
 .ddhq__ft {
   display: flex; justify-content: space-between; align-items: center;

@@ -22,6 +22,13 @@ X 每天发的是**州级规则变更** alert(来自已核准 Pulse),不是灾�
 - 顺手修:header 的 `verified` 占位符 `@` → `✓`(先前渲染成字面 @,像 bug);
   `render-cards.mjs` 出图日志按 format 打印真实高度(li=1350,否则 1440)。
 
+## 追加:`note` 卡型 + 小红书两页轮播(同日)
+
+用户要求"实务提示单独放一页" → 小红书变两页。新增 `kind: "note"`:复用头部/页脚
+做连续性,大标题(实务提示)+ 编号要点列表(lime 圆点),整页可读字号。同一事件的
+小红书 payload 拆成 p1(rate,去掉 tip,留白聚焦)+ p2(note,4 条要点);LinkedIn
+仍单图(en,tip 内嵌)。`note` 跳过 forms/tip/stamp。
+
 ## 验证
 
 `validate.test.mjs` / `resolve-counties.test.mjs` 仍全过。北卡两张卡经 T1 闸门(EN 版
