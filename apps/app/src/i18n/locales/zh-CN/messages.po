@@ -15362,6 +15362,10 @@ msgstr "Source set to {selectedPresetLabel}."
 msgid "Source status"
 msgstr "来源状态"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Source status unavailable"
+msgstr "数据源状态不可用"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Source unreliable or superseded"
 msgstr "来源不可靠或已被取代"

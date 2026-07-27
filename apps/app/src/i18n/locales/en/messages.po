@@ -15300,6 +15300,10 @@ msgstr "Source set to {selectedPresetLabel}."
 msgid "Source status"
 msgstr "Source status"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Source status unavailable"
+msgstr "Source status unavailable"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Source unreliable or superseded"
 msgstr "Source unreliable or superseded"

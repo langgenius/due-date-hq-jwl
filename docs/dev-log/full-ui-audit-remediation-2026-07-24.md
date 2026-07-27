@@ -48,10 +48,28 @@ Visual:
 - More error branches: `routes/alerts.tsx` monitoring-chip tooltip (no longer "Checking source health…" forever on error), `routes/obligations.tsx` calendar-sync popover (no "Enable subscription" on a failed load — duplicate risk), `ClientDetailWorkspace.tsx` activity panel.
 - `AlertDetailDrawer.tsx` — the `NoAffectedClientsPrompt` fallback button says "View clients" (matches its `/clients` destination) instead of "Import clients".
 
-## Deferred (with reason)
+## Deferred items — follow-up resolution
 
-- **Assignee filter keyed on display name** (`/deadlines?assignee=<name>`) — keying on `assigneeId` is a data-contract change that would break existing bookmarked `?assignee=` links and touches the param parser + every emit site. Needs its own scoped change, not a mechanical edit inside a broad batch.
-- **AlertsListPage source-error header chip** — surfacing "source health unknown" (vs. silently hiding the error-count chip) needs a deliberate indicator design; the primary monitoring chip on `/alerts` was fixed instead.
+Both deferred items were revisited.
+
+- **AlertsListPage source-error header chip — DONE.** When `sourceHealthQuery`
+  errors, the header now shows a neutral "Source status unavailable" chip
+  (linking to `/rules/sources`) instead of silently hiding the error-count chip
+  — so a dark feed no longer reads as "all sources healthy." New string
+  translated (`zh-CN` 0 missing).
+
+- **Assignee filter keyed on display name — intentionally NOT changed.** On
+  investigation the name-based facet is a deliberate design, not a bug:
+  `obligation-queue.ts` filters by `assigneeName`/`assigneeNames`, and the
+  contract (`dashboard.ts:142`) states plainly that `assigneeName` **may be a
+  free-text import label with no `assigneeId`**. Keying the filter on
+  `assigneeId` would regress filtering for those import-label assignees — a real
+  feature — to fix a rare edge case (two members with identical display names).
+  The failure mode it was flagged for (a rename → a stale bookmarked link) is
+  already handled gracefully: a no-match filter renders `ObligationQueueEmptyState`
+  ("No deadlines match these filters" + Clear filters), not a silent break.
+  Trading a real capability for a rare edge case isn't worth it, so the
+  name-based design stays.
 
 ## Verification
 

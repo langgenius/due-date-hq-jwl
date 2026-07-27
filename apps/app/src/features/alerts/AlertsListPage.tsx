@@ -783,6 +783,19 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         other="# source errors"
                       />
                     </Badge>
+                  ) : sourceHealthQuery.isError ? (
+                    // Source health couldn't load — say so explicitly instead of
+                    // letting the error-count chip silently vanish, which reads
+                    // as "all sources healthy" when a feed may be dark (audit P3).
+                    <Badge
+                      variant="secondary"
+                      size="lg"
+                      className="gap-1"
+                      render={<Link to="/rules/sources" />}
+                    >
+                      <CircleAlertIcon className="size-3.5" aria-hidden />
+                      <Trans>Source status unavailable</Trans>
+                    </Badge>
                   ) : null}
                 </>
               ) : null}
