@@ -3483,8 +3483,8 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.subject} 替代方案：CPA 事务所怎么选 — DueDateHQ 指南`,
-        description: `面向 CPA 事务所的 ${spec.subject} 替代方案：常被一起评估的工具清单与各自适合的场景，以及 DueDateHQ 如何作为带来源的规则变化监控层补位。`,
+        title: `${spec.subject} 替代方案与竞品（2026）：CPA 事务所怎么选 — DueDateHQ`,
+        description: `面向 CPA 事务所的 ${spec.subject} 替代方案与竞品对比：常被一起评估的工具、各自适合的场景，以及 DueDateHQ 如何作为带来源的截止日与规则变化监控层补位。`,
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3566,8 +3566,8 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
   return {
     slug: spec.slug,
     meta: {
-      title: `The best ${spec.subject} alternatives for CPA firms — DueDateHQ guide`,
-      description: `${spec.subject} alternatives for CPA firms: the tools commonly evaluated together and where each fits, plus how DueDateHQ adds a source-backed rule-change monitoring layer.`,
+      title: `${spec.subject} alternatives & competitors (2026): what CPA firms use — DueDateHQ`,
+      description: `${spec.subject} alternatives and competitors compared for US CPA firms — the tools commonly evaluated against ${spec.subject}, where each fits, plus how DueDateHQ adds a source-backed deadline & rule-change monitoring layer.`,
       ogImage: '/og/guide.en.png',
     },
     hero: {
