@@ -21,13 +21,17 @@ mention the guide there, not in a new cold email).
 
 ## 1) Accounting Today — technology desk
 
-**To:** byline editor of the technology section (not the tips inbox)
+**To:** Chris Gaetano, Technology Editor (verified current on accountingtoday.com/author page
+07-28). No public email — reach via LinkedIn message or the accountingtoday.com/contact-us
+staff routing; do NOT use the tips inbox.
+**Note:** the anchor piece is a ~150-contributor compilation, not his byline — the opener
+below credits the desk, not him personally.
 **Subject:** Source data: pricing + API openness across 25 CPA software tools
 
-Hi [name],
+Hi Chris,
 
-Your "16 predictions for accounting technology for 2026" list is the kind of forward look I
-keep coming back to.
+The "16 predictions for accounting technology for 2026" list your desk put together is the
+kind of forward look I keep coming back to.
 
 I maintain CPA Field Guide, an independent, no-pay-to-list directory of the software US CPA
 firms run on. We just published a data page that might be useful source material for future
@@ -45,7 +49,8 @@ API"), happy to pull it — no strings.
 
 ## 2) Future Firm — Ryan Lazanis
 
-**Via:** futurefirm.co contact form / LinkedIn (no cold email address)
+**Via:** futurefirm.co/contact form (verified live 07-28: First/Last/Email/Message fields —
+put the subject line as the first line of the message) or LinkedIn
 **Subject:** Data for your software roundups — 25 tools, priced + API-checked
 
 Hi Ryan,
@@ -98,8 +103,9 @@ behind DueDateHQ.)
 **Precondition:** the show runs on the CPA Practice Advisor masthead. The hosts are
 independent (K2 Enterprises), so this is a separate person from pitch #3's editor — but check
 send-state anyway and never open two cold threads into the same inbox.
-**To:** the hosts via K2 Enterprises contact (verify current address on k2e.com before
-sending — no-stale-facts rule)
+**To:** randy@k2e.com (surfaced in public directories 07-28, NOT verified first-party —
+k2e.com/contact-us blocks fetching; eyeball k2e.com or his LinkedIn before sending. Fallback:
+K2 Enterprises main line 620-664-6000 / LinkedIn to either host)
 **Subject:** Show-prep data: prices + API openness for 25 CPA tools, in one table
 
 Hi Randy and Brian,
@@ -123,10 +129,11 @@ correction. (Disclosure: the guide is maintained by the team behind DueDateHQ.)
 
 ## 5) The Woodard Report — editorial
 
-**To:** editorial contact on report.woodard.com (verify current route before sending)
+**To:** info@woodard.com (verified on woodard.com/contact-us 07-28 — no separate editorial
+inbox published; their contact form is the stated fastest route)
 **Subject:** The small-firm software premium, in numbers — 25 tools priced
 
-Hi [name],
+Hi Woodard Report team,
 
 "Why Small Accounting Firms Are Reclaiming the Future" (July 7) makes the point that most
 practice management software is built for enterprise complexity, not small-firm reality.
@@ -147,11 +154,11 @@ pays for placement.)
 
 ## 6) Insightful Accountant — editorial
 
-**To:** editorial contact on insightfulaccountant.com (verify current masthead before
-sending)
+**To:** info@insightfulaccountant.com, attn Gary DeHart (Publisher) — staff + address
+verified on insightfulaccountant.com/about 07-28 (Senior Editor is William "Murph" Murphy)
 **Subject:** API-openness data for the QBO app ecosystem — 25 tools, sourced
 
-Hi [name],
+Hi Gary,
 
 Your ERP update on Intuit Enterprise Suite expanding its capabilities is exactly the
 ecosystem coverage your readers seem to come for.
@@ -172,7 +179,9 @@ maintained by the team behind DueDateHQ.)
 
 ## 7) Journal of Accountancy — technology desk
 
-**To:** Bryan Strickland (byline on the anchor piece) or the JofA tech desk
+**To:** Bryan Strickland (byline on the anchor piece). No public email found
+(journalofaccountancy.com contact page 404s) — route via LinkedIn message, or try the AICPA
+staff pattern firstname.lastname@aicpa-cima.com (UNVERIFIED — if it bounces, LinkedIn only)
 **Subject:** Companion data to the Top Issues Survey — what the tech actually costs
 
 Hi Bryan,
