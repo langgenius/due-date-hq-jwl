@@ -6,6 +6,7 @@ import StructuredData from '../components/StructuredData.astro'
 import FoundingBanner from '../components/FoundingBanner.astro'
 import type { JsonLdDocument } from '../lib/structured-data'
 import { MARKETING_SITE_URL, getMarketingUrl } from '../lib/site'
+import { hasZhMirror } from '../lib/locale-paths'
 import '../styles/globals.css'
 
 // Founding-user lead form endpoint (dedicated Formspree form). Hardcoded default
@@ -44,6 +45,9 @@ const ogImageUrl = `${MARKETING_SITE_URL}${ogImage}`
 const localeFreePath =
   pathname === '/zh-CN' ? '/' : pathname.startsWith('/zh-CN/') ? pathname.slice('/zh-CN'.length) : pathname
 const enHref = getMarketingUrl(localeFreePath)
+// EN-only sections (see EN_ONLY_PREFIXES) have no zh twin; emitting a zh
+// hreflang there hands Google a crawlable 404.
+const zhMirrored = hasZhMirror(localeFreePath)
 const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${localeFreePath}`)
 
 // Marketing display/body/mono faces. Loaded non-render-blocking (preload as
@@ -91,7 +95,7 @@ const FONT_CSS_HREF =
 
     <link rel="canonical" href={canonical} />
     {!noindex && <link rel="alternate" hreflang="en" href={enHref} />}
-    {!noindex && <link rel="alternate" hreflang="zh-CN" href={zhHref} />}
+    {!noindex && zhMirrored && <link rel="alternate" hreflang="zh-CN" href={zhHref} />}
     {!noindex && <link rel="alternate" hreflang="x-default" href={enHref} />}
 
     <meta property="og:type" content={ogType} />

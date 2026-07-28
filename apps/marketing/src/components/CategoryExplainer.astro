@@ -9,6 +9,7 @@
  */
 import FaqAccordion from './FaqAccordion.astro'
 import type { CategoryContent } from '../lib/category-explainer'
+import { hasZhMirror } from '../lib/locale-paths'
 
 interface Props {
   content: CategoryContent
@@ -17,6 +18,9 @@ interface Props {
 }
 const { content: c, locale = 'en', ctaHref } = Astro.props
 const base = locale === 'zh-CN' ? '/zh-CN' : ''
+// EN-only sections (e.g. /irs-disaster-relief) have no zh twin — prefixing
+// them with /zh-CN produced crawlable 404s (GSC, 2026-07-28).
+const loc = (href: string) => (base && hasZhMirror(href) ? `${base}${href}` : href)
 const faqEyebrow = locale === 'zh-CN' ? '常见问题' : 'FAQ'
 const defLabel = locale === 'zh-CN' ? '定义' : 'Definition'
 ---
@@ -85,7 +89,7 @@ const defLabel = locale === 'zh-CN' ? '定义' : 'Definition'
 
     <p class="ce-cross">
       {c.crosslink.lead}{' '}
-      <a href={`${base}${c.crosslink.link.href}`}>{c.crosslink.link.label}</a>.
+      <a href={loc(c.crosslink.link.href)}>{c.crosslink.link.label}</a>.
     </p>
   </section>
 
@@ -100,7 +104,7 @@ const defLabel = locale === 'zh-CN' ? '定义' : 'Definition'
       {
         c.related.map((r) => (
           <li>
-            <a href={`${base}${r.href}`}>{r.label}</a>
+            <a href={loc(r.href)}>{r.label}</a>
           </li>
         ))
       }
@@ -111,7 +115,7 @@ const defLabel = locale === 'zh-CN' ? '定义' : 'Definition'
       <p class="ce-cta__body">{c.cta.body}</p>
       <div class="ce-cta__actions">
         <a class="m-cta m-cta--primary" href={ctaHref}>{c.cta.primary}</a>
-        <a class="m-cta m-cta--ghost" href={`${base}${c.cta.secondaryHref}`}>{c.cta.secondary}</a>
+        <a class="m-cta m-cta--ghost" href={loc(c.cta.secondaryHref)}>{c.cta.secondary}</a>
       </div>
     </div>
   </section>
