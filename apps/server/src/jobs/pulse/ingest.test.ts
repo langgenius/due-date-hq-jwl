@@ -604,7 +604,7 @@ describe('enqueuePulseIngestScans', () => {
     })
   })
 
-  it('chunks oversized host groups and keeps unresolvable hosts as singletons', async () => {
+  it('keeps each host group in one chain and unresolvable hosts as singletons', async () => {
     const now = new Date('2026-05-01T00:00:00.000Z')
     repoMocks.ensureSourceState.mockResolvedValue({ enabled: true, nextCheckAt: null })
     const queueSend = vi.fn()
@@ -618,11 +618,8 @@ describe('enqueuePulseIngestScans', () => {
     )
 
     const sent = queueSend.mock.calls.map((call) => call[0] as { sourceIds: string[] })
-    const groupSizes = sent
-      .filter((message) => message.sourceIds[0]?.startsWith('h.'))
-      .map((message) => message.sourceIds.length)
-      .toSorted((a, b) => a - b)
-    expect(groupSizes).toEqual([1, 4])
+    const hostedMessages = sent.filter((message) => message.sourceIds[0]?.startsWith('h.'))
+    expect(hostedMessages.map((message) => message.sourceIds)).toEqual([hosted])
     const soloMessages = sent.filter((message) => message.sourceIds[0]?.startsWith('solo.'))
     expect(soloMessages.map((message) => message.sourceIds)).toEqual([['solo.a'], ['solo.b']])
   })
@@ -691,7 +688,7 @@ describe('consumePulseIngestSource', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
   })
 
-  it('processes a host group sequentially through one shared ingest context', async () => {
+  it('processes one host-group source and schedules a delayed continuation', async () => {
     const queueSend = vi.fn()
     const order: string[] = []
     const groupAdapter = (id: string) =>
@@ -738,35 +735,60 @@ describe('consumePulseIngestSource', () => {
       [groupAdapter('shared.one'), groupAdapter('shared.two')],
     )
 
-    expect(result).toMatchObject({ snapshots: 2, queued: 2, failures: 0 })
-    // Strict sequence: the second source starts only after the first finished.
-    expect(order).toEqual([
-      'fetch:shared.one',
-      'parse:shared.one',
-      'fetch:shared.two',
-      'parse:shared.two',
-    ])
+    expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
+    expect(order).toEqual(['fetch:shared.one', 'parse:shared.one'])
     expect(dbMocks.createDb).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenNthCalledWith(1, {
+      type: 'pulse.extract',
+      snapshotId: 'snapshot-1',
+    })
+    expect(queueSend).toHaveBeenNthCalledWith(
+      2,
+      {
+        type: 'pulse.ingest.source',
+        sourceId: 'shared.two',
+        sourceIds: ['shared.two'],
+        reason: 'cadence_due',
+      },
+      { delaySeconds: 30 },
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.ingest.host_group_continued',
+      {
+        completedSourceId: 'shared.one',
+        nextSourceId: 'shared.two',
+        remaining: 1,
+      },
+    )
   })
 
-  it('skips unknown ids inside a group without dropping the rest', async () => {
+  it('skips an unknown head and still schedules the rest of the host group', async () => {
     const queueSend = vi.fn()
 
     const result = await consumePulseIngestSource(
       env(queueSend),
       {
         type: 'pulse.ingest.source',
-        sourceId: 'fema.declarations',
-        sourceIds: ['fema.declarations', 'does.not.exist'],
+        sourceId: 'does.not.exist',
+        sourceIds: ['does.not.exist', 'fema.declarations'],
         reason: 'cadence_due',
       },
       [adapter()],
     )
 
-    expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
+    expect(result).toEqual({ snapshots: 0, queued: 0, duplicates: 0, failures: 0 })
     expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.source_missing', {
       sourceId: 'does.not.exist',
     })
+    expect(queueSend).toHaveBeenCalledWith(
+      {
+        type: 'pulse.ingest.source',
+        sourceId: 'fema.declarations',
+        sourceIds: ['fema.declarations'],
+        reason: 'cadence_due',
+      },
+      { delaySeconds: 30 },
+    )
   })
 
   it('runs with force even when nextCheckAt is in the future', async () => {

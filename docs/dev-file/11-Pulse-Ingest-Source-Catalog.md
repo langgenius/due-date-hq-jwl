@@ -42,10 +42,13 @@
 GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为
 快照证据。
 
-**当前实现状态（2026-05-31）：**
+**当前实现状态（2026-07-28）：**
 
 - 所有 parsed item 都写 `pulse_source_snapshot` 并投递
   `PULSE_QUEUE { type: 'pulse.extract', snapshotId }`，后续经 AI Extract 进入 CPA-facing Alerts。
+- Cron 会把同 host 的到期 source 合成一条 `pulse.ingest.source` 链；consumer 每次只抓组首
+  source，完成后以 30 秒 delay 投递剩余组。这样跨 isolate 仍保持同 host 礼貌间隔，同时避免
+  IRS 这类单 source 还会抓 10–12 个详情页的 adapter 把多源工作塞进一次 Queue invocation。
 - `signal_only` source 不再是内部队列；它表示 CPA-facing Alert 默认不能直接 Apply。若官方税务
   文本明确涉及 due-date change，则可以进入 `due_date_overlay + needs_details`，否则为
   `review_only`。

@@ -36,14 +36,14 @@ export const PULSE_SOURCE_FAILURE_RETRY_MS = 15 * 60 * 1000
 export const ROBOTS_DISALLOW_BACKOFF_MS = 7 * 24 * 60 * 60 * 1000
 
 // One message per HOST GROUP of due sources, enqueued by the cron path
-// (`enqueuePulseIngestScans`) and consumed group-sequentially
-// (`consumePulseIngestSource`). The scheduled tick stays O(1) — it only decides
-// which sources are due and fans them out. Sources sharing a host ride ONE
-// message (and so fetch sequentially through one polite clock) because the
-// per-host politeness limiter cannot span the up-to-5 concurrent consumer
-// invocations — grouping is the cross-invocation guard. `sourceId` stays the
-// group's first id for back/forward compatibility and DLQ logging; old
-// single-source messages (no `sourceIds`) remain consumable.
+// (`enqueuePulseIngestScans`) and consumed as a delayed chain
+// (`consumePulseIngestSource`). Each delivery processes only the head source,
+// then re-enqueues the remaining group after one polite interval. That keeps
+// same-host work sequential across isolates without putting several detail-heavy
+// sources inside one Queue invocation. The scheduled tick stays O(1) — it only
+// decides which sources are due and fans them out. `sourceId` is the current
+// head for compatibility; `sourceIds` is the remaining chain and gives DLQ
+// logging the full affected set. Old single-source messages remain consumable.
 export interface PulseIngestSourceMessage {
   type: typeof PULSE_INGEST_SOURCE_MESSAGE_TYPE
   sourceId: string
@@ -51,12 +51,7 @@ export interface PulseIngestSourceMessage {
   reason: 'cadence_due'
 }
 
-// Wall-clock budget per message: worst case per source ≈ 30s politeness slot +
-// 30s watchdog fetch, ×2 for fetchWithRetry's 5xx re-fetch ≈ 2 min ⇒ 4 sources
-// ≈ 8 min, safely inside the 15-min queue-consumer limit even though a batch's
-// messages run under one invocation (they run concurrently across hosts).
-// Do not raise without redoing that math.
-export const MAX_SOURCES_PER_INGEST_MESSAGE = 4
+const HOST_GROUP_CONTINUATION_DELAY_SECONDS = Math.ceil(RATE_LIMIT.minIntervalMs / 1000)
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -719,9 +714,9 @@ export async function enqueuePulseIngestScans(
     })
     .map((adapter) => adapter.id)
 
-  // Group due sources by polite host so one host's fetches ride one message
-  // (sequential through one polite clock) instead of colliding across the
-  // queue's concurrent invocations. Unresolvable hosts enqueue as singletons.
+  // Group due sources by polite host so one initial message owns that host's
+  // delayed continuation chain instead of letting concurrent queue invocations
+  // collide. Unresolvable hosts enqueue as singletons.
   const hostGroups = new Map<string, string[]>()
   for (const sourceId of dueSourceIds) {
     const key = hostForSourceId(sourceId) ?? `solo:${sourceId}`
@@ -731,17 +726,14 @@ export async function enqueuePulseIngestScans(
   }
   const messages: PulseIngestSourceMessage[] = []
   for (const group of hostGroups.values()) {
-    for (let start = 0; start < group.length; start += MAX_SOURCES_PER_INGEST_MESSAGE) {
-      const chunk = group.slice(start, start + MAX_SOURCES_PER_INGEST_MESSAGE)
-      const first = chunk[0]
-      if (!first) continue
-      messages.push({
-        type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
-        sourceId: first,
-        sourceIds: chunk,
-        reason: 'cadence_due',
-      })
-    }
+    const first = group[0]
+    if (!first) continue
+    messages.push({
+      type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
+      sourceId: first,
+      sourceIds: group,
+      reason: 'cadence_due',
+    })
   }
   await Promise.all(messages.map((message) => env.PULSE_QUEUE.send(message)))
 
@@ -771,35 +763,54 @@ export async function enqueuePulseIngestScans(
 }
 
 // Queue consumer for a host group enqueued by `enqueuePulseIngestScans` (legacy
-// in-flight messages carry a single sourceId). Sources run SEQUENTIALLY through
-// one shared ctx — one polite clock — which is the whole point of grouping;
-// per-source failures stay isolated because `ingestAdapter` catches and records
-// them without throwing. Runs with `force: true` because the due-check already
-// happened at enqueue time, and so a queue retry re-fetches rather than
-// short-circuiting on a stale `nextCheckAt`. Idempotency is still guaranteed
-// downstream by the snapshot unique index + the extract status guard.
+// in-flight messages carry a single sourceId). One delivery processes only the
+// head source and schedules the rest as a delayed continuation. IRS list
+// adapters can each fetch 10–12 detail pages; processing several in one delivery
+// can exceed Cloudflare Queues' invocation wall-clock limit even though every
+// individual fetch has a watchdog. The delay also preserves the cross-isolate
+// 30s host gap after the current adapter's final request. Runs with `force: true`
+// because the due-check already happened at enqueue time. At-least-once retries
+// remain safe through the snapshot unique index + extract status guard.
 export async function consumePulseIngestSource(
   env: PulseIngestEnv,
   message: PulseIngestSourceMessage,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
 ): Promise<IngestCounts> {
   const sourceIds = message.sourceIds?.length ? message.sourceIds : [message.sourceId]
+  const [sourceId, ...remainingSourceIds] = sourceIds
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
   const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
-  const results: IngestCounts[] = []
-  for (const sourceId of sourceIds) {
+  let counts: IngestCounts = { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
+
+  if (sourceId) {
     const adapter = adapters.find((candidate) => candidate.id === sourceId)
-    if (!adapter) {
-      recordPulseMetric('pulse.ingest.source_missing', { sourceId })
-      continue
-    }
-    results.push(
-      await ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, {
+    if (adapter) {
+      counts = await ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, {
         force: true,
         browserlessSourceIds,
-      }),
-    )
+      })
+    } else {
+      recordPulseMetric('pulse.ingest.source_missing', { sourceId })
+    }
   }
-  return sumCounts(results)
+
+  const nextSourceId = remainingSourceIds[0]
+  if (nextSourceId) {
+    await env.PULSE_QUEUE.send(
+      {
+        type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
+        sourceId: nextSourceId,
+        sourceIds: remainingSourceIds,
+        reason: message.reason,
+      } satisfies PulseIngestSourceMessage,
+      { delaySeconds: HOST_GROUP_CONTINUATION_DELAY_SECONDS },
+    )
+    recordPulseMetric('pulse.ingest.host_group_continued', {
+      completedSourceId: sourceId ?? null,
+      nextSourceId,
+      remaining: remainingSourceIds.length,
+    })
+  }
+  return counts
 }

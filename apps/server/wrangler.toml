@@ -103,11 +103,12 @@ dead_letter_queue = "due-date-hq-email-dlq-staging"
 # max_concurrency caps how many consumer invocations Cloudflare runs in parallel.
 # Without it, Queues autoscales aggressively and fires hundreds of near-simultaneous
 # fetches. Per-host pacing comes from two layers in jobs/pulse/ingest.ts: (1) the
-# enqueue path host-groups due sources so one host's fetches ride ONE message and run
-# sequentially through one polite clock, and (2) createPoliteFetch instances share an
-# isolate-wide 30s/host slot clock (isolatePoliteHostState) as the in-isolate backstop
-# for chunk-split groups, retries and the rules-scan path. max_concurrency=5 remains
-# the global cap on parallel invocations (raised 2→5 once browserless was retired).
+# enqueue path host-groups due sources into a delayed one-source-per-delivery chain,
+# which preserves same-host order across isolates without exceeding one invocation's
+# wall-clock budget, and (2) createPoliteFetch instances share an isolate-wide 30s/host
+# slot clock (isolatePoliteHostState) as the in-isolate backstop for retries and the
+# rules-scan path. max_concurrency=5 remains the global cap on parallel invocations
+# (raised 2→5 once browserless was retired).
 [[queues.consumers]]
 queue = "due-date-hq-pulse-staging-v2"
 max_batch_size = 10

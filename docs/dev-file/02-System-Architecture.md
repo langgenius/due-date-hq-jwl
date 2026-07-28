@@ -253,13 +253,16 @@ SPA 首屏 TTI 冷启动 ≤ 1.5s（bundle 加载）；回访热启动 ≤ 300ms
 Cron Trigger（*/30 * * * *，每源独立 interval 见 11 §3）
         │
         ▼
-scheduled(controller, env) → jobs/pulse/ingest（enqueuePulseIngestScans，按到期源逐源入队）
+scheduled(controller, env) → jobs/pulse/ingest（enqueuePulseIngestScans，按 host 聚合到期源）
         │
         ▼
-PULSE_QUEUE { type: 'pulse.ingest.source', sourceId }
+PULSE_QUEUE { type: 'pulse.ingest.source', sourceId, sourceIds? }
         │
         ▼
-Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 'pulse.extract', snapshotId }
+Queue consumer（每次处理组首 source，30s 后续投剩余组）
+        │
+        ▼
+SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 'pulse.extract', snapshotId }
 （HTML / RSS / JSON API / email signal，选择与降级见 11 §4；
  email signal 不走 cron，由 Worker `email()` handler 直接入此链；
  白名单 JS 渲染源经 Browserless 抓取）
