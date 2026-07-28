@@ -3746,12 +3746,232 @@ export const ruleReferencePages: Record<Locale, GuidePageCopy[]> = {
   'zh-CN': ruleReferenceSpecs.map((spec) => ruleReferencePage(spec, 'zh-CN')),
 }
 
+// A-vs-B head-to-head pages ("taxdome vs jetpack" etc.). GSC-driven: the vs
+// query cluster is our single largest demand source ("taxdome vs jetpack" alone
+// = top query, 44 impressions/28d) with no dedicated page. Facts-only: public
+// positioning + prices verified from vendor pricing pages (Jul 2026); DueDateHQ
+// appears only as the monitoring layer, never as a suite replacement.
+interface VsPageSpec {
+  slug: string
+  a: { name: string; blurb: string; blurbZh: string; price: string; fit: string; fitZh: string }
+  b: { name: string; blurb: string; blurbZh: string; price: string; fit: string; fitZh: string }
+}
+
+const VS_TOOLS = {
+  taxdome: {
+    name: 'TaxDome',
+    blurb: 'an all-in-one practice management and client portal suite',
+    blurbZh: '一体化 practice management 与客户门户套件',
+    price: 'From $67/user/mo (public pricing, Jul 2026)',
+    fit: 'firms consolidating portals, organizers, documents, payments, and workflow in one platform',
+    fitZh: '希望把客户门户、organizer、文档、支付和工作流统一到一个平台的事务所',
+  },
+  karbon: {
+    name: 'Karbon',
+    blurb: 'collaborative accounting workflow and team work management with email collaboration',
+    blurbZh: '会计团队协作工作流与 work management，含邮件协作',
+    price: 'From $59/user/mo (public pricing, Jul 2026)',
+    fit: 'teams that live in shared email and want broad work management and visibility',
+    fitZh: '重度依赖共享邮件、需要更广义 work management 和团队可视化的团队',
+  },
+  jetpack: {
+    name: 'Jetpack Workflow',
+    blurb: 'accounting workflow software built around recurring jobs from a template library',
+    blurbZh: '围绕模板库周期性任务构建的会计工作流软件',
+    price: 'From $36/user/mo (public pricing, Jul 2026)',
+    fit: 'smaller firms standardizing recurring client work without a full suite migration',
+    fitZh: '想标准化周期性客户工作、又不想做整套平台迁移的小型事务所',
+  },
+} as const
+
+const vsPageSpecs: VsPageSpec[] = [
+  { slug: 'taxdome-vs-jetpack-workflow', a: VS_TOOLS.taxdome, b: VS_TOOLS.jetpack },
+  { slug: 'karbon-vs-jetpack-workflow', a: VS_TOOLS.karbon, b: VS_TOOLS.jetpack },
+  { slug: 'taxdome-vs-karbon', a: VS_TOOLS.taxdome, b: VS_TOOLS.karbon },
+]
+
+function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
+  const zh = locale === 'zh-CN'
+  const { a, b } = spec
+  const pair = `${a.name} vs ${b.name}`
+  if (zh) {
+    return {
+      slug: spec.slug,
+      meta: {
+        title: `${pair}（2026）：CPA 事务所怎么选 — DueDateHQ`,
+        description: `${a.name} 与 ${b.name} 面向 CPA 事务所的对比：各自定位、适合的场景与起步定价（公开定价，2026 年 7 月），以及无论选哪个，DueDateHQ 如何补上带来源的截止日与规则变化监控层。`,
+        ogImage: '/og/home.zh-CN.png',
+      },
+      comparisonTable: {
+        eyebrow: '一览',
+        title: `${a.name} 与 ${b.name}，并排对比`,
+        mineLabel: a.name,
+        theirsLabel: b.name,
+        rows: [
+          { dimension: '这是什么', mine: a.blurbZh, theirs: b.blurbZh },
+          { dimension: '最适合', mine: a.fitZh, theirs: b.fitZh },
+          { dimension: '起步定价', mine: a.price, theirs: b.price },
+          {
+            dimension: '官方来源级规则变化监控',
+            mine: '并非重点——跟踪你录入的日期',
+            theirs: '并非重点——跟踪你录入的日期',
+          },
+        ],
+      },
+      hero: {
+        eyebrow: '对比',
+        title: `${pair}：按你要解决的问题选。`,
+        description: `${a.name} 是${a.blurbZh}；${b.name} 是${b.blurbZh}。两者都常出现在 CPA 事务所的评估清单上——差别在于你的团队最缺哪一块。`,
+        note: '本对比基于公开定位与公开定价（2026 年 7 月核实），不声称任一竞品的私有能力，也不提供税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '怎么选',
+          title: '三个问题定方向。',
+          body: '对比不是找「更好的」，是找「更贴合你缺口的」。',
+          items: [
+            {
+              title: `什么时候选 ${a.name}`,
+              body: a.fitZh + '。',
+            },
+            {
+              title: `什么时候选 ${b.name}`,
+              body: b.fitZh + '。',
+            },
+            {
+              title: '什么时候两个都不解决问题',
+              body: '如果你的痛点是「截止日或规则变了没人知道」——两者都以你录入的日期为准，这一块要靠监控层。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DueDateHQ 的位置',
+          title: '无论选哪个，监控层都是缺的那块。',
+          body: `DueDateHQ 不参与 ${pair} 的选择——它监控官方 IRS 与各州来源的截止日与规则变化，把每条变化路由到受影响的客户并附上来源，叠加在 ${a.name}、${b.name} 或你现有的任何工具之上。`,
+          items: [
+            { title: '带来源的规则', body: '每个截止日保留官方来源、摘录与复核状态。' },
+            { title: '受影响客户复核', body: '变化先匹配到具体客户、经人工复核，再影响运营。' },
+            { title: '与两者并存', body: '不迁移、不替换——只补监控这一层。' },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: `${pair} 常见问题。` },
+      faq: [
+        {
+          question: `${a.name} 和 ${b.name} 哪个更好？`,
+          answer: `取决于缺口：${a.fitZh}选 ${a.name}；${b.fitZh}选 ${b.name}。两者公开定价分别为${a.price.replace('From ', '')}与${b.price.replace('From ', '')}。`,
+        },
+        {
+          question: '换用其中一个能解决截止日变化漏看的问题吗？',
+          answer:
+            '不直接解决——两者都跟踪你录入的日期。监控官方来源、在规则变化时提醒并路由到客户，是 DueDateHQ 这类监控层的工作，可叠加在任一工具之上。',
+        },
+      ],
+      cta: {
+        eyebrow: '下一步',
+        title: '把监控层补上，再做平台选择。',
+        body: 'DueDateHQ beta 期间免费，与你最终选择的平台并存。',
+        primary: '看工作原理',
+        secondary: '浏览全部资源',
+      },
+    }
+  }
+  return {
+    slug: spec.slug,
+    meta: {
+      title: `${pair} (2026): which fits your CPA firm — DueDateHQ`,
+      description: `${a.name} vs ${b.name} for US CPA firms: positioning, best fit, and starting prices (public pricing, Jul 2026) — plus how DueDateHQ adds source-backed deadline and rule-change monitoring on top of either.`,
+      ogImage: '/og/home.en.png',
+    },
+    comparisonTable: {
+      eyebrow: 'AT A GLANCE',
+      title: `${a.name} and ${b.name}, side by side`,
+      mineLabel: a.name,
+      theirsLabel: b.name,
+      rows: [
+        { dimension: 'What it is', mine: a.blurb, theirs: b.blurb },
+        { dimension: 'Best fit', mine: a.fit, theirs: b.fit },
+        { dimension: 'Starting price', mine: a.price, theirs: b.price },
+        {
+          dimension: 'Official-source rule-change monitoring',
+          mine: 'Not the focus — tracks dates you enter',
+          theirs: 'Not the focus — tracks dates you enter',
+        },
+      ],
+    },
+    hero: {
+      eyebrow: 'COMPARISON',
+      title: `${pair}: choose by the job, not the brand.`,
+      description: `${a.name} is ${a.blurb}. ${b.name} is ${b.blurb}. Both show up on CPA firms' shortlists — the difference is which gap your team actually has.`,
+      note: 'Based on public positioning and public pricing (verified Jul 2026). No private-capability claims about either product, and not tax advice.',
+    },
+    sections: [
+      {
+        eyebrow: 'HOW TO CHOOSE',
+        title: 'Three questions settle it.',
+        body: 'A comparison is not about "better" — it is about which gap you are closing.',
+        items: [
+          { title: `When ${a.name} fits`, body: a.fit + '.' },
+          { title: `When ${b.name} fits`, body: b.fit + '.' },
+          {
+            title: 'When neither solves the problem',
+            body: 'If your pain is "a deadline or rule changed and nobody noticed" — both work from dates you enter. That gap belongs to a monitoring layer.',
+          },
+        ],
+      },
+      {
+        eyebrow: "DUEDATEHQ'S PLACE",
+        title: 'Whichever you pick, the monitoring layer is still missing.',
+        body: `DueDateHQ takes no side in ${pair} — it watches official IRS and state sources for deadline and rule changes and routes each one to the clients it affects, with the source attached, on top of ${a.name}, ${b.name}, or whatever you run.`,
+        items: [
+          {
+            title: 'Source-backed rules',
+            body: 'Every deadline keeps its official source, excerpt, and review status.',
+          },
+          {
+            title: 'Affected-client review',
+            body: 'Changes match to specific clients and pass human review before touching operations.',
+          },
+          {
+            title: 'Runs alongside either',
+            body: 'No migration, no replacement — it only adds the monitoring layer.',
+          },
+        ],
+      },
+    ],
+    faqHeader: { eyebrow: 'FAQ', title: `${pair} — common questions.` },
+    faq: [
+      {
+        question: `Is ${a.name} better than ${b.name}?`,
+        answer: `Depends on the gap: ${a.fit} → ${a.name}; ${b.fit} → ${b.name}. Public starting prices are ${a.price.replace('From ', '')} and ${b.price.replace('From ', '')} respectively.`,
+      },
+      {
+        question: 'Will switching between them fix missed deadline changes?',
+        answer:
+          'Not directly — both track dates you enter. Watching official sources and routing rule changes to affected clients is what a monitoring layer like DueDateHQ does, on top of either tool.',
+      },
+    ],
+    cta: {
+      eyebrow: 'NEXT',
+      title: 'Add the monitoring layer, then pick your platform.',
+      body: 'DueDateHQ is free during beta and runs alongside whichever platform you choose.',
+      primary: 'See how it works',
+      secondary: 'Browse all resources',
+    },
+  }
+}
+
+export const vsPages: Record<Locale, GuidePageCopy[]> = {
+  en: vsPageSpecs.map((spec) => vsPage(spec, 'en')),
+  'zh-CN': vsPageSpecs.map((spec) => vsPage(spec, 'zh-CN')),
+}
+
 export function getGuidePages(siteCopy: LandingCopy, locale: Locale): GuidePageCopy[] {
   return [...siteCopy.geo.guides, ...supplementalGuides[locale], ...alternativeRoundupPages[locale]]
 }
 
 export function getComparisonPages(locale: Locale): GuidePageCopy[] {
-  return comparisonPages[locale]
+  return [...comparisonPages[locale], ...vsPages[locale]]
 }
 
 export function getRuleReferencePages(locale: Locale): GuidePageCopy[] {
