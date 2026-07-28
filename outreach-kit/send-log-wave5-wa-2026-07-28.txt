@@ -1,0 +1,192 @@
+# Wave-5 WA covered-county first-alert — sent 2026-07-28
+# 189 recipients, --alert --text-only, subject 'A Washington filing deadline expires Aug. 5 — 8 days out'
+# sent_utc | email | firm | city
+2026-07-27T23:10:18.821000Z | info@flstax.com | FLS Tax & Accounting Service, PLLC | Kennewick
+2026-07-27T23:10:28.435000Z | office.mail@mmracpa.com | Moody, Mickelsen, Rowley & Adamson, P.S. | Kennewick
+2026-07-27T23:10:36.965000Z | dale@otfcpa.com | Oswalt, Teel & Franklin | Kennewick
+2026-07-28T08:04:58.881000Z | info@sattlerassociates.com | Sattler & Associates CPAs | Prosser
+2026-07-28T08:05:07.155000Z | clientoutreach@ias-cpa.com | Insight Accounting Solutions LLC | Richland
+2026-07-28T08:05:15.421000Z | doord@tricitiescpa.com | Nilson & Oord PLLC | Richland
+2026-07-28T08:05:23.690000Z | shanierowleycpa@gmail.com | Precision Accounting Solutions - Shanie Rowley, CPA | Richland
+2026-07-28T08:05:31.961000Z | info@chelanvalleycpas.com | Chelan Valley CPAs | Chelan
+2026-07-28T08:05:40.275000Z | charles@andersonaccounting.cpa | Anderson Accounting and Tax, PLLC | Leavenworth
+2026-07-28T08:05:48.567000Z | cindy@evergreenacc.com | Evergreen Accounting | Leavenworth
+2026-07-28T08:05:56.855000Z | cmcclurecpa@hotmail.com | Chuck McClure, CPA, PLLC | Wenatchee
+2026-07-28T08:06:05.157000Z | info@goldenappleservices.com | Golden Apple Tax & Services LLC | Wenatchee
+2026-07-28T08:06:13.485000Z | info@bomincps.com | Baker, Overby & Moore Inc PS | Port Angeles
+2026-07-28T08:06:21.755000Z | sequim@bellscpa.com | Bell & Bell PLLC | Sequim
+2026-07-28T08:06:30.039000Z | info@meyer.cpa | Meyer & Company CPAs | Sequim
+2026-07-28T08:06:38.314000Z | cynthia@sequim-cpa.com | Sequim CPA (Sequim Accounting) | Sequim
+2026-07-28T08:06:46.881000Z | officemanager@nwapllc.com | NW Accounting Professionals LLC | Battle Ground
+2026-07-28T08:06:55.293000Z | rodger@rodgermorancpa.com | Rodger Moran CPA | Battle Ground
+2026-07-28T08:07:03.565000Z | info@wayneriverscpa.com | Wayne Rivers CPA | Battle Ground
+2026-07-28T08:07:11.823000Z | hello@barrett-cpa.com | Barrett and Company | Camas
+2026-07-28T08:07:20.082000Z | mindy@swankcpa.com | Swank CPA | Camas
+2026-07-28T08:07:28.354000Z | heidi@gtaxpro.com | Guardian Tax Service | Ridgefield
+2026-07-28T08:07:36.657000Z | info@nwcpa.net | NWCPA | Ridgefield
+2026-07-28T08:07:45.007000Z | abdel.blk@ab-accounting.com | AB Tax & Accounting Services Inc | Vancouver
+2026-07-28T08:07:55.566000Z | info@brewercaley.com | Brewer Caley CPAs | Vancouver
+2026-07-28T08:08:03.852000Z | carl@candctaxes.com | C & C Tax and Accounting | Vancouver
+2026-07-28T08:08:12.134000Z | connie@clt-cpa.com | CLT Accounting & Taxes (Connie Liu Terpening CPA LLC) | Vancouver
+2026-07-28T08:08:21.857000Z | info@conovertax.com | Conover Tax LLC | Vancouver
+2026-07-28T08:15:07.986000Z | hello@donnagrahamcpa.com | Donna L Graham CPA LLC | Vancouver
+2026-07-28T08:15:16.345000Z | cpajohn@gmail.com | Firm of John F Howes CPA | Vancouver
+2026-07-28T08:15:24.610000Z | hello@gieslertranbookkeeping.com | Giesler-Tran Bookkeeping & Tax Services | Vancouver
+2026-07-28T08:15:32.864000Z | jaimie@greentaxescpa.com | Green Taxes LLC | Vancouver
+2026-07-28T08:15:41.121000Z | joanna@mtvancouver.com | McDonnell Thomas LLC | Vancouver
+2026-07-28T08:15:49.482000Z | alyx@millsassoc.com | Mills Associates LLC | Vancouver
+2026-07-28T08:15:57.762000Z | info@cpa-thrive.com | O'Leary's Tax Service / Thrive CPA | Vancouver
+2026-07-28T08:16:06.053000Z | guy@pacnwtax.com | Pacific Northwest Tax and Accounting Services, Inc. | Vancouver
+2026-07-28T08:16:14.631000Z | kate@vancouvercpa.com | Peterson & Associates CPAs | Vancouver
+2026-07-28T08:16:22.965000Z | jennifer@rjlbs.com | RJL Accounting & Tax | Vancouver
+2026-07-28T08:16:31.338000Z | info@shieldstaxcpa.com | Shields Tax & CPA PLLC | Vancouver
+2026-07-28T08:16:39.609000Z | admin@lisatomcpa.com | Lisa A. Tom CPA PC | Kalama
+2026-07-28T08:16:47.867000Z | cpa@boothdavis.com | Booth, Davis & Associates PLLC | Longview
+2026-07-28T08:16:56.154000Z | cpa@lowercolumbiacpas.com | Lower Columbia CPAs & Company PLLC | Longview
+2026-07-28T08:17:04.449000Z | maddisen@raganandbrown.com | Ragan & Brown CPAs PS | Longview
+2026-07-28T08:17:12.704000Z | janet@aiken-sanders.com | Aiken & Sanders Inc PS | Aberdeen
+2026-07-28T08:17:21.011000Z | kristin@kristincoopertaxprep.com | Kristin Cooper Tax Prep | Nordland (Marrowstone Is.)
+2026-07-28T08:17:29.305000Z | info@pttaxcpa.com | Gooding O'Hara & Mackey PS | Port Townsend
+2026-07-28T08:17:38.035000Z | info@thebusinessguides.com | The Business Guides (CPAs) | Port Townsend
+2026-07-28T08:17:46.303000Z | april@executivetaxfs.com | Executive Tax and Financial Solutions | Bellevue
+2026-07-28T08:17:54.678000Z | gale@gescpa.com | Gale E. Smith CPA | Bellevue
+2026-07-28T08:18:02.969000Z | info@cgccpa.com | Geddes Chucka PLLC | Bellevue
+2026-07-28T08:18:11.241000Z | info@eastsidecpa.com | Wallace & Associates P.S. | Bellevue
+2026-07-28T08:18:19.606000Z | steve@ctacpllc.com | Carlson Tax & Consulting PLLC | Bothell
+2026-07-28T08:18:27.898000Z | admin@hamachercpa.com | Hamacher CPA | Bothell
+2026-07-28T08:18:36.153000Z | admin@muzzucocpa.com | Muzzuco & Associates CPA PLLC | Bothell
+2026-07-28T08:18:44.409000Z | info@rebeccabrauncpa.com | Rebecca R Braun CPA PS | Bothell
+2026-07-28T08:18:52.703000Z | ravi@archcpa.com | ARCH Accounting & Tax Services PLLC | Burien
+2026-07-28T08:19:00.984000Z | lorrie@innovative-accounting.com | Innovative Accounting and Tax Solutions LLC | Federal Way
+2026-07-28T08:19:09.265000Z | reception@oldhamfrancis.com | Oldham Francis (Tax Consultants of Washington) | Federal Way
+2026-07-28T08:19:17.584000Z | b.manley@cpasol.com | CPA Solutions PLLC | Kent
+2026-07-28T08:19:25.842000Z | kim@campbelltaxandaccounting.com | Campbell Tax & Accounting | Kent
+2026-07-28T08:19:34.195000Z | info@shannon-cpas.com | Shannon & Associates CPAs | Kent
+2026-07-28T08:19:42.459000Z | admin@wardcocpa.com | Ward & Company | Kent
+2026-07-28T08:19:50.751000Z | staff@bacpagroup.com | Bettinger Anderson CPA Group | Kirkland
+2026-07-28T08:19:59.009000Z | cathy@villemurecpa.com | Cathy Villemure CPA PLLC | Kirkland
+2026-07-28T08:20:07.253000Z | kwangcpa@kcwcpas.com | KCW Accountancy Corporation | Kirkland
+2026-07-28T08:20:15.549000Z | michael@mgriffincpa.com | Michael Griffin CPA | Kirkland
+2026-07-28T08:20:23.822000Z | steve@pedersenacctg.com | Pedersen & Associates CPAs LLC | Kirkland
+2026-07-28T08:20:33.589000Z | jay@staudachercpa.com | Staudacher CPA & Associates | Kirkland
+2026-07-28T08:20:41.892000Z | info@niversoncpa.com | Niverson & Associates CPA | Maple Valley
+2026-07-28T08:20:50.167000Z | sue@mercerislandaccountants.com | Mercer Island Accountants (Pangallo & Associates) | Mercer Island
+2026-07-28T08:20:59.481000Z | admin@squareupcpa.com | SquareUp CPA | Normandy Park
+2026-07-28T08:21:07.731000Z | denise.clare@clareaccountinggroup.com | Clare Accounting Group LLC | Redmond
+2026-07-28T08:21:15.978000Z | rick@rickmillercpa.com | Richard Miller CPA PLLC | Redmond
+2026-07-28T08:21:24.213000Z | info@nwtaxchoices.com | Northwest Tax Choices | Renton
+2026-07-28T08:21:32.470000Z | petebutzerin@gmail.com | Butzerin Tax & Accounting | Seattle
+2026-07-28T08:21:41.621000Z | info@cpmcpa.com | C.P. McAuliffe CPA PS | Seattle
+2026-07-28T08:21:49.891000Z | angela@carigenscpas.com | Carigen's Certified Public Accountants | Seattle
+2026-07-28T08:21:58.240000Z | jeff@countonthat.com | Count On That | Seattle
+2026-07-28T08:22:06.820000Z | mdang@dangtax.com | Dang Tax & Accounting | Seattle
+2026-07-28T08:22:15.157000Z | info@finneyneill.com | Finney, Neill & Company PS | Seattle
+2026-07-28T08:22:23.846000Z | amanda@greenwoodcpa.com | Greenwood Ohlund PS | Seattle
+2026-07-28T08:22:32.247000Z | kelly@haascpas.com | Haas CPA PLLC | Seattle
+2026-07-28T08:22:40.517000Z | info@jjco.com | Jacobson Jarvis & Co PLLC | Seattle
+2026-07-28T08:22:48.944000Z | jana@janahelmuth.com | Jana Helmuth CPA | Seattle
+2026-07-28T08:22:57.211000Z | johnshafercpa@comcast.net | John Shafer CPA LLC | Seattle
+2026-07-28T08:23:05.436000Z | info@magnoliacpa.com | Magnolia CPA | Seattle
+2026-07-28T08:23:13.822000Z | carrie@metasfinancial.com | Metas Financial | Seattle
+2026-07-28T08:23:22.121000Z | accounting@minarnorthey.com | Minar Northey LLP | Seattle
+2026-07-28T08:23:32.942000Z | info@ndhaccountants.com | Newman Dierst Hales PLLC | Seattle
+2026-07-28T08:23:41.272000Z | kurt@pacifictaxservice.com | Pacific Tax West Seattle | Seattle
+2026-07-28T08:23:49.549000Z | charlesc@seattlecpafirmllc.com | Seattle CPA Firm LLC | Seattle
+2026-07-28T08:23:57.957000Z | email@sprutedaviscpas.com | Sprute & Davis CPAs LLP | Seattle
+2026-07-28T08:24:07.628000Z | talyn@steeltax.net | Steel Guarde LLC | Seattle
+2026-07-28T08:24:16.073000Z | info@taxman.cc | Taxman Associates | Seattle
+2026-07-28T08:24:24.507000Z | info@cpafirmseattle.com | The Seattle CPA Firm | Seattle
+2026-07-28T08:24:32.750000Z | victor@victorjonescpa.com | Victor Jones CPA PC | Seattle
+2026-07-28T08:24:41.238000Z | info@zeiseigroup.com | ZeiSei CPA Group | Seattle
+2026-07-28T08:24:49.661000Z | christopher@chapmanea.com | Chapman Tax and Accounting | Woodinville
+2026-07-28T08:25:00.052000Z | info@skyriveradvisors.com | SkyRiver Advisors PLLC | Woodinville
+2026-07-28T08:25:08.550000Z | tami@mrozek.net | Tami R Mrozek CPA PLLC | Woodinville
+2026-07-28T08:25:16.849000Z | info@adept-accounting.com | Adept Tax & Accounting | Cle Elum
+2026-07-28T08:25:25.130000Z | jeremy@bivensandwilson.com | Bivens & Wilson, P.S. | Ellensburg
+2026-07-28T08:25:33.440000Z | amy@gjrw.com | Grebb, Johnson, Reed & Wachsmith, LLP | Ellensburg
+2026-07-28T08:25:41.930000Z | hoffman@gorge.net | Hoffman and Company, CPA, LLC | Goldendale
+2026-07-28T08:25:50.165000Z | info@herman-associates.com | Herman & Associates CPAs PC | White Salmon
+2026-07-28T08:25:58.569000Z | peterm@menichelli.cpa | Menichelli & Associates, PLLC | Chehalis
+2026-07-28T08:26:06.893000Z | accountant@abcbkbs.com | ABC Bookkeeping & Business Support (Belfair Tax & Accounting) | Belfair
+2026-07-28T08:26:15.249000Z | nw@nwaccountinggroup.com | Northwest Accounting Group | Shelton
+2026-07-28T08:26:23.770000Z | admin@wittenbergcpa.com | Wittenberg CPA, PS | Shelton
+2026-07-28T08:26:32.118000Z | lora@willapabay.org | Willapa Bay Accounting LLC | Ocean Park
+2026-07-28T08:26:40.550000Z | commbaykylie@gmail.com | Commencement Bay Accounting LLC | Bonney Lake
+2026-07-28T08:26:48.876000Z | flscpas@flscpa.net | FLS Accounting (Fullaway Lamphear & Sauve PLLC) | Fife
+2026-07-28T08:26:57.202000Z | inquiries@jspcpa.com | Johnson, Stone & Pagano, P.S. | Fircrest
+2026-07-28T08:27:05.825000Z | admin@sutton-mccann.com | Sutton-McCann and Company, P.S. | Fircrest
+2026-07-28T08:27:14.985000Z | info@pennywisetax.com | Pennywise Tax & Accounting Inc | Gig Harbor
+2026-07-28T08:27:23.248000Z | robert@robertbcpa.com | Robert Bahus, CPA (Bahus & Brenner) | Gig Harbor
+2026-07-28T08:27:31.657000Z | office@thetaxshack.com | The Tax Shack | Gig Harbor
+2026-07-28T08:27:39.919000Z | info@brinkandsadler.com | Brink & Sadler, CPAs | Lakewood
+2026-07-28T08:27:48.239000Z | info@weinandandassociates.com | F. James Weinand & Associates CPA's | Lakewood
+2026-07-28T08:27:56.497000Z | cpaoffice@livelyandbaircpas.com | Lively & Bair CPAs, P.S. Inc. | Lakewood
+2026-07-28T08:28:04.763000Z | tina@taxmenot.com | Benson & Williams, CPA's, Inc., PS | Puyallup
+2026-07-28T08:28:13.022000Z | info@gintztax.com | Gintz Accounting & Tax, LLC | Puyallup
+2026-07-28T08:28:21.362000Z | admin@kpowerscpa.com | Powers Public Accounting P.S., Inc. | Puyallup
+2026-07-28T08:28:29.635000Z | bill@hondlecpa.com | William B. Hondle, CPA PLLC | Puyallup
+2026-07-28T08:28:37.934000Z | yasmin@yasmincaldwellcpa.com | Yasmin L. Caldwell, CPA PS Inc. | Puyallup
+2026-07-28T08:28:46.199000Z | admin@stebbinscpa.com | Curtis Stebbins & Co., CPA | Tacoma
+2026-07-28T08:28:54.622000Z | accounting@jjcpa-law.com | J&J Tax Accounting PLLC | Tacoma
+2026-07-28T08:29:02.886000Z | mike@mapcpa.net | Michael A. Passeck, CPA, PS Inc. | Tacoma
+2026-07-28T08:29:11.161000Z | linda.y@ritbsinc.com | R & I Tax & Bookkeeping Service, Inc. | Tacoma
+2026-07-28T08:29:19.429000Z | info@dotygroupcpas.com | The Doty Group, P.S. (Richey May Washington) | Tacoma
+2026-07-28T08:29:27.709000Z | support@lcmillercpa.com | L.C. Miller CPA, PS | University Place
+2026-07-28T08:29:36.028000Z | maryjane@dubbscpa.com | Mary Jane Dubbs, CPA | University Place
+2026-07-28T08:29:44.392000Z | chandler@sound.tax | Sound Advisors | University Place
+2026-07-28T08:29:52.663000Z | jill@taxcenterup.com | Tax Center UP | University Place
+2026-07-28T08:30:00.942000Z | info@encompass.tax | Encompass Financial Services | Anacortes
+2026-07-28T08:30:09.183000Z | info@hilsinger.com | Hilsinger & Company CPAs | Burlington
+2026-07-28T08:30:17.517000Z | info@alfaandomegatax.com | Alfa & Omega Tax Services, LLC | Mount Vernon
+2026-07-28T08:30:25.788000Z | info@johnrbrowncpa.com | John R Brown, CPA, Inc. P.S. | Mount Vernon
+2026-07-28T08:30:34.072000Z | info@oostrarouw.com | Oostra Rouw & Associates, Inc. | Mount Vernon
+2026-07-28T08:30:42.352000Z | mark.danta@dantacpa.com | Danta CPA & Associates, PS | Arlington
+2026-07-28T08:30:50.611000Z | david@davidrumseycpa.com | David Rumsey CPA | Arlington
+2026-07-28T08:30:58.937000Z | info@itataxadvisors.net | Isaacson Tax and Accounting, Inc. | Edmonds
+2026-07-28T08:31:07.200000Z | cpa@loughrin.com | Loughrin & Company CPAs | Edmonds
+2026-07-28T08:31:15.463000Z | info@squiresmaddux.com | Squires Maddux & Company, PLLC | Edmonds
+2026-07-28T08:31:23.717000Z | will.chen@willchencpa.com | Will Chen, CPA PLLC | Edmonds
+2026-07-28T08:31:31.964000Z | info@everetttax.com | Community Tax Services | Everett
+2026-07-28T08:31:40.575000Z | jenisek@klettcpa.com | Klett and Associates, PLLC | Everett
+2026-07-28T08:31:48.858000Z | info@mariscpa.com | Maris & Associates CPAs | Everett
+2026-07-28T08:31:57.155000Z | scott@rosengrencpa.com | Scott A. Rosengren, CPA, PLLC | Everett
+2026-07-28T08:32:05.733000Z | info@northcascadescpa.com | North Cascades CPA PLLC | Lynnwood
+2026-07-28T08:32:13.966000Z | contact@sorasoncpa.com | Sora Son CPA LLC | Lynnwood
+2026-07-28T08:32:24.187000Z | admin@wernercpa.com | Werner, O'Meara & Company | Lynnwood
+2026-07-28T08:32:33.461000Z | kathy@mcconecpas.com | McCone & Associates, P.S. | Marysville
+2026-07-28T08:32:41.738000Z | hello@millcreekcpa.com | Carter Schwartze CPAs, PLLC | Mill Creek
+2026-07-28T08:32:50.015000Z | brooke@dwcpa.net | Duncan Witt CPA Group PLLC | Mill Creek
+2026-07-28T08:32:58.464000Z | david@davidbreinigcpa.com | David Breinig, CPA PLLC | Monroe
+2026-07-28T08:33:07.228000Z | staci@qhcpa.com | Hansen & Cogar, PLLC | Monroe
+2026-07-28T08:33:15.478000Z | info@robertsandcocpas.com | Roberts and Company CPAs, P.S. | Mountlake Terrace
+2026-07-28T08:33:23.735000Z | smandreas@aol.com | Sharon Andreason, CPA | Mountlake Terrace
+2026-07-28T08:33:31.971000Z | admin@hollykcpa.com | Holly Kopra, CPA, PLLC | Mukilteo
+2026-07-28T08:33:40.223000Z | lauracpa@riveraaccountancyllc.com | Rivera Accountancy LLC | Snohomish
+2026-07-28T08:33:48.472000Z | stanwood@lmbcpas.com | Langabeer, McKernan, Burnett & Co. PS | Stanwood
+2026-07-28T08:33:57.061000Z | info@preciselyrightonline.com | Precisely Right Accounting | Lacey
+2026-07-28T08:34:05.330000Z | cpa@straderhallett.com | StraderHallett PS | Lacey
+2026-07-28T08:34:13.591000Z | admin@tmtaxconsulting.com | Tammy Tax Consulting & Co. | Lacey
+2026-07-28T08:34:21.993000Z | gmerz@bbayaa.com | Budd Bay Accountants & Advisors | Olympia
+2026-07-28T08:34:30.269000Z | administrator@dnmassociates.com | DNM & Associates, PS | Olympia
+2026-07-28T08:34:38.539000Z | chuck@mcswaincpa.net | McSwain & Company, PS | Olympia
+2026-07-28T08:34:46.796000Z | info@inspire.cpa | Inspire Advisors | Tumwater
+2026-07-28T08:34:55.077000Z | kendra@singlewideaccounting.com | SingleWide Accounting | Yelm
+2026-07-28T08:35:03.377000Z | info@davistaxservice.com | Davis Tax Service | Cathlamet
+2026-07-28T08:35:11.700000Z | garnaascpa@gmail.com | Arvid Garnaas CPA P.S. | Bellingham
+2026-07-28T08:35:19.953000Z | office@ancpagroup.com | Assink Nevins CPA Group, PLLC | Bellingham
+2026-07-28T08:35:28.408000Z | info@claritytaxgroup.com | Clarity Tax & CPAs | Bellingham
+2026-07-28T08:35:36.666000Z | katie.kansky@larsongross.com | Larson Gross PLLC | Bellingham
+2026-07-28T08:35:44.956000Z | scott@bellinghamtax.com | Nissen and Associates | Bellingham
+2026-07-28T08:35:53.212000Z | info@zarembacpa.com | Zaremba Paxton P.S. | Bellingham
+2026-07-28T08:36:01.464000Z | contact@bbta1040.com | Birch Bay Tax & Accounting | Blaine
+2026-07-28T08:36:09.789000Z | cpa@a1cpa.com | Stevenson Group CPA Inc., PS | Ferndale
+2026-07-28T08:36:18.401000Z | kyle@whatcombusinessconsultants.com | Whatcom Business Consultants | Ferndale
+2026-07-28T08:36:26.932000Z | team@loddercpa.com | Lodder CPA PLLC | Lynden
+2026-07-28T08:36:35.198000Z | campbell.cpa@campbell.cpa | Campbell CPA LLC | Moxee
+2026-07-28T08:36:43.525000Z | leasa@ms-cpas.net | Michels & Schilperoort PS | Sunnyside
+2026-07-28T08:36:51.766000Z | advisors@whitecocpa.com | White & Company, PC | Sunnyside
+2026-07-28T08:37:00.289000Z | office@halseycompany.com | Halsey & Co | Yakima
+2026-07-28T08:37:08.565000Z | natalie@jvaccounting.com | JV Accounting | Yakima
+2026-07-28T08:37:16.815000Z | info@korebusinesssolutions.biz | KORE Business Solutions | Yakima
+2026-07-28T08:37:25.083000Z | optimabookkeepingandmore@gmail.com | Optima Bookkeeping & Tax | Yakima
+2026-07-28T08:37:33.383000Z | scott@pernaacpa.com | Scott E. Pernaa, CPA PC | Yakima
