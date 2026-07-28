@@ -1,0 +1,63 @@
+[
+  {
+    "id": "ca-pte-2026-07-28-cover",
+    "kind": "cover",
+    "locale": "zh",
+    "format": "xhs",
+    "eyebrow": "州税变更 · 加州",
+    "title": ["加州 PTE 税", "再延到", "[[2030 税年]]"],
+    "sub": "SB 132 把 SALT 上限绕道的选择性税延长 5 年 —— 有加州 PTE 客户的会计师,2026 起 6/15 预缴规则有变,先收藏。",
+    "footer": "加州 FTB · SB 132"
+  },
+  {
+    "id": "ca-pte-2026-07-28-p1",
+    "kind": "rate",
+    "locale": "zh",
+    "format": "xhs",
+    "source": { "level": "州", "org": "加州 FTB", "noticeId": "SB 132", "verified": true },
+    "reason": "PTE 选择性税 · 适用范围变更",
+    "map": { "state": "CA", "counties": [] },
+    "title": ["加州 PTE 税", "延长 5 年"],
+    "dateLabel": "可选到的税年",
+    "oldDate": "2025",
+    "newDate": "2030",
+    "forms": ["3804", "3893", "3804-CR"],
+    "footer": "2026–2030 税年可选 · 来源 CA FTB"
+  },
+  {
+    "id": "ca-pte-2026-07-28-p2",
+    "kind": "note",
+    "locale": "zh",
+    "format": "xhs",
+    "source": { "level": "州", "org": "加州 FTB", "noticeId": "SB 132", "verified": true },
+    "reason": "PTE 选择性税 · 适用范围变更",
+    "map": { "state": "CA", "counties": [] },
+    "title": ["实务提示"],
+    "points": [
+      "SB 132(2025 年 6 月签署)把加州 PTE 选择性税(SALT 上限绕道)延长到 2030 税年 —— 原本 2025 税年到期。",
+      "2026 起:6月15日 预缴迟缴或少缴,不再取消当年选择资格(旧规则会直接取消)。",
+      "但迟缴/少缴的:该股东 PTE 抵免,按其应缴未缴部分的 12.5% 削减。",
+      "FTB 已更新 2026 版 Form 3804 / 3893 / 3804-CR,细节以表单说明为准。"
+    ],
+    "footer": "来源:CA FTB · SB 132 · 2026–2030 税年"
+  },
+  {
+    "id": "ca-pte-2026-07-28-en",
+    "kind": "rate",
+    "locale": "en",
+    "format": "wide",
+    "source": { "level": "State", "org": "California FTB", "noticeId": "SB 132", "verified": true },
+    "reason": "PTE elective tax · Scope change",
+    "map": { "state": "CA", "counties": [] },
+    "title": ["California PTE tax", "extended to 2030"],
+    "dateLabel": "ELECTIVE TAX AVAILABLE THROUGH",
+    "oldDate": "2025",
+    "newDate": "2030",
+    "forms": ["3804", "3893", "3804-CR"],
+    "tip": {
+      "label": "PRACTITIONER NOTE",
+      "body": "SB 132 (June 2025) extends California's PTE elective tax through the 2030 tax year. For 2026 onward, a late or underpaid June 15 prepayment no longer disqualifies the election — but the owner's PTE credit is reduced by 12.5% of that owner's share of the amount due but unpaid. Updated Forms 3804 / 3893 / 3804-CR apply."
+    },
+    "footer": "Elective for 2026–2030 tax years · SB 132"
+  }
+]
