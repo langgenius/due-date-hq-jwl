@@ -3400,38 +3400,46 @@ interface AlternativeRoundupSpec {
   alternatives: { name: string; note: string; noteZh: string }[]
 }
 
+// Prices below are quoted from each vendor's public pricing page as verified for
+// the CPA Field Guide directory (Jul 2026) — facts-only: tools without a
+// verified public price carry no price sentence.
 const DDHQ_ALT = {
   name: 'DueDateHQ',
-  note: 'a deadline-and-rule-change monitoring layer — it watches official IRS and state sources and routes each change to the clients it affects, on top of whatever you run.',
+  note: 'a deadline-and-rule-change monitoring layer — it watches official IRS and state sources and routes each change to the clients it affects, on top of whatever you run. Free during beta.',
   noteZh:
-    '截止日与规则变化监控层——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，叠加在你用的任何工具之上。',
+    '截止日与规则变化监控层——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，叠加在你用的任何工具之上。Beta 期间免费。',
 }
 
 const ALT_NOTES = {
   taxdome: {
     name: 'TaxDome',
-    note: 'an all-in-one practice management and client portal suite.',
-    noteZh: '一体化 practice management 与客户门户套件。',
+    note: 'an all-in-one practice management and client portal suite. Pricing starts at $67/user/mo (public pricing, Jul 2026).',
+    noteZh:
+      '一体化 practice management 与客户门户套件。定价自 $67/用户/月起（公开定价，2026 年 7 月）。',
   },
   canopy: {
     name: 'Canopy',
-    note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal.',
-    noteZh: '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。',
+    note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal. Pricing starts at $45/user/mo (public pricing, Jul 2026).',
+    noteZh:
+      '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。定价自 $45/用户/月起（公开定价，2026 年 7 月）。',
   },
   karbon: {
     name: 'Karbon',
-    note: 'collaborative accounting workflow and team work management with email collaboration.',
-    noteZh: '会计团队协作工作流与 work management，含邮件协作。',
+    note: 'collaborative accounting workflow and team work management with email collaboration. Pricing starts at $59/user/mo (public pricing, Jul 2026).',
+    noteZh:
+      '会计团队协作工作流与 work management，含邮件协作。定价自 $59/用户/月起（公开定价，2026 年 7 月）。',
   },
   financialCents: {
     name: 'Financial Cents',
-    note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up.',
-    noteZh: '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。',
+    note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up. Pricing starts at $19/user/mo (public pricing, Jul 2026).',
+    noteZh:
+      '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。定价自 $19/用户/月起（公开定价，2026 年 7 月）。',
   },
   jetpack: {
     name: 'Jetpack Workflow',
-    note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library.',
-    noteZh: '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。',
+    note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library. Pricing starts at $36/user/mo (public pricing, Jul 2026).',
+    noteZh:
+      '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。定价自 $36/用户/月起（公开定价，2026 年 7 月）。',
   },
   aero: {
     name: 'Aero Workflow',
@@ -3440,13 +3448,15 @@ const ALT_NOTES = {
   },
   keeper: {
     name: 'Keeper',
-    note: 'a bookkeeping-review and client-communication tool built around month-end close checklists.',
-    noteZh: '围绕月末结账清单构建的记账复核与客户沟通工具。',
+    note: 'a bookkeeping-review and client-communication tool built around month-end close checklists. Pricing starts at $200/mo (public pricing, Jul 2026).',
+    noteZh:
+      '围绕月末结账清单构建的记账复核与客户沟通工具。定价自 $200/月起（公开定价，2026 年 7 月）。',
   },
   fileInTime: {
     name: 'File In Time',
-    note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand.',
-    noteZh: '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。',
+    note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand. Sold as a paid desktop license (no public per-seat price).',
+    noteZh:
+      '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。按付费桌面授权销售（无公开按席位定价）。',
   },
 } as const
 
@@ -3562,7 +3572,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       slug: spec.slug,
       meta: {
         title: `${spec.subject} 替代方案与竞品（2026）：CPA 事务所怎么选 — DueDateHQ`,
-        description: `面向 CPA 事务所的 ${spec.subject} 替代方案与竞品对比：常被一起评估的工具、各自适合的场景，以及 DueDateHQ 如何作为带来源的截止日与规则变化监控层补位。`,
+        description: `面向 CPA 事务所的 ${spec.subject} 替代方案与竞品对比：常被一起评估的工具、各自适合的场景与起步定价，以及 DueDateHQ 如何作为带来源的截止日与规则变化监控层补位。`,
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3645,7 +3655,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
     slug: spec.slug,
     meta: {
       title: `${spec.subject} alternatives & competitors (2026): what CPA firms use — DueDateHQ`,
-      description: `${spec.subject} alternatives and competitors compared for US CPA firms — the tools commonly evaluated against ${spec.subject}, where each fits, plus how DueDateHQ adds a source-backed deadline & rule-change monitoring layer.`,
+      description: `${spec.subject} alternatives and competitors compared for US CPA firms — the tools commonly evaluated against ${spec.subject}, where each fits, with starting prices, plus how DueDateHQ adds a source-backed deadline & rule-change monitoring layer.`,
       ogImage: '/og/guide.en.png',
     },
     hero: {
