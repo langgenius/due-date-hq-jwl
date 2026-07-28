@@ -3868,7 +3868,6 @@ function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
         },
       ],
       cta: {
-        eyebrow: '下一步',
         title: '把监控层补上，再做平台选择。',
         body: 'DueDateHQ beta 期间免费，与你最终选择的平台并存。',
         primary: '看工作原理',
@@ -3952,7 +3951,6 @@ function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
       },
     ],
     cta: {
-      eyebrow: 'NEXT',
       title: 'Add the monitoring layer, then pick your platform.',
       body: 'DueDateHQ is free during beta and runs alongside whichever platform you choose.',
       primary: 'See how it works',
