@@ -1425,8 +1425,8 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
   return {
     slug: spec.slug,
     meta: {
-      title: `${spec.label} — DueDateHQ Rule Reference`,
-      description: `How DueDateHQ turns ${spec.label} into source-backed deadline operations with client context, review state, and audit history.`,
+      title: `${spec.label} (2026): when it's due — DueDateHQ Rule Reference`,
+      description: `When is the ${spec.label.toLowerCase()}? The 2026 due date with its official source, plus how DueDateHQ turns it into source-backed deadline operations with client context and review state.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
