@@ -1,9 +1,11 @@
 // Site-wide freshness defaults. `reviewedOn` advances ONLY when content is
 // actually reviewed/changed — never a blind global bump (docs/dev-file/13 §5).
-// The 2026-06-18 SEO/GEO realignment reviewed every public page, so that is the
-// current site-wide reviewed date; `publishedOn` keeps the original launch date.
+// The 2026-07-28 full-site CTR audit reviewed and rewrote every public page's
+// title/description (states, rules, guides, compares, pillars) and the footer
+// on every page, so that is the current site-wide reviewed date; `publishedOn`
+// keeps the original launch date.
 export const CONTENT_PUBLISHED_ON = '2026-05-20'
-export const CONTENT_REVIEWED_ON = '2026-06-18'
+export const CONTENT_REVIEWED_ON = '2026-07-28'
 
 // Per-slug freshness overrides. Key = page slug (guide / state / compare / rule
 // slug) or a route key ('home' | 'pricing' | 'state-coverage' | trust slug).

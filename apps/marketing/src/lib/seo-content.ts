@@ -5032,6 +5032,76 @@ const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[]
     label: 'File In Time alternative',
     labelZh: 'File In Time 替代方案',
   },
+  {
+    href: '/guides/payroll-tax-deadlines',
+    label: 'Payroll tax due dates',
+    labelZh: '工资税到期日',
+  },
+  {
+    href: '/guides/tax-deadline-weekend-holiday-rule',
+    label: 'Weekend & holiday deadline rule',
+    labelZh: '周末与节假日顺延规则',
+  },
+  {
+    href: '/guides/2026-tax-deadline-calendar',
+    label: '2026 tax deadline calendar',
+    labelZh: '2026 报税日历',
+  },
+  {
+    href: '/guides/taxdome-alternatives',
+    label: 'TaxDome alternatives',
+    labelZh: 'TaxDome 替代方案',
+  },
+  {
+    href: '/guides/karbon-alternatives',
+    label: 'Karbon alternatives',
+    labelZh: 'Karbon 替代方案',
+  },
+  {
+    href: '/guides/migrate-cpa-deadlines-from-excel',
+    label: 'Migrate deadlines from Excel',
+    labelZh: '从 Excel 迁移截止日',
+  },
+  {
+    href: '/guides/extension-vs-payment-deadlines',
+    label: 'Extension vs payment deadlines',
+    labelZh: '延期与付款截止日',
+  },
+  {
+    href: '/irs-disaster-relief/cpa-response-playbook',
+    label: 'Disaster-relief response playbook',
+    labelZh: '灾害减免应对手册',
+  },
+  {
+    href: '/compare/taxdome-vs-jetpack-workflow',
+    label: 'TaxDome vs Jetpack Workflow',
+    labelZh: 'TaxDome vs Jetpack Workflow',
+  },
+  {
+    href: '/guides/canopy-alternatives',
+    label: 'Canopy alternatives',
+    labelZh: 'Canopy 替代方案',
+  },
+  {
+    href: '/guides/jetpack-workflow-alternatives',
+    label: 'Jetpack Workflow alternatives',
+    labelZh: 'Jetpack Workflow 替代方案',
+  },
+  {
+    href: '/guides/financial-cents-alternatives',
+    label: 'Financial Cents alternatives',
+    labelZh: 'Financial Cents 替代方案',
+  },
+  {
+    href: '/guides/keeper-alternatives',
+    label: 'Keeper alternatives',
+    labelZh: 'Keeper 替代方案',
+  },
+  {
+    href: '/guides/file-in-time-alternatives',
+    label: 'File In Time alternatives',
+    labelZh: 'File In Time 替代方案',
+  },
 ]
 
 export function getRelatedResources(
@@ -5041,9 +5111,20 @@ export function getRelatedResources(
 ): ResourceLink[] {
   const prefix = locale === 'zh-CN' ? '/zh-CN' : ''
   const currentFree = currentPathname.replace(/^\/zh-CN/, '') || '/'
-  return RELATED_RESOURCE_LINKS.filter((l) => l.href !== currentFree)
-    .slice(0, limit)
-    .map((l) => ({ label: locale === 'zh-CN' ? l.labelZh : l.label, href: `${prefix}${l.href}` }))
+  const pool = RELATED_RESOURCE_LINKS.filter((l) => l.href !== currentFree)
+  // Deterministic per-page rotation (stable across builds — no randomness):
+  // each page starts at a different offset in the pool, so link equity spreads
+  // across the long tail instead of every page linking the same first four.
+  let hash = 0
+  for (let i = 0; i < currentFree.length; i++) hash = (hash * 31 + currentFree.charCodeAt(i)) >>> 0
+  const start = pool.length ? hash % pool.length : 0
+  const picked = Array.from({ length: Math.min(limit, pool.length) }, (_, k) => {
+    return pool[(start + k) % pool.length]
+  })
+  return picked.map((l) => ({
+    label: locale === 'zh-CN' ? l.labelZh : l.label,
+    href: `${prefix}${l.href}`,
+  }))
 }
 
 // The rule-reference children, surfaced on the /rules hub so its source-backed
