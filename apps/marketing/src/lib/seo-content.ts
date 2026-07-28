@@ -1543,7 +1543,20 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
   }
 }
 
+// Meta descriptions lead with the verified deadline facts when we have them
+// (STATE_DEADLINES) — searchers for "[state] tax deadline" should see the date
+// in the snippet, not a software blurb. CTR lever for the pages already on
+// page 1–2 (GSC: NE/ND pos 9, NJ 13, NC 14, MI 15 with near-zero CTR).
+function stateDeadlineSnippet(slug: string, locale: Locale): string | undefined {
+  const d = STATE_DEADLINES[slug]
+  if (!d) return undefined
+  const raw = locale === 'zh-CN' ? d.dueZh : d.due
+  const first = raw.length > 130 ? `${raw.slice(0, 127).trimEnd()}…` : raw
+  return locale === 'zh-CN' ? `${d.labelZh}：${first}` : `${d.label}: ${first}`
+}
+
 function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
+  const deadlineSnippet = stateDeadlineSnippet(spec.slug, locale)
   if (locale === 'zh-CN') {
     return {
       slug: spec.slug,
@@ -1551,7 +1564,9 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       abbreviation: spec.abbreviation,
       meta: {
         title: `${spec.name} 州税截止日（2026）— 官方来源监控 | DueDateHQ`,
-        description: `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
+        description: deadlineSnippet
+          ? `${spec.name} 州税截止日：${deadlineSnippet} 由 DueDateHQ 从 ${spec.agency} 官方来源监控，附来源与人工复核。`
+          : `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -1612,7 +1627,9 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     abbreviation: spec.abbreviation,
     meta: {
       title: `${spec.name} Tax Deadlines (2026) — Monitored at the Source | DueDateHQ`,
-      description: `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} ${spec.sourceSurface} — with source-backed review when ${spec.signal} change.`,
+      description: deadlineSnippet
+        ? `${spec.name} tax deadlines: ${deadlineSnippet} Monitored from official ${spec.agency} sources by DueDateHQ, with source-backed review.`
+        : `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} ${spec.sourceSurface} — with source-backed review when ${spec.signal} change.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
