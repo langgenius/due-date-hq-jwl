@@ -1,3 +1,8 @@
+# Short outreach links → full destination with UTM appended by the redirect, so a
+# plain-text email can show a clean short URL (Primary-safe) yet still attribute in Amplitude.
+/r/wa https://duedatehq.com/irs-disaster-relief/washington-severe-storms-flooding-landslides?utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_wa 301
+/r/wa-app https://app.duedatehq.com/?lng=en&utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_wa 301
+
 # Cloudflare Static Assets otherwise canonicalizes Astro's file-format HTML
 # with temporary 307 responses. Historical .html URLs are permanently moved
 # to the extensionless public URLs used by canonical tags and the sitemap.

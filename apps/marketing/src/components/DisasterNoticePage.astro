@@ -38,12 +38,14 @@ const L = {
   live: 'Active relief',
   expired: 'Relief window closed',
   deadlineEyebrow: 'The postponed deadline',
-  deadlineTitle: `IRS ${notice.state} ${notice.event.toLowerCase()} relief — the new deadline`,
+  h1: `${notice.state}: IRS deadlines move to ${notice.deadlineLabel}`,
+  lead: `After ${notice.event.toLowerCase()} that began ${notice.incidentStart}, the IRS postponed a range of federal filing and payment deadlines to ${notice.deadlineLabel} for affected ${notice.state} taxpayers.`,
+  deadlineCardLabel: 'New federal deadline',
   factNotice: 'IRS relief code',
-  factDeadline: 'Postponed to',
   factArea: 'Affected area',
   factIncident: 'Disaster began',
   factFema: 'FEMA declaration',
+  seeAll: 'See every county',
   factNote:
     'Facts transcribed verbatim from the official IRS news release. Verify against the source before you rely on it.',
   sourceLead: 'Official IRS source',
@@ -75,38 +77,46 @@ const L = {
       </span>
     </nav>
     <p class="m-eyebrow">{L.deadlineEyebrow}</p>
-    <h1 class="m-page-title dnp-hero__title">
-      IRS {notice.state} {notice.event.toLowerCase()} tax relief — deadlines postponed to {notice.deadlineLabel}
-    </h1>
-    <p class="m-page-lead">
-      The IRS postponed a range of filing and payment deadlines for taxpayers in {notice.affectedArea.replace(/^The /, '')} after {notice.event.toLowerCase()} that began {notice.incidentStart}. Affected returns and payments are now due {notice.deadlineLabel}.
-    </p>
-    <p class="m-page-reviewed">
-      {L.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
-    </p>
-  </section>
+    <h1 class="m-page-title dnp-hero__title">{L.h1}</h1>
+    <p class="m-page-lead">{L.lead}</p>
 
-  <!-- Key-deadline signature module: the verified, sourced fact table -->
-  <section class="m-section m-page-block" aria-labelledby="dnp-kd-h">
-    <p class="m-eyebrow">{L.deadlineEyebrow}</p>
-    <h2 class="m-page-h2" id="dnp-kd-h">{L.deadlineTitle}</h2>
-    <div class="dnp-kd">
+    <!-- Decision card: the one scannable, sourced source of truth for this notice.
+         Deadline is the headline; the day count is filled client-side so it is always
+         correct for the reader's today; the full county list is one click away. -->
+    <div class="dnp-kd" id="key-deadline">
+      <div class="dnp-kd__head">
+        <span class="dnp-kd__head-label">{L.deadlineCardLabel}</span>
+        <div class="dnp-kd__head-row">
+          <span class="dnp-kd__deadline">{notice.deadlineLabel}</span>
+          {
+            status === 'live' && (
+              <span class="dnp-kd__count" data-deadline={notice.deadline} aria-live="polite" />
+            )
+          }
+        </div>
+      </div>
       <dl class="dnp-kd__dl">
         <div class="dnp-kd__row">
-          <dt>{L.factNotice}</dt>
-          <dd>{notice.code}</dd>
-        </div>
-        <div class="dnp-kd__row dnp-kd__row--hero">
-          <dt>{L.factDeadline}</dt>
-          <dd class="dnp-kd__deadline">{notice.deadlineLabel}</dd>
-        </div>
-        <div class="dnp-kd__row">
           <dt>{L.factArea}</dt>
-          <dd class="dnp-kd__area">{notice.affectedArea}</dd>
+          <dd class="dnp-kd__area">
+            {notice.affectedAreaShort ?? notice.affectedArea}
+            {
+              notice.affectedAreaShort && (
+                <details class="dnp-kd__all">
+                  <summary>{L.seeAll}</summary>
+                  <p>{notice.affectedArea}</p>
+                </details>
+              )
+            }
+          </dd>
         </div>
         <div class="dnp-kd__row">
           <dt>{L.factIncident}</dt>
           <dd>{notice.incidentStart}</dd>
+        </div>
+        <div class="dnp-kd__row">
+          <dt>{L.factNotice}</dt>
+          <dd>{notice.code}</dd>
         </div>
         {
           notice.femaDeclaration && (
@@ -128,6 +138,10 @@ const L = {
         </a>
       </div>
     </div>
+
+    <p class="m-page-reviewed">
+      {L.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
+    </p>
   </section>
 
   <!-- Which clients this hits: filing types → plain-English "who" -->
@@ -182,6 +196,30 @@ const L = {
   </section>
 </main>
 
+<script is:inline>
+  // Fill the deadline countdown from the reader's own clock, so "N days left" is
+  // always correct on a statically-built page (no stale build-time number).
+  for (const el of document.querySelectorAll('.dnp-kd__count')) {
+    const iso = el.getAttribute('data-deadline')
+    if (!iso) continue
+    const [y, m, d] = iso.split('-').map(Number)
+    const due = new Date(y, m - 1, d)
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const days = Math.round((due - today) / 86400000)
+    el.textContent =
+      days > 1
+        ? days + ' days left'
+        : days === 1
+          ? '1 day left'
+          : days === 0
+            ? 'Due today'
+            : 'Deadline passed'
+    // A filing deadline inside ~30 days is a warning worth a warm tint (still active).
+    if (days >= 0 && days <= 30) el.classList.add('dnp-kd__count--soon')
+  }
+</script>
+
 <style>
   /* Mirrors StateDetailPage's chrome; only per-notice touches live here. */
   .dnp-hero__bc {
@@ -229,27 +267,80 @@ const L = {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 18%, transparent);
   }
   .dnp-hero__title {
-    max-width: 24ch;
+    max-width: 26ch;
   }
 
-  /* key-deadline signature module (same anatomy as .std-kd) */
+  /* key-deadline decision card — the one scannable, sourced source of truth */
   .dnp-kd {
-    margin-top: 28px;
-    max-width: 880px;
+    margin-top: 32px;
+    max-width: 760px;
     border: 1px solid var(--m-hairline);
     border-radius: 12px;
     overflow: hidden;
     background: var(--m-surface);
+  }
+  /* headline band: the deadline is the page's memory anchor — carried by size, not weight */
+  .dnp-kd__head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px 24px;
+    background: var(--m-accent-tint);
+    border-bottom: 1px solid var(--m-hairline-2);
+  }
+  .dnp-kd__head-label {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+  }
+  .dnp-kd__head-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 16px;
+  }
+  .dnp-kd__deadline {
+    font-family: var(--m-font-mono);
+    font-size: clamp(1.75rem, 3.4vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--m-accent);
+  }
+  .dnp-kd__count {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    color: var(--m-accent-strong);
+    background: var(--m-surface);
+    border: 1px solid var(--m-hairline);
+    white-space: nowrap;
+  }
+  .dnp-kd__count:empty {
+    display: none;
+  }
+  /* soon (≤30 days): a warm warning tint mixed down from the system's only urgency
+     color, so it reads "act soon" without a loud red block. */
+  .dnp-kd__count--soon {
+    color: var(--m-urgent-ink);
+    background: color-mix(in srgb, var(--m-urgent) 10%, var(--m-surface));
+    border-color: color-mix(in srgb, var(--m-urgent) 32%, transparent);
   }
   .dnp-kd__dl {
     margin: 0;
   }
   .dnp-kd__row {
     display: grid;
-    grid-template-columns: 170px 1fr;
-    gap: 16px 24px;
+    grid-template-columns: 160px 1fr;
+    gap: 8px 24px;
     align-items: baseline;
-    padding: 16px 24px;
+    padding: 15px 24px;
   }
   .dnp-kd__row + .dnp-kd__row {
     border-top: 1px solid var(--m-hairline-2);
@@ -264,25 +355,45 @@ const L = {
   }
   .dnp-kd__row dd {
     margin: 0;
-    font-size: var(--m-text-lg);
+    font-size: var(--m-text-base);
     font-weight: 500;
     line-height: 1.5;
     color: var(--m-ink);
   }
-  /* the postponed date is the page's core fact — give it the mono + accent lift */
-  .dnp-kd__row--hero {
-    background: var(--m-accent-tint);
-  }
-  .dnp-kd__deadline {
-    font-family: var(--m-font-mono);
-    color: var(--m-accent) !important;
-    font-weight: 600 !important;
-  }
   .dnp-kd__area {
-    font-size: var(--m-text-base) !important;
-    font-weight: 400 !important;
-    color: var(--m-ink-2) !important;
-    line-height: 1.55 !important;
+    font-weight: 400;
+    color: var(--m-ink-2);
+    line-height: 1.55;
+  }
+  .dnp-kd__all {
+    margin-top: 8px;
+  }
+  .dnp-kd__all > summary {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--m-text-sm);
+    font-weight: 500;
+    color: var(--m-accent);
+    list-style: none;
+  }
+  .dnp-kd__all > summary::-webkit-details-marker {
+    display: none;
+  }
+  .dnp-kd__all > summary::after {
+    content: '↓';
+    font-family: var(--m-font-mono);
+    font-size: 0.9em;
+  }
+  .dnp-kd__all[open] > summary::after {
+    content: '↑';
+  }
+  .dnp-kd__all > p {
+    margin: 10px 0 0;
+    font-size: var(--m-text-sm);
+    color: var(--m-ink-2);
+    line-height: 1.6;
   }
   .dnp-kd__foot {
     display: flex;

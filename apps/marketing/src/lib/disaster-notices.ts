@@ -50,57 +50,57 @@ export const FILING_TYPE_META: Record<
   individual: {
     form: '1040',
     label: 'Individual income tax',
-    whoItHits: 'Any 1040 client in the area — returns and payments both move.',
+    whoItHits: 'Any client who files a personal return.',
   },
   corporate: {
     form: '1120',
     label: 'C corporation',
-    whoItHits: 'C-corp clients (Form 1120) filing or paying in the window.',
+    whoItHits: 'C-corporation clients.',
   },
   's-corp': {
     form: '1120-S',
     label: 'S corporation',
-    whoItHits: 'S-corp clients (Form 1120-S) with a return due in the window.',
+    whoItHits: 'S-corporation clients.',
   },
   partnership: {
     form: '1065',
     label: 'Partnership',
-    whoItHits: 'Partnership clients (Form 1065) with a return due in the window.',
+    whoItHits: 'Partnership clients.',
   },
   'estate-trust': {
     form: '1041',
     label: 'Estate & trust income',
-    whoItHits: 'Fiduciary clients filing Form 1041 for an estate or trust.',
+    whoItHits: 'Estates and trusts you file 1041s for.',
   },
   'estate-gift': {
     form: '706 / 709',
     label: 'Estate, gift & GST',
-    whoItHits: 'Estate, gift, and generation-skipping transfer tax filers.',
+    whoItHits: 'Estate, gift, and GST transfer-tax filers.',
   },
   'tax-exempt': {
     form: '990',
     label: 'Tax-exempt',
-    whoItHits: 'Nonprofit clients filing the annual Form 990-series return.',
+    whoItHits: 'Nonprofit clients filing a 990.',
   },
   'payroll-excise': {
     form: '941 / 940',
     label: 'Payroll & excise',
-    whoItHits: 'Any client running payroll — quarterly 941/940 and excise returns move.',
+    whoItHits: 'Any client you run payroll for.',
   },
   estimated: {
     form: 'Estimated',
     label: 'Estimated payments',
-    whoItHits: 'Clients making quarterly estimated income tax payments.',
+    whoItHits: 'Clients who make quarterly estimates.',
   },
   'retirement-hsa': {
     form: 'IRA / HSA',
     label: 'IRA & HSA contributions',
-    whoItHits: 'Clients making prior-year IRA or HSA contributions.',
+    whoItHits: 'Prior-year IRA and HSA contributions.',
   },
   'form-5500': {
     form: '5500',
     label: 'Benefit plan (5500)',
-    whoItHits: 'Clients filing a Form 5500-series employee benefit plan return.',
+    whoItHits: 'Employee benefit-plan filers.',
   },
 }
 
