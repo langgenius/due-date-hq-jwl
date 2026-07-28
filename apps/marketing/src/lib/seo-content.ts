@@ -1671,6 +1671,106 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
 export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
   en: [
     {
+      slug: 'tax-deadline-weekend-holiday-rule',
+      meta: {
+        title:
+          'Does the tax deadline move on a weekend or holiday? The next-business-day rule — DueDateHQ',
+        description:
+          'Yes — under 26 U.S.C. §7503, a federal tax deadline that falls on a Saturday, Sunday, or legal holiday moves to the next business day. What counts as a legal holiday (including DC holidays), how it applies to extensions, and where states differ.',
+        ogImage: '/og/guide.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'Does the tax deadline move if it falls on a weekend or holiday?',
+        description:
+          'Yes. Federal law (26 U.S.C. §7503) makes an act timely if the last day falls on a Saturday, Sunday, or legal holiday and it is performed on the next day that is not one. The details — which holidays count, and what states do — are where firms get caught.',
+        note: 'Based on the statute text and IRS guidance; verify against the official source for any specific filing. Not tax advice.',
+      },
+      sections: [
+        {
+          eyebrow: 'THE RULE',
+          title: 'The next-business-day rule, from the statute.',
+          body: 'Section 7503: when the last day for performing any act under the internal revenue laws falls on a Saturday, Sunday, or a legal holiday, performance is timely on the next succeeding day that is not a Saturday, Sunday, or legal holiday. The IRS states the same rule on its employment-tax due-dates page.',
+          items: [
+            {
+              title: 'It includes extensions',
+              body: 'The statute counts "any authorized extension of time" — an extended due date that lands on a weekend also shifts to the next business day.',
+            },
+            {
+              title: 'It covers filings and other acts',
+              body: 'The rule applies to acts required under the internal revenue laws — returns and other required acts alike, per the statute text.',
+            },
+            {
+              title: 'Deposits have their own calendar',
+              body: 'Payroll deposit schedules already run on business-day logic (e.g. the $100,000 next-day rule) — see the payroll due-dates guide.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'LEGAL HOLIDAYS',
+          title: 'A "legal holiday" means a legal holiday in the District of Columbia.',
+          body: 'That definition is in §7503 itself — which is why a DC-only holiday can move a nationwide federal deadline. DC observes Emancipation Day around April 16, and in past years that has pushed the April 15 deadline to April 17 or 18 for the whole country.',
+          items: [
+            {
+              title: 'Why Tax Day drifts',
+              body: 'April 15 on a weekend, or adjacent to DC Emancipation Day, shifts the federal deadline for everyone.',
+            },
+            {
+              title: 'States are not automatic',
+              body: 'State agencies set their own weekend and holiday rules and their own state holidays — verify each state deadline against its agency.',
+            },
+            {
+              title: 'The trap',
+              body: 'A team that hard-codes "April 15" or copies last year\'s calendar misses shift years silently.',
+            },
+          ],
+        },
+        {
+          eyebrow: "DUEDATEHQ'S PLACE",
+          title: 'Monitored dates already carry the shift.',
+          body: 'DueDateHQ tracks deadlines from official sources, so a date that moves for a weekend or holiday is reflected with the source attached — instead of a spreadsheet that still says the 15th.',
+          items: [
+            {
+              title: 'Source on every date',
+              body: 'Each deadline keeps its official citation, so the shifted date can be defended.',
+            },
+            {
+              title: 'Change monitoring',
+              body: 'If an agency moves a date for any reason, affected clients surface for review.',
+            },
+            {
+              title: 'Federal + state',
+              body: 'State calendars are watched at the source, where the weekend rules actually differ.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'Weekend and holiday deadline questions.' },
+      faq: [
+        {
+          question: 'What happens if the tax deadline falls on a Saturday or Sunday?',
+          answer:
+            'Under 26 U.S.C. §7503 the filing is timely on the next day that is not a Saturday, Sunday, or legal holiday — in practice, the next business day.',
+        },
+        {
+          question: 'Why is Tax Day sometimes April 17 or 18 instead of April 15?',
+          answer:
+            'Because §7503 defines "legal holiday" as a legal holiday in the District of Columbia, DC\'s Emancipation Day (around April 16) combines with weekends in some years to push the federal deadline to the 17th or 18th.',
+        },
+        {
+          question: 'Do state tax deadlines follow the same weekend rule?',
+          answer:
+            'Not automatically. States set their own rules and observe their own holidays; each state deadline should be verified against that state agency.',
+        },
+      ],
+      cta: {
+        title: 'Stop hand-tracking shift years.',
+        body: 'DueDateHQ monitors official sources, so weekend and holiday shifts arrive with the source attached.',
+        primary: 'See how it works',
+        secondary: 'Browse all resources',
+      },
+    },
+    {
       slug: 'weekly-cpa-deadline-triage',
       meta: {
         title: 'Weekly CPA Deadline Triage — How to rank client filing risk',
@@ -2173,9 +2273,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'payroll-tax-deadlines',
       meta: {
-        title: 'Payroll tax deadlines for CPA firms — DueDateHQ guide',
+        title: 'Payroll tax due dates (2026): Form 941, 940, deposits & W-2 — DueDateHQ',
         description:
-          'How CPA teams keep federal payroll tax deadlines straight: Form 941 quarterly returns, Form 940 FUTA, W-2/W-3 and 1099-NEC by January 31, and the monthly vs semiweekly deposit schedule — each with its IRS source.',
+          'When are payroll taxes due? Form 941 quarterly due dates (April 30, July 31, October 31, January 31), Form 940 FUTA by January 31, W-2/1099-NEC, and the monthly vs semiweekly deposit schedules — each with its IRS source.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2216,7 +2316,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             },
             {
               title: 'Semiweekly schedule',
-              body: 'Semiweekly depositors follow a Wednesday/Friday cadence tied to when payday falls.',
+              body: 'Semiweekly depositors deposit taxes for Wednesday–Friday paydays by the following Wednesday, and Saturday–Tuesday paydays by the following Friday. Accumulate $100,000 or more on any day and the deposit is due the next business day.',
             },
             {
               title: 'Return ≠ deposit',
@@ -2257,6 +2357,16 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             'No. Payroll tax is deposited on a monthly or semiweekly schedule set by a lookback period; the return reports what was already due.',
         },
         {
+          question: 'When are payroll tax deposits due?',
+          answer:
+            'Monthly depositors: by the 15th day of the following month. Semiweekly depositors: Wednesday–Friday paydays by the following Wednesday, Saturday–Tuesday paydays by the following Friday. Accumulating $100,000 or more on any day makes the deposit due the next business day.',
+        },
+        {
+          question: 'When are FUTA deposits due?',
+          answer:
+            'Quarterly, once cumulative FUTA liability reaches $500: deposit by the last day of the month after the quarter ends. If a quarter’s liability is $500 or less, it carries over to the next quarter.',
+        },
+        {
           question: 'Is this guide tax advice?',
           answer:
             'No. It describes how DueDateHQ models payroll deadlines as source-backed operational work. Verify obligations against the official IRS source.',
@@ -2285,6 +2395,15 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             label: 'Form 940 (FUTA, annual)',
             value:
               'January 31 — or February 10 if all FUTA deposits were made on time and in full.',
+          },
+          {
+            label: 'Deposits (monthly schedule)',
+            value: 'The 15th day of the month following the payment month.',
+          },
+          {
+            label: 'Deposits (semiweekly schedule)',
+            value:
+              'Wednesday–Friday paydays: following Wednesday. Saturday–Tuesday paydays: following Friday. $100,000+ accumulated on any day: next business day.',
           },
           {
             label: 'Form W-2 with W-3',
@@ -2403,6 +2522,96 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     },
   ],
   'zh-CN': [
+    {
+      slug: 'tax-deadline-weekend-holiday-rule',
+      meta: {
+        title: '报税截止日赶上周末或节假日会顺延吗？下一个营业日规则 — DueDateHQ',
+        description:
+          '会——依据 26 U.S.C. §7503，联邦税务截止日落在周六、周日或法定假日时顺延到下一个营业日。哪些假日算数（包括华盛顿特区的假日）、延期后如何适用、各州有何不同。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: '截止日赶上周末或节假日，会顺延吗？',
+        description:
+          '会。联邦法律（26 U.S.C. §7503）规定：最后期限落在周六、周日或法定假日时，在下一个非周末非假日的日子完成即视为按时。细节——哪些假日算、各州怎么办——才是事务所踩坑的地方。',
+        note: '基于法条原文与 IRS 指南；具体申报请对照官方来源核实。不构成税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '规则本身',
+          title: '「下一个营业日」规则，出自法条。',
+          body: '§7503：依税法应履行行为的最后一天落在周六、周日或法定假日时，在下一个非周六、周日、法定假日的日子履行即为按时。IRS 在其就业税到期日页面陈述了同样的规则。',
+          items: [
+            {
+              title: '延期同样适用',
+              body: '法条明确计入「任何经授权的延期」——延期后的截止日落在周末，同样顺延到下一个营业日。',
+            },
+            {
+              title: '覆盖申报与其他行为',
+              body: '规则适用于税法要求的行为——申报与其他要求的行为均按法条处理。',
+            },
+            {
+              title: '缴存有自己的日历',
+              body: '工资税缴存日程本就按营业日运转（如 10 万美元次日规则）——见工资税到期日指南。',
+            },
+          ],
+        },
+        {
+          eyebrow: '什么算法定假日',
+          title: '「法定假日」指华盛顿特区的法定假日。',
+          body: '这个定义写在 §7503 里——所以一个只属于 DC 的假日能挪动全国的联邦截止日。DC 在 4 月 16 日前后过 Emancipation Day，历史上曾把 4 月 15 日的全国截止日推到 4 月 17 或 18 日。',
+          items: [
+            {
+              title: 'Tax Day 为什么会漂移',
+              body: '4 月 15 日赶上周末、或与 DC 的 Emancipation Day 相邻时，全国的联邦截止日一起顺延。',
+            },
+            {
+              title: '州不自动跟随',
+              body: '各州自行规定周末/假日规则、自设州假日——每个州的截止日要对照该州税务机关核实。',
+            },
+            {
+              title: '坑在哪',
+              body: '把「4 月 15 日」写死、或照抄去年日历的团队，会在顺延年份悄悄错日期。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DueDateHQ 的位置',
+          title: '被监控的日期自带顺延。',
+          body: 'DueDateHQ 从官方来源跟踪截止日，周末或假日引起的顺延会连来源一起反映出来——而不是一张还写着 15 号的表格。',
+          items: [
+            { title: '每个日期都带来源', body: '每个截止日保留官方出处，顺延后的日期可被解释。' },
+            { title: '变化监控', body: '任何原因导致日期移动，受影响客户都会进入复核。' },
+            { title: '联邦 + 州', body: '州日历在来源处被监控——周末规则的差异正是在州一级。' },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '周末与节假日顺延常见问题。' },
+      faq: [
+        {
+          question: '截止日落在周六或周日怎么办？',
+          answer:
+            '依据 26 U.S.C. §7503，在下一个非周六、周日、法定假日的日子完成即视为按时——即通常所说的下一个营业日。',
+        },
+        {
+          question: '为什么 Tax Day 有时是 4 月 17 或 18 日而不是 15 日？',
+          answer:
+            '因为 §7503 把「法定假日」定义为华盛顿特区的法定假日，DC 的 Emancipation Day（4 月 16 日前后）与周末组合，某些年份会把联邦截止日推到 17 或 18 日。',
+        },
+        {
+          question: '州税截止日也遵循同样的周末规则吗？',
+          answer:
+            '不自动遵循。各州自行规定规则、自过州假日；每个州的截止日应对照该州税务机关核实。',
+        },
+      ],
+      cta: {
+        title: '别再手工追顺延年份。',
+        body: 'DueDateHQ 监控官方来源，周末与假日顺延连来源一起送达。',
+        primary: '看工作原理',
+        secondary: '浏览全部资源',
+      },
+    },
     {
       slug: 'weekly-cpa-deadline-triage',
       meta: {
@@ -2887,9 +3096,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'payroll-tax-deadlines',
       meta: {
-        title: 'CPA 事务所的工资税截止日 — DueDateHQ 指南',
+        title: '工资税到期日（2026）：Form 941、940、缴存与 W-2 — DueDateHQ',
         description:
-          '了解 CPA 团队如何理清联邦工资税截止日：Form 941 季度申报、Form 940 FUTA、1 月 31 日的 W-2/W-3 与 1099-NEC，以及按月与半周的缴存日程——每一项都附 IRS 来源。',
+          '工资税什么时候到期？Form 941 季度到期日（4/30、7/31、10/31、1/31）、Form 940 FUTA（1 月 31 日）、W-2/1099-NEC，以及按月与半周的缴存日程——每一项都附 IRS 来源。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -2930,7 +3139,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             },
             {
               title: '半周日程',
-              body: '半周缴存人按与发薪日挂钩的周三/周五节奏缴存。',
+              body: '半周缴存人：周三至周五发薪的税款在下一个周三前缴存，周六至周二发薪的在下一个周五前缴存。任一天累计达到 10 万美元及以上，须在下一个营业日缴存。',
             },
             {
               title: '申报 ≠ 缴存',
@@ -2971,6 +3180,16 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             '不等于。工资税按 lookback period 决定的按月或半周日程缴存；申报只是申报已到期的税款。',
         },
         {
+          question: '工资税缴存什么时候到期？',
+          answer:
+            '按月缴存人：次月 15 日前。半周缴存人：周三至周五发薪的在下一个周三前，周六至周二发薪的在下一个周五前。任一天累计达 10 万美元及以上，须下一个营业日缴存。',
+        },
+        {
+          question: 'FUTA 缴存什么时候到期？',
+          answer:
+            '按季度：累计 FUTA 负债达到 500 美元时，在季度结束后次月最后一天前缴存；单季不足 500 美元则结转到下一季度。',
+        },
+        {
           question: '这个指南是税务建议吗？',
           answer:
             '不是。它说明 DueDateHQ 如何把工资税截止日建模成带来源的运营工作。请对照官方 IRS 来源核实义务。',
@@ -2998,6 +3217,15 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
           {
             label: 'Form 940（FUTA，年度）',
             value: '1 月 31 日——若所有 FUTA 税款均按时足额缴存，则为 2 月 10 日。',
+          },
+          {
+            label: '缴存（按月日程）',
+            value: '支付月份的次月 15 日前。',
+          },
+          {
+            label: '缴存（半周日程）',
+            value:
+              '周三至周五发薪：下一个周三前。周六至周二发薪：下一个周五前。任一天累计达 10 万美元及以上：下一个营业日。',
           },
           {
             label: 'Form W-2 连同 W-3',
