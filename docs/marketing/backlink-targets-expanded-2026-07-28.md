@@ -6,6 +6,16 @@ Future Firm, CPA Practice Advisor). Assets to cite: cpafieldguide `/cpa-software
 (941 returns postponed to Aug 5; deposit abatement ended Dec 29 — see
 `outreach-kit/wave6-followup-WA-aug5-segmented.md` for verbatim quotes).
 
+**Contacts verified 2026-07-28 (from each outlet's own contact/about page):**
+
+- Accounting Today: **michael.cohn@arizent.com** (technology editor — best fit for the data
+  pitch); daniel.hood@arizent.com (editor-in-chief, fallback)
+- Going Concern: **tips@goingconcern.com** (editor@goingconcern.com fallback)
+- Future Firm: **support@futurefirm.co** is the only published address; the contact form on
+  futurefirm.co/contact reaches Lazanis directly — prefer the form
+- Insightful Accountant: **info@insightfulaccountant.com**
+- WSCPA: jkebede@wscpa.org (verified 07-16)
+
 **Pacing red lines:** 3–5 sends/week max, every line verifiable, self-copy every send,
 one follow-up max, log every send at the bottom. B-tier: verify masthead before sending.
 
