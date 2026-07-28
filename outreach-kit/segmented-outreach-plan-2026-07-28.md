@@ -24,10 +24,12 @@ bookkeeping 23 · industry-niche 1 · generic 141.
 ### 1. `payroll` — firms running client payroll (941/940 deposits)
 
 Angle: disaster postponements move filing/payment deadlines, but **payroll deposit relief is
-much narrower** — the trap firms hit. ⚠ FACT-CHECK per notice: exactly which deposit dates get
-relief and the abatement window before citing.
-Tip line: "The [date] postponement covers returns and payments — check the deposit rules
-separately before assuming 941 deposits moved."
+much narrower** — the trap firms hit.
+✅ VERIFIED for WA-2025-03 (IRS.gov, 2026-07-28): deposit abatement ran only **Dec. 9–29,
+2025** (deposits made by Dec. 29); the Aug. 5 date covers the Jan. 31 / Apr. 30 **quarterly
+payroll returns**, not deposits. Verbatim quotes + source in
+`wave6-followup-WA-aug5-segmented.md`. ⚠ Re-verify per notice for every future state — the
+window differs each time.
 
 ### 2. `nonprofit` — firms serving nonprofits (990 series)
 
