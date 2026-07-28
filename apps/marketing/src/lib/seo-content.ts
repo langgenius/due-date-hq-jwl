@@ -3438,6 +3438,16 @@ const ALT_NOTES = {
     note: 'a workflow and task-management tool for bookkeeping and CAS firms with a procedures library.',
     noteZh: '面向记账与 CAS 事务所的工作流与任务管理工具，带流程库。',
   },
+  keeper: {
+    name: 'Keeper',
+    note: 'a bookkeeping-review and client-communication tool built around month-end close checklists.',
+    noteZh: '围绕月末结账清单构建的记账复核与客户沟通工具。',
+  },
+  fileInTime: {
+    name: 'File In Time',
+    note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand.',
+    noteZh: '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。',
+  },
 } as const
 
 const alternativeRoundupSpecs: AlternativeRoundupSpec[] = [
@@ -3473,6 +3483,74 @@ const alternativeRoundupSpecs: AlternativeRoundupSpec[] = [
     subjectCategory: 'a narrow tax-deadline tracker built around due-date lists',
     subjectCategoryZh: '围绕截止日清单构建的窄范围税务截止日跟踪工具',
     alternatives: [ALT_NOTES.jetpack, ALT_NOTES.taxdome, ALT_NOTES.canopy, DDHQ_ALT],
+  },
+  {
+    slug: 'canopy-alternatives',
+    subject: 'Canopy',
+    subjectCategory:
+      'a cloud practice-management suite with CRM, documents, billing, and a client portal',
+    subjectCategoryZh: '带 CRM、文档、账单与客户门户的云端 practice-management 套件',
+    alternatives: [
+      ALT_NOTES.taxdome,
+      ALT_NOTES.karbon,
+      ALT_NOTES.financialCents,
+      ALT_NOTES.jetpack,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'jetpack-workflow-alternatives',
+    subject: 'Jetpack Workflow',
+    subjectCategory:
+      'accounting workflow software built around recurring jobs and template-based deadline tracking',
+    subjectCategoryZh: '围绕周期性任务与模板化截止日跟踪的会计工作流软件',
+    alternatives: [
+      ALT_NOTES.karbon,
+      ALT_NOTES.financialCents,
+      ALT_NOTES.taxdome,
+      ALT_NOTES.fileInTime,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'financial-cents-alternatives',
+    subject: 'Financial Cents',
+    subjectCategory: 'a workflow and client-management tool for small accounting firms',
+    subjectCategoryZh: '面向小型会计事务所的工作流与客户管理工具',
+    alternatives: [
+      ALT_NOTES.jetpack,
+      ALT_NOTES.karbon,
+      ALT_NOTES.canopy,
+      ALT_NOTES.keeper,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'keeper-alternatives',
+    subject: 'Keeper',
+    subjectCategory:
+      'a bookkeeping-review and client-communication tool built around month-end close',
+    subjectCategoryZh: '围绕月末结账的记账复核与客户沟通工具',
+    alternatives: [
+      ALT_NOTES.financialCents,
+      ALT_NOTES.karbon,
+      ALT_NOTES.canopy,
+      ALT_NOTES.aero,
+      DDHQ_ALT,
+    ],
+  },
+  {
+    slug: 'aero-workflow-alternatives',
+    subject: 'Aero Workflow',
+    subjectCategory: 'a workflow and task-management tool for bookkeeping and CAS firms',
+    subjectCategoryZh: '面向记账与 CAS 事务所的工作流与任务管理工具',
+    alternatives: [
+      ALT_NOTES.jetpack,
+      ALT_NOTES.financialCents,
+      ALT_NOTES.karbon,
+      ALT_NOTES.keeper,
+      DDHQ_ALT,
+    ],
   },
 ]
 
@@ -4376,6 +4454,26 @@ export function getResourceCtaHrefs(
     },
     'file-in-time-alternatives': {
       primaryHref: `${prefix}/compare/file-in-time-alternative`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'canopy-alternatives': {
+      primaryHref: `${prefix}/compare/canopy-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'jetpack-workflow-alternatives': {
+      primaryHref: `${prefix}/compare/jetpack-workflow-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'financial-cents-alternatives': {
+      primaryHref: `${prefix}/compare/financial-cents-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'keeper-alternatives': {
+      primaryHref: `${prefix}/compare/keeper-deadline-operations`,
+      secondaryHref: `${prefix}/resources`,
+    },
+    'aero-workflow-alternatives': {
+      primaryHref: `${prefix}/compare/aero-workflow-deadline-operations`,
       secondaryHref: `${prefix}/resources`,
     },
     'form-1120-c-corp-deadline': {
