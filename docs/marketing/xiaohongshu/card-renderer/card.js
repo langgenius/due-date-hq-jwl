@@ -35,9 +35,15 @@ async function loadIcon(code) {
   return iconCache.get(code)
 }
 
-/* Paints the affected counties. Pass [] for a plain state silhouette. */
+/* Paints the affected counties. Pass [] for a plain state silhouette.
+   缺图的辖区(如领地 MP)优雅降级:不画地图,不报错。 */
 async function stateIcon(code, counties = []) {
-  let svg = await loadIcon(code)
+  let svg
+  try {
+    svg = await loadIcon(code)
+  } catch {
+    return ''
+  }
   svg = svg.replace(/var\(--icon-off,#D6D4CB\)/g, 'var(--map-off)')
   for (const fips of counties) {
     svg = svg.replace(`<path id="c${fips}"`, `<path fill="var(--map-on)" id="c${fips}"`)
