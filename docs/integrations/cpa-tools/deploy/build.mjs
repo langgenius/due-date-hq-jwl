@@ -73,11 +73,6 @@ fullBody = fullBody.replace(
 const topbar = fullBody
   .slice(fullBody.indexOf('<div class="topbar">'), fullBody.indexOf('<header>'))
   .trim()
-const method = fullBody.slice(
-  fullBody.indexOf('<div class="method">'),
-  fullBody.indexOf('<footer>'),
-)
-
 // Compact trust strip for subpages — the full 4-part "How this guide works"
 // block now lives on the homepage only (anchored #how-this-guide-works). On a
 // low-authority site, repeating ~300 words of identical boilerplate on 60+
