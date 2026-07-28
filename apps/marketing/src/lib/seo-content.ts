@@ -1611,8 +1611,8 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     name: spec.name,
     abbreviation: spec.abbreviation,
     meta: {
-      title: `${spec.name} Tax Deadline Monitoring — DueDateHQ`,
-      description: `How DueDateHQ monitors ${spec.agency} ${spec.sourceSurface} with source-backed review for CPA deadline operations.`,
+      title: `${spec.name} Tax Deadlines (2026) — Monitored at the Source | DueDateHQ`,
+      description: `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} ${spec.sourceSurface} — with source-backed review when ${spec.signal} change.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
@@ -4147,13 +4147,16 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
   },
   ohio: {
     name: 'Ohio',
-    label: 'Commercial Activity Tax (CAT) quarterly return',
+    label: 'Commercial Activity Tax (CAT) quarterly returns',
     labelZh: 'Commercial Activity Tax（CAT）季度申报',
-    due: 'Quarterly. Ohio has no corporate income tax; the CAT (a gross-receipts tax) Q1 return is due May 10 — the 10th day of the 2nd month after the quarter ends.',
+    // Verified 2026-07-28 against the Ohio DOT Due Dates page (CAT Q accordion):
+    // Q1 May 10 · Q2 Aug 10 · Q3 Nov 10 · Q4 Feb 10. Annual filing/AMT eliminated
+    // starting 2024; taxable threshold $6M+ Ohio TGR for 2025 and forward.
+    due: 'Quarterly — Q1 due May 10, Q2 due Aug. 10, Q3 due Nov. 10, Q4 due Feb. 10 (the 10th day of the 2nd month after each quarter). Ohio has no corporate income tax; the CAT is a gross-receipts tax, and from 2025 it applies above $6 million in Ohio taxable gross receipts. Annual CAT filing was eliminated starting 2024.',
     dueZh:
-      '按季度。俄亥俄州没有公司所得税；CAT（毛收入税）第一季度申报于 5 月 10 日到期——季度结束后第 2 个月的第 10 天。',
-    sourceLabel: 'Ohio Department of Taxation — Commercial Activity Tax',
-    sourceHref: 'https://tax.ohio.gov/',
+      '按季度——Q1 于 5 月 10 日、Q2 于 8 月 10 日、Q3 于 11 月 10 日、Q4 于 2 月 10 日到期（每季度结束后第 2 个月的第 10 天）。俄亥俄州没有公司所得税；CAT 为毛收入税，2025 年起适用于俄亥俄州应税毛收入超过 600 万美元的企业。年度申报自 2024 年起取消。',
+    sourceLabel: 'Ohio Department of Taxation — Due Dates',
+    sourceHref: 'https://tax.ohio.gov/help-center/resources/duedates',
   },
   virginia: {
     name: 'Virginia',
