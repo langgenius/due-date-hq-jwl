@@ -41,7 +41,9 @@ const description =
 const states = getNoticeStates()
 
 // Newest deadline first so the freshest, most-searched notices lead the roster.
-const notices = [...DISASTER_NOTICES].toSorted((a, b) => (a.deadline < b.deadline ? 1 : -1))
+// Soonest deadline first — the page asks "by when?", so the nearest deadline (WA Aug 5)
+// must lead, not render last.
+const notices = [...DISASTER_NOTICES].toSorted((a, b) => (a.deadline < b.deadline ? -1 : 1))
 
 // Compact, serializable rows for the client lookup — the SAME facts as the cards
 // below, so the island never invents anything the server didn't already render.

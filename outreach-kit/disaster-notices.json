@@ -6,7 +6,8 @@
     "event": "Severe storms, straight-line winds, flooding, landslides and mudslides",
     "deadline": "2026-08-05",
     "deadlineLabel": "Aug. 5, 2026",
-    "affectedArea": "Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Samish, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations",
+    "affectedArea": "Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations",
+    "affectedAreaShort": "24 Washington counties and 25 tribal nations",
     "forms": [
       "1040",
       "1120",

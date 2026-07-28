@@ -157,8 +157,12 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     // fact.) Verified 2026-07-27 that no separate WA notice exists for DR-4906.
     //
     // 2026-07-27: `affectedArea` previously listed ONLY the nine counties the 5/1/26 update
-    // added, omitting the 17 in the original release — so a CPA in King or Pierce County
-    // read our page as not covered. Now carries both sets plus the tribal-nation count.
+    // added, omitting the original set — so a CPA in King or Pierce County read our page as
+    // not covered. Now carries the full covered area.
+    // 2026-07-28: authoritative count per the cited IRS release = 24 Washington COUNTIES plus
+    // 25 tribal nations. "Samish" was wrongly listed among the counties (it is the Samish
+    // Indian Nation, one of the 25 tribes, and WA has no Samish County) — removed. Do not
+    // re-add it as a county; affectedAreaShort now reads "24 … counties and 25 tribal nations".
     slug: 'washington-severe-storms-flooding-landslides',
     code: 'WA-2025-03',
     state: 'Washington',
@@ -169,8 +173,8 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     deadlineLabel: 'Aug. 5, 2026',
     incidentStart: 'December 9, 2025',
     affectedArea:
-      'Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Samish, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations',
-    affectedAreaShort: '25 Washington counties and 25 tribal nations',
+      'Asotin, Benton, Chelan, Clallam, Clark, Cowlitz, Garfield, Grays Harbor, Jefferson, King, Kittitas, Klickitat, Lewis, Mason, Pacific, Pend Oreille, Pierce, Skagit, Skamania, Snohomish, Thurston, Wahkiakum, Whatcom and Yakima counties, plus 25 tribal nations',
+    affectedAreaShort: '24 Washington counties and 25 tribal nations',
     affectedReturns: [
       'individual',
       'corporate',
@@ -572,7 +576,7 @@ export function getNoticeMeta(notice: DisasterNotice): DisasterNoticeMeta {
     title: `IRS ${notice.state} Disaster Tax Relief ${yr}: Deadline ${notice.deadlineLabel}${disambig}`,
     // `affectedAreaShort` keeps this inside ~155 chars for notices whose verbatim area is
     // a long county list; the full area still renders on the page and in the JSON-LD.
-    description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${(notice.affectedAreaShort ?? notice.affectedArea).replace(/^The /, '')} after ${notice.event.toLowerCase()} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
+    description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${(notice.affectedAreaShort ?? notice.affectedArea).replace(/^The /, '')} after ${notice.event} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
   }
 }
 
@@ -587,8 +591,8 @@ export function getNoticeFaq(notice: DisasterNotice): { question: string; answer
   const status = getNoticeStatus(notice)
   const faq: { question: string; answer: string }[] = [
     {
-      question: `What is the new IRS deadline for the ${notice.state} ${notice.event.toLowerCase()} (${notice.code})?`,
-      answer: `The IRS postponed affected filing and payment deadlines to <b>${notice.deadlineLabel}</b> for taxpayers in ${notice.affectedArea.replace(/^The /, '')}. This follows ${notice.event.toLowerCase()} that began ${notice.incidentStart}.`,
+      question: `What is the new IRS deadline for the ${notice.state} ${notice.event} (${notice.code})?`,
+      answer: `The IRS postponed affected filing and payment deadlines to <b>${notice.deadlineLabel}</b> for taxpayers in ${notice.affectedArea.replace(/^The /, '')}. This follows ${notice.event} that began ${notice.incidentStart}.`,
     },
     {
       question: `Who qualifies for this ${notice.state} disaster relief?`,
