@@ -1313,9 +1313,9 @@ const en: LandingCopy = {
       {
         slug: 'evidence-backed-tax-deadline-software',
         meta: {
-          title: 'Evidence-backed Tax Deadline Software — DueDateHQ Guide',
+          title: 'CPA Due Date Tracking Software, Evidence-Backed — DueDateHQ Guide',
           description:
-            'What CPA teams should be able to prove before a deadline, alert, AI suggestion, or migration action changes client work.',
+            'Choosing CPA due date tracking software? What a firm should be able to prove before a deadline, alert, AI suggestion, or migration action changes client work — source, excerpt, and review state on every date.',
           ogImage: '/og/home.en.png',
         },
         hero: {

@@ -1331,7 +1331,7 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.labelZh} — DueDateHQ 规则参考`,
+        title: `${spec.labelZh}（2026）：什么时候到期 — DueDateHQ 规则参考`,
         description: `了解 DueDateHQ 如何把 ${spec.labelZh} 转成带官方来源、客户上下文、人工复核、证据状态和审计历史的 CPA 截止日运营工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
@@ -1550,7 +1550,7 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       name: spec.name,
       abbreviation: spec.abbreviation,
       meta: {
-        title: `${spec.name} 州税务截止日监控 — DueDateHQ`,
+        title: `${spec.name} 州税截止日（2026）— 官方来源监控 | DueDateHQ`,
         description: `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
@@ -4332,8 +4332,9 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     name: 'New Jersey',
     label: 'Form CBT-100 Corporation Business Tax return',
     labelZh: 'Form CBT-100 Corporation Business Tax 申报',
-    due: 'May 15 — the 15th day of the month after the federal return is due, for calendar-year filers.',
-    dueZh: '5 月 15 日——日历年纳税人为联邦申报到期月份的次月第 15 天。',
+    due: 'May 15 — the 15th day of the month after the federal return is due, for calendar-year filers. Estimated installments (when liability is $500 or more): the 15th day of the 4th, 6th, 9th, and 12th months of the tax year.',
+    dueZh:
+      '5 月 15 日——日历年纳税人为联邦申报到期月份的次月第 15 天。预缴分期（税负 500 美元及以上）：税务年度第 4、6、9、12 个月的第 15 日前。',
     ext: 'An automatic 6-month extension via Form CBT-200-T when at least 90% of the tax is paid by the original due date.',
     extZh: '通过 Form CBT-200-T 自动延长 6 个月，前提是在原始截止前已缴至少 90% 税款。',
     sourceLabel: 'New Jersey Division of Taxation — CBT-100 instructions',

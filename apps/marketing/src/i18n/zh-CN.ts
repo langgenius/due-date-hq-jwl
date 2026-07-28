@@ -1288,7 +1288,7 @@ const zhCN: LandingCopy = {
       {
         slug: 'evidence-backed-tax-deadline-software',
         meta: {
-          title: '带证据的税务截止日软件 — DueDateHQ 指南',
+          title: 'CPA 截止日跟踪软件怎么选：带证据的标准 — DueDateHQ 指南',
           description:
             '了解 CPA 团队在截止日、提醒、AI 建议或迁移动作改变客户工作前，应该保留哪些官方来源、摘录、验证元数据、复核状态和审计历史。',
           ogImage: '/og/home.zh-CN.png',
