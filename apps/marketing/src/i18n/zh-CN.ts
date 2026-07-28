@@ -894,9 +894,9 @@ const zhCN: LandingCopy = {
         name: 'California',
         abbreviation: 'CA',
         meta: {
-          title: 'California 州税务截止日监控 — DueDateHQ',
+          title: 'California 州税截止日（2026）— DueDateHQ',
           description:
-            '了解 DueDateHQ 如何用官方 source URL、来源摘录、验证时间戳和人工复核监控 California FTB 公开申报信号，并在影响客户队列前保留证据上下文。',
+            'California 州税截止日：DueDateHQ 监控 FTB 官方来源，日期或规则变化时附来源与人工复核。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -957,9 +957,9 @@ const zhCN: LandingCopy = {
         name: 'New York',
         abbreviation: 'NY',
         meta: {
-          title: 'New York 州税务截止日监控 — DueDateHQ',
+          title: 'New York 州税截止日（2026）— DueDateHQ',
           description:
-            '了解 DueDateHQ 如何用官方来源上下文、来源摘录、客户申报档案和人工复核监控 New York 公开税务申报信号，避免把州级更新直接变成黑盒截止日。',
+            'New York 州税截止日：DueDateHQ 监控州税务局官方来源，日期变化时附来源与人工复核。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1018,9 +1018,9 @@ const zhCN: LandingCopy = {
         name: 'Texas',
         abbreviation: 'TX',
         meta: {
-          title: 'Texas 州税务截止日监控 — DueDateHQ',
+          title: 'Texas 州税截止日（2026）— DueDateHQ',
           description:
-            '了解 DueDateHQ 如何为 CPA 截止日运营监控 Texas Comptroller 公开申报信号、franchise tax 截止日更新、来源证据和人工复核状态。',
+            'Texas 州税截止日：Franchise Tax 年度报告 5 月 15 日到期。DueDateHQ 从 Texas Comptroller 官方来源监控。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1081,9 +1081,9 @@ const zhCN: LandingCopy = {
         name: 'Florida',
         abbreviation: 'FL',
         meta: {
-          title: 'Florida 州税务截止日监控 — DueDateHQ',
+          title: 'Florida 州税截止日（2026）— DueDateHQ',
           description:
-            '了解 DueDateHQ 如何用证据复核、来源摘录、客户上下文和提醒复核监控 Florida 公开申报公告、救济信息和截止日相关州级更新。',
+            'Florida 州税截止日：DueDateHQ 监控州税务局官方来源，日期或规则变化时附来源与人工复核。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1143,9 +1143,9 @@ const zhCN: LandingCopy = {
         name: 'Washington',
         abbreviation: 'WA',
         meta: {
-          title: 'Washington 州税务截止日监控 — DueDateHQ',
+          title: 'Washington 州税截止日（2026）— DueDateHQ',
           description:
-            '了解 DueDateHQ 如何用官方来源证据、验证元数据和人工复核工作流监控 Washington Department of Revenue 公开申报信号，并把可能影响客户的更新送入截止日运营。',
+            'Washington 州税截止日——含 2026 年 8 月 5 日 IRS 风暴救济顺延——由 DueDateHQ 从官方来源监控。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {

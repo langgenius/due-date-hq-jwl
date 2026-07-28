@@ -915,9 +915,9 @@ const en: LandingCopy = {
         name: 'California',
         abbreviation: 'CA',
         meta: {
-          title: 'California Tax Deadline Monitoring — DueDateHQ',
+          title: 'California Tax Deadlines (2026) — DueDateHQ',
           description:
-            'How DueDateHQ monitors public California FTB filing signals with source URLs, excerpts, timestamps, and human review.',
+            'California tax deadlines for CPA firms, monitored from official FTB sources — with source-backed review when dates or rules change.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -978,9 +978,9 @@ const en: LandingCopy = {
         name: 'New York',
         abbreviation: 'NY',
         meta: {
-          title: 'New York Tax Deadline Monitoring — DueDateHQ',
+          title: 'New York Tax Deadlines (2026) — DueDateHQ',
           description:
-            'How DueDateHQ monitors public New York tax filing signals with official-source context and human review.',
+            'New York tax deadlines for CPA firms, monitored from official Department of Taxation and Finance sources — source-backed review when dates change.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1041,9 +1041,9 @@ const en: LandingCopy = {
         name: 'Texas',
         abbreviation: 'TX',
         meta: {
-          title: 'Texas Tax Deadline Monitoring — DueDateHQ',
+          title: 'Texas Tax Deadlines (2026) — DueDateHQ',
           description:
-            'How DueDateHQ monitors public Texas filing signals and franchise-tax deadline updates for CPA operations.',
+            'Texas tax deadlines: the Franchise Tax annual report is due May 15. Monitored from official Texas Comptroller sources by DueDateHQ.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1104,9 +1104,9 @@ const en: LandingCopy = {
         name: 'Florida',
         abbreviation: 'FL',
         meta: {
-          title: 'Florida Tax Deadline Monitoring — DueDateHQ',
+          title: 'Florida Tax Deadlines (2026) — DueDateHQ',
           description:
-            'How DueDateHQ monitors public Florida filing notices and deadline-related state updates with evidence review.',
+            'Florida tax deadlines for CPA firms, monitored from official Department of Revenue sources — source-backed review when dates or rules change.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1167,9 +1167,9 @@ const en: LandingCopy = {
         name: 'Washington',
         abbreviation: 'WA',
         meta: {
-          title: 'Washington Tax Deadline Monitoring — DueDateHQ',
+          title: 'Washington Tax Deadlines (2026) — DueDateHQ',
           description:
-            'How DueDateHQ monitors public Washington Department of Revenue signals with official-source evidence workflows.',
+            'Washington tax deadlines for CPA firms — including the Aug. 5, 2026 IRS storm-relief postponement — monitored from official sources.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1315,7 +1315,7 @@ const en: LandingCopy = {
         meta: {
           title: 'CPA Due Date Tracking Software, Evidence-Backed — DueDateHQ Guide',
           description:
-            'Choosing CPA due date tracking software? What a firm should be able to prove before a deadline, alert, AI suggestion, or migration action changes client work — source, excerpt, and review state on every date.',
+            'Choosing CPA due date tracking software? What a firm should prove before a deadline, alert, or migration changes client work — source and review state on every date.',
           ogImage: '/og/home.en.png',
         },
         hero: {

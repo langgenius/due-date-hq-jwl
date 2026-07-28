@@ -1331,8 +1331,10 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.labelZh}（2026）：什么时候到期 — DueDateHQ 规则参考`,
-        description: `了解 DueDateHQ 如何把 ${spec.labelZh} 转成带官方来源、客户上下文、人工复核、证据状态和审计历史的 CPA 截止日运营工作。`,
+        title: `${spec.labelZh}（2026）：什么时候到期 — DueDateHQ`,
+        description: spec.keyDates?.rows[0]
+          ? `${spec.labelZh}什么时候到期？${spec.keyDates.rows[0].valueZh.length > 80 ? `${spec.keyDates.rows[0].valueZh.slice(0, 77).trimEnd()}…` : spec.keyDates.rows[0].valueZh} 附官方来源 — DueDateHQ。`
+          : `${spec.labelZh}什么时候到期？2026 年到期日与官方来源 — DueDateHQ。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -1425,8 +1427,10 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
   return {
     slug: spec.slug,
     meta: {
-      title: `${spec.label} (2026): when it's due — DueDateHQ Rule Reference`,
-      description: `When is the ${spec.label.toLowerCase()}? The 2026 due date with its official source, plus how DueDateHQ turns it into source-backed deadline operations with client context and review state.`,
+      title: `${spec.label} (2026): when it's due — DueDateHQ`,
+      description: spec.keyDates?.rows[0]
+        ? `When is the ${spec.label.toLowerCase()}? ${spec.keyDates.rows[0].value.length > 80 ? `${spec.keyDates.rows[0].value.slice(0, 77).trimEnd()}…` : spec.keyDates.rows[0].value} Official source attached — DueDateHQ.`
+        : `When is the ${spec.label.toLowerCase()}? The 2026 due date with its official source — DueDateHQ.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
@@ -1551,7 +1555,7 @@ function stateDeadlineSnippet(slug: string, locale: Locale): string | undefined 
   const d = STATE_DEADLINES[slug]
   if (!d) return undefined
   const raw = locale === 'zh-CN' ? d.dueZh : d.due
-  const first = raw.length > 130 ? `${raw.slice(0, 127).trimEnd()}…` : raw
+  const first = raw.length > 90 ? `${raw.slice(0, 87).trimEnd()}…` : raw
   return locale === 'zh-CN' ? `${d.labelZh}：${first}` : `${d.label}: ${first}`
 }
 
@@ -1563,10 +1567,10 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       name: spec.name,
       abbreviation: spec.abbreviation,
       meta: {
-        title: `${spec.name} 州税截止日（2026）— 官方来源监控 | DueDateHQ`,
+        title: `${spec.name} 州税截止日（2026）— DueDateHQ`,
         description: deadlineSnippet
-          ? `${spec.name} 州税截止日：${deadlineSnippet} 由 DueDateHQ 从 ${spec.agency} 官方来源监控，附来源与人工复核。`
-          : `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
+          ? `${spec.name} 州税截止日：${deadlineSnippet} 官方来源监控 — DueDateHQ。`
+          : `${spec.name} 州税截止日：DueDateHQ 监控 ${spec.agency} 官方来源，${spec.signalZh}变化时附来源与人工复核。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -1626,10 +1630,10 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     name: spec.name,
     abbreviation: spec.abbreviation,
     meta: {
-      title: `${spec.name} Tax Deadlines (2026) — Monitored at the Source | DueDateHQ`,
+      title: `${spec.name} Tax Deadlines (2026) — DueDateHQ`,
       description: deadlineSnippet
-        ? `${spec.name} tax deadlines: ${deadlineSnippet} Monitored from official ${spec.agency} sources by DueDateHQ, with source-backed review.`
-        : `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} ${spec.sourceSurface} — with source-backed review when ${spec.signal} change.`,
+        ? `${spec.name} tax deadlines: ${deadlineSnippet} Source-monitored by DueDateHQ.`
+        : `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} sources — with source-backed review when rules change.`,
       ogImage: '/og/home.en.png',
     },
     hero: {
@@ -1690,10 +1694,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'tax-deadline-weekend-holiday-rule',
       meta: {
-        title:
-          'Does the tax deadline move on a weekend or holiday? The next-business-day rule — DueDateHQ',
+        title: 'Does the tax deadline move on a weekend or holiday? — DueDateHQ',
         description:
-          'Yes — under 26 U.S.C. §7503, a federal tax deadline that falls on a Saturday, Sunday, or legal holiday moves to the next business day. What counts as a legal holiday (including DC holidays), how it applies to extensions, and where states differ.',
+          'Yes — under §7503 a federal deadline on a Saturday, Sunday, or legal holiday moves to the next business day. Which holidays count, and where states differ.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2090,7 +2093,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'Multi-State Filing Deadlines for CPA Firms — Federal + State Due Dates',
         description:
-          'The core federal business and individual filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers, how state deadlines vary, and where to verify each against the official source.',
+          'Federal filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers, how state deadlines vary, and how firms track both.',
         ogImage: '/og/home.en.png',
       },
       hero: {
@@ -2176,7 +2179,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: '2026 Tax Deadline Calendar for CPA Firms — Federal Filing Dates',
         description:
-          'The 2026 federal filing calendar for calendar-year filers: partnership, S-corp, C-corp, individual, estimated tax, and nonprofit deadlines, with the official IRS source.',
+          'The 2026 federal filing calendar: partnership, S-corp, C-corp, individual, estimated tax, and nonprofit deadlines — with sources.',
         ogImage: '/og/home.en.png',
       },
       hero: {
@@ -2290,9 +2293,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'payroll-tax-deadlines',
       meta: {
-        title: 'Payroll tax due dates (2026): Form 941, 940, deposits & W-2 — DueDateHQ',
+        title: 'Payroll tax due dates (2026): 941, 940 & deposits — DueDateHQ',
         description:
-          'When are payroll taxes due? Form 941 quarterly due dates (April 30, July 31, October 31, January 31), Form 940 FUTA by January 31, W-2/1099-NEC, and the monthly vs semiweekly deposit schedules — each with its IRS source.',
+          'When are payroll taxes due? Form 941: April 30, July 31, October 31, January 31. Form 940 and W-2: January 31. Plus deposit schedules, sourced.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2443,7 +2446,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'Deadline monitoring for QuickBooks firms — DueDateHQ guide',
         description:
-          'QuickBooks keeps the books; it does not watch IRS and state deadline or rule changes. How CPA and bookkeeping firms add a source-backed rule-change monitoring layer alongside QuickBooks with DueDateHQ.',
+          'QuickBooks keeps the books; it does not watch IRS and state deadline changes. How QBO firms add a source-backed monitoring layer.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -3499,7 +3502,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
     slug: spec.slug,
     meta: {
       title: `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
-      description: `How CPA firms compare ${spec.product} with DueDateHQ as a rule-change monitoring alternative — deadline risk, official-source evidence, state coverage, and weekly triage, and how the two work together.`,
+      description: `Compare DueDateHQ with ${spec.product} for CPA deadline operations: deadline risk, official-source evidence, state alerts — and how the two run together.`,
       ogImage: '/og/home.en.png',
     },
     comparisonTable: {
@@ -3816,8 +3819,8 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.subject} 替代方案与竞品（2026）：CPA 事务所怎么选 — DueDateHQ`,
-        description: `面向 CPA 事务所的 ${spec.subject} 替代方案与竞品对比：常被一起评估的工具、各自适合的场景与起步定价，以及 DueDateHQ 如何作为带来源的截止日与规则变化监控层补位。`,
+        title: `${spec.subject} 替代方案与竞品（2026）— DueDateHQ`,
+        description: `${spec.subject} 替代方案与竞品：各自适合的场景与起步定价，以及 DueDateHQ 作为带来源的监控层如何补位。`,
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3899,8 +3902,8 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
   return {
     slug: spec.slug,
     meta: {
-      title: `${spec.subject} alternatives & competitors (2026): what CPA firms use — DueDateHQ`,
-      description: `${spec.subject} alternatives and competitors compared for US CPA firms — the tools commonly evaluated against ${spec.subject}, where each fits, with starting prices, plus how DueDateHQ adds a source-backed deadline & rule-change monitoring layer.`,
+      title: `${spec.subject} alternatives & competitors (2026) — DueDateHQ`,
+      description: `${spec.subject} alternatives & competitors for CPA firms: where each fits, with starting prices — plus DueDateHQ as the source-backed monitoring layer.`,
       ogImage: '/og/guide.en.png',
     },
     hero: {
@@ -4043,8 +4046,8 @@ function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
     return {
       slug: spec.slug,
       meta: {
-        title: `${pair}（2026）：CPA 事务所怎么选 — DueDateHQ`,
-        description: `${a.name} 与 ${b.name} 面向 CPA 事务所的对比：各自定位、适合的场景与起步定价（公开定价，2026 年 7 月），以及无论选哪个，DueDateHQ 如何补上带来源的截止日与规则变化监控层。`,
+        title: `${pair}（2026）对比 — DueDateHQ`,
+        description: `${a.name} 与 ${b.name} 对比：定位、适合场景与起步定价（2026 年 7 月），以及叠加在两者之上的监控层。`,
         ogImage: '/og/home.zh-CN.png',
       },
       comparisonTable: {
@@ -4123,8 +4126,8 @@ function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
   return {
     slug: spec.slug,
     meta: {
-      title: `${pair} (2026): which fits your CPA firm — DueDateHQ`,
-      description: `${a.name} vs ${b.name} for US CPA firms: positioning, best fit, and starting prices (public pricing, Jul 2026) — plus how DueDateHQ adds source-backed deadline and rule-change monitoring on top of either.`,
+      title: `${pair} (2026): compared — DueDateHQ`,
+      description: `${a.name} vs ${b.name} for CPA firms: positioning, best fit, starting prices (Jul 2026) — and the monitoring layer that runs on top of either.`,
       ogImage: '/og/home.en.png',
     },
     comparisonTable: {
