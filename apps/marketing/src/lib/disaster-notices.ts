@@ -398,6 +398,8 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     incidentStart: 'April 10, 2026',
     affectedArea:
       'Alcona, Allegan, Alpena, Antrim, Barry, Benzie, Charlevoix, Cheboygan, Crawford, Eaton, Emmet, Grand Traverse, Gratiot, Iosco, Iron, Kalamazoo, Kalkaska, Lake, Manistee, Marquette, Mecosta, Menominee, Missaukee, Montcalm, Montmorency, Muskegon, Newaygo, Oceana, Ogemaw, Osceola, Oscoda, Presque Isle, Roscommon, Saginaw, Tuscola, Washtenaw, and Wexford counties',
+    // 37 counties enumerated above (Alcona … Wexford).
+    affectedAreaShort: '37 Michigan counties',
     affectedReturns: [
       'individual',
       'corporate',
@@ -490,6 +492,9 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     incidentStart: 'April 13, 2026',
     affectedArea:
       'Bayfield, Brown, Buffalo, Iowa, Jackson, Jefferson, Juneau, Kenosha, Kewaunee, Manitowoc, Marathon, Milwaukee, Outagamie, Racine, Rock, Sauk, Vernon, Washington, Waukesha, Waupaca, and Winnebago counties, and the Oneida Indian Reservation',
+    // 21 counties enumerated above (Bayfield … Winnebago); the Oneida Indian
+    // Reservation is a tribal clause, not a county, so it is not in the count.
+    affectedAreaShort: '21 Wisconsin counties and the Oneida Indian Reservation',
     affectedReturns: [
       'individual',
       'corporate',

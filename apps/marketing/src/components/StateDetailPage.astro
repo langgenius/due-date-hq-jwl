@@ -136,13 +136,23 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     <h1 class="m-page-title std-hero__title">{page.hero.title}</h1>
     <p class="m-page-lead">{page.hero.description}</p>
     <p class="m-page-note">{page.hero.note}</p>
+    <div class="std-hero__cta">
+      <a class="m-btn m-btn--primary" href={getStartedHref(zh ? 'zh-CN' : undefined)}>
+        {labels.ctaPrimary}
+      </a>
+      <span class="std-hero__cta-note">{labels.ctaNote}</span>
+    </div>
     <p class="m-page-reviewed">
       {labels.lastReviewed}: <time datetime={reviewedOn}>{reviewedOn}</time>
     </p>
   </section>
 
   {
-    page.keyDeadlines && (
+    /* KEY DATES module: on English pages the "Verified filing deadlines" table
+       below carries the same (and more) per-entity detail, so this weaker,
+       single-deadline duplicate is suppressed there. It stays as the sole
+       deadline module on zh-CN pages, where the table is hidden (showFiling). */
+    page.keyDeadlines && !showFiling && (
       <section class="m-section m-page-block" aria-labelledby="std-kd-h">
         <p class="m-eyebrow">{page.keyDeadlines.eyebrow}</p>
         <h2 class="m-page-h2" id="std-kd-h">{page.keyDeadlines.title}</h2>
@@ -385,6 +395,20 @@ const neighbors = allStates.filter((s) => s.slug !== page.slug).slice(0, 6)
     line-height: 1.05;
     letter-spacing: -0.02em;
     max-width: 22ch;
+  }
+  /* one restrained primary action in the hero, so the page has a conversion
+     path before the reader scrolls through every coverage section */
+  .std-hero__cta {
+    margin-top: clamp(20px, 2.4vw, 28px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+  .std-hero__cta-note {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
   }
 
   /* ---- key-deadline signature module: the verified sourced fact ---- */

@@ -985,7 +985,7 @@ const en: LandingCopy = {
         },
         hero: {
           eyebrow: 'STATE COVERAGE · NY',
-          title: 'New York tax deadlines, routed through evidence review.',
+          title: 'New York tax deadlines, watched at the DTF source.',
           description:
             'DueDateHQ monitors public New York tax authority updates and keeps source context attached when a filing signal may affect deadline operations.',
           note: 'New York coverage describes product scope, not a filing recommendation.',

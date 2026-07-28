@@ -50,7 +50,7 @@ const l = zh
       rosterEyebrow: '完整辖区清单',
       rosterTitle: '全部 50 个州 + DC，一视同仁地实时监控。',
       rosterBody:
-        '没有「重点州」和「次要州」之分。每一个州税务机关、IRS，以及覆盖全国的 FEMA 灾害救济，都以同样的方式 24/7 盯紧。下方加粗并可点击的，是已经发布独立覆盖详情页的辖区。',
+        '没有「重点州」和「次要州」之分。每一个州税务机关、IRS，以及覆盖全国的 FEMA 灾害救济，都以同样的方式 24/7 盯紧。全部 50 个州 + DC 都各自拥有独立的覆盖详情页——完整清单就在下方地图之后。',
       rosterLegendLive: '全部实时监控',
       published: '详情页',
       routeNodes: [
@@ -78,7 +78,7 @@ const l = zh
       rosterEyebrow: 'Full jurisdiction roster',
       rosterTitle: 'All 50 states + DC, watched live — the same way.',
       rosterBody:
-        'No "priority" states and no afterthoughts. Every state tax authority, the IRS, and FEMA disaster relief nationwide are monitored 24/7 the same way. The jurisdictions shown bold and linkable below already have a dedicated coverage detail page.',
+        'No "priority" states and no afterthoughts. Every state tax authority, the IRS, and FEMA disaster relief nationwide are monitored 24/7 the same way. Every one of the 50 states + DC has its own coverage detail page — the full directory is just below the map.',
       rosterLegendLive: 'All watched live',
       published: 'Detail page',
       routeNodes: [
@@ -403,10 +403,15 @@ const ctaPrimaryHref = getStartedHref(zh ? 'zh-CN' : undefined)
       grid-template-columns: 1fr;
       gap: 14px;
     }
-    /* the cartogram doesn't reflow gracefully below ~360px wide; let the tile
-       size shrink rather than try to lay out the country in a single column */
+    /* Cartogram degradation, documented: the tilegram is a fixed 13×8 grid and
+       cannot reflow into a single column, so it is designed down to a ~320px
+       viewport (≈300px content). Below that we hold a min-width floor via
+       min(100%, 300px) — which never exceeds the container, so it can't force a
+       horizontal page scroll — and let tile size (and the clamped abbr type)
+       shrink to the floor rather than collapsing the map. */
     .stcov-roster__map {
       max-width: 100%;
+      min-width: min(100%, 300px);
     }
   }
 

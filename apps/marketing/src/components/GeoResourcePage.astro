@@ -12,6 +12,8 @@
  *  the CTA. Content slots, headings, ids and the source link are untouched. */
 import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { getContentDates } from '../lib/content-metadata'
+import { DISASTER_NOTICES } from '../lib/disaster-notices'
+import disasterArchive from '../lib/disaster-archive.json'
 import type { ResourceLink } from '../lib/seo-content'
 import FaqList from './FaqList.astro'
 
@@ -42,6 +44,15 @@ const peekDate = page.keyDates?.rows?.[0]
 
 // Optional DueDateHQ-vs-product table (comparison pages only).
 const cmp = 'comparisonTable' in page ? page.comparisonTable : undefined
+
+// Counts for the "Free tools & data" links are derived at build time from the
+// same data the linked pages render, so they can never silently drift. The
+// tracker shows DISASTER_NOTICES (all future-deadline notices in our dataset —
+// not "active" in a filtered sense); the archive is the full 2020–present set.
+const trackerNoticeCount = DISASTER_NOTICES.length
+const archiveNoticeCount = disasterArchive.length
+const archiveYears = (disasterArchive as { year: number }[]).map((n) => n.year)
+const archiveRange = `${Math.min(...archiveYears)}–${Math.max(...archiveYears)}`
 
 const t = zh
   ? {
@@ -131,7 +142,11 @@ const t = zh
     <aside class="geo-hero__aside">
       {
         peekDate ? (
-          <div class="geo-peek" role="img" aria-label={`${t.watchedIn} · ${t.previewTag}`}>
+          <div
+            class="geo-peek"
+            role="img"
+            aria-label={`${t.watchedIn} · ${t.nextDeadline} ${peekDate.value} · ${t.previewTag}`}
+          >
             <div class="geo-peek__bar">
               <span class="geo-peek__live" aria-hidden="true" />
               <span class="geo-peek__app">{t.watchedIn}</span>
@@ -184,13 +199,6 @@ const t = zh
         <p class="m-eyebrow">{page.keyDates.eyebrow}</p>
         <h2 class="m-page-h2">{page.keyDates.title}</h2>
         <div class="geo-facts">
-          <div class="geo-facts__head" aria-hidden="true">
-            <span>{page.keyDates.eyebrow}</span>
-            <span class="geo-facts__head-src">
-              <span class="geo-facts__src-dot" />
-              {t.sourced}
-            </span>
-          </div>
           <dl class="geo-facts__dl">
             {page.keyDates.rows.map((row) => (
               <div class="geo-facts__row">
@@ -323,8 +331,14 @@ const t = zh
         <ul class="geo-related__list">
           {[
             { href: '/widget', label: 'Free embeddable deadline-change widget' },
-            { href: '/irs-disaster-relief', label: 'Live IRS disaster-relief tracker (11 active notices)' },
-            { href: '/irs-disaster-relief/archive', label: 'IRS disaster-relief archive, 2020–2026 (206 notices)' },
+            {
+              href: '/irs-disaster-relief',
+              label: `Live IRS disaster-relief tracker (${trackerNoticeCount} notices in our dataset)`,
+            },
+            {
+              href: '/irs-disaster-relief/archive',
+              label: `IRS disaster-relief archive, ${archiveRange} (${archiveNoticeCount} notices)`,
+            },
           ].map((link) => (
             <li>
               <a class="geo-related__link" href={link.href}>
@@ -548,36 +562,6 @@ const t = zh
     border-radius: 12px;
     overflow: hidden;
     background: var(--m-surface);
-  }
-  .geo-facts__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 11px 22px;
-    background: var(--m-section);
-    border-bottom: 1px solid var(--m-hairline);
-    font-family: var(--m-font-mono);
-    font-size: var(--m-text-2xs);
-    font-weight: 600;
-    letter-spacing: var(--m-ls-eyebrow);
-    text-transform: uppercase;
-    color: var(--m-muted);
-  }
-  .geo-facts__head-src {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    letter-spacing: 0.04em;
-    color: var(--m-muted);
-  }
-  .geo-facts__src-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    flex: none;
-    background: var(--m-ok);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-ok) 16%, transparent);
   }
   .geo-facts__dl {
     margin: 0;

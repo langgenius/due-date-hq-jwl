@@ -964,7 +964,7 @@ const zhCN: LandingCopy = {
         },
         hero: {
           eyebrow: '州覆盖 · NY',
-          title: 'New York 州税务截止日，进入证据复核。',
+          title: 'New York 州税截止日，紧盯 DTF 官方来源。',
           description:
             'DueDateHQ 监控 New York 税务机关公开更新，并在申报信号可能影响截止日运营时保留来源上下文。',
           note: 'New York 覆盖描述产品范围，不是申报建议。',

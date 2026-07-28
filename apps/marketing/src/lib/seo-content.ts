@@ -1339,50 +1339,17 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
       },
       hero: {
         eyebrow: '规则参考',
-        title: `${spec.labelZh} 不只是一个日期。`,
-        description: `DueDateHQ 不把 ${spec.labelZh} 当作孤立日期，而是把${spec.sourceContextZh}、客户事实、复核状态和审计历史放在同一条运营链路里。`,
+        title: `${spec.labelZh}什么时候到期？`,
+        description: spec.keyDates?.rows[0]
+          ? `${spec.keyDates.rows[0].valueZh} DueDateHQ 把这个答案保留在来源链路上——${spec.sourceContextZh}、客户事实、复核状态和审计历史都在同一条链路里。`
+          : `DueDateHQ 把 ${spec.labelZh} 保留在来源链路上——${spec.sourceContextZh}、客户事实、复核状态和审计历史都在同一条链路里。`,
         note: '规则参考页面只解释软件建模方式，不提供税务建议。',
       },
       sections: [
         {
-          eyebrow: '来源模型',
-          title: '规则先从官方来源进入复核。',
-          body: `${spec.sourceContextZh} 是 DueDateHQ 优先保存的来源上下文。AI 可以辅助摘要、提示缺口或整理来源摘录，但不能替代官方来源和人工复核决定。`,
-          items: [
-            {
-              title: '来源链接',
-              body: '规则需要保留官方页面链接，方便复核人和用户回看同一份材料。',
-            },
-            { title: '来源摘录', body: '相关摘录靠近运营动作展示，避免把结论变成黑盒建议。' },
-            {
-              title: '复核元数据',
-              body: '复核时间、复核人和规则状态决定该规则能否进入生产截止日工作。',
-            },
-          ],
-        },
-        {
-          eyebrow: '运营上下文',
-          title: '规则只有结合客户事实才成为截止日工作。',
-          body: `${spec.operationalRiskZh}。DueDateHQ 会把规则和${spec.clientContextZh}放在一起复核。`,
-          items: [
-            {
-              title: '客户匹配',
-              body: '适用性取决于事务所维护的客户事实、申报档案和专业复核。',
-            },
-            {
-              title: '复核门槛',
-              body: '低置信度或缺少来源的信号先进入复核，而不是静默改变客户截止日。',
-            },
-            {
-              title: '审计历史',
-              body: 'Apply、dismiss、undo 和 revert 都要留下可检查的操作历史。',
-            },
-          ],
-        },
-        {
-          eyebrow: '产品落点',
-          title: '这条规则最终服务于队列、证据和团队分工。',
-          body: '当前 app 中，规则复核发生在 Rules Console，生成后的 deadline 进入 Dashboard 和 Deadlines 队列，证据抽屉与审计时间线解释为什么要处理这项工作。',
+          eyebrow: '来源与复核',
+          title: '日期只有结合来源和客户事实才有用。',
+          body: `DueDateHQ 把${spec.sourceContextZh}保留在日期旁边，而不是给出黑盒建议。它会结合${spec.clientContextZh}复核这条规则，再让日期成为客户截止日工作，因为${spec.operationalRiskZh}。AI 可以摘要来源，但官方来源和人工复核才是控制点。`,
           items: [
             {
               title: 'Rules Console',
@@ -1435,53 +1402,17 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
     },
     hero: {
       eyebrow: 'RULE REFERENCE',
-      title: `${spec.label} as source-backed deadline work.`,
-      description: `DueDateHQ does not treat ${spec.label} as an isolated date. It keeps ${spec.sourceContext}, client context, review state, and audit history in the same operational chain.`,
+      title: `${spec.label} — when is it due?`,
+      description: spec.keyDates?.rows[0]
+        ? `${spec.keyDates.rows[0].value} DueDateHQ keeps that answer source-backed — ${spec.sourceContext}, client context, review state, and audit history stay on one chain.`
+        : `DueDateHQ keeps ${spec.label} source-backed — ${spec.sourceContext}, client context, review state, and audit history stay on one chain.`,
       note: 'Rule reference pages explain software modeling, not tax advice.',
     },
     sections: [
       {
-        eyebrow: 'SOURCE MODEL',
-        title: 'The rule starts with official-source review.',
-        body: `${spec.sourceContext} are the source context DueDateHQ prioritizes. AI can assist with summaries, but it does not replace the source or reviewer decision.`,
-        items: [
-          {
-            title: 'Source URL',
-            body: 'The rule should keep the official page URL so reviewers and users can inspect the same material.',
-          },
-          {
-            title: 'Source excerpt',
-            body: 'The relevant excerpt stays near the operational action instead of becoming a black-box recommendation.',
-          },
-          {
-            title: 'Verified metadata',
-            body: 'Review timestamp and review state decide whether a rule can enter production deadline work.',
-          },
-        ],
-      },
-      {
-        eyebrow: 'OPERATIONS',
-        title: 'A rule becomes deadline work only with client context.',
-        body: `${spec.operationalRisk}. DueDateHQ reviews the rule alongside ${spec.clientContext}.`,
-        items: [
-          {
-            title: 'Client fit',
-            body: 'Applicability depends on firm client facts and professional review.',
-          },
-          {
-            title: 'Review gate',
-            body: 'Low-confidence or source-missing signals become review work instead of silently changing deadlines.',
-          },
-          {
-            title: 'Audit trail',
-            body: 'Apply, dismiss, undo, and revert actions should leave inspectable operational history.',
-          },
-        ],
-      },
-      {
-        eyebrow: 'PRODUCT SURFACE',
-        title: 'The rule supports queues, evidence, and team ownership.',
-        body: 'In the current app, rule review lives in Rules Console. Generated deadlines flow into Dashboard and Deadlines, while the evidence drawer and audit timeline explain why the work exists.',
+        eyebrow: 'SOURCE-BACKED MODEL',
+        title: 'A date is only useful with its source and client context.',
+        body: `DueDateHQ keeps ${spec.sourceContext} attached to the date, not a black-box recommendation. Because ${spec.operationalRisk}, it reviews the rule against ${spec.clientContext} before the date becomes client deadline work — AI can summarize a source, but the official source and a human reviewer stay the control point.`,
         items: [
           {
             title: 'Rules Console',
@@ -1575,8 +1506,8 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       },
       hero: {
         eyebrow: `州覆盖 · ${spec.abbreviation}`,
-        title: `${spec.name} 州税务截止日，先从官方来源复核。`,
-        description: `DueDateHQ 监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能影响事务所截止日运营时保留来源、摘录、复核状态和客户匹配上下文。`,
+        title: `${spec.name} 州税务截止日，紧盯 ${spec.agency} 官方来源。`,
+        description: `DueDateHQ 紧盯 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能改变事务所申报截止日时，保留来源、摘录、复核状态和客户匹配上下文。`,
         note: `${spec.name} 覆盖只描述软件监控范围，不是税务建议。`,
       },
       sourceTypes: [
@@ -1585,12 +1516,8 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
           body: `优先使用 ${spec.agency} 的官方${spec.sourceSurfaceZh}，避免把第三方摘要当成来源。`,
         },
         {
-          title: '表格与期间上下文',
-          body: '表格、期间、纳税人类型和辖区线索会保留给人工复核。',
-        },
-        {
-          title: '救济与通知更新',
-          body: '公开救济、通知或截止日变动会先进入候选复核，而不是自动改客户工作。',
+          title: '表格、期间与救济上下文',
+          body: '表格、期间、纳税人类型和辖区线索会在公开来源提供时保留；公开救济、通知或截止日变动会先进入候选复核，而不是自动改客户工作。',
         },
       ],
       coveredSignals: [
@@ -1600,26 +1527,17 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
         },
         {
           title: spec.taxFocusZh,
-          body: 'DueDateHQ 将信号和事务所客户申报档案、税种、期间上下文放在一起审查。',
-        },
-        {
-          title: '运营路由',
-          body: '复核后的信号可以成为 Dashboard、Deadlines 或邮件工作流的上下文。',
+          body: 'DueDateHQ 将信号与事务所客户申报档案、期间上下文放在一起审查，再路由进 Dashboard、Deadlines 或邮件工作流的上下文。',
         },
       ],
       limitations: [
         `DueDateHQ 不判断某条 ${spec.name} 规则是否适用于具体客户。`,
-        '覆盖依赖公开来源可访问性、来源清晰度和产品复核状态。',
-        '客户专属信件、私有通知和专业判断不属于公开州覆盖页面的承诺范围。',
+        '覆盖依赖公开来源可访问性和产品复核状态；客户专属信件、私有通知和专业判断不属于公开州覆盖页面的承诺范围。',
       ],
       faq: [
         {
           question: `${spec.name} 哪些信号会进入复核？`,
-          answer: `${spec.signalZh} 会在可能影响截止日运营时进入带来源的复核。`,
-        },
-        {
-          question: `${spec.name} 信号会自动改变客户截止日吗？`,
-          answer: '不会。信号需要来源证据、客户上下文匹配和人工动作，才会影响实际运营工作。',
+          answer: `${spec.signalZh} 会在可能改变申报截止日时进入带来源的复核。`,
         },
       ],
     }
@@ -1638,8 +1556,8 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     },
     hero: {
       eyebrow: `STATE COVERAGE · ${spec.abbreviation}`,
-      title: `${spec.name} tax deadlines, monitored at the source.`,
-      description: `DueDateHQ monitors public ${spec.agency} ${spec.sourceSurface}, then preserves source context when ${spec.signal} may affect CPA deadline operations.`,
+      title: `${spec.name} tax deadlines, watched at the ${spec.agency} source.`,
+      description: `DueDateHQ watches public ${spec.agency} ${spec.sourceSurface} and keeps the source, excerpt, and review state attached when ${spec.signal} may move a CPA filing deadline.`,
       note: `${spec.name} coverage describes monitoring scope, not tax advice.`,
     },
     sourceTypes: [
@@ -1648,12 +1566,8 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
         body: `Official ${spec.sourceSurface} are preferred over unsupported third-party summaries.`,
       },
       {
-        title: 'Form and period context',
-        body: 'Form, period, taxpayer type, jurisdiction, and relief details are retained when the public source provides them.',
-      },
-      {
-        title: 'Relief and notice updates',
-        body: 'Public relief notices, filing changes, and deadline movement enter review before they can affect client work.',
+        title: 'Form, period, and relief context',
+        body: 'Form, period, taxpayer type, jurisdiction, and relief details are retained when the public source provides them; public relief notices and deadline changes enter review before they can affect client work.',
       },
     ],
     coveredSignals: [
@@ -1663,27 +1577,17 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       },
       {
         title: spec.taxFocus,
-        body: 'DueDateHQ reviews the signal against firm client filing profiles, tax types, and period context.',
-      },
-      {
-        title: 'Operational routing',
-        body: 'Reviewed signals can become Dashboard, Obligations, or email workflow context for affected clients.',
+        body: 'DueDateHQ reviews the signal against firm client filing profiles and period context, then routes it into Dashboard, Obligations, or email workflow context for affected clients.',
       },
     ],
     limitations: [
       `DueDateHQ does not decide whether a ${spec.name} rule applies to a specific client.`,
-      'Coverage depends on public source availability, source clarity, and product review state.',
-      'Client-specific notices, private correspondence, and professional judgment are outside public state coverage.',
+      'Coverage depends on public source availability and product review state; client-specific notices, private correspondence, and professional judgment stay outside public state coverage.',
     ],
     faq: [
       {
         question: `Which ${spec.name} signals can enter review?`,
-        answer: `${spec.signal} can enter source-backed review when they may affect deadline operations.`,
-      },
-      {
-        question: `Can a ${spec.name} signal automatically change client deadlines?`,
-        answer:
-          'No. Candidate signals require source evidence, client-context matching, and human action before operational use.',
+        answer: `${spec.signal} can enter source-backed review when they may move a filing deadline.`,
       },
     ],
   }
@@ -4833,8 +4737,8 @@ function buildStateKeyDeadlines(
   return {
     eyebrow: zh ? '关键日期' : 'KEY DATES',
     title: zh
-      ? `${name} 主要申报截止日（日历年）`
-      : `${name} primary filing deadline (calendar-year filers)`,
+      ? `${name} 企业申报截止日（日历年）`
+      : `${name} business entity filing deadline (calendar-year filers)`,
     note: STATE_DEADLINE_NOTE[locale],
     sourceLabel: d.sourceLabel,
     sourceHref: d.sourceHref,

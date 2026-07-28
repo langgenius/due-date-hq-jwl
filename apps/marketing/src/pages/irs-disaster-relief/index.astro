@@ -23,6 +23,7 @@ import {
   getNoticeStatus,
 } from '../../lib/disaster-notices'
 import { disasterHubStructuredData } from '../../lib/structured-data'
+import { getContentDates } from '../../lib/content-metadata'
 
 const t = en
 const pathname = '/irs-disaster-relief'
@@ -39,6 +40,71 @@ const description =
   'Current IRS disaster tax-relief notices for 2026: postponed filing and payment deadlines by state, the affected areas, and which of your clients each one hits. Sourced to irs.gov.'
 
 const states = getNoticeStates()
+
+// Freshness signal for the hub — the same content-metadata reviewedOn the leaf
+// pages use, so "verified as of" never drifts from the rest of the site.
+const reviewedOn = getContentDates('irs-disaster-relief').reviewedOn
+
+// Every state + DC, so uncovered states can be picked too (and hit the empty
+// CTA below) — the old select only offered the ~10 states that had a notice, so
+// a CPA in an uncovered state hit a dead end. Union in any territory that has a
+// notice (e.g. Northern Mariana Islands) but isn't in the 50+DC list.
+const US_STATES_DC = [
+  'Alabama',
+  'Alaska',
+  'Arizona',
+  'Arkansas',
+  'California',
+  'Colorado',
+  'Connecticut',
+  'Delaware',
+  'District of Columbia',
+  'Florida',
+  'Georgia',
+  'Hawaii',
+  'Idaho',
+  'Illinois',
+  'Indiana',
+  'Iowa',
+  'Kansas',
+  'Kentucky',
+  'Louisiana',
+  'Maine',
+  'Maryland',
+  'Massachusetts',
+  'Michigan',
+  'Minnesota',
+  'Mississippi',
+  'Missouri',
+  'Montana',
+  'Nebraska',
+  'Nevada',
+  'New Hampshire',
+  'New Jersey',
+  'New Mexico',
+  'New York',
+  'North Carolina',
+  'North Dakota',
+  'Ohio',
+  'Oklahoma',
+  'Oregon',
+  'Pennsylvania',
+  'Rhode Island',
+  'South Carolina',
+  'South Dakota',
+  'Tennessee',
+  'Texas',
+  'Utah',
+  'Vermont',
+  'Virginia',
+  'Washington',
+  'West Virginia',
+  'Wisconsin',
+  'Wyoming',
+]
+const selectStates = [...new Set([...US_STATES_DC, ...states.map((s) => s.state)])].toSorted((a, b) =>
+  a.localeCompare(b),
+)
 
 // Newest deadline first so the freshest, most-searched notices lead the roster.
 // Soonest deadline first — the page asks "by when?", so the nearest deadline (WA Aug 5)
@@ -112,7 +178,7 @@ const faq = [
         <div class="dr-lookup__control">
           <select id="dr-state" class="dr-lookup__select" data-dr-select>
             <option value="">Select a state…</option>
-            {states.map((s) => <option value={s.state}>{s.state}</option>)}
+            {selectStates.map((s) => <option value={s}>{s}</option>)}
           </select>
           <span class="dr-lookup__chev" aria-hidden="true">▾</span>
         </div>
@@ -129,6 +195,9 @@ const faq = [
     <section class="m-section m-page-block" aria-labelledby="dr-roster-h">
       <p class="m-eyebrow">Current notices</p>
       <h2 class="m-page-h2" id="dr-roster-h">Verified 2026 IRS disaster-relief notices</h2>
+      <p class="m-page-reviewed">
+        Verified against irs.gov as of <time datetime={reviewedOn}>{reviewedOn}</time>
+      </p>
       <ul class="dr-roster">
         {
           notices.map((n) => {
@@ -148,7 +217,7 @@ const faq = [
                   <h3 class="dr-card__title">
                     {n.state} — {n.event}
                   </h3>
-                  <p class="dr-card__area">{n.affectedArea}</p>
+                  <p class="dr-card__area">{n.affectedAreaShort ?? n.affectedArea}</p>
                   <p class="dr-card__deadline">
                     <span class="dr-card__deadline-k">Postponed to</span>
                     <span class="dr-card__deadline-v">{n.deadlineLabel}</span>

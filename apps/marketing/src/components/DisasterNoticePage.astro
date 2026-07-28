@@ -39,7 +39,9 @@ const L = {
   expired: 'Relief window closed',
   deadlineEyebrow: 'The postponed deadline',
   h1: `${notice.state}: IRS deadlines move to ${notice.deadlineLabel}`,
-  lead: `${notice.event} began ${notice.incidentStart}. The IRS postponed a range of federal filing and payment deadlines to ${notice.deadlineLabel} for affected ${notice.state} taxpayers.`,
+  // The decision card below is the single source of truth for the date, so the
+  // lead carries only the human "what happened / who" — not the deadline again.
+  lead: `${notice.event} began ${notice.incidentStart}. The IRS postponed federal filing and payment deadlines for affected ${notice.state} taxpayers.`,
   deadlineCardLabel: 'New federal deadline',
   factNotice: 'IRS relief code',
   factArea: 'Affected area',
@@ -90,7 +92,7 @@ const L = {
           <span class="dnp-kd__deadline">{notice.deadlineLabel}</span>
           {
             status === 'live' && (
-              <span class="dnp-kd__count" data-deadline={notice.deadline} aria-live="polite" />
+              <span class="dnp-kd__count" data-deadline={notice.deadline} />
             )
           }
         </div>
@@ -129,11 +131,17 @@ const L = {
       </dl>
       <div class="dnp-kd__foot">
         <p class="dnp-kd__note">{L.factNote}</p>
-        <a class="dnp-kd__source" href={notice.sourceHref} rel="nofollow noopener" target="_blank">
+        <a
+          class="dnp-kd__source"
+          href={notice.sourceHref}
+          rel="nofollow noopener noreferrer"
+          target="_blank"
+        >
           <span class="dnp-kd__source-lead">{L.sourceLead}</span>
           <span class="dnp-kd__source-label">
             IRS newsroom — {notice.code}
             <span class="dnp-ext" aria-hidden="true">↗</span>
+            <span class="dnp-sr-only"> (opens in new tab)</span>
           </span>
         </a>
       </div>
@@ -186,9 +194,13 @@ const L = {
         <p class="m-page-cta__body">{L.ctaBody}</p>
         <p class="dnp-cta__note">{L.ctaNote}</p>
       </div>
-      <div class="m-page-cta__btns">
-        <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.disaster-notice.cta">
+      <!-- The email opt-in above is this give-it-away page's primary conversion, so
+           this closing block stays quiet: "Start free" is a text link, not a second
+           competing primary button; "See all disaster relief" remains navigation. -->
+      <div class="m-page-cta__btns dnp-cta__links">
+        <a class="dnp-cta__link" href={ctaHref} data-event="marketing.disaster-notice.cta">
           {L.ctaPrimary}
+          <span class="dnp-ext" aria-hidden="true">→</span>
         </a>
         <a class="m-btn m-btn--secondary" href={hubHref}>{L.ctaSecondary}</a>
       </div>
@@ -461,6 +473,45 @@ const L = {
     font-family: var(--m-font-mono);
     font-size: var(--m-text-xs);
     color: var(--m-muted);
+  }
+
+  /* Closing block is secondary to the email opt-in above: "Start free" is a quiet
+     accent text link, aligned with the navigational secondary button. */
+  .dnp-cta__links {
+    align-items: center;
+  }
+  .dnp-cta__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--m-text-sm);
+    font-weight: 600;
+    color: var(--m-accent);
+    text-decoration: none;
+  }
+  .dnp-cta__link:hover {
+    color: var(--m-accent-strong);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .dnp-cta__link .dnp-ext {
+    transition: transform 0.18s ease;
+  }
+  .dnp-cta__link:hover .dnp-ext {
+    transform: translateX(2px);
+  }
+
+  /* screen-reader-only helper (no global sr-only utility in marketing.css) */
+  .dnp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   @media (max-width: 720px) {
