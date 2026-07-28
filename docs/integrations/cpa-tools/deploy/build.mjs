@@ -73,9 +73,28 @@ fullBody = fullBody.replace(
 const topbar = fullBody
   .slice(fullBody.indexOf('<div class="topbar">'), fullBody.indexOf('<header>'))
   .trim()
-const method = fullBody
-  .slice(fullBody.indexOf('<div class="method">'), fullBody.indexOf('<footer>'))
-  .trim()
+const method = fullBody.slice(
+  fullBody.indexOf('<div class="method">'),
+  fullBody.indexOf('<footer>'),
+)
+
+// Compact trust strip for subpages — the full 4-part "How this guide works"
+// block now lives on the homepage only (anchored #how-this-guide-works). On a
+// low-authority site, repeating ~300 words of identical boilerplate on 60+
+// pages depresses the unique-content ratio Google weighs when rationing crawl
+// (GSC: 22 pages "Discovered – currently not indexed").
+const methodStrip =
+  '<div class="method"><div class="wrap"><p class="lead">' +
+  'Independent and no pay-to-list: only shipped capabilities (reviewed July 2026), maintained by the team behind ' +
+  '<a href="https://duedatehq.com">DueDateHQ</a> and held to the same standard as every other tool here. ' +
+  '<a href="/#how-this-guide-works">How this guide works &rarr;</a></p></div></div>'
+
+// The deadline category page cross-links the category definition maintained on
+// DueDateHQ (active monitoring vs passive due-date tracking) — entity + topical
+// bridge between the two properties.
+const monitorDefLink =
+  '<p class="muted" style="margin-top:18px">Category definition: active ' +
+  '<a href="https://duedatehq.com/what-is-deadline-monitoring">deadline monitoring</a> versus passive due-date tracking &mdash; the distinction this category is organized around.</p>'.trim()
 const footer = fullBody
   .slice(fullBody.indexOf('<footer>'), fullBody.indexOf('</footer>') + '</footer>'.length)
   .trim()
@@ -547,6 +566,11 @@ homeBody = homeBody.replace(
     `</ul></div></div>\n\n<div class="faq">`,
 )
 homeBody = homeBody.replace('<footer>', footerNav + '\n<footer>')
+// Anchor target for the subpage trust-strip "How this guide works →" links.
+homeBody = homeBody.replace(
+  '<div class="method">',
+  '<div class="method" id="how-this-guide-works">',
+)
 const homeHtml =
   head(
     'CPA Field Guide — US Tax & Accounting Software Directory (2026)',
@@ -655,11 +679,12 @@ for (const c of cats) {
     '<main class="wrap">',
     crumb,
     section,
+    c.key === 'monitor' ? monitorDefLink : '',
     '</main>',
     catFaqHtml,
     sibnav,
     guideNav,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -865,7 +890,7 @@ for (const t of toolData) {
     tfaqHtml,
     crossBlock,
     related,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -974,7 +999,7 @@ function guidePage(slug, title, h1, intro, groups, faq) {
     groupsHtml,
     '</main>',
     faqHtml,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -1197,7 +1222,7 @@ function vsPage(A, B) {
     '</main>',
     faqHtml,
     links,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -1330,7 +1355,7 @@ function altPage(T) {
     '</main>',
     faqHtml,
     back,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -1444,7 +1469,7 @@ const statsUrl = ORIGIN + '/cpa-software-statistics'
     openList,
     '</main>',
     faqHtml,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
@@ -1538,7 +1563,7 @@ const compareUrl = ORIGIN + '/compare'
     '</main>',
     vsBlock,
     altBlock,
-    method,
+    methodStrip,
     footerBlock,
     revealScript,
     ld,
