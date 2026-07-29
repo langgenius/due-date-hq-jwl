@@ -26,6 +26,8 @@ const copy = zh
       statePlaceholder: '选择州…',
       source: '官方来源',
       detail: '查看详情页',
+      cal: '把 2026 联邦截止日订阅进你的日历（.ics，含周末顺延，已核实）',
+      calCta: '订阅日历',
       note: '日历年纳税人；周末/法定假日顺延到下一个营业日。核实于 2026-07-28；申报前请以官方来源为准。本工具不构成税务建议。',
     }
   : {
@@ -38,6 +40,8 @@ const copy = zh
       statePlaceholder: 'Choose a state…',
       source: 'Official source',
       detail: 'Open the full page',
+      cal: 'Subscribe to the 2026 federal deadlines in your calendar (.ics, weekend shifts applied, verified)',
+      calCta: 'Subscribe to calendar',
       note: 'Calendar-year filers; dates on a weekend or legal holiday shift to the next business day. Verified 2026-07-28 — confirm against the official source before filing. Not tax advice.',
     }
 
@@ -92,6 +96,10 @@ const payload = {
       </div>
     </div>
 
+    <p class="dlk__cal">
+      {copy.cal} —
+      <a href="/calendar/federal-deadlines-2026.ics">{copy.calCta} &darr;</a>
+    </p>
     <p class="dlk__note">{copy.note}</p>
   </div>
 </section>
@@ -218,6 +226,17 @@ const payload = {
   }
   .dlk__links a {
     color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .dlk__cal {
+    margin-top: 24px;
+    font-size: var(--m-text-base);
+    color: var(--m-ink-2);
+  }
+  .dlk__cal a {
+    color: var(--m-brand);
+    font-weight: 500;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
