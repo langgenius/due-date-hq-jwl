@@ -445,6 +445,8 @@ ${incZh} 起,${areaDescZh}发生${eventCN}灾害。IRS 据此发布灾害减免(
 \`\`\`
 
 **LinkedIn 配文**(发**文档帖**:上传 \`${n.slug}-li-carousel.pdf\`;首行=搜索磁石;链接放首条评论)
+
+**LinkedIn 文档标题**(上传时必填,参与搜索):\`IRS Tax Deadline Extension — ${n.state}${c.tag ? ' ' + c.tag : ''} · ${newEn}, 2026 (${n.code})\`
 \`\`\`
 IRS tax deadline extension — ${n.state}.
 The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} under disaster relief ${n.code}. Clients in ${areaDescEn} now have moved federal filing and payment deadlines — returns and payments due on or after ${incEn}, ${incYear} through ${newEn}, 2026 (${enForms}). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.

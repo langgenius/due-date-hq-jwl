@@ -34,6 +34,8 @@
 #美国报税 #CPA #注册会计师 #加州 #PTE #SALT #税务合规 #EA
 ```
 
+**LinkedIn 文档标题**(上传 PDF 时必填,参与搜索):`California PTE Elective Tax Extended Through 2030 (SB 132)`
+
 **LinkedIn 配文**
 
 ```

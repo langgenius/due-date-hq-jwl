@@ -2,7 +2,7 @@
 
 三条 IRS 灾害延期 alert,按最近截止日排序:①夏威夷(8月20日)②亚利桑那 San Carlos Apache(9月28日)③蒙大拿 Fort Peck(9月28日)。事实取自人工核实的 `disaster-notices.ts`,发前建议在 irs.gov 对应公告页快速核一眼受灾名单。
 
-**小红书 = 3 页轮播**:`-cover` → `-p1` → `-p2`。**LinkedIn = 文档帖(PDF 轮播)**:上传 `-li-carousel.pdf`,链接放首条评论。
+**小红书 = 3 页轮播**:`-cover` → `-p1` → `-p2`。**LinkedIn = 文档帖(PDF 轮播)**:上传 `-li-carousel.pdf` + 填文档标题,链接放首条评论。
 
 ## Hawaii · 风暴洪水(HI-2026-01) —— 截止 8月20日
 
@@ -28,6 +28,8 @@
 ```
 
 **LinkedIn 配文**(发**文档帖**:上传 `hawaii-severe-storms-flooding-mudslides-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
+
+**LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Hawaii · Aug 20, 2026 (HI-2026-01)`
 ```
 IRS tax deadline extension — Hawaii.
 The IRS has postponed federal tax deadlines to Aug 20, 2026 for Hawaii taxpayers affected by Severe storms, flooding and mudslides under disaster relief HI-2026-01. Clients in Hawaii, Honolulu, Kauai, Maui counties now have moved federal filing and payment deadlines — returns and payments due on or after Mar 10, 2026 through Aug 20, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
@@ -61,6 +63,8 @@ Which of your clients does this affect? IRS source in the comments.
 ```
 
 **LinkedIn 配文**(发**文档帖**:上传 `arizona-san-carlos-apache-severe-storms-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
+
+**LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Arizona · Sep 28, 2026 (AZ-2026-01)`
 ```
 IRS tax deadline extension — Arizona.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Arizona taxpayers affected by Severe storms and flooding (San Carlos Apache Tribe) under disaster relief AZ-2026-01. Clients in the San Carlos Apache Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Oct 10, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
@@ -94,6 +98,8 @@ Which of your clients does this affect? IRS source in the comments.
 ```
 
 **LinkedIn 配文**(发**文档帖**:上传 `montana-fort-peck-tribes-winter-storm-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
+
+**LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Montana Fort Peck · Sep 28, 2026 (MT-2026-03)`
 ```
 IRS tax deadline extension — Montana.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Montana taxpayers affected by Severe Winter Storm and Straight-line Winds (Fort Peck Assiniboine and Sioux Tribes) under disaster relief MT-2026-03. Clients in the Fort Peck Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
