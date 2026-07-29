@@ -82,6 +82,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'form-4868-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'fbar-fincen-114-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'form-2290-heavy-vehicle-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
+  'estimated-tax-due-dates-2026': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
+  'october-15-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   // QuickBooks complement guide added 2026-06-25.
   'deadline-monitoring-for-quickbooks-firms': {
     publishedOn: '2026-06-25',

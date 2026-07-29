@@ -1814,6 +1814,198 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       },
     },
     {
+      slug: 'estimated-tax-due-dates-2026',
+      meta: {
+        title: 'Estimated tax due dates 2026: all four quarters — DueDateHQ',
+        description:
+          'When are estimated taxes due in 2026? Q4-2025: Jan 15. Q1: April 15. Q2: June 15. Q3: Sept 15. Q4-2026: Jan 15, 2027. Form 1040-ES quarters with sources — and where corporate estimates differ.',
+        ogImage: '/og/guide.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'Estimated tax due dates for 2026, all four quarters.',
+        description:
+          'Individual estimated payments (Form 1040-ES) run on their own quarterly clock — not the return deadline. Here is the 2026 schedule with the weekend rule applied, plus where corporate estimates differ.',
+        note: 'Calendar-year filers; verified against the IRS 1040-ES material behind our rule pages. Not tax advice.',
+      },
+      sections: [
+        {
+          eyebrow: 'THE 2026 SCHEDULE',
+          title: 'Four dates, one trap between them.',
+          body: 'The quarters are not even three-month blocks — Q2 covers just two months, which is what catches people.',
+          items: [
+            {
+              title: 'Q4 2025 → January 15, 2026',
+              body: 'The final 2025 installment lands in mid-January 2026 (a Thursday — no weekend shift).',
+            },
+            {
+              title: 'Q1 → April 15 · Q2 → June 15 · Q3 → September 15',
+              body: 'All three fall on weekdays in 2026, so no §7503 shifts apply.',
+            },
+            {
+              title: 'Q4 2026 → January 15, 2027',
+              body: 'A Friday — no shift. Subscribe to our calendar feed and the whole schedule lives in your Outlook.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'WHO RUNS ON A DIFFERENT CLOCK',
+          title: 'Corporate estimates are not the 1040-ES schedule.',
+          body: 'C corporations pay estimates on the 15th day of the 4th, 6th, 9th, and 12th months of their own tax year — which only matches the individual dates for calendar-year filers in some quarters. States add their own schedules on top.',
+          items: [
+            {
+              title: 'C corporations',
+              body: 'The 4/6/9/12-month pattern runs off the corporate year — fiscal-year clients drift from the familiar dates.',
+            },
+            {
+              title: 'States',
+              body: 'State estimate schedules vary — check each client state page for the verified state deadline.',
+            },
+            {
+              title: 'Safe-harbor context',
+              body: 'How much to pay is a planning question for the preparer; this page only keeps the WHEN honest.',
+            },
+          ],
+        },
+        {
+          eyebrow: "DUEDATEHQ'S PLACE",
+          title: 'Estimated-tax quarters are exactly what silently drifts.',
+          body: 'A spreadsheet copied from last year keeps the same dates until someone notices a shift year or a client changes fiscal year. DueDateHQ keeps each estimate date source-backed and matched to the clients it affects.',
+          items: [
+            { title: 'Source on every date', body: 'Each quarter links its official basis.' },
+            {
+              title: 'Per-client mapping',
+              body: 'Fiscal-year corporates surface with their own schedule, not the calendar-year default.',
+            },
+            {
+              title: 'Free tools',
+              body: 'The deadline lookup and the subscribable 2026 calendar carry the same verified dates.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'Estimated tax date questions.' },
+      faq: [
+        {
+          question: 'When are estimated taxes due in 2026?',
+          answer:
+            'January 15 (final 2025 quarter), April 15, June 15, and September 15, with the final 2026 quarter due January 15, 2027. All fall on weekdays, so no weekend shifts apply.',
+        },
+        {
+          question: 'Why is the Q2 estimate due in June and not July?',
+          answer:
+            'The estimated-tax quarters are uneven: Q2 covers April and May only, so its payment lands June 15 — two months after Q1. It is the most commonly missed date in the cycle.',
+        },
+        {
+          question: 'Do corporations use the same dates?',
+          answer:
+            'No. C corporations pay on the 15th day of the 4th, 6th, 9th, and 12th months of their own tax year, so fiscal-year corporations run on entirely different calendar dates.',
+        },
+      ],
+      cta: {
+        title: 'Put the quarters in your calendar once.',
+        body: 'Subscribe to the verified 2026 federal calendar, or look any date up with its source.',
+        primary: 'Open the deadline lookup',
+        secondary: 'Browse all resources',
+      },
+    },
+    {
+      slug: 'october-15-extension-deadline',
+      meta: {
+        title: 'October 15 extension deadline (2026): what is actually due — DueDateHQ',
+        description:
+          'October 15, 2026 (a Thursday) is the extended deadline for Forms 1040 and 1120 — and the automatic FBAR extension. What lands Oct 15, what already landed Sept 15/30, and the payment trap.',
+        ogImage: '/og/guide.en.png',
+      },
+      hero: {
+        eyebrow: 'GUIDE',
+        title: 'October 15: what the extension deadline actually covers.',
+        description:
+          'Extension season ends in waves, not on one day: partnerships and S corps land September 15, trusts September 30, individuals and C corps October 15 — and FBAR arrives there automatically. Missing the wave order is how extended returns still file late.',
+        note: 'Calendar-year filers, 2026 dates; weekday-checked (§7503). Verified against the IRS material behind our rule pages. Not tax advice.',
+      },
+      sections: [
+        {
+          eyebrow: 'THE EXTENSION WAVES',
+          title: 'Three waves, three weeks apart.',
+          body: 'Extended deadlines stagger across a month — an "everything is due Oct 15" mental model quietly misses the first two waves.',
+          items: [
+            {
+              title: 'September 15 — partnerships & S corps',
+              body: 'Extended Forms 1065 and 1120-S (a Tuesday in 2026).',
+            },
+            {
+              title: 'September 30 — trusts & estates',
+              body: 'Extended Form 1041 (a Wednesday in 2026).',
+            },
+            {
+              title: 'October 15 — individuals & C corps',
+              body: 'Extended Forms 1040 and 1120 (a Thursday in 2026). Extended Form 990 follows November 16.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'THE FBAR WRINKLE',
+          title: 'FBAR reaches October 15 automatically.',
+          body: 'Per the IRS FBAR guidance: miss the April 15 FBAR date and you have an automatic extension to October 15 — no extension request needs to be filed. Foreign-account clients who "missed" April are not late yet, but October is the real wall.',
+          items: [
+            {
+              title: 'No Form 4868 needed for FBAR',
+              body: 'The FBAR extension is automatic and separate from the income-tax extension.',
+            },
+            {
+              title: 'The payment trap',
+              body: 'Form 4868 extended time to FILE, not to pay — tax owed has been accruing since April 15.',
+            },
+            {
+              title: 'Disaster overlays',
+              body: 'Active IRS disaster relief can move any of these dates — check the live tracker.',
+            },
+          ],
+        },
+        {
+          eyebrow: "DUEDATEHQ'S PLACE",
+          title: 'Extension season is a routing problem.',
+          body: 'Which clients are on extension, which wave each one lands in, and what is still unpaid — that is client-by-client state, not a wall-calendar fact. DueDateHQ keeps each extended deadline matched to the clients it affects with the source attached.',
+          items: [
+            {
+              title: 'Wave-aware queues',
+              body: 'Sept 15, Sept 30, and Oct 15 cohorts surface separately.',
+            },
+            { title: 'Source on every date', body: 'Each extended date links its official basis.' },
+            {
+              title: 'Free tools',
+              body: 'The deadline lookup and 2026 calendar feed carry the same verified dates.',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: 'October 15 questions.' },
+      faq: [
+        {
+          question: 'What is due on October 15, 2026?',
+          answer:
+            'Extended individual returns (Form 1040 via Form 4868) and extended C-corporation returns (Form 1120 via Form 7004) — plus the automatic FBAR extension ends. It falls on a Thursday, so no weekend shift.',
+        },
+        {
+          question: 'Is everything on extension due October 15?',
+          answer:
+            'No — extended partnerships and S corps were due September 15, extended trusts September 30, and extended Form 990 follows on November 16, 2026. October 15 is the last wave for individuals and C corps.',
+        },
+        {
+          question: 'Does the extension delay the tax payment?',
+          answer:
+            'No. Form 4868 and Form 7004 extend time to file, not time to pay — payment was due with the original deadline and interest accrues from there.',
+        },
+      ],
+      cta: {
+        title: 'Route your extension cohorts, not just the date.',
+        body: 'Look any extended deadline up with its source, or subscribe to the verified calendar.',
+        primary: 'Open the deadline lookup',
+        secondary: 'Browse all resources',
+      },
+    },
+    {
       slug: 'weekly-cpa-deadline-triage',
       meta: {
         title: 'Weekly CPA Deadline Triage — How to rank client filing risk',
@@ -2652,6 +2844,173 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         title: '别再手工追顺延年份。',
         body: 'DueDateHQ 监控官方来源，周末与假日顺延连来源一起送达。',
         primary: '看工作原理',
+        secondary: '浏览全部资源',
+      },
+    },
+    {
+      slug: 'estimated-tax-due-dates-2026',
+      meta: {
+        title: '2026 预缴税到期日：全部四个季度 — DueDateHQ',
+        description:
+          '2026 预缴税什么时候到期？2025 Q4：1 月 15 日；Q1：4 月 15 日；Q2：6 月 15 日；Q3：9 月 15 日；2026 Q4：2027 年 1 月 15 日。Form 1040-ES 四季日程附来源，并说明公司预缴的不同。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: '2026 年预缴税到期日，四个季度一次说清。',
+        description:
+          '个人预缴（Form 1040-ES）有自己的季度时钟，和申报截止日不是一回事。这里是 2026 全年日程（已核对周末规则），以及公司预缴哪里不同。',
+        note: '日历年纳税人；与本站规则页背后的 IRS 1040-ES 资料一致。不构成税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '2026 日程',
+          title: '四个日期，中间藏着一个坑。',
+          body: '预缴的"季度"并不均匀——Q2 只覆盖两个月，这正是最容易错过的地方。',
+          items: [
+            {
+              title: '2025 Q4 → 2026 年 1 月 15 日',
+              body: '2025 年最后一期落在 2026 年 1 月中（周四，无顺延）。',
+            },
+            {
+              title: 'Q1 → 4 月 15 日 · Q2 → 6 月 15 日 · Q3 → 9 月 15 日',
+              body: '2026 年三者均为工作日，无 §7503 顺延。',
+            },
+            {
+              title: '2026 Q4 → 2027 年 1 月 15 日',
+              body: '周五，无顺延。订阅我们的日历源，整套日程常驻你的 Outlook。',
+            },
+          ],
+        },
+        {
+          eyebrow: '谁走另一套时钟',
+          title: '公司预缴不是 1040-ES 日程。',
+          body: 'C 公司按自身税务年度第 4、6、9、12 个月的第 15 日预缴——只有日历年公司才与个人日期部分重合。州预缴另有各自日程。',
+          items: [
+            { title: 'C 公司', body: '4/6/9/12 月模式跟着公司年度走，财年客户的日期会漂移。' },
+            { title: '各州', body: '州预缴日程各不相同——以各州页面的核实日期为准。' },
+            {
+              title: '缴多少是另一件事',
+              body: '本页只负责把"什么时候"说准；金额与 safe harbor 属于税务规划。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DueDateHQ 的位置',
+          title: '预缴季度正是最容易悄悄漂移的日期。',
+          body: '照抄去年的表格会一直用旧日期，直到某个顺延年份或客户改财年才暴露。DueDateHQ 让每个预缴日期带来源，并匹配到受影响的客户。',
+          items: [
+            { title: '每个日期带来源', body: '每季链接官方依据。' },
+            { title: '按客户匹配', body: '财年公司按自己的日程出现，而非日历年默认值。' },
+            { title: '免费工具', body: '截止日快查与 2026 日历源用同一套核实日期。' },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '预缴日期常见问题。' },
+      faq: [
+        {
+          question: '2026 年预缴税什么时候到期？',
+          answer:
+            '1 月 15 日（2025 年末期）、4 月 15 日、6 月 15 日、9 月 15 日；2026 年末期为 2027 年 1 月 15 日。均为工作日，无周末顺延。',
+        },
+        {
+          question: '为什么 Q2 在 6 月而不是 7 月？',
+          answer:
+            '预缴季度不均匀：Q2 只含 4、5 两个月，所以 6 月 15 日到期——距 Q1 仅两个月，是整个周期里最常被错过的一期。',
+        },
+        {
+          question: '公司也用这些日期吗？',
+          answer:
+            '不。C 公司按自身税务年度第 4、6、9、12 个月的第 15 日预缴，财年公司的实际日历日期完全不同。',
+        },
+      ],
+      cta: {
+        title: '把四个季度一次放进日历。',
+        body: '订阅已核实的 2026 联邦日历，或随时查任何日期及其来源。',
+        primary: '打开截止日快查',
+        secondary: '浏览全部资源',
+      },
+    },
+    {
+      slug: 'october-15-extension-deadline',
+      meta: {
+        title: '10 月 15 日延期截止日（2026）：到底哪些到期 — DueDateHQ',
+        description:
+          '2026 年 10 月 15 日（周四）是 Form 1040 与 1120 的延期截止日，也是 FBAR 自动延期的终点。哪些落在 10/15、哪些早在 9/15 与 9/30 已到期，以及付款陷阱。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: '10 月 15 日：延期截止日到底覆盖什么。',
+        description:
+          '延期季分三波结束而不是一天：合伙与 S 公司 9 月 15 日、信托 9 月 30 日、个人与 C 公司 10 月 15 日——FBAR 自动到点。把三波记成一天,是延期件仍然迟报的头号原因。',
+        note: '日历年纳税人，2026 年日期已核对星期（§7503）。与本站规则页背后的 IRS 资料一致。不构成税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '三波延期',
+          title: '三波,每波隔三周。',
+          body: '延期截止日在一个月内分批落地——"都在 10/15"的心智模型会静默漏掉前两波。',
+          items: [
+            {
+              title: '9 月 15 日 — 合伙与 S 公司',
+              body: '延期后的 Form 1065 与 1120-S（2026 年为周二）。',
+            },
+            { title: '9 月 30 日 — 信托与遗产', body: '延期后的 Form 1041（2026 年为周三）。' },
+            {
+              title: '10 月 15 日 — 个人与 C 公司',
+              body: '延期后的 Form 1040 与 1120（2026 年为周四）。延期 Form 990 随后在 11 月 16 日。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'FBAR 的弯',
+          title: 'FBAR 自动到达 10 月 15 日。',
+          body: '依 IRS FBAR 指南：错过 4 月 15 日的 FBAR 自动延至 10 月 15 日，无需提交任何延期申请。境外账户客户"错过"4 月并不算迟——但 10 月是真正的墙。',
+          items: [
+            { title: 'FBAR 不需要 4868', body: 'FBAR 的延期是自动的，与所得税延期相互独立。' },
+            {
+              title: '付款陷阱',
+              body: 'Form 4868 延的是申报不是付款——应缴税款自 4 月 15 日起一直在计息。',
+            },
+            {
+              title: '灾害叠加',
+              body: '生效中的 IRS 灾害减免可能进一步移动上述日期——以实时跟踪页为准。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DueDateHQ 的位置',
+          title: '延期季是一个路由问题。',
+          body: '哪些客户在延期、各落在哪一波、还有谁没付款——这是逐客户的状态,不是挂历事实。DueDateHQ 把每个延期截止日匹配到受影响客户并附来源。',
+          items: [
+            { title: '分波队列', body: '9/15、9/30、10/15 三组客户分开浮现。' },
+            { title: '每个日期带来源', body: '每个延期日期链接官方依据。' },
+            { title: '免费工具', body: '截止日快查与 2026 日历源用同一套核实日期。' },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '10 月 15 日常见问题。' },
+      faq: [
+        {
+          question: '2026 年 10 月 15 日有哪些到期？',
+          answer:
+            '延期后的个人申报（Form 1040，经 4868）与 C 公司申报（Form 1120，经 7004），同时 FBAR 自动延期到点。当天为周四，无周末顺延。',
+        },
+        {
+          question: '所有延期件都在 10 月 15 日吗？',
+          answer:
+            '不。延期合伙与 S 公司 9 月 15 日、延期信托 9 月 30 日已到期，延期 Form 990 在 2026 年 11 月 16 日。10/15 只是个人与 C 公司这最后一波。',
+        },
+        {
+          question: '延期是否也推迟了付款？',
+          answer: '没有。4868 与 7004 延长的是申报时间，付款仍按原截止日计——利息从那天起累计。',
+        },
+      ],
+      cta: {
+        title: '按波次路由你的延期客户,而不只是记住日期。',
+        body: '任何延期日期都可查到来源，或订阅已核实的日历。',
+        primary: '打开截止日快查',
         secondary: '浏览全部资源',
       },
     },
