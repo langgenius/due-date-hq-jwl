@@ -5,8 +5,9 @@
 ## 为什么
 
 用户:「确保用户在 LinkedIn 搜索时我们的 post 能被搜到。deep dive。think about use cases。」
-洞察:LinkedIn 内容搜索 + Google(收录公开 LinkedIn 帖)匹配的是**正文关键词(尤其前 3 行)
-+ 话题标签 + 互动**。原来的配文专业但把关键词埋在中段,搜索命中弱。
+洞察:LinkedIn 内容搜索 + Google(收录公开 LinkedIn 帖)匹配的是\*\*正文关键词(尤其前 3 行)
+
+- 话题标签 + 互动\*\*。原来的配文专业但把关键词埋在中段,搜索命中弱。
 
 ## 做了什么
 
