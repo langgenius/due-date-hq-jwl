@@ -1,0 +1,89 @@
+[
+  {
+    "id": "weekly-list-2026-07-28",
+    "kind": "multi",
+    "locale": "zh",
+    "format": "xhs",
+    "source": {
+      "level": "联邦",
+      "org": "IRS",
+      "noticeId": "现行清单",
+      "verified": true
+    },
+    "reason": "全美报税延期 · 每周更新",
+    "map": null,
+    "title": [
+      "现行 IRS 报税延期",
+      "全清单"
+    ],
+    "rows": [
+      {
+        "state": "WA",
+        "name": "华盛顿",
+        "scope": "风暴洪水",
+        "date": "8月5日"
+      },
+      {
+        "state": "GA",
+        "name": "佐治亚",
+        "scope": "野火",
+        "date": "8月20日"
+      },
+      {
+        "state": "HI",
+        "name": "夏威夷",
+        "scope": "风暴洪水",
+        "date": "8月20日"
+      },
+      {
+        "state": "AZ",
+        "name": "亚利桑那",
+        "scope": "部落·风暴洪水",
+        "date": "9月28日"
+      },
+      {
+        "state": "MT",
+        "name": "蒙大拿",
+        "scope": "Fort Peck·冬季风暴",
+        "date": "9月28日"
+      },
+      {
+        "state": "MT",
+        "name": "蒙大拿",
+        "scope": "Crow·冬季风暴",
+        "date": "9月28日"
+      },
+      {
+        "state": "LA",
+        "name": "路易斯安那",
+        "scope": "热带风暴",
+        "date": "11月2日"
+      },
+      {
+        "state": "MI",
+        "name": "密歇根",
+        "scope": "风暴龙卷",
+        "date": "11月2日"
+      },
+      {
+        "state": "MS",
+        "name": "密西西比",
+        "scope": "风暴龙卷",
+        "date": "11月2日"
+      },
+      {
+        "state": "MP",
+        "name": "北马里亚纳",
+        "scope": "超强台风",
+        "date": "11月2日"
+      },
+      {
+        "state": "WI",
+        "name": "威斯康星",
+        "scope": "风暴龙卷",
+        "date": "11月2日"
+      }
+    ],
+    "footer": "共 11 条现行 · DueDateHQ 每周更新"
+  }
+]
