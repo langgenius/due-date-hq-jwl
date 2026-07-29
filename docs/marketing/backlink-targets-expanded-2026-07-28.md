@@ -90,5 +90,6 @@ on either property.
 
 ## Send log
 
-| date | target | variant | reply? |
-| ---- | ------ | ------- | ------ |
+| date       | target                                                                                                                     | variant           | reply? |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------ |
+| 2026-07-29 | 全部 pitch(Yuqi 确认发出;含 WSCPA/Accounting Today/Going Concern/Future Firm/Insightful;CPA Practice Advisor 是否含待确认) | per-target drafts | —      |
