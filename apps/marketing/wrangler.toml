@@ -8,7 +8,8 @@ compatibility_date = "2025-04-01"
 # NOTE: the worker name carries a "-staging" suffix but this IS production —
 # CI auto-deploys it via the deploy-staging job whenever `ci` is green and the
 # push touches apps/*. A red `ci` (even a docs formatting failure) silently
-# skips deploys for every later commit.
+# skips deploys for every later commit. Docs-only pushes skip the deploy
+# filter too — a green ci after one needs an apps/* touch to ship backlog.
 # `not_found_handling = "404-page"` looks for /404.html on misses
 # (vs SPA fallback used by apps/server). Astro emits 404.html when
 # present; otherwise Workers returns its default 404.
