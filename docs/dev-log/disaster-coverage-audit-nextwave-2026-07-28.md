@@ -13,6 +13,7 @@ clean.
 ## Fixed
 
 **Hub (`irs-disaster-relief/index.astro`, `disaster-notices.ts`):**
+
 - State `<select>` now offers all 50 states + DC (+ notice territories), so uncovered states
   (TX/CA/FL) reach the previously-dead empty-state CTA instead of a dead end.
 - Notice cards show a county COUNT + leaf link instead of a truncated county wall; added
@@ -20,6 +21,7 @@ clean.
 - Added a "Verified against irs.gov as of {reviewedOn}" freshness line.
 
 **State pages (`StateDetailPage.astro`, `StateCoveragePage.astro`, `seo-content.ts`):**
+
 - KEY DATES (`.std-kd`) suppressed on English pages (the "Verified filing deadlines" table
   already carries per-entity dates) — kills the duplicate flagship-deadline module; kept as
   the sole module on zh-CN / no-table states.
@@ -37,6 +39,7 @@ operations" from the generated set); rule-body boilerplate collapsed (9 generic 
 section).
 
 **Geo template + disaster leaf (`GeoResourcePage.astro`, `DisasterNoticePage.astro`):**
+
 - Hardcoded "(11 active)/(206)" counts → derived from `DISASTER_NOTICES.length` + archive.
 - Removed duplicated eyebrow + "a source on every date" trust line; a11y peek label now
   carries the deadline value.
