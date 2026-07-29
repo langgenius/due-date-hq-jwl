@@ -3581,9 +3581,9 @@ const ALT_NOTES = {
     priceZh: '$67/用户/月起',
     fit: 'All-in-one practice suite + client portal',
     fitZh: '一体化套件 + 客户门户',
-    note: 'an all-in-one practice management and client portal suite. Pricing starts at $67/user/mo (public pricing, Jul 2026).',
+    note: 'an all-in-one practice management and client portal suite. Pricing starts at $67/user/mo (public pricing, Jul 2026). Strengths: the widest all-in-one span in its price class (portal, CRM, workflow, e-signature, payments, documents), and a client portal clients actually use. Consider: breadth over depth — individual modules run lighter than the point tools they replace.',
     noteZh:
-      '一体化 practice management 与客户门户套件。定价自 $67/用户/月起（公开定价，2026 年 7 月）。',
+      '一体化 practice management 与客户门户套件。定价自 $67/用户/月起（公开定价，2026 年 7 月）。 长处:同价位最全的一体化覆盖（门户、CRM、工作流、电子签、支付、文档），客户门户是真的被客户使用。注意:广度换深度——单个模块比其替代的专用工具更轻。',
   },
   canopy: {
     name: 'Canopy',
@@ -3591,9 +3591,9 @@ const ALT_NOTES = {
     priceZh: '$45/用户/月起',
     fit: 'Cloud practice suite: CRM, docs, billing',
     fitZh: '云端套件:CRM/文档/账单',
-    note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal. Pricing starts at $45/user/mo (public pricing, Jul 2026).',
+    note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal. Pricing starts at $45/user/mo (public pricing, Jul 2026). Strengths: modular pricing (start with the base, add modules as needed); document management and the client portal stand out. Consider: module pricing accumulates — the sticker price is not the full-functionality price.',
     noteZh:
-      '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。定价自 $45/用户/月起（公开定价，2026 年 7 月）。',
+      '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。定价自 $45/用户/月起（公开定价，2026 年 7 月）。 长处:模块化定价（先用基础版按需加模块），文档管理与客户门户是亮点。注意:模块费用会叠加——标价不等于全功能价。',
   },
   karbon: {
     name: 'Karbon',
@@ -3601,9 +3601,9 @@ const ALT_NOTES = {
     priceZh: '$59/用户/月起',
     fit: 'Team workflow with email collaboration',
     fitZh: '邮件协作型团队工作流',
-    note: 'collaborative accounting workflow and team work management with email collaboration. Pricing starts at $59/user/mo (public pricing, Jul 2026).',
+    note: 'collaborative accounting workflow and team work management with email collaboration. Pricing starts at $59/user/mo (public pricing, Jul 2026). Strengths: email triage genuinely integrated with work (client emails, tasks, and jobs on one timeline), plus the most complete self-serve public API in practice management. Consider: premium per-user pricing stings as headcount grows.',
     noteZh:
-      '会计团队协作工作流与 work management，含邮件协作。定价自 $59/用户/月起（公开定价，2026 年 7 月）。',
+      '会计团队协作工作流与 work management，含邮件协作。定价自 $59/用户/月起（公开定价，2026 年 7 月）。 长处:邮件分诊与工作真正打通（客户邮件、任务、工作同一时间线），且拥有品类里最完整的自助公开 API。注意:按人头的高价随团队扩大越发明显。',
   },
   financialCents: {
     name: 'Financial Cents',
@@ -3611,9 +3611,9 @@ const ALT_NOTES = {
     priceZh: '$19/用户/月起',
     fit: 'Simple workflow for small firms',
     fitZh: '小事务所轻量工作流',
-    note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up. Pricing starts at $19/user/mo (public pricing, Jul 2026).',
+    note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up. Pricing starts at $19/user/mo (public pricing, Jul 2026). Strengths: the lowest published per-user entry price in the category, and deliberately simple — firms are productive in days. Consider: no direct API; automation runs through Zapier only.',
     noteZh:
-      '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。定价自 $19/用户/月起（公开定价，2026 年 7 月）。',
+      '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。定价自 $19/用户/月起（公开定价，2026 年 7 月）。 长处:品类内公开的最低按人头入门价，刻意做简——几天即可上手产出。注意:无直连 API，自动化只能走 Zapier。',
   },
   jetpack: {
     name: 'Jetpack Workflow',
@@ -3621,9 +3621,9 @@ const ALT_NOTES = {
     priceZh: '$36/用户/月起',
     fit: 'Recurring jobs from a template library',
     fitZh: '模板库驱动的周期任务',
-    note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library. Pricing starts at $36/user/mo (public pricing, Jul 2026).',
+    note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library. Pricing starts at $36/user/mo (public pricing, Jul 2026). Strengths: recurring-work checklists done simply — the core job for deadline-driven practices — and quick enough to learn that small teams onboard themselves. Consider: no client portal; client collaboration happens outside the tool.',
     noteZh:
-      '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。定价自 $36/用户/月起（公开定价，2026 年 7 月）。',
+      '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。定价自 $36/用户/月起（公开定价，2026 年 7 月）。 长处:把周期性工作清单做简单——正是截止日驱动型业务的核心；上手快到小团队可自助落地。注意:无客户门户，客户协作在工具之外发生。',
   },
   aero: {
     name: 'Aero Workflow',
@@ -3640,9 +3640,9 @@ const ALT_NOTES = {
     priceZh: '$200/月起',
     fit: 'Month-end close review + client comms',
     fitZh: '月末结账复核与客户沟通',
-    note: 'a bookkeeping-review and client-communication tool built around month-end close checklists. Pricing starts at $200/mo (public pricing, Jul 2026).',
+    note: 'a bookkeeping-review and client-communication tool built around month-end close checklists. Pricing starts at $200/mo (public pricing, Jul 2026). Strengths: purpose-built for client accounting services — month-end close checklists, file review, and client questions in one place. Note: rebranded to Double in late 2025 with product and pricing unchanged. Consider: bookkeeping-first scope; tax workflow is not the product.',
     noteZh:
-      '围绕月末结账清单构建的记账复核与客户沟通工具。定价自 $200/月起（公开定价，2026 年 7 月）。',
+      '围绕月末结账清单构建的记账复核与客户沟通工具。定价自 $200/月起（公开定价，2026 年 7 月）。 长处:为客户会计服务而生——月末结账清单、文件复核与客户问题集中一处。注:2025 年底改名 Double，产品与定价未变。注意:以记账为先，税务工作流不是其产品。',
   },
   fileInTime: {
     name: 'File In Time',
@@ -3650,9 +3650,9 @@ const ALT_NOTES = {
     priceZh: '付费桌面授权',
     fit: 'Desktop due-date list tracker',
     fitZh: '桌面截止日清单跟踪',
-    note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand. Sold as a paid desktop license (no public per-seat price).',
+    note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand. Sold as a paid desktop license (no public per-seat price). Strengths: one job done for decades with a comprehensive built-in federal and state due-date library. Consider: it is a static calendar — nothing watches for IRS or state changes.',
     noteZh:
-      '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。按付费桌面授权销售（无公开按席位定价）。',
+      '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。按付费桌面授权销售（无公开按席位定价）。 长处:几十年只做一件事，内置完整的联邦与州截止日库。注意:它是静态日历——没有任何东西替你盯 IRS 或州的变化。',
   },
 } as const
 
