@@ -86,12 +86,21 @@ const section = (title, body) =>
   `<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500;margin:26px 0 12px">${title}</div>` +
   body
 
+// Opening hook — lead with value + urgency, never a flat "nothing new this week".
+const nearest = soon[0] // soonest; `soon`/`live` are sorted ascending by deadline
+const openHook = soon.length
+  ? `${fresh.length ? `New this week: the IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')}. ` : 'Nothing new was postponed this week — but '}${nearest.state}'s is the nearest deadline: ${nearest.deadlineLabel}, ${daysOut(nearest)} days out${soon.length > 1 ? `, with ${soon.length - 1} more close behind` : ''}. Here's the rundown.`
+  : fresh.length
+    ? `New this week: the IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')}. The rundown is below.`
+    : `Quiet week: nothing new postponed, and nothing federal due in the next 30 days. We keep watch so you don't have to.`
+
 // ---- HTML ----
 let html =
   '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:520px;padding-top:16px">' +
   `<div style="margin:0 0 24px;padding-bottom:15px;border-bottom:1px solid #EAECF0"><a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a></div>` +
-  `<p style="margin:0 0 6px;font-size:20px;line-height:1.35;font-weight:600;color:#101828;letter-spacing:-.015em">This week in IRS deadline changes</p>` +
-  `<p style="margin:0 0 4px;font-size:13px;color:#667085">${dateLabel} · ${fresh.length ? `${fresh.length} new this week` : 'no new relief this week'} · ${soon.length} coming due within 30 days · every date verified against irs.gov</p>`
+  `<p style="margin:0 0 10px;font-size:20px;line-height:1.35;font-weight:600;color:#101828;letter-spacing:-.015em">This week in IRS deadline changes</p>` +
+  `<p style="margin:0 0 6px;font-size:14px;line-height:1.55;color:#344054">${esc(openHook)}</p>` +
+  `<p style="margin:0;font-size:12px;color:#98A2B3">${dateLabel} · every date verified against the irs.gov release</p>`
 
 if (fresh.length) html += section(`New this week (${fresh.length})`, fresh.map(card).join(''))
 
@@ -106,20 +115,23 @@ if (rest.length)
   )
 
 html +=
-  `<p style="margin:26px 0 0;color:#475467">DueDateHQ watches every IRS and state deadline and tells you which of your clients each change affects — <a href="https://duedatehq.com/irs-disaster-relief" style="color:#2E368C;text-decoration:underline">current notices</a> · <a href="https://app.duedatehq.com/?lng=en" style="color:#2E368C;text-decoration:underline">see your affected clients</a>.</p>` +
+  `<p style="margin:26px 0 0;color:#475467">You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date. <a href="https://app.duedatehq.com/?lng=en" style="color:#2E368C;text-decoration:underline">See your affected clients →</a></p>` +
   `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">You're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Not useful? Reply "no thanks" and we won't write again.<br>DueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104</p>` +
   '</div>'
 
 // ---- text ----
 const tLine = (n) =>
-  `- ${n.abbr} · ${n.event} — postponed to ${n.deadlineLabel} (${daysOut(n)} days out) · IRS ${n.code}\n  ${n.affectedAreaShort ?? n.affectedArea}\n  ${n.sourceHref}`
-let text = `This week in IRS deadline changes — ${dateLabel}\n${fresh.length ? `${fresh.length} new this week` : 'No new relief this week'} · ${soon.length} coming due within 30 days · every date verified against irs.gov\n\n`
+  `${n.state} · ${n.deadlineLabel} — ${daysOut(n)} days out\n  ${n.event}. Clients in ${n.affectedAreaShort ?? n.affectedArea}.\n  IRS ${n.code}: ${n.sourceHref}`
+let text = `This week in IRS deadline changes — ${dateLabel}\n\n${openHook}\nEvery date verified against the irs.gov release.\n\n`
 if (fresh.length) text += `NEW THIS WEEK (${fresh.length})\n${fresh.map(tLine).join('\n')}\n\n`
 if (soon.length)
   text += `COMING DUE WITHIN 30 DAYS (${soon.length})\n${soon.map(tLine).join('\n')}\n\n`
-if (rest.length)
-  text += `ALSO LIVE (${rest.length})\n${rest.map((n) => `- ${n.abbr} · ${n.event} — ${n.deadlineLabel} · IRS ${n.code}`).join('\n')}\n\n`
-text += `Current notices: https://duedatehq.com/irs-disaster-relief\nSee your affected clients: https://app.duedatehq.com/?lng=en\n\nYou're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Not useful? Reply "no thanks" and we won't write again.\nDueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104\n`
+if (rest.length) {
+  const seenState = new Set()
+  const byState = rest.filter((n) => !seenState.has(n.state) && seenState.add(n.state))
+  text += `ALSO ACTIVE, FURTHER OUT (${byState.length} state${byState.length === 1 ? '' : 's'})\n${byState.map((n) => `${n.state} — ${n.deadlineLabel}`).join('\n')}\n\n`
+}
+text += `You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date.\nSee your affected clients: https://app.duedatehq.com/?lng=en\nAll current notices: https://duedatehq.com/irs-disaster-relief\n\nYou're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Not useful? Reply "no thanks" and we won't write again.\nDueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104\n`
 
 fs.mkdirSync(new URL('./digests/', import.meta.url), { recursive: true })
 const base = new URL(`./digests/digest-${iso}`, import.meta.url).pathname
@@ -130,9 +142,9 @@ console.log(
   `wrote ${base}.html and .txt — review, then send to the subscriber list. Nothing was sent.`,
 )
 const subject = fresh.length
-  ? `IRS deadline changes this week — ${fresh.map((n) => n.abbr).join(', ')} new · ${dateLabel}`
+  ? `New IRS relief in ${fresh.map((n) => n.state).join(', ')}${soon.length ? ` — plus ${soon.length} coming due` : ''} · ${dateLabel}`
   : soon.length
-    ? `${soon.length} IRS deadlines coming due within 30 days (${soon.map((n) => n.abbr).join(', ')}) · ${dateLabel}`
-    : `IRS deadline monitor — ${live.length} active postponements · ${dateLabel}`
+    ? `${nearest.state}'s IRS deadline is ${daysOut(nearest)} days out${soon.length > 1 ? ` — ${soon.length - 1} more coming due` : ''} · ${dateLabel}`
+    : `IRS deadline monitor — all quiet this week · ${dateLabel}`
 fs.writeFileSync(`${base}.subject.txt`, subject)
 console.log(`suggested subject: ${subject}`)
