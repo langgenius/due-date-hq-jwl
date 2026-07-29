@@ -41,6 +41,11 @@ const fresh = live.filter((n) => {
   return !Number.isNaN(d) && (TODAY - d) / 864e5 <= DAYS
 })
 const soon = live.filter((n) => daysOut(n) <= 30)
+// Urgency tiers drive the information hierarchy: act-now (≤14d) > this-month (15–30d) > further out.
+const URGENT_DAYS = 14
+const urgent = soon.filter((n) => daysOut(n) <= URGENT_DAYS)
+const thisMonth = soon.filter((n) => daysOut(n) > URGENT_DAYS)
+const nearest = soon[0] // soonest (for the subject line)
 
 const fmt = (d) =>
   d.toLocaleDateString('en-US', {
@@ -52,86 +57,119 @@ const fmt = (d) =>
 const dateLabel = fmt(TODAY)
 const iso = TODAY.toISOString().slice(0, 10)
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const CAP = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten']
+const spell = (k) => CAP[k] ?? String(k) // spell small counts so a sentence never starts with a digit
+// Brand wordmark as a data-URI (renders in preview + most clients; falls back to alt text).
+const LOGO_URI = fs.existsSync(new URL('./wordmark-2x.png', import.meta.url))
+  ? `data:image/png;base64,${fs.readFileSync(new URL('./wordmark-2x.png', import.meta.url)).toString('base64')}`
+  : null
 
-// ---- shared bits (mirrors the alert email design language) ----
-const badge = (abbr) =>
-  `<span style="display:inline-block;min-width:23px;text-align:center;font-size:11px;font-weight:600;color:#2E368C;background:#EEF1FB;border:1px solid #D5DBF3;border-radius:6px;padding:2px 5px;margin-right:8px;vertical-align:middle">${esc(abbr)}</span>`
-const pill = (n) => {
-  const d = daysOut(n)
-  const css =
-    d <= 30
-      ? 'color:#B54708;background:#FFFAEB;border:1px solid #FEDF89'
-      : 'color:#475467;background:#F2F4F7;border:1px solid #E4E7EC'
-  return `<span style="display:inline-block;font-size:12px;${css};border-radius:999px;padding:3px 10px;white-space:nowrap">${d} days out</span>`
+// ---- minimal design system: one ink, one gray, one accent, one hairline.
+// Hierarchy comes from type + whitespace, not from color/borders/stripes. ----
+const C = {
+  ink: '#1a1a1a', // primary text
+  sub: '#5b6270', // eyebrows / labels
+  mut: '#8a8f98', // secondary detail
+  acc: '#2e368c', // brand accent (links only)
+  line: '#ececec', // hairline
+  bg: '#f4f4f5', // page background
+  card: '#ffffff', // content card
 }
-const card = (n) =>
-  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 14px"><tr><td style="border:1px solid #E4E7EC;border-radius:12px">` +
+// tier label: uppercase eyebrow, hugging the content below it (big gap above, small below)
+const eyebrow = (t) =>
+  `<p style="margin:28px 0 8px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${C.sub}">${t}</p>`
+// one notice block for every tier; urgency shows only as the day-count's weight, nothing else
+// state is the only bold anchor; date + countdown share one weight (no bold-normal-bold).
+// urgency is a value shift, not a weight clash: the meta line is ink for act-now, muted otherwise.
+// "Your move" — the action a CPA takes on an act-now deadline, derived from the notice facts.
+const shortDate = (n) => n.deadlineLabel.replace(/,\s*\d{4}$/, '')
+const yourMove = (n) => `Your move: confirm each covered ${n.state} filing is set for ${shortDate(n)}.`
+// Anatomy: [state (bold) + date·countdown (light)] with the IRS source right-aligned on the
+// same line; event (muted) and "Clients in …" (one step darker) on their own lines; for
+// act-now items an understated "→ Your move" line tucked right under.
+// A descending ladder — each line one step lighter and smaller, so the block reads in order
+// instead of clumping: ① state(600)+date(400) in ink, countdown gray, source right
+// ② Clients in … (decision info, sub 14px) ③ event (background, mut 13px)
+// ④ urgent only: a short "→ Your move" (mut 13px).
+const block = (n, urgent) =>
+  `<div style="margin:0 0 18px">` +
   `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-  `<td style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:9px 15px">${badge(n.abbr)}<span style="font-size:12px;font-weight:500;color:#344054;vertical-align:middle">${esc(n.state)} · ${esc(n.event)}</span></td>` +
-  `<td align="right" style="background:#FCFCFD;border-bottom:1px solid #EAECF0;border-radius:12px 12px 0 0;padding:9px 15px"><span style="font-size:11px;color:#98A2B3;font-variant-numeric:tabular-nums;white-space:nowrap">IRS ${esc(n.code)}</span></td>` +
+  `<td style="font-size:15px;line-height:1.5;color:${C.ink}"><span style="font-weight:600">${esc(n.state)}</span> &nbsp;${esc(n.deadlineLabel)} <span style="color:${C.mut}">&middot; ${daysOut(n)} days out</span></td>` +
+  `<td align="right" valign="top" style="font-size:13px;line-height:1.7;white-space:nowrap"><a href="${esc(n.sourceHref)}" style="color:${C.acc};text-decoration:none">IRS ${esc(n.code)} &rarr;</a></td>` +
   `</tr></table>` +
-  `<div style="padding:13px 15px 15px">` +
-  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-  `<td valign="middle"><span style="font-size:12px;color:#475467">Postponed to </span><span style="font-size:19px;font-weight:500;color:#101828;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span></td>` +
-  `<td align="right" valign="middle">${pill(n)}</td>` +
-  `</tr></table>` +
-  `<div style="font-size:12px;color:#667085;margin-top:8px">${esc(n.affectedAreaShort ?? n.affectedArea)} · <a href="${esc(n.sourceHref)}" style="color:#2E368C;text-decoration:underline">IRS notice</a></div>` +
-  `</div></td></tr></table>`
-const row = (n) =>
-  `<tr>` +
-  `<td style="padding:8px 0;border-bottom:1px solid #F2F4F7">${badge(n.abbr)}<span style="font-size:13px;color:#101828;vertical-align:middle">${esc(n.event)}</span></td>` +
-  `<td align="right" style="padding:8px 0 8px 14px;border-bottom:1px solid #F2F4F7;white-space:nowrap"><span style="font-size:13px;font-weight:500;color:#101828;font-variant-numeric:tabular-nums">${esc(n.deadlineLabel)}</span> <span style="font-size:12px;color:#98A2B3;font-variant-numeric:tabular-nums">· ${esc(n.code)}</span></td>` +
-  `</tr>`
-const section = (title, body) =>
-  `<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98A2B3;font-weight:500;margin:26px 0 12px">${title}</div>` +
-  body
+  // one paragraph unit, narrative order (event → coverage), same size/value; the
+  // decision phrase (the covered area) is anchored by italics, not by color/weight.
+  `<p style="margin:4px 0 0;font-size:14px;line-height:1.5;color:${C.sub}">${esc(n.event)}.<br>Covers clients in <em>${esc(n.affectedAreaShort ?? n.affectedArea)}</em>.</p>` +
+  (urgent
+    ? `<p style="margin:6px 0 0;font-size:13px;line-height:1.5;color:${C.mut}">&rarr;&nbsp; ${esc(yourMove(n))}</p>`
+    : '') +
+  `</div>`
 
-// Opening hook — lead with value + urgency, never a flat "nothing new this week".
-const nearest = soon[0] // soonest; `soon`/`live` are sorted ascending by deadline
-const openHook = soon.length
-  ? `${fresh.length ? `New this week: the IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')}. ` : 'Nothing new was postponed this week — but '}${nearest.state}'s is the nearest deadline: ${nearest.deadlineLabel}, ${daysOut(nearest)} days out${soon.length > 1 ? `, with ${soon.length - 1} more close behind` : ''}. Here's the rundown.`
-  : fresh.length
-    ? `New this week: the IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')}. The rundown is below.`
-    : `Quiet week: nothing new postponed, and nothing federal due in the next 30 days. We keep watch so you don't have to.`
+// Opening line — orient the reader with tier counts; the blocks below carry the detail.
+const openHook = urgent.length
+  ? `${spell(urgent.length)} IRS deadline${urgent.length === 1 ? '' : 's'} need${urgent.length === 1 ? 's' : ''} your attention in the next two weeks${thisMonth.length ? ` — ${spell(thisMonth.length).toLowerCase()} more land${thisMonth.length === 1 ? 's' : ''} this month` : ''}.`
+  : soon.length
+    ? `${spell(soon.length)} IRS deadline${soon.length === 1 ? '' : 's'} come${soon.length === 1 ? 's' : ''} due this month.`
+    : fresh.length
+      ? `The IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')} this week.`
+      : `A quiet week — nothing new, and nothing federal due in the next 30 days.`
 
-// ---- HTML ----
+const rest = live.filter((n) => !soon.includes(n)) // further out (>30 days)
+// "Also active" grouped by deadline: "Arizona, Montana — Sept. 28" per line.
+const restByDate = []
+for (const n of rest) {
+  let g = restByDate.find((x) => x.date === n.deadlineLabel)
+  if (!g) {
+    g = { date: n.deadlineLabel, states: [] }
+    restByDate.push(g)
+  }
+  if (!g.states.includes(n.state)) g.states.push(n.state)
+}
+
+// ---- HTML (minimal: one ink / one gray / one accent; type + whitespace do the work) ----
 let html =
-  '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#475467;max-width:520px;padding-top:16px">' +
-  `<div style="margin:0 0 24px;padding-bottom:15px;border-bottom:1px solid #EAECF0"><a href="https://duedatehq.com" style="text-decoration:none;font-size:15px;font-weight:600;color:#101828;letter-spacing:-.02em">DueDateHQ</a></div>` +
-  `<p style="margin:0 0 10px;font-size:20px;line-height:1.35;font-weight:600;color:#101828;letter-spacing:-.015em">This week in IRS deadline changes</p>` +
-  `<p style="margin:0 0 6px;font-size:14px;line-height:1.55;color:#344054">${esc(openHook)}</p>` +
-  `<p style="margin:0;font-size:12px;color:#98A2B3">${dateLabel} · every date verified against the irs.gov release</p>`
+  `<div style="background:${C.bg};padding:28px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">` +
+  `<div style="max-width:536px;margin:0 auto;background:${C.card};border-radius:12px;padding:30px 34px 26px;font-size:15px;line-height:1.55;color:${C.ink};box-shadow:0 1px 3px rgba(16,24,40,.05)">` +
+  // Letter-style: an audience kicker (memo "To:"-style), then the lead. No logo header.
+  `<p style="margin:0 0 7px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:${C.sub}">For CPAs with US clients</p>` +
+  `<p style="margin:0;font-size:18px;line-height:1.4;font-weight:600;letter-spacing:-.01em;color:${C.ink}">${esc(openHook)}</p>` +
+  `<p style="margin:6px 0 0;font-size:13px;color:${C.mut}">${dateLabel} &middot; verified against the irs.gov release</p>`
 
-if (fresh.length) html += section(`New this week (${fresh.length})`, fresh.map(card).join(''))
-
-if (soon.length)
-  html += section(`Coming due within 30 days (${soon.length})`, soon.map(card).join(''))
-
-const rest = live.filter((n) => !soon.includes(n) && !fresh.includes(n))
-if (rest.length)
-  html += section(
-    `Also live (${rest.length})`,
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rest.map(row).join('')}</table>`,
-  )
+if (urgent.length) html += eyebrow('Next two weeks') + urgent.map((n) => block(n, true)).join('')
+if (thisMonth.length) html += eyebrow('This month') + thisMonth.map((n) => block(n, false)).join('')
+if (restByDate.length)
+  html +=
+    eyebrow('Further out') +
+    `<p style="margin:0;font-size:14px;line-height:1.75;color:${C.mut}">${restByDate
+      .map((g) => `<span style="color:${C.sub};font-weight:600">${esc(g.date)}</span> &nbsp; ${esc(g.states.join(', '))}`)
+      .join('<br>')}</p>`
 
 html +=
-  `<p style="margin:26px 0 0;color:#475467">You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date. <a href="https://app.duedatehq.com/?lng=en" style="color:#2E368C;text-decoration:underline">See your affected clients →</a></p>` +
-  `<p style="margin:20px 0 0;font-size:10px;line-height:1.5;color:#98A2B3">You're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Not useful? Reply "no thanks" and we won't write again.<br>DueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104</p>` +
-  '</div>'
+  `<div style="margin:28px 0 0;padding-top:20px;border-top:1px solid ${C.line}">` +
+  `<p style="margin:0;font-size:14px;line-height:1.55;color:${C.ink}">You shouldn't have to watch the IRS to protect your clients &mdash; DueDateHQ does it for you, across the IRS, all 50 states, DC and FEMA, naming the exact clients each change hits, with the source on every date. Next time a deadline moves, you'll know exactly who.</p>` +
+  `<p style="margin:10px 0 0;font-size:15px"><a href="https://app.duedatehq.com/?lng=en" style="color:${C.acc};text-decoration:none;font-weight:500">See your affected clients &rarr;</a></p>` +
+  // letter sign-off
+  `<p style="margin:24px 0 0;font-size:14px;line-height:1.55;color:${C.ink}">Gigi<br><span style="color:${C.mut}">Co-Founder of DueDateHQ</span></p>` +
+  // small logo, moved to the bottom (links to the product); tagline beneath
+  (LOGO_URI
+    ? `<a href="https://duedatehq.com" style="text-decoration:none"><img src="${LOGO_URI}" alt="DueDateHQ" width="93" height="12" style="display:block;border:0;margin:18px 0 0"></a>`
+    : `<p style="margin:18px 0 0;font-size:14px;font-weight:700"><a href="https://duedatehq.com" style="color:${C.acc};text-decoration:none">DueDateHQ</a></p>`) +
+  `<p style="margin:6px 0 0;font-size:12px;color:${C.mut}">Rule-change monitoring for US CPA firms &middot; a new product from <a href="https://dify.ai" style="color:${C.mut};text-decoration:underline">Dify</a></p>` +
+  `<p style="margin:14px 0 0;font-size:11px;line-height:1.55;color:${C.mut}">You're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Reply "no thanks" and we won't write again.<br>DueDateHQ &middot; 548 Market St PMB 60083, San Francisco, CA 94104</p>` +
+  `</div>` + // close footer group
+  `</div>` + // close content card
+  '</div>' // close page background
 
 // ---- text ----
 const tLine = (n) =>
   `${n.state} · ${n.deadlineLabel} — ${daysOut(n)} days out\n  ${n.event}. Clients in ${n.affectedAreaShort ?? n.affectedArea}.\n  IRS ${n.code}: ${n.sourceHref}`
-let text = `This week in IRS deadline changes — ${dateLabel}\n\n${openHook}\nEvery date verified against the irs.gov release.\n\n`
-if (fresh.length) text += `NEW THIS WEEK (${fresh.length})\n${fresh.map(tLine).join('\n')}\n\n`
-if (soon.length)
-  text += `COMING DUE WITHIN 30 DAYS (${soon.length})\n${soon.map(tLine).join('\n')}\n\n`
-if (rest.length) {
-  const seenState = new Set()
-  const byState = rest.filter((n) => !seenState.has(n.state) && seenState.add(n.state))
-  text += `ALSO ACTIVE, FURTHER OUT (${byState.length} state${byState.length === 1 ? '' : 's'})\n${byState.map((n) => `${n.state} — ${n.deadlineLabel}`).join('\n')}\n\n`
-}
-text += `You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date.\nSee your affected clients: https://app.duedatehq.com/?lng=en\nAll current notices: https://duedatehq.com/irs-disaster-relief\n\nYou're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Not useful? Reply "no thanks" and we won't write again.\nDueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104\n`
+let text = `FOR CPAs WITH US CLIENTS\nThis week in IRS deadline changes — ${dateLabel}\n\n${openHook}\nEvery date verified against the irs.gov release.\n\n`
+if (urgent.length)
+  text += `NEXT TWO WEEKS\n${urgent.map((n) => `${tLine(n)}\n  ${yourMove(n)}`).join('\n')}\n\n`
+if (thisMonth.length) text += `Also coming due this month\n${thisMonth.map(tLine).join('\n')}\n\n`
+if (restByDate.length)
+  text += `Active, further out\n${restByDate.map((g) => `${g.states.join(', ')} — ${g.date}`).join('\n')}\n\n`
+text += `You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date.\nSee your affected clients: https://app.duedatehq.com/?lng=en\n\n—\nGigi\nCo-Founder of DueDateHQ\nDueDateHQ · a new product from Dify (dify.ai)\n\nYou're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Reply "no thanks" and we won't write again.\nDueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104\n`
 
 fs.mkdirSync(new URL('./digests/', import.meta.url), { recursive: true })
 const base = new URL(`./digests/digest-${iso}`, import.meta.url).pathname
@@ -141,10 +179,12 @@ console.log(`digest ${dateLabel}: live=${live.length} new=${fresh.length} due-so
 console.log(
   `wrote ${base}.html and .txt — review, then send to the subscriber list. Nothing was sent.`,
 )
+// Subject = a question that makes a CPA scan their own book ("any clients in …?") +
+// the stakes. No state-name lead (filters out 34 other states), no date-stamp tail.
 const subject = fresh.length
-  ? `New IRS relief in ${fresh.map((n) => n.state).join(', ')}${soon.length ? ` — plus ${soon.length} coming due` : ''} · ${dateLabel}`
+  ? `New IRS relief in ${fresh.map((n) => n.abbr).join(', ')} — any clients there?`
   : soon.length
-    ? `${nearest.state}'s IRS deadline is ${daysOut(nearest)} days out${soon.length > 1 ? ` — ${soon.length - 1} more coming due` : ''} · ${dateLabel}`
-    : `IRS deadline monitor — all quiet this week · ${dateLabel}`
+    ? `Any clients in ${soon.map((n) => n.abbr).join(', ')}? ${spell(soon.length)} IRS deadline${soon.length === 1 ? '' : 's'} land${soon.length === 1 ? 's' : ''} within 30 days`
+    : `IRS deadline monitor — all quiet this week`
 fs.writeFileSync(`${base}.subject.txt`, subject)
 console.log(`suggested subject: ${subject}`)
