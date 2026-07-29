@@ -767,6 +767,84 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
     },
   },
   {
+    slug: 'form-4868-extension-deadline',
+    label: 'Form 4868 individual extension deadline',
+    labelZh: 'Form 4868 个人延期截止日',
+    sourceContext: 'IRS individual extension instructions and filing guidance',
+    sourceContextZh: 'IRS 个人延期说明与申报指南',
+    operationalRisk:
+      'individual extension work reduces filing risk while leaving payment timing, estimate quality, and client communication open for review',
+    operationalRiskZh: '个人延期降低申报风险，但付款时点、估算质量和客户沟通仍需单独复核',
+    clientContext:
+      'filing status, tax year, payment estimate, state extension posture, owner, and evidence state',
+    clientContextZh: '申报状态、税年、付款估算、州延期口径、负责人和证据状态',
+    keyDates: {
+      sourceLabel: 'IRS — About Form 4868',
+      sourceHref: 'https://www.irs.gov/forms-pubs/about-form-4868',
+      rows: [
+        {
+          label: 'What it is',
+          labelZh: '这是什么',
+          value:
+            'Form 4868 is the automatic extension of time to file a U.S. individual income tax return — it extends time to file, not time to pay.',
+          valueZh: 'Form 4868 是美国个人所得税申报的自动延期申请——延长申报时间，不延长付款时间。',
+        },
+        {
+          label: 'File the extension by',
+          labelZh: '延期申请截止',
+          value: 'April 15 — the individual return deadline, for calendar-year filers.',
+          valueZh: '4 月 15 日——日历年纳税人的个人申报截止日。',
+        },
+        {
+          label: 'Extended deadline',
+          labelZh: '延期后截止日',
+          value: 'October 15.',
+          valueZh: '10 月 15 日。',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'fbar-fincen-114-deadline',
+    label: 'FBAR (FinCEN Form 114) deadline',
+    labelZh: 'FBAR（FinCEN Form 114）截止日',
+    sourceContext: 'IRS FBAR guidance and FinCEN filing references',
+    sourceContextZh: 'IRS FBAR 指南与 FinCEN 申报参考',
+    operationalRisk:
+      'FBAR work sits outside the tax return itself — foreign-account thresholds, signature authority, and the automatic-extension nuance are easy to miss in a return-centric workflow',
+    operationalRiskZh:
+      'FBAR 在报税表之外——境外账户门槛、签字权与自动延期细节，在以申报表为中心的流程里很容易漏',
+    clientContext:
+      'foreign-account facts, aggregate balance threshold, signature authority, owner, and evidence state',
+    clientContextZh: '境外账户事实、合计余额门槛、签字权、负责人和证据状态',
+    keyDates: {
+      sourceLabel: 'IRS — Report of Foreign Bank and Financial Accounts (FBAR)',
+      sourceHref:
+        'https://www.irs.gov/businesses/small-businesses-self-employed/report-of-foreign-bank-and-financial-accounts-fbar',
+      rows: [
+        {
+          label: 'Due',
+          labelZh: '截止日',
+          value: 'April 15 following the calendar year reported — an annual report.',
+          valueZh: '所报日历年的次年 4 月 15 日——年度申报。',
+        },
+        {
+          label: 'Automatic extension',
+          labelZh: '自动延期',
+          value:
+            'Automatic extension to October 15 if the April 15 date is missed — no extension request needs to be filed.',
+          valueZh: '错过 4 月 15 日自动延至 10 月 15 日——无需提交任何延期申请。',
+        },
+        {
+          label: 'Disaster relief',
+          labelZh: '灾害减免',
+          value: 'A natural disaster may further extend the FBAR due date — check current relief.',
+          valueZh: '自然灾害可能进一步延长 FBAR 截止日——以当期减免公告为准。',
+        },
+      ],
+    },
+  },
+  {
     slug: 's-corp-deadline-operations',
     label: 'S-Corp deadline operations',
     labelZh: 'S-Corp 截止日运营',
@@ -4812,7 +4890,7 @@ export function getDeadlineLookupData() {
   return {
     states: Object.entries(STATE_DEADLINES)
       .map(([slug, d]) => ({ slug, ...d }))
-      .sort((a, b) => a.name.localeCompare(b.name)),
+      .toSorted((a, b) => a.name.localeCompare(b.name)),
     federal: ruleReferenceSpecs
       .filter((s) => s.keyDates)
       .map((s) => ({

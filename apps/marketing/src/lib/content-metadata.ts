@@ -79,6 +79,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'tax-deadline-weekend-holiday-rule': { publishedOn: '2026-07-28', reviewedOn: '2026-07-28' },
   // Interactive deadline-lookup tool (linkable asset) shipped 2026-07-29.
   'deadline-lookup': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
+  'form-4868-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
+  'fbar-fincen-114-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   // QuickBooks complement guide added 2026-06-25.
   'deadline-monitoring-for-quickbooks-firms': {
     publishedOn: '2026-06-25',
