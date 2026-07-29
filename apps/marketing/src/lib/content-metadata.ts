@@ -77,6 +77,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   // schedule, verified vs the IRS Employment Tax Due Dates page).
   'payroll-tax-deadlines': { publishedOn: '2026-06-25', reviewedOn: '2026-07-28' },
   'tax-deadline-weekend-holiday-rule': { publishedOn: '2026-07-28', reviewedOn: '2026-07-28' },
+  // Interactive deadline-lookup tool (linkable asset) shipped 2026-07-29.
+  'deadline-lookup': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   // QuickBooks complement guide added 2026-06-25.
   'deadline-monitoring-for-quickbooks-firms': {
     publishedOn: '2026-06-25',

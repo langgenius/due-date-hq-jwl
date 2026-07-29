@@ -1,0 +1,231 @@
+---
+/**
+ * Interactive deadline lookup — the linkable-asset tool. Two panels:
+ * federal form deadlines (rule keyDates) and state deadlines (STATE_DEADLINES).
+ * Same verified, source-cited facts as the reference pages, rendered as a tool.
+ * Static data inlined as JSON; vanilla JS; no framework, no network calls.
+ */
+import { getDeadlineLookupData } from '../lib/seo-content'
+
+interface Props {
+  locale: 'en' | 'zh-CN'
+}
+const { locale } = Astro.props
+const zh = locale === 'zh-CN'
+const data = getDeadlineLookupData()
+const prefix = zh ? '/zh-CN' : ''
+
+const copy = zh
+  ? {
+      eyebrow: '免费工具',
+      title: '报税截止日快查',
+      lead: '选一个联邦表单或一个州，查看已核实的截止日、延期规则与官方来源链接。数据与本站参考页同源——每个日期都有出处。',
+      fedLabel: '联邦表单',
+      fedPlaceholder: '选择表单…',
+      stateLabel: '州',
+      statePlaceholder: '选择州…',
+      source: '官方来源',
+      detail: '查看详情页',
+      note: '日历年纳税人；周末/法定假日顺延到下一个营业日。核实于 2026-07-28；申报前请以官方来源为准。本工具不构成税务建议。',
+    }
+  : {
+      eyebrow: 'FREE TOOL',
+      title: 'Tax deadline lookup',
+      lead: 'Pick a federal form or a state to see the verified deadline, the extension rule, and the official source link. Same data as our reference pages — a source on every date.',
+      fedLabel: 'Federal form',
+      fedPlaceholder: 'Choose a form…',
+      stateLabel: 'State',
+      statePlaceholder: 'Choose a state…',
+      source: 'Official source',
+      detail: 'Open the full page',
+      note: 'Calendar-year filers; dates on a weekend or legal holiday shift to the next business day. Verified 2026-07-28 — confirm against the official source before filing. Not tax advice.',
+    }
+
+// Client payload — only the fields the widget renders for this locale.
+const payload = {
+  federal: data.federal.map((f) => ({
+    slug: f.slug,
+    label: zh ? f.labelZh : f.label,
+    rows: f.rows.map((r) => ({ k: zh ? r.labelZh : r.label, v: zh ? r.valueZh : r.value })),
+    srcLabel: f.sourceLabel,
+    src: f.sourceHref,
+    href: `${prefix}/rules/${f.slug}`,
+  })),
+  states: data.states.map((s) => ({
+    slug: s.slug,
+    label: s.name,
+    rows: [
+      { k: zh ? '申报表' : 'Return', v: zh ? s.labelZh : s.label },
+      { k: zh ? '截止日' : 'Due', v: zh ? s.dueZh : s.due },
+      ...(s.ext ? [{ k: zh ? '延期' : 'Extension', v: zh ? (s.extZh ?? s.ext) : s.ext }] : []),
+    ],
+    srcLabel: s.sourceLabel,
+    src: s.sourceHref,
+    href: `${prefix}/states/${s.slug}`,
+  })),
+  t: { source: copy.source, detail: copy.detail },
+}
+---
+
+<section class="dlk">
+  <div class="wrap">
+    <p class="m-eyebrow">{copy.eyebrow}</p>
+    <h2 class="m-page-h2">{copy.title}</h2>
+    <p class="dlk__lead">{copy.lead}</p>
+
+    <div class="dlk__grid">
+      <div class="dlk__card">
+        <label class="dlk__label" for="dlk-fed">{copy.fedLabel}</label>
+        <select class="dlk__select" id="dlk-fed">
+          <option value="">{copy.fedPlaceholder}</option>
+          {payload.federal.map((f) => <option value={f.slug}>{f.label}</option>)}
+        </select>
+        <div class="dlk__result" id="dlk-fed-out" hidden></div>
+      </div>
+      <div class="dlk__card">
+        <label class="dlk__label" for="dlk-state">{copy.stateLabel}</label>
+        <select class="dlk__select" id="dlk-state">
+          <option value="">{copy.statePlaceholder}</option>
+          {payload.states.map((s) => <option value={s.slug}>{s.label}</option>)}
+        </select>
+        <div class="dlk__result" id="dlk-state-out" hidden></div>
+      </div>
+    </div>
+
+    <p class="dlk__note">{copy.note}</p>
+  </div>
+</section>
+
+<script type="application/json" id="dlk-data" set:html={JSON.stringify(payload)} />
+<script>
+  const dataEl = document.getElementById('dlk-data')
+  const DATA = JSON.parse(dataEl?.textContent || '{}')
+  const esc = (s: string) =>
+    s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] || c)
+
+  function render(kind: 'federal' | 'states', slug: string, out: HTMLElement) {
+    const item = (DATA[kind] || []).find((x: { slug: string }) => x.slug === slug)
+    if (!item) {
+      out.hidden = true
+      return
+    }
+    const rows = item.rows
+      .map(
+        (r: { k: string; v: string }) =>
+          `<div class="dlk__row"><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`,
+      )
+      .join('')
+    out.innerHTML =
+      `<dl class="dlk__facts">${rows}</dl>` +
+      `<p class="dlk__links">` +
+      `<a href="${esc(item.src)}" target="_blank" rel="noopener">${esc(DATA.t.source)}: ${esc(item.srcLabel)}</a>` +
+      `<a href="${esc(item.href)}">${esc(DATA.t.detail)} &rarr;</a>` +
+      `</p>`
+    out.hidden = false
+  }
+
+  const fed = document.getElementById('dlk-fed') as HTMLSelectElement | null
+  const st = document.getElementById('dlk-state') as HTMLSelectElement | null
+  fed?.addEventListener('change', () =>
+    render('federal', fed.value, document.getElementById('dlk-fed-out') as HTMLElement),
+  )
+  st?.addEventListener('change', () =>
+    render('states', st.value, document.getElementById('dlk-state-out') as HTMLElement),
+  )
+</script>
+
+<style>
+  .dlk {
+    padding-block: clamp(48px, 7vw, 88px);
+  }
+  .dlk .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .dlk__lead {
+    margin-top: 14px;
+    max-width: 62ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .dlk__grid {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) {
+    .dlk__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .dlk__card {
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--m-surface, #fff);
+  }
+  .dlk__label {
+    display: block;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin-bottom: 8px;
+  }
+  .dlk__select {
+    width: 100%;
+    font: inherit;
+    font-size: var(--m-text-base);
+    padding: 10px 12px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 8px;
+    background: var(--m-canvas, #fff);
+    color: var(--m-ink);
+  }
+  .dlk__result {
+    margin-top: 16px;
+    border-top: 1px solid var(--m-hairline-2);
+    padding-top: 14px;
+  }
+  .dlk__facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  .dlk__row dt {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .dlk__row dd {
+    margin: 2px 0 0;
+    font-size: var(--m-text-base);
+    line-height: 1.55;
+    color: var(--m-ink);
+  }
+  .dlk__links {
+    margin: 14px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: var(--m-text-sm, 0.9rem);
+  }
+  .dlk__links a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .dlk__note {
+    margin-top: 22px;
+    max-width: 72ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+</style>

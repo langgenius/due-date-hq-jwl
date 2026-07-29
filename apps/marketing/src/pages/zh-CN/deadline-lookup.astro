@@ -1,0 +1,136 @@
+---
+/** /zh-CN/deadline-lookup — 报税截止日快查工具(EN 镜像,同一核实数据源)。 */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import DeadlineLookup from '../../components/DeadlineLookup.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../../lib/site'
+import type { JsonLdDocument } from '../../lib/structured-data'
+
+const locale = 'zh-CN'
+const pathname = '/zh-CN/deadline-lookup'
+const title = '报税截止日快查（2026）：联邦表单 + 50 州 — DueDateHQ'
+const description =
+  '免费查 2026 报税截止日：选联邦表单（1040、1065、1120、941…）或州，查看已核实的到期日、延期规则与官方 IRS/州来源链接。'
+const { publishedOn, reviewedOn } = getContentDates('deadline-lookup')
+const faq = [
+  {
+    q: '这个工具里的日期从哪来？',
+    a: '每个日期都转录自旁边链接的官方 IRS 或州税务机关来源，来源变化时重新核实——与本站规则页、州页背后是同一套数据。',
+  },
+  {
+    q: '截止日赶上周末或节假日怎么办？',
+    a: '依据 26 U.S.C. §7503，联邦截止日落在周六、周日或法定假日时顺延到下一个营业日；各州自行规定，请以链接的州来源为准。',
+  },
+  {
+    q: '灾害减免的顺延也包含吗？',
+    a: '顺延单独跟踪在 IRS 灾害减免页面：逐县列出每条生效公告，并引用 IRS 原文。',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: `${MARKETING_SITE_URL}/zh-CN` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '报税截止日快查',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref()
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <DeadlineLookup locale={locale} />
+  <section class="dlk-faq">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">快查常见问题</h2>
+      {
+        faq.map((f) => (
+          <details class="dlk-faq__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="dlk-faq__more">
+        顺延跟踪：<a href="/irs-disaster-relief">IRS 灾害减免页</a> · 周末规则：
+        <a href="/zh-CN/guides/tax-deadline-weekend-holiday-rule">顺延如何生效</a>
+      </p>
+    </div>
+  </section>
+  <Footer locale="zh-CN" />
+</BaseLayout>
+
+<style>
+  .dlk-faq {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .dlk-faq .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .dlk-faq__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .dlk-faq__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .dlk-faq__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .dlk-faq__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .dlk-faq__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

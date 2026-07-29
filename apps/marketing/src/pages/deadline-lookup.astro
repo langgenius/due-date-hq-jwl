@@ -1,0 +1,145 @@
+---
+/**
+ * /deadline-lookup — interactive tax-deadline lookup tool (linkable asset).
+ * Verified federal + state deadlines with a source on every date; the widget
+ * is a different lens on the exact data behind /rules/* and /states/*.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import DeadlineLookup from '../components/DeadlineLookup.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getContentDates } from '../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../lib/site'
+import type { JsonLdDocument } from '../lib/structured-data'
+
+const locale = 'en'
+const pathname = '/deadline-lookup'
+const title = 'Tax Deadline Lookup (2026): federal forms + all 50 states — DueDateHQ'
+const description =
+  'Free lookup for 2026 tax deadlines: pick a federal form (1040, 1065, 1120, 941…) or a state to see the verified due date, extension rule, and the official IRS or state source.'
+const { publishedOn, reviewedOn } = getContentDates('deadline-lookup')
+const faq = [
+  {
+    q: 'Where do the dates in this lookup come from?',
+    a: 'Every date is transcribed from the official IRS or state-agency source linked next to it, and re-verified when sources change — the same dataset behind our rule and state reference pages.',
+  },
+  {
+    q: 'What if a deadline falls on a weekend or holiday?',
+    a: 'Under 26 U.S.C. §7503 a federal deadline that lands on a Saturday, Sunday, or legal holiday moves to the next business day. States set their own rules — check the linked state source.',
+  },
+  {
+    q: 'Does the lookup cover disaster-relief postponements?',
+    a: 'Postponements are tracked separately on our IRS disaster-relief tracker, which lists every active notice county by county with the IRS source quoted.',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: `${MARKETING_SITE_URL}/`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Tax deadline lookup',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref()
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <DeadlineLookup locale={locale} />
+  <section class="dlk-faq">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">Lookup questions</h2>
+      {
+        faq.map((f) => (
+          <details class="dlk-faq__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="dlk-faq__more">
+        Postponements: <a href="/irs-disaster-relief">IRS disaster-relief tracker</a> · Weekend rule:{' '}
+        <a href="/guides/tax-deadline-weekend-holiday-rule">how deadline shifts work</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .dlk-faq {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .dlk-faq .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .dlk-faq__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .dlk-faq__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .dlk-faq__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .dlk-faq__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .dlk-faq__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

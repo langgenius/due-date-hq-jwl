@@ -4805,6 +4805,27 @@ function buildStateKeyDeadlines(
   }
 }
 
+// Data feed for the interactive /deadline-lookup tool: every verified state
+// deadline + every federal rule reference that carries keyDates. Same verified
+// sources as the pages — the tool is a different lens on the same facts.
+export function getDeadlineLookupData() {
+  return {
+    states: Object.entries(STATE_DEADLINES)
+      .map(([slug, d]) => ({ slug, ...d }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    federal: ruleReferenceSpecs
+      .filter((s) => s.keyDates)
+      .map((s) => ({
+        slug: s.slug,
+        label: s.label,
+        labelZh: s.labelZh,
+        sourceLabel: s.keyDates!.sourceLabel,
+        sourceHref: s.keyDates!.sourceHref,
+        rows: s.keyDates!.rows,
+      })),
+  }
+}
+
 // Plain-text English summary of the verified state deadlines, for llms-full.txt.
 // Driven by STATE_DEADLINES so the agent-facing file stays in sync with the pages.
 export function getStateDeadlineLines(): string[] {
@@ -4968,6 +4989,7 @@ export interface ResourceLink {
 // internal link equity (docs/dev-file/13 §6). Labels are short on purpose.
 const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[] = [
   { href: '/rules', label: 'Rule library', labelZh: '规则库' },
+  { href: '/deadline-lookup', label: 'Deadline lookup tool', labelZh: '截止日快查工具' },
   { href: '/state-coverage', label: 'State coverage', labelZh: '州覆盖' },
   { href: '/resources', label: 'All resources', labelZh: '全部资源' },
   {
