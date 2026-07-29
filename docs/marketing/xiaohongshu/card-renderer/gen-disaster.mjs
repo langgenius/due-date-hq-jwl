@@ -1,13 +1,17 @@
-// 从人工核实的 disaster-notices.ts(先 dump 成 .standby-data.json)生成灾害卡 payload。
+// 从人工核实的 disaster-notices.ts 直接生成灾害卡 payload(不再依赖临时 dump)。
 // 每条出 4 张:cover(封面钩子)/ p1(数据)/ p2(实务提示)/ en(LinkedIn 横版)。
-// 用法:node gen-disaster.mjs  → 写出 standby-notices.json,再交给 render-cards.mjs。
+// 用法:npx tsx gen-disaster.mjs  → 写出 standby-notices.json + standby-captions.md,
+//       再 node render-cards.mjs standby-notices.json out/ --scale 2。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { resolveCounties } from './resolve-counties.js'
+import { DISASTER_NOTICES } from '../../../../apps/marketing/src/lib/disaster-notices.ts'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const DATA = JSON.parse(fs.readFileSync(path.join(HERE, '.standby-data.json'), 'utf8'))
+// 备用库覆盖的现行灾害公告(已发过的 NC/GA/WA/CA 不在此)。
+const CODES = ['AZ-2026-01', 'MT-2026-03', 'MT-2026-04', 'LA-2026-02', 'MS-2026-02', 'WI-2026-02', 'MI-2026-02', 'NMI-2026-01']
+const DATA = DISASTER_NOTICES.filter((n) => CODES.includes(n.code))
 
 // 中文月日:"October 10, 2025" → "2025 年 10月10日";newDate ISO "2026-09-28" → "9月28日"
 const MON = {
@@ -29,11 +33,10 @@ function incidentCN(s) {
   return m ? `${m[3]} 年 ${MON[m[1]]}月${+m[2]}日` : s
 }
 const mdCN = (iso) => {
-  iso.split('-')
+  const [, mm, dd] = iso.split('-')
   return `${+mm}月${+dd}日`
 }
 const mdEN = (iso) => {
-  iso.split('-')
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -352,17 +355,17 @@ ${incZh} 起,${areaDescZh}发生${eventCN}灾害。IRS 据此发布灾害减免(
 #美国报税 #CPA #注册会计师 #IRS #华人会计师 #报税季 #EA #${c.cn}
 \`\`\`
 
-**LinkedIn 配文**
+**LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
 \`\`\`
-IRS disaster relief — ${n.state}.
+IRS tax deadline extension — ${n.state}.
 
-Following ${n.event} that began ${n.incidentStart}, the IRS has postponed federal filing and payment deadlines to ${newEn}, 2026 for affected taxpayers in ${areaDescEn}.
+The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} (IRS disaster relief ${n.code}; incident began ${n.incidentStart}). If you have clients in ${areaDescEn}, their federal filing and payment deadlines have moved.
 
-Covered — any federal return or payment originally due on or after ${incEn} through ${newEn}, 2026, including ${enForms}. Relief is automatic for taxpayers whose address of record is in the covered area; if a client is outside it but their records or preparer are inside, call the IRS disaster hotline.
+Covered — federal returns and payments originally due on or after ${incEn} through ${newEn}, 2026, including ${enForms}. Relief is automatic if the taxpayer's address of record is in the covered area; if a client is outside it but their records or preparer are inside, call the IRS disaster hotline.
 
-Source: IRS notice ${n.code}.
+Which of your clients does this affect? Official IRS source in the comments.
 
-#IRS #DisasterRelief #TaxDeadline #CPA #${n.state.replace(/\s+/g, '')}
+#IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #${n.state.replace(/\s+/g, '')}
 \`\`\`
 `)
 }
