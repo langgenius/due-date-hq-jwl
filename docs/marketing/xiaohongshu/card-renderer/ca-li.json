@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ca-li-1cover", "kind": "cover", "locale": "en", "format": "li",
+    "eyebrow": "State tax · California",
+    "title": ["California PTE", "tax extended to", "[[2030]]"],
+    "sub": "SB 132 keeps California's SALT-cap workaround alive through 2030 — with new 2026 prepayment rules. If you have California PTE clients, swipe →",
+    "footer": "California FTB · SB 132"
+  },
+  {
+    "id": "ca-li-2data", "kind": "rate", "locale": "en", "format": "li",
+    "source": { "level": "State", "org": "California FTB", "noticeId": "SB 132", "verified": true },
+    "reason": "PTE elective tax · Scope change",
+    "map": { "state": "CA", "counties": [] },
+    "title": ["California PTE tax", "extended to 2030"],
+    "dateLabel": "ELECTIVE TAX AVAILABLE THROUGH",
+    "oldDate": "2025", "newDate": "2030",
+    "forms": ["3804", "3893", "3804-CR"],
+    "footer": "Elective for 2026–2030 tax years · SB 132"
+  },
+  {
+    "id": "ca-li-3note", "kind": "note", "locale": "en", "format": "li",
+    "source": { "level": "State", "org": "California FTB", "noticeId": "SB 132", "verified": true },
+    "reason": "PTE elective tax · Scope change",
+    "map": { "state": "CA", "counties": [] },
+    "title": ["Practitioner note"],
+    "points": [
+      "SB 132 (June 2025) extends California's PTE elective tax through the 2030 tax year — it was set to expire after 2025.",
+      "For 2026 onward, a late or underpaid June 15 prepayment no longer disqualifies the election (it used to).",
+      "But the owner's PTE credit is reduced by 12.5% of that owner's share of the amount due but unpaid by June 15.",
+      "Updated Forms 3804 / 3893 / 3804-CR apply for 2026."
+    ],
+    "footer": "Source: California FTB · SB 132"
+  }
+]

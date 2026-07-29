@@ -91,6 +91,19 @@ Every entry is transcribed from the official IRS release. Follow for the updated
 
 ---
 
+## 5.5 图片形态:文档轮播(PDF)优先
+
+LinkedIn 上**文档帖(PDF 轮播)平均互动 ≈ 1.8× 单图、≈ 3.7× 纯文字**,且翻页产生的停留
+时间是信息流排序的关键信号;71% 的浏览在手机上。所以:
+
+- **默认发 3 页 4:5(1080×1350)文档轮播**:`-li-1cover`(钩子)→ `-li-2data`(数据)→
+  `-li-3note`(实务提示),合成 `-li-carousel.pdf` 后作为「文档」上传,不发普通图片帖。
+- 封面页只放一句钩子 + 高亮日期,手机缩图上必须一眼可读(标题 ≥110px @1080 宽)。
+- 横版 16:9 `-en` 单图保留作备用(转发/邮件配图),不再是 LinkedIn 首选。
+- 工具链:`card-renderer` 出 `li` 格式三页 → `magick p1 p2 p3 -quality 92 out.pdf`。
+
+---
+
 ## 6. 检查清单(发每条前过一遍)
 
 - [ ] 第一行含:州全称 + 税种/主题 + IRS/变更 + 确切日期 + 年份
@@ -98,6 +111,7 @@ Every entry is transcribed from the official IRS release. Follow for the updated
 - [ ] 用自然搜索短语(不是缩写、不是内部黑话)
 - [ ] 3–5 标签 = 宽 + 窄 + 州名
 - [ ] 结尾有互动钩子(问题 / "save this")
+- [ ] 图用 **文档轮播 PDF**(`-li-carousel.pdf`),不发单图
 - [ ] 外链放首条评论,不放正文
 - [ ] 主题与上周栏目一致(建权威)
 - [ ] **排版紧凑,别一句一空行** —— 首行钩子单独一行,其余合成 1–2 段密文;要点用 • 但要点之间不加空行。整条 3–4 块就够(钩子/正文/问题/标签)。

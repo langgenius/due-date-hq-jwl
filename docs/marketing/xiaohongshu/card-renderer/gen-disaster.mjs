@@ -1,7 +1,9 @@
 // 从人工核实的 disaster-notices.ts 直接生成灾害卡 payload(不再依赖临时 dump)。
-// 每条出 4 张:cover(封面钩子)/ p1(数据)/ p2(实务提示)/ en(LinkedIn 横版)。
+// 每条出 7 张:cover(封面钩子)/ p1(数据)/ p2(实务提示)= 小红书轮播;
+//            en(横版备用)+ li-1cover / li-2data / li-3note = LinkedIn 4:5 文档轮播。
 // 用法:npx tsx gen-disaster.mjs  → 写出 standby-notices.json + standby-captions.md,
-//       再 node render-cards.mjs standby-notices.json out/ --scale 2。
+//       再 node render-cards.mjs standby-notices.json out/ --scale 2,
+//       每条再 magick <slug>-li-1cover.png <slug>-li-2data.png <slug>-li-3note.png -quality 92 <slug>-li-carousel.pdf。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,6 +13,7 @@ import { DISASTER_NOTICES } from '../../../../apps/marketing/src/lib/disaster-no
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // 备用库覆盖的现行灾害公告(已发过的 NC/GA/WA/CA 不在此)。
 const CODES = new Set([
+  'HI-2026-01',
   'AZ-2026-01',
   'MT-2026-03',
   'MT-2026-04',
@@ -76,6 +79,16 @@ const _FORM_CN = {
 // 逐条配置(拿捏的部分:中文名、灾因、old→new 的 old 端、表单、封面词、部落名)。
 // old 端只用法定表里有的日期(4/15、6/15、9/15…),否则渲染器规则 4 会拦。
 const CFG = {
+  'HI-2026-01': {
+    cn: '夏威夷',
+    reason: '风暴洪水 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    unit: '县',
+    cover: '夏威夷灾区',
+    coverEn: ['Hawaii filing', 'extended to', '[[Aug 20]]'],
+  },
   'AZ-2026-01': {
     cn: '亚利桑那',
     reason: '风暴洪水 · 灾害减免',
@@ -85,6 +98,7 @@ const CFG = {
     tribe: 'San Carlos Apache 部落',
     cover: '亚利桑那灾区',
     areaZh: 'San Carlos Apache 部落',
+    coverEn: ['San Carlos', 'Apache relief:', '[[Sep 28]]'],
   },
   'MT-2026-03': {
     cn: '蒙大拿',
@@ -96,6 +110,7 @@ const CFG = {
     cover: '蒙大拿灾区',
     tag: 'Fort Peck',
     areaZh: 'Fort Peck 部落',
+    coverEn: ['Fort Peck MT', 'deadlines to', '[[Sep 28]]'],
   },
   'MT-2026-04': {
     cn: '蒙大拿',
@@ -107,6 +122,7 @@ const CFG = {
     cover: '蒙大拿灾区',
     tag: 'Crow',
     areaZh: 'Crow 部落',
+    coverEn: ['Crow Tribe MT', 'deadlines to', '[[Sep 28]]'],
   },
   'MS-2026-02': {
     cn: '密西西比',
@@ -116,6 +132,7 @@ const CFG = {
     forms: ['预缴', '941', '990'],
     unit: '县',
     cover: '密西西比灾区',
+    coverEn: ['Mississippi', 'deadlines to', '[[Nov 2]]'],
   },
   'WI-2026-02': {
     cn: '威斯康星',
@@ -126,6 +143,7 @@ const CFG = {
     unit: '县',
     cover: '威斯康星灾区',
     areaTail: '及 Oneida 部落保留地',
+    coverEn: ['Wisconsin', 'deadlines to', '[[Nov 2]]'],
   },
   'MI-2026-02': {
     cn: '密歇根',
@@ -135,6 +153,7 @@ const CFG = {
     forms: ['1040', '1120', '1120-S', '1065', '预缴'],
     unit: '县',
     cover: '密歇根灾区',
+    coverEn: ['Michigan', 'deadlines to', '[[Nov 2]]'],
   },
   'LA-2026-02': {
     cn: '路易斯安那',
@@ -144,6 +163,7 @@ const CFG = {
     forms: ['预缴', '1120-S', '1065', '941'],
     unit: '堂区',
     cover: '路易斯安那',
+    coverEn: ['Louisiana', 'deadlines to', '[[Nov 2]]'],
   },
   'NMI-2026-01': {
     cn: '北马里亚纳群岛',
@@ -154,6 +174,7 @@ const CFG = {
     cover: '北马里亚纳',
     territory: 'Northern Islands、Rota、Saipan、Tinian',
     areaTail: '受灾岛屿:Northern Islands、Rota、Saipan、Tinian',
+    coverEn: ['N. Mariana Is.', 'deadlines to', '[[Nov 2]]'],
   },
 }
 
@@ -259,6 +280,8 @@ for (const n of DATA) {
     ],
     footer: `来源:IRS 公告 ${n.code} · ${newZh} 截止`,
   })
+  const incEnLi = incidentCNtoEN(n.incidentStart)
+  const incYear = (n.incidentStart.match(/\d{4}/) || [''])[0]
   // ── en 横版 ──
   out.push({
     id: `${n.slug}-en`,
@@ -282,9 +305,65 @@ for (const n of DATA) {
     forms: enForms,
     tip: {
       label: 'PRACTITIONER NOTE',
-      body: `Covers federal returns and payments due on or after ${incidentCNtoEN(n.incidentStart)} through ${newEn}, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline.`,
+      body: `Covers federal returns and payments due on or after ${incEnLi}, ${incYear} through ${newEn}, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline.`,
     },
     footer: `Postponed to ${newEn}, 2026 · IRS disaster relief`,
+  })
+
+  // ── LinkedIn 4:5 文档轮播(3 页:封面钩子 → 数据 → 实务提示) ──
+  const liArea = isTribe
+    ? c.tribe.replace(' 部落', ' Tribe')
+    : isTerr
+      ? 'Northern Islands, Rota, Saipan and Tinian'
+      : `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`
+  out.push({
+    id: `${n.slug}-li-1cover`,
+    kind: 'cover',
+    locale: 'en',
+    format: 'li',
+    eyebrow: `IRS disaster relief · ${n.code}`,
+    title: c.coverEn,
+    sub: `${liArea} — federal filing and payment deadlines automatically postponed to ${newEn}, 2026. Swipe for the details →`,
+    footer: `${n.code} · Source: IRS`,
+  })
+  out.push({
+    id: `${n.slug}-li-2data`,
+    kind: 'delay',
+    locale: 'en',
+    format: 'li',
+    source: source('en'),
+    reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
+    map,
+    title: isTribe
+      ? [`${n.state} tribal area`, 'Filing postponed']
+      : isTerr
+        ? [n.state, 'Filing postponed']
+        : [
+            `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`,
+            'Filing postponed',
+          ],
+    dateLabel: 'FEDERAL FILING DEADLINE',
+    oldDate: c.oldEn,
+    newDate: newEn,
+    forms: enForms,
+    footer: `Postponed to ${newEn}, 2026 · IRS disaster relief`,
+  })
+  out.push({
+    id: `${n.slug}-li-3note`,
+    kind: 'note',
+    locale: 'en',
+    format: 'li',
+    source: source('en'),
+    reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
+    map,
+    title: ['Practitioner note'],
+    points: [
+      `The IRS postponed federal deadlines to ${newEn}, 2026 for ${liArea} (relief ${n.code}).`,
+      `Covers federal returns and payments due on or after ${incEnLi}, ${incYear} — ${enForms.join(', ')} included.`,
+      `Automatic for an IRS address of record in the area — no application needed. Records or preparer inside but client outside? Call the IRS disaster hotline.`,
+      `Full affected ${isTribe || isTerr ? 'area' : 'list'}: irs.gov relief notice ${n.code}.`,
+    ],
+    footer: `Source: IRS relief ${n.code} · Deadline ${newEn}, 2026`,
   })
 }
 
@@ -299,7 +378,8 @@ for (const n of DATA) {
   const newZh = mdCN(n.deadline),
     newEn = mdEN(n.deadline),
     incZh = incidentCN(n.incidentStart),
-    incEn = incidentCNtoEN(n.incidentStart)
+    incEn = incidentCNtoEN(n.incidentStart),
+    incYear = (n.incidentStart.match(/\d{4}/) || [''])[0]
   const isTribe = Boolean(c.tribe),
     isTerr = Boolean(c.territory)
   const eventCN = c.reason.split(' · ')[0]
@@ -313,7 +393,7 @@ for (const n of DATA) {
     _locEn
   if (isTribe) {
     areaDescZh = c.tribe
-    areaDescEn = c.tribe.replace(' 部落', ' Tribe')
+    areaDescEn = `the ${c.tribe.replace(' 部落', ' Tribe')} area`
     locZh = `${n.state === 'Arizona' ? '亚利桑那' : '蒙大拿'} ${c.tribe}`
     _locEn = areaDescEn
   } else if (isTerr) {
@@ -330,7 +410,7 @@ for (const n of DATA) {
         : `${count} 个${unit}(完整名单见公告 ${n.code})`
     areaDescEn =
       count <= 6
-        ? `${names.join(', ')}`
+        ? `${names.join(', ')} ${unit === '堂区' ? 'parishes' : 'counties'}`
         : `${count} ${unit === '堂区' ? 'parishes' : 'counties'} (see ${n.code} for the full list)`
     locZh = `${c.cn} ${count} ${unit}`
     _locEn = `${count} ${n.state} ${unit === '堂区' ? 'parishes' : 'counties'}`
@@ -343,7 +423,7 @@ for (const n of DATA) {
 
   caps.push(`\n---\n\n## ${n.state} · ${eventCN}(${n.code}) —— 截止 ${newZh}
 
-图:\`${n.slug}-cover / -p1 / -p2\`(小红书)· \`${n.slug}-en\`(LinkedIn 横版)
+图:\`${n.slug}-cover / -p1 / -p2\`(小红书)· \`${n.slug}-li-carousel.pdf\`(LinkedIn **文档帖**,3 页 4:5;横版 \`-en\` 仅作备用)
 
 **小红书标题**:\`${locZh}报税延到 ${newZh} 🗓\`
 
@@ -364,10 +444,10 @@ ${incZh} 起,${areaDescZh}发生${eventCN}灾害。IRS 据此发布灾害减免(
 #美国报税 #CPA #注册会计师 #IRS #华人会计师 #报税季 #EA #${c.cn}
 \`\`\`
 
-**LinkedIn 配文**(首行=搜索磁石;正文紧凑,含全州名/灾害名/公告号/日期)
+**LinkedIn 配文**(发**文档帖**:上传 \`${n.slug}-li-carousel.pdf\`;首行=搜索磁石;链接放首条评论)
 \`\`\`
 IRS tax deadline extension — ${n.state}.
-The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} (relief ${n.code}). Clients in ${areaDescEn} now have moved federal filing and payment deadlines — returns and payments due on or after ${incEn} through ${newEn}, 2026 (${enForms}). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
+The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} under disaster relief ${n.code}. Clients in ${areaDescEn} now have moved federal filing and payment deadlines — returns and payments due on or after ${incEn}, ${incYear} through ${newEn}, 2026 (${enForms}). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #${n.state.replace(/\s+/g, '')}
 \`\`\`

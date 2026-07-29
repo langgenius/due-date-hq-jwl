@@ -625,6 +625,30 @@
   line-height: 1.65;
 }
 
+/* ---- 领英文档轮播(li = 4:5):手机缩图可读性加强 ---- */
+.ddhq--li.ddhq--en .ddhq__cvhook {
+  font-size: 118px;
+  line-height: 1.1;
+}
+.ddhq--li.ddhq--en .ddhq__cvsub {
+  font-size: 44px;
+  line-height: 1.45;
+  color: #55534c;
+  margin-top: 40px;
+}
+.ddhq--li.ddhq--en .ddhq__cveb {
+  font-size: 30px;
+}
+.ddhq--li.ddhq--en .ddhq__nx {
+  font-size: 36px;
+  line-height: 1.5;
+}
+.ddhq--li.ddhq--en .ddhq__nn {
+  width: 52px;
+  height: 52px;
+  font-size: 27px;
+}
+
 /* ---- 抖音竖版 9:16(1080×1920)---- */
 .ddhq--dy {
   --canvas-h: 1920px;
