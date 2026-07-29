@@ -9,6 +9,7 @@ Grace「On My Radar」打法。一帖含 10+ 州名 + 全部灾害名 + "IRS tax
 ---
 
 ## LinkedIn(英文 · 搜索优化)
+
 ```
 IRS disaster relief — every open federal tax deadline (weekly list, updated 2026-07-28).
 
@@ -36,7 +37,9 @@ Which of these states do your clients touch? Official IRS sources in the comment
 ```
 
 ## 小红书(中文)
+
 标题:`现行 IRS 报税延期全清单(每周更新)🗓`
+
 ```
 【每周清单】现在生效的 IRS 报税延期,一次看全 🗓
 

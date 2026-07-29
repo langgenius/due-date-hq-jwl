@@ -3,7 +3,6 @@
 每条:小红书标题 + 小红书配文 + LinkedIn 配文。事实取自人工核实的 `disaster-notices.ts`。
 LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速核一眼受灾名单。
 
-
 ---
 
 ## Arizona · 风暴洪水(AZ-2026-01) —— 截止 9月28日
@@ -13,6 +12,7 @@ LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速�
 **小红书标题**:`亚利桑那 San Carlos Apache 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 亚利桑那 San Carlos Apache 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -30,6 +30,7 @@ LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速�
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Arizona.
 
@@ -42,7 +43,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Arizona
 ```
 
-
 ---
 
 ## Montana · 冬季风暴(MT-2026-03) —— 截止 9月28日
@@ -52,6 +52,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`蒙大拿 Fort Peck 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 蒙大拿 Fort Peck 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -69,6 +70,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Montana.
 
@@ -81,7 +83,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Montana
 ```
 
-
 ---
 
 ## Montana · 冬季风暴(MT-2026-04) —— 截止 9月28日
@@ -91,6 +92,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`蒙大拿 Crow 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 蒙大拿 Crow 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -108,6 +110,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Montana.
 
@@ -120,7 +123,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Montana
 ```
 
-
 ---
 
 ## Louisiana · 热带风暴(LA-2026-02) —— 截止 11月2日
@@ -130,6 +132,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`路易斯安那 4 堂区报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 路易斯安那 4 堂区报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -147,6 +150,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Louisiana.
 
@@ -159,7 +163,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Louisiana
 ```
 
-
 ---
 
 ## Michigan · 风暴龙卷(MI-2026-02) —— 截止 11月2日
@@ -169,6 +172,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`密歇根 37 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 密歇根 37 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -186,6 +190,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Michigan.
 
@@ -198,7 +203,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Michigan
 ```
 
-
 ---
 
 ## Mississippi · 风暴龙卷(MS-2026-02) —— 截止 11月2日
@@ -208,6 +212,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`密西西比 5 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 密西西比 5 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -225,6 +230,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Mississippi.
 
@@ -237,7 +243,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Mississippi
 ```
 
-
 ---
 
 ## Northern Mariana Islands · 超强台风(NMI-2026-01) —— 截止 11月2日
@@ -247,6 +252,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`北马里亚纳群岛报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 北马里亚纳群岛报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -264,6 +270,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Northern Mariana Islands.
 
@@ -276,7 +283,6 @@ Which of your clients does this affect? Official IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #NorthernMarianaIslands
 ```
 
-
 ---
 
 ## Wisconsin · 风暴龙卷(WI-2026-02) —— 截止 11月2日
@@ -286,6 +292,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 **小红书标题**:`威斯康星 21 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 威斯康星 21 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -303,6 +310,7 @@ Which of your clients does this affect? Official IRS source in the comments.
 ```
 
 **LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+
 ```
 IRS tax deadline extension — Wisconsin.
 

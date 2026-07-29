@@ -10,8 +10,17 @@ import { DISASTER_NOTICES } from '../../../../apps/marketing/src/lib/disaster-no
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // 备用库覆盖的现行灾害公告(已发过的 NC/GA/WA/CA 不在此)。
-const CODES = ['AZ-2026-01', 'MT-2026-03', 'MT-2026-04', 'LA-2026-02', 'MS-2026-02', 'WI-2026-02', 'MI-2026-02', 'NMI-2026-01']
-const DATA = DISASTER_NOTICES.filter((n) => CODES.includes(n.code))
+const CODES = new Set([
+  'AZ-2026-01',
+  'MT-2026-03',
+  'MT-2026-04',
+  'LA-2026-02',
+  'MS-2026-02',
+  'WI-2026-02',
+  'MI-2026-02',
+  'NMI-2026-01',
+])
+const DATA = DISASTER_NOTICES.filter((n) => CODES.has(n.code))
 
 // 中文月日:"October 10, 2025" → "2025 年 10月10日";newDate ISO "2026-09-28" → "9月28日"
 const MON = {
