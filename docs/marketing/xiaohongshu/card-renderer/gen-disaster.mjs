@@ -29,11 +29,11 @@ function incidentCN(s) {
   return m ? `${m[3]} 年 ${MON[m[1]]}月${+m[2]}日` : s
 }
 const mdCN = (iso) => {
-  const [, mm, dd] = iso.split('-')
+  iso.split('-')
   return `${+mm}月${+dd}日`
 }
 const mdEN = (iso) => {
-  const [, mm, dd] = iso.split('-')
+  iso.split('-')
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -51,7 +51,7 @@ function parseAreaNames(area) {
     .filter(Boolean)
 }
 
-const FORM_CN = {
+const _FORM_CN = {
   individual: '1040',
   corporate: '1120',
   's-corp': '1120-S',
@@ -165,16 +165,16 @@ for (const n of DATA) {
   // 县/堂区:解析 FIPS + 数量;部落/领地:无县,地图纯轮廓。
   let fips = [],
     count = 0,
-    applyZone
+    _applyZone
   if (!isTribe && !isTerr) {
     const names = parseAreaNames(n.affectedArea)
     const r = resolveCounties(n.abbreviation, names)
     if (r.errors.length) console.error(n.code, '县解析错误:', r.errors)
     fips = r.fips
     count = names.length
-    applyZone = `受灾${c.unit}`
+    _applyZone = `受灾${c.unit}`
   } else {
-    applyZone = isTerr ? '受灾岛屿' : '受灾部落领地'
+    _applyZone = isTerr ? '受灾岛屿' : '受灾部落领地'
   }
 
   // 部落卡:有短标签(Fort Peck / Crow)就写进标题以区分同州多条;否则退回「州+部落区」。
@@ -298,17 +298,17 @@ for (const n of DATA) {
     areaDescZh,
     areaDescEn,
     locZh,
-    locEn
+    _locEn
   if (isTribe) {
     areaDescZh = c.tribe
     areaDescEn = c.tribe.replace(' 部落', ' Tribe')
     locZh = `${n.state === 'Arizona' ? '亚利桑那' : '蒙大拿'} ${c.tribe}`
-    locEn = areaDescEn
+    _locEn = areaDescEn
   } else if (isTerr) {
     areaDescZh = c.territory
     areaDescEn = 'Northern Islands, Rota, Saipan, and Tinian'
     locZh = c.cn
-    locEn = n.state
+    _locEn = n.state
   } else {
     const names = parseAreaNames(n.affectedArea)
     count = names.length
@@ -321,7 +321,7 @@ for (const n of DATA) {
         ? `${names.join(', ')}`
         : `${count} ${unit === '堂区' ? 'parishes' : 'counties'} (see ${n.code} for the full list)`
     locZh = `${c.cn} ${count} ${unit}`
-    locEn = `${count} ${n.state} ${unit === '堂区' ? 'parishes' : 'counties'}`
+    _locEn = `${count} ${n.state} ${unit === '堂区' ? 'parishes' : 'counties'}`
   }
   const applyZh = isTribe
     ? '位于该部落领地内的自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请'
