@@ -3549,7 +3549,15 @@ interface AlternativeRoundupSpec {
   subject: string
   subjectCategory: string
   subjectCategoryZh: string
-  alternatives: { name: string; note: string; noteZh: string }[]
+  alternatives: {
+    name: string
+    note: string
+    noteZh: string
+    price: string
+    priceZh: string
+    fit: string
+    fitZh: string
+  }[]
 }
 
 // Prices below are quoted from each vendor's public pricing page as verified for
@@ -3557,6 +3565,10 @@ interface AlternativeRoundupSpec {
 // verified public price carry no price sentence.
 const DDHQ_ALT = {
   name: 'DueDateHQ',
+  price: 'Free during beta',
+  priceZh: 'Beta 期间免费',
+  fit: 'Deadline & rule-change monitoring layer',
+  fitZh: '截止日与规则变化监控层',
   note: 'a deadline-and-rule-change monitoring layer — it watches official IRS and state sources and routes each change to the clients it affects, on top of whatever you run. Free during beta.',
   noteZh:
     '截止日与规则变化监控层——监控官方 IRS 与各州来源，把每条变化路由到受影响的客户，叠加在你用的任何工具之上。Beta 期间免费。',
@@ -3565,47 +3577,79 @@ const DDHQ_ALT = {
 const ALT_NOTES = {
   taxdome: {
     name: 'TaxDome',
+    price: 'From $67/user/mo',
+    priceZh: '$67/用户/月起',
+    fit: 'All-in-one practice suite + client portal',
+    fitZh: '一体化套件 + 客户门户',
     note: 'an all-in-one practice management and client portal suite. Pricing starts at $67/user/mo (public pricing, Jul 2026).',
     noteZh:
       '一体化 practice management 与客户门户套件。定价自 $67/用户/月起（公开定价，2026 年 7 月）。',
   },
   canopy: {
     name: 'Canopy',
+    price: 'From $45/user/mo',
+    priceZh: '$45/用户/月起',
+    fit: 'Cloud practice suite: CRM, docs, billing',
+    fitZh: '云端套件:CRM/文档/账单',
     note: 'a cloud practice-management suite with CRM, workflow, documents, billing, and a client portal. Pricing starts at $45/user/mo (public pricing, Jul 2026).',
     noteZh:
       '带 CRM、工作流、文档、账单和客户门户的云端 practice-management 套件。定价自 $45/用户/月起（公开定价，2026 年 7 月）。',
   },
   karbon: {
     name: 'Karbon',
+    price: 'From $59/user/mo',
+    priceZh: '$59/用户/月起',
+    fit: 'Team workflow with email collaboration',
+    fitZh: '邮件协作型团队工作流',
     note: 'collaborative accounting workflow and team work management with email collaboration. Pricing starts at $59/user/mo (public pricing, Jul 2026).',
     noteZh:
       '会计团队协作工作流与 work management，含邮件协作。定价自 $59/用户/月起（公开定价，2026 年 7 月）。',
   },
   financialCents: {
     name: 'Financial Cents',
+    price: 'From $19/user/mo',
+    priceZh: '$19/用户/月起',
+    fit: 'Simple workflow for small firms',
+    fitZh: '小事务所轻量工作流',
     note: 'a workflow and client-management tool for small firms, with recurring tasks and client follow-up. Pricing starts at $19/user/mo (public pricing, Jul 2026).',
     noteZh:
       '面向小型事务所的工作流与客户管理工具，含周期性任务与客户跟进。定价自 $19/用户/月起（公开定价，2026 年 7 月）。',
   },
   jetpack: {
     name: 'Jetpack Workflow',
+    price: 'From $36/user/mo',
+    priceZh: '$36/用户/月起',
+    fit: 'Recurring jobs from a template library',
+    fitZh: '模板库驱动的周期任务',
     note: 'accounting workflow software built around recurring jobs and deadline tracking from a template library. Pricing starts at $36/user/mo (public pricing, Jul 2026).',
     noteZh:
       '围绕周期性任务与截止日跟踪、基于模板库的会计工作流软件。定价自 $36/用户/月起（公开定价，2026 年 7 月）。',
   },
   aero: {
     name: 'Aero Workflow',
+    price: 'No public per-seat price',
+    priceZh: '无公开按席位定价',
+    fit: 'Workflow for bookkeeping / CAS firms',
+    fitZh: '记账与 CAS 工作流',
     note: 'a workflow and task-management tool for bookkeeping and CAS firms with a procedures library.',
     noteZh: '面向记账与 CAS 事务所的工作流与任务管理工具，带流程库。',
   },
   keeper: {
     name: 'Keeper',
+    price: 'From $200/mo',
+    priceZh: '$200/月起',
+    fit: 'Month-end close review + client comms',
+    fitZh: '月末结账复核与客户沟通',
     note: 'a bookkeeping-review and client-communication tool built around month-end close checklists. Pricing starts at $200/mo (public pricing, Jul 2026).',
     noteZh:
       '围绕月末结账清单构建的记账复核与客户沟通工具。定价自 $200/月起（公开定价，2026 年 7 月）。',
   },
   fileInTime: {
     name: 'File In Time',
+    price: 'Paid desktop license',
+    priceZh: '付费桌面授权',
+    fit: 'Desktop due-date list tracker',
+    fitZh: '桌面截止日清单跟踪',
     note: 'a desktop tax-deadline tracker built around due-date lists your staff maintain by hand. Sold as a paid desktop license (no public per-seat price).',
     noteZh:
       '围绕人工维护的截止日清单构建的桌面税务截止日跟踪工具。按付费桌面授权销售（无公开按席位定价）。',
@@ -3719,9 +3763,23 @@ const alternativeRoundupSpecs: AlternativeRoundupSpec[] = [
 function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): GuidePageCopy {
   const zh = locale === 'zh-CN'
   const altItems = spec.alternatives.map((a) => ({ title: a.name, body: zh ? a.noteZh : a.note }))
+  // Scannable at-a-glance table — the thing every winning "alternatives" SERP
+  // result has and prose-only roundups lack. Verified prices only.
+  const altTable: GuidePageCopy['comparisonTable'] = {
+    eyebrow: zh ? '一览' : 'AT A GLANCE',
+    title: zh ? `${spec.subject} 替代方案对比表` : `${spec.subject} alternatives, side by side`,
+    mineLabel: zh ? '定位 / 适合' : 'What it is / best fit',
+    theirsLabel: zh ? '起步定价（2026 年 7 月核实）' : 'Starting price (verified Jul 2026)',
+    rows: spec.alternatives.map((a) => ({
+      dimension: a.name,
+      mine: zh ? a.fitZh : a.fit,
+      theirs: zh ? a.priceZh : a.price,
+    })),
+  }
   if (zh) {
     return {
       slug: spec.slug,
+      comparisonTable: altTable,
       meta: {
         title: `${spec.subject} 替代方案与竞品（2026）— DueDateHQ`,
         description: `${spec.subject} 替代方案与竞品：各自适合的场景与起步定价，以及 DueDateHQ 作为带来源的监控层如何补位。`,
@@ -3805,6 +3863,7 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
 
   return {
     slug: spec.slug,
+    comparisonTable: altTable,
     meta: {
       title: `${spec.subject} alternatives & competitors (2026) — DueDateHQ`,
       description: `${spec.subject} alternatives & competitors for CPA firms: where each fits, with starting prices — plus DueDateHQ as the source-backed monitoring layer.`,
