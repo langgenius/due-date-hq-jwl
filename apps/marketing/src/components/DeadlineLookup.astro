@@ -21,7 +21,8 @@ const copy = zh
       title: '报税截止日快查',
       lead: '选一个联邦表单或一个州，查看已核实的截止日、延期规则与官方来源链接。数据与本站参考页同源——每个日期都有出处。',
       fedLabel: '联邦表单',
-      fedPlaceholder: '选择表单…',
+      fedPlaceholder: '全部 16 个表单…',
+      quick: '常用',
       stateLabel: '州',
       statePlaceholder: '选择州…',
       source: '官方来源',
@@ -35,7 +36,8 @@ const copy = zh
       title: 'Tax deadline lookup',
       lead: 'Pick a federal form or a state to see the verified deadline, the extension rule, and the official source link. Same data as our reference pages — a source on every date.',
       fedLabel: 'Federal form',
-      fedPlaceholder: 'Choose a form…',
+      fedPlaceholder: 'All 16 forms…',
+      quick: 'QUICK PICK',
       stateLabel: 'State',
       statePlaceholder: 'Choose a state…',
       source: 'Official source',
@@ -80,6 +82,19 @@ const payload = {
     <div class="dlk__grid">
       <div class="dlk__card">
         <label class="dlk__label" for="dlk-fed">{copy.fedLabel}</label>
+        <div class="dlk__chips" id="dlk-chips" role="group" aria-label={copy.quick}>
+          {
+            payload.federal
+              .filter((f) =>
+                /1040 individual|1065|1120 C corp|941 payroll|4868|FBAR/.test(f.label),
+              )
+              .map((f) => (
+                <button type="button" class="dlk__chip" data-slug={f.slug}>
+                  {f.label.replace(/ (filing|payroll tax|extension)? ?deadline.*$/i, '')}
+                </button>
+              ))
+          }
+        </div>
         <select class="dlk__select" id="dlk-fed">
           <option value="">{copy.fedPlaceholder}</option>
           {payload.federal.map((f) => <option value={f.slug}>{f.label}</option>)}
@@ -119,8 +134,8 @@ const payload = {
     }
     const rows = item.rows
       .map(
-        (r: { k: string; v: string }) =>
-          `<div class="dlk__row"><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`,
+        (r: { k: string; v: string }, i: number) =>
+          `<div class="dlk__row${i === 0 ? ' dlk__row--hero' : ''}"><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`,
       )
       .join('')
     out.innerHTML =
@@ -134,9 +149,20 @@ const payload = {
 
   const fed = document.getElementById('dlk-fed') as HTMLSelectElement | null
   const st = document.getElementById('dlk-state') as HTMLSelectElement | null
-  fed?.addEventListener('change', () =>
-    render('federal', fed.value, document.getElementById('dlk-fed-out') as HTMLElement),
+  const chips = document.querySelectorAll<HTMLButtonElement>('.dlk__chip')
+  function pickFed(slug: string) {
+    if (!fed) return
+    fed.value = slug
+    chips.forEach((c) => c.classList.toggle('is-active', c.dataset.slug === slug))
+    render('federal', slug, document.getElementById('dlk-fed-out') as HTMLElement)
+  }
+  chips.forEach((c) => c.addEventListener('click', () => pickFed(c.dataset.slug || '')))
+  // 打开即有答案:预选 1040,首屏直接展示核实日期
+  const defaultForm = (DATA.federal || []).find((f: { label: string }) =>
+    /1040 individual/.test(f.label),
   )
+  if (defaultForm) pickFed(defaultForm.slug)
+  fed?.addEventListener('change', () => pickFed(fed.value))
   st?.addEventListener('change', () =>
     render('states', st.value, document.getElementById('dlk-state-out') as HTMLElement),
   )
@@ -194,6 +220,33 @@ const payload = {
     background: var(--m-canvas, #fff);
     color: var(--m-ink);
   }
+  .dlk__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .dlk__chip {
+    font: inherit;
+    font-size: var(--m-text-sm, 0.9rem);
+    padding: 10px 14px;
+    min-height: 44px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    background: var(--m-canvas, #fff);
+    color: var(--m-ink-2);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .dlk__chip:hover {
+    border-color: var(--m-brand);
+    color: var(--m-ink);
+  }
+  .dlk__chip.is-active {
+    background: var(--m-brand);
+    border-color: var(--m-brand);
+    color: #fff;
+  }
   .dlk__result {
     margin-top: 16px;
     border-top: 1px solid var(--m-hairline-2);
@@ -210,6 +263,11 @@ const payload = {
     letter-spacing: var(--m-ls-eyebrow);
     text-transform: uppercase;
     color: var(--m-faint);
+  }
+  .dlk__row--hero dd {
+    font-size: var(--m-text-lg, 1.15rem);
+    font-weight: 600;
+    line-height: 1.4;
   }
   .dlk__row dd {
     margin: 2px 0 0;
