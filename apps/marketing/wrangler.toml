@@ -10,7 +10,7 @@ compatibility_date = "2025-04-01"
 # push touches apps/*. A red `ci` (even a docs formatting failure) silently
 # skips deploys for every later commit. Docs-only pushes skip the deploy
 # filter too — a green ci after one needs an apps/* touch to ship backlog.
-# (Trigger commits like this one are that touch.)
+# (Trigger commits like this one are that touch; last: 2026-07-29 H1 fix.)
 # `not_found_handling = "404-page"` looks for /404.html on misses
 # (vs SPA fallback used by apps/server). Astro emits 404.html when
 # present; otherwise Workers returns its default 404.
