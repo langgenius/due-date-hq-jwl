@@ -1,84 +1,85 @@
 [
   {
-    "id": "weekly-list-2026-07-28",
-    "kind": "multi",
+    "id": "weekly-agenda-2026-07-28",
+    "kind": "agenda",
     "locale": "zh",
     "format": "xhs",
     "source": {
       "level": "联邦",
       "org": "IRS",
-      "noticeId": "现行清单",
+      "noticeId": "本周待办",
       "verified": true
     },
-    "reason": "全美报税延期 · 每周更新",
-    "map": null,
-    "title": ["现行 IRS 报税延期", "全清单"],
-    "rows": [
+    "reason": "全美报税延期 · 按截止日排",
+    "title": [
+      "本周待办",
+      "IRS 报税延期"
+    ],
+    "groups": [
       {
-        "state": "WA",
-        "name": "华盛顿",
-        "scope": "风暴洪水",
-        "date": "8月5日"
+        "date": "8月5日",
+        "states": [
+          {
+            "name": "华盛顿",
+            "scope": "风暴洪水"
+          }
+        ],
+        "note": "还剩 8 天"
       },
       {
-        "state": "GA",
-        "name": "佐治亚",
-        "scope": "野火",
-        "date": "8月20日"
+        "date": "8月20日",
+        "states": [
+          {
+            "name": "佐治亚",
+            "scope": "野火"
+          },
+          {
+            "name": "夏威夷",
+            "scope": "风暴洪水"
+          }
+        ]
       },
       {
-        "state": "HI",
-        "name": "夏威夷",
-        "scope": "风暴洪水",
-        "date": "8月20日"
+        "date": "9月28日",
+        "states": [
+          {
+            "name": "亚利桑那",
+            "scope": "部落·风暴"
+          },
+          {
+            "name": "蒙大拿",
+            "scope": "Fort Peck"
+          },
+          {
+            "name": "蒙大拿",
+            "scope": "Crow"
+          }
+        ]
       },
       {
-        "state": "AZ",
-        "name": "亚利桑那",
-        "scope": "部落·风暴洪水",
-        "date": "9月28日"
-      },
-      {
-        "state": "MT",
-        "name": "蒙大拿",
-        "scope": "Fort Peck·冬季风暴",
-        "date": "9月28日"
-      },
-      {
-        "state": "MT",
-        "name": "蒙大拿",
-        "scope": "Crow·冬季风暴",
-        "date": "9月28日"
-      },
-      {
-        "state": "LA",
-        "name": "路易斯安那",
-        "scope": "热带风暴",
-        "date": "11月2日"
-      },
-      {
-        "state": "MI",
-        "name": "密歇根",
-        "scope": "风暴龙卷",
-        "date": "11月2日"
-      },
-      {
-        "state": "MS",
-        "name": "密西西比",
-        "scope": "风暴龙卷",
-        "date": "11月2日"
-      },
-      {
-        "state": "MP",
-        "name": "北马里亚纳",
-        "scope": "超强台风",
-        "date": "11月2日"
-      },
-      {
-        "state": "WI",
-        "name": "威斯康星",
-        "scope": "风暴龙卷",
-        "date": "11月2日"
+        "date": "11月2日",
+        "states": [
+          {
+            "name": "路易斯安那",
+            "scope": "热带风暴"
+          },
+          {
+            "name": "密歇根",
+            "scope": "风暴龙卷"
+          },
+          {
+            "name": "密西西比",
+            "scope": "风暴龙卷"
+          },
+          {
+            "name": "北马里亚纳",
+            "scope": "超强台风"
+          },
+          {
+            "name": "威斯康星",
+            "scope": "风暴龙卷"
+          }
+        ]
       }
     ],
     "footer": "共 11 条现行 · DueDateHQ 每周更新"

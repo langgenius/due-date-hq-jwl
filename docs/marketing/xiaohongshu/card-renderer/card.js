@@ -131,7 +131,19 @@ export async function renderCard(data) {
     .join('<br>')}</div>`
 
   let body = ''
-  if (kind === 'note') {
+  if (kind === 'agenda') {
+    /* 日程式:以截止日为主轴分组,州名做次级。最近一组可带 note(倒计时)高亮。 */
+    const groups = (data.groups || []).map((g) => {
+      const states = g.states
+        .map((s) => `<span class="ddhq__agst"><span class="ddhq__agsn">${esc(s.name)}</span>${s.scope ? ` <span class="ddhq__agss">${esc(s.scope)}</span>` : ''}</span>`)
+        .join('')
+      return `<div class="ddhq__ag">
+        <div class="ddhq__agh"><span class="ddhq__agd">${esc(g.date)}</span>${g.note ? `<span class="ddhq__agn">${esc(g.note)}</span>` : ''}</div>
+        <div class="ddhq__ags">${states}</div>
+      </div>`
+    }).join('')
+    body = `<div class="ddhq__agenda">${groups}</div>`
+  } else if (kind === 'note') {
     /* 第 2 页:实务提示单独成页。编号要点,字号放大到整页可读。 */
     const pts = (data.points || [])
       .map(
@@ -186,15 +198,16 @@ export async function renderCard(data) {
         <span class="ddhq__arw">&#8594;</span>${newSlot}</div>`
   }
 
+  const noBody = kind === 'note' || kind === 'agenda'
   const tags =
-    kind !== 'note' && (data.forms || []).length
+    !noBody && (data.forms || []).length
       ? `<div class="ddhq__tags">${data.forms
           .map((f) => `<span class="ddhq__tag${/^[\d-]/.test(f) ? ' mono' : ''}">${esc(f)}</span>`)
           .join('')}</div>`
       : ''
 
   const tip =
-    kind !== 'note' && data.tip
+    !noBody && data.tip
       ? `<div class="ddhq__tip"><div class="ddhq__tl">${esc(data.tip.label)}</div>
        <div class="ddhq__tb">${esc(data.tip.body)}</div></div>`
       : ''
