@@ -1089,7 +1089,7 @@ const guideUrls = [
   ),
   guidePage(
     'best-cpa-software-for-solo-firms',
-    'Best CPA Software for Solo Firms & Sole Practitioners (2026)',
+    'Best CPA Software for Solo Firms (2026) — CPA Field Guide',
     'Best software for solo CPA firms',
     'Software scoped and priced for a one-person US tax or accounting practice, grouped by what each does. Every price is a real starting figure.',
     seg('solo'),

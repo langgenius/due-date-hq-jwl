@@ -13,6 +13,7 @@ below, not done here.
 ## Fixed
 
 **P0 — factual (CPA-facing), verified against the cited irs.gov release:**
+
 - **"Samish" was listed among Washington's covered COUNTIES.** It is the Samish Indian
   Nation — one of the 25 covered tribal nations — and WA has no Samish County. The release
   covers **24 counties + 25 tribal nations**, not 25 counties. Samish was rendering 5–6× on
@@ -24,6 +25,7 @@ below, not done here.
   worked example silently fell through to filler and Georgia was repeated 3×. Slug fixed.
 
 **P1 — quality:**
+
 - **`getNoticeMeta` / `getNoticeFaq` lower-cased the whole `event` string**, mangling proper
   nouns ("tropical storm arthur", "san carlos apache tribe") in FAQ questions, meta
   descriptions, and the FAQPage rich-result JSON-LD. Now render the event verbatim (matches

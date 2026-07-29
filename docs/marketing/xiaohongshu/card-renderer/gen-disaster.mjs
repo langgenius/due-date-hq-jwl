@@ -10,62 +10,188 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const DATA = JSON.parse(fs.readFileSync(path.join(HERE, '.standby-data.json'), 'utf8'))
 
 // 中文月日:"October 10, 2025" → "2025 年 10月10日";newDate ISO "2026-09-28" → "9月28日"
-const MON = { January: 1, February: 2, March: 3, April: 4, May: 5, June: 6, July: 7, August: 8, September: 9, October: 10, November: 11, December: 12 }
+const MON = {
+  January: 1,
+  February: 2,
+  March: 3,
+  April: 4,
+  May: 5,
+  June: 6,
+  July: 7,
+  August: 8,
+  September: 9,
+  October: 10,
+  November: 11,
+  December: 12,
+}
 function incidentCN(s) {
   const m = s.match(/([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/)
   return m ? `${m[3]} 年 ${MON[m[1]]}月${+m[2]}日` : s
 }
-const mdCN = (iso) => { const [, mm, dd] = iso.split('-'); return `${+mm}月${+dd}日` }
-const mdEN = (iso) => { const [, mm, dd] = iso.split('-'); return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)) }
+const mdCN = (iso) => {
+  const [, mm, dd] = iso.split('-')
+  return `${+mm}月${+dd}日`
+}
+const mdEN = (iso) => {
+  const [, mm, dd] = iso.split('-')
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T00:00:00Z`))
+}
 
 // 受灾县名单解析:先去掉「and the … Reservation/Nation」尾巴,再去后缀、拆逗号/and。
 function parseAreaNames(area) {
   let a = area.replace(/,?\s+and\s+the\s+[^,]*?(reservation|nation|tribe)\b/gi, '')
   a = a.replace(/\b(counties|county|parishes|parish)\b/gi, '')
-  return a.split(/,|\band\b/).map((s) => s.trim()).filter(Boolean)
+  return a
+    .split(/,|\band\b/)
+    .map((s) => s.trim())
+    .filter(Boolean)
 }
 
-const FORM_CN = { individual: '1040', corporate: '1120', 's-corp': '1120-S', partnership: '1065', 'tax-exempt': '990', 'payroll-excise': '941', estimated: '预缴' }
+const FORM_CN = {
+  individual: '1040',
+  corporate: '1120',
+  's-corp': '1120-S',
+  partnership: '1065',
+  'tax-exempt': '990',
+  'payroll-excise': '941',
+  estimated: '预缴',
+}
 
 // 逐条配置(拿捏的部分:中文名、灾因、old→new 的 old 端、表单、封面词、部落名)。
 // old 端只用法定表里有的日期(4/15、6/15、9/15…),否则渲染器规则 4 会拦。
 const CFG = {
-  'AZ-2026-01': { cn: '亚利桑那', reason: '风暴洪水 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], tribe: 'San Carlos Apache 部落', cover: '亚利桑那灾区', areaZh: 'San Carlos Apache 部落' },
-  'MT-2026-03': { cn: '蒙大拿', reason: '冬季风暴 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], tribe: 'Fort Peck 部落', cover: '蒙大拿灾区', tag: 'Fort Peck', areaZh: 'Fort Peck 部落' },
-  'MT-2026-04': { cn: '蒙大拿', reason: '冬季风暴 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], tribe: 'Crow 部落', cover: '蒙大拿灾区', tag: 'Crow', areaZh: 'Crow 部落' },
-  'MS-2026-02': { cn: '密西西比', reason: '风暴龙卷 · 灾害减免', old: '6月15日', oldEn: 'Jun 15', forms: ['预缴', '941', '990'], unit: '县', cover: '密西西比灾区' },
-  'WI-2026-02': { cn: '威斯康星', reason: '风暴龙卷 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], unit: '县', cover: '威斯康星灾区', areaTail: '及 Oneida 部落保留地' },
-  'MI-2026-02': { cn: '密歇根', reason: '风暴龙卷 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], unit: '县', cover: '密歇根灾区' },
-  'LA-2026-02': { cn: '路易斯安那', reason: '热带风暴 · 灾害减免', old: '9月15日', oldEn: 'Sep 15', forms: ['预缴', '1120-S', '1065', '941'], unit: '堂区', cover: '路易斯安那' },
-  'NMI-2026-01': { cn: '北马里亚纳群岛', reason: '超强台风 · 灾害减免', old: '4月15日', oldEn: 'Apr 15', forms: ['1040', '1120', '1120-S', '1065', '预缴'], cover: '北马里亚纳', territory: 'Northern Islands、Rota、Saipan、Tinian', areaTail: '受灾岛屿:Northern Islands、Rota、Saipan、Tinian' },
+  'AZ-2026-01': {
+    cn: '亚利桑那',
+    reason: '风暴洪水 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    tribe: 'San Carlos Apache 部落',
+    cover: '亚利桑那灾区',
+    areaZh: 'San Carlos Apache 部落',
+  },
+  'MT-2026-03': {
+    cn: '蒙大拿',
+    reason: '冬季风暴 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    tribe: 'Fort Peck 部落',
+    cover: '蒙大拿灾区',
+    tag: 'Fort Peck',
+    areaZh: 'Fort Peck 部落',
+  },
+  'MT-2026-04': {
+    cn: '蒙大拿',
+    reason: '冬季风暴 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    tribe: 'Crow 部落',
+    cover: '蒙大拿灾区',
+    tag: 'Crow',
+    areaZh: 'Crow 部落',
+  },
+  'MS-2026-02': {
+    cn: '密西西比',
+    reason: '风暴龙卷 · 灾害减免',
+    old: '6月15日',
+    oldEn: 'Jun 15',
+    forms: ['预缴', '941', '990'],
+    unit: '县',
+    cover: '密西西比灾区',
+  },
+  'WI-2026-02': {
+    cn: '威斯康星',
+    reason: '风暴龙卷 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    unit: '县',
+    cover: '威斯康星灾区',
+    areaTail: '及 Oneida 部落保留地',
+  },
+  'MI-2026-02': {
+    cn: '密歇根',
+    reason: '风暴龙卷 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    unit: '县',
+    cover: '密歇根灾区',
+  },
+  'LA-2026-02': {
+    cn: '路易斯安那',
+    reason: '热带风暴 · 灾害减免',
+    old: '9月15日',
+    oldEn: 'Sep 15',
+    forms: ['预缴', '1120-S', '1065', '941'],
+    unit: '堂区',
+    cover: '路易斯安那',
+  },
+  'NMI-2026-01': {
+    cn: '北马里亚纳群岛',
+    reason: '超强台风 · 灾害减免',
+    old: '4月15日',
+    oldEn: 'Apr 15',
+    forms: ['1040', '1120', '1120-S', '1065', '预缴'],
+    cover: '北马里亚纳',
+    territory: 'Northern Islands、Rota、Saipan、Tinian',
+    areaTail: '受灾岛屿:Northern Islands、Rota、Saipan、Tinian',
+  },
 }
 
 const out = []
-const caps = ['# 灾害卡备用库 · 配文\n\n每条:小红书标题 + 小红书配文 + LinkedIn 配文。事实取自人工核实的 `disaster-notices.ts`。\nLinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速核一眼受灾名单。\n']
+const caps = [
+  '# 灾害卡备用库 · 配文\n\n每条:小红书标题 + 小红书配文 + LinkedIn 配文。事实取自人工核实的 `disaster-notices.ts`。\nLinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速核一眼受灾名单。\n',
+]
 for (const n of DATA) {
   const c = CFG[n.code]
-  if (!c) { console.error('无配置:', n.code); continue }
-  const newZh = mdCN(n.deadline), newEn = mdEN(n.deadline), incZh = incidentCN(n.incidentStart)
-  const isTribe = Boolean(c.tribe), isTerr = Boolean(c.territory)
+  if (!c) {
+    console.error('无配置:', n.code)
+    continue
+  }
+  const newZh = mdCN(n.deadline),
+    newEn = mdEN(n.deadline),
+    incZh = incidentCN(n.incidentStart)
+  const isTribe = Boolean(c.tribe),
+    isTerr = Boolean(c.territory)
   const enForms = c.forms.map((f) => (f === '预缴' ? 'Estimated' : f))
 
   // 县/堂区:解析 FIPS + 数量;部落/领地:无县,地图纯轮廓。
-  let fips = [], count = 0, applyZone
+  let fips = [],
+    count = 0,
+    applyZone
   if (!isTribe && !isTerr) {
     const names = parseAreaNames(n.affectedArea)
     const r = resolveCounties(n.abbreviation, names)
     if (r.errors.length) console.error(n.code, '县解析错误:', r.errors)
-    fips = r.fips; count = names.length; applyZone = `受灾${c.unit}`
+    fips = r.fips
+    count = names.length
+    applyZone = `受灾${c.unit}`
   } else {
     applyZone = isTerr ? '受灾岛屿' : '受灾部落领地'
   }
 
   // 部落卡:有短标签(Fort Peck / Crow)就写进标题以区分同州多条;否则退回「州+部落区」。
   const titleLoc = isTribe
-    ? (c.tag ? `${c.cn} ${c.tag}` : `${c.cn}部落区`)
-    : isTerr ? c.cn : `${c.cn} ${count} ${c.unit}`
+    ? c.tag
+      ? `${c.cn} ${c.tag}`
+      : `${c.cn}部落区`
+    : isTerr
+      ? c.cn
+      : `${c.cn} ${count} ${c.unit}`
   const map = { state: n.abbreviation, counties: fips }
-  const source = (loc) => ({ level: loc === 'en' ? 'Federal' : '联邦', org: 'IRS', noticeId: n.code, verified: true })
+  const source = (loc) => ({
+    level: loc === 'en' ? 'Federal' : '联邦',
+    org: 'IRS',
+    noticeId: n.code,
+    verified: true,
+  })
 
   // 覆盖表单中文串(note 用)
   const coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join(' / ')
@@ -78,7 +204,10 @@ for (const n of DATA) {
 
   // ── cover ──
   out.push({
-    id: `${n.slug}-cover`, kind: 'cover', locale: 'zh', format: 'xhs',
+    id: `${n.slug}-cover`,
+    kind: 'cover',
+    locale: 'zh',
+    format: 'xhs',
     eyebrow: `IRS 灾害延期 · ${c.cn}${c.tag ? ' ' + c.tag : ''}`,
     title: [c.cover, '报税延到', `[[${newZh}]]`],
     sub: `${isTribe ? c.tribe : isTerr ? '受灾岛屿' : `${count} 个受灾${c.unit}`},IRS 自动延期到 ${newZh}。有客户在灾区的会计师先收藏。`,
@@ -86,19 +215,30 @@ for (const n of DATA) {
   })
   // ── p1 数据 ──
   out.push({
-    id: `${n.slug}-p1`, kind: 'delay', locale: 'zh', format: 'xhs',
+    id: `${n.slug}-p1`,
+    kind: 'delay',
+    locale: 'zh',
+    format: 'xhs',
     source: source('zh'),
     reason: isTribe ? `${c.tribe} · 灾害减免` : c.reason,
-    map, title: [titleLoc, '报税延期'],
-    dateLabel: '联邦报税截止日', oldDate: c.old, newDate: newZh, forms: c.forms,
+    map,
+    title: [titleLoc, '报税延期'],
+    dateLabel: '联邦报税截止日',
+    oldDate: c.old,
+    newDate: newZh,
+    forms: c.forms,
     footer: `${newZh} 截止 · IRS 灾害减免`,
   })
   // ── p2 实务提示 ──
   out.push({
-    id: `${n.slug}-p2`, kind: 'note', locale: 'zh', format: 'xhs',
+    id: `${n.slug}-p2`,
+    kind: 'note',
+    locale: 'zh',
+    format: 'xhs',
     source: source('zh'),
     reason: isTribe ? `${c.tribe} · 灾害减免` : c.reason,
-    map, title: ['实务提示'],
+    map,
+    title: ['实务提示'],
     points: [
       `受灾期(${incZh} 起)原本到期的联邦申报与缴款,统一延至 2026 年 ${newZh}。`,
       applyPoint,
@@ -109,12 +249,25 @@ for (const n of DATA) {
   })
   // ── en 横版 ──
   out.push({
-    id: `${n.slug}-en`, kind: 'delay', locale: 'en', format: 'wide',
+    id: `${n.slug}-en`,
+    kind: 'delay',
+    locale: 'en',
+    format: 'wide',
     source: source('en'),
     reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
     map,
-    title: isTribe ? [`${n.state} tribal area`, 'Filing postponed'] : isTerr ? [n.state, 'Filing postponed'] : [`${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`, 'Filing postponed'],
-    dateLabel: 'FEDERAL FILING DEADLINE', oldDate: c.oldEn, newDate: newEn, forms: enForms,
+    title: isTribe
+      ? [`${n.state} tribal area`, 'Filing postponed']
+      : isTerr
+        ? [n.state, 'Filing postponed']
+        : [
+            `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`,
+            'Filing postponed',
+          ],
+    dateLabel: 'FEDERAL FILING DEADLINE',
+    oldDate: c.oldEn,
+    newDate: newEn,
+    forms: enForms,
     tip: {
       label: 'PRACTITIONER NOTE',
       body: `Covers federal returns and payments due on or after ${incidentCNtoEN(n.incidentStart)} through ${newEn}, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline.`,
@@ -123,26 +276,58 @@ for (const n of DATA) {
   })
 }
 
-function incidentCNtoEN(s) { const m = s.match(/([A-Za-z]+)\s+(\d{1,2})/); return m ? `${m[1].slice(0, 3)} ${+m[2]}` : s }
+function incidentCNtoEN(s) {
+  const m = s.match(/([A-Za-z]+)\s+(\d{1,2})/)
+  return m ? `${m[1].slice(0, 3)} ${+m[2]}` : s
+}
 
 // ── 配文(每条:小红书标题 + 小红书正文 + LinkedIn) ──
 for (const n of DATA) {
   const c = CFG[n.code]
-  const newZh = mdCN(n.deadline), newEn = mdEN(n.deadline), incZh = incidentCN(n.incidentStart), incEn = incidentCNtoEN(n.incidentStart)
-  const isTribe = Boolean(c.tribe), isTerr = Boolean(c.territory)
+  const newZh = mdCN(n.deadline),
+    newEn = mdEN(n.deadline),
+    incZh = incidentCN(n.incidentStart),
+    incEn = incidentCNtoEN(n.incidentStart)
+  const isTribe = Boolean(c.tribe),
+    isTerr = Boolean(c.territory)
   const eventCN = c.reason.split(' · ')[0]
   const coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join('、')
   const enForms = c.forms.map((f) => (f === '预缴' ? 'estimated payments' : `Form ${f}`)).join(', ')
-  let count = 0, unit = c.unit || '县', areaDescZh, areaDescEn, locZh, locEn
-  if (isTribe) { areaDescZh = c.tribe; areaDescEn = c.tribe.replace(' 部落', ' Tribe'); locZh = `${n.state === 'Arizona' ? '亚利桑那' : '蒙大拿'} ${c.tribe}`; locEn = areaDescEn }
-  else if (isTerr) { areaDescZh = c.territory; areaDescEn = 'Northern Islands, Rota, Saipan, and Tinian'; locZh = c.cn; locEn = n.state }
-  else {
-    const names = parseAreaNames(n.affectedArea); count = names.length
-    areaDescZh = count <= 6 ? `${names.join('、')}${unit === '堂区' ? ' 等 ' + count + ' 个堂区' : ' 等 ' + count + ' 县'}` : `${count} 个${unit}(完整名单见公告 ${n.code})`
-    areaDescEn = count <= 6 ? `${names.join(', ')}` : `${count} ${unit === '堂区' ? 'parishes' : 'counties'} (see ${n.code} for the full list)`
-    locZh = `${c.cn} ${count} ${unit}`; locEn = `${count} ${n.state} ${unit === '堂区' ? 'parishes' : 'counties'}`
+  let count = 0,
+    unit = c.unit || '县',
+    areaDescZh,
+    areaDescEn,
+    locZh,
+    locEn
+  if (isTribe) {
+    areaDescZh = c.tribe
+    areaDescEn = c.tribe.replace(' 部落', ' Tribe')
+    locZh = `${n.state === 'Arizona' ? '亚利桑那' : '蒙大拿'} ${c.tribe}`
+    locEn = areaDescEn
+  } else if (isTerr) {
+    areaDescZh = c.territory
+    areaDescEn = 'Northern Islands, Rota, Saipan, and Tinian'
+    locZh = c.cn
+    locEn = n.state
+  } else {
+    const names = parseAreaNames(n.affectedArea)
+    count = names.length
+    areaDescZh =
+      count <= 6
+        ? `${names.join('、')}${unit === '堂区' ? ' 等 ' + count + ' 个堂区' : ' 等 ' + count + ' 县'}`
+        : `${count} 个${unit}(完整名单见公告 ${n.code})`
+    areaDescEn =
+      count <= 6
+        ? `${names.join(', ')}`
+        : `${count} ${unit === '堂区' ? 'parishes' : 'counties'} (see ${n.code} for the full list)`
+    locZh = `${c.cn} ${count} ${unit}`
+    locEn = `${count} ${n.state} ${unit === '堂区' ? 'parishes' : 'counties'}`
   }
-  const applyZh = isTribe ? '位于该部落领地内的自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请' : isTerr ? '位于受灾岛屿的自动适用;岛外但账册或记账人在内的,需致电 IRS 灾害热线申请' : `地址在受灾${unit}内的自动适用;${unit}外但账册或记账人在内的,需致电 IRS 灾害热线申请`
+  const applyZh = isTribe
+    ? '位于该部落领地内的自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请'
+    : isTerr
+      ? '位于受灾岛屿的自动适用;岛外但账册或记账人在内的,需致电 IRS 灾害热线申请'
+      : `地址在受灾${unit}内的自动适用;${unit}外但账册或记账人在内的,需致电 IRS 灾害热线申请`
 
   caps.push(`\n---\n\n## ${n.state} · ${eventCN}(${n.code}) —— 截止 ${newZh}
 
@@ -184,4 +369,6 @@ Source: IRS notice ${n.code}.
 
 fs.writeFileSync(path.join(HERE, 'standby-notices.json'), JSON.stringify(out, null, 2))
 fs.writeFileSync(path.join(HERE, 'standby-captions.md'), caps.join('\n'))
-console.log(`生成 ${out.length} 张(${DATA.length} 条 × 4)→ standby-notices.json + standby-captions.md`)
+console.log(
+  `生成 ${out.length} 张(${DATA.length} 条 × 4)→ standby-notices.json + standby-captions.md`,
+)

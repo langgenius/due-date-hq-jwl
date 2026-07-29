@@ -93,8 +93,7 @@ let html =
   `<p style="margin:0 0 6px;font-size:20px;line-height:1.35;font-weight:600;color:#101828;letter-spacing:-.015em">This week in IRS deadline changes</p>` +
   `<p style="margin:0 0 4px;font-size:13px;color:#667085">${dateLabel} · ${fresh.length ? `${fresh.length} new this week` : 'no new relief this week'} · ${soon.length} coming due within 30 days · every date verified against irs.gov</p>`
 
-if (fresh.length)
-  html += section(`New this week (${fresh.length})`, fresh.map(card).join(''))
+if (fresh.length) html += section(`New this week (${fresh.length})`, fresh.map(card).join(''))
 
 if (soon.length)
   html += section(`Coming due within 30 days (${soon.length})`, soon.map(card).join(''))
