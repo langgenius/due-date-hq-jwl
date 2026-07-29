@@ -37,17 +37,10 @@
 
 ```
 California PTE elective tax (PTET) — extended through 2030 under SB 132.
-
-California just kept its pass-through entity elective tax — the SALT-cap workaround — alive: SB 132 (signed June 2025) makes the PTET available for tax years 2026 through 2030. It had been set to expire after 2025.
-
-What's new for 2026 onward:
-• June 15 prepayment: a late or underpaid June 15 prepayment no longer disqualifies the election (under the old rules, missing it did).
-• The trade-off: the owner's PTE credit is reduced by 12.5% of that owner's share of the amount due but unpaid by June 15.
-• The FTB has updated Forms 3804, 3893, and 3804-CR for 2026.
-
-If you have California PTE clients, the election survives — but the 2026 prepayment mechanics changed.
-
-Which of your clients does this affect? California FTB source (SB 132) in the comments.
-
+SB 132 (signed June 2025) keeps California's pass-through entity elective tax — the SALT-cap workaround — available for tax years 2026 through 2030; it had been set to expire after 2025. What's new for 2026:
+• June 15 prepayment no longer disqualifies the election if it's late or underpaid (it used to).
+• But the owner's PTE credit is reduced by 12.5% of that owner's share of the amount due but unpaid.
+• Updated Forms 3804, 3893, and 3804-CR apply.
+The election survives, but the 2026 prepayment mechanics changed. Which of your California clients does this affect? California FTB source (SB 132) in the comments.
 #PTET #SALT #CaliforniaTax #StateAndLocalTax #CPA #TaxPlanning
 ```

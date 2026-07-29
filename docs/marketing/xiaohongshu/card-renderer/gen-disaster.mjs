@@ -364,16 +364,11 @@ ${incZh} 起,${areaDescZh}发生${eventCN}灾害。IRS 据此发布灾害减免(
 #美国报税 #CPA #注册会计师 #IRS #华人会计师 #报税季 #EA #${c.cn}
 \`\`\`
 
-**LinkedIn 配文**(搜索优化:首行=搜索磁石,正文含全州名/灾害名/公告号/日期)
+**LinkedIn 配文**(首行=搜索磁石;正文紧凑,含全州名/灾害名/公告号/日期)
 \`\`\`
 IRS tax deadline extension — ${n.state}.
-
-The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} (IRS disaster relief ${n.code}; incident began ${n.incidentStart}). If you have clients in ${areaDescEn}, their federal filing and payment deadlines have moved.
-
-Covered — federal returns and payments originally due on or after ${incEn} through ${newEn}, 2026, including ${enForms}. Relief is automatic if the taxpayer's address of record is in the covered area; if a client is outside it but their records or preparer are inside, call the IRS disaster hotline.
-
-Which of your clients does this affect? Official IRS source in the comments.
-
+The IRS has postponed federal tax deadlines to ${newEn}, 2026 for ${n.state} taxpayers affected by ${n.event} (relief ${n.code}). Clients in ${areaDescEn} now have moved federal filing and payment deadlines — returns and payments due on or after ${incEn} through ${newEn}, 2026 (${enForms}). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
+Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #${n.state.replace(/\s+/g, '')}
 \`\`\`
 `)

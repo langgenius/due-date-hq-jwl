@@ -100,3 +100,4 @@ Every entry is transcribed from the official IRS release. Follow for the updated
 - [ ] 结尾有互动钩子(问题 / "save this")
 - [ ] 外链放首条评论,不放正文
 - [ ] 主题与上周栏目一致(建权威)
+- [ ] **排版紧凑,别一句一空行** —— 首行钩子单独一行,其余合成 1–2 段密文;要点用 • 但要点之间不加空行。整条 3–4 块就够(钩子/正文/问题/标签)。
