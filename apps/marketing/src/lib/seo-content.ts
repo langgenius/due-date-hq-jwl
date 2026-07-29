@@ -845,6 +845,47 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
     },
   },
   {
+    slug: 'form-2290-heavy-vehicle-deadline',
+    label: 'Form 2290 heavy vehicle use tax deadline',
+    labelZh: 'Form 2290 重型车辆使用税截止日',
+    sourceContext: 'IRS Trucking Tax Center guidance and Form 2290 instructions',
+    sourceContextZh: 'IRS Trucking Tax Center 指南与 Form 2290 说明',
+    operationalRisk:
+      'the 2290 clock runs from first-use month, not the calendar year — fleet clients adding vehicles mid-season create rolling deadlines that a static annual calendar misses',
+    operationalRiskZh:
+      '2290 的时钟从首次使用月起算，不按日历年——车队客户季中添车会产生滚动截止日，静态年历接不住',
+    clientContext:
+      'vehicle first-use months, fleet changes, taxable gross weight, owner, and evidence state',
+    clientContextZh: '车辆首次使用月份、车队变动、应税总重、负责人和证据状态',
+    keyDates: {
+      sourceLabel: 'IRS — Trucking Tax Center',
+      sourceHref:
+        'https://www.irs.gov/businesses/small-businesses-self-employed/trucking-tax-center',
+      rows: [
+        {
+          label: 'Annual filing season',
+          labelZh: '年度申报季',
+          value:
+            'For vehicles first used on a public highway in July, file Form 2290 between July 1 and August 31.',
+          valueZh: '7 月首次上公路使用的车辆，在 7 月 1 日至 8 月 31 日之间申报 Form 2290。',
+        },
+        {
+          label: 'Mid-season first use',
+          labelZh: '季中首次使用',
+          value:
+            'File by the last day of the month following the month the vehicle was first used on a public highway; tax is prorated.',
+          valueZh: '在首次上公路使用月份的次月最后一天前申报；税额按比例折算。',
+        },
+        {
+          label: 'Registration note',
+          labelZh: '登记提示',
+          value: 'The filing deadline is not tied to the vehicle registration renewal date.',
+          valueZh: '申报截止日与车辆登记续期日期无关。',
+        },
+      ],
+    },
+  },
+  {
     slug: 's-corp-deadline-operations',
     label: 'S-Corp deadline operations',
     labelZh: 'S-Corp 截止日运营',
