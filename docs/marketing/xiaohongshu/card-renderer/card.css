@@ -331,9 +331,17 @@
 }
 .ddhq__rd {
   font-size: var(--s-title);
-  font-weight: 700;
+  font-weight: 500;
   color: var(--ink);
 }
+/* 清单卡:标题缩小减重,别占半屏、别一屏全粗体 */
+.ddhq--multi .ddhq__h {
+  font-weight: 600;
+  font-size: 68px;
+  line-height: 1.18;
+  margin-top: 30px;
+}
+.ddhq--multi .ddhq__rs { font-weight: 400; }
 
 /* ---- forms ---- */
 .ddhq__tags {
