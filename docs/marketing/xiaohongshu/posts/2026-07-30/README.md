@@ -30,7 +30,8 @@ IRS 报税延期本周清单,按截止日排。最紧的是华盛顿:8月5日,�
 #美国报税 #CPA #注册会计师 #IRS #华人会计师 #报税季 #EA #报税延期
 ```
 
-**LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Disaster Relief — All 11 Open Federal Tax Deadline Extensions (Jul 30, 2026)`
+**LinkedIn 文档标题**(上传时必填,参与搜索):`All 11 Open IRS Tax Deadline Extensions, Ranked (Jul 30, 2026)`
+(数字开头抓眼 + 完整含搜索短语 "IRS tax deadline extension" + 日期表新鲜;每周更新只改日期)
 
 **LinkedIn 配文**(发**文档帖**:上传 `weekly-li-carousel-2026-07-30.pdf`)
 
