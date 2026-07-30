@@ -1027,7 +1027,7 @@ const zhCN: LandingCopy = {
           eyebrow: '州覆盖 · TX',
           title: 'Texas 州税务截止日与 franchise tax 信号，源自官方。',
           description:
-            'DueDateHQ 监控 Texas Comptroller 公开更新，并在信号可能影响截止日分诊时保留来源证据。',
+            '德州 Franchise Tax 年度报告于 5 月 15 日到期，可按申请延期——依 Texas Comptroller。DueDateHQ 让该日期带来源并盯住变化。',
           note: 'Texas 覆盖是产品监控范围，应对照官方来源核验。',
         },
         sourceTypes: [
@@ -1152,7 +1152,7 @@ const zhCN: LandingCopy = {
           eyebrow: '州覆盖 · WA',
           title: 'Washington 州税务截止日，与官方来源绑定。',
           description:
-            'DueDateHQ 监控 Washington Department of Revenue 公开材料中可能需要 CPA 来源复核的申报信号。',
+            '华盛顿州 excise 合并申报（B&O+销售/使用税）：月报于次月 25 日前、季报于季度结束后次月底前、年报于 4 月 15 日前——依 WA DOR。DueDateHQ 让每个日期都带来源。',
           note: 'Washington 覆盖是软件范围，不构成税务建议。',
         },
         sourceTypes: [

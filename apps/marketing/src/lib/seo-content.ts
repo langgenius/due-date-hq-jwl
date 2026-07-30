@@ -1626,7 +1626,9 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       hero: {
         eyebrow: `州覆盖 · ${spec.abbreviation}`,
         title: `${spec.name} 州税务截止日，紧盯 ${spec.agency} 官方来源。`,
-        description: `DueDateHQ 紧盯 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能改变事务所申报截止日时，保留来源、摘录、复核状态和客户匹配上下文。`,
+        description: deadlineSnippet
+          ? `${deadlineSnippet} DueDateHQ 紧盯 ${spec.agency} 官方来源，日期变动时保留来源、摘录与复核状态。`
+          : `DueDateHQ 紧盯 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能改变事务所申报截止日时，保留来源、摘录、复核状态和客户匹配上下文。`,
         note: `${spec.name} 覆盖只描述软件监控范围，不是税务建议。`,
       },
       sourceTypes: [
@@ -1676,7 +1678,11 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     hero: {
       eyebrow: `STATE COVERAGE · ${spec.abbreviation}`,
       title: `${spec.name} tax deadlines, watched at the ${spec.agency} source.`,
-      description: `DueDateHQ watches public ${spec.agency} ${spec.sourceSurface} and keeps the source, excerpt, and review state attached when ${spec.signal} may move a CPA filing deadline.`,
+      // AEO: the first sentence a snippet extractor sees is the verified answer,
+      // not product copy — the product sentence follows it.
+      description: deadlineSnippet
+        ? `${deadlineSnippet} DueDateHQ watches public ${spec.agency} sources and keeps the source, excerpt, and review state attached when a date moves.`
+        : `DueDateHQ watches public ${spec.agency} ${spec.sourceSurface} and keeps the source, excerpt, and review state attached when ${spec.signal} may move a CPA filing deadline.`,
       note: `${spec.name} coverage describes monitoring scope, not tax advice.`,
     },
     sourceTypes: [

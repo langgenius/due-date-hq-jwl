@@ -1050,7 +1050,7 @@ const en: LandingCopy = {
           eyebrow: 'STATE COVERAGE · TX',
           title: 'Texas tax deadlines and franchise-tax signals, at the source.',
           description:
-            'DueDateHQ monitors public Texas Comptroller-facing updates and keeps source evidence attached when a signal may affect deadline triage.',
+            'The Texas Franchise Tax annual report is due May 15, with extensions available by request — per the Texas Comptroller. DueDateHQ keeps that date source-backed and watches for changes.',
           note: 'Texas coverage is product monitoring scope and should be verified against official sources.',
         },
         sourceTypes: [
@@ -1176,7 +1176,7 @@ const en: LandingCopy = {
           eyebrow: 'STATE COVERAGE · WA',
           title: 'Washington tax deadlines, tied to official sources.',
           description:
-            'DueDateHQ monitors public Washington Department of Revenue-facing material for filing signals that may need source-backed CPA review.',
+            'Washington excise tax returns (B&O + sales/use, combined): monthly filers by the 25th of the following month, quarterly by the end of the month after the quarter, annual by April 15 — per the WA DOR. DueDateHQ keeps each date source-backed.',
           note: 'Washington coverage is software scope, not tax advice.',
         },
         sourceTypes: [
