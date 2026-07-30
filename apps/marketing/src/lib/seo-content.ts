@@ -4848,6 +4848,19 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceLabel: 'WA Department of Revenue — Filing frequencies & due dates',
     sourceHref: 'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates',
   },
+  'north-dakota': {
+    name: 'North Dakota',
+    label: 'Form 40 North Dakota Corporation Income Tax Return',
+    labelZh: 'Form 40 北达科他州公司所得税申报',
+    // Verified 2026-07-31 on tax.nd.gov corporate income tax page: due April 15;
+    // fiscal filers the 15th day of the 4th month after year end; weekend/state-
+    // holiday dates may shift.
+    due: 'April 15 for calendar-year filers; fiscal filers by the 15th day of the 4th month after the tax year ends. The date may shift if it lands on a weekend or state holiday.',
+    dueZh:
+      '日历年纳税人为 4 月 15 日；财年纳税人为税年结束后第 4 个月的第 15 天。落在周末或州假日时日期可能顺延。',
+    sourceLabel: 'North Dakota Office of State Tax Commissioner — Corporate Income Tax',
+    sourceHref: 'https://www.tax.nd.gov/business/corporate-income-tax',
+  },
   ohio: {
     name: 'Ohio',
     label: 'Commercial Activity Tax (CAT) quarterly returns',
@@ -5481,6 +5494,28 @@ export interface ResourceLink {
 const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[] = [
   { href: '/rules', label: 'Rule library', labelZh: '规则库' },
   { href: '/deadline-lookup', label: 'Deadline lookup tool', labelZh: '截止日快查工具' },
+  { href: '/states/ohio', label: 'Ohio tax deadlines (CAT)', labelZh: 'Ohio 州税截止日（CAT）' },
+  {
+    href: '/states/washington',
+    label: 'Washington excise deadlines',
+    labelZh: '华盛顿州 excise 截止日',
+  },
+  {
+    href: '/states/north-carolina',
+    label: 'North Carolina tax deadlines',
+    labelZh: '北卡州税截止日',
+  },
+  {
+    href: '/states/new-hampshire',
+    label: 'New Hampshire tax deadlines',
+    labelZh: '新罕布什尔州税截止日',
+  },
+  { href: '/states/michigan', label: 'Michigan tax deadlines', labelZh: '密歇根州税截止日' },
+  {
+    href: '/states/north-dakota',
+    label: 'North Dakota tax deadlines',
+    labelZh: '北达科他州税截止日',
+  },
   { href: '/state-coverage', label: 'State coverage', labelZh: '州覆盖' },
   { href: '/resources', label: 'All resources', labelZh: '全部资源' },
   {
