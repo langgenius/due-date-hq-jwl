@@ -13,6 +13,10 @@ Operational CLI utilities (docs/dev-file/08 §1).
   directory, compares generator-owned HTML/text/XML with committed output, rejects stale pages, and
   verifies canonical serialization of the outreach send-state JSON. Wired into
   `pnpm generated:check`, `pnpm run ci`, and the tracked pre-push hook.
+- `install-git-hooks.mjs` — points the clone-local `core.hooksPath` directly at the tracked
+  `.vite-hooks/` directory and verifies that both submission hooks are executable. Root `prepare`
+  invokes it automatically after dependency installation; `pnpm hooks:install` repairs an existing
+  clone explicitly.
 
 Planned (Phase 0 / Phase 1):
 

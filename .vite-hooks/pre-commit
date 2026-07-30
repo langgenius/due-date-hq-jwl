@@ -1,1 +1,12 @@
-vp staged
+#!/usr/bin/env sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if [ ! -x node_modules/.bin/vp ]; then
+  echo 'pre-commit: node_modules/.bin/vp is missing; run pnpm install before committing.' >&2
+  exit 1
+fi
+
+node_modules/.bin/vp staged

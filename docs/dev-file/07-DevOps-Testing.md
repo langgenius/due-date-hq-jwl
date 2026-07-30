@@ -187,10 +187,13 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 - CI 将 GitHub environment secrets 写入临时 JSON，并通过 Wrangler `--secrets-file` 随 Worker
   deploy 上传到 Cloudflare；secret 文件只存在于 runner 临时目录，不进入仓库。
 
-### 2.4 本地 Git hooks（pre-commit）
+### 2.4 本地 Git hooks（pre-commit / pre-push）
 
-- `pnpm prepare`（= `vp config`，`vp install` 也会触发）生成 `.vite-hooks/` 并把
-  `core.hooksPath` 指向 `.vite-hooks/_`；`.vite-hooks/pre-commit` 的内容就是一行 `vp staged`。
+- `pnpm run prepare`（`vp install` / `pnpm install` 都会触发）先运行 `vp config --no-hooks`，
+  再由 `scripts/install-git-hooks.mjs` 把 clone-local `core.hooksPath` 直接指向版本控制中的
+  `.vite-hooks/`。安装器要求 `pre-commit` 和 `pre-push` 都存在且可执行；不再依赖可被
+  `VITE_GIT_HOOKS=0` 跳过的 Vite+ dispatcher。已有 clone 可运行一次 `pnpm hooks:install`
+  修复配置。
 - `vp staged` 只接收 staged 文件，按根 `vite.config.ts` 的 `staged` 块执行：`'*'` →
   `vp check --fix`，`DESIGN.md` → `npx --yes @google/design.md lint`；全仓检查归 CI。
 - 版本控制中的 `.vite-hooks/pre-push` 在 push 前运行 `pnpm run prepush`，即完整
@@ -206,6 +209,10 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   后 catalog 与 index 不一致都会 deny commit。它是 Claude 的提前反馈层，根 CI / pre-push /
   hosted Lingui workflow 仍是不可替代的仓库边界。
 - worktree 没有 node_modules 时先 symlink 主 checkout 的依赖再正常 commit，不要绕过 hook。
+- 这是自动化而非不可绕过的服务器门禁：正常 `git push` 会自动执行，但 Git 原生
+  `--no-verify` 或完全跳过 dependency lifecycle scripts 仍可绕过本地 hook。若允许直接 push
+  `main`，GitHub Actions 只能在接收 commit 后运行；要获得服务器端“红灯不得进入 main”，必须
+  改为先在其他 ref 产生 required checks（通常是 PR/分支流程）。
 
 ### 2.5 Generator contract
 

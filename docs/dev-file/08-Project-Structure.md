@@ -679,7 +679,9 @@ export default defineConfig({
 })
 ```
 
-首次 clone 后运行 `vp install` 时会自动注册 git hook（等价 `lefthook install`），不再单独维护 `lefthook.yml`。
+首次 clone 后运行 `vp install` / `pnpm install` 时，根 `prepare` 会用
+`scripts/install-git-hooks.mjs` 把 `core.hooksPath` 直接指向版本控制中的 `.vite-hooks/`；
+不再单独维护 `lefthook.yml` 或依赖 Vite+ dispatcher。
 
 传统等价对照（仅供参考，不再作为约束）：
 
@@ -711,10 +713,11 @@ pre-push:
 
 ### 11.2 Vite+ `pre-push`（全仓第二层防线）
 
-`.vite-hooks/pre-push` 是版本控制入口；`vp config` 生成的内部 dispatcher 会调用它。pre-push
-要求本地依赖已安装，然后运行 `pnpm run prepush`。该命令检查完整 workspace，而不是只检查
-staged files，因此能捕获未安装/绕过 pre-commit 后进入 commit 的格式、类型、测试、build 与
-generator drift。它仍可被本地 Git 机制绕过，服务器端 required checks 才是不可替代的最终边界。
+`.vite-hooks/pre-push` 是版本控制入口；`scripts/install-git-hooks.mjs` 让 Git 直接调用它。
+pre-push 要求本地依赖已安装，然后运行 `pnpm run prepush`。该命令检查完整 workspace，而不是
+只检查 staged files，因此能捕获未安装/绕过 pre-commit 后进入 commit 的格式、类型、测试、
+build 与 generator drift。它仍可被 `git push --no-verify` 绕过；在保留直推 `main` 的前提下，
+hosted CI 只能事后报告，无法在服务器接收 commit 前提供 required-check 门禁。
 
 ---
 
