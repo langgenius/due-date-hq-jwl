@@ -1,0 +1,218 @@
+[
+  {
+    "id": "wa-final-2026-07-31-cover",
+    "kind": "cover",
+    "locale": "zh",
+    "format": "xhs",
+    "eyebrow": "IRS 灾害延期 · 最后提醒",
+    "title": ["华盛顿 24 县", "下周三截止", "[[还剩 5 天]]"],
+    "sub": "8月5日 = 下周三。过完这个周末,只剩周一周二两个工作日。有华盛顿客户的会计师,今天核对完再下班。",
+    "footer": "WA-2025-03 · 8月5日 截止"
+  },
+  {
+    "id": "wa-final-2026-07-31-p1",
+    "kind": "delay",
+    "locale": "zh",
+    "format": "xhs",
+    "source": {
+      "level": "联邦",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "风暴洪水 · 灾害减免",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53003",
+        "53005",
+        "53007",
+        "53009",
+        "53011",
+        "53015",
+        "53023",
+        "53027",
+        "53031",
+        "53033",
+        "53037",
+        "53039",
+        "53041",
+        "53045",
+        "53049",
+        "53051",
+        "53053",
+        "53057",
+        "53059",
+        "53061",
+        "53067",
+        "53069",
+        "53073",
+        "53077"
+      ]
+    },
+    "title": ["华盛顿 24 县", "报税延期"],
+    "dateLabel": "联邦报税截止日",
+    "oldDate": "4月15日",
+    "newDate": "8月5日",
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
+    "footer": "距 8月5日 截止还剩 5 天 · IRS 灾害减免"
+  },
+  {
+    "id": "wa-final-2026-07-31-p2",
+    "kind": "note",
+    "locale": "zh",
+    "format": "xhs",
+    "source": {
+      "level": "联邦",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "风暴洪水 · 灾害减免",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53003",
+        "53005",
+        "53007",
+        "53009",
+        "53011",
+        "53015",
+        "53023",
+        "53027",
+        "53031",
+        "53033",
+        "53037",
+        "53039",
+        "53041",
+        "53045",
+        "53049",
+        "53051",
+        "53053",
+        "53057",
+        "53059",
+        "53061",
+        "53067",
+        "53069",
+        "53073",
+        "53077"
+      ]
+    },
+    "title": ["实务提示"],
+    "points": [
+      "受灾期(2025 年 12月9日 起)原本到期的联邦申报与缴款,统一延至 2026 年 8月5日 —— 已是最后期限,别再等新延期。",
+      "地址在受灾县内的纳税人自动适用,无需申请;县外但账册或记账人在县内的,需致电 IRS 灾害热线申请。",
+      "覆盖个人 1040、企业 1120 / 1120-S / 1065、遗产信托 1041、免税组织 990、工资税 941 / 940 及季度预缴等。",
+      "受灾范围 = 24 县 + 25 个部落领地;完整名单以 irs.gov 公告 WA-2025-03 为准。"
+    ],
+    "footer": "来源:IRS 公告 WA-2025-03 · 8月5日 截止"
+  },
+  {
+    "id": "wa-final-2026-07-31-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · final reminder",
+    "title": ["Washington:", "5 days to", "[[Aug 5]]"],
+    "sub": "Aug 5, 2026 is next Wednesday — after this weekend, two working days remain. 24 Washington counties and 25 tribal nations, deadlines automatically postponed under WA-2025-03. Swipe →",
+    "footer": "WA-2025-03 · Source: IRS"
+  },
+  {
+    "id": "wa-final-2026-07-31-li-2data",
+    "kind": "delay",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "Severe storms, flooding, landslides · Disaster relief",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53003",
+        "53005",
+        "53007",
+        "53009",
+        "53011",
+        "53015",
+        "53023",
+        "53027",
+        "53031",
+        "53033",
+        "53037",
+        "53039",
+        "53041",
+        "53045",
+        "53049",
+        "53051",
+        "53053",
+        "53057",
+        "53059",
+        "53061",
+        "53067",
+        "53069",
+        "53073",
+        "53077"
+      ]
+    },
+    "title": ["24 Washington counties", "Filing postponed"],
+    "dateLabel": "FEDERAL FILING DEADLINE",
+    "oldDate": "Apr 15",
+    "newDate": "Aug 5",
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
+    "footer": "Postponed to Aug 5, 2026 · IRS disaster relief"
+  },
+  {
+    "id": "wa-final-2026-07-31-li-3note",
+    "kind": "note",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "IRS",
+      "noticeId": "WA-2025-03",
+      "verified": true
+    },
+    "reason": "Severe storms, flooding, landslides · Disaster relief",
+    "map": {
+      "state": "WA",
+      "counties": [
+        "53003",
+        "53005",
+        "53007",
+        "53009",
+        "53011",
+        "53015",
+        "53023",
+        "53027",
+        "53031",
+        "53033",
+        "53037",
+        "53039",
+        "53041",
+        "53045",
+        "53049",
+        "53051",
+        "53053",
+        "53057",
+        "53059",
+        "53061",
+        "53067",
+        "53069",
+        "53073",
+        "53077"
+      ]
+    },
+    "title": ["Practitioner note"],
+    "points": [
+      "The IRS postponed federal deadlines to Aug 5, 2026 for 24 Washington counties and 25 tribal nations (relief WA-2025-03). That is next Wednesday.",
+      "Covers federal returns and payments due on or after Dec 9, 2025 — 1040, 1120, 1120-S, 1065, Estimated included.",
+      "Automatic for an IRS address of record in the area — no application needed. Records or preparer inside but client outside? Call the IRS disaster hotline.",
+      "Full affected list: irs.gov relief notice WA-2025-03."
+    ],
+    "footer": "Source: IRS relief WA-2025-03 · Deadline Aug 5, 2026"
+  }
+]
