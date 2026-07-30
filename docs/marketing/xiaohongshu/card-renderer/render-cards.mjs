@@ -98,7 +98,14 @@ for (let i = 0; i < items.length; i++) {
   }
 
   await pg.locator('.ddhq').screenshot({ path: path.join(outDir, `${name}.png`) })
-  const h = items[i].format === 'wide' ? 1080 : items[i].format === 'dy' ? 1920 : items[i].format === 'li' ? 1350 : 1440
+  const h =
+    items[i].format === 'wide'
+      ? 1080
+      : items[i].format === 'dy'
+        ? 1920
+        : items[i].format === 'li'
+          ? 1350
+          : 1440
   const w = items[i].format === 'wide' ? 1920 : 1080
   console.log(`${name}.png  ${w * scale}x${h * scale}`)
 }

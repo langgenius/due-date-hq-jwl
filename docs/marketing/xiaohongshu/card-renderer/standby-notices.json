@@ -5,11 +5,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 夏威夷",
-    "title": [
-      "夏威夷灾区",
-      "报税延到",
-      "[[8月20日]]"
-    ],
+    "title": ["夏威夷灾区", "报税延到", "[[8月20日]]"],
     "sub": "4 个受灾县,IRS 自动延期到 8月20日。有客户在灾区的会计师先收藏。",
     "footer": "HI-2026-01 · 来源 IRS"
   },
@@ -27,27 +23,13 @@
     "reason": "风暴洪水 · 灾害减免",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "title": [
-      "夏威夷 4 县",
-      "报税延期"
-    ],
+    "title": ["夏威夷 4 县", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "8月20日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "8月20日 截止 · IRS 灾害减免"
   },
   {
@@ -64,16 +46,9 @@
     "reason": "风暴洪水 · 灾害减免",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 3月10日 起)原本到期的联邦申报与缴款,统一延至 2026 年 8月20日。",
       "地址在受灾县内的自动适用,无需申请;县外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -96,27 +71,13 @@
     "reason": "Severe storms, flooding and mudslides · Disaster relief",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "title": [
-      "4 Hawaii counties",
-      "Filing postponed"
-    ],
+    "title": ["4 Hawaii counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Aug 20",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Mar 10, 2026 through Aug 20, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -129,11 +90,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · HI-2026-01",
-    "title": [
-      "Hawaii filing",
-      "extended to",
-      "[[Aug 20]]"
-    ],
+    "title": ["Hawaii filing", "extended to", "[[Aug 20]]"],
     "sub": "4 Hawaii counties — federal filing and payment deadlines automatically postponed to Aug 20, 2026. Swipe for the details →",
     "footer": "HI-2026-01 · Source: IRS"
   },
@@ -151,27 +108,13 @@
     "reason": "Severe storms, flooding and mudslides · Disaster relief",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "title": [
-      "4 Hawaii counties",
-      "Filing postponed"
-    ],
+    "title": ["4 Hawaii counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Aug 20",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Aug 20, 2026 · IRS disaster relief"
   },
   {
@@ -188,16 +131,9 @@
     "reason": "Severe storms, flooding and mudslides · Disaster relief",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Aug 20, 2026 for 4 Hawaii counties (relief HI-2026-01).",
       "Covers federal returns and payments due on or after Mar 10, 2026 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -212,11 +148,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 亚利桑那",
-    "title": [
-      "亚利桑那灾区",
-      "报税延到",
-      "[[9月28日]]"
-    ],
+    "title": ["亚利桑那灾区", "报税延到", "[[9月28日]]"],
     "sub": "San Carlos Apache 部落,IRS 自动延期到 9月28日。有客户在灾区的会计师先收藏。",
     "footer": "AZ-2026-01 · 来源 IRS"
   },
@@ -236,20 +168,11 @@
       "state": "AZ",
       "counties": []
     },
-    "title": [
-      "亚利桑那部落区",
-      "报税延期"
-    ],
+    "title": ["亚利桑那部落区", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "9月28日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "9月28日 截止 · IRS 灾害减免"
   },
   {
@@ -268,9 +191,7 @@
       "state": "AZ",
       "counties": []
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2025 年 10月10日 起)原本到期的联邦申报与缴款,统一延至 2026 年 9月28日。",
       "位于该部落领地内的纳税人自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -295,20 +216,11 @@
       "state": "AZ",
       "counties": []
     },
-    "title": [
-      "Arizona tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Arizona tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Oct 10, 2025 through Sep 28, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -321,11 +233,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · AZ-2026-01",
-    "title": [
-      "San Carlos",
-      "Apache relief:",
-      "[[Sep 28]]"
-    ],
+    "title": ["San Carlos", "Apache relief:", "[[Sep 28]]"],
     "sub": "San Carlos Apache Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
     "footer": "AZ-2026-01 · Source: IRS"
   },
@@ -345,20 +253,11 @@
       "state": "AZ",
       "counties": []
     },
-    "title": [
-      "Arizona tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Arizona tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Sep 28, 2026 · IRS disaster relief"
   },
   {
@@ -377,9 +276,7 @@
       "state": "AZ",
       "counties": []
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Sep 28, 2026 for San Carlos Apache Tribe (relief AZ-2026-01).",
       "Covers federal returns and payments due on or after Oct 10, 2025 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -394,11 +291,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 蒙大拿 Fort Peck",
-    "title": [
-      "蒙大拿灾区",
-      "报税延到",
-      "[[9月28日]]"
-    ],
+    "title": ["蒙大拿灾区", "报税延到", "[[9月28日]]"],
     "sub": "Fort Peck 部落,IRS 自动延期到 9月28日。有客户在灾区的会计师先收藏。",
     "footer": "MT-2026-03 · 来源 IRS"
   },
@@ -418,20 +311,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "蒙大拿 Fort Peck",
-      "报税延期"
-    ],
+    "title": ["蒙大拿 Fort Peck", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "9月28日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "9月28日 截止 · IRS 灾害减免"
   },
   {
@@ -450,9 +334,7 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2025 年 12月17日 起)原本到期的联邦申报与缴款,统一延至 2026 年 9月28日。",
       "位于该部落领地内的纳税人自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -477,20 +359,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Montana tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Montana tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -503,11 +376,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · MT-2026-03",
-    "title": [
-      "Fort Peck MT",
-      "deadlines to",
-      "[[Sep 28]]"
-    ],
+    "title": ["Fort Peck MT", "deadlines to", "[[Sep 28]]"],
     "sub": "Fort Peck Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
     "footer": "MT-2026-03 · Source: IRS"
   },
@@ -527,20 +396,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Montana tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Montana tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Sep 28, 2026 · IRS disaster relief"
   },
   {
@@ -559,9 +419,7 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Sep 28, 2026 for Fort Peck Tribe (relief MT-2026-03).",
       "Covers federal returns and payments due on or after Dec 17, 2025 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -576,11 +434,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 蒙大拿 Crow",
-    "title": [
-      "蒙大拿灾区",
-      "报税延到",
-      "[[9月28日]]"
-    ],
+    "title": ["蒙大拿灾区", "报税延到", "[[9月28日]]"],
     "sub": "Crow 部落,IRS 自动延期到 9月28日。有客户在灾区的会计师先收藏。",
     "footer": "MT-2026-04 · 来源 IRS"
   },
@@ -600,20 +454,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "蒙大拿 Crow",
-      "报税延期"
-    ],
+    "title": ["蒙大拿 Crow", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "9月28日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "9月28日 截止 · IRS 灾害减免"
   },
   {
@@ -632,9 +477,7 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2025 年 12月17日 起)原本到期的联邦申报与缴款,统一延至 2026 年 9月28日。",
       "位于该部落领地内的纳税人自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -659,20 +502,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Montana tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Montana tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -685,11 +519,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · MT-2026-04",
-    "title": [
-      "Crow Tribe MT",
-      "deadlines to",
-      "[[Sep 28]]"
-    ],
+    "title": ["Crow Tribe MT", "deadlines to", "[[Sep 28]]"],
     "sub": "Crow Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
     "footer": "MT-2026-04 · Source: IRS"
   },
@@ -709,20 +539,11 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Montana tribal area",
-      "Filing postponed"
-    ],
+    "title": ["Montana tribal area", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Sep 28",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Sep 28, 2026 · IRS disaster relief"
   },
   {
@@ -741,9 +562,7 @@
       "state": "MT",
       "counties": []
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Sep 28, 2026 for Crow Tribe (relief MT-2026-04).",
       "Covers federal returns and payments due on or after Dec 17, 2025 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -758,11 +577,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 路易斯安那",
-    "title": [
-      "路易斯安那",
-      "报税延到",
-      "[[11月2日]]"
-    ],
+    "title": ["路易斯安那", "报税延到", "[[11月2日]]"],
     "sub": "4 个受灾堂区,IRS 自动延期到 11月2日。有客户在灾区的会计师先收藏。",
     "footer": "LA-2026-02 · 来源 IRS"
   },
@@ -780,26 +595,13 @@
     "reason": "热带风暴 · 灾害减免",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22097", "22103", "22109"]
     },
-    "title": [
-      "路易斯安那 4 堂区",
-      "报税延期"
-    ],
+    "title": ["路易斯安那 4 堂区", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "9月15日",
     "newDate": "11月2日",
-    "forms": [
-      "预缴",
-      "1120-S",
-      "1065",
-      "941"
-    ],
+    "forms": ["预缴", "1120-S", "1065", "941"],
     "footer": "11月2日 截止 · IRS 灾害减免"
   },
   {
@@ -816,16 +618,9 @@
     "reason": "热带风暴 · 灾害减免",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22097", "22103", "22109"]
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 6月17日 起)原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。",
       "地址在受灾堂区内的自动适用,无需申请;堂区外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -848,26 +643,13 @@
     "reason": "Tropical Storm Arthur · Disaster relief",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22097", "22103", "22109"]
     },
-    "title": [
-      "4 Louisiana parishes",
-      "Filing postponed"
-    ],
+    "title": ["4 Louisiana parishes", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Sep 15",
     "newDate": "Nov 2",
-    "forms": [
-      "Estimated",
-      "1120-S",
-      "1065",
-      "941"
-    ],
+    "forms": ["Estimated", "1120-S", "1065", "941"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Jun 17, 2026 through Nov 2, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -880,11 +662,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · LA-2026-02",
-    "title": [
-      "Louisiana",
-      "deadlines to",
-      "[[Nov 2]]"
-    ],
+    "title": ["Louisiana", "deadlines to", "[[Nov 2]]"],
     "sub": "4 Louisiana parishes — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
     "footer": "LA-2026-02 · Source: IRS"
   },
@@ -902,26 +680,13 @@
     "reason": "Tropical Storm Arthur · Disaster relief",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22097", "22103", "22109"]
     },
-    "title": [
-      "4 Louisiana parishes",
-      "Filing postponed"
-    ],
+    "title": ["4 Louisiana parishes", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Sep 15",
     "newDate": "Nov 2",
-    "forms": [
-      "Estimated",
-      "1120-S",
-      "1065",
-      "941"
-    ],
+    "forms": ["Estimated", "1120-S", "1065", "941"],
     "footer": "Postponed to Nov 2, 2026 · IRS disaster relief"
   },
   {
@@ -938,16 +703,9 @@
     "reason": "Tropical Storm Arthur · Disaster relief",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22097", "22103", "22109"]
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Nov 2, 2026 for 4 Louisiana parishes (relief LA-2026-02).",
       "Covers federal returns and payments due on or after Jun 17, 2026 — Estimated, 1120-S, 1065, 941 included.",
@@ -962,11 +720,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 密歇根",
-    "title": [
-      "密歇根灾区",
-      "报税延到",
-      "[[11月2日]]"
-    ],
+    "title": ["密歇根灾区", "报税延到", "[[11月2日]]"],
     "sub": "37 个受灾县,IRS 自动延期到 11月2日。有客户在灾区的会计师先收藏。",
     "footer": "MI-2026-02 · 来源 IRS"
   },
@@ -1024,20 +778,11 @@
         "26165"
       ]
     },
-    "title": [
-      "密歇根 37 县",
-      "报税延期"
-    ],
+    "title": ["密歇根 37 县", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "11月2日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "11月2日 截止 · IRS 灾害减免"
   },
   {
@@ -1094,9 +839,7 @@
         "26165"
       ]
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 4月10日 起)原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。",
       "地址在受灾县内的自动适用,无需申请;县外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -1159,20 +902,11 @@
         "26165"
       ]
     },
-    "title": [
-      "37 Michigan counties",
-      "Filing postponed"
-    ],
+    "title": ["37 Michigan counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Apr 10, 2026 through Nov 2, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -1185,11 +919,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · MI-2026-02",
-    "title": [
-      "Michigan",
-      "deadlines to",
-      "[[Nov 2]]"
-    ],
+    "title": ["Michigan", "deadlines to", "[[Nov 2]]"],
     "sub": "37 Michigan counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
     "footer": "MI-2026-02 · Source: IRS"
   },
@@ -1247,20 +977,11 @@
         "26165"
       ]
     },
-    "title": [
-      "37 Michigan counties",
-      "Filing postponed"
-    ],
+    "title": ["37 Michigan counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Nov 2, 2026 · IRS disaster relief"
   },
   {
@@ -1317,9 +1038,7 @@
         "26165"
       ]
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Nov 2, 2026 for 37 Michigan counties (relief MI-2026-02).",
       "Covers federal returns and payments due on or after Apr 10, 2026 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -1334,11 +1053,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 密西西比",
-    "title": [
-      "密西西比灾区",
-      "报税延到",
-      "[[11月2日]]"
-    ],
+    "title": ["密西西比灾区", "报税延到", "[[11月2日]]"],
     "sub": "5 个受灾县,IRS 自动延期到 11月2日。有客户在灾区的会计师先收藏。",
     "footer": "MS-2026-02 · 来源 IRS"
   },
@@ -1356,26 +1071,13 @@
     "reason": "风暴龙卷 · 灾害减免",
     "map": {
       "state": "MS",
-      "counties": [
-        "28037",
-        "28073",
-        "28077",
-        "28085",
-        "28157"
-      ]
+      "counties": ["28037", "28073", "28077", "28085", "28157"]
     },
-    "title": [
-      "密西西比 5 县",
-      "报税延期"
-    ],
+    "title": ["密西西比 5 县", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "6月15日",
     "newDate": "11月2日",
-    "forms": [
-      "预缴",
-      "941",
-      "990"
-    ],
+    "forms": ["预缴", "941", "990"],
     "footer": "11月2日 截止 · IRS 灾害减免"
   },
   {
@@ -1392,17 +1094,9 @@
     "reason": "风暴龙卷 · 灾害减免",
     "map": {
       "state": "MS",
-      "counties": [
-        "28037",
-        "28073",
-        "28077",
-        "28085",
-        "28157"
-      ]
+      "counties": ["28037", "28073", "28077", "28085", "28157"]
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 5月6日 起)原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。",
       "地址在受灾县内的自动适用,无需申请;县外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -1425,26 +1119,13 @@
     "reason": "Severe storms, straight-line winds, tornadoes and flooding · Disaster relief",
     "map": {
       "state": "MS",
-      "counties": [
-        "28037",
-        "28073",
-        "28077",
-        "28085",
-        "28157"
-      ]
+      "counties": ["28037", "28073", "28077", "28085", "28157"]
     },
-    "title": [
-      "5 Mississippi counties",
-      "Filing postponed"
-    ],
+    "title": ["5 Mississippi counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Jun 15",
     "newDate": "Nov 2",
-    "forms": [
-      "Estimated",
-      "941",
-      "990"
-    ],
+    "forms": ["Estimated", "941", "990"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after May 6, 2026 through Nov 2, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -1457,11 +1138,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · MS-2026-02",
-    "title": [
-      "Mississippi",
-      "deadlines to",
-      "[[Nov 2]]"
-    ],
+    "title": ["Mississippi", "deadlines to", "[[Nov 2]]"],
     "sub": "5 Mississippi counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
     "footer": "MS-2026-02 · Source: IRS"
   },
@@ -1479,26 +1156,13 @@
     "reason": "Severe storms, straight-line winds, tornadoes and flooding · Disaster relief",
     "map": {
       "state": "MS",
-      "counties": [
-        "28037",
-        "28073",
-        "28077",
-        "28085",
-        "28157"
-      ]
+      "counties": ["28037", "28073", "28077", "28085", "28157"]
     },
-    "title": [
-      "5 Mississippi counties",
-      "Filing postponed"
-    ],
+    "title": ["5 Mississippi counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Jun 15",
     "newDate": "Nov 2",
-    "forms": [
-      "Estimated",
-      "941",
-      "990"
-    ],
+    "forms": ["Estimated", "941", "990"],
     "footer": "Postponed to Nov 2, 2026 · IRS disaster relief"
   },
   {
@@ -1515,17 +1179,9 @@
     "reason": "Severe storms, straight-line winds, tornadoes and flooding · Disaster relief",
     "map": {
       "state": "MS",
-      "counties": [
-        "28037",
-        "28073",
-        "28077",
-        "28085",
-        "28157"
-      ]
+      "counties": ["28037", "28073", "28077", "28085", "28157"]
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Nov 2, 2026 for 5 Mississippi counties (relief MS-2026-02).",
       "Covers federal returns and payments due on or after May 6, 2026 — Estimated, 941, 990 included.",
@@ -1540,11 +1196,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 北马里亚纳群岛",
-    "title": [
-      "北马里亚纳",
-      "报税延到",
-      "[[11月2日]]"
-    ],
+    "title": ["北马里亚纳", "报税延到", "[[11月2日]]"],
     "sub": "受灾岛屿,IRS 自动延期到 11月2日。有客户在灾区的会计师先收藏。",
     "footer": "NMI-2026-01 · 来源 IRS"
   },
@@ -1564,20 +1216,11 @@
       "state": "MP",
       "counties": []
     },
-    "title": [
-      "北马里亚纳群岛",
-      "报税延期"
-    ],
+    "title": ["北马里亚纳群岛", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "11月2日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "11月2日 截止 · IRS 灾害减免"
   },
   {
@@ -1596,9 +1239,7 @@
       "state": "MP",
       "counties": []
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 4月11日 起)原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。",
       "位于受灾岛屿的纳税人自动适用,无需申请;岛外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -1623,20 +1264,11 @@
       "state": "MP",
       "counties": []
     },
-    "title": [
-      "Northern Mariana Islands",
-      "Filing postponed"
-    ],
+    "title": ["Northern Mariana Islands", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Apr 11, 2026 through Nov 2, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -1649,11 +1281,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · NMI-2026-01",
-    "title": [
-      "N. Mariana Is.",
-      "deadlines to",
-      "[[Nov 2]]"
-    ],
+    "title": ["N. Mariana Is.", "deadlines to", "[[Nov 2]]"],
     "sub": "Northern Islands, Rota, Saipan and Tinian — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
     "footer": "NMI-2026-01 · Source: IRS"
   },
@@ -1673,20 +1301,11 @@
       "state": "MP",
       "counties": []
     },
-    "title": [
-      "Northern Mariana Islands",
-      "Filing postponed"
-    ],
+    "title": ["Northern Mariana Islands", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Nov 2, 2026 · IRS disaster relief"
   },
   {
@@ -1705,9 +1324,7 @@
       "state": "MP",
       "counties": []
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Nov 2, 2026 for Northern Islands, Rota, Saipan and Tinian (relief NMI-2026-01).",
       "Covers federal returns and payments due on or after Apr 11, 2026 — 1040, 1120, 1120-S, 1065, Estimated included.",
@@ -1722,11 +1339,7 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 威斯康星",
-    "title": [
-      "威斯康星灾区",
-      "报税延到",
-      "[[11月2日]]"
-    ],
+    "title": ["威斯康星灾区", "报税延到", "[[11月2日]]"],
     "sub": "21 个受灾县,IRS 自动延期到 11月2日。有客户在灾区的会计师先收藏。",
     "footer": "WI-2026-02 · 来源 IRS"
   },
@@ -1768,20 +1381,11 @@
         "55139"
       ]
     },
-    "title": [
-      "威斯康星 21 县",
-      "报税延期"
-    ],
+    "title": ["威斯康星 21 县", "报税延期"],
     "dateLabel": "联邦报税截止日",
     "oldDate": "4月15日",
     "newDate": "11月2日",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "预缴"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
     "footer": "11月2日 截止 · IRS 灾害减免"
   },
   {
@@ -1822,9 +1426,7 @@
         "55139"
       ]
     },
-    "title": [
-      "实务提示"
-    ],
+    "title": ["实务提示"],
     "points": [
       "受灾期(2026 年 4月13日 起)原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。",
       "地址在受灾县内的自动适用,无需申请;县外但账册或记账人在内的,需致电 IRS 灾害热线申请。",
@@ -1871,20 +1473,11 @@
         "55139"
       ]
     },
-    "title": [
-      "21 Wisconsin counties",
-      "Filing postponed"
-    ],
+    "title": ["21 Wisconsin counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "tip": {
       "label": "PRACTITIONER NOTE",
       "body": "Covers federal returns and payments due on or after Apr 13, 2026 through Nov 2, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline."
@@ -1897,11 +1490,7 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · WI-2026-02",
-    "title": [
-      "Wisconsin",
-      "deadlines to",
-      "[[Nov 2]]"
-    ],
+    "title": ["Wisconsin", "deadlines to", "[[Nov 2]]"],
     "sub": "21 Wisconsin counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
     "footer": "WI-2026-02 · Source: IRS"
   },
@@ -1943,20 +1532,11 @@
         "55139"
       ]
     },
-    "title": [
-      "21 Wisconsin counties",
-      "Filing postponed"
-    ],
+    "title": ["21 Wisconsin counties", "Filing postponed"],
     "dateLabel": "FEDERAL FILING DEADLINE",
     "oldDate": "Apr 15",
     "newDate": "Nov 2",
-    "forms": [
-      "1040",
-      "1120",
-      "1120-S",
-      "1065",
-      "Estimated"
-    ],
+    "forms": ["1040", "1120", "1120-S", "1065", "Estimated"],
     "footer": "Postponed to Nov 2, 2026 · IRS disaster relief"
   },
   {
@@ -1997,9 +1577,7 @@
         "55139"
       ]
     },
-    "title": [
-      "Practitioner note"
-    ],
+    "title": ["Practitioner note"],
     "points": [
       "The IRS postponed federal deadlines to Nov 2, 2026 for 21 Wisconsin counties (relief WI-2026-02).",
       "Covers federal returns and payments due on or after Apr 13, 2026 — 1040, 1120, 1120-S, 1065, Estimated included.",

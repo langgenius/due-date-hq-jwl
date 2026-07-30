@@ -133,15 +133,20 @@ export async function renderCard(data) {
   let body = ''
   if (kind === 'agenda') {
     /* 日程式:以截止日为主轴分组,州名做次级。最近一组可带 note(倒计时)高亮。 */
-    const groups = (data.groups || []).map((g) => {
-      const states = g.states
-        .map((s) => `<span class="ddhq__agst"><span class="ddhq__agsn">${esc(s.name)}</span>${s.scope ? ` <span class="ddhq__agss">${esc(s.scope)}</span>` : ''}</span>`)
-        .join('')
-      return `<div class="ddhq__ag">
+    const groups = (data.groups || [])
+      .map((g) => {
+        const states = g.states
+          .map(
+            (s) =>
+              `<span class="ddhq__agst"><span class="ddhq__agsn">${esc(s.name)}</span>${s.scope ? ` <span class="ddhq__agss">${esc(s.scope)}</span>` : ''}</span>`,
+          )
+          .join('')
+        return `<div class="ddhq__ag">
         <div class="ddhq__agh"><span class="ddhq__agd">${esc(g.date)}</span>${g.note ? `<span class="ddhq__agn">${esc(g.note)}</span>` : ''}</div>
         <div class="ddhq__ags">${states}</div>
       </div>`
-    }).join('')
+      })
+      .join('')
     body = `<div class="ddhq__agenda">${groups}</div>`
   } else if (kind === 'note') {
     /* 第 2 页:实务提示单独成页。编号要点,字号放大到整页可读。 */

@@ -11,6 +11,7 @@
 **小红书标题**:`夏威夷 4 县报税延到 8月20日 🗓`
 
 **小红书配文**
+
 ```
 夏威夷 4 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 8月20日。有客户在灾区的会计师注意。
 
@@ -30,6 +31,7 @@
 **LinkedIn 配文**(发**文档帖**:上传 `hawaii-severe-storms-flooding-mudslides-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Hawaii · Aug 20, 2026 (HI-2026-01)`
+
 ```
 IRS tax deadline extension — Hawaii.
 The IRS has postponed federal tax deadlines to Aug 20, 2026 for Hawaii taxpayers affected by Severe storms, flooding and mudslides under disaster relief HI-2026-01. Clients in Hawaii, Honolulu, Kauai, Maui counties now have moved federal filing and payment deadlines — returns and payments due on or after Mar 10, 2026 through Aug 20, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
@@ -37,8 +39,8 @@ Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Hawaii
 ```
 
-
 ---
+
 ## Arizona · 风暴洪水(AZ-2026-01) —— 截止 9月28日
 
 图:`arizona-san-carlos-apache-severe-storms-flooding-cover / -p1 / -p2`(小红书)· `arizona-san-carlos-apache-severe-storms-flooding-li-carousel.pdf`(LinkedIn **文档帖**,3 页 4:5;横版 `-en` 仅作备用)
@@ -46,6 +48,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`亚利桑那 San Carlos Apache 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 亚利桑那 San Carlos Apache 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -65,6 +68,7 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `arizona-san-carlos-apache-severe-storms-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Arizona · Sep 28, 2026 (AZ-2026-01)`
+
 ```
 IRS tax deadline extension — Arizona.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Arizona taxpayers affected by Severe storms and flooding (San Carlos Apache Tribe) under disaster relief AZ-2026-01. Clients in the San Carlos Apache Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Oct 10, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
@@ -72,8 +76,8 @@ Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Arizona
 ```
 
-
 ---
+
 ## Montana · 冬季风暴(MT-2026-03) —— 截止 9月28日
 
 图:`montana-fort-peck-tribes-winter-storm-cover / -p1 / -p2`(小红书)· `montana-fort-peck-tribes-winter-storm-li-carousel.pdf`(LinkedIn **文档帖**,3 页 4:5;横版 `-en` 仅作备用)
@@ -81,6 +85,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`蒙大拿 Fort Peck 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 蒙大拿 Fort Peck 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -100,12 +105,12 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `montana-fort-peck-tribes-winter-storm-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Montana Fort Peck · Sep 28, 2026 (MT-2026-03)`
+
 ```
 IRS tax deadline extension — Montana.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Montana taxpayers affected by Severe Winter Storm and Straight-line Winds (Fort Peck Assiniboine and Sioux Tribes) under disaster relief MT-2026-03. Clients in the Fort Peck Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Montana
 ```
-
 
 ---

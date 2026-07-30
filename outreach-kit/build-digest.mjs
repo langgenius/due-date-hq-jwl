@@ -45,8 +45,6 @@ const soon = live.filter((n) => daysOut(n) <= 30)
 const URGENT_DAYS = 14
 const urgent = soon.filter((n) => daysOut(n) <= URGENT_DAYS)
 const thisMonth = soon.filter((n) => daysOut(n) > URGENT_DAYS)
-const nearest = soon[0] // soonest (for the subject line)
-
 const fmt = (d) =>
   d.toLocaleDateString('en-US', {
     month: 'short',
@@ -83,7 +81,8 @@ const eyebrow = (t) =>
 // urgency is a value shift, not a weight clash: the meta line is ink for act-now, muted otherwise.
 // "Your move" — the action a CPA takes on an act-now deadline, derived from the notice facts.
 const shortDate = (n) => n.deadlineLabel.replace(/,\s*\d{4}$/, '')
-const yourMove = (n) => `Your move: confirm each covered ${n.state} filing is set for ${shortDate(n)}.`
+const yourMove = (n) =>
+  `Your move: confirm each covered ${n.state} filing is set for ${shortDate(n)}.`
 // Anatomy: [state (bold) + date·countdown (light)] with the IRS source right-aligned on the
 // same line; event (muted) and "Clients in …" (one step darker) on their own lines; for
 // act-now items an understated "→ Your move" line tucked right under.
@@ -141,7 +140,10 @@ if (restByDate.length)
   html +=
     eyebrow('Further out') +
     `<p style="margin:0;font-size:14px;line-height:1.75;color:${C.mut}">${restByDate
-      .map((g) => `<span style="color:${C.sub};font-weight:600">${esc(g.date)}</span> &nbsp; ${esc(g.states.join(', '))}`)
+      .map(
+        (g) =>
+          `<span style="color:${C.sub};font-weight:600">${esc(g.date)}</span> &nbsp; ${esc(g.states.join(', '))}`,
+      )
       .join('<br>')}</p>`
 
 html +=

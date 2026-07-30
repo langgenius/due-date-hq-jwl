@@ -341,7 +341,9 @@
   line-height: 1.18;
   margin-top: 30px;
 }
-.ddhq--multi .ddhq__rs { font-weight: 400; }
+.ddhq--multi .ddhq__rs {
+  font-weight: 400;
+}
 
 /* ---- forms ---- */
 .ddhq__tags {
@@ -462,18 +464,53 @@
 }
 
 /* ---- agenda(日程式:截止日为主轴,州名次级) ---- */
-.ddhq__agenda { margin-top: 44px; display: flex; flex-direction: column; gap: 38px; }
-.ddhq__ag { border-top: 2px solid var(--rule); padding-top: 22px; }
-.ddhq__ag:first-child { border-top: none; padding-top: 0; }
-.ddhq__agh { display: flex; align-items: baseline; gap: 20px; }
-.ddhq__agd { font-size: 58px; font-weight: 600; color: var(--ink); letter-spacing: 0; }
-.ddhq__agn {
-  font-size: 25px; color: var(--lime-ink); background: var(--lime);
-  padding: 5px 18px; border-radius: 999px; font-weight: 500;
+.ddhq__agenda {
+  margin-top: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 38px;
 }
-.ddhq__ags { display: flex; flex-wrap: wrap; gap: 12px 30px; margin-top: 16px; }
-.ddhq__agst { font-size: 31px; color: #37352F; }
-.ddhq__agss { font-size: 26px; color: var(--g1); }
+.ddhq__ag {
+  border-top: 2px solid var(--rule);
+  padding-top: 22px;
+}
+.ddhq__ag:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.ddhq__agh {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+.ddhq__agd {
+  font-size: 58px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.ddhq__agn {
+  font-size: 25px;
+  color: var(--lime-ink);
+  background: var(--lime);
+  padding: 5px 18px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+.ddhq__ags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 30px;
+  margin-top: 16px;
+}
+.ddhq__agst {
+  font-size: 31px;
+  color: #37352f;
+}
+.ddhq__agss {
+  font-size: 26px;
+  color: var(--g1);
+}
 
 /* ---- footer ---- */
 .ddhq__ft {
