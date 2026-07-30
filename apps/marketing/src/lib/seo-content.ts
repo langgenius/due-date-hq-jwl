@@ -4779,16 +4779,6 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceLabel: 'Michigan Treasury — Corporate Income Tax filing requirements',
     sourceHref: 'https://www.michigan.gov/taxes/business-taxes/cit/detail/filing-requirements',
   },
-  washington: {
-    name: 'Washington',
-    label: 'Annual Combined Excise Tax Return (Business & Occupation tax)',
-    labelZh: '年度 Combined Excise Tax 申报（Business & Occupation tax）',
-    due: 'April 15 for annual filers. Washington has no corporate or personal income tax; the Business & Occupation tax is reported on the Combined Excise Tax Return.',
-    dueZh:
-      '年度纳税人为 4 月 15 日。华盛顿州没有公司或个人所得税；Business & Occupation 税通过 Combined Excise Tax 申报报送。',
-    sourceLabel: 'Washington DOR — Filing frequencies & due dates',
-    sourceHref: 'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates',
-  },
   'new-jersey': {
     name: 'New Jersey',
     label: 'Form CBT-100 Corporation Business Tax return',
