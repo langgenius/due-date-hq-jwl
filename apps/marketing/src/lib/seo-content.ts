@@ -4835,6 +4835,23 @@ const STATE_DEADLINES: Record<string, StateDeadline> = {
     sourceLabel: 'Colorado Department of Revenue — C corporation due dates',
     sourceHref: 'https://tax.colorado.gov/due-date-guide',
   },
+  washington: {
+    name: 'Washington',
+    label: 'Washington excise tax return (B&O, sales & use — combined)',
+    labelZh: '华盛顿州 excise 税申报（B&O、销售与使用税——合并申报）',
+    // Verified 2026-07-30 on the WA DOR "Filing frequencies & due dates" page
+    // (rendered): monthly due the 25th of the following month; quarterly due the
+    // end of the month following the quarter (Q1 → April 30); annual due
+    // April 15; weekend/holiday dates extend to the next business day. Assigned
+    // filing frequency depends on annual tax liability. No state income tax.
+    due: 'Depends on assigned frequency — monthly returns are due the 25th of the following month; quarterly returns are due the end of the month after the quarter (Q1 → April 30); annual returns are due April 15. Washington has no state income tax; the combined excise return covers B&O and sales/use tax.',
+    dueZh:
+      '按核定频率——月报于次月 25 日前；季报于季度结束后次月最后一天前（Q1 → 4 月 30 日）；年报于 4 月 15 日前。华盛顿州无州所得税，合并 excise 申报涵盖 B&O 与销售/使用税。',
+    ext: 'If a due date falls on a weekend or legal holiday, it extends to the next business day.',
+    extZh: '截止日落在周末或法定假日时，顺延到下一个营业日。',
+    sourceLabel: 'WA Department of Revenue — Filing frequencies & due dates',
+    sourceHref: 'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates',
+  },
   ohio: {
     name: 'Ohio',
     label: 'Commercial Activity Tax (CAT) quarterly returns',
