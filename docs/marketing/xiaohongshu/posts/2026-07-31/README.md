@@ -11,22 +11,22 @@
 
 ## ① 华盛顿 · 8月5日 最后提醒(WA-2025-03)
 
-**小红书标题**(主推):`有华盛顿客户的CPA⚠️下周三就是最后期限`
-(备选:`还剩5天⏰华盛顿24县报税倒计时` / `别等周一!华盛顿8月5日截止就在下周三`)
+**小红书标题**(主推):`周五下班前,华盛顿的单子核完再走⚠️`
+(备选:`本周最后工作日,CPA走前做完这件事` / `有华盛顿客户的CPA⚠️下周三就是最后期限`)
 
 **小红书配文**
 
 ```
-最后提醒!华盛顿 24 县 + 25 个部落领地的联邦报税截止日 8月5日(下周三)就到了。过完周末只剩两个工作日。
+今天是本周最后一个工作日。有华盛顿客户的会计师,下班前把这件事做完再走:8月5日(下周三)是 24 县 + 25 个部落领地的联邦报税最后期限,过完周末只剩周一周二。
+
+【周五下班前 checklist】
+· 拉一遍客户地址:落在 24 县 + 25 个部落领地内的,自动适用,无需申请
+· 核对这些还没报的:1040、1120 / 1120-S / 1065、1041、990、941 / 940、季度预缴
+· 县外但账册或记账人在县内的:今天就打 IRS 灾害热线,别拖到周一
+· 完整名单:irs.gov 公告 WA-2025-03
 
 【前情提要】
 2025 年 12月9日 起,华盛顿发生风暴、洪水、山体滑坡灾害。IRS 发布灾害减免(WA-2025-03),受灾期内到期的联邦申报与缴款延至 2026 年 8月5日 —— 已是最后期限,别再等新延期。
-
-【今天要做的】
-· 对照客户地址:24 县 + 25 个部落领地内的自动适用,无需申请
-· 覆盖 1040、1120 / 1120-S / 1065、1041、990、941 / 940、季度预缴
-· 县外但账册或记账人在县内:致电 IRS 灾害热线申请
-· 完整名单:irs.gov 公告 WA-2025-03
 
 来源:IRS 灾害减免公告 WA-2025-03(irs.gov 可查)
 
@@ -39,7 +39,7 @@
 
 ```
 IRS tax deadline — Washington's Aug 5, 2026 extension ends next Wednesday.
-Final reminder: the IRS postponed federal filing and payment deadlines to Aug 5, 2026 for 24 Washington counties and 25 tribal nations under disaster relief WA-2025-03 (severe storms, straight-line winds, flooding, landslides and mudslides). After this weekend, two working days remain. Covers returns and payments due on or after Dec 9, 2025 — Forms 1040, 1120, 1120-S, 1065, estimated payments included. Automatic for an address of record in the area; if records or the preparer are inside but the client is outside, call the IRS disaster hotline.
+Before you sign off for the weekend: it's the last working day of the week, and after it only Monday and Tuesday remain. The IRS postponed federal filing and payment deadlines to Aug 5, 2026 for 24 Washington counties and 25 tribal nations under disaster relief WA-2025-03 (severe storms, straight-line winds, flooding, landslides and mudslides). Friday checklist: sweep your client list for addresses in the area (relief is automatic — no application), confirm what's still unfiled (Forms 1040, 1120, 1120-S, 1065, estimated payments — anything due on or after Dec 9, 2025), and if records or the preparer are inside but the client is outside, call the IRS disaster hotline today, not Monday.
 Which Washington clients are still open on your list? IRS source in the comments.
 #IRS #TaxDeadline #DisasterRelief #CPA #Washington
 ```
