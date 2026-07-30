@@ -511,6 +511,17 @@
   font-size: 26px;
   color: var(--g1);
 }
+/* li 4:5 画布比 3:4 矮:agenda 压缩行距,保住页脚 */
+.ddhq--li .ddhq__agenda {
+  margin-top: 34px;
+  gap: 26px;
+}
+.ddhq--li .ddhq__ag {
+  padding-top: 16px;
+}
+.ddhq--li .ddhq__agd {
+  font-size: 50px;
+}
 
 /* ---- footer ---- */
 .ddhq__ft {

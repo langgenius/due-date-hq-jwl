@@ -1,6 +1,6 @@
 [
   {
-    "id": "weekly-agenda-2026-07-28",
+    "id": "weekly-agenda-2026-07-30",
     "kind": "agenda",
     "locale": "zh",
     "format": "xhs",
@@ -21,7 +21,7 @@
             "scope": "风暴洪水"
           }
         ],
-        "note": "还剩 8 天"
+        "note": "还剩 6 天"
       },
       {
         "date": "8月20日",
@@ -80,5 +80,97 @@
       }
     ],
     "footer": "共 11 条现行 · DueDateHQ 每周更新"
+  },
+  {
+    "id": "weekly-li-1cover-2026-07-30",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · weekly list",
+    "title": ["11 IRS tax", "extensions open", "[[right now]]"],
+    "sub": "Washington is 6 days out (Aug 5, 2026). Georgia and Hawaii follow on Aug 20. Every open federal deadline extension, ranked by the closest date — swipe →",
+    "footer": "Updated Jul 30, 2026 · Source: IRS"
+  },
+  {
+    "id": "weekly-li-2agenda-2026-07-30",
+    "kind": "agenda",
+    "locale": "en",
+    "format": "li",
+    "source": {
+      "level": "Federal",
+      "org": "IRS",
+      "noticeId": "Weekly list",
+      "verified": true
+    },
+    "reason": "All open IRS deadline extensions · By deadline",
+    "title": ["This week", "IRS deadline watch"],
+    "groups": [
+      {
+        "date": "Aug 5",
+        "states": [
+          {
+            "name": "Washington",
+            "scope": "storms & flooding"
+          }
+        ],
+        "note": "6 days out"
+      },
+      {
+        "date": "Aug 20",
+        "states": [
+          {
+            "name": "Georgia",
+            "scope": "wildfires"
+          },
+          {
+            "name": "Hawaii",
+            "scope": "storms & flooding"
+          }
+        ]
+      },
+      {
+        "date": "Sep 28",
+        "states": [
+          {
+            "name": "Arizona",
+            "scope": "San Carlos Apache"
+          },
+          {
+            "name": "Montana",
+            "scope": "Fort Peck"
+          },
+          {
+            "name": "Montana",
+            "scope": "Crow"
+          }
+        ]
+      },
+      {
+        "date": "Nov 2",
+        "states": [
+          {
+            "name": "Louisiana",
+            "scope": "TS Arthur"
+          },
+          {
+            "name": "Michigan",
+            "scope": "storms & tornadoes"
+          },
+          {
+            "name": "Mississippi",
+            "scope": "storms & tornadoes"
+          },
+          {
+            "name": "N. Mariana Is.",
+            "scope": "Typhoon Sinlaku"
+          },
+          {
+            "name": "Wisconsin",
+            "scope": "storms & tornadoes"
+          }
+        ]
+      }
+    ],
+    "footer": "11 open extensions · DueDateHQ, updated weekly"
   }
 ]
