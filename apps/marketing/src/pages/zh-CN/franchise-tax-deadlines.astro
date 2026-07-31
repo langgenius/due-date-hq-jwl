@@ -1,0 +1,141 @@
+---
+/** /zh-CN/franchise-tax-deadlines — 各州 franchise/年度实体税枢纽(EN 镜像,同一核实数据源)。 */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import StateFranchisePage from '../../components/StateFranchisePage.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../../lib/site'
+import type { JsonLdDocument } from '../../lib/structured-data'
+
+const locale = 'zh-CN'
+const pathname = '/zh-CN/franchise-tax-deadlines'
+const title = '各州 Franchise Tax 截止日（2026）：TX、DE、CA 等 13 州 — DueDateHQ'
+const description =
+  '已核实的 2026 各州 franchise / privilege / net-worth 税截止日——特拉华 3 月 1 日/6 月 1 日、德州 5 月 15 日，以及刚废止的州（LA、OK）——每条附州官方来源链接。'
+const { publishedOn, reviewedOn } = getContentDates('franchise-tax-deadlines')
+const faq = [
+  {
+    q: '2026 年德州 franchise tax 什么时候到期？',
+    a: '5 月 15 日（逢周末假日顺延）。2026–2027 年度报告的免税营收门槛为 $2,650,000；按时申请并缴足要求税款可延至 11 月 15 日。',
+  },
+  {
+    q: '特拉华 franchise tax 有哪些截止日？',
+    a: '两个不同日期：本州公司 3 月 1 日前提交年报并缴 franchise tax；LLC 和 LP 则在 6 月 1 日前缴 $300 固定年税（无需年报）。外州注册公司 6 月 30 日前提交年报。',
+  },
+  {
+    q: '哪些州已经废止了 franchise tax？',
+    a: '最近的：俄克拉荷马（HB1039X，2023 税年为最后一年）和路易斯安那（2024 年第三次特别会议 Act 6，对 2026-01-01 起开始的税期废止）。密西西比正在逐步废止，2028-01-01 起全废。',
+  },
+  {
+    q: '加州还收 $800 LLC 年税吗？',
+    a: '收——LLC 税年第 4 个月第 15 日到期，注销前每年都要缴。首年豁免 2023 年后已到期；加州收入超 $250,000 的 LLC 还须在第 6 个月第 15 日前缴预估费。',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: `${MARKETING_SITE_URL}/zh-CN` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '各州 Franchise Tax 截止日',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref(locale)
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <StateFranchisePage locale={locale} />
+  <section class="sff">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">Franchise tax 常见问题</h2>
+      {
+        faq.map((f) => (
+          <details class="sff__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="sff__more">
+        联邦截止日：<a href="/zh-CN/deadline-lookup">报税截止日快查</a> · 漏掉的代价：<a
+          href="/zh-CN/penalty-calculator">迟报罚金估算器</a
+        > · 全部州：<a href="/zh-CN/state-coverage">州覆盖</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .sff {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .sff .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .sff__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .sff__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .sff__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .sff__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .sff__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

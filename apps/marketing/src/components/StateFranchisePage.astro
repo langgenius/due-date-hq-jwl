@@ -1,0 +1,229 @@
+---
+/**
+ * State franchise-tax hub — B1a of the state×tax matrix (spec:
+ * docs/marketing/state-form-matrix-spec-2026-07-31.md). One card per verified
+ * cell from lib/state-tax-rows.ts, grouped active vs repealed/phasing-out,
+ * each with its official state-agency source linked and a cross-link to the
+ * state's own page. Static render, no client JS needed.
+ */
+import { getCtaHref } from '../lib/app-url'
+import { STATE_TAX_ROWS, STATE_TAX_ROWS_VERIFIED_ON } from '../lib/state-tax-rows'
+
+interface Props {
+  locale: 'en' | 'zh-CN'
+}
+const { locale } = Astro.props
+const zh = locale === 'zh-CN'
+const prefix = zh ? '/zh-CN' : ''
+
+const active = STATE_TAX_ROWS.filter((r) => r.status === 'active')
+const ending = STATE_TAX_ROWS.filter((r) => r.status !== 'active')
+
+const copy = zh
+  ? {
+      eyebrow: '核实参考',
+      title: '各州 franchise / 年度实体税截止日（2026）',
+      lead: '哪些州仍征 franchise、privilege 或 net-worth 税，何时到期，哪些州刚刚废止。每条都转录自州税务机关或州务卿官方页面，并附来源链接——两遍独立核实。',
+      activeTitle: '仍在征收的州',
+      endingTitle: '已废止或逐步废止',
+      dueLabel: '截止日',
+      extLabel: '延期',
+      noteLabel: '别记错',
+      source: '官方来源',
+      statePage: '查看该州全部截止日',
+      verified: `核实于 ${STATE_TAX_ROWS_VERIFIED_ON}（两遍独立转录后比对）。日历年一般规则;申报前请以官方来源为准。本页不构成税务建议。加州公司最低 franchise tax 与伊利诺伊州 franchise tax 因官方来源暂不可核实而未列入——核实后补充。`,
+      ctaLead: '这些日期会变——LA 和 OK 的废止就是最近的例子。',
+      ctaText: 'DueDateHQ 监控官方 IRS 与各州来源，规则或截止日变动时把变化路由到受影响的客户。Beta 期间免费。',
+      ctaBtn: '免费开始',
+    }
+  : {
+      eyebrow: 'VERIFIED REFERENCE',
+      title: 'State franchise & annual entity tax deadlines (2026)',
+      lead: 'Which states still levy a franchise, privilege, or net-worth tax, when each is due, and which states just repealed theirs. Every row is transcribed from the state tax agency or Secretary of State page linked beside it — independently verified twice.',
+      activeTitle: 'States that still levy one',
+      endingTitle: 'Repealed or phasing out',
+      dueLabel: 'Due',
+      extLabel: 'Extension',
+      noteLabel: 'Don’t get this wrong',
+      source: 'Official source',
+      statePage: 'All deadlines for this state',
+      verified: `Verified ${STATE_TAX_ROWS_VERIFIED_ON} (two independent transcription passes, diffed). General calendar-year rules; confirm against the official source before filing — not tax advice. California’s corporate minimum franchise tax and Illinois’s franchise tax are omitted pending source verification.`,
+      ctaLead: 'These dates move — Louisiana and Oklahoma’s repeals are the latest proof.',
+      ctaText: 'DueDateHQ watches official IRS and state sources and routes each rule or deadline change to the clients it affects. Free during beta.',
+      ctaBtn: 'Start free',
+    }
+
+const appHref = getCtaHref(locale)
+---
+
+<section class="sft">
+  <div class="wrap">
+    <p class="m-eyebrow">{copy.eyebrow}</p>
+    <h1 class="m-page-title">{copy.title}</h1>
+    <p class="sft__lead">{copy.lead}</p>
+
+    {
+      [
+        { title: copy.activeTitle, rows: active },
+        { title: copy.endingTitle, rows: ending },
+      ].map((group) => (
+        <div class="sft__group">
+          <h2 class="m-page-h2">{group.title}</h2>
+          <div class="sft__grid">
+            {group.rows.map((r) => (
+              <article class:list={['sft__card', r.status !== 'active' && 'sft__card--ending']}>
+                <p class="sft__state">{r.state}</p>
+                <h3 class="sft__label">{zh ? r.labelZh : r.label}</h3>
+                <dl class="sft__facts">
+                  <div>
+                    <dt>{copy.dueLabel}</dt>
+                    <dd>{zh ? r.dueZh : r.due}</dd>
+                  </div>
+                  {r.ext && (
+                    <div>
+                      <dt>{copy.extLabel}</dt>
+                      <dd>{zh ? (r.extZh ?? r.ext) : r.ext}</dd>
+                    </div>
+                  )}
+                  {r.note && (
+                    <div>
+                      <dt>{copy.noteLabel}</dt>
+                      <dd>{zh ? (r.noteZh ?? r.note) : r.note}</dd>
+                    </div>
+                  )}
+                </dl>
+                <p class="sft__links">
+                  <a href={r.sourceHref} target="_blank" rel="noopener">
+                    {copy.source}: {r.sourceLabel}
+                  </a>
+                  <a href={`${prefix}/states/${r.stateSlug}`}>{copy.statePage} &rarr;</a>
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+
+    <p class="sft__note">{copy.verified}</p>
+
+    <div class="sft__cta">
+      <p class="sft__cta-lead">{copy.ctaLead}</p>
+      <p class="sft__cta-text">{copy.ctaText}</p>
+      <a class="m-btn m-btn--secondary" href={appHref} data-event="marketing.franchise-hub.cta"
+        >{copy.ctaBtn}</a
+      >
+    </div>
+  </div>
+</section>
+
+<style>
+  .sft {
+    padding-block: clamp(48px, 7vw, 88px) 8px;
+  }
+  .sft .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .sft__lead {
+    margin-top: 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .sft__group {
+    margin-top: clamp(32px, 4vw, 48px);
+  }
+  .sft__grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 860px) {
+    .sft__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .sft__card {
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 18px 20px;
+    background: var(--m-surface, #fff);
+  }
+  .sft__card--ending {
+    background: var(--m-section);
+  }
+  .sft__state {
+    margin: 0;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .sft__label {
+    margin: 4px 0 0;
+    font-size: var(--m-text-base);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .sft__facts {
+    margin: 12px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .sft__facts dt {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .sft__facts dd {
+    margin: 2px 0 0;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.55;
+    color: var(--m-ink);
+  }
+  .sft__links {
+    margin: 14px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: var(--m-text-xs);
+  }
+  .sft__links a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .sft__note {
+    margin-top: 26px;
+    max-width: 80ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .sft__cta {
+    margin-top: 32px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--m-section);
+  }
+  .sft__cta-lead {
+    margin: 0;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .sft__cta-text {
+    margin: 8px 0 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+</style>

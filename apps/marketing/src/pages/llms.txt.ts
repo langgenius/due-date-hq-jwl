@@ -190,6 +190,7 @@ export function GET(): Response {
     `- Interactive deadline lookup (14 federal forms + 50 states, sourced): ${getMarketingUrl('/deadline-lookup')}`,
     `- IRS late-filing penalty calculator (failure-to-file/pay + pass-through, rates cited to irs.gov): ${getMarketingUrl('/penalty-calculator')}`,
     `- Tax extension checker (4868/7004/8868 + FBAR by filer type, dates cited to irs.gov): ${getMarketingUrl('/extension-checker')}`,
+    `- State franchise & annual entity tax deadlines (13 states incl. repeals, each cited to the state agency): ${getMarketingUrl('/franchise-tax-deadlines')}`,
     `- Machine-readable verified-deadlines feed (JSON, free with attribution): ${getMarketingUrl('/data/deadlines.json')}`,
     `- Subscribable 2026 federal deadline calendar (.ics, weekend shifts applied): ${getMarketingUrl('/calendar/federal-deadlines-2026.ics')}`,
     '',

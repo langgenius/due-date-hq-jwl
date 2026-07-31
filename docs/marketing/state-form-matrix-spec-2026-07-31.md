@@ -46,5 +46,11 @@ interface StateTaxRow {
 
 ## 状态
 
-- 2026-07-31：spec 定稿（本文档）。B1 数据采集未开始——这是 gating 工作，
-  适合单独会话/多 agent 核实流水线跑。不要在无核实数据的情况下先建路由。
+- 2026-07-31：spec 定稿（本文档）。
+- 2026-07-31 晚：**B1a SHIPPED** —— 13 州 15 格经 6-agent 两遍独立核实后
+  上线 `/franchise-tax-deadlines`（EN+zh，`lib/state-tax-rows.ts`）。
+  standby 2 格：CA 公司最低 franchise（官方页未给缴付时点）、IL（ilsos.gov
+  403 挡爬 + 疑似 2026 废止未证实，需人工核）。流水线实测教训：单遍 agent 会
+  过度归纳（AL 延期规则并不在其引用页上）——两遍 diff + 分歧三查是必要的。
+- 下一批：B1b = 州级 leaf 页（等 GSC 出需求信号）；B2 = sales tax 节奏页；
+  standby 2 格复核。
