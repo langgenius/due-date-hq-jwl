@@ -87,6 +87,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'franchise-tax-deadlines': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   // State sales-tax cadence hub (state×tax matrix B2a, two-pass verified) 2026-07-31.
   'sales-tax-deadlines': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  // State W-2/withholding-reconciliation hub (matrix B3a, two-pass verified) 2026-07-31.
+  'w2-filing-deadlines': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'form-4868-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'fbar-fincen-114-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'form-2290-heavy-vehicle-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },

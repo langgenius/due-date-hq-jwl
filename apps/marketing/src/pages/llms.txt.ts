@@ -199,6 +199,7 @@ export function GET(): Response {
     `- Tax extension checker (4868/7004/8868 + FBAR by filer type, dates cited to irs.gov): ${getMarketingUrl('/extension-checker')}`,
     `- State franchise & annual entity tax deadlines (13 states incl. repeals, each cited to the state agency): ${getMarketingUrl('/franchise-tax-deadlines')}`,
     `- State sales tax filing due dates (12 states, cadence + frequency rules, each cited to the state agency): ${getMarketingUrl('/sales-tax-deadlines')}`,
+    `- State W-2 filing & withholding reconciliation deadlines (12 states incl. no-filing states and WA's new millionaire income tax, cited to the state agency): ${getMarketingUrl('/w2-filing-deadlines')}`,
     `- Machine-readable verified-deadlines feed (JSON, free with attribution): ${getMarketingUrl('/data/deadlines.json')}`,
     `- Subscribable 2026 federal deadline calendar (.ics, weekend shifts applied): ${getMarketingUrl('/calendar/federal-deadlines-2026.ics')}`,
     '',

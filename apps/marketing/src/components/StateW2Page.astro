@@ -1,0 +1,199 @@
+---
+/**
+ * State W-2 filing hub — B3a of the state×tax matrix (spec:
+ * docs/marketing/state-form-matrix-spec-2026-07-31.md). One card per verified
+ * state from lib/state-w2-rows.ts, each with its official agency source linked
+ * and a cross-link to the state's own page. Static render, no client JS.
+ */
+import { getCtaHref } from '../lib/app-url'
+import { STATE_W2_ROWS, STATE_W2_ROWS_VERIFIED_ON } from '../lib/state-w2-rows'
+
+interface Props {
+  locale: 'en' | 'zh-CN'
+}
+const { locale } = Astro.props
+const zh = locale === 'zh-CN'
+const prefix = zh ? '/zh-CN' : ''
+
+const copy = zh
+  ? {
+      eyebrow: '核实参考',
+      title: '各州 W-2 提交与年度预扣对账截止日（2026）',
+      lead: '「1 月 31 日」也不是全部答案:新泽西是 2 月 15 日,加州和纽约根本没有州级 W-2 提交(走季度申报),华盛顿刚立法开征百万富翁所得税。12 个州逐条转录自州机关官方页面并附来源——两遍独立核实。',
+      dueLabel: '截止规则',
+      noteLabel: '别记错',
+      source: '官方来源',
+      statePage: '查看该州全部截止日',
+      verified: `核实于 ${STATE_W2_ROWS_VERIFIED_ON}(两遍独立转录后比对;华盛顿格另经第三遍抓取并对照 leg.wa.gov)。申报前请以官方来源为准,本页不构成税务建议。`,
+      ctaLead: '连「W-2 全国 1 月 31 日」这种常识也有例外——而且华盛顿的规则今年刚变。',
+      ctaText: 'DueDateHQ 监控官方 IRS 与各州来源,规则或截止日变动时把变化路由到受影响的客户。Beta 期间免费。',
+      ctaBtn: '免费开始',
+    }
+  : {
+      eyebrow: 'VERIFIED REFERENCE',
+      title: 'State W-2 filing & annual withholding reconciliation deadlines (2026)',
+      lead: '"January 31" is not the whole answer: New Jersey is February 15, California and New York have no state W-2 filing at all (quarterly returns instead), and Washington just enacted a millionaire income tax. Twelve states, each transcribed from the agency page linked beside it — independently verified twice.',
+      dueLabel: 'Due rule',
+      noteLabel: 'Don’t get this wrong',
+      source: 'Official source',
+      statePage: 'All deadlines for this state',
+      verified: `Verified ${STATE_W2_ROWS_VERIFIED_ON} (two independent transcription passes, diffed; the Washington cell was additionally third-pass fetched and grounded against leg.wa.gov). Confirm against the official source before filing — not tax advice.`,
+      ctaLead: 'Even "W-2s are due January 31 everywhere" has exceptions — and Washington’s rules changed this year.',
+      ctaText: 'DueDateHQ watches official IRS and state sources and routes each rule or deadline change to the clients it affects. Free during beta.',
+      ctaBtn: 'Start free',
+    }
+
+const appHref = getCtaHref(locale)
+---
+
+<section class="swt">
+  <div class="wrap">
+    <p class="m-eyebrow">{copy.eyebrow}</p>
+    <h1 class="m-page-title">{copy.title}</h1>
+    <p class="swt__lead">{copy.lead}</p>
+
+    <div class="swt__grid">
+      {
+        STATE_W2_ROWS.map((r) => (
+          <article class="swt__card">
+            <p class="swt__state">{r.state}</p>
+            <h2 class="swt__label">{zh ? r.labelZh : r.label}</h2>
+            <dl class="swt__facts">
+              <div>
+                <dt>{copy.dueLabel}</dt>
+                <dd>{zh ? r.dueZh : r.due}</dd>
+              </div>
+              {r.note && (
+                <div>
+                  <dt>{copy.noteLabel}</dt>
+                  <dd>{zh ? (r.noteZh ?? r.note) : r.note}</dd>
+                </div>
+              )}
+            </dl>
+            <p class="swt__links">
+              <a href={r.sourceHref} target="_blank" rel="noopener">
+                {copy.source}: {r.sourceLabel}
+              </a>
+              <a href={`${prefix}/states/${r.stateSlug}`}>{copy.statePage} &rarr;</a>
+            </p>
+          </article>
+        ))
+      }
+    </div>
+
+    <p class="swt__note">{copy.verified}</p>
+
+    <div class="swt__cta">
+      <p class="swt__cta-lead">{copy.ctaLead}</p>
+      <p class="swt__cta-text">{copy.ctaText}</p>
+      <a class="m-btn m-btn--secondary" href={appHref} data-event="marketing.w2-hub.cta"
+        >{copy.ctaBtn}</a
+      >
+    </div>
+  </div>
+</section>
+
+<style>
+  .swt {
+    padding-block: clamp(48px, 7vw, 88px) 8px;
+  }
+  .swt .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .swt__lead {
+    margin-top: 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .swt__grid {
+    margin-top: clamp(28px, 4vw, 40px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 860px) {
+    .swt__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .swt__card {
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 18px 20px;
+    background: var(--m-surface, #fff);
+  }
+  .swt__state {
+    margin: 0;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .swt__label {
+    margin: 4px 0 0;
+    font-size: var(--m-text-base);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .swt__facts {
+    margin: 12px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .swt__facts dt {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .swt__facts dd {
+    margin: 2px 0 0;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.55;
+    color: var(--m-ink);
+  }
+  .swt__links {
+    margin: 14px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: var(--m-text-xs);
+  }
+  .swt__links a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .swt__note {
+    margin-top: 26px;
+    max-width: 80ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .swt__cta {
+    margin-top: 32px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--m-section);
+  }
+  .swt__cta-lead {
+    margin: 0;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .swt__cta-text {
+    margin: 8px 0 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+</style>

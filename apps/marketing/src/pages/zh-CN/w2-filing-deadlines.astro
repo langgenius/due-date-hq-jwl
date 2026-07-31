@@ -1,0 +1,141 @@
+---
+/** /zh-CN/w2-filing-deadlines — 各州 W-2 提交截止日枢纽(EN 镜像,同一核实数据源)。 */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import StateW2Page from '../../components/StateW2Page.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../../lib/site'
+import type { JsonLdDocument } from '../../lib/structured-data'
+
+const locale = 'zh-CN'
+const pathname = '/zh-CN/w2-filing-deadlines'
+const title = '各州 W-2 提交截止日（2026）：12 州核实版 — DueDateHQ'
+const description =
+  '已核实的各州 W-2 与年度预扣对账截止日——多数是 1 月 31 日，但新泽西是 2 月 15 日，加州和纽约根本不收州级 W-2，华盛顿刚立法开征百万富翁所得税。每条附州官方来源。'
+const { publishedOn, reviewedOn } = getContentDates('w2-filing-deadlines')
+const faq = [
+  {
+    q: 'W-2 交给州的截止日是哪天？',
+    a: '在要求提交的州多为次年 1 月 31 日（IL、PA、GA、NC、OH、MI）。新泽西的 NJ-W-3 是 2 月 15 日。加州和纽约完全不收州级 W-2——工资明细走季度申报（DE 9/DE 9C 与 NYS-45）。',
+  },
+  {
+    q: '加州要求雇主向州提交 W-2 吗？',
+    a: '不要求。EDD 雇主指南（DE 44）明确 W-2 不向州提交；雇主按季度经 DE 9/DE 9C 电子申报工资与预扣明细。',
+  },
+  {
+    q: '哪些州没有州所得税预扣？',
+    a: '德州和佛州不征个人所得税，因此没有州级 W-2。华盛顿历史上也没有——但立法机关已通过 ESSB 6346（《对百万富翁征税》，2026 年法律第 238 章，2026-03-30 签署），对 AGI 100 万美元及以上的个人开征所得税。这是个人义务；DOR 未规定雇主预扣。',
+  },
+  {
+    q: '北卡 NC-3 或 W-2 迟交/纸质提交会怎样？',
+    a: '北卡的电子申报强制令有实罚：格式不符罚 $200，逾期每日 $50、上限 $1,000。',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: `${MARKETING_SITE_URL}/zh-CN` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '各州 W-2 提交截止日',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref(locale)
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <StateW2Page locale={locale} />
+  <section class="swf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">州 W-2 常见问题</h2>
+      {
+        faq.map((f) => (
+          <details class="swf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="swf__more">
+        销售税：<a href="/zh-CN/sales-tax-deadlines">各州销售税截止日</a> · Franchise：<a
+          href="/zh-CN/franchise-tax-deadlines">各州 franchise tax 截止日</a
+        > · 联邦 payroll：<a href="/zh-CN/guides/payroll-tax-deadlines">payroll 税截止日</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .swf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .swf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .swf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .swf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .swf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .swf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .swf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

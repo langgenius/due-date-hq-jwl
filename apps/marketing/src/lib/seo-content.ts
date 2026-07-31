@@ -5777,6 +5777,11 @@ const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[]
     label: 'State sales tax due dates',
     labelZh: '各州销售税截止日',
   },
+  {
+    href: '/w2-filing-deadlines',
+    label: 'State W-2 filing deadlines',
+    labelZh: '各州 W-2 提交截止日',
+  },
   { href: '/states/ohio', label: 'Ohio tax deadlines (CAT)', labelZh: 'Ohio 州税截止日（CAT）' },
   {
     href: '/states/washington',
