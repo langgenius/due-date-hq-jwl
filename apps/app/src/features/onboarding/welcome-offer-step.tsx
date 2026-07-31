@@ -71,7 +71,7 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           rides LOUD above it as an accent promo badge (it's the conversion
           hook), then a light task subline. */}
       <div className="flex flex-col gap-2.5">
-        <StepDots step={step} total={total} />
+        <StepDots step={step} total={total} label={<Trans>Welcome</Trans>} />
         {/* Solid green promo fill — a distinct "free/offer" register, NOT the
             accent tint used by selected chips (which read as a control). */}
         <span className="inline-flex w-fit items-center gap-2 rounded-full bg-state-success-solid px-3.5 py-1.5 text-sm font-semibold tracking-tight text-text-inverted">

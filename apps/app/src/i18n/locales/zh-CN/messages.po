@@ -8355,6 +8355,7 @@ msgstr "导入批次已创建"
 #: src/features/dashboard/create-choice-cards.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
+#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Import clients"
@@ -14186,6 +14187,10 @@ msgstr "规则会生成你的截止日。激活你要申报的州,日历就会�
 msgid "Rules awaiting review"
 msgstr "待审核规则"
 
+#: src/routes/onboarding.tsx
+msgid "Rules check"
+msgstr "规则核对"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Rules derived"
 msgstr "派生的规则"
@@ -15557,7 +15562,6 @@ msgid "Step {current} of {STEP_COUNT}"
 msgstr "第 {current} 步，共 {STEP_COUNT} 步"
 
 #: src/features/onboarding/step-dots.tsx
-#: src/routes/migration.new.tsx
 msgid "Step {step} of {total}"
 msgstr "第 {step} 步，共 {total} 步"
 
@@ -17613,6 +17617,10 @@ msgstr "周末 → 下一个工作日"
 msgid "Weekly digest"
 msgstr "每周摘要"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Welcome"
+msgstr "欢迎"
+
 #: src/routes/route-summary.ts
 msgid "Welcome back"
 msgstr "欢迎回来"
@@ -18082,6 +18090,10 @@ msgstr "您粘贴的数据和未保存的编辑将被丢弃。"
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Your personal profile and access for this practice."
 msgstr "你在此事务所的个人资料与访问权限。"
+
+#: src/routes/onboarding.tsx
+msgid "Your practice"
+msgstr "您的事务所"
 
 #: src/lib/i18n-error.ts
 msgid "Your practice is suspended. Contact support to restore access."

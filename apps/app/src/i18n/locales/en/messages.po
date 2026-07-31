@@ -8327,6 +8327,7 @@ msgstr "Import batch created"
 #: src/features/dashboard/create-choice-cards.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
+#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Import clients"
@@ -14128,6 +14129,10 @@ msgstr "Rules are what generate your deadlines. Activate the states you file in,
 msgid "Rules awaiting review"
 msgstr "Rules awaiting review"
 
+#: src/routes/onboarding.tsx
+msgid "Rules check"
+msgstr "Rules check"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Rules derived"
 msgstr "Rules derived"
@@ -15494,7 +15499,6 @@ msgid "Step {current} of {STEP_COUNT}"
 msgstr "Step {current} of {STEP_COUNT}"
 
 #: src/features/onboarding/step-dots.tsx
-#: src/routes/migration.new.tsx
 msgid "Step {step} of {total}"
 msgstr "Step {step} of {total}"
 
@@ -17545,6 +17549,10 @@ msgstr "Weekend → next business day"
 msgid "Weekly digest"
 msgstr "Weekly digest"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Welcome"
+msgstr "Welcome"
+
 #: src/routes/route-summary.ts
 msgid "Welcome back"
 msgstr "Welcome back"
@@ -18011,6 +18019,10 @@ msgstr "Your pasted data and unsaved edits will be discarded."
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Your personal profile and access for this practice."
 msgstr "Your personal profile and access for this practice."
+
+#: src/routes/onboarding.tsx
+msgid "Your practice"
+msgstr "Your practice"
 
 #: src/lib/i18n-error.ts
 msgid "Your practice is suspended. Contact support to restore access."

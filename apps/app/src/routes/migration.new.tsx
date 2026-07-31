@@ -7,11 +7,11 @@ import type { FirmPublic } from '@duedatehq/contracts'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { OnboardingSkipModal } from '@/features/migration/OnboardingSkipModal'
+import { StepDots } from '@/features/onboarding/step-dots'
 import { Wizard } from '@/features/migration/Wizard'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
@@ -203,37 +203,6 @@ function parseRuleReviewJurisdictions(value: string | null): string[] {
     .filter(Boolean)
 }
 
-// Mirrors the onboarding route's `StepDots` (onboarding.tsx) so the import
-// step reads as the SAME journey, not a different product. When a user
-// arrives here via source=onboarding, this resolves the "Step N of 3"
-// promise that otherwise vanished when onboarding handed off to the wizard
-// (2026-06-12 critique: the importer's own 4-step pill Stepper is the
-// SUB-progress of this single onboarding step, not a competing count).
-function OnboardingStepDots({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="mb-3 flex items-center gap-3.5">
-      <span className="text-[11px] font-semibold tracking-[1.4px] text-text-tertiary uppercase">
-        <Trans>
-          Step {step} of {total}
-        </Trans>
-      </span>
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: total }).map((_, index) => (
-          <span
-            // oxlint-disable-next-line no-array-index-key -- step-indicator dots; position IS the step identity
-            key={index}
-            aria-hidden
-            className={cn(
-              'size-1.5 rounded-full',
-              index + 1 === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function MigrationActivationIntro({
   onSkip,
   onReviewRules,
@@ -255,7 +224,14 @@ function MigrationActivationIntro({
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
-        {showOnboardingProgress ? <OnboardingStepDots step={3} total={3} /> : null}
+        {/* Shared onboarding StepDots (not a local copy) so the import step
+            reads as the SAME journey — completed dots + the "Import clients"
+            name resolve the "Step N of 3" promise from onboarding. The
+            wizard's own 4-step pill Stepper below is the SUB-progress of this
+            single onboarding step, not a competing count (2026-06-12). */}
+        {showOnboardingProgress ? (
+          <StepDots step={3} total={3} label={<Trans>Import clients</Trans>} className="mb-3" />
+        ) : null}
         {/* "← Back" surfaces on the leading edge when there's a real
             previous surface to return to. Suppressed when
             source=onboarding (one-shot chain; history-back would loop).

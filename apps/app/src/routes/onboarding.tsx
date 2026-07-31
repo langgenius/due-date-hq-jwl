@@ -309,7 +309,10 @@ export function OnboardingRoute() {
     return (
       <CenteredAuthScreen>
         <div className="flex h-full min-h-0 w-full max-w-[800px] flex-col gap-4">
-          <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
+          {/* Still step 2 — the review is a named sub-step after the practice
+              is created, so the eyebrow names it instead of repeating a bare
+              "Step 2" that looks like a stuck indicator. */}
+          <StepDots step={2} total={ONBOARDING_STEP_COUNT} label={<Trans>Rules check</Trans>} />
           <RuleReviewPrompt
             totalRulesActivated={review.totalActivated}
             jurisdictions={review.jurisdictions.map((code) => ({ code }))}
@@ -335,7 +338,7 @@ export function OnboardingRoute() {
             the form card, so the primary anchor is the first thing read (and is
             always reachable now that the shell scroll-centers). */}
         <div className="flex flex-col gap-3">
-          <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
+          <StepDots step={2} total={ONBOARDING_STEP_COUNT} label={<Trans>Your practice</Trans>} />
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-text-primary">
               <Trans>Set up your practice</Trans>
