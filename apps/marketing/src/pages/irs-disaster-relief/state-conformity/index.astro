@@ -39,12 +39,12 @@ const faq = [
   {
     question: 'Does an IRS disaster postponement automatically move state deadlines?',
     answer:
-      'No. Relief under IRC §7508A postpones federal filing and payment deadlines only. Each state decides separately whether — and how — to grant matching relief, and the answers differ widely: of the states with active federal relief verified here, only Wisconsin extends its dates automatically by standing policy.',
+      'No. Relief under IRC §7508A postpones federal filing and payment deadlines only. Each state decides separately whether — and how — to grant matching relief, and the answers differ widely: among the states verified here, only a minority (Wisconsin, Montana, Tennessee, California) track the federal date more or less automatically, each with its own claiming mechanics.',
   },
   {
     question: 'What forms can state disaster relief take?',
     answer:
-      'The verified pages here show four distinct patterns: automatic conformity by standing policy (Wisconsin); event-by-event bulletins with their own dates (Louisiana); penalty-and-interest waivers that never move the deadline itself and must be requested (Hawaii, Michigan); and, in a no-income-tax state, request-based relief on the taxes the state does levy (Washington).',
+      'The verified pages here show the full spectrum: automatic conformity by standing policy or statute (Wisconsin, Montana, Tennessee, California — with different claim steps); event bulletins or orders that set their own state dates (Louisiana, Georgia, Florida, Mississippi); penalty-and-interest waivers that never move the deadline and must be requested (Hawaii, Michigan); request-based relief in no-income-tax states (Washington); and outright silence (Arizona).',
   },
   {
     question: 'What is the difference between a state extension and a state waiver?',
@@ -90,9 +90,10 @@ const faq = [
       <p class="m-page-lead sci-answer">
         Not automatically. Relief under IRC §7508A moves <em>federal</em> deadlines only — each
         state decides separately, on its own legal mechanics and its own timeline. Of the
-        {entries.length} states with active federal relief verified below, only {conformingCount}
-        {conformingCount === 1 ? 'extends' : 'extend'} state deadlines automatically. The rest
-        require a request, waive penalties without moving the date, or have issued nothing at all.
+        {entries.length} states verified below — every state with an active federal notice, plus
+        the most disaster-postponed states in the 2020–2026 record — only {conformingCount}
+        follow the federal date more or less automatically. The rest require a request, waive
+        penalties without moving the date, set their own dates, or have issued nothing at all.
       </p>
       <p class="m-page-reviewed">
         Per-state facts verified against each state agency's own announcements as of

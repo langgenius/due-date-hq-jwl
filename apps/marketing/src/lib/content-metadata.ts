@@ -129,6 +129,11 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
     publishedOn: '2026-07-31',
     reviewedOn: '2026-07-31',
   },
+  // Disaster-postponement data report (figures computed from the dataset).
+  'disaster-by-the-numbers': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-tennessee': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-california': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-florida': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'arizona-san-carlos-apache-tribe-severe-storms-flooding': {
     publishedOn: '2026-07-06',
     reviewedOn: '2026-07-06',

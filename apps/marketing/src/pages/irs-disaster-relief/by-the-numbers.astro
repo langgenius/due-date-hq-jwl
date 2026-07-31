@@ -1,0 +1,366 @@
+---
+/**
+ * /irs-disaster-relief/by-the-numbers — the citable data report on IRS disaster
+ * deadline postponements, 2020–present.
+ *
+ * Every figure renders from lib/disaster-report.ts, which computes from the
+ * same joined dataset as the CSV/JSON downloads — the page can never disagree
+ * with the data it invites people to cite. Charts are build-time inline SVG
+ * (no client JS). "Runway" is days from IRS announcement to postponed deadline,
+ * and is labeled exactly that — the archive has no incident-start dates, so no
+ * claim is made about postponement-window length.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import FaqList from '../../components/FaqList.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { getDisasterReport } from '../../lib/disaster-report'
+import { getDisasterDatasetStats } from '../../lib/disaster-dataset'
+import { disasterHubStructuredData } from '../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief/by-the-numbers'
+const slug = 'disaster-by-the-numbers'
+const hubHref = '/irs-disaster-relief'
+const ctaHref = getCtaHref('en')
+const reviewedOn = getContentDates(slug).reviewedOn
+
+const r = getDisasterReport()
+
+// The longest-runway example: name it by relief code + state when the row has
+// them; a few special notices (nationwide COVID, Israel terrorist attacks) are
+// uncoded, and those fall back to the event description.
+const maxRowLabel = r.runway.maxRow.code
+  ? `${r.runway.maxRow.code} (${r.runway.maxRow.state})`
+  : (r.runway.maxRow.event ?? 'an uncoded special notice')
+
+const title = `IRS Disaster Deadline Postponements ${r.fromYear}–${r.toYear}: the Numbers | DueDateHQ`
+const description = `${r.total} IRS disaster-relief postponements since ${r.fromYear} across ${r.statesAffected} states and territories — per-year counts, most-postponed states, announcement seasonality, and median runway to the new deadline. Free to cite; CSV/JSON downloads.`
+
+const faq = [
+  {
+    question: 'How often does the IRS postpone tax deadlines for disasters?',
+    answer: `${r.total} times from ${r.fromYear} through ${r.toYear} — one relief notice per declared event, covering ${r.statesAffected} states and territories. The peak year was ${r.peakYear.year} with ${r.peakYear.count} notices; ${r.liveNow} postponements are live right now. Counts derive from the downloadable dataset on this page.`,
+  },
+  {
+    question: 'Which states get IRS disaster postponements most often?',
+    answer: `In this dataset (${r.fromYear}–${r.toYear}), ${r.topStates[0].state} leads with ${r.topStates[0].count} relief notices, followed by ${r.topStates[1].state} (${r.topStates[1].count}) and ${r.topStates[2].state} (${r.topStates[2].count}). One notice can cover many counties, so notice counts measure event frequency, not people affected.`,
+  },
+  {
+    question: 'How much time does a postponement actually give?',
+    answer: `Measured as runway — days from the IRS announcement to the postponed deadline — the median is ${r.runway.median} days and the mean ${r.runway.mean} days across ${r.runway.sample} dated notices. This measures notice-to-deadline distance, not the postponement window itself, which starts at the incident date.`,
+  },
+  {
+    question: 'Can I cite or reuse these numbers?',
+    answer:
+      'Yes — free with attribution and a link to this page. The underlying dataset (one row per IRS relief code, each transcribed from the official irs.gov release) is downloadable as CSV or JSON, and every figure here is computed from it.',
+  },
+]
+
+// --- inline SVG bar chart geometry (build-time, no client JS) ---
+const CHART_W = 640
+const CHART_H = 180
+const BAR_GAP = 14
+const yearMax = Math.max(...r.byYear.map((y) => y.count))
+const barW = Math.floor((CHART_W - BAR_GAP * (r.byYear.length - 1)) / r.byYear.length)
+const monthMax = Math.max(...r.byMonth.map((m) => m.count))
+const mBarGap = 8
+const mBarW = Math.floor((CHART_W - mBarGap * 11) / 12)
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={disasterHubStructuredData(
+    t,
+    'en',
+    pathname,
+    title,
+    description,
+    faq,
+    getDisasterDatasetStats(),
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <nav class="btn-bc" aria-label="Breadcrumb">
+        <a href={hubHref} class="m-page-back">
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+        </a>
+      </nav>
+      <p class="m-eyebrow">Data report</p>
+      <h1 class="m-page-title">
+        {r.total} times since {r.fromYear}, the IRS moved a tax deadline for a disaster
+      </h1>
+      <p class="m-page-lead btn-lead">
+        One relief notice per declared event, {r.fromYear}–{r.toYear}, across
+        {r.statesAffected} states and territories — every entry transcribed from the official
+        irs.gov release. {r.liveNow} postponements are live right now. Every figure below is
+        computed from the downloadable dataset, free to cite with a link.
+      </p>
+      <p class="m-page-reviewed">
+        Dataset last verified <time datetime={reviewedOn}>{reviewedOn}</time> · download
+        <a class="btn-link" href="/data/disaster-notices.csv">CSV</a> ·
+        <a class="btn-link" href="/data/disaster-notices.json">JSON</a>
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="btn-year-h">
+      <p class="m-eyebrow">Trend</p>
+      <h2 class="m-page-h2" id="btn-year-h">Notices per year — {r.peakYear.year} is the peak</h2>
+      <p class="m-page-body btn-body">
+        {r.peakYear.count} relief notices in {r.peakYear.year} alone. A year's count moves with
+        the disasters themselves — hurricane seasons, wildfire years, and one nationwide
+        postponement in 2020 — so the line is volatile by nature; what does not change is that
+        every one of these moved real filing dates for real taxpayers.
+      </p>
+      <figure class="btn-fig">
+        <svg
+          viewBox={`0 0 ${CHART_W} ${CHART_H + 28}`}
+          role="img"
+          aria-label={`Bar chart of IRS disaster relief notices per year: ${r.byYear.map((y) => `${y.year}: ${y.count}`).join(', ')}`}
+        >
+          {
+            r.byYear.map((y, i) => {
+              const h = Math.max(4, Math.round((y.count / yearMax) * (CHART_H - 24)))
+              const x = i * (barW + BAR_GAP)
+              return (
+                <>
+                  <rect
+                    x={x}
+                    y={CHART_H - h}
+                    width={barW}
+                    height={h}
+                    rx="4"
+                    class="btn-bar"
+                  />
+                  <text x={x + barW / 2} y={CHART_H - h - 8} text-anchor="middle" class="btn-val">
+                    {y.count}
+                  </text>
+                  <text x={x + barW / 2} y={CHART_H + 18} text-anchor="middle" class="btn-lbl">
+                    {y.year}
+                  </text>
+                </>
+              )
+            })
+          }
+        </svg>
+        <figcaption class="btn-cap">
+          IRS disaster-relief notices per year, {r.fromYear}–{r.toYear} (one per relief code;
+          {r.toYear} is year-to-date). Source: this page's dataset.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="btn-states-h">
+      <p class="m-eyebrow">Geography</p>
+      <h2 class="m-page-h2" id="btn-states-h">The most-postponed states</h2>
+      <div class="btn-tablewrap">
+        <table class="btn-table">
+          <thead>
+            <tr><th>Rank</th><th>State / territory</th><th>Relief notices, {r.fromYear}–{r.toYear}</th></tr>
+          </thead>
+          <tbody>
+            {
+              r.topStates.map((s, i) => (
+                <tr>
+                  <td>{i + 1}</td>
+                  <td>{s.state}</td>
+                  <td>{s.count}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="btn-note">
+        Notice counts measure event frequency, not people affected — one notice can cover a
+        single tribal nation or an entire state. Whether each state's own tax deadlines followed
+        these federal moves is a separate question:
+        <a class="btn-link" href="/irs-disaster-relief/state-conformity"
+          >see the verified state-conformity pages</a
+        >.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="btn-runway-h">
+      <p class="m-eyebrow">Timing</p>
+      <h2 class="m-page-h2" id="btn-runway-h">
+        Median runway: {r.runway.median} days from announcement to new deadline
+      </h2>
+      <p class="m-page-body btn-body">
+        Across {r.runway.sample} dated notices, the gap between the day the IRS announced relief
+        and the postponed deadline runs a median of {r.runway.median} days (mean
+        {r.runway.mean}). The longest runway in the dataset is {r.runway.max} days —
+        {maxRowLabel}, announced {r.runway.maxRow.issuedOn}
+        with a {r.runway.maxRow.deadlineLabel} deadline. Note what this measures: distance from
+        announcement to deadline, not the postponement window (which starts at the incident
+        date, a field the historical record does not carry).
+      </p>
+      <p class="m-page-body btn-body">
+        The practical read for a firm: when relief lands, the new date is typically a season
+        away, not a year — and the IRS revises releases in place, so the date you saw first may
+        not be the date that stands.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="btn-month-h">
+      <p class="m-eyebrow">Seasonality</p>
+      <h2 class="m-page-h2" id="btn-month-h">When relief gets announced</h2>
+      <figure class="btn-fig">
+        <svg
+          viewBox={`0 0 ${CHART_W} ${CHART_H + 28}`}
+          role="img"
+          aria-label={`Bar chart of IRS disaster relief announcements by month: ${r.byMonth.map((m) => `${m.month}: ${m.count}`).join(', ')}`}
+        >
+          {
+            r.byMonth.map((m, i) => {
+              const h = Math.max(2, Math.round((m.count / monthMax) * (CHART_H - 24)))
+              const x = i * (mBarW + mBarGap)
+              return (
+                <>
+                  <rect x={x} y={CHART_H - h} width={mBarW} height={h} rx="3" class="btn-bar" />
+                  <text x={x + mBarW / 2} y={CHART_H - h - 6} text-anchor="middle" class="btn-val">
+                    {m.count}
+                  </text>
+                  <text x={x + mBarW / 2} y={CHART_H + 18} text-anchor="middle" class="btn-lbl">
+                    {m.month}
+                  </text>
+                </>
+              )
+            })
+          }
+        </svg>
+        <figcaption class="btn-cap">
+          IRS disaster-relief announcements by issuance month, {r.fromYear}–{r.toYear}. Source:
+          this page's dataset.
+        </figcaption>
+      </figure>
+      <p class="btn-note">
+        Announcements cluster after disaster seasons — which puts them inside or right against
+        filing season, when a moved date is hardest to absorb.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="About these numbers" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">
+            {r.total} moved deadlines is a dataset. The next one is your Tuesday.
+          </h2>
+          <p class="m-page-cta__body">
+            DueDateHQ watches IRS, state, and FEMA sources and matches each postponement to the
+            clients in your book it affects — with the source on every date.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.by-the-numbers.cta"
+            >Start free</a
+          >
+          <a class="m-btn m-btn--secondary" href={hubHref}>Current disaster relief</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .btn-bc {
+    margin-bottom: 18px;
+  }
+  .btn-lead {
+    max-width: 72ch;
+  }
+  .btn-body {
+    max-width: 72ch;
+  }
+  .btn-body + .btn-body {
+    margin-top: 12px;
+  }
+  .btn-link {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .btn-fig {
+    margin: 22px 0 0;
+    max-width: 680px;
+  }
+  .btn-fig svg {
+    width: 100%;
+    height: auto;
+  }
+  .btn-bar {
+    fill: var(--m-accent);
+    opacity: 0.85;
+  }
+  .btn-val {
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--m-ink);
+  }
+  .btn-lbl {
+    font-size: 11px;
+    fill: var(--m-muted);
+  }
+  .btn-cap {
+    margin-top: 10px;
+    font-size: var(--m-text-xs);
+    color: var(--m-muted);
+  }
+  .btn-tablewrap {
+    margin-top: 18px;
+    max-width: 560px;
+    overflow-x: auto;
+  }
+  .btn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--m-text-sm);
+  }
+  .btn-table th {
+    text-align: left;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-3xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--m-muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--m-hairline);
+  }
+  .btn-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--m-hairline-2);
+    color: var(--m-ink-2);
+  }
+  .btn-table td:first-child {
+    font-family: var(--m-font-mono);
+    color: var(--m-muted);
+  }
+  .btn-table td:nth-child(3) {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .btn-note {
+    margin-top: 16px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm);
+    line-height: 1.6;
+    color: var(--m-muted);
+  }
+</style>

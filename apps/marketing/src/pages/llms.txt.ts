@@ -154,6 +154,7 @@ export function GET(): Response {
     `- Hub with county-level detail and per-state pages: ${getMarketingUrl('/irs-disaster-relief')}`,
     `- Machine-readable JSON feed (free, attribution requested): ${getMarketingUrl('/data/disaster-notices.json')}`,
     `- Full 2020-present dataset as CSV (one row per IRS relief code): ${getMarketingUrl('/data/disaster-notices.csv')}`,
+    `- Data report — postponements per year, most-postponed states, median runway (figures computed from the dataset): ${getMarketingUrl('/irs-disaster-relief/by-the-numbers')}`,
     `- Free embeddable widget for any website: ${getMarketingUrl('/widget')}`,
     '',
     '## State conformity to federal disaster relief',

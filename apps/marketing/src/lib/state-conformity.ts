@@ -1116,6 +1116,356 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     metaDescription:
       'The IRS moved San Carlos Apache Tribe deadlines to Sept. 28, 2026 — Arizona has announced nothing, for this or any recent disaster. Form 290 abatement is the only path, and interest is not abatable. Verified against ADOR and azleg.gov.',
   },
+  {
+    // All facts verified 2026-07-31 against TN DOR notice PDFs (26-10, 24-01,
+    // 24-09, 25-02 read in full) and tn.gov/revenue pages. §67-1-114 is
+    // characterized only as DOR's own notices paraphrase it. Tennessee has no
+    // active federal notice as of the verified date — this is a standing-pattern
+    // page (most disaster-postponed state in the 2020-2026 archive: 12 notices).
+    slug: 'tennessee',
+    state: 'Tennessee',
+    abbreviation: 'TN',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'F&E matches the IRS date automatically — other taxes by request',
+    statusTone: 'ok',
+    directAnswer:
+      'For franchise & excise tax, yes: Tennessee law lets the Commissioner extend state due dates whenever the IRS extends federal ones, and every recent event notice has matched the IRS date exactly, applied automatically by address. Sales, business, and other taxes are never automatic — they take a case-by-case email request. No relief is active right now (the last window closed June 8, 2026).',
+    activeNoticeCodes: [],
+    sections: [
+      {
+        id: 'how-tn-relief-works',
+        heading: 'Does Tennessee automatically follow IRS postponements?',
+        body: [
+          'Structurally, yes — for one tax. Every disaster notice recites the same authority: Tennessee law authorizes the Commissioner of Revenue to extend a state filing due date whenever the IRS extends a federal one for disaster-affected taxpayers (Tenn. Code Ann. §67-1-114, as the notices cite it), with a ceiling — the state extension cannot exceed the federal extension.',
+          'Tennessee is the most disaster-postponed state in the 2020–2026 federal record (12 IRS relief notices), and the Department of Revenue has issued a matching franchise & excise notice for essentially every one: the April 2020 tornadoes through Winter Storm Fern (Notice #26-10). The dates have matched the IRS exactly in every checked event — Fern to June 8, 2026; the December 2023 tornadoes to June 17, 2024; Hurricane Helene to May 1, 2025.',
+        ],
+        sources: [
+          {
+            label: 'TN DOR Notice #26-10 — Winter Storm Fern (PDF)',
+            href: 'https://www.tn.gov/content/dam/tn/revenue/documents/notices/general/26-10.pdf',
+          },
+          {
+            label: 'TN DOR — Franchise & excise important-notices index',
+            href: 'https://www.tn.gov/revenue/tax-resources/legal-resources/important-notices/franchise---excise-tax.html',
+          },
+        ],
+      },
+      {
+        id: 'which-taxes',
+        heading: 'What is covered automatically — and what never is',
+        body: [
+          'Automatic relief covers franchise & excise tax only, including quarterly estimated payments (and, after Helene, the Schedule G property-measure refund deadline). The Department applies it to accounts whose primary location address on record sits in the designated disaster area; a covered taxpayer who still receives a penalty notice contacts the Department.',
+          'Everything else is expressly not automatic. Each notice repeats: the Department cannot automatically extend due dates for other taxes, but will approve extension requests case-by-case — by email to Revenue.DisasterExtension@tn.gov with the business name, account number, location, and a description of the impact. The same channel covers taxpayers whose returns are prepared by a practitioner in the disaster area.',
+          'Sales tax has a separate standing program that is a refund, not an extension: individuals who receive FEMA assistance for repairing or rebuilding their primary home can claim back sales tax on appliances, furniture, and building supplies — capped at $2,500 per residence, claimed within one year of the FEMA decision letter.',
+        ],
+        sources: [
+          {
+            label: 'TN DOR Notice #26-10 — coverage and request mechanics (PDF)',
+            href: 'https://www.tn.gov/content/dam/tn/revenue/documents/notices/general/26-10.pdf',
+          },
+          {
+            label: 'TN DOR — Natural disaster sales tax relief (refund program)',
+            href: 'https://www.tn.gov/revenue/taxes/sales-and-use-tax/natural-disaster-sales-tax-relief.html',
+          },
+        ],
+      },
+      {
+        id: 'scope-caution',
+        heading: 'The scope caution: state county lists can lag the IRS',
+        body: [
+          'Tennessee relief carries a dual condition — the taxpayer must sit in the disaster area designated by the State of Tennessee and hold an IRS extension. Those two maps are not always the same. For Winter Storm Fern, the IRS expanded its relief to all 95 counties (and moved the date to June 8, 2026), while DOR’s Notice #26-10 lists 23 named counties; no statewide state expansion was found. A client in an unlisted county falls back on the case-by-case email channel, not the automatic relief.',
+          'The notices also expire with the federal date — each states it does not alter due dates falling after the extended deadline. As of July 31, 2026 no Tennessee relief window is open.',
+        ],
+        sources: [
+          {
+            label: 'TN DOR Notice #26-10 — dual condition and county list (PDF)',
+            href: 'https://www.tn.gov/content/dam/tn/revenue/documents/notices/general/26-10.pdf',
+          },
+          {
+            label: 'IRS — TN-2026-01 (Winter Storm Fern, expanded statewide)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-winter-storm-fern-in-tennessee-various-deadlines-postponed-to-may-22-2026',
+          },
+        ],
+      },
+      {
+        id: 'where-published',
+        heading: 'Where Tennessee publishes disaster relief',
+        body: [
+          'Event notices appear in the Department’s Important Notices index (published guidance under Tenn. Code Ann. §67-1-108, as the index states) and surface first under Hot Topics, each accompanied by a news release. The franchise & excise index carries the full disaster series back to 2020.',
+        ],
+        sources: [
+          {
+            label: 'TN DOR — Important notices master index',
+            href: 'https://www.tn.gov/revenue/revenue-news/news-publications/important-notices.html',
+          },
+          {
+            label: 'TN DOR — Hot topics',
+            href: 'https://www.tn.gov/revenue/revenue-news/news-publications/hot-topics.html',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Does Tennessee match IRS disaster deadlines?',
+        answer:
+          'For franchise & excise tax, yes — by statute the Commissioner may extend state dates when the IRS extends federal ones (never beyond them), and every recent event notice matched the IRS date exactly: June 8, 2026 for Winter Storm Fern, June 17, 2024 for the December 2023 tornadoes, May 1, 2025 for Helene.',
+      },
+      {
+        question: 'Is the Tennessee relief automatic?',
+        answer:
+          'Franchise & excise relief is automatic for accounts whose primary address on record is in the state-designated disaster area. Everything else — sales tax, business tax, other taxes, out-of-area taxpayers, practitioner-in-area cases — runs through a case-by-case email request to Revenue.DisasterExtension@tn.gov.',
+      },
+      {
+        question: 'Does Tennessee extend sales tax deadlines after a disaster?',
+        answer:
+          'Not automatically — sales tax extensions are case-by-case requests. What does exist is a refund program: people who receive FEMA assistance for their primary home can reclaim sales tax on appliances, furniture, and building supplies, up to $2,500 per residence, within one year of the FEMA decision letter.',
+      },
+      {
+        question: 'Is any Tennessee disaster relief active right now?',
+        answer:
+          'No. The most recent window — Winter Storm Fern, Notice #26-10 — closed June 8, 2026, and each notice expires with its federal date. When the IRS next postpones deadlines for a Tennessee disaster, expect a matching F&E notice in the Department’s Important Notices index.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'TN DOR important notices index',
+      href: 'https://www.tn.gov/revenue/revenue-news/news-publications/important-notices.html',
+    },
+    metaTitle: 'Does Tennessee Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'Yes for franchise & excise tax — Tennessee matches the IRS disaster date automatically by address, every event since 2020. Sales and business taxes are request-only. The statute, the pattern, and the county-list caution, verified against TN DOR notices.',
+  },
+  {
+    // All facts verified 2026-07-31 against floridarevenue.com (EO 24-003 PDF
+    // read in full, Milton event page quoted), leg.state.fl.us statute text,
+    // and irs.gov. The +15-day corporate offset is verified for Milton ONLY —
+    // do not generalize it into a formula. No active notice as of the verified
+    // date — standing-pattern page.
+    slug: 'florida',
+    state: 'Florida',
+    abbreviation: 'FL',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'Corporate follows the IRS — sales tax gets only weeks',
+    statusTone: 'info',
+    directAnswer:
+      'Split answer. Florida’s relief is discretionary per event (Fla. Stat. §213.055(2)): for corporate income/franchise tax the Department has followed the IRS postponement — for Hurricane Milton, to May 16, 2025, fifteen days after the federal May 1 date — while sales & use, reemployment, and documentary-stamp taxes got only a weeks-long extension by emergency order. No relief is active right now.',
+    activeNoticeCodes: [],
+    sections: [
+      {
+        id: 'how-fl-relief-works',
+        heading: 'Does Florida automatically follow IRS postponements?',
+        body: [
+          'No — the mechanism is discretionary and event-specific. Under Fla. Stat. §213.055(2), during a governor-declared state of emergency the Department of Revenue’s executive director may "extend the stipulated due date for tax returns and accompanying tax payments" and waive interest accruing during the emergency. The chain each time: Governor’s executive order → the executive director issues an Order of Emergency Waiver, supplemented by an event page on floridarevenue.com.',
+          'Florida has no personal income tax, so the taxes in play are corporate income/franchise, sales & use, reemployment, and documentary stamp — and the relief differs sharply by tax type (below).',
+        ],
+        sources: [
+          {
+            label: 'Fla. Stat. §213.055 — declared emergency powers (official statutes)',
+            href: 'http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0200-0299/0213/Sections/0213.055.html',
+          },
+          {
+            label: 'FL DOR — Order of Emergency Waiver #24-003 (Milton, PDF)',
+            href: 'https://floridarevenue.com/emdisaster/ExecutiveOrdersEmergencyWaivers/EO24-003.pdf',
+          },
+        ],
+      },
+      {
+        id: 'corporate-pattern',
+        heading: 'Corporate income/franchise: follows the IRS — on Florida’s own date',
+        body: [
+          'For the 2024 hurricanes, the Department stated it "will follow the tax relief granted by the Internal Revenue Service (IRS) … regarding the postponement of Florida corporate income/franchise tax return due dates." But the Florida date was its own: corporate due dates in the relief windows moved to May 16, 2025, where the federal Milton deadline was May 1, 2025 — fifteen days later, for that event. The relief came in three county groups keyed to each federal disaster’s start date (the May 2024 storms, Debby, Milton).',
+          'One planning note: that fifteen-day offset is a verified fact for the Milton event, not a published formula — each event’s announcement sets its own date, so read the event page, not the pattern.',
+        ],
+        sources: [
+          {
+            label: 'FL DOR — Hurricane Milton relief page (corporate dates)',
+            href: 'https://floridarevenue.com/Pages/Hurricane_Milton.aspx',
+          },
+          {
+            label: 'IRS — FL-2024-10 (Milton; federal deadline May 1, 2025)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-victims-of-milton-various-deadlines-postponed-to-may-1-2025-in-all-of-florida',
+          },
+        ],
+      },
+      {
+        id: 'sales-pattern',
+        heading: 'Sales & use and the rest: weeks, not months',
+        body: [
+          'The federal months-long postponement does not flow through to Florida’s transaction taxes. Order #24-003 (Milton) extended sales & use tax for the September and October 2024 reporting periods — including third-quarter returns — only to November 22, 2024, with electronic payments due a day earlier by 5:00 p.m. ET. Reemployment tax and documentary-stamp (unrecorded documents) got the same November 22 date, as did more than a dozen other taxes and fees. The order expired with that date.',
+          'So in the same disaster, a corporate return gained roughly seven months while a sales-tax return gained two to six weeks. Calendar the two separately.',
+        ],
+        sources: [
+          {
+            label: 'FL DOR — Order of Emergency Waiver #24-003 (PDF, full terms)',
+            href: 'https://floridarevenue.com/emdisaster/ExecutiveOrdersEmergencyWaivers/EO24-003.pdf',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'Automatic in listed counties; case-by-case outside them',
+        body: [
+          'The orders take effect immediately and apply to the counties they list — no application for businesses inside them. Outside the listed counties, the Department works "with all affected taxpayers on a case-by-case basis" (1-850-488-6800 or GTAHurricaneHelp@floridarevenue.com).',
+          'Announcements live on the Department’s emergency hub — which, as of July 31, 2026, reads "None at this time" in every section: no Florida relief is currently active. Past order PDFs remain reachable at stable URLs; event pages (Milton, Helene) stay up.',
+        ],
+        sources: [
+          {
+            label: 'FL DOR — emergency information hub',
+            href: 'https://floridarevenue.com/emdisaster/Pages/EmergencyDisaster.aspx',
+          },
+          {
+            label: 'FL DOR — Hurricane Milton relief page (case-by-case contact)',
+            href: 'https://floridarevenue.com/Pages/Hurricane_Milton.aspx',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Does Florida match IRS disaster deadlines?',
+        answer:
+          'Partly. For corporate income/franchise tax the Department has followed the IRS postponement — though on its own date (May 16, 2025 for Milton, versus the federal May 1). Sales & use, reemployment, and documentary-stamp taxes get only short weeks-long extensions by emergency order. There is no automatic conformity statute; each event gets its own order.',
+      },
+      {
+        question: 'Is Florida disaster relief automatic?',
+        answer:
+          'Within the counties an order lists, yes — it takes effect immediately with no application. Outside the listed counties, relief is case-by-case: call 1-850-488-6800 or email GTAHurricaneHelp@floridarevenue.com.',
+      },
+      {
+        question:
+          'My client’s federal sales… wait — does the federal postponement cover Florida sales tax?',
+        answer:
+          'No — IRS relief covers federal obligations only, and Florida’s own orders have extended sales & use tax by weeks, not months (Milton: September/October 2024 periods to November 22, 2024, e-payments a day earlier). A client relying on the federal spring date for Florida sales tax would be months late.',
+      },
+      {
+        question: 'Is any Florida disaster relief active right now?',
+        answer:
+          'No. The Department’s emergency hub lists no active orders or waivers as of July 31, 2026. When the next governor-declared emergency plus federal relief arrives, expect an Order of Emergency Waiver for transaction taxes and an event page stating the corporate income/franchise dates.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'FL DOR emergency information hub',
+      href: 'https://floridarevenue.com/emdisaster/Pages/EmergencyDisaster.aspx',
+    },
+    metaTitle: 'Does Florida Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'Split answer: Florida corporate tax has followed the IRS disaster date (plus 15 days for Milton), but sales tax gets only weeks by emergency order. The §213.055 mechanism, the Milton numbers, and where orders publish — verified against FL DOR.',
+  },
+  {
+    // All facts verified 2026-07-31: leginfo statute texts (R&TC 18572, 6459.5,
+    // CUIC 1111.5 read in full — note 1111.5 has NO 60-day cap; EDD's "two
+    // months" is administrative practice), FTB pages read live in a browser
+    // (ftb.ca.gov 403s plain fetches), CDTFA/EDD pages via fetch. No active IRS
+    // notice for CA as of the verified date — standing-pattern page. CA also
+    // runs STATE-ONLY relief off governor proclamations with no federal notice.
+    slug: 'california',
+    state: 'California',
+    abbreviation: 'CA',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'FTB follows the IRS — CDTFA/EDD run on the Governor’s clock',
+    statusTone: 'ok',
+    directAnswer:
+      'For income and franchise tax, yes in practice: R&TC §18572 applies IRC §7508A, and for the 2025 LA fires FTB matched the federal Oct. 15 date within three days, automatically by county. Two caveats: since June 2024 the Director of Finance sets the state period (file FTB 3872 if it ends before the federal one), and CDTFA sales-tax and EDD payroll relief follow the Governor’s proclamation, not the IRS — for up to three and two months respectively.',
+    activeNoticeCodes: [],
+    sections: [
+      {
+        id: 'how-ca-relief-works',
+        heading: 'Does California automatically follow IRS postponements?',
+        body: [
+          'For FTB-administered taxes, California conforms by statute: R&TC §18572 provides that IRC §7508A "shall apply," reaching taxpayers affected by federally declared disasters and governor-declared emergencies. In practice the match has been fast and exact — when the IRS gave Los Angeles County until Oct. 15, 2025 after the January 2025 fires, FTB announced the identical postponement three days later.',
+          'The June 2024 wrinkle CPAs should know: conformity is no longer purely self-executing. The Director of Finance now determines the state postponement period, which can in principle end before the federal one — and taxpayers in that gap request an additional relief period on Form FTB 3872. No instance of a shorter state period has been found so far; the LA-fires window matched exactly.',
+        ],
+        sources: [
+          {
+            label: 'R&TC §18572 — postponement conformity (leginfo)',
+            href: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=18572',
+          },
+          {
+            label: 'FTB — Form 3872 instructions (Director-of-Finance regime)',
+            href: 'https://www.ftb.ca.gov/forms/2024/2024-3872-instructions.html',
+          },
+          {
+            label: 'FTB — Tax News Flash, Jan 13, 2025 (LA fires postponement)',
+            href: 'https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/flash/2025/01.html',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'How FTB relief is claimed: automatic by county, annotate the return',
+        body: [
+          'FTB applies the postponement to taxpayers whose principal residence or principal place of business sits in the covered county — for the LA fires, FTB’s FAQ said it plainly: an affected taxpayer is "entitled to the postponement" with "no supporting documentation … required." The mechanical step is an annotation: write the disaster name in black or blue ink at the top of the return (or follow the software’s disaster-information entry when e-filing).',
+          'FTB also publishes a payment-by-payment table per event — for the LA fires, personal, business-entity, PTE elective, LLC annual tax, and Q1–Q3 estimates all moved to Oct. 15, 2025.',
+        ],
+        sources: [
+          {
+            label: 'FTB — LA County fire relief FAQ (automatic, no documentation)',
+            href: 'https://www.ftb.ca.gov/file/when-to-file/help-los-angeles-county-fire-relief.html',
+          },
+          {
+            label: 'FTB — disaster declarations payment table',
+            href: 'https://www.ftb.ca.gov/file/when-to-file/disaster-declarations-tax-payments.html',
+          },
+        ],
+      },
+      {
+        id: 'other-agencies',
+        heading: 'CDTFA and EDD: a different trigger and much shorter clocks',
+        body: [
+          'California’s other two tax agencies key off the Governor’s emergency proclamation, not the IRS notice. CDTFA (sales & use plus some twenty-five special tax programs): an extension of up to three months — R&TC §6459.5 makes it automatic for persons in the proclaimed area, no request required, while interest and penalty relief is requested through online services or form CDTFA-735.',
+          'EDD (payroll taxes): up to two months to file reports and deposit payroll taxes without penalty or interest — request-based only, citing CUIC §1111.5, via e-Services, a no-login extension portal, or 1-888-745-3886. (The statute itself sets no fixed cap; the two-month figure is EDD’s stated practice.) Net effect: a client with an eight-month FTB postponement can simultaneously owe sales tax in three months and payroll returns in two.',
+          'The flip side of the Governor-trigger: California grants state-only relief for emergencies that never get a federal notice — both CDTFA and EDD currently list 2026 proclamation events with no IRS counterpart. Check the agency pages even when the IRS is silent.',
+        ],
+        sources: [
+          {
+            label: 'CDTFA — state of emergency tax relief',
+            href: 'https://www.cdtfa.ca.gov/services/state-of-emergency-tax-relief.htm',
+          },
+          {
+            label: 'R&TC §6459.5 — emergency extensions (leginfo)',
+            href: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=6459.5',
+          },
+          {
+            label: 'EDD — emergency and disaster assistance for employers',
+            href: 'https://edd.ca.gov/en/payroll_taxes/emergency_and_disaster_assistance_for_employers/',
+          },
+          {
+            label: 'CUIC §1111.5 — emergency extensions (leginfo)',
+            href: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=UIC&sectionNum=1111.5.',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Does California match IRS disaster deadlines?',
+        answer:
+          'For FTB income and franchise tax, yes in practice — R&TC §18572 applies IRC §7508A, and the January 2025 LA fires postponement matched the federal Oct. 15, 2025 date exactly, announced within three days. Since June 2024 the Director of Finance formally sets the state period; if it ever ends before the federal one, Form FTB 3872 requests the difference.',
+      },
+      {
+        question: 'Is California disaster relief automatic?',
+        answer:
+          'FTB relief is automatic for taxpayers whose principal residence or business is in the covered county — no documentation required; just write the disaster name atop the return. CDTFA’s up-to-three-month extension is automatic in proclaimed areas by statute, while its interest/penalty relief and all EDD payroll extensions must be requested.',
+      },
+      {
+        question: 'Does the federal postponement cover my client’s sales tax and payroll filings?',
+        answer:
+          'No. CDTFA and EDD relief runs on the Governor’s proclamation, not the IRS notice, with much shorter clocks: up to three months for CDTFA programs and up to two months for EDD payroll obligations (request required). Calendar those separately from the FTB date.',
+      },
+      {
+        question: 'Can California relief exist when the IRS has issued nothing?',
+        answer:
+          'Yes — governor-proclaimed emergencies trigger CDTFA and EDD relief (and can trigger FTB relief under §18572) without any federal notice. Both agencies currently list 2026 proclamation events with no IRS counterpart, so check the state pages even when the IRS index is quiet.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'FTB emergency tax relief page',
+      href: 'https://www.ftb.ca.gov/file/when-to-file/Emergency-tax-relief.html',
+    },
+    metaTitle: 'Does California Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'FTB follows the IRS date (LA fires: exact Oct. 15 match, automatic by county) — but the Director of Finance now sets the state period, and CDTFA/EDD run on the Governor’s proclamation with 3- and 2-month clocks. Verified against leginfo, FTB, CDTFA, EDD.',
+  },
 ]
 
 export function getConformityEntry(slug: string): StateConformityEntry | undefined {
