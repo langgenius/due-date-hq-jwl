@@ -1,0 +1,144 @@
+---
+/**
+ * /sales-tax-deadlines — state sales-tax cadence hub (state×tax matrix B2a).
+ * Verified twice per row; sources on every card.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import StateSalesPage from '../components/StateSalesPage.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getContentDates } from '../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../lib/site'
+import type { JsonLdDocument } from '../lib/structured-data'
+
+const locale = 'en'
+const pathname = '/sales-tax-deadlines'
+const title = 'State Sales Tax Due Dates (2026): 12 States, Verified — DueDateHQ'
+const description =
+  'Verified 2026 sales tax filing due dates for 12 major states — the 20th is not universal: California uses month-end, Ohio the 23rd, Washington the 25th, and New York’s quarters aren’t calendar quarters. Official source on every row.'
+const { publishedOn, reviewedOn } = getContentDates('sales-tax-deadlines')
+const faq = [
+  {
+    q: 'When are state sales tax returns due?',
+    a: 'Most of the 12 states here use the 20th of the month following the period (TX, IL, PA, GA, NJ, MI, and NC monthly) — but California uses the last day of the following month, Ohio the 23rd, Washington the 25th, and North Carolina’s quarterly returns are due the last day of the month. There is no universal rule.',
+  },
+  {
+    q: 'Are sales tax quarters the same in every state?',
+    a: 'No. New York’s sales-tax quarters end May 31, August 31, November 30, and February 28/29 — not calendar quarters. A CPA assuming calendar quarters files New York a month late.',
+  },
+  {
+    q: 'What does Florida’s “due on the 1st, late after the 20th” mean?',
+    a: 'Florida returns are technically due the 1st of the month after the period but are not late until after the 20th. The practical trap is electronic payment: it must be initiated with a confirmation number by 5 p.m. ET on the business day before the 20th.',
+  },
+  {
+    q: 'How is sales tax filing frequency assigned?',
+    a: 'The state assigns it from your actual or anticipated tax liability, usually at registration, and notifies you of changes — e.g., New York requires monthly filing at $300,000+ of quarterly taxable receipts, and North Carolina requires monthly-with-prepayment at $20,000+ of monthly liability.',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${MARKETING_SITE_URL}/` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Sales tax deadlines',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref()
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <StateSalesPage locale={locale} />
+  <section class="ssf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">Sales tax due-date questions</h2>
+      {
+        faq.map((f) => (
+          <details class="ssf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="ssf__more">
+        Franchise taxes: <a href="/franchise-tax-deadlines">state franchise tax deadlines</a> ·
+        Federal: <a href="/deadline-lookup">tax deadline lookup</a> · Every state:{' '}
+        <a href="/state-coverage">state coverage</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .ssf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .ssf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .ssf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .ssf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .ssf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .ssf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .ssf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

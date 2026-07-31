@@ -1,0 +1,142 @@
+---
+/** /zh-CN/sales-tax-deadlines — 各州销售税申报节奏枢纽(EN 镜像,同一核实数据源)。 */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import StateSalesPage from '../../components/StateSalesPage.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../../lib/site'
+import type { JsonLdDocument } from '../../lib/structured-data'
+
+const locale = 'zh-CN'
+const pathname = '/zh-CN/sales-tax-deadlines'
+const title = '各州销售税申报截止日（2026）：12 州核实版 — DueDateHQ'
+const description =
+  '已核实的 2026 各州销售税申报节奏——「次月 20 日」并不普适：加州是月末、俄亥俄 23 日、华盛顿 25 日、纽约的季度不是日历季度。每条附州官方来源。'
+const { publishedOn, reviewedOn } = getContentDates('sales-tax-deadlines')
+const faq = [
+  {
+    q: '各州销售税申报什么时候到期？',
+    a: '本页 12 州中多数用「次月 20 日」（TX、IL、PA、GA、NJ、MI 及 NC 月报）——但加州是次月最后一天、俄亥俄 23 日、华盛顿 25 日、北卡的季度申报是月末。没有普适规则。',
+  },
+  {
+    q: '销售税的季度各州一样吗？',
+    a: '不一样。纽约的销售税季度在 5/31、8/31、11/30、2/28-29 结束——不是日历季度。按日历季度记的人会把纽约晚报一个月。',
+  },
+  {
+    q: '佛罗里达「1 日到期、过 20 日才算迟」是什么意思？',
+    a: '佛州申报表名义上次月 1 日到期，但过 20 日才算逾期。真正的陷阱是电子缴款：须在 20 日前一个营业日 17:00（东部时间）前发起并取得确认号。',
+  },
+  {
+    q: '销售税申报频率怎么定？',
+    a: '由州按你的实际或预计税额指定（通常在注册时），变化会另行通知——例如纽约单季应税收入达 $300,000 须按月，北卡月税额达 $20,000 须按月加预缴。',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: `${MARKETING_SITE_URL}/zh-CN` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '各州销售税截止日',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref(locale)
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <StateSalesPage locale={locale} />
+  <section class="ssf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">销售税截止日常见问题</h2>
+      {
+        faq.map((f) => (
+          <details class="ssf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="ssf__more">
+        Franchise 税：<a href="/zh-CN/franchise-tax-deadlines">各州 franchise tax 截止日</a> ·
+        联邦：<a href="/zh-CN/deadline-lookup">报税截止日快查</a> · 全部州：<a
+          href="/zh-CN/state-coverage">州覆盖</a
+        >
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .ssf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .ssf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .ssf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .ssf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .ssf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .ssf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .ssf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
