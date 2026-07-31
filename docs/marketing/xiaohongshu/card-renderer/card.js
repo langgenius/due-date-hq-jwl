@@ -75,8 +75,8 @@ function highlighter(fill = 'var(--lime)') {
   return `<span class="ddhq__hl" aria-hidden="true">
     <svg viewBox="0 0 100 40" preserveAspectRatio="none"
       xmlns="http://www.w3.org/2000/svg">
-      <path fill="${fill}" d="M0.6 5.4C12 2.6 27 6.8 43 3.9C59.4 1 77 6.2 99.4 2.8
-        L99.4 36.4C82 39.6 63 34.4 45 37.3C29 39.9 13.6 35.2 0.6 38.4Z"/>
+      <path fill="${fill}" d="M0.8 4.6C14 3 30 5.2 48 3.8C66 2.4 84 4.6 99.2 3.2
+        L99.2 36.2C86 37.8 68 35.6 50 37C32 38.4 14 36.6 0.8 37.6Z"/>
     </svg></span>`
 }
 
@@ -260,12 +260,18 @@ export async function renderCard(data) {
         ),
       )
       .join('<br>')
+    const mark =
+      data.map && data.map.state
+        ? `<div class="ddhq__cvmark" aria-hidden="true">${await stateIcon(data.map.state, [])}</div>`
+        : ''
     el.innerHTML = `${grainLayer()}<div class="ddhq__card">
+      ${mark}
       ${data.eyebrow ? `<div class="ddhq__cveb">${esc(data.eyebrow)}</div>` : ''}
       <div class="ddhq__cvmid">
         <div class="ddhq__cvhook">${hook}</div>
         ${data.sub ? `<div class="ddhq__cvsub">${esc(data.sub)}</div>` : ''}
       </div>
+      <div class="ddhq__cvledger" aria-hidden="true"></div>
       ${footer}</div>`
     return el
   }

@@ -5,9 +5,13 @@
     "locale": "zh",
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 华盛顿",
-    "title": ["华盛顿 8月5日", "截止,只剩", "[[3 个工作日]]"],
+    "title": ["华盛顿 8月5日", "截止只剩", "[[3 个工作日]]"],
     "sub": "5 个自然日里隔着一个周末:今天、周一、周二。24 县 + 25 个部落领地的联邦申报与缴款,下周三截止。",
-    "footer": "WA-2025-03 · 8月5日 截止"
+    "footer": "WA-2025-03 · 8月5日 截止",
+    "map": {
+      "state": "WA",
+      "counties": []
+    }
   },
   {
     "id": "wa-final-2026-07-31-p1",
@@ -113,9 +117,13 @@
     "locale": "en",
     "format": "li",
     "eyebrow": "IRS disaster relief · final reminder",
-    "title": ["Washington:", "5 days to", "[[Aug 5]]"],
+    "title": ["Washington", "5 days to", "[[Aug 5]]"],
     "sub": "Aug 5, 2026 is next Wednesday — after this weekend, two working days remain. 24 Washington counties and 25 tribal nations, deadlines automatically postponed under WA-2025-03. Swipe →",
-    "footer": "WA-2025-03 · Source: IRS"
+    "footer": "WA-2025-03 · Source: IRS",
+    "map": {
+      "state": "WA",
+      "counties": []
+    }
   },
   {
     "id": "wa-final-2026-07-31-li-2data",
