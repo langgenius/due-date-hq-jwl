@@ -1,0 +1,146 @@
+---
+/**
+ * /penalty-calculator — IRS late-filing penalty estimator (linkable asset #2).
+ * Verified IRS rates with a source on every number; the calculator is a
+ * different lens on the same verified-facts discipline as /deadline-lookup.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import PenaltyCalculator from '../components/PenaltyCalculator.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getContentDates } from '../lib/content-metadata'
+import { PENALTY_FACTS } from '../lib/penalty-facts'
+import { MARKETING_SITE_URL } from '../lib/site'
+import type { JsonLdDocument } from '../lib/structured-data'
+
+const locale = 'en'
+const pathname = '/penalty-calculator'
+const title = 'IRS Late Filing Penalty Calculator (2026): 1040, 1065, 1120-S — DueDateHQ'
+const description =
+  'Free estimator for IRS late-filing penalties: failure-to-file (5%/month, 25% cap), failure-to-pay (0.5%/month), and the $255-per-partner-per-month pass-through penalty — every rate cited to irs.gov.'
+const { publishedOn, reviewedOn } = getContentDates('penalty-calculator')
+const F = PENALTY_FACTS
+const faq = [
+  {
+    q: 'How much is the IRS penalty for filing a tax return late?',
+    a: `The failure-to-file penalty is 5% of the unpaid tax per month or part-month, capped at 25%. If the return is more than 60 days late, a minimum applies: the lesser of $${F.ftfMinimumOver60DaysLate} (returns due after 12/31/2025) or 100% of the tax required to be shown.`,
+  },
+  {
+    q: 'What is the penalty for filing a partnership or S-corp return late?',
+    a: `$${F.passThroughPerPersonPerMonth} per partner or shareholder per month or part-month, for up to ${F.passThroughMaxMonths} months (returns due after 12/31/2025) — even if the entity had no income and owes no tax. A 4-partner 1065 filed two months late is $${F.passThroughPerPersonPerMonth} × 4 × 2 = $${(F.passThroughPerPersonPerMonth * 8).toLocaleString('en-US')}.`,
+  },
+  {
+    q: 'Do failure-to-file and failure-to-pay penalties stack?',
+    a: 'In a month where both apply, the failure-to-file penalty is reduced by that month’s failure-to-pay penalty — a combined 5% per month (4.5% + 0.5%). After five months failure-to-file maxes out; failure-to-pay keeps accruing to its own 25% cap, and interest accrues on top.',
+  },
+  {
+    q: 'Can IRS late-filing penalties be removed?',
+    a: 'Sometimes. The IRS abates penalties for reasonable cause, and First Time Abate administrative relief is available to taxpayers with a clean three-year compliance history. Interest on the tax generally cannot be abated while the tax is unpaid.',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${MARKETING_SITE_URL}/` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Penalty calculator',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref()
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <PenaltyCalculator locale={locale} />
+  <section class="pcf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">Late-filing penalty questions</h2>
+      {
+        faq.map((f) => (
+          <details class="pcf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="pcf__more">
+        Deadlines: <a href="/deadline-lookup">tax deadline lookup</a> · Postponements:{' '}
+        <a href="/irs-disaster-relief">IRS disaster-relief tracker</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .pcf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .pcf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .pcf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .pcf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .pcf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .pcf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .pcf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

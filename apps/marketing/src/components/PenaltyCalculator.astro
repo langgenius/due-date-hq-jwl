@@ -1,0 +1,346 @@
+---
+/**
+ * Interactive IRS late-filing penalty estimator — linkable-asset tool #2
+ * (same architecture as DeadlineLookup: verified constants inlined as JSON,
+ * vanilla JS, no framework, no network calls). Two panels, one purpose each:
+ * income-tax returns with a balance due (1040/1120) and pass-through
+ * information returns (1065/1120-S). All rates from lib/penalty-facts.ts,
+ * which cites the irs.gov page behind every number.
+ */
+import { getCtaHref } from '../lib/app-url'
+import { PENALTY_FACTS } from '../lib/penalty-facts'
+
+interface Props {
+  locale: 'en' | 'zh-CN'
+}
+const { locale } = Astro.props
+const zh = locale === 'zh-CN'
+const F = PENALTY_FACTS
+
+const copy = zh
+  ? {
+      eyebrow: '免费工具',
+      title: 'IRS 迟报罚金估算器',
+      lead: '算清一个漏掉的截止日会花多少钱:输入迟了几个月与未缴税额(或合伙人/股东人数),按 IRS 公布的费率估算 failure-to-file 与 failure-to-pay 罚金。每个费率旁边都有官方来源。',
+      modeALabel: '有欠税的所得税申报(1040 / 1120)',
+      taxLabel: '截止日时未缴税额(USD)',
+      monthsLabel: '迟了几个月(不足一月按一月计)',
+      modeBLabel: '穿透实体信息申报(1065 / 1120-S)',
+      ownersLabel: '合伙人 / 股东人数',
+      monthsBLabel: `迟了几个月(上限 ${F.passThroughMaxMonths} 个月计罚)`,
+      ftf: 'Failure-to-file(迟报)',
+      ftp: 'Failure-to-pay(迟缴)',
+      total: '罚金估算合计',
+      interestNote: '利息另计:按季度公布的利率对税款和罚金持续计息,本工具不含利息。',
+      minApplied: `已适用「迟逾 60 天最低罚金」:$${F.ftfMinimumOver60DaysLate} 与应报税额 100% 取低者。`,
+      zeroTax: '未缴税额为 0 时,两项罚金按 0 计——但仍应尽快申报:退税逾三年不申报即失效。',
+      bFormula: `$${F.passThroughPerPersonPerMonth} × 人数 × 月数(上限 ${F.passThroughMaxMonths} 个月),对 2025-12-31 之后到期的申报适用。即使当年无收入、无应缴税也照罚。`,
+      bTaxNote: '1120-S 若另有应缴税,税款部分还会叠加上面的迟报/迟缴罚金。',
+      assumptions: '假设:申报与税款在整个期间均未完成/未缴;无分期协议(0.25%/月)也未收到征收通知(1%/月)。估算值,不构成税务建议;合理理由(reasonable cause)与首次减免(First Time Abate)可能适用。',
+      sources: '官方来源',
+      verified: `费率核实于 ${F.verifiedOn};金额为 2025-12-31 后到期申报的通胀调整值,每年变化。`,
+      ctaLead: '罚金最便宜的形态,是没被漏掉的截止日。',
+      ctaText: 'DueDateHQ 监控官方 IRS 与各州来源,截止日变动时把变化路由到受影响的客户。Beta 期间免费。',
+      ctaBtn: '免费开始',
+    }
+  : {
+      eyebrow: 'FREE TOOL',
+      title: 'IRS late filing penalty calculator',
+      lead: 'Put a dollar figure on a missed deadline: enter months late and the unpaid tax (or partner/shareholder count) to estimate failure-to-file and failure-to-pay penalties at the IRS’s published rates. Every rate links to its official source.',
+      modeALabel: 'Income tax return with a balance due (1040 / 1120)',
+      taxLabel: 'Unpaid tax at the due date (USD)',
+      monthsLabel: 'Months late (a partial month counts as a month)',
+      modeBLabel: 'Pass-through information return (1065 / 1120-S)',
+      ownersLabel: 'Number of partners / shareholders',
+      monthsBLabel: `Months late (penalty caps at ${F.passThroughMaxMonths} months)`,
+      ftf: 'Failure-to-file',
+      ftp: 'Failure-to-pay',
+      total: 'Estimated total penalty',
+      interestNote: 'Interest is extra: it accrues on tax and penalties at quarterly-set rates and is not included here.',
+      minApplied: `The over-60-days-late minimum applied: the lesser of $${F.ftfMinimumOver60DaysLate} or 100% of the tax required to be shown.`,
+      zeroTax: 'With $0 unpaid tax both penalties compute to $0 — but file anyway: an unclaimed refund expires three years after the due date.',
+      bFormula: `$${F.passThroughPerPersonPerMonth} × owners × months (capped at ${F.passThroughMaxMonths} months), for returns due after 12/31/2025. It applies even with no income and no tax due.`,
+      bTaxNote: 'An 1120-S that also owes tax additionally accrues the failure-to-file/pay penalties above on that tax.',
+      assumptions: 'Assumes the return stays unfiled and the tax unpaid for the whole period, no approved installment agreement (0.25%/mo) and no levy notice (1%/mo). Estimates only, not tax advice; reasonable-cause and First Time Abate relief may apply.',
+      sources: 'Official sources',
+      verified: `Rates verified ${F.verifiedOn}; dollar amounts are the inflation-adjusted figures for returns due after 12/31/2025 and change annually.`,
+      ctaLead: 'The cheapest penalty is the deadline you didn’t miss.',
+      ctaText: 'DueDateHQ watches official IRS and state sources and routes each deadline change to the clients it affects. Free during beta.',
+      ctaBtn: 'Start free',
+    }
+
+const payload = {
+  ftfConcurrentMonthlyRate: F.ftfConcurrentMonthlyRate,
+  ftfConcurrentMaxMonths: F.ftfConcurrentMaxMonths,
+  ftfMinimumOver60DaysLate: F.ftfMinimumOver60DaysLate,
+  ftpMonthlyRate: F.ftpMonthlyRate,
+  ftpCap: F.ftpCap,
+  passThroughPerPersonPerMonth: F.passThroughPerPersonPerMonth,
+  passThroughMaxMonths: F.passThroughMaxMonths,
+  t: {
+    ftf: copy.ftf,
+    ftp: copy.ftp,
+    total: copy.total,
+    interestNote: copy.interestNote,
+    minApplied: copy.minApplied,
+    zeroTax: copy.zeroTax,
+  },
+}
+
+const appHref = getCtaHref(locale)
+---
+
+<section class="pcx">
+  <div class="wrap">
+    <p class="m-eyebrow">{copy.eyebrow}</p>
+    <h1 class="m-page-h2">{copy.title}</h1>
+    <p class="pcx__lead">{copy.lead}</p>
+
+    <div class="pcx__grid">
+      <div class="pcx__card">
+        <h2 class="pcx__label">{copy.modeALabel}</h2>
+        <div class="pcx__fields">
+          <label
+            >{copy.taxLabel}
+            <input id="pcx-tax" type="number" min="0" step="100" value="10000" inputmode="decimal" />
+          </label>
+          <label
+            >{copy.monthsLabel}
+            <input id="pcx-months-a" type="number" min="1" max="60" step="1" value="3" inputmode="numeric" />
+          </label>
+        </div>
+        <div class="pcx__result" id="pcx-out-a"></div>
+      </div>
+
+      <div class="pcx__card">
+        <h2 class="pcx__label">{copy.modeBLabel}</h2>
+        <div class="pcx__fields">
+          <label
+            >{copy.ownersLabel}
+            <input id="pcx-owners" type="number" min="1" max="500" step="1" value="4" inputmode="numeric" />
+          </label>
+          <label
+            >{copy.monthsBLabel}
+            <input id="pcx-months-b" type="number" min="1" max="60" step="1" value="2" inputmode="numeric" />
+          </label>
+        </div>
+        <div class="pcx__result" id="pcx-out-b"></div>
+        <p class="pcx__formula">{copy.bFormula}</p>
+        <p class="pcx__formula">{copy.bTaxNote}</p>
+      </div>
+    </div>
+
+    <p class="pcx__note">{copy.assumptions}</p>
+    <p class="pcx__note">{copy.verified}</p>
+    <p class="pcx__sources">
+      {copy.sources}:
+      {
+        F.sources.map((s, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a href={s.href} target="_blank" rel="noopener">
+              {s.label}
+            </a>
+          </>
+        ))
+      }
+    </p>
+
+    <div class="pcx__cta">
+      <p class="pcx__cta-lead">{copy.ctaLead}</p>
+      <p class="pcx__cta-text">{copy.ctaText}</p>
+      <a class="m-btn m-btn--secondary" href={appHref} data-event="marketing.penalty-calculator.cta"
+        >{copy.ctaBtn}</a
+      >
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="pcx-data" set:html={JSON.stringify(payload)} />
+<script>
+  const el = document.getElementById('pcx-data')
+  const D = JSON.parse(el?.textContent || '{}')
+  const usd = (n: number) =>
+    n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  function calcA(tax: number, months: number) {
+    // Both penalties run concurrently: FTF at the reduced 4.5%/mo for at most
+    // 5 months (then maxed), FTP at 0.5%/mo up to its own 25% cap.
+    const ftfRaw = D.ftfConcurrentMonthlyRate * Math.min(months, D.ftfConcurrentMaxMonths) * tax
+    const over60Days = months >= 3
+    const minPenalty = over60Days ? Math.min(D.ftfMinimumOver60DaysLate, tax) : 0
+    const ftf = Math.max(ftfRaw, minPenalty)
+    const ftp = Math.min(D.ftpMonthlyRate * months, D.ftpCap) * tax
+    return { ftf, ftp, minApplied: minPenalty > 0 && minPenalty > ftfRaw }
+  }
+
+  function renderA() {
+    const tax = Math.max(0, Number((document.getElementById('pcx-tax') as HTMLInputElement).value) || 0)
+    const months = Math.max(1, Math.round(Number((document.getElementById('pcx-months-a') as HTMLInputElement).value) || 1))
+    const out = document.getElementById('pcx-out-a') as HTMLElement
+    if (tax === 0) {
+      out.innerHTML = `<p class="pcx__zero">${D.t.zeroTax}</p>`
+      return
+    }
+    const r = calcA(tax, months)
+    out.innerHTML =
+      `<dl class="pcx__facts">` +
+      `<div class="pcx__row"><dt>${D.t.ftf}</dt><dd>${usd(r.ftf)}</dd></div>` +
+      `<div class="pcx__row"><dt>${D.t.ftp}</dt><dd>${usd(r.ftp)}</dd></div>` +
+      `<div class="pcx__row pcx__row--hero"><dt>${D.t.total}</dt><dd>${usd(r.ftf + r.ftp)}</dd></div>` +
+      `</dl>` +
+      (r.minApplied ? `<p class="pcx__fine">${D.t.minApplied}</p>` : '') +
+      `<p class="pcx__fine">${D.t.interestNote}</p>`
+  }
+
+  function renderB() {
+    const owners = Math.max(1, Math.round(Number((document.getElementById('pcx-owners') as HTMLInputElement).value) || 1))
+    const months = Math.max(1, Math.round(Number((document.getElementById('pcx-months-b') as HTMLInputElement).value) || 1))
+    const out = document.getElementById('pcx-out-b') as HTMLElement
+    const capped = Math.min(months, D.passThroughMaxMonths)
+    const total = D.passThroughPerPersonPerMonth * owners * capped
+    out.innerHTML =
+      `<dl class="pcx__facts">` +
+      `<div class="pcx__row pcx__row--hero"><dt>${D.t.total}</dt><dd>${usd(total)}</dd></div>` +
+      `</dl>`
+  }
+
+  for (const id of ['pcx-tax', 'pcx-months-a']) document.getElementById(id)?.addEventListener('input', renderA)
+  for (const id of ['pcx-owners', 'pcx-months-b']) document.getElementById(id)?.addEventListener('input', renderB)
+  // 打开即有答案:默认值直接渲染,首屏可见数字
+  renderA()
+  renderB()
+</script>
+
+<style>
+  .pcx {
+    padding-block: clamp(48px, 7vw, 88px) 8px;
+  }
+  .pcx .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .pcx__lead {
+    margin-top: 14px;
+    max-width: 62ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .pcx__grid {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) {
+    .pcx__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .pcx__card {
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--m-surface, #fff);
+  }
+  .pcx__label {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+    margin: 0 0 14px;
+  }
+  .pcx__fields {
+    display: grid;
+    gap: 14px;
+  }
+  .pcx__fields label {
+    display: grid;
+    gap: 6px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-ink-2);
+  }
+  .pcx__fields input {
+    font: inherit;
+    font-size: var(--m-text-base);
+    padding: 10px 12px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 8px;
+    background: var(--m-canvas, #fff);
+    color: var(--m-ink);
+  }
+  .pcx__result {
+    margin-top: 16px;
+    border-top: 1px solid var(--m-hairline-2);
+    padding-top: 14px;
+  }
+  .pcx__facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  .pcx__row dt {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .pcx__row dd {
+    margin: 2px 0 0;
+    font-size: var(--m-text-base);
+    line-height: 1.55;
+    color: var(--m-ink);
+  }
+  .pcx__row--hero dd {
+    font-size: var(--m-text-lg, 1.15rem);
+    font-weight: 600;
+  }
+  .pcx__fine,
+  .pcx__zero,
+  .pcx__formula {
+    margin: 12px 0 0;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .pcx__note {
+    margin-top: 22px;
+    max-width: 76ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .pcx__sources {
+    margin-top: 12px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-ink-2);
+  }
+  .pcx__sources a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .pcx__cta {
+    margin-top: 36px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--m-section);
+  }
+  .pcx__cta-lead {
+    margin: 0;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .pcx__cta-text {
+    margin: 8px 0 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+</style>
