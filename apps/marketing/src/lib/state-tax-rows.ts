@@ -13,12 +13,11 @@
  * before editing.
  *
  * STANDBY cells (verified-insufficient, do NOT publish without re-checking):
- * - California corporation minimum franchise tax: the $800 obligation is
- *   verified but no official page stated the payment timing (FTB due-dates
- *   page 404'd in both passes).
  * - Illinois corporate franchise tax: ilsos.gov blocked automated access
  *   (HTTP 403) and ilga.gov was unreachable in both passes; a possible
  *   2026 repeal signal is unconfirmed. Needs manual verification.
+ * (The CA corporation minimum franchise timing, standby at first publish, was
+ * resolved same-day against the FTB 2026 Form 100-ES instructions and added.)
  */
 
 export type StateTaxStatus = 'active' | 'phase-out' | 'repealed'
@@ -116,6 +115,21 @@ export const STATE_TAX_ROWS: StateTaxRow[] = [
     noteZh: '费用分档 $900–$11,790；预估不足会产生罚金和利息。',
     sourceLabel: 'California FTB — Limited liability company',
     sourceHref: 'https://www.ftb.ca.gov/file/business/types/limited-liability-company/index.html',
+  },
+  {
+    stateSlug: 'california',
+    state: 'California',
+    label: 'Corporation minimum franchise tax ($800)',
+    labelZh: '公司最低 franchise tax（$800）',
+    status: 'active',
+    due: 'Due as an estimate on or before the 15th day of the 4th month of the taxable year (with the first estimated-tax installment); weekend/holiday dates shift to the next business day.',
+    dueZh:
+      '作为预估税在税年第 4 个月第 15 日前缴纳（随第一期预估税分期）；逢周末假日顺延至下一营业日。',
+    note: 'At least $800 is owed whether the corporation is active, inactive, operating at a loss, or filing a short-period return. Corporations newly incorporated or qualified on or after Jan. 1, 2020 are exempt for their first taxable year.',
+    noteZh:
+      '无论公司活跃、停业、亏损或短期申报，至少缴 $800。2020-01-01 起新设或新登记的公司首个税年豁免。',
+    sourceLabel: 'California FTB — 2026 Instructions for Form 100-ES (Corporation Estimated Tax)',
+    sourceHref: 'https://www.ftb.ca.gov/forms/2026/2026-100-es-instructions.html',
   },
   {
     stateSlug: 'tennessee',
