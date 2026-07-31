@@ -1,0 +1,309 @@
+---
+/**
+ * /irs-disaster-relief/state-conformity — the explainer + directory for the
+ * state-conformity page family. Answers the generic question ("does a federal
+ * disaster postponement move state deadlines?") and routes to the per-state
+ * verified answers. Every state-specific claim on this page derives from
+ * lib/state-conformity.ts — the template adds no facts of its own; the generic
+ * claims are limited to what §7508A itself says (federal deadlines only) and
+ * what the verified set demonstrates.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import TopNav from '../../../components/home/TopNav.astro'
+import Footer from '../../../components/home/Footer.astro'
+import FaqList from '../../../components/FaqList.astro'
+import AlertOptin from '../../../components/AlertOptin.astro'
+import en from '../../../i18n/en'
+import { getCtaHref } from '../../../lib/app-url'
+import { getContentDates } from '../../../lib/content-metadata'
+import { STATE_CONFORMITY } from '../../../lib/state-conformity'
+import { disasterNoticeStructuredData } from '../../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief/state-conformity'
+const slug = 'state-conformity'
+const hubHref = '/irs-disaster-relief'
+const ctaHref = getCtaHref('en')
+const reviewedOn = getContentDates(slug).reviewedOn
+const alertFormAction =
+  import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/xojgdvrp'
+
+const title = 'Do States Follow IRS Disaster Deadline Extensions? Verified by State | DueDateHQ'
+const description =
+  'A federal §7508A disaster postponement moves federal deadlines only — each state decides separately, and most do not simply follow. Per-state answers verified against the state tax agencies’ own announcements.'
+
+const entries = STATE_CONFORMITY
+const conformingCount = entries.filter((e) => e.statusTone === 'ok').length
+
+const faq = [
+  {
+    question: 'Does an IRS disaster postponement automatically move state deadlines?',
+    answer:
+      'No. Relief under IRC §7508A postpones federal filing and payment deadlines only. Each state decides separately whether — and how — to grant matching relief, and the answers differ widely: of the states with active federal relief verified here, only Wisconsin extends its dates automatically by standing policy.',
+  },
+  {
+    question: 'What forms can state disaster relief take?',
+    answer:
+      'The verified pages here show four distinct patterns: automatic conformity by standing policy (Wisconsin); event-by-event bulletins with their own dates (Louisiana); penalty-and-interest waivers that never move the deadline itself and must be requested (Hawaii, Michigan); and, in a no-income-tax state, request-based relief on the taxes the state does levy (Washington).',
+  },
+  {
+    question: 'What is the difference between a state extension and a state waiver?',
+    answer:
+      'An extension moves the deadline: filing by the new date is timely. A waiver leaves the deadline in place and forgives penalties or interest for missing it — the filing is still late, which can matter for anything keyed to the original due date, such as refund lookback periods or elections. Hawaii’s 2026 relief states this distinction explicitly.',
+  },
+  {
+    question: 'What should I check before deferring a client’s state return?',
+    answer:
+      'Four things, on the state tax agency’s own page: (1) has the state acted on this specific event, or does a standing conformity rule apply; (2) is the relief an extension or only a waiver; (3) which tax types are covered — income-tax relief often excludes withholding, sales, or excise; (4) is separate action required, such as a request form or marking the return.',
+  },
+]
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={disasterNoticeStructuredData(
+    t,
+    'en',
+    pathname,
+    slug,
+    title,
+    description,
+    'State conformity',
+    faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <nav class="sci-bc" aria-label="Breadcrumb">
+        <a href={hubHref} class="m-page-back">
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+        </a>
+      </nav>
+      <p class="m-eyebrow">State conformity</p>
+      <h1 class="m-page-title">Do states follow IRS disaster deadline extensions?</h1>
+      <p class="m-page-lead sci-answer">
+        Not automatically. Relief under IRC §7508A moves <em>federal</em> deadlines only — each
+        state decides separately, on its own legal mechanics and its own timeline. Of the
+        {entries.length} states with active federal relief verified below, only {conformingCount}
+        {conformingCount === 1 ? 'extends' : 'extend'} state deadlines automatically. The rest
+        require a request, waive penalties without moving the date, or have issued nothing at all.
+      </p>
+      <p class="m-page-reviewed">
+        Per-state facts verified against each state agency's own announcements as of
+        <time datetime={reviewedOn}>{reviewedOn}</time>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="sci-states-h">
+      <p class="m-eyebrow">Verified answers</p>
+      <h2 class="m-page-h2" id="sci-states-h">One page per state, sourced to the state agency</h2>
+      <ul class="sci-grid">
+        {
+          entries.map((c) => (
+            <li>
+              <a class="sci-card" href={`/irs-disaster-relief/state-conformity/${c.slug}`}>
+                <span class="sci-card__state">{c.state}</span>
+                <span
+                  class:list={[
+                    'sci-card__chip',
+                    c.statusTone === 'warn' && 'sci-card__chip--warn',
+                    c.statusTone === 'ok' && 'sci-card__chip--ok',
+                  ]}
+                >
+                  {c.statusLabel}
+                </span>
+                <span class="sci-card__answer">{c.directAnswer}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="sci-note">
+        More states are added as federal relief is issued and each state's position is verified.
+        No active federal notice for your state? Then there is no conformity question to answer
+        right now — see the <a class="sci-link" href={hubHref}>current federal notices</a>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="sci-why-h">
+      <h2 class="m-page-h2" id="sci-why-h">Why the answers differ so much</h2>
+      <p class="m-page-body sci-body">
+        The federal side is uniform: one statute (§7508A), one automatic mechanism keyed to the
+        IRS address of record. The state side is not. The verified pages above show four distinct
+        models in just five states: Wisconsin extends automatically under a standing published
+        policy; Louisiana issues event-specific bulletins that set their own dates; Hawaii and
+        Michigan grant request-based penalty waivers triggered by a governor's declaration — with
+        the deadline itself never moving; and Washington, with no income tax, handles relief
+        request-by-request on the taxes it does levy.
+      </p>
+      <p class="m-page-body sci-body">
+        Two practical consequences follow. First, the state's covered-tax list is usually narrower
+        than the federal one — income-tax relief that says nothing about withholding, sales, or
+        excise leaves those deadlines standing. Second, the state's geography can differ from the
+        IRS county list in both directions, so a client can be covered federally and not by the
+        state, or the reverse.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="sci-check-h">
+      <h2 class="m-page-h2" id="sci-check-h">How to check any state in four questions</h2>
+      <ol class="sci-steps">
+        <li>
+          <b>Has the state acted?</b> Find the state tax agency's announcement index (each verified
+          page above links the right one) and search for the event — or for a standing conformity
+          rule that makes an announcement unnecessary.
+        </li>
+        <li>
+          <b>Extension or waiver?</b> An extension moves the date; a waiver only forgives the cost
+          of missing it. The difference decides whether a filing is timely or late-but-forgiven.
+        </li>
+        <li>
+          <b>Which taxes?</b> Match the state's covered-tax list against each client's actual
+          obligations — withholding and sales tax are the usual gaps.
+        </li>
+        <li>
+          <b>Any action required?</b> Some states apply relief automatically; others need a request
+          form, a phone call, or a marked return — often before the original deadline.
+        </li>
+      </ol>
+    </section>
+
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="State conformity questions" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <AlertOptin action={alertFormAction} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">The federal-state gap is exactly what slips through</h2>
+          <p class="m-page-cta__body">
+            DueDateHQ watches the IRS and every state tax agency, and matches each change — federal
+            or state, moved or pointedly not moved — to the clients in your book it touches, with
+            the source on every date.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a
+            class="m-btn m-btn--primary"
+            href={ctaHref}
+            data-event="marketing.state-conformity-index.cta">Start free</a
+          >
+          <a class="m-btn m-btn--secondary" href={hubHref}>All disaster relief</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .sci-bc {
+    margin-bottom: 18px;
+  }
+  .sci-answer {
+    max-width: 72ch;
+  }
+  .sci-link {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .sci-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    list-style: none;
+    padding: 0;
+  }
+  @media (max-width: 800px) {
+    .sci-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .sci-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    padding: 18px 20px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    transition: border-color var(--m-dur-fast) var(--m-ease);
+  }
+  .sci-card:hover {
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .sci-card__state {
+    font-size: var(--m-text-lg);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .sci-card__chip {
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .sci-card__chip--warn {
+    color: var(--m-warn-ink, #92400e);
+    background: var(--m-warn-bg, #fef3c7);
+    border-color: color-mix(in srgb, var(--m-warn-ink, #92400e) 22%, transparent);
+  }
+  .sci-card__chip--ok {
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 10%, transparent);
+    border-color: color-mix(in srgb, var(--m-ok) 25%, transparent);
+  }
+  .sci-card__answer {
+    font-size: var(--m-text-sm);
+    line-height: 1.55;
+    color: var(--m-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sci-note {
+    margin-top: 16px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm);
+    line-height: 1.6;
+    color: var(--m-muted);
+  }
+  .sci-body {
+    max-width: 72ch;
+  }
+  .sci-body + .sci-body {
+    margin-top: 12px;
+  }
+  .sci-steps {
+    margin: 18px 0 0;
+    padding-left: 22px;
+    max-width: 72ch;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: var(--m-ink-2);
+    line-height: 1.6;
+  }
+  .sci-steps b {
+    color: var(--m-ink);
+    font-weight: 600;
+  }
+</style>

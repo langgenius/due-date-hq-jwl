@@ -1,0 +1,232 @@
+---
+/**
+ * /irs-disaster-relief/filing-relief-for-natural-disasters-act — reference page
+ * for P.L. 119-29 (H.R. 517, enacted July 24, 2025).
+ *
+ * DATA INTEGRITY: every fact verified 2026-07-31 against congress.gov/govinfo
+ * BILLSTATUS records and the enacted PLAW statute text, plus irs.gov for the
+ * P.L. 119-21 casualty-loss companion. Sources linked in the page body. New
+ * law = thin competition; identifiers (bill number, P.L. number, IRC sections)
+ * are the citation hooks. No invented examples, no dollar hypotheticals.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import FaqList from '../../components/FaqList.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { disasterNoticeStructuredData } from '../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief/filing-relief-for-natural-disasters-act'
+const slug = 'filing-relief-for-natural-disasters-act'
+const hubHref = '/irs-disaster-relief'
+const ctaHref = getCtaHref('en')
+const reviewedOn = getContentDates(slug).reviewedOn
+
+const title = 'Filing Relief for Natural Disasters Act (P.L. 119-29): What Changed | DueDateHQ'
+const description =
+  'P.L. 119-29 (H.R. 517, enacted July 24, 2025) lets the IRS postpone federal tax deadlines for state-declared disasters at a governor’s written request, and lengthens the mandatory §7508A(e) postponement from 60 to 120 days. Verified against congress.gov.'
+
+const faq = [
+  {
+    question: 'What does the Filing Relief for Natural Disasters Act do?',
+    answer:
+      'Two things, both amendments to IRC §7508A. First, it authorizes the IRS — upon the written request of a state’s governor and after consulting FEMA — to postpone federal tax deadlines for a qualified state-declared disaster, without waiting for a federal declaration. Second, it lengthens the mandatory automatic postponement under §7508A(e) from 60 days to 120 days.',
+  },
+  {
+    question: 'When was it enacted, and what is the bill number?',
+    answer:
+      'It was signed July 24, 2025, becoming Public Law 119-29. The enacted bill is H.R. 517 (119th Congress); a companion Senate bill, S. 132, was introduced but H.R. 517 is the one that became law.',
+  },
+  {
+    question: 'Does this mean state-declared disasters now trigger automatic IRS relief?',
+    answer:
+      'No — the mechanism is permissive, not automatic. The governor must request it in writing, and the IRS decides after consulting FEMA. Watch the IRS disaster-relief newsroom as before: relief exists only when the IRS announces it.',
+  },
+  {
+    question: 'Is there related 2025 legislation CPAs should know alongside this?',
+    answer:
+      'Yes — P.L. 119-21 (signed July 4, 2025) made the qualified-disaster casualty-loss rules permanent and, beginning in 2026, extends the deduction to losses from state-declared disasters. Together the two laws move both deadlines and casualty-loss treatment beyond the federal-declaration-only world. See also P.L. 119-64 (December 26, 2025), which fixed the refund-lookback interaction of disaster postponements.',
+  },
+]
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={disasterNoticeStructuredData(
+    t,
+    'en',
+    pathname,
+    slug,
+    title,
+    description,
+    'Filing Relief for Natural Disasters Act',
+    faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <nav class="la-bc" aria-label="Breadcrumb">
+        <a href={hubHref} class="m-page-back">
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+        </a>
+        <span class="la-chip">P.L. 119-29 · enacted Jul 24, 2025</span>
+      </nav>
+      <p class="m-eyebrow">Legal background</p>
+      <h1 class="m-page-title">
+        Filing Relief for Natural Disasters Act: state-declared disasters can now move federal
+        deadlines
+      </h1>
+      <p class="m-page-lead la-answer">
+        Public Law 119-29 (H.R. 517, enacted July 24, 2025) amends IRC §7508A in two ways: the IRS
+        may now postpone federal tax deadlines for a <em>state-declared</em> disaster at the
+        governor’s written request, after consulting FEMA — and the mandatory automatic
+        postponement under §7508A(e) grew from 60 to 120 days.
+      </p>
+      <p class="m-page-reviewed">
+        Verified against congress.gov / govinfo as of <time datetime={reviewedOn}>{reviewedOn}</time>
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="la-what-h">
+      <h2 class="m-page-h2" id="la-what-h">What the Act actually says</h2>
+      <p class="m-page-body la-body">
+        The official title is “To amend the Internal Revenue Code of 1986 to modify the rules for
+        postponing certain deadlines by reason of disaster.” The operative change adds authority
+        for the Treasury Secretary, “upon written request of the Governor of a State” and after
+        consultation with FEMA, to apply §7508A’s postponement rules to a qualified state-declared
+        disaster. Before this law, §7508A relief was keyed to federally declared disasters — a
+        governor’s declaration alone moved nothing.
+      </p>
+      <p class="m-page-body la-body">
+        The second, quieter change: the minimum mandatory postponement period in §7508A(e) — the
+        automatic runway taxpayers get in a declared disaster — doubled from 60 days to 120 days.
+      </p>
+      <p class="la-sources">
+        <span class="la-sources__k">Sources</span>
+        <a class="la-link" href="https://www.congress.gov/bill/119th-congress/house-bill/517" rel="noopener" target="_blank">H.R. 517 — congress.gov ↗</a> ·
+        <a class="la-link" href="https://www.govinfo.gov/content/pkg/PLAW-119publ29/html/PLAW-119publ29.htm" rel="noopener" target="_blank">P.L. 119-29 statute text — govinfo ↗</a>
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="la-means-h">
+      <h2 class="m-page-h2" id="la-means-h">What it changes in practice</h2>
+      <p class="m-page-body la-body">
+        The trigger set for federal disaster relief got wider, not automatic. A governor’s
+        declaration plus a written request can now produce an IRS postponement without a FEMA
+        major-disaster declaration — useful for localized events that never reach the federal
+        threshold. But the mechanism is permissive: the IRS still decides, and relief still
+        arrives the same way it always has — as an IRS newsroom release with a relief code, a
+        covered area, and a new date. The monitoring workflow does not change; the set of events
+        worth watching does.
+      </p>
+      <p class="m-page-body la-body">
+        Note the asymmetry this creates with state conformity: the IRS can now follow a
+        state-declared disaster — while many states still do not follow federally declared ones.
+        Whether a given state matches any federal postponement remains a per-state question; see
+        the <a class="la-link" href="/irs-disaster-relief/state-conformity">verified state
+        conformity pages</a>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="la-companion-h">
+      <h2 class="m-page-h2" id="la-companion-h">The 2025 companion laws</h2>
+      <p class="m-page-body la-body">
+        Two other enacted laws complete the picture. P.L. 119-21 (signed July 4, 2025) made the
+        qualified-disaster casualty-loss treatment permanent and — beginning in 2026 — extends the
+        deduction to losses from state-declared disasters, per the IRS. And P.L. 119-64 (signed
+        December 26, 2025) fixed the refund-lookback interaction of disaster postponements — see
+        the <a class="la-link" href="/irs-disaster-relief/disaster-related-extension-of-deadlines-act"
+        >Disaster Related Extension of Deadlines Act page</a>.
+      </p>
+      <p class="la-sources">
+        <span class="la-sources__k">Sources</span>
+        <a class="la-link" href="https://www.irs.gov/forms-pubs/casualty-loss-deduction-expanded-and-made-permanent" rel="noopener" target="_blank">IRS — casualty loss deduction expanded and made permanent ↗</a>
+      </p>
+    </section>
+
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="P.L. 119-29 questions" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">More triggers means more changes to catch</h2>
+          <p class="m-page-cta__body">
+            State-declared disasters can now move federal deadlines — one more stream of changes to
+            watch. DueDateHQ monitors IRS, state, and FEMA sources and matches each postponement to
+            the clients it affects, with the source on every date.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.legislation.cta"
+            >Start free</a
+          >
+          <a class="m-btn m-btn--secondary" href={hubHref}>Current disaster relief</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .la-bc {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .la-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .la-answer {
+    max-width: 72ch;
+  }
+  .la-body {
+    max-width: 72ch;
+  }
+  .la-body + .la-body {
+    margin-top: 12px;
+  }
+  .la-link {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .la-sources {
+    margin-top: 14px;
+    max-width: 72ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.7;
+    color: var(--m-muted);
+  }
+  .la-sources__k {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: var(--m-text-3xs);
+    margin-right: 8px;
+  }
+</style>

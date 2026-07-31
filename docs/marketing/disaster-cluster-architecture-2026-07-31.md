@@ -61,13 +61,13 @@ This heterogeneity is the page family's value: it cannot be templated from feder
 
 ## 2. Layer status & next moves
 
-| Layer                  | Status                         | Next                                                                                                                                                                                  |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| L1 hub + Dataset + CSV | **live**                       | Add conformity + archive links to /widget outreach copy                                                                                                                               |
-| L2 notice pages        | live (11 notices)              | Adopt remaining draft H2s: per-form original→new deadline table; bulk-request (866-562-5227 / CAF) para exists in FAQ                                                                 |
-| L3 conformity          | **5 live** (WA/HI/MI/LA/WI)    | Next: GA, MS, MT, AZ (active notices); then remaining states by disaster frequency (archive stats: top = the most-postponed states)                                                   |
-| L4 county pages        | **not started — gated** (§3)   | Build county master + parser first; sample-audit before any page ships                                                                                                                |
-| L5 decision pages      | 1 live (cpa-response-playbook) | Next three: state-conformity explainer (links the L3 family), P.L. 119-64 refund-lookback page, P.L. 119-29 + 119-21 "2025-26 disaster law changes" page — all facts already verified |
+| Layer                  | Status                                                                             | Next                                                                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| L1 hub + Dataset + CSV | **live**                                                                           | Add conformity + archive links to /widget outreach copy                                                               |
+| L2 notice pages        | live (11 notices)                                                                  | Adopt remaining draft H2s: per-form original→new deadline table; bulk-request (866-562-5227 / CAF) para exists in FAQ |
+| L3 conformity          | **9 live** (WA/HI/MI/LA/WI + GA/MS/MT/AZ — every state with an active notice)      | Next: remaining states by disaster frequency (archive stats: top = the most-postponed states)                         |
+| L4 county pages        | **not started — gated** (§3)                                                       | Build county master + parser first; sample-audit before any page ships                                                |
+| L5 decision pages      | **4 live** (playbook + conformity explainer + P.L. 119-29 page + P.L. 119-64 page) | Candidates: bulk-request procedure page, penalty-abatement-during-postponement page                                   |
 
 ## 3. L4 gating — do NOT ship until these hold
 

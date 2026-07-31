@@ -85,6 +85,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'extension-checker': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   // State franchise-tax hub (state×tax matrix B1a, two-pass verified) 2026-07-31.
   'franchise-tax-deadlines': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  // State sales-tax cadence hub (state×tax matrix B2a, two-pass verified) 2026-07-31.
+  'sales-tax-deadlines': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'form-4868-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'fbar-fincen-114-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'form-2290-heavy-vehicle-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
@@ -112,6 +114,21 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'state-conformity-michigan': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-louisiana': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-wisconsin': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-georgia': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-montana': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-mississippi': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-arizona': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  // L5 decision/legal-background pages, published 2026-07-31 (legislation facts
+  // verified against congress.gov/govinfo the same day).
+  'state-conformity': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'filing-relief-for-natural-disasters-act': {
+    publishedOn: '2026-07-31',
+    reviewedOn: '2026-07-31',
+  },
+  'disaster-related-extension-of-deadlines-act': {
+    publishedOn: '2026-07-31',
+    reviewedOn: '2026-07-31',
+  },
   'arizona-san-carlos-apache-tribe-severe-storms-flooding': {
     publishedOn: '2026-07-06',
     reviewedOn: '2026-07-06',

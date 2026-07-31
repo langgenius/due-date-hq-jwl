@@ -1,0 +1,218 @@
+---
+/**
+ * /irs-disaster-relief/disaster-related-extension-of-deadlines-act — reference
+ * page for P.L. 119-64 (H.R. 1491, signed December 26, 2025).
+ *
+ * DATA INTEGRITY: every fact verified 2026-07-31 against congress.gov/govinfo
+ * BILLSTATUS records and the enacted PLAW statute text. Sources linked in the
+ * body. Note the widely-repeated "signed January 2026" claim is WRONG — the
+ * official record says December 26, 2025; being the page that gets this right
+ * is the point. No invented dollar examples.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import FaqList from '../../components/FaqList.astro'
+import en from '../../i18n/en'
+import { getCtaHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { disasterNoticeStructuredData } from '../../lib/structured-data'
+
+const t = en
+const pathname = '/irs-disaster-relief/disaster-related-extension-of-deadlines-act'
+const slug = 'disaster-related-extension-of-deadlines-act'
+const hubHref = '/irs-disaster-relief'
+const ctaHref = getCtaHref('en')
+const reviewedOn = getContentDates(slug).reviewedOn
+
+const title = 'Disaster Related Extension of Deadlines Act (P.L. 119-64): Refund Lookback Fixed | DueDateHQ'
+const description =
+  'P.L. 119-64 (H.R. 1491, signed December 26, 2025 — not January 2026) makes disaster postponement periods count as filing extensions for the §6511(b)(2)(A) refund lookback, and makes collection notices account for postponements. Verified against congress.gov.'
+
+const faq = [
+  {
+    question: 'What problem does the Disaster Related Extension of Deadlines Act fix?',
+    answer:
+      'A refund-lookback trap. The amount refundable on a claim is capped by the tax paid within the §6511(b)(2)(A) lookback window — three years plus any extension of time to file. A §7508A disaster postponement moved the filing date without being an "extension," so payments made in the postponed window could fall outside the lookback and become unrecoverable. The Act amends §7508A so a disregarded period is treated as an extension of time for filing for this purpose.',
+  },
+  {
+    question: 'When was it signed, and what is the bill number?',
+    answer:
+      'December 26, 2025 — it is Public Law 119-64, enacted from H.R. 1491 (119th Congress), which passed the House 423-0 on April 1, 2025 and the Senate by unanimous consent on December 11, 2025. Some summaries say "January 2026"; the official record says December 26, 2025.',
+  },
+  {
+    question: 'What does it change about IRS collection notices?',
+    answer:
+      'It amends §6303(b) so the timing of notice-and-demand for payment accounts for any period disregarded under §7508A — collection notices are not supposed to run on a clock that ignores a disaster postponement.',
+  },
+  {
+    question: 'Does this change how disaster postponements themselves work?',
+    answer:
+      'No. The postponement mechanics (IRS newsroom releases, relief codes, covered areas, automatic application by address of record) are unchanged. What changed is what the postponement counts for downstream: refund lookback and collection-notice timing.',
+  },
+]
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={disasterNoticeStructuredData(
+    t,
+    'en',
+    pathname,
+    slug,
+    title,
+    description,
+    'Disaster Related Extension of Deadlines Act',
+    faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <nav class="la-bc" aria-label="Breadcrumb">
+        <a href={hubHref} class="m-page-back">
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+        </a>
+        <span class="la-chip">P.L. 119-64 · signed Dec 26, 2025</span>
+      </nav>
+      <p class="m-eyebrow">Legal background</p>
+      <h1 class="m-page-title">
+        Disaster Related Extension of Deadlines Act: postponements now count for the refund
+        lookback
+      </h1>
+      <p class="m-page-lead la-answer">
+        Public Law 119-64 (H.R. 1491, signed December 26, 2025) amends IRC §7508A so a disaster
+        postponement period is treated as an extension of time to file for the refund-lookback
+        limit of §6511(b)(2)(A) — keeping payments made during the postponed window reachable by a
+        later refund claim — and amends §6303(b) so collection notices account for postponement
+        periods.
+      </p>
+      <p class="m-page-reviewed">
+        Verified against congress.gov / govinfo as of <time datetime={reviewedOn}>{reviewedOn}</time>.
+        Widely-repeated summaries dating the signing to January 2026 are wrong — the official
+        record says December 26, 2025.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="lb-trap-h">
+      <h2 class="m-page-h2" id="lb-trap-h">The lookback trap it closes</h2>
+      <p class="m-page-body la-body">
+        A refund claim is limited by §6511(b)(2)(A) to the tax paid within the lookback window —
+        three years plus any extension of time to file. A §7508A disaster postponement moved the
+        filing deadline without being an "extension of time," so for taxpayers who filed on a
+        postponed schedule, tax paid before the original deadline could fall outside the lookback
+        by the time a refund claim was made. The Act closes that gap in the statute itself: its
+        official title is to make "the postponement of certain deadlines by reason of disasters
+        applicable to the limitation on credit or refund," and the operative text treats a
+        disregarded period as an extension of time for filing the return.
+      </p>
+      <p class="la-sources">
+        <span class="la-sources__k">Sources</span>
+        <a class="la-link" href="https://www.congress.gov/bill/119th-congress/house-bill/1491" rel="noopener" target="_blank">H.R. 1491 — congress.gov ↗</a> ·
+        <a class="la-link" href="https://www.govinfo.gov/content/pkg/PLAW-119publ64/html/PLAW-119publ64.htm" rel="noopener" target="_blank">P.L. 119-64 statute text — govinfo ↗</a>
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="lb-notices-h">
+      <h2 class="m-page-h2" id="lb-notices-h">The collection-notice change</h2>
+      <p class="m-page-body la-body">
+        The Act also amends §6303(b): the timing rules for notice-and-demand now take into account
+        any period disregarded under §7508A. In practice, taxpayers in a postponement window are
+        not supposed to receive collection notices computed as if the postponement did not exist —
+        a mismatch practitioners saw regularly after large disasters.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block" aria-labelledby="lb-cpa-h">
+      <h2 class="m-page-h2" id="lb-cpa-h">What CPAs should take from it</h2>
+      <p class="m-page-body la-body">
+        For refund claims involving any client who filed under a disaster postponement, the
+        postponed period now extends the lookback — worth checking on amended returns where the
+        original was filed late in a postponement window. And a collection notice that ignores an
+        active postponement is now contrary to §6303(b) as amended, not just to IRS practice. The
+        postponements themselves still arrive the same way — an IRS release with a code, an area,
+        and a date; see the <a class="la-link" href="/irs-disaster-relief">current verified
+        notices</a> and the companion
+        <a class="la-link" href="/irs-disaster-relief/filing-relief-for-natural-disasters-act"
+        >Filing Relief for Natural Disasters Act (P.L. 119-29) page</a>.
+      </p>
+    </section>
+
+    <section class="m-section m-page-block">
+      <FaqList eyebrow="FAQ" title="P.L. 119-64 questions" items={faq} />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">Deadlines move. The paper trail has to keep up.</h2>
+          <p class="m-page-cta__body">
+            DueDateHQ tracks every postponement against the clients it affects — with the relief
+            code and source on each date, so what you deferred and why is always defensible later.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a class="m-btn m-btn--primary" href={ctaHref} data-event="marketing.legislation.cta"
+            >Start free</a
+          >
+          <a class="m-btn m-btn--secondary" href={hubHref}>Current disaster relief</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .la-bc {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .la-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    color: var(--m-accent);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .la-answer {
+    max-width: 72ch;
+  }
+  .la-body {
+    max-width: 72ch;
+  }
+  .la-link {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .la-sources {
+    margin-top: 14px;
+    max-width: 72ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.7;
+    color: var(--m-muted);
+  }
+  .la-sources__k {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: var(--m-text-3xs);
+    margin-right: 8px;
+  }
+</style>

@@ -655,6 +655,467 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     metaDescription:
       'Yes — Wisconsin automatically extends income and franchise deadlines to the IRS disaster date (Nov. 2, 2026) with interest waived, no application needed. What to mark on the return, and which taxes are not covered. Verified against WI DOR.',
   },
+  {
+    // All facts verified 2026-07-31 against the cited Governor's office / GA DOR
+    // / IRS releases (full body text read). O.C.G.A. §48-2-36 text was only
+    // partially verifiable (official code behind LexisNexis; releases cite no
+    // statute) — so no statute pinpoint is asserted here.
+    slug: 'georgia',
+    state: 'Georgia',
+    abbreviation: 'GA',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'Own 120-day scheme — state dates ≠ the federal Aug. 20 date',
+    statusTone: 'warn',
+    directAnswer:
+      'No — Georgia granted relief for the same wildfires but on its own schedule. State income-tax dates run "up to 120 days" from each original due date (Q2 estimates to Oct. 13, 2026 — not the federal Aug. 20), April sales tax only to June 22, and payments that were due April 15 are expressly not relieved.',
+    activeNoticeCodes: ['GA-2026-03'],
+    sections: [
+      {
+        id: 'how-ga-relief-works',
+        heading: 'Does Georgia automatically follow IRS postponements?',
+        body: [
+          'No. Georgia announces disaster relief event-by-event through Governor/Department of Revenue press releases, each with its own state-specific dates. There is no standing conformity policy, and the releases describe the IRS action as parallel — "the IRS extended similar tax relief" — not as something Georgia adopts.',
+          'The relief is granted to the named counties without an application: paper filers write the designated annotation across the top of the return (for the wildfires: "Georgia Wildfires – Clinch, Echols, Brantley"), and anyone assessed a penalty despite qualifying calls DOR at 1-877-423-6711. Like the federal relief, it also reaches taxpayers whose records sit in the disaster area and qualifying relief workers.',
+        ],
+        sources: [
+          {
+            label: 'Governor Kemp — wildfire tax relief release (May 8, 2026)',
+            href: 'https://gov.georgia.gov/press-releases/2026-05-08/governor-kemp-announces-relief-taxpayers-impacted-wildfires',
+          },
+          {
+            label: 'GA DOR — Hurricane Helene relief (Oct 3, 2024, the "similar relief" phrasing)',
+            href: 'https://dor.georgia.gov/press-releases/2024-10-03/dor-extends-tax-relief-victims-hurricane-helene',
+          },
+        ],
+      },
+      {
+        id: 'current-position',
+        heading: 'Where Georgia stands on the Southeast Georgia wildfires (GA-2026-03)',
+        body: [
+          'The IRS postponed federal deadlines to Aug. 20, 2026 for Clinch, Echols, and Brantley counties, based on the state disaster declaration. Georgia issued its own relief for the same three counties — the April 22 state of emergency covered 91 counties, but the tax relief expressly applies only to these three.',
+          'The state schedule does not use Aug. 20 anywhere. Income-tax deadlines move "up to 120 days" from each original date: Q2 estimated payments due June 15, 2026 move to Oct. 13, 2026; extended 2025 individual and business returns due Oct. 15, 2026 move to Feb. 12, 2027; corporate and tax-exempt returns due Nov. 16, 2026 move to Mar. 16, 2027; quarterly payroll returns due June 30, 2026 move to Oct. 28, 2026. April sales and use tax returns (and monthly excise returns) due May 20 moved only to June 22, 2026.',
+          'Two carve-outs matter: payments tied to 2025 returns that were due April 15, 2026 are expressly not eligible ("those overdue payments are not eligible for this relief"), and W-2/1099-series filings, employment and excise tax deposits, and installment-agreement payments are excluded. So a client can be inside the federal Aug. 20 window and simultaneously late at the state level on an April payment — or safe at the state level until 2027 on a return the federal relief stops covering Aug. 20.',
+        ],
+        sources: [
+          {
+            label: 'Governor Kemp — wildfire tax relief release (May 8, 2026)',
+            href: 'https://gov.georgia.gov/press-releases/2026-05-08/governor-kemp-announces-relief-taxpayers-impacted-wildfires',
+          },
+          {
+            label: 'GA DOR mirror of the release (May 11, 2026)',
+            href: 'https://dor.georgia.gov/press-releases/2026-05-11/governor-kemp-announces-relief-taxpayers-impacted-wildfires',
+          },
+          {
+            label: 'IRS — GA-2026-03 (deadlines postponed to Aug. 20, 2026)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-wildfires-in-southeast-georgia-various-deadlines-postponed-to-aug-20',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'Is a separate request required?',
+        body: [
+          'No request procedure is described — relief applies to taxpayers in the named counties, with one mechanical step for paper filers: write "Georgia Wildfires – Clinch, Echols, Brantley" across the top of any form submitted. The safety valve is reactive: a qualifying taxpayer who still gets a penalty assessment contacts DOR headquarters (1-877-423-6711) for due consideration. Unlike the IRS releases, Georgia’s never use the word "automatic" — but no application exists to file.',
+        ],
+        sources: [
+          {
+            label: 'Governor Kemp — wildfire tax relief release (mechanics)',
+            href: 'https://gov.georgia.gov/press-releases/2026-05-08/governor-kemp-announces-relief-taxpayers-impacted-wildfires',
+          },
+        ],
+      },
+      {
+        id: 'precedent',
+        heading: 'How Georgia handled it last time (Hurricane Helene, 2024)',
+        body: [
+          'With a FEMA declaration behind the event, Georgia matched the IRS income-tax date: DOR’s Oct. 3, 2024 release adopted May 1, 2025 for individual and business returns, estimates, and quarterly payroll returns — the same date as the IRS relief. Sales and use tax again got its own shorter state date (Nov. 20, 2024).',
+          'Set beside the 2026 wildfires, the pattern is: federal-declaration events → Georgia income-tax dates mirror the IRS; state-declaration-only events → Georgia builds its own schedule. Either way, sales tax runs on state-specific dates, and each event needs its own reading.',
+        ],
+        sources: [
+          {
+            label: 'GA DOR — Hurricane Helene relief (Oct 3, 2024)',
+            href: 'https://dor.georgia.gov/press-releases/2024-10-03/dor-extends-tax-relief-victims-hurricane-helene',
+          },
+          {
+            label: 'IRS — Around the nation: Georgia (Helene, May 1, 2025 date)',
+            href: 'https://www.irs.gov/newsroom/around-the-nation-georgia',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Did Georgia extend its deadlines to Aug. 20, 2026 like the IRS?',
+        answer:
+          'No. Georgia granted its own relief for Clinch, Echols, and Brantley counties on a different schedule: income-tax deadlines move up to 120 days from each original date (June 15 estimates → Oct. 13, 2026; extended returns due Oct. 15 → Feb. 12, 2027), and April sales tax moved only to June 22. The Aug. 20 date is federal only.',
+      },
+      {
+        question: 'Are tax payments covered by the Georgia wildfire relief?',
+        answer:
+          'Mostly not the ones that were already due: the release states that payments related to 2025 returns, due April 15, 2026, "are not eligible for this relief." Employment and excise tax deposits and W-2/1099-series filings are also excluded. The state relief is chiefly about return filing dates and post-April obligations.',
+      },
+      {
+        question: 'Does my client need to apply for the Georgia relief?',
+        answer:
+          'No application exists. Paper filers write "Georgia Wildfires – Clinch, Echols, Brantley" across the top of the return; any qualifying taxpayer who is nonetheless assessed a penalty contacts DOR at 1-877-423-6711.',
+      },
+      {
+        question: 'My client is in one of the other 88 emergency-declaration counties — covered?',
+        answer:
+          'No. The April 22, 2026 state of emergency covered 91 counties, but the tax relief expressly applies only to taxpayers in Clinch, Echols, and Brantley counties (plus those whose records are kept there and qualifying relief workers).',
+      },
+    ],
+    announcementsIndex: {
+      label: 'GA DOR press releases',
+      href: 'https://dor.georgia.gov/press-releases',
+    },
+    metaTitle: 'Does Georgia Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'The IRS moved three Georgia counties to Aug. 20, 2026 — Georgia built its own 120-day scheme instead: estimates to Oct. 13, extended returns to Feb. 2027, April payments not relieved. Verified against official releases.',
+  },
+  {
+    // All facts verified 2026-07-31 against the cited Montana DOR pages (fetched
+    // directly) and MCA 15-30-2604 on the official legislature site. The "no
+    // event-specific announcement" negative is medium-confidence: DOR's news
+    // feeds are JS-rendered, so it rests on multiple search paths, not a raw
+    // index read. DOR's relief page carries no date — re-fetch before editing.
+    slug: 'montana',
+    state: 'Montana',
+    abbreviation: 'MT',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'Same dates as the IRS by policy — but claim it when you file',
+    statusTone: 'ok',
+    directAnswer:
+      'Yes, by standing policy: "In federally declared disaster areas, Montana provides the same filing, reporting, and payment extensions as the IRS" — so deadlines under MT-2026-03/04 track Sept. 28, 2026. But unlike the automatic federal relief, Montana’s must be claimed at filing (red-letter annotation on paper, a letter if e-filing). No per-event state announcement exists or should be expected.',
+    activeNoticeCodes: ['MT-2026-03', 'MT-2026-04'],
+    sections: [
+      {
+        id: 'how-mt-relief-works',
+        heading: 'Does Montana automatically follow IRS postponements?',
+        body: [
+          'On the dates, yes: the Department of Revenue’s standing "Natural Disaster Income Tax Extension" page says Montana "provides the same filing, reporting, and payment extensions as the IRS" in federally declared disaster areas — payment included, per DOR’s own wording. Eligibility mirrors the federal shape: you lived or operated a business in the disaster area, or your records were with a third party who did.',
+          'The statutory backing is MCA 15-30-2604(1)(b)(ii): the department may extend filing dates and defer or waive interest and penalties for up to one year for taxpayers affected by a federally declared disaster under IRC §7508A. The statute is discretionary ("may"); the DOR page is what turns it into a blanket same-as-IRS policy.',
+        ],
+        sources: [
+          {
+            label: 'MT DOR — Natural Disaster Income Tax Extension (standing policy)',
+            href: 'https://revenue.mt.gov/taxes/tax-relief/natural-disaster-income-tax-extension',
+          },
+          {
+            label: 'MCA 15-30-2604 — Time for filing; extensions (official legislature site)',
+            href: 'https://mca.legmt.gov/bills/mca/title_0150/chapter_0300/part_0260/section_0040/0150-0300-0260-0040.html',
+          },
+        ],
+      },
+      {
+        id: 'current-position',
+        heading: 'Where Montana stands on the two winter-storm notices (MT-2026-03 / MT-2026-04)',
+        body: [
+          'The IRS postponed federal deadlines to Sept. 28, 2026 for the Fort Peck Assiniboine and Sioux Tribes (FEMA 4914-DR) and the Crow Reservation (FEMA 4915-DR), for the December 2025 winter storm. Montana has published no event-specific announcement — and that is its normal pattern: recent Montana disasters (the Blackfeet/Lincoln/Sanders storms, the earlier Crow Tribe event) likewise produced no DOR release. The state side runs entirely on the standing same-as-IRS policy plus the at-filing claim procedure.',
+          'Applied here, the standing policy makes the Montana date Sept. 28, 2026 for affected taxpayers — but no DOR document names that date for these events specifically, so the claim procedure below is what secures it.',
+        ],
+        sources: [
+          {
+            label: 'IRS — MT-2026-03 (Fort Peck; postponed to Sept. 28, 2026)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-winter-storm-and-straight-line-winds-in-the-fort-peck-assiniboine-and-sioux-tribes-various-deadlines-postponed-to-sept-28-2026',
+          },
+          {
+            label: 'IRS — MT-2026-04 (Crow Reservation; postponed to Sept. 28, 2026)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-in-the-crow-tribe-of-montana-impacted-by-severe-winter-storm-and-straight-line-winds-various-deadlines-postponed-to-sept-28-2026',
+          },
+          {
+            label: 'MT DOR — Natural Disaster Income Tax Extension',
+            href: 'https://revenue.mt.gov/taxes/tax-relief/natural-disaster-income-tax-extension',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'Is a separate request required? Yes — claimed with the return',
+        body: [
+          'The federal relief is automatic by address of record. Montana’s is claimed at filing: on a paper return, "write the date and type of disaster in bold, red letters at the top of your submitted tax documents"; when e-filing, send the department a letter stating the basis for eligibility — the qualification, the disaster date and type, the impacted period, the account number, and the tax type. A taxpayer already billed returns the notice with the same red-letter annotation on top.',
+        ],
+        sources: [
+          {
+            label: 'MT DOR — Natural Disaster Income Tax Extension (claim mechanics)',
+            href: 'https://revenue.mt.gov/taxes/tax-relief/natural-disaster-income-tax-extension',
+          },
+        ],
+      },
+      {
+        id: 'tribal-members',
+        heading: 'The tribal-member nuance: who even has a Montana return to extend',
+        body: [
+          'Both covered areas are tribal nations, and Montana income tax may not reach the affected taxpayer at all: an enrolled member who lives on the reservation governed by their own tribe subtracts reservation-sourced income — wages earned within the reservation’s exterior boundaries, business income from activities there, and related categories — reporting the exempt income on Form ETM (which serves as the return when all income is exempt).',
+          'So the Montana extension question chiefly matters for non-member residents and businesses in the covered areas, enrolled members with off-reservation income, and taxpayers whose preparers or records sat in the disaster area.',
+        ],
+        sources: [
+          {
+            label: 'MT DOR — Montana Income Taxes for Enrolled Tribal Members',
+            href: 'https://revenue.mt.gov/taxes/individual-income-tax/enrolled-tribal-members',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Did Montana extend its deadlines to Sept. 28, 2026 like the IRS?',
+        answer:
+          'Yes, by standing policy — DOR’s natural-disaster page provides "the same filing, reporting, and payment extensions as the IRS" for federally declared disaster areas. No event-specific state announcement exists for these notices, and Montana’s pattern is not to issue one.',
+      },
+      {
+        question: 'Is the Montana relief automatic like the federal relief?',
+        answer:
+          'No. It is claimed at filing: bold red-letter disaster annotation on top of a paper return, or a letter to the department stating eligibility when e-filing. A client who was already billed returns the notice with the same annotation.',
+      },
+      {
+        question: 'My client is an enrolled tribal member on their own reservation — what applies?',
+        answer:
+          'Possibly no Montana income tax at all: enrolled members living on their own tribe’s reservation subtract reservation-sourced income (wages and business income earned within the reservation boundaries, among other categories), reported on Form ETM. The extension question then only touches any non-exempt income or other filings.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'MT DOR — Natural Disaster Income Tax Extension',
+      href: 'https://revenue.mt.gov/taxes/tax-relief/natural-disaster-income-tax-extension',
+    },
+    metaTitle: 'Does Montana Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'Yes by standing policy — Montana gives the same extensions as the IRS (Sept. 28, 2026 for the Fort Peck and Crow notices), but relief must be claimed at filing with a red-letter annotation or letter. Verified against MT DOR and MCA 15-30-2604.',
+  },
+  {
+    // All facts verified 2026-07-31 against dor.ms.gov (news index pages
+    // crawled, notices database queried, both notice PDFs read) and irs.gov.
+    // dor.ms.gov serves a broken TLS chain and deletes old notice pages —
+    // re-verify links before editing. No Miss. Code section is cited by DOR's
+    // own FAQ, so no statute pinpoint is asserted here.
+    slug: 'mississippi',
+    state: 'Mississippi',
+    abbreviation: 'MS',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'No state notice yet for the May storms — relief waits on DOR',
+    statusTone: 'warn',
+    directAnswer:
+      'Not yet. Mississippi grants disaster relief by event-specific DOR notice, and as of July 31, 2026 none exists for the May 2026 storms (MS-2026-02) — the federal Nov. 2, 2026 date is federal only. When DOR has issued notices, the state deadline has matched the IRS date; but for the March 2025 storms it never issued one at all.',
+    activeNoticeCodes: ['MS-2026-02'],
+    sections: [
+      {
+        id: 'how-ms-relief-works',
+        heading: 'Does Mississippi automatically follow IRS postponements?',
+        body: [
+          'No — relief arrives, when it arrives, as an event-specific notice. DOR’s own FAQ describes the mechanism: the Commissioner may extend filing for good cause such as a natural disaster, and "the Department will issue a notice on the extended filing and/or payment due dates." The notices themselves open with "Mississippi will follow federal extensions granted to victims of…" — so the state has a published habit of matching the federal date once it acts, but nothing happens until a notice issues.',
+          'Every recent notice also carries the same scope caveat: the extension covers the income-tax family (individual, corporate income and franchise, pass-through entity, quarterly estimates) and "does not automatically apply to any other tax types or payments due on prior liabilities" — those are case-by-case by phone.',
+        ],
+        sources: [
+          {
+            label: 'MS DOR — General FAQs (extension-by-notice mechanism)',
+            href: 'https://www.dor.ms.gov/forms-resources/general-frequently-asked-questions',
+          },
+          {
+            label: 'MS DOR — Winter Storm Fern relief notice (80-26-001)',
+            href: 'https://www.dor.ms.gov/news/relief-victims-winter-storm-fern-mississippi',
+          },
+        ],
+      },
+      {
+        id: 'current-position',
+        heading: 'Where Mississippi stands on the May 2026 storms (MS-2026-02)',
+        body: [
+          'The IRS postponed federal deadlines to Nov. 2, 2026 for Franklin, Lamar, Lawrence, Lincoln, and Wilkinson counties (FEMA 4922-DR). As of July 31, 2026, DOR has published nothing for this event: the news index’s most recent disaster item is still Winter Storm Fern (April 15, 2026), and the notices database returns no entry for the May storms. Mississippi state deadlines therefore remain unmoved.',
+          'History cuts both ways on whether a notice will come. DOR’s Fern notice arrived roughly two and a half months after that January storm — but for the March 2025 storms (federal deadline Nov. 3, 2025), no DOR notice appears on the site at all. Do not assume state relief until a notice exists.',
+        ],
+        sources: [
+          {
+            label: 'IRS — MS-2026-02 (deadlines postponed to Nov. 2, 2026)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026',
+          },
+          {
+            label: 'MS DOR — news index (no May-storms item as of 2026-07-31)',
+            href: 'https://www.dor.ms.gov/news',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'When a notice does issue, what does it take?',
+        body: [
+          'The headline income-tax extension applies to taxpayers in the notice’s scope with no application described. The edges are phone-based: a covered taxpayer who still receives a penalty notice calls DOR at (601) 923-7700 for abatement; taxpayers outside the area whose books, records, or tax professionals sit inside it are handled case-by-case; and other tax types or prior liabilities likewise require a call. Mississippi notices contain no write-the-disaster-on-the-return procedure.',
+          'Scope can also differ from the federal list in either direction: the Fern notice covered the whole state while federal relief has been county-scoped in other events, and the 2023 notice stayed at four counties after the IRS expanded its list to seven.',
+        ],
+        sources: [
+          {
+            label: 'MS DOR — Winter Storm Fern notice (mechanics and caveats)',
+            href: 'https://www.dor.ms.gov/news/relief-victims-winter-storm-fern-mississippi',
+          },
+        ],
+      },
+      {
+        id: 'precedent',
+        heading: 'The track record: matched dates when issued, silence when not',
+        body: [
+          'Winter Storm Fern (2026): DOR notice 80-26-001 gave the whole state until June 8, 2026 for the income-tax family — exactly the IRS date. March 2023 tornadoes: notice 80-23-001 matched the federal July 31, 2023 date for four counties. March 2025 storms: the IRS moved 19 counties to Nov. 3, 2025, and no DOR notice is findable on the site.',
+          'So the honest summary for planning: when Mississippi speaks, it has matched the IRS date for income taxes; whether it speaks at all is not guaranteed, and the wait has run months. One housekeeping note: DOR removes old notice pages from its site, so preserve a copy of any notice you rely on.',
+        ],
+        sources: [
+          {
+            label: 'MS DOR — Winter Storm Fern notice (June 8, 2026 date)',
+            href: 'https://www.dor.ms.gov/news/relief-victims-winter-storm-fern-mississippi',
+          },
+          {
+            label: 'IRS — Mississippi winter storm relief (matching June 8, 2026 date)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-mississippi-taxpayers-impacted-by-severe-winter-storm-various-deadlines-postponed-to-june-8-2026',
+          },
+          {
+            label: 'MS DOR — Notices & Technical Bulletins database',
+            href: 'https://www.dor.ms.gov/forms-resources/notices-technical-bulletins',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Did Mississippi extend its deadlines to Nov. 2, 2026 like the IRS?',
+        answer:
+          'Not as of July 31, 2026. Mississippi grants disaster relief only by event-specific DOR notice, and none has been issued for the May 2026 storms. Until one appears, state deadlines are unmoved — check DOR’s news index and notices database before relying on any state date.',
+      },
+      {
+        question: 'If Mississippi issues a notice, will it match the federal Nov. 2 date?',
+        answer:
+          'Its track record says the income-tax date would match: the Winter Storm Fern notice matched the IRS June 8, 2026 date and the 2023 tornado notice matched July 31, 2023. But the March 2025 storms got no state notice at all, so a match is only likely — not guaranteed — and other tax types stay case-by-case regardless.',
+      },
+      {
+        question: 'What is covered when Mississippi does grant disaster relief?',
+        answer:
+          'The income-tax family: individual income tax, corporate income and franchise tax, pass-through entity returns, and quarterly estimated payments. Every notice states the extension "does not automatically apply to any other tax types or payments due on prior liabilities" — sales, withholding, and prior balances need a case-by-case call to (601) 923-7700.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'MS DOR news index',
+      href: 'https://www.dor.ms.gov/news',
+    },
+    metaTitle: 'Does Mississippi Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'The IRS moved five Mississippi counties to Nov. 2, 2026 — DOR has issued no state notice as of Jul 31. Past notices matched federal dates, but the 2025 storms got none. Verified against dor.ms.gov.',
+  },
+  {
+    // All facts verified 2026-07-31: azdor.gov indexes read live in a browser
+    // (site blocks plain fetches), ITR 96-4 and Pub 700 PDFs read in full,
+    // statutes on azleg.gov. A.R.S. §42-2079's wording came via a summarizing
+    // fetch — re-verify subsection lettering before quoting the statute more
+    // precisely than this entry does.
+    slug: 'arizona',
+    state: 'Arizona',
+    abbreviation: 'AZ',
+    verifiedOn: '2026-07-31',
+    statusLabel: 'No state relief announced — abatement request is the only path',
+    statusTone: 'warn',
+    directAnswer:
+      'No. ADOR has announced nothing for the San Carlos Apache flooding (AZ-2026-01) — and published nothing for any recent Arizona disaster, including the 2024 Watch Fire on the same tribal lands. Absent director action under A.R.S. §42-2079, state deadlines stand; the practical route is a Form 290 penalty-abatement request, and interest is not abatable that way.',
+    activeNoticeCodes: ['AZ-2026-01'],
+    sections: [
+      {
+        id: 'how-az-relief-works',
+        heading: 'Does Arizona automatically follow IRS postponements?',
+        body: [
+          'Not for disasters. Arizona’s automatic federal conformity — A.R.S. §42-1107(B) — is about ordinary filed extensions: a taxpayer granted a federal income-tax extension is deemed to have the same Arizona filing extension, if at least 90% of the Arizona liability is paid, and it extends filing only. Whether ADOR treats a §7508A disaster postponement (which is not a filed extension) as qualifying is stated nowhere official — worth confirming with ADOR directly before relying on it.',
+          'The disaster-specific authority is A.R.S. §42-2079: the director may specify a period of up to one year extending due dates and suspending penalties and interest for taxpayers affected by a §7508A-recognized disaster. That statute works through an event-specific act of the director — it does not mirror IRS notices automatically, and no public exercise of it was found for this event.',
+        ],
+        sources: [
+          {
+            label: 'A.R.S. §42-1107 — extensions (azleg.gov)',
+            href: 'https://www.azleg.gov/ars/42/01107.htm',
+          },
+          {
+            label: 'A.R.S. §42-2079 — suspension of liabilities by reason of disasters (azleg.gov)',
+            href: 'https://www.azleg.gov/ars/42/02079.htm',
+          },
+          {
+            label: 'ADOR — late payments and filing extensions (90% rule, box 82F)',
+            href: 'https://azdor.gov/making-payments-late-payments-and-filing-extensions',
+          },
+        ],
+      },
+      {
+        id: 'current-position',
+        heading: 'Where Arizona stands on the San Carlos Apache flooding (AZ-2026-01)',
+        body: [
+          'The IRS postponed federal deadlines to Sept. 28, 2026 for the San Carlos Apache Tribe (FEMA 4911-DR, October 2025 storms). ADOR has published nothing: the press-release index (read in full through July 20, 2026) contains no disaster item, the site search returns no result for "San Carlos Apache," and azdor.gov has no disaster-relief page at all.',
+          'Nor is this event an outlier — the same silence covers the 2024 Watch Fire relief on the same tribal lands and the 2023 Navajo Nation flooding. The observable Arizona pattern is: the IRS issues tribal-lands relief; the state says nothing. Whether ADOR grants matching relief internally, case by case, is unverifiable from public sources — treat Arizona deadlines as unmoved.',
+        ],
+        sources: [
+          {
+            label: 'IRS — AZ-2026-01 (deadlines postponed to Sept. 28, 2026)',
+            href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-and-flooding-in-the-san-carlos-apache-tribe-various-deadlines-postponed-to-sept-28-2026',
+          },
+          {
+            label: 'ADOR — latest press releases (no disaster item as of 2026-07-31)',
+            href: 'https://azdor.gov/news-center/latest-press-releases',
+          },
+        ],
+      },
+      {
+        id: 'separate-action',
+        heading: 'The practical route: Form 290 penalty abatement',
+        body: [
+          'With no announced relief, an affected client who files or pays late is in ordinary penalty territory, and the remedy is a reasonable-cause abatement request: Arizona Form 290 to ADOR’s Penalty Review Unit, with documentation, the account otherwise in compliance. Publication 700’s reasonable-cause list includes records destroyed by fire or casualty but has no federally-declared-disaster category and no §7508A reference.',
+          'The hard limit to plan around: "There is no statutory provision for abatement of interest based on reasonable cause." Interest relief exists only through §42-2079 director action — which is exactly what has not been announced. A late payment can end up penalty-forgiven but still interest-bearing.',
+        ],
+        sources: [
+          {
+            label: 'ADOR — penalty abatement (Form 290 process)',
+            href: 'https://azdor.gov/collections-individuals/penalty-abatement',
+          },
+          {
+            label: 'ADOR — Publication 700, penalty abatement (PDF)',
+            href: 'https://azdor.gov/sites/default/files/2023-06/PUBLICATION_700.pdf',
+          },
+        ],
+      },
+      {
+        id: 'tribal-members',
+        heading: 'The tribal-member nuance: who even has an Arizona return to extend',
+        body: [
+          'Under ADOR ruling ITR 96-4, an affiliated tribal member who lives on their own tribe’s reservation and derives income solely from reservation sources is not subject to Arizona income tax on that income; income from off-reservation sources is taxable, and a non-affiliated spouse’s income is taxable with community-property allocation rules.',
+          'So for many enrolled San Carlos Apache members living and earning entirely on-reservation, there is no Arizona income-tax deadline in play. The state-conformity gap bites mainly on members and businesses with off-reservation income, non-member residents of the area, and employers carrying Arizona withholding or TPT obligations.',
+        ],
+        sources: [
+          {
+            label: 'ADOR — ITR 96-4, income taxation of Indians and spouses (PDF)',
+            href: 'https://azdor.gov/sites/default/files/2023-03/RULINGS_INDV_1996_itr96-4.pdf',
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Did Arizona extend its deadlines to Sept. 28, 2026 like the IRS?',
+        answer:
+          'No. ADOR has announced no relief for this event — or for any recent Arizona disaster — and its disaster statute (A.R.S. §42-2079) operates only through an announced act of the director. Treat Arizona deadlines as unmoved unless and until ADOR says otherwise.',
+      },
+      {
+        question:
+          'My client has a federal disaster postponement — does Arizona’s automatic extension conformity cover them?',
+        answer:
+          'Unclear, and worth confirming with ADOR before relying on it. A.R.S. §42-1107(B) deems a federal extension to extend the Arizona filing date only when 90% of the Arizona tax is paid — and it speaks to filed extensions, not §7508A postponements. No official source says a disaster postponement qualifies.',
+      },
+      {
+        question: 'What can an affected Arizona client actually get?',
+        answer:
+          'A reasonable-cause penalty abatement via Form 290 to the Penalty Review Unit, with documentation. Interest cannot be abated for reasonable cause — only a §42-2079 director action suspends interest, and none has been announced for this event.',
+      },
+      {
+        question: 'Does an enrolled San Carlos Apache member owe Arizona income tax at all?',
+        answer:
+          'Under ITR 96-4, not on reservation-sourced income if they live on their own tribe’s reservation and are an affiliated member — many affected taxpayers therefore have no Arizona income-tax deadline in play. Off-reservation income, non-member spouses’ income, and employer withholding/TPT obligations remain taxable and on normal schedules.',
+      },
+    ],
+    announcementsIndex: {
+      label: 'ADOR latest press releases',
+      href: 'https://azdor.gov/news-center/latest-press-releases',
+    },
+    metaTitle: 'Does Arizona Conform to IRS Disaster Extensions? (2026)',
+    metaDescription:
+      'The IRS moved San Carlos Apache Tribe deadlines to Sept. 28, 2026 — Arizona has announced nothing, for this or any recent disaster. Form 290 abatement is the only path, and interest is not abatable. Verified against ADOR and azleg.gov.',
+  },
 ]
 
 export function getConformityEntry(slug: string): StateConformityEntry | undefined {
