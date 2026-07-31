@@ -604,6 +604,17 @@ export function getNoticeFaq(notice: DisasterNotice): { question: string; answer
       answer: `Taxpayers who reside or have a business in ${notice.affectedArea.replace(/^The /, '')} qualify. The IRS applies the relief automatically based on the address of record, so most eligible taxpayers do not need to contact the IRS.`,
     },
     {
+      // The records-in-the-area nuance is stated in every IRS disaster release's
+      // "Filing and payment relief" section (the paragraph that also gives the
+      // 866-562-5227 hotline); the regulation cite is the release's own basis.
+      question: `Can a client outside the listed area still qualify?`,
+      answer: `Yes. Under Treas. Reg. §301.7508A-1(d)(1), "affected taxpayers" also include those whose records necessary to meet a deadline are located in the covered disaster area — including when those records sit with a preparer inside it. The IRS applies relief automatically only by address of record, so these taxpayers must call the IRS disaster hotline (866-562-5227) to request it.`,
+    },
+    {
+      question: `What legal authority does the IRS use to postpone these deadlines?`,
+      answer: `Section 7508A of the Internal Revenue Code, applied here by relief ${notice.code}. The covered disaster area is defined at Treas. Reg. §301.7508A-1(d)(2). Separately, since the Filing Relief for Natural Disasters Act (P.L. 119-29, enacted July 24, 2025), the IRS can also postpone federal deadlines for a state-declared disaster at a governor's written request, without waiting for a FEMA declaration.`,
+    },
+    {
       question: `Which returns and payments are postponed?`,
       answer: `The relief covers ${affectedReturnsSentence(notice)} returns and payments with an original or extended due date in the postponement window. All of them move to ${notice.deadlineLabel}.`,
     },

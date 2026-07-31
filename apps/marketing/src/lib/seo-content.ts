@@ -4436,6 +4436,272 @@ export const alternativeRoundupPages: Record<Locale, GuidePageCopy[]> = {
   'zh-CN': alternativeRoundupSpecs.map((spec) => alternativeRoundupPage(spec, 'zh-CN')),
 }
 
+// Category roundup — the head "best X" query the alternatives pages orbit.
+// Deliberately vendor-transparent: the hero note declares DueDateHQ publishes
+// the guide and appears in it, every competitor line reuses the same verified
+// ALT_NOTES facts as the alternatives pages, and the taxonomy (static library /
+// workflow suite / monitoring layer) tells firms plainly when a suite — not us —
+// is the right answer. That disclosure is the positioning: the incumbent "best X"
+// results are vendors ranking themselves first without saying so.
+const CATEGORY_ROUNDUP_TOOLS = [
+  ALT_NOTES.fileInTime,
+  ALT_NOTES.jetpack,
+  ALT_NOTES.financialCents,
+  ALT_NOTES.karbon,
+  ALT_NOTES.canopy,
+  ALT_NOTES.taxdome,
+  DDHQ_ALT,
+]
+
+function categoryRoundupPage(locale: Locale): GuidePageCopy {
+  const zh = locale === 'zh-CN'
+  const toolItems = CATEGORY_ROUNDUP_TOOLS.map((a) => ({
+    title: a.name,
+    body: zh ? a.noteZh : a.note,
+  }))
+  const table: GuidePageCopy['comparisonTable'] = {
+    eyebrow: zh ? '一览' : 'AT A GLANCE',
+    title: zh ? '七款工具对比表' : 'The tools, side by side',
+    mineLabel: zh ? '定位 / 适合' : 'What it is / best fit',
+    theirsLabel: zh ? '起步定价（2026 年 7 月核实）' : 'Starting price (verified Jul 2026)',
+    rows: CATEGORY_ROUNDUP_TOOLS.map((a) => ({
+      dimension: a.name,
+      mine: zh ? a.fitZh : a.fit,
+      theirs: zh ? a.priceZh : a.price,
+    })),
+  }
+  if (zh) {
+    return {
+      slug: 'best-tax-deadline-tracking-software',
+      comparisonTable: table,
+      meta: {
+        title: '2026 年 CPA 事务所税务截止日跟踪软件怎么选 — DueDateHQ',
+        description:
+          '「截止日跟踪」其实是三层:静态截止日库、带截止日功能的工作流套件、监控官方变化的监控层。七款工具、核实过的起步定价、各自属于哪一层。',
+        ogImage: '/og/guide.zh-CN.png',
+      },
+      hero: {
+        eyebrow: '指南',
+        title: '2026 年 CPA 事务所最好的税务截止日跟踪软件',
+        description:
+          '「截止日跟踪」其实是三层不同的东西:你手工维护的静态截止日库、把截止日做成周期任务的工作流套件、以及监控官方来源变化的监控层。多数事务所需要第二层里的一款;做多州业务的,还需要第三层。下面是七款工具、核实过的起步定价、以及各自属于哪一层。',
+        note: '利益披露:本指南由 DueDateHQ 发布,DueDateHQ 也是被评测工具之一。竞品长处均来自公开定位,价格均取自各家公开定价页(2026 年 7 月核实),并且我们会明说哪些场景下套件——而不是我们——才是正确答案。本文不构成税务建议。',
+      },
+      sections: [
+        {
+          eyebrow: '类别',
+          title: '「截止日跟踪软件」到底指什么?',
+          body: '同一个词卖三种东西。选错层,买来的工具解决不了你的问题。',
+          items: [
+            {
+              title: '第一层:静态截止日库',
+              body: 'File In Time 这类:内置完整的联邦与州截止日清单,由你的员工手工维护。没有任何东西替你盯变化。',
+            },
+            {
+              title: '第二层:带截止日功能的工作流套件',
+              body: 'TaxDome、Karbon、Canopy、Jetpack Workflow、Financial Cents:截止日变成周期任务与清单。它们跟踪的是你的团队录入的日期。',
+            },
+            {
+              title: '第三层:变化监控层',
+              body: 'DueDateHQ:监控官方 IRS 与各州来源,日期变动时提醒你,并附上来源。叠加在前两层之上,不替换它们。',
+            },
+          ],
+        },
+        {
+          eyebrow: '工具',
+          title: '七款工具逐个看',
+          body: '按公开定位列出,起步定价均已核实(2026 年 7 月)。',
+          items: toolItems,
+        },
+        {
+          eyebrow: '怎么选',
+          title: '小事务所该怎么选?',
+          body: '按你的实际瓶颈选层,而不是按功能清单选品牌。',
+          items: [
+            {
+              title: '一到两人的事务所',
+              body: 'Financial Cents($19/用户/月,品类公开最低入门价)或 Jetpack Workflow($36)解决周期任务;再加一个监控层盯变化。两件轻工具往往比一个重套件更便宜、更快落地。',
+            },
+            {
+              title: '客户横跨多个州',
+              body: '这时监控比工作流更重要:50 个州的截止日变化没法靠人工盯。工作流套件不解决这个问题——它跟踪的是已录入的日期。',
+            },
+            {
+              title: '已经在用某个套件',
+              body: '不要为了截止日焦虑而迁移平台。迁移成本远大于收益;在现有套件之上加监控层即可。',
+            },
+          ],
+        },
+        {
+          eyebrow: 'DUEDATEHQ 的位置',
+          title: '什么时候不该选 DueDateHQ?',
+          body: '如果你缺的是客户门户、电子签、账单或团队工作流,选上面的套件,不是我们。DueDateHQ 故意只做窄的一层:监控官方 IRS 与各州来源的截止日与规则变化,把每条变化路由到受影响的客户,并附上来源。',
+          items: [
+            {
+              title: '带来源的规则',
+              body: '每个截止日保留官方来源、摘录、复核时间与复核状态。',
+            },
+            {
+              title: '受影响客户复核',
+              body: '变化先匹配到具体客户、经人工复核,再影响运营。',
+            },
+            {
+              title: '与现有工具并存',
+              body: '保留你现有的套件或清单,DueDateHQ 只补监控层。',
+            },
+          ],
+        },
+      ],
+      faqHeader: { eyebrow: 'FAQ', title: '截止日跟踪软件常见问题。' },
+      faq: [
+        {
+          question: '我需要 practice management 软件,还是一个税务日历就够了?',
+          answer:
+            '看你的问题在哪。协调员工与客户是瓶颈,选 practice management;怕错过日期变化,日历也不够——日历不会自己更新,你需要监控。很多小事务所用「轻工作流 + 监控层」替代重套件。',
+        },
+        {
+          question: '有软件能自动跟踪州税截止日变化吗?',
+          answer:
+            'DueDateHQ 监控官方 IRS 与全部 50 州 + DC 的来源,日期变动时把变化路由到受影响的客户,并附来源。上面的工作流套件跟踪的是你的团队录入的日期与套用的模板。',
+        },
+        {
+          question: 'IRS 推迟申报截止日时,有工具会提醒我吗?',
+          answer:
+            '有——这正是监控层的工作。IRS 灾难延期(如 WA-2025-03 这类救济通知)发布后,DueDateHQ 会将其匹配到受影响州的客户;duedatehq.com/irs-disaster-relief 也免费公开跟踪全部现行通知。',
+        },
+        {
+          question: '小事务所如何避免漏掉税务截止日?',
+          answer:
+            '三件事:每个客户义务只有一处真实来源;周期性工作用清单而不是记忆;变化监控自动化——否则一个被推迟的日期会悄悄让整本日历失效。延期(extension)要当作一等截止日跟踪,而不是备注。',
+        },
+      ],
+      cta: {
+        title: '给你现有的工具加上监控层',
+        body: '监控官方来源,把每条截止日与规则变化路由到受影响的客户,并附上来源。Beta 期间免费。',
+        primary: '免费开始',
+        secondary: '浏览全部资源',
+      },
+    }
+  }
+
+  return {
+    slug: 'best-tax-deadline-tracking-software',
+    comparisonTable: table,
+    meta: {
+      title: 'Best Tax Deadline Tracking Software for CPA Firms (2026)',
+      description:
+        '"Deadline tracking" is three different layers: static due-date libraries, workflow suites, and change-monitoring layers. Seven tools, verified starting prices, and which layer each belongs to.',
+      ogImage: '/og/guide.en.png',
+    },
+    hero: {
+      eyebrow: 'GUIDE',
+      title: 'The best tax deadline tracking software for CPA firms (2026)',
+      description:
+        '"Deadline tracking" is sold as one thing but is really three: static due-date libraries your staff maintain, workflow suites that turn deadlines into recurring jobs, and monitoring layers that watch official sources for changes. Most firms need one tool from the second layer; firms with multi-state books also need the third. Below: seven tools, verified starting prices, and which layer each belongs to.',
+      note: 'Full disclosure: this guide is published by DueDateHQ, which is one of the tools listed. Competitor strengths are stated from public positioning, every price is from the vendor’s public pricing page (verified Jul 2026), and we say plainly where a suite — not us — is the right answer. Not tax advice.',
+    },
+    sections: [
+      {
+        eyebrow: 'THE CATEGORY',
+        title: 'What actually counts as tax deadline tracking software?',
+        body: 'One label sells three different things. Pick the wrong layer and the tool you buy will not solve the problem you have.',
+        items: [
+          {
+            title: 'Layer 1: static due-date libraries',
+            body: 'File In Time and its kin: a comprehensive built-in federal and state due-date list that your staff maintain by hand. Nothing watches for changes.',
+          },
+          {
+            title: 'Layer 2: workflow suites with deadline features',
+            body: 'TaxDome, Karbon, Canopy, Jetpack Workflow, Financial Cents: deadlines become recurring jobs and checklists. They track the dates your team entered.',
+          },
+          {
+            title: 'Layer 3: change-monitoring layers',
+            body: 'DueDateHQ: watches official IRS and state sources and flags you when a date moves, with the source attached. It sits on top of the first two layers rather than replacing them.',
+          },
+        ],
+      },
+      {
+        eyebrow: 'THE TOOLS',
+        title: 'The tools, layer by layer',
+        body: 'Listed by public positioning, with starting prices verified from each vendor’s public pricing page (Jul 2026).',
+        items: toolItems,
+      },
+      {
+        eyebrow: 'HOW TO CHOOSE',
+        title: 'How should a small firm choose?',
+        body: 'Choose by the bottleneck you actually have, not by feature-list length.',
+        items: [
+          {
+            title: 'Solo or two-person firm',
+            body: 'Financial Cents ($19/user/mo, the lowest published entry price in the category) or Jetpack Workflow ($36) covers recurring work; add a monitoring layer for change alerts. Two light tools are usually cheaper and faster to land than one heavy suite.',
+          },
+          {
+            title: 'Clients across multiple states',
+            body: 'Monitoring outweighs workflow here: nobody can hand-track deadline changes across 50 states. A workflow suite does not solve this — it tracks the dates already entered.',
+          },
+          {
+            title: 'Already on a suite',
+            body: 'Do not migrate platforms to fix deadline anxiety — switching costs dwarf the benefit. Add the monitoring layer on top of what you run.',
+          },
+        ],
+      },
+      {
+        eyebrow: 'WHERE DUEDATEHQ FITS',
+        title: 'When should you not pick DueDateHQ?',
+        body: 'If your gap is a client portal, e-signature, billing, or team workflow — pick one of the suites above, not us. DueDateHQ is deliberately one narrow layer: it watches official IRS and state sources for deadline and rule changes and routes each one to the clients it affects, with the source attached.',
+        items: [
+          {
+            title: 'Source-backed rules',
+            body: 'Each deadline keeps its official source, excerpt, review timestamp, and review state.',
+          },
+          {
+            title: 'Affected-client review',
+            body: 'A change is matched to specific clients and human-reviewed before it affects operations.',
+          },
+          {
+            title: 'Runs alongside your stack',
+            body: 'Keep your suite or your list — DueDateHQ only adds the monitoring layer.',
+          },
+        ],
+      },
+    ],
+    faqHeader: { eyebrow: 'FAQ', title: 'Deadline tracking software questions.' },
+    faq: [
+      {
+        question: 'Do I need practice management software or just a tax calendar?',
+        answer:
+          'It depends on the problem. If coordinating staff and clients is the bottleneck, you need practice management. If the fear is missing a date change, a calendar is not enough either — calendars do not update themselves; you need monitoring. Many small firms run a light workflow tool plus a monitoring layer instead of a heavy suite.',
+      },
+      {
+        question: 'What software tracks state tax deadline changes automatically?',
+        answer:
+          'DueDateHQ watches official IRS and state sources across all 50 states plus DC and routes each change to the clients it affects, with the source attached. The workflow suites above track the dates your team enters and the templates you apply.',
+      },
+      {
+        question: 'Is there a tool that alerts me when the IRS postpones a filing deadline?',
+        answer:
+          'Yes — that is the monitoring layer’s job. When the IRS issues a disaster postponement (relief notices like WA-2025-03), DueDateHQ matches it to clients in the affected states; duedatehq.com/irs-disaster-relief also tracks every current notice, free.',
+      },
+      {
+        question: 'How do small firms avoid missed tax deadlines?',
+        answer:
+          'Three practices: one source of truth per client obligation; checklists for recurring work instead of memory; and automated change monitoring — otherwise one postponed date silently invalidates the whole calendar. Track extensions as first-class deadlines, not footnotes.',
+      },
+    ],
+    cta: {
+      title: 'Add the monitoring layer to whatever you already run',
+      body: 'DueDateHQ watches official sources and routes each deadline and rule change to the clients it affects, with the source attached. Free during beta.',
+      primary: 'Start free',
+      secondary: 'Browse all resources',
+    },
+  }
+}
+
+export const categoryRoundupPages: Record<Locale, GuidePageCopy[]> = {
+  en: [categoryRoundupPage('en')],
+  'zh-CN': [categoryRoundupPage('zh-CN')],
+}
+
 export const ruleReferencePages: Record<Locale, GuidePageCopy[]> = {
   en: ruleReferenceSpecs.map((spec) => ruleReferencePage(spec, 'en')),
   'zh-CN': ruleReferenceSpecs.map((spec) => ruleReferencePage(spec, 'zh-CN')),
@@ -4660,7 +4926,12 @@ export const vsPages: Record<Locale, GuidePageCopy[]> = {
 }
 
 export function getGuidePages(siteCopy: LandingCopy, locale: Locale): GuidePageCopy[] {
-  return [...siteCopy.geo.guides, ...supplementalGuides[locale], ...alternativeRoundupPages[locale]]
+  return [
+    ...siteCopy.geo.guides,
+    ...supplementalGuides[locale],
+    ...alternativeRoundupPages[locale],
+    ...categoryRoundupPages[locale],
+  ]
 }
 
 export function getComparisonPages(locale: Locale): GuidePageCopy[] {
