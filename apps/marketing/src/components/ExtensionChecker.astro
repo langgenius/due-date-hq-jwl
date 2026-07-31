@@ -1,0 +1,262 @@
+---
+/**
+ * Interactive extension checker — linkable-asset tool #3 (same architecture as
+ * DeadlineLookup/PenaltyCalculator: verified facts inlined as JSON, vanilla JS,
+ * no framework, no network calls). One panel, one purpose: pick a filer type,
+ * see the extension form, both dates, and the nuance — with the official
+ * source and the full rule page linked. Facts from lib/extension-facts.ts.
+ */
+import { getCtaHref } from '../lib/app-url'
+import { EXTENSION_FACTS, EXTENSION_FACTS_VERIFIED_ON } from '../lib/extension-facts'
+
+interface Props {
+  locale: 'en' | 'zh-CN'
+}
+const { locale } = Astro.props
+const zh = locale === 'zh-CN'
+const prefix = zh ? '/zh-CN' : ''
+
+const copy = zh
+  ? {
+      eyebrow: '免费工具',
+      title: '报税延期速查',
+      lead: '选一种申报主体，查看用哪张延期表、何时提交、延到哪天，以及最容易记错的细节。与本站规则页同一套已核实事实——每条都有官方来源。',
+      picker: '申报主体',
+      formLabel: '延期方式',
+      applyLabel: '延期申请截止',
+      extendedLabel: '延期后截止日',
+      noteLabel: '别记错',
+      source: '官方来源',
+      detail: '查看规则详情页',
+      payment: '所有延期都只延长申报时间，不延长付款时间；应缴税款仍按原截止日到期。周末/法定假日顺延见规则页。',
+      verified: `核实于 ${EXTENSION_FACTS_VERIFIED_ON}；日历年纳税人的一般规则。申报前请以官方来源为准，本工具不构成税务建议。`,
+      ctaLead: '延期日历也会变——比如灾难顺延直接改写这些日期。',
+      ctaText: 'DueDateHQ 监控官方 IRS 与各州来源，截止日变动时把变化路由到受影响的客户。Beta 期间免费。',
+      ctaBtn: '免费开始',
+    }
+  : {
+      eyebrow: 'FREE TOOL',
+      title: 'Tax extension checker',
+      lead: 'Pick a filer type to see which extension form applies, when to file it, the extended deadline, and the nuance firms get wrong. Same verified facts as our rule reference pages — a source on every date.',
+      picker: 'Filer type',
+      formLabel: 'Extension mechanism',
+      applyLabel: 'File the extension by',
+      extendedLabel: 'Extended deadline',
+      noteLabel: 'Don’t get this wrong',
+      source: 'Official source',
+      detail: 'Open the full rule page',
+      payment: 'Every extension here extends time to file, not time to pay — tax owed is still due on the original deadline. Weekend/holiday shifts: see the rule pages.',
+      verified: `Verified ${EXTENSION_FACTS_VERIFIED_ON}; general rules for calendar-year filers. Confirm against the official source before filing — not tax advice.`,
+      ctaLead: 'Extension calendars move too — a disaster postponement rewrites these dates outright.',
+      ctaText: 'DueDateHQ watches official IRS and state sources and routes each deadline change to the clients it affects. Free during beta.',
+      ctaBtn: 'Start free',
+    }
+
+const payload = {
+  items: EXTENSION_FACTS.map((f) => ({
+    key: f.key,
+    filer: zh ? f.filerZh : f.filer,
+    rows: [
+      { k: copy.formLabel, v: zh ? f.formZh : f.form },
+      { k: copy.applyLabel, v: zh ? f.applyByZh : f.applyBy },
+      { k: copy.extendedLabel, v: zh ? f.extendedToZh : f.extendedTo, hero: true },
+      { k: copy.noteLabel, v: zh ? f.noteZh : f.note },
+    ],
+    srcLabel: f.sourceLabel,
+    src: f.sourceHref,
+    href: `${prefix}/rules/${f.ruleSlug}`,
+  })),
+  t: { source: copy.source, detail: copy.detail },
+}
+
+const appHref = getCtaHref(locale)
+---
+
+<section class="exc">
+  <div class="wrap">
+    <p class="m-eyebrow">{copy.eyebrow}</p>
+    <h1 class="m-page-h2">{copy.title}</h1>
+    <p class="exc__lead">{copy.lead}</p>
+
+    <div class="exc__card">
+      <p class="exc__label" id="exc-picker-label">{copy.picker}</p>
+      <div class="exc__chips" role="group" aria-labelledby="exc-picker-label">
+        {
+          payload.items.map((f) => (
+            <button type="button" class="exc__chip" data-key={f.key}>
+              {f.filer}
+            </button>
+          ))
+        }
+      </div>
+      <div class="exc__result" id="exc-out"></div>
+    </div>
+
+    <p class="exc__note">{copy.payment}</p>
+    <p class="exc__note">{copy.verified}</p>
+
+    <div class="exc__cta">
+      <p class="exc__cta-lead">{copy.ctaLead}</p>
+      <p class="exc__cta-text">{copy.ctaText}</p>
+      <a class="m-btn m-btn--secondary" href={appHref} data-event="marketing.extension-checker.cta"
+        >{copy.ctaBtn}</a
+      >
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="exc-data" set:html={JSON.stringify(payload)} />
+<script>
+  const el = document.getElementById('exc-data')
+  const D = JSON.parse(el?.textContent || '{}')
+  const esc = (s: string) =>
+    s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] || c)
+  const chips = document.querySelectorAll<HTMLButtonElement>('.exc__chip')
+
+  function pick(key: string) {
+    const item = (D.items || []).find((x: { key: string }) => x.key === key)
+    const out = document.getElementById('exc-out') as HTMLElement
+    if (!item) return
+    chips.forEach((c) => c.classList.toggle('is-active', c.dataset.key === key))
+    const rows = item.rows
+      .map(
+        (r: { k: string; v: string; hero?: boolean }) =>
+          `<div class="exc__row${r.hero ? ' exc__row--hero' : ''}"><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`,
+      )
+      .join('')
+    out.innerHTML =
+      `<dl class="exc__facts">${rows}</dl>` +
+      `<p class="exc__links">` +
+      `<a href="${esc(item.src)}" target="_blank" rel="noopener">${esc(D.t.source)}: ${esc(item.srcLabel)}</a>` +
+      `<a href="${esc(item.href)}">${esc(D.t.detail)} &rarr;</a>` +
+      `</p>`
+  }
+
+  chips.forEach((c) => c.addEventListener('click', () => pick(c.dataset.key || '')))
+  // 打开即有答案:预选个人 1040,首屏直接展示
+  pick('individual')
+</script>
+
+<style>
+  .exc {
+    padding-block: clamp(48px, 7vw, 88px) 8px;
+  }
+  .exc .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .exc__lead {
+    margin-top: 14px;
+    max-width: 62ch;
+    font-size: var(--m-text-base);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .exc__card {
+    margin-top: 28px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--m-surface, #fff);
+  }
+  .exc__label {
+    margin: 0 0 8px;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .exc__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .exc__chip {
+    font: inherit;
+    font-size: var(--m-text-sm, 0.9rem);
+    padding: 10px 14px;
+    min-height: 44px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 999px;
+    background: var(--m-canvas, #fff);
+    color: var(--m-ink-2);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .exc__chip:hover {
+    border-color: var(--m-brand);
+    color: var(--m-ink);
+  }
+  .exc__chip.is-active {
+    background: var(--m-brand);
+    border-color: var(--m-brand);
+    color: #fff;
+  }
+  .exc__result {
+    margin-top: 16px;
+    border-top: 1px solid var(--m-hairline-2);
+    padding-top: 14px;
+  }
+  .exc__facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  .exc__row dt {
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: var(--m-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--m-faint);
+  }
+  .exc__row dd {
+    margin: 2px 0 0;
+    font-size: var(--m-text-base);
+    line-height: 1.55;
+    color: var(--m-ink);
+  }
+  .exc__row--hero dd {
+    font-size: var(--m-text-lg, 1.15rem);
+    font-weight: 600;
+  }
+  .exc__links {
+    margin: 14px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: var(--m-text-sm, 0.9rem);
+  }
+  .exc__links a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .exc__note {
+    margin-top: 22px;
+    max-width: 76ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.55;
+    color: var(--m-muted);
+  }
+  .exc__cta {
+    margin-top: 36px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--m-section);
+  }
+  .exc__cta-lead {
+    margin: 0;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .exc__cta-text {
+    margin: 8px 0 14px;
+    max-width: 68ch;
+    font-size: var(--m-text-sm, 0.9rem);
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+</style>

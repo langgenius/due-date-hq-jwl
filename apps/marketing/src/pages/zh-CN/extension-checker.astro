@@ -1,0 +1,141 @@
+---
+/** /zh-CN/extension-checker — 报税延期速查(EN 镜像,同一核实事实源)。 */
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import TopNav from '../../components/home/TopNav.astro'
+import Footer from '../../components/home/Footer.astro'
+import ExtensionChecker from '../../components/ExtensionChecker.astro'
+import { getStartedHref } from '../../lib/app-url'
+import { getContentDates } from '../../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../../lib/site'
+import type { JsonLdDocument } from '../../lib/structured-data'
+
+const locale = 'zh-CN'
+const pathname = '/zh-CN/extension-checker'
+const title = '报税延期速查（2026）：4868、7004、8868 截止日 — DueDateHQ'
+const description =
+  '免费查 2026 报税延期：选申报主体（1040、1120、1120-S、1065、1041、990、FBAR），查看用哪张延期表、何时提交、延到哪天——每个日期都引用 irs.gov 官方来源。'
+const { publishedOn, reviewedOn } = getContentDates('extension-checker')
+const faq = [
+  {
+    q: '报税延期会延长付款时间吗？',
+    a: '不会。Form 4868、7004、8868 都只延长申报时间，不延长付款时间——应缴税款仍按原截止日到期，迟缴罚金与利息从原截止日起算。',
+  },
+  {
+    q: 'S 公司和合伙企业延期后的截止日是哪天？',
+    a: '日历年纳税人为 9 月 15 日：在原截止日 3 月 15 日前提交 Form 7004，Form 1120-S 与 Form 1065 自动延长 6 个月。',
+  },
+  {
+    q: 'FBAR 延期需要提交什么吗？',
+    a: '不需要。FinCEN 对 FBAR（FinCEN Form 114）自动延期至 10 月 15 日——无需任何申请。',
+  },
+  {
+    q: '为什么 1041 只延到 9 月 30 日？',
+    a: 'Form 7004 给遗产与信托的是 5 个半月而非 6 个月——日历年 Form 1041 的截止日从 4 月 15 日移到 9 月 30 日，不是 10 月 15 日。',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: `${MARKETING_SITE_URL}/zh-CN` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '报税延期速查',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref(locale)
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.zh-CN.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <ExtensionChecker locale={locale} />
+  <section class="exf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">延期常见问题</h2>
+      {
+        faq.map((f) => (
+          <details class="exf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="exf__more">
+        截止日：<a href="/zh-CN/deadline-lookup">报税截止日快查</a> · 漏掉的代价：<a
+          href="/zh-CN/penalty-calculator">迟报罚金估算器</a
+        > · 顺延：<a href="/irs-disaster-relief">IRS 灾害减免跟踪</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .exf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .exf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .exf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .exf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .exf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .exf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .exf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

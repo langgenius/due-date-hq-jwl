@@ -81,6 +81,8 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'deadline-lookup': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   // Interactive penalty calculator (linkable asset #2) shipped 2026-07-31.
   'penalty-calculator': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  // Interactive extension checker (linkable asset #3) shipped 2026-07-31.
+  'extension-checker': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'form-4868-extension-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'fbar-fincen-114-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },
   'form-2290-heavy-vehicle-deadline': { publishedOn: '2026-07-29', reviewedOn: '2026-07-29' },

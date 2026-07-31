@@ -5766,6 +5766,7 @@ const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[]
   { href: '/rules', label: 'Rule library', labelZh: '规则库' },
   { href: '/deadline-lookup', label: 'Deadline lookup tool', labelZh: '截止日快查工具' },
   { href: '/penalty-calculator', label: 'Penalty calculator', labelZh: '迟报罚金估算器' },
+  { href: '/extension-checker', label: 'Extension checker', labelZh: '报税延期速查' },
   { href: '/states/ohio', label: 'Ohio tax deadlines (CAT)', labelZh: 'Ohio 州税截止日（CAT）' },
   {
     href: '/states/washington',

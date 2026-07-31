@@ -1,0 +1,145 @@
+---
+/**
+ * /extension-checker — tax extension checker (linkable asset #3). Pick a filer
+ * type, see the extension form, both dates, and the classic mistakes — the
+ * same verified facts as the /rules/* reference pages, rendered as a tool.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/home/TopNav.astro'
+import Footer from '../components/home/Footer.astro'
+import ExtensionChecker from '../components/ExtensionChecker.astro'
+import { getStartedHref } from '../lib/app-url'
+import { getContentDates } from '../lib/content-metadata'
+import { MARKETING_SITE_URL } from '../lib/site'
+import type { JsonLdDocument } from '../lib/structured-data'
+
+const locale = 'en'
+const pathname = '/extension-checker'
+const title = 'Tax Extension Checker (2026): 4868, 7004, 8868 deadlines — DueDateHQ'
+const description =
+  'Free checker for 2026 tax extensions: pick a filer type (1040, 1120, 1120-S, 1065, 1041, 990, FBAR) to see the extension form, when to file it, and the extended deadline — every date cited to irs.gov.'
+const { publishedOn, reviewedOn } = getContentDates('extension-checker')
+const faq = [
+  {
+    q: 'Does a tax extension extend the time to pay?',
+    a: 'No. Forms 4868, 7004, and 8868 extend time to file, not time to pay — tax owed is still due on the original deadline, and failure-to-pay penalties and interest run from that date.',
+  },
+  {
+    q: 'When is the extended deadline for S corporations and partnerships?',
+    a: 'September 15 for calendar-year filers: Form 7004, filed by the original March 15 deadline, grants an automatic 6-month extension for both Form 1120-S and Form 1065.',
+  },
+  {
+    q: 'Do I need to file anything to get the FBAR extension?',
+    a: 'No. FinCEN grants an automatic extension to October 15 for FBAR (FinCEN Form 114) — no application is required.',
+  },
+  {
+    q: 'Why is the 1041 extension only to September 30?',
+    a: 'Form 7004 grants estates and trusts a 5½-month extension rather than 6 — the calendar-year Form 1041 deadline moves from April 15 to September 30, not October 15.',
+  },
+]
+const structuredData: JsonLdDocument = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': `${MARKETING_SITE_URL}${pathname}#webpage`,
+      url: `${MARKETING_SITE_URL}${pathname}`,
+      name: title,
+      description,
+      inLanguage: locale,
+      datePublished: publishedOn,
+      dateModified: reviewedOn,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${MARKETING_SITE_URL}/` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Extension checker',
+          item: `${MARKETING_SITE_URL}${pathname}`,
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+const ctaHref = getStartedHref()
+---
+
+<BaseLayout
+  lang={locale}
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/how-it-works.en.png"
+  ogType="article"
+  structuredData={structuredData}
+>
+  <TopNav pageMode ctaHref={ctaHref} />
+  <ExtensionChecker locale={locale} />
+  <section class="exf">
+    <div class="wrap">
+      <p class="m-eyebrow">FAQ</p>
+      <h2 class="m-page-h2">Extension questions</h2>
+      {
+        faq.map((f) => (
+          <details class="exf__item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+      <p class="exf__more">
+        Deadlines: <a href="/deadline-lookup">tax deadline lookup</a> · Cost of missing one:{' '}
+        <a href="/penalty-calculator">penalty calculator</a> · Postponements:{' '}
+        <a href="/irs-disaster-relief">IRS disaster-relief tracker</a>
+      </p>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .exf {
+    padding-block: 8px clamp(48px, 7vw, 80px);
+  }
+  .exf .wrap {
+    max-width: var(--m-maxw);
+    margin-inline: auto;
+    padding-inline: var(--m-gutter);
+  }
+  .exf__item {
+    border-bottom: 1px solid var(--m-hairline-2);
+    padding: 14px 0;
+  }
+  .exf__item summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .exf__item p {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    line-height: 1.6;
+    color: var(--m-ink-2);
+  }
+  .exf__more {
+    margin-top: 20px;
+    font-size: var(--m-text-sm, 0.9rem);
+    color: var(--m-muted);
+  }
+  .exf__more a {
+    color: var(--m-brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
