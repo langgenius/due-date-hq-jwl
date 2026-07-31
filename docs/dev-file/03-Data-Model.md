@@ -516,26 +516,28 @@ Social candidate。共享 source policy 在数据库查询与发布前校验两�
 
 **social_publish_run** 是 ET 自然日发布槽位：
 
-| 字段                                                 | 约束 / 语义                                                                                          |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `channel / local_date / post_id`                     | `UNIQUE(channel, local_date)` 是每天最多一条的数据库硬闸；live post 另有 partial unique 防止跨日重复 |
-| `status`                                             | `draft_only / queued / sending / published / failed / unknown`                                       |
-| `attempt_count / last_attempt_at / lease_expires_at` | Queue claim 与 redelivery 状态条件；remote create 已开始后不盲重试                                   |
-| `response_http_status / failure_reason / x_post_id`  | 明确失败和模糊结果的对账证据；不保存 OAuth secret 或响应中的用户数据                                 |
+| 字段                                                 | 约束 / 语义                                                                                                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `channel / local_date / post_id`                     | `UNIQUE(channel, local_date)` 是单个 ET 日期最多一条的数据库硬闸；自动调度另检查前一日 run，以保证中间至少空一天；live post 另有 partial unique 防止跨日重复 |
+| `status`                                             | `draft_only / queued / sending / published / failed / unknown`                                                                                               |
+| `attempt_count / last_attempt_at / lease_expires_at` | Queue claim 与 redelivery 状态条件；remote create 已开始后不盲重试                                                                                           |
+| `response_http_status / failure_reason / x_post_id`  | 明确失败和模糊结果的对账证据；不保存 OAuth secret 或响应中的用户数据                                                                                         |
 
 `publish-now` 不增加第二种 ledger：它创建普通 `queued` run，或在 Post 已重新 approve 且
 `channel / local_date / post_id` 全部相同时，将当天 `draft_only` 原位 CAS 为 `queued`。run claim、
 Post 的 `ready -> scheduled` 以及 claim 失败补偿在同一个 D1 batch 中；任一并发 claimant 没有拿到
 自己的 run 时都不能移动 Post。
 
-每日自动补充 draft 不增加 schema 或未来预约 row。09:00 ET 分支用该自然日的精确 UTC 边界执行
+自动补充 draft 不增加 schema 或未来预约 row。09:00 ET 分支先读取前一 ET 自然日是否已有
+`social_publish_run`；若有则当天暂停 claim 与补充，使一次占槽后的下一个自动槽位最早为后天。
+符合 cadence 的运行日再用该自然日的精确 UTC 边界执行
 `INSERT ... SELECT ... WHERE NOT EXISTS`，检查同 channel 当天是否已创建任意 Social Post；因此重复
-Cron 同日最多补一条，而前几日仍待审核的 draft 不会阻止今天按 Pulse 新旧顺序补入更新 Alert。
+Cron 同日最多补一条，而更早仍待审核的 draft 不会阻止运行日按 Pulse 新旧顺序补入更新 Alert。
 一次性 `seed-drafts` 使用另一条原子条件插入，把当前仍符合 Social candidate 条件的 draft 数补到
 目标值（默认 3），而不是每次额外追加目标数量；写入前先清理 runtime-invalid active row，写入后
 重读同一 eligible queue projection，因此网络超时重试或并发请求既不能把 buffer 补过目标，也不会
 让隐藏的失效 draft 占用可见 review buffer。该 token-gated operator backfill 可显式选择上线切点以前
-尚未 outbox 的最新 Alert；只有每日自动 scheduler 受 `X_SOCIAL_START_AT` 限制。
+尚未 outbox 的最新 Alert；只有自动 scheduler 受 `X_SOCIAL_START_AT` 和两天 cadence 限制。
 
 `ref_token` 不是授权凭证。匿名访问只能读取 published row 的冻结 teaser；登录后的
 `pulse.resolveSocialAlert` 才能把 global Pulse materialize/resolve 为当前 firm 的

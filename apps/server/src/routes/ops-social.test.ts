@@ -317,8 +317,8 @@ describe('social ops routes', () => {
     })
     expect(dbMocks.listOccupiedPublishDates).toHaveBeenCalledWith({
       channel: 'x',
-      fromLocalDate: '2026-07-24',
-      limit: 14,
+      fromLocalDate: '2026-07-23',
+      limit: 15,
     })
   })
 
@@ -359,15 +359,17 @@ describe('social ops routes', () => {
       tentative: true,
       timeZone: 'America/New_York',
       dailySlot: '09:00',
+      cadenceDays: 2,
       days: 3,
+      nextAutomaticLocalDate: '2026-07-26',
       readyBacklogTruncated: false,
       draftBacklogTruncated: false,
       occupiedLocalDates: ['2026-07-24'],
       ready: [
         {
           position: 1,
-          projectedLocalDate: '2026-07-25',
-          projectedAt: '2026-07-25T13:00:00.000Z',
+          projectedLocalDate: '2026-07-26',
+          projectedAt: '2026-07-26T13:00:00.000Z',
           post: { id: 'ready-1', postText: 'Ready public copy' },
         },
       ],
@@ -385,8 +387,8 @@ describe('social ops routes', () => {
     })
     expect(dbMocks.listOccupiedPublishDates).toHaveBeenCalledWith({
       channel: 'x',
-      fromLocalDate: '2026-07-24',
-      limit: 3,
+      fromLocalDate: '2026-07-23',
+      limit: 4,
     })
     expect(dbMocks.createDraft).not.toHaveBeenCalled()
     expect(dbMocks.claimExactDailyReadyPost).not.toHaveBeenCalled()

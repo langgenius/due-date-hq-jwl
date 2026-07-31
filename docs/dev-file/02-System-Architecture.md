@@ -181,7 +181,7 @@ run_worker_first = ["/rpc/*", "/api/*"]
 
 **同一 Worker 的非 HTTP 入口**（`apps/server/src/index.ts`，单 Worker 导出四个 handler）：
 
-- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X watchdog 每 tick 检查积压/unknown，发布与 draft 补充只在 `America/New_York` 09:00–09:29 运行：抢当天唯一发布槽位后、live enqueue 前（或 idle / shadow 时），以 D1 条件插入为当前 ET 自然日补充至多一条最新未入列 Alert 草稿；旧 draft 不阻止下一自然日补充，重复 Cron 不能在同一天重复补充；其他 tick 不批量生成；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
+- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X watchdog 每 tick 检查积压/unknown，发布与 draft 补充只在 `America/New_York` 09:00–09:29 运行，并在前一 ET 自然日已占用发布槽时暂停，因此自动发布至少间隔一个空白日；运行日抢当天唯一发布槽位后、live enqueue 前（或 idle / shadow 时），以 D1 条件插入为当前 ET 自然日补充至多一条最新未入列 Alert 草稿；同一运行日的重复 Cron 不能重复补充；其他 tick 不批量生成；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
 - `queue()`（`jobs/queue.ts`）：消费 EMAIL / PULSE / DASHBOARD / AUDIT / SOCIAL 五条队列 + pulse/social DLQ（见 §2.1）
 - `email()`：Cloudflare Email Routing 入站 → `jobs/pulse/govdelivery.ts`，承接 `email_subscription` 类 Pulse 源（GovDelivery 订阅邮件 → raw 归档 → `pulse.extract`）
 
@@ -331,12 +331,13 @@ SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 
 
 ---
 
-### 4.4 X daily Alert acquisition loop
+### 4.4 X every-other-day Alert acquisition loop
 
 ```text
 approved, externally useful global Pulse
   -> eligible, not-yet-outboxed candidate pool
-  -> 09:00 ET scheduler claims today's ready Post (D1 unique daily slot)
+  -> 09:00 ET scheduler checks that the previous ET day has no occupied publish run
+  -> eligible run day claims today's ready Post (D1 unique per-date slot)
   -> atomically create at most one deterministic review draft for this ET day
      from the newest not-yet-outboxed Pulse
      with full state names in public header copy (D1 social_alert_post)
@@ -371,7 +372,9 @@ runtime validation 同时执行该闸门；
 候选读取先按 `Pulse.created_at DESC, id DESC` 在 SQL 中排序，并在完整 PII/runtime 校验跳过整页时
 用同一复合键继续 keyset 翻页；因此 100 条较新的无效候选不会永久饿死后面的有效 Alert。
 
-每日上限由 `UNIQUE(channel, local_date)` 而不是 Cron 时间假设保证。候选草稿、`ready` backlog、
+单日上限由 `UNIQUE(channel, local_date)` 保证；调度器另用前一 ET 自然日的 publish run
+作为持久化 cadence guard，因此一次自动发布/影子运行/失败占槽后，下一自然日不会再自动 claim，
+最早在后天恢复。候选草稿、`ready` backlog、
 真实 claim 和 queue 预览全部按关联 Pulse 的 `created_at DESC, id DESC` 排序，因此后来进入系统的
 Alert 会先进入审核并先发布；`priority` 只保留为人工审核元数据，显式 `publish-now` 是唯一的人工
 顺序例外。X 返回明确 4xx 时当天记 failed 且不换发；timeout、网络中断、5xx 或成功响应缺 Post ID
@@ -379,22 +382,23 @@ Alert 会先进入审核并先发布；`priority` 只保留为人工审核元数
 
 Social Ops 通过 `GET /api/ops/social/queue` 提供只读的等待序列，CLI 对应
 `pnpm social:x -- queue`，固定展示未来 14 个 ET 自然日。它使用真实 claim 的最新 Pulse 优先规则，
-把当前 eligible `ready` Post 映射到预计日期，并在同一输出的 `drafts` 区块直接展示每日自动补充的
-待审核候选，无需先运行 `candidates --pulse`。每个 ET 自然日最多自动补充一条；旧 draft 可以继续
-等待审核，下一天仍会从当时最新的未入列 Alert 补一条。`draft` 没有预计日期，批准后才进入
-`ready` 序列。这个 GET 视图本身不写 `social_alert_post`、不提前创建未来 `social_publish_run`，也不
-提前向 `SOCIAL_QUEUE` 投递消息。预计日期不是锁定排期：更新的 Alert 被批准、取消/失去资格、
-`publish-now` 或当天 failed/unknown 都会使后续位置变化。唯一真实排期动作仍是 Worker 在每天
-09:00 ET claim 一条。
+把当前 eligible `ready` Post 按 `cadenceDays=2` 映射到预计日期，并在同一输出的 `drafts` 区块
+展示自动补充的待审核候选，无需先运行 `candidates --pulse`。`nextAutomaticLocalDate` 明确给出
+下一次可用自动槽位：若今天已有发布 run，则它是后天而不是明天。`draft` 没有锁定日期，批准后才
+进入 `ready` 序列。这个 GET 视图本身不写 `social_alert_post`、不提前创建未来
+`social_publish_run`，也不提前向 `SOCIAL_QUEUE` 投递消息。预计日期不是锁定排期：更新的 Alert
+被批准、取消/失去资格、`publish-now` 或 failed/unknown 都会使后续位置变化。唯一真实排期动作
+仍是 Worker 在符合两天 cadence 的自然日 09:00 ET claim 一条。
 
 `.github/workflows/x-draft-review.yml` 在 09:00 ET 日槽之后两次 best-effort 读取同一个 queue
 projection，并把当前可见的未同步 draft revision 镜像为公开 GitHub Issue comment。它同时用
 `includePublished=true` 读取最近 100 条 D1 `published` 的窄字段 projection；若其中 Post 已有
 bot comment，就把同一条评论更新为 `published`，展示 `publishedAt` 和由数字 `xPostId` 构成的 X
 链接，不为从未镜像的历史 published Post 补建评论。draft 旁路按 `postId + updatedAt` 幂等，
-approved 按 `postId + approvedAt` 幂等，published 按 `postId + publishedAt` 幂等；评论正文只取
-确定性 X copy、公开 lifecycle 字段、非锁定的最早 queue horizon 和人工 approve 命令，不 dump
-Social row，也不写 D1。Issue comment / reaction / label / open-close 没有任何箭头回到 `ready`，
+approved 用 `postId + approvedAt` 定位稳定 bot comment，并在 queue position / tentative slot
+变化时只 PATCH 正文；正文完全相同则不写。published 按 `postId + publishedAt` 终态幂等；评论正文
+只取确定性 X copy、公开 lifecycle 字段、非锁定的最早 automatic slot 和人工 approve 命令，不
+dump Social row，也不写 D1。Issue comment / reaction / label / open-close 没有任何箭头回到 `ready`，
 Actions 延迟或失败也不阻断 Worker。公开镜像是刻意新增的 pre-publication surface：tracked ref
 URL 会提前出现在不可点击的 code block 中，但 ref 不是授权凭证，完整 Alert 仍经过登录、firm 与
 tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威。
@@ -403,8 +407,9 @@ tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威
 触发同一 default-branch workflow。workflow 不信任本地文案，而是调用 token-gated
 `GET /api/ops/social/:postId/review-status`；该接口只返回 ID、当前状态、最终冻结 public copy、
 `approvedAt / xPostId / publishedAt / updatedAt`。脚本按 exact draft revision 找到由
-`github-actions[bot]` 创建的评论，以 `postId + approvedAt` 幂等 PATCH 为 `approved · ready`；
-原评论缺失时新增 approved snapshot，不误改同一 Post 的旧 revision。发布接口的 HTTP 202 只代表
+`github-actions[bot]` 创建的评论，以 `postId + approvedAt` PATCH 为 `approved · ready`；后续
+普通 probe 继续用该 marker 刷新 tentative slot / queue position，只有正文变化才写。原评论缺失时
+新增 approved snapshot，不误改同一 Post 的旧 revision。发布接口的 HTTP 202 只代表
 Queue 已接收，不会提前更新 GitHub 为 published；只有 Queue consumer 或显式 reconcile 已把
 `status=published`、`xPostId`、`publishedAt` 写入 D1 后，后续 schedule / scoped push / manual
 workflow 才会更新评论。Worker 不持有 GitHub PAT 或写凭据，所有 Issue PATCH 只发生在 Actions。

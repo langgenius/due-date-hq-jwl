@@ -2,7 +2,12 @@ import { createDb, makeSocialOpsRepo, SOCIAL_URGENT_WINDOW_MS } from '@duedatehq
 import type { Env } from '../../env'
 import { dispatchOpsAlert } from '../ops-alerts'
 import { buildXAlertPost, validateSocialCandidate, type SocialAlertCandidate } from './content'
-import { easternDayBounds, easternTimeParts, shouldRunXDailySlot } from './time'
+import {
+  addLocalCalendarDays,
+  easternDayBounds,
+  easternTimeParts,
+  shouldRunXDailySlot,
+} from './time'
 
 const SOCIAL_CANDIDATE_BATCH_SIZE = 100
 const BACKLOG_ALERT_MS = 7 * 24 * 60 * 60 * 1000
@@ -12,6 +17,7 @@ type SocialSchedulerRepo = Pick<
   SocialOpsRepo,
   | 'cancelIneligiblePosts'
   | 'listEligibleCandidates'
+  | 'listOccupiedPublishDates'
   | 'createDailyDraft'
   | 'claimDailyReadyPost'
   | 'markFailed'
@@ -27,6 +33,7 @@ interface SocialWatchdogRepo {
 export type XSocialCronResult =
   | { status: 'outside_slot' }
   | { status: 'disabled'; reason: 'missing_cutover' }
+  | { status: 'cadence_pause'; localDate: string }
   | { status: 'draft_only'; localDate: string; draftsCreated: number; runId: string }
   | { status: 'queued'; localDate: string; draftsCreated: number; runId: string }
   | { status: 'idle'; localDate: string; draftsCreated: number }
@@ -47,11 +54,21 @@ export async function runXSocialCron(
   if (!shouldRunXDailySlot(now)) return { status: 'outside_slot' }
 
   const repo = dependencies.repo ?? makeSocialOpsRepo(createDb(env.DB))
+  const { localDate } = easternTimeParts(now)
+  const previousLocalDate = addLocalCalendarDays(localDate, -1)
+  const recentPublishDates = await repo.listOccupiedPublishDates({
+    channel: 'x',
+    fromLocalDate: previousLocalDate,
+    limit: 1,
+  })
+  if (recentPublishDates.includes(previousLocalDate)) {
+    return { status: 'cadence_pause', localDate }
+  }
+
   await repo.cancelIneligiblePosts({ channel: 'x', limit: SOCIAL_CANDIDATE_BATCH_SIZE, now })
   const randomRefToken =
     dependencies.randomRefToken ?? (() => crypto.randomUUID().replaceAll('-', ''))
 
-  const { localDate } = easternTimeParts(now)
   const dailyWindow = easternDayBounds(localDate)
   const mode = env.X_POSTING_MODE === 'live' ? 'live' : 'draft'
   const claim = await repo.claimDailyReadyPost({ channel: 'x', localDate, now, mode })

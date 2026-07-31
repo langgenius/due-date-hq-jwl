@@ -6,6 +6,7 @@ import {
 } from './time'
 
 export const X_QUEUE_DAILY_SLOT = '09:00' as const
+export const X_AUTOMATIC_PUBLISH_INTERVAL_DAYS = 2 as const
 
 export interface XQueuePreviewPost {
   id: string
@@ -35,9 +36,11 @@ export interface XQueuePreview<TPost extends XQueuePreviewPost = XQueuePreviewPo
   tentative: true
   timeZone: typeof EASTERN_TIME_ZONE
   dailySlot: typeof X_QUEUE_DAILY_SLOT
+  cadenceDays: typeof X_AUTOMATIC_PUBLISH_INTERVAL_DAYS
   days: number
   fromLocalDate: string
   throughLocalDate: string
+  nextAutomaticLocalDate: string
   occupiedLocalDates: string[]
   ready: XQueueProjectedPost<TPost>[]
   drafts: XQueueDraftPost<TPost>[]
@@ -52,7 +55,7 @@ export interface BuildXQueuePreviewInput<TPost extends XQueuePreviewPost = XQueu
 }
 
 /**
- * Produce a read-only snapshot of the normal daily X queue.
+ * Produce a read-only snapshot of the normal every-other-day X queue.
  *
  * No future run rows are reserved here. Ready and draft rows use the same
  * newest-Pulse-first order as the D1 claim, so the projection matches the
@@ -69,6 +72,8 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
   const fromLocalDate = nextXDailySlotLocalDate(input.now)
   const throughLocalDate = addLocalCalendarDays(fromLocalDate, input.days - 1)
   const occupied = new Set(input.occupiedLocalDates ?? [])
+  const occupiedOrProjected = new Set(occupied)
+  const nextAutomaticLocalDate = nextAvailableAutomaticLocalDate(fromLocalDate, occupied)
   const occupiedInWindow: string[] = []
   const drafts: XQueueDraftPost<TPost>[] = []
   let remaining = input.posts.filter((post) => {
@@ -87,6 +92,11 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
       occupiedInWindow.push(localDate)
       continue
     }
+    const previousLocalDate = addLocalCalendarDays(localDate, -1)
+    const nextLocalDate = addLocalCalendarDays(localDate, 1)
+    if (occupiedOrProjected.has(previousLocalDate) || occupiedOrProjected.has(nextLocalDate)) {
+      continue
+    }
     if (remaining.length === 0) continue
 
     const projectedAt = xDailySlotInstant(localDate)
@@ -98,6 +108,7 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
       projectedAt,
       post,
     })
+    occupiedOrProjected.add(localDate)
     remaining = remaining.filter((candidate) => candidate.id !== post.id)
   }
 
@@ -106,14 +117,34 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
     tentative: true,
     timeZone: EASTERN_TIME_ZONE,
     dailySlot: X_QUEUE_DAILY_SLOT,
+    cadenceDays: X_AUTOMATIC_PUBLISH_INTERVAL_DAYS,
     days: input.days,
     fromLocalDate,
     throughLocalDate,
+    nextAutomaticLocalDate,
     occupiedLocalDates: occupiedInWindow,
     ready,
     drafts: drafts.toSorted((left, right) => compareNewestPulseFirst(left.post, right.post)),
     visibleReadyBeyondWindowCount: remaining.length,
   }
+}
+
+function nextAvailableAutomaticLocalDate(
+  fromLocalDate: string,
+  occupied: ReadonlySet<string>,
+): string {
+  const searchDays = occupied.size * X_AUTOMATIC_PUBLISH_INTERVAL_DAYS + 2
+  for (let offset = 0; offset < searchDays; offset += 1) {
+    const localDate = addLocalCalendarDays(fromLocalDate, offset)
+    if (
+      !occupied.has(localDate) &&
+      !occupied.has(addLocalCalendarDays(localDate, -1)) &&
+      !occupied.has(addLocalCalendarDays(localDate, 1))
+    ) {
+      return localDate
+    }
+  }
+  throw new Error('Unable to find the next automatic X publish date.')
 }
 
 function compareNewestPulseFirst(left: XQueuePreviewPost, right: XQueuePreviewPost): number {

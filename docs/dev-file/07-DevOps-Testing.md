@@ -68,16 +68,18 @@ environment secret。
 Issue 通过隐藏 body marker 复用，closed issue 自动 reopen；comment 通过
 `postId + updatedAt` marker 去重，因此同 revision 的两次 probe 不重复，失败后回到 draft 的新
 revision 仍会再次通知。targeted dispatch 从 token-gated single-Post allowlist 读取 approval 后的
-最终 frozen copy，以 `postId + approvedAt` marker 幂等 PATCH exact bot comment；找不到原 comment
-时才新建 approved snapshot。普通 probe 另外读取最多 100 条最近 published allowlist，并仅在已有
+最终 frozen copy，以 `postId + approvedAt` marker 定位 exact bot comment；普通 probe 在 tentative
+slot / queue position 变化时刷新正文，完全相同则不 PATCH；找不到原 comment 时才新建 approved
+snapshot。普通 probe 另外读取最多 100 条最近 published allowlist，并仅在已有
 bot comment 时以 `postId + publishedAt` marker PATCH 同一条评论，展示 validated X Post link 与
 published timestamp，不补建历史评论。HTTP 202 queued 不算 published；必须先由 Queue consumer
 或 reconcile 将 `status=published / xPostId / publishedAt` 写入 D1。Issue/comment marker 只信任
 `github-actions[bot]` author，Issues/comments 都以 100 行分页完整读取。
 
 `pnpm test:automation` 覆盖 public comment allowlist/code block、Issue 创建与 reopen、draft /
-approved / published marker 幂等、same-comment publication PATCH、published time/X link、
-targeted status PATCH、approval-boundary frozen copy、伪造 marker 隔离、credential origin
+approved same-body idempotency / schedule refresh、published marker 幂等、same-comment
+publication PATCH、published time/X link、targeted status PATCH、approval-boundary frozen
+copy、伪造 marker 隔离、credential origin
 隔离、response error redaction、无效 queue fail-closed，以及脚本 import 不会触发真实请求。
 Vitest 另覆盖 approve 2xx 后才 dispatch、4xx 不 dispatch、本地 origin 不触发、Social secrets
 不进入 `gh` child env，以及 GitHub dispatch 失败不伪装成 D1 approval 失败。workflow run 同时

@@ -38,7 +38,7 @@ export function shouldRunXDailySlot(now: Date): boolean {
 }
 
 /**
- * The first ET calendar date that a normal daily Cron can still publish on.
+ * The first ET calendar date whose 09:00 automatic slot has not yet become due.
  *
  * The HTTP queue preview is deliberately conservative at 09:00 itself: the
  * 09:00 scheduled event is already due, so an unclaimed preview starts on the

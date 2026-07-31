@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
-export const X_DRAFT_REVIEW_ISSUE_TITLE = 'X daily Alert draft review'
+export const X_DRAFT_REVIEW_ISSUE_TITLE = 'X Alert draft review'
 export const X_DRAFT_REVIEW_ISSUE_MARKER = '<!-- duedatehq-x-draft-review-issue -->'
 const X_DRAFT_COMMENT_MARKER_PREFIX = 'duedatehq-x-draft:'
 const X_APPROVED_COMMENT_MARKER_PREFIX = 'duedatehq-x-approved:'
@@ -15,7 +15,7 @@ const GITHUB_API_VERSION = '2022-11-28'
 export function buildReviewIssueBody() {
   return [
     X_DRAFT_REVIEW_ISSUE_MARKER,
-    '# X daily Alert draft review',
+    '# X Alert draft review',
     '',
     'DueDateHQ mirrors automatically generated X Alert drafts into this public, indexable issue.',
     '',
@@ -58,7 +58,9 @@ export function buildDraftReviewComment(draft, queue) {
   const postId = requiredString(post.id, 'Queue draft post ID')
   const postText = requiredText(post.postText, 'Queue draft post text')
   const updatedAt = requiredDate(post.updatedAt, 'Queue draft update time')
-  const fromLocalDate = requiredLocalDate(queue?.fromLocalDate)
+  const nextAutomaticLocalDate = requiredLocalDate(
+    queue?.nextAutomaticLocalDate ?? queue?.fromLocalDate,
+  )
   const timeZone = requiredString(queue?.timeZone, 'Queue time zone')
   const normalizedPostText = postText.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
   const fence = markdownFenceFor(normalizedPostText)
@@ -67,8 +69,8 @@ export function buildDraftReviewComment(draft, queue) {
     draftCommentMarker(postId, updatedAt.toISOString()),
     '## X Alert draft · approval required',
     '',
-    `- Earliest queue horizon after approval: \`${fromLocalDate} 09:00 ${timeZone}\` or later`,
-    '- Publication date: not reserved; the newest approved Alert is selected at the daily slot',
+    `- Earliest automatic slot after approval: \`${nextAutomaticLocalDate} 09:00 ${timeZone}\` or later`,
+    '- Publication date: not reserved; the newest approved Alert is selected at an automatic slot',
     '',
     '### Exact X post copy',
     '',
@@ -184,11 +186,14 @@ export function planApprovedCommentSync(reviewRows, comments, queue, draftRevisi
     seenPostIds.add(postId)
 
     const approvalMarker = approvedCommentMarker(postId, approvedAt.toISOString())
-    const stateMarker =
-      post.status === 'published'
-        ? publishedCommentMarker(postId, post.publishedAt)
-        : approvalMarker
-    if (trustedComments.some((comment) => comment.body?.includes(stateMarker))) continue
+    const publishedMarker =
+      post.status === 'published' ? publishedCommentMarker(postId, post.publishedAt) : undefined
+    if (
+      publishedMarker &&
+      trustedComments.some((comment) => comment.body?.includes(publishedMarker))
+    ) {
+      continue
+    }
 
     const exactDraftRevision = draftRevisionByPostId[postId]
     const matchingComments = exactDraftRevision
@@ -204,6 +209,7 @@ export function planApprovedCommentSync(reviewRows, comments, queue, draftRevisi
       ? draftMarkerFromBody(existingComment.body, postId)
       : undefined
     const body = buildApprovedReviewComment(review, queue, previousDraftMarker)
+    if (existingComment?.body === body) continue
     if (!existingComment && review?.existingCommentRequired === true) continue
 
     plans.push(
@@ -604,7 +610,7 @@ function optionalLocalDate(value) {
 }
 
 function approvalPublishingStatus(status) {
-  if (status === 'ready') return '- Publishing status: `ready` for the daily scheduler'
+  if (status === 'ready') return '- Publishing status: `ready` for the automatic scheduler'
   if (status === 'scheduled') return '- Publishing status: `scheduled` for X delivery'
   if (status === 'published') return '- Publishing status: `published` on X'
   if (status === 'unknown')

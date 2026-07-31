@@ -45,6 +45,7 @@ function schedulerRepo(input: {
   return {
     cancelIneligiblePosts: vi.fn().mockResolvedValue(0),
     listEligibleCandidates: vi.fn().mockResolvedValue(input.candidates ?? []),
+    listOccupiedPublishDates: vi.fn().mockResolvedValue([]),
     createDailyDraft: vi.fn().mockResolvedValue(input.draftResult ?? 'created'),
     claimDailyReadyPost: vi.fn().mockResolvedValue(input.claim ?? null),
     markFailed: vi.fn().mockResolvedValue(true),
@@ -66,7 +67,27 @@ describe('runXSocialCron', () => {
     expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
   })
 
-  it('creates only one rolling draft from many candidates when the daily slot is idle', async () => {
+  it('pauses the automatic scheduler when the previous ET day consumed a publish slot', async () => {
+    const repo = schedulerRepo({ candidates: [candidate('pulse-1')] })
+    repo.listOccupiedPublishDates.mockResolvedValue(['2026-07-20'])
+
+    await expect(
+      runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), {
+        repo,
+      }),
+    ).resolves.toEqual({ status: 'cadence_pause', localDate: '2026-07-21' })
+    expect(repo.listOccupiedPublishDates).toHaveBeenCalledWith({
+      channel: 'x',
+      fromLocalDate: '2026-07-20',
+      limit: 1,
+    })
+    expect(repo.cancelIneligiblePosts).not.toHaveBeenCalled()
+    expect(repo.listEligibleCandidates).not.toHaveBeenCalled()
+    expect(repo.createDailyDraft).not.toHaveBeenCalled()
+    expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
+  })
+
+  it('creates only one rolling draft from many candidates when an eligible slot is idle', async () => {
     const candidates = Array.from({ length: 10 }, (_, index) => candidate(`pulse-${index}`))
     const repo = schedulerRepo({ candidates })
 
