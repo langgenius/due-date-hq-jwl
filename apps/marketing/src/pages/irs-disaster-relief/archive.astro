@@ -13,6 +13,8 @@ import Footer from '../../components/home/Footer.astro'
 import en from '../../i18n/en'
 import { getCtaHref } from '../../lib/app-url'
 import archive from '../../lib/disaster-archive.json'
+import { getDisasterDatasetStats } from '../../lib/disaster-dataset'
+import { disasterArchiveStructuredData } from '../../lib/structured-data'
 
 interface ArchiveNotice {
   code: string | null
@@ -50,7 +52,21 @@ const anchorId = (n: ArchiveNotice, i: number) =>
   n.code ? n.code.toLowerCase() : `uncoded-${n.year}-${i}`
 ---
 
-<BaseLayout lang="en" pathname={pathname} title={title} description={description} ogImage="/og/coverage.en.png">
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={description}
+  ogImage="/og/coverage.en.png"
+  structuredData={disasterArchiveStructuredData(
+    t,
+    'en',
+    pathname,
+    title,
+    description,
+    getDisasterDatasetStats(),
+  )}
+>
   <TopNav pageMode ctaHref={ctaHref} current="coverage" />
   <main>
     <section class="m-section m-page-hero" id="hero">
@@ -80,7 +96,9 @@ const anchorId = (n: ArchiveNotice, i: number) =>
       </ul>
       <p class="ar-note">
         Counts derive from the archive below (one entry per IRS relief code; nationwide and
-        multi-state notices counted once). Free to cite with a link to this page.
+        multi-state notices counted once). Free to cite with a link to this page — or download the
+        full dataset as <a class="ar-note__dl" href="/data/disaster-notices.csv">CSV</a> or
+        <a class="ar-note__dl" href="/data/disaster-notices.json">JSON</a>.
       </p>
     </section>
 
@@ -150,6 +168,11 @@ const anchorId = (n: ArchiveNotice, i: number) =>
     font-size: var(--m-text-xs, 13px);
     color: var(--m-muted, #98a2b3);
     max-width: 640px;
+  }
+  .ar-note__dl {
+    color: var(--m-accent, #2e368c);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   .ar-list {
     list-style: none;

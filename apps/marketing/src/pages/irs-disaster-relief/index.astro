@@ -23,6 +23,8 @@ import {
   getNoticeStatus,
 } from '../../lib/disaster-notices'
 import { disasterHubStructuredData } from '../../lib/structured-data'
+import { getDisasterDatasetStats } from '../../lib/disaster-dataset'
+import { STATE_CONFORMITY } from '../../lib/state-conformity'
 import { getContentDates } from '../../lib/content-metadata'
 
 const t = en
@@ -155,7 +157,15 @@ const faq = [
   title={title}
   description={description}
   ogImage="/og/coverage.en.png"
-  structuredData={disasterHubStructuredData(t, 'en', pathname, title, description, faq)}
+  structuredData={disasterHubStructuredData(
+    t,
+    'en',
+    pathname,
+    title,
+    description,
+    faq,
+    getDisasterDatasetStats(),
+  )}
 >
   <TopNav pageMode ctaHref={ctaHref} current="coverage" />
   <main>
@@ -237,9 +247,36 @@ const faq = [
           rel="nofollow noopener"
           target="_blank">IRS disaster-relief index ↗</a
         >. Looking for a past notice? <a class="dr-roster__irs" href="/irs-disaster-relief/archive"
-        >Browse the 2020–2026 archive</a>. Run a site or newsletter?
+        >Browse the 2020–2026 archive</a>. Need the raw data? Download the full dataset free —
+        <a class="dr-roster__irs" href="/data/disaster-notices.csv">CSV</a> ·
+        <a class="dr-roster__irs" href="/data/disaster-notices.json">JSON</a> (attribution terms on
+        the <a class="dr-roster__irs" href="/widget">widget page</a>). Run a site or newsletter?
         <a class="dr-roster__irs" href="/widget">Embed these notices free with one script tag →</a>
       </p>
+    </section>
+
+    <!-- State conformity: the question no central source answers — the IRS
+         moved a deadline, did the state follow? One verified page per state. -->
+    <section class="m-section m-page-block" aria-labelledby="dr-conf-h">
+      <p class="m-eyebrow">State conformity</p>
+      <h2 class="m-page-h2" id="dr-conf-h">The IRS moved the deadline. Did the state follow?</h2>
+      <p class="m-page-body dr-conf__lead">
+        Usually not — and no central source tracks it. Each page below answers one state against its
+        active federal relief, with every fact verified against the state tax agency's own
+        announcements.
+      </p>
+      <ul class="dr-conf">
+        {
+          STATE_CONFORMITY.map((c) => (
+            <li>
+              <a class="dr-conf__card" href={`/irs-disaster-relief/state-conformity/${c.slug}`}>
+                <span class="dr-conf__state">{c.state}</span>
+                <span class="dr-conf__status">{c.statusLabel}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </section>
 
     <!-- Free deadline-change alert opt-in — turns SEO traffic into subscribers. -->
@@ -701,6 +738,47 @@ const faq = [
     color: var(--m-accent);
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+  /* ---- state conformity ---- */
+  .dr-conf__lead {
+    max-width: 68ch;
+  }
+  .dr-conf {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+  }
+  @media (max-width: 700px) {
+    .dr-conf {
+      grid-template-columns: 1fr;
+    }
+  }
+  .dr-conf__card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: 100%;
+    padding: 15px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    transition: border-color var(--m-dur-fast) var(--m-ease);
+  }
+  .dr-conf__card:hover {
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .dr-conf__state {
+    font-size: var(--m-text-md);
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .dr-conf__status {
+    font-size: var(--m-text-sm);
+    line-height: 1.45;
+    color: var(--m-muted);
   }
   .dr-cta__note {
     margin-top: 16px;

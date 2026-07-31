@@ -352,8 +352,12 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
   {
     // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-and-businesses-in-louisiana-affected-by-tropical-storm-arthur-that-began-on-june-17-2026
     // Verified 2026-07-14: code LA-2026-02 (issued July 13, 2026); deadline Nov. 2, 2026;
-    // incident June 17, 2026; FEMA 4927-DR. Area: Avoyelles, St. Landry, St. Tammany and
-    // Terrebonne parishes
+    // incident June 17, 2026; FEMA 4927-DR.
+    //
+    // READ THE UPDATE BANNER (same trap as WA-2025-03). Re-verified 2026-07-31: the release
+    // now carries an "Updated 7/28/26" banner ADDING Lafourche and Pointe Coupee parishes —
+    // six parishes total, matching Gov. Landry's JML 26-055. The body prose below the banner
+    // still lists only the original four. Deadline unchanged (Nov. 2, 2026).
     slug: 'louisiana-tropical-storm-arthur',
     code: 'LA-2026-02',
     state: 'Louisiana',
@@ -363,7 +367,8 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     deadline: '2026-11-02',
     deadlineLabel: 'Nov. 2, 2026',
     incidentStart: 'June 17, 2026',
-    affectedArea: 'Avoyelles, St. Landry, St. Tammany and Terrebonne parishes',
+    affectedArea:
+      'Avoyelles, Lafourche, Pointe Coupee, St. Landry, St. Tammany, and Terrebonne parishes',
     affectedReturns: [
       'individual',
       'corporate',

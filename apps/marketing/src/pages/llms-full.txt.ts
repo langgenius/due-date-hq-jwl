@@ -1,6 +1,7 @@
 import en from '../i18n/en'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import { DISASTER_NOTICES, FILING_TYPE_META, getNoticeStatus } from '../lib/disaster-notices'
+import { STATE_CONFORMITY } from '../lib/state-conformity'
 import {
   getComparisonPages,
   getGuidePages,
@@ -86,7 +87,16 @@ export function GET(): Response {
           `- ${n.state} (${n.code}) — ${n.event}: federal deadlines postponed to ${n.deadlineLabel} for ${n.affectedArea}. Covered returns: ${n.affectedReturns.map((t) => FILING_TYPE_META[t].form).join(', ')}. Official release: ${n.sourceHref}. Details: ${getMarketingUrl(`/irs-disaster-relief/${n.slug}`)}`,
       ),
     '',
-    `Machine-readable feed of the same data: ${getMarketingUrl('/data/disaster-notices.json')}. Free embeddable widget: ${getMarketingUrl('/widget')}.`,
+    `Machine-readable feed of the same data: ${getMarketingUrl('/data/disaster-notices.json')}. Full 2020-present dataset as CSV: ${getMarketingUrl('/data/disaster-notices.csv')}. Free embeddable widget: ${getMarketingUrl('/widget')}.`,
+    '',
+    '## State conformity to federal disaster postponements (verified per state)',
+    '',
+    "A federal §7508A postponement does not automatically move state deadlines. These pages answer, per state, whether the state followed the active IRS relief — each fact verified against the state tax agency's own announcements:",
+    '',
+    ...STATE_CONFORMITY.map(
+      (c) =>
+        `- ${c.state} (verified ${c.verifiedOn}): ${c.directAnswer} Details: ${getMarketingUrl(`/irs-disaster-relief/state-conformity/${c.slug}`)}`,
+    ),
     '',
     '## Reference pages',
     '',

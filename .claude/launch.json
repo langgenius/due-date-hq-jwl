@@ -20,6 +20,12 @@
       "port": 4335
     },
     {
+      "name": "marketing-4341",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/marketing", "exec", "astro", "dev", "--port", "4341", "--strictPort"],
+      "port": 4341
+    },
+    {
       "name": "marketing-4331",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-F", "@duedatehq/marketing", "exec", "astro", "dev", "--port", "4331", "--strictPort"],

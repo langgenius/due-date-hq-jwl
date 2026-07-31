@@ -101,7 +101,15 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   // fact transcribed + cited from irs.gov in lib/disaster-notices.ts). The hub and
   // every notice slug share this date so their JSON-LD dateModified and sitemap
   // lastmod reflect the real publish, not the 06-18 site-wide review.
-  'irs-disaster-relief': { publishedOn: '2026-07-06', reviewedOn: '2026-07-28' },
+  // 2026-07-31: hub gained the Dataset entity + CSV/JSON download links.
+  'irs-disaster-relief': { publishedOn: '2026-07-06', reviewedOn: '2026-07-31' },
+  // State disaster-conformity pages, first published 2026-07-31 (facts verified
+  // against the cited state-agency sources the same day).
+  'state-conformity-washington': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-hawaii': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-michigan': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-louisiana': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-wisconsin': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'arizona-san-carlos-apache-tribe-severe-storms-flooding': {
     publishedOn: '2026-07-06',
     reviewedOn: '2026-07-06',

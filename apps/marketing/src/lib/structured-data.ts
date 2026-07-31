@@ -510,6 +510,56 @@ export function statePageStructuredData(
 // verified dataset), not from i18n copy, so the structured-data builders take
 // plain title/description/faq args plus the site LandingCopy for the base graph.
 
+// One shared @id so the hub and the archive page describe the SAME dataset
+// entity instead of two competing ones.
+const DISASTER_DATASET_ID = `${SITE}/irs-disaster-relief#dataset`
+
+/** schema.org Dataset for the downloadable disaster-relief data (JSON + CSV).
+ *  This is what turns the hub from "a SaaS page" into "a data source" for
+ *  Google Dataset Search and AI answer engines. Counts come from the caller
+ *  (computed from the real rows via getDisasterDatasetStats) so the description
+ *  can never drift from the downloads. */
+export function disasterDatasetNode(stats: {
+  total: number
+  fromYear: number
+  toYear: number
+  statesAffected: number
+}): JsonLdDocument {
+  return {
+    '@type': 'Dataset',
+    '@id': DISASTER_DATASET_ID,
+    name: 'IRS Disaster Tax Relief Deadline Postponements',
+    description: `${stats.total} IRS disaster-relief deadline postponements from ${stats.fromYear} to ${stats.toYear}, covering ${stats.statesAffected} states and territories — relief code, postponed deadline, affected area, and the official irs.gov source for every entry. Updated as new IRS notices are verified.`,
+    url: absoluteUrl('/irs-disaster-relief'),
+    temporalCoverage: `${stats.fromYear}-01-01/..`,
+    spatialCoverage: { '@type': 'Country', name: 'United States' },
+    isAccessibleForFree: true,
+    // Attribution terms live on the widget/feed docs page.
+    license: absoluteUrl('/widget'),
+    creator: { '@id': ORG_ID },
+    keywords: [
+      'IRS disaster relief',
+      'tax deadline postponement',
+      'federally declared disaster',
+      'FEMA declaration',
+      'IRC section 7508A',
+    ],
+    distribution: [
+      {
+        '@type': 'DataDownload',
+        encodingFormat: 'application/json',
+        contentUrl: absoluteUrl('/data/disaster-notices.json'),
+      },
+      {
+        '@type': 'DataDownload',
+        encodingFormat: 'text/csv',
+        contentUrl: absoluteUrl('/data/disaster-notices.csv'),
+      },
+    ],
+    dateModified: getContentDates('irs-disaster-relief').reviewedOn,
+  }
+}
+
 export function disasterHubStructuredData(
   siteCopy: LandingCopy,
   lang: Locale,
@@ -517,6 +567,7 @@ export function disasterHubStructuredData(
   title: string,
   description: string,
   faq: FaqItemCopy[],
+  datasetStats?: Parameters<typeof disasterDatasetNode>[0],
 ): JsonLdDocument {
   const labels: Record<Locale, string> = {
     en: 'IRS disaster relief',
@@ -525,10 +576,57 @@ export function disasterHubStructuredData(
   return graph([
     ...baseNodes(siteCopy, lang),
     { ...webPageNode(pathname, title, description, lang), '@type': 'CollectionPage' },
+    datasetStats ? disasterDatasetNode(datasetStats) : null,
     faqNode(faq),
     breadcrumbNode([
       { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
       { name: labels[lang], pathname },
+    ]),
+  ])
+}
+
+/** /irs-disaster-relief/state-conformity/[state] — WebPage + FAQPage. The FAQ
+ *  carries the queries these pages exist to answer ("did X match the IRS
+ *  date?"), so it goes in the graph alongside the breadcrumb. */
+export function stateConformityStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  slug: string,
+  title: string,
+  description: string,
+  stateName: string,
+  faq: FaqItemCopy[],
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    webPageNode(pathname, title, description, lang, slug),
+    faqNode(faq),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: 'IRS disaster relief', pathname: '/irs-disaster-relief' },
+      { name: `${stateName} conformity`, pathname },
+    ]),
+  ])
+}
+
+/** /irs-disaster-relief/archive — CollectionPage + the shared Dataset entity. */
+export function disasterArchiveStructuredData(
+  siteCopy: LandingCopy,
+  lang: Locale,
+  pathname: string,
+  title: string,
+  description: string,
+  datasetStats: Parameters<typeof disasterDatasetNode>[0],
+): JsonLdDocument {
+  return graph([
+    ...baseNodes(siteCopy, lang),
+    { ...webPageNode(pathname, title, description, lang), '@type': 'CollectionPage' },
+    disasterDatasetNode(datasetStats),
+    breadcrumbNode([
+      { name: CRUMB_LABELS.home[lang], pathname: homePath(lang) },
+      { name: 'IRS disaster relief', pathname: '/irs-disaster-relief' },
+      { name: 'Archive', pathname },
     ]),
   ])
 }

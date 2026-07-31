@@ -9,7 +9,9 @@
  * it directly. (Browser cross-origin use may need CORS headers at the host.)
  */
 import type { APIRoute } from 'astro'
+import { getDisasterDatasetRows, getDisasterDatasetStats } from '../../lib/disaster-dataset'
 import { DISASTER_NOTICES, FILING_TYPE_META } from '../../lib/disaster-notices'
+import { getMarketingUrl } from '../../lib/site'
 
 export const GET: APIRoute = () => {
   const notices = [...DISASTER_NOTICES]
@@ -30,14 +32,23 @@ export const GET: APIRoute = () => {
       detailsUrl: `https://duedatehq.com/irs-disaster-relief/${n.slug}`,
     }))
 
+  // The 2020–present history. Same joined rows as /data/disaster-notices.csv;
+  // `notices` above keeps its original shape for existing widget consumers, so
+  // the current entries appear in both (`archive` is the complete set).
+  const archiveRows = getDisasterDatasetRows()
+  const stats = getDisasterDatasetStats(archiveRows)
+
   return new Response(
     JSON.stringify(
       {
         source: 'DueDateHQ — every fact transcribed from the cited irs.gov release',
         docs: 'https://duedatehq.com/widget',
         license: 'Free to use with attribution/link to duedatehq.com',
+        csvUrl: getMarketingUrl('/data/disaster-notices.csv'),
         generatedAt: new Date().toISOString(),
+        stats,
         notices,
+        archive: archiveRows,
       },
       null,
       2,

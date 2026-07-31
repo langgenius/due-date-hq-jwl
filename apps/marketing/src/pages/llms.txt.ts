@@ -2,6 +2,7 @@ import en from '../i18n/en'
 import zhCN from '../i18n/zh-CN'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 import { DISASTER_NOTICES, getNoticeStatus } from '../lib/disaster-notices'
+import { STATE_CONFORMITY } from '../lib/state-conformity'
 import {
   getComparisonPages,
   getGuidePages,
@@ -152,7 +153,17 @@ export function GET(): Response {
     '',
     `- Hub with county-level detail and per-state pages: ${getMarketingUrl('/irs-disaster-relief')}`,
     `- Machine-readable JSON feed (free, attribution requested): ${getMarketingUrl('/data/disaster-notices.json')}`,
+    `- Full 2020-present dataset as CSV (one row per IRS relief code): ${getMarketingUrl('/data/disaster-notices.csv')}`,
     `- Free embeddable widget for any website: ${getMarketingUrl('/widget')}`,
+    '',
+    '## State conformity to federal disaster relief',
+    '',
+    "Whether each state follows an IRS disaster postponement — usually it does not, and no central source tracks this. Every fact verified against the state tax agency's own announcements, with sources linked:",
+    '',
+    ...STATE_CONFORMITY.map(
+      (c) =>
+        `- ${c.state}: ${c.statusLabel}. ${getMarketingUrl(`/irs-disaster-relief/state-conformity/${c.slug}`)}`,
+    ),
     '',
     '## Guides',
     '',

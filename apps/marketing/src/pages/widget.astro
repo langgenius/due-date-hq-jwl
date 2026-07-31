@@ -184,12 +184,14 @@ const faq = [
 
     <section class="m-section m-page-block" aria-labelledby="wg-api-h">
       <p class="m-eyebrow">Data feed</p>
-      <h2 class="m-page-h2" id="wg-api-h">Prefer raw data? Pull the JSON</h2>
+      <h2 class="m-page-h2" id="wg-api-h">Prefer raw data? Pull the JSON or CSV</h2>
       <p class="wg-note">
         The same verified dataset is published at
         <a href="/data/disaster-notices.json"><code>duedatehq.com/data/disaster-notices.json</code></a>
         — relief code, state, event, new deadline, affected area, covered returns, and the official
-        irs.gov source link for every notice. Free to use with a link back to
+        irs.gov source link for every notice. The feed's <code>archive</code> array (also downloadable
+        as <a href="/data/disaster-notices.csv"><code>disaster-notices.csv</code></a>) carries every
+        postponement back to 2020, one row per IRS relief code. Free to use with a link back to
         <a href="/irs-disaster-relief">duedatehq.com/irs-disaster-relief</a>.
       </p>
     </section>

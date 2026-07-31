@@ -1,0 +1,288 @@
+---
+/**
+ * /irs-disaster-relief/state-conformity/[state] — does this state follow the
+ * IRS disaster postponement? The one question no central source answers.
+ *
+ * Every fact renders from lib/state-conformity.ts (verified, source-cited);
+ * this template adds no facts of its own. The page leads with the direct
+ * answer, links the active federal notices it speaks to, then walks the
+ * verified sections — every section footed by its official sources.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import TopNav from '../../../components/home/TopNav.astro'
+import Footer from '../../../components/home/Footer.astro'
+import FaqList from '../../../components/FaqList.astro'
+import AlertOptin from '../../../components/AlertOptin.astro'
+import en from '../../../i18n/en'
+import { getCtaHref } from '../../../lib/app-url'
+import { DISASTER_NOTICES } from '../../../lib/disaster-notices'
+import { STATE_CONFORMITY, type StateConformityEntry } from '../../../lib/state-conformity'
+import { stateConformityStructuredData } from '../../../lib/structured-data'
+
+export function getStaticPaths() {
+  return STATE_CONFORMITY.map((entry) => ({
+    params: { state: entry.slug },
+    props: { entry },
+  }))
+}
+
+interface Props {
+  entry: StateConformityEntry
+}
+
+const t = en
+const { entry } = Astro.props
+const pathname = `/irs-disaster-relief/state-conformity/${entry.slug}`
+const hubHref = '/irs-disaster-relief'
+const ctaHref = getCtaHref('en')
+const alertFormAction =
+  import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/xojgdvrp'
+
+const title = `${entry.metaTitle} | DueDateHQ`
+
+// The federal notices this page speaks to, resolved from the ONE dataset.
+const activeNotices = entry.activeNoticeCodes
+  .map((code) => DISASTER_NOTICES.find((n) => n.code === code))
+  .filter((n): n is NonNullable<typeof n> => n !== undefined)
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={title}
+  description={entry.metaDescription}
+  ogImage="/og/coverage.en.png"
+  ogType="article"
+  structuredData={stateConformityStructuredData(
+    t,
+    'en',
+    pathname,
+    `state-conformity-${entry.slug}`,
+    title,
+    entry.metaDescription,
+    entry.state,
+    entry.faq,
+  )}
+>
+  <TopNav pageMode ctaHref={ctaHref} current="coverage" />
+  <main>
+    <section class="m-section m-page-hero" id="hero">
+      <nav class="sc-bc" aria-label="Breadcrumb">
+        <a href={hubHref} class="m-page-back">
+          <span class="m-page-back__arrow" aria-hidden="true">←</span>IRS disaster relief
+        </a>
+        <span
+          class:list={[
+            'sc-chip',
+            entry.statusTone === 'warn' && 'sc-chip--warn',
+            entry.statusTone === 'ok' && 'sc-chip--ok',
+          ]}>{entry.statusLabel}</span
+        >
+      </nav>
+      <p class="m-eyebrow">State conformity</p>
+      <h1 class="m-page-title">
+        Does {entry.state} conform to federal disaster filing extensions?
+      </h1>
+      <p class="m-page-lead sc-answer">{entry.directAnswer}</p>
+      <p class="m-page-reviewed">
+        Every fact verified against the linked official sources as of
+        <time datetime={entry.verifiedOn}>{entry.verifiedOn}</time> · re-check the
+        <a class="sc-link" href={entry.announcementsIndex.href} rel="noopener" target="_blank"
+          >{entry.announcementsIndex.label} ↗</a
+        > before relying on a date.
+      </p>
+    </section>
+
+    {
+      activeNotices.length > 0 && (
+        <section class="m-section m-page-block" aria-labelledby="sc-fed-h">
+          <p class="m-eyebrow">The federal side</p>
+          <h2 class="m-page-h2" id="sc-fed-h">
+            The IRS relief this page answers for
+          </h2>
+          <ul class="sc-fed">
+            {activeNotices.map((n) => (
+              <li>
+                <a class="sc-fed__card" href={`/irs-disaster-relief/${n.slug}`}>
+                  <span class="sc-fed__code">{n.code}</span>
+                  <span class="sc-fed__event">{n.event}</span>
+                  <span class="sc-fed__deadline">
+                    Federal deadlines postponed to <b>{n.deadlineLabel}</b> →
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      entry.sections.map((section) => (
+        <section class="m-section m-page-block" aria-labelledby={`sc-${section.id}`} id={section.id}>
+          <h2 class="m-page-h2" id={`sc-${section.id}`}>
+            {section.heading}
+          </h2>
+          {section.body.map((p) => (
+            <p class="m-page-body sc-body">{p}</p>
+          ))}
+          <p class="sc-sources">
+            <span class="sc-sources__k">Sources</span>
+            {section.sources.map((s, i) => (
+              <span>
+                <a class="sc-link" href={s.href} rel="noopener" target="_blank">
+                  {s.label} ↗
+                </a>
+                {i < section.sources.length - 1 ? ' · ' : ''}
+              </span>
+            ))}
+          </p>
+        </section>
+      ))
+    }
+
+    <section class="m-section m-page-block">
+      <FaqList
+        eyebrow="FAQ"
+        title={`${entry.state} conformity questions`}
+        items={entry.faq}
+      />
+    </section>
+
+    <section class="m-section m-page-block">
+      <AlertOptin
+        action={alertFormAction}
+        compact
+        defaultStates={entry.abbreviation}
+        heading={`Get ${entry.state} deadline changes by email`}
+      />
+    </section>
+
+    <section class="m-section m-page-block">
+      <div class="m-page-cta">
+        <div>
+          <h2 class="m-page-cta__title">
+            Federal moved. {entry.state} {entry.statusTone === 'ok' ? 'moved with it' : 'didn’t'}.
+            Who tells you next time?
+          </h2>
+          <p class="m-page-cta__body">
+            DueDateHQ watches the IRS and every state tax agency, and matches each change — federal
+            or state — to the clients in your book it actually touches, with the source on every
+            date. The federal-state gap on this page is exactly the kind of thing it catches.
+          </p>
+        </div>
+        <div class="m-page-cta__btns">
+          <a
+            class="m-btn m-btn--primary"
+            href={ctaHref}
+            data-event="marketing.state-conformity.cta">Start free</a
+          >
+          <a class="m-btn m-btn--secondary" href={hubHref}>All disaster relief</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .sc-bc {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .sc-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: var(--m-text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--m-ink-2);
+    background: var(--m-section);
+    border: 1px solid var(--m-hairline);
+  }
+  .sc-chip--warn {
+    color: var(--m-warn-ink, #92400e);
+    background: var(--m-warn-bg, #fef3c7);
+    border-color: color-mix(in srgb, var(--m-warn-ink, #92400e) 22%, transparent);
+  }
+  .sc-chip--ok {
+    color: var(--m-ok);
+    background: color-mix(in srgb, var(--m-ok) 10%, transparent);
+    border-color: color-mix(in srgb, var(--m-ok) 25%, transparent);
+  }
+  .sc-answer {
+    max-width: 72ch;
+  }
+  .sc-link {
+    color: var(--m-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .sc-fed {
+    margin-top: 18px;
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    max-width: 640px;
+  }
+  .sc-fed__card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 1px solid var(--m-hairline);
+    border-radius: 12px;
+    background: var(--m-surface);
+    transition: border-color var(--m-dur-fast) var(--m-ease);
+  }
+  .sc-fed__card:hover {
+    border-color: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  }
+  .sc-fed__code {
+    font-family: var(--m-font-mono);
+    font-size: var(--m-text-xs);
+    font-weight: 600;
+    color: var(--m-accent);
+  }
+  .sc-fed__event {
+    font-size: var(--m-text-md);
+    font-weight: 500;
+    color: var(--m-ink);
+  }
+  .sc-fed__deadline {
+    font-size: var(--m-text-sm);
+    color: var(--m-muted);
+  }
+  .sc-fed__deadline b {
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+  .sc-body {
+    max-width: 72ch;
+  }
+  .sc-body + .sc-body {
+    margin-top: 12px;
+  }
+  .sc-sources {
+    margin-top: 14px;
+    max-width: 72ch;
+    font-size: var(--m-text-xs);
+    line-height: 1.7;
+    color: var(--m-muted);
+  }
+  .sc-sources__k {
+    font-family: var(--m-font-mono);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: var(--m-text-3xs);
+    margin-right: 8px;
+  }
+</style>
