@@ -370,9 +370,13 @@ export function StatSummaryStrip({
           <>
             <span
               // Direct `key` (never spread — React 19 key-spread warning).
+              // text-lg (16) vs the label's text-sm (14): hierarchy by SIZE,
+              // not weight (2026-07-31 Yuqi, Stripe reference — "大大小小" the
+              // numeral/label pair instead of a same-size weight-only split).
+              // Baseline-aligned by the parent, so the strip stays one line.
               key={bumpKey ?? undefined}
               className={cn(
-                'font-medium tabular-nums text-text-primary',
+                'text-lg font-medium tabular-nums text-text-primary',
                 stat.valueClass,
                 bumpKey != null && 'animate-stat-bump motion-reduce:animate-none',
               )}
