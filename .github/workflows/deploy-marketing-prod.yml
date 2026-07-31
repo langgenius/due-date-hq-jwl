@@ -1,0 +1,51 @@
+# Manual production deploy for the marketing site (duedatehq.com).
+#
+# Why this exists: production deploys were manual `pnpm deploy` runs that
+# required a personal Cloudflare login. This workflow reuses the same
+# CLOUDFLARE_API_TOKEN the deploy-staging job already uses, so anyone with
+# repo access can ship marketing to production from the Actions tab
+# ("Run workflow") — no Cloudflare account needed.
+#
+# Scope: marketing static assets ONLY (apps/marketing → wrangler deploy).
+# It does not touch the server worker, D1, or queues.
+
+name: deploy-marketing-prod
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-marketing-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: due-date-hq-staging # holds CLOUDFLARE_API_TOKEN
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 305dbc7da819eb47bb3f3f3bc8927046
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Build marketing
+        run: vp run --filter @duedatehq/marketing build
+
+      - name: Deploy marketing to production
+        run: vp run --filter @duedatehq/marketing deploy
+
+      - name: Smoke-check production
+        run: |
+          sleep 5
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://duedatehq.com/)
+          echo "duedatehq.com -> HTTP $code"
+          test "$code" = "200"
