@@ -1295,6 +1295,10 @@ msgstr "{pendingCount} active · {expiredCount} expired"
 msgid "{pendingCount} active · {expiredCount} expired · invitation link, 7-day expiry"
 msgstr "{pendingCount} active · {expiredCount} expired · invitation link, 7-day expiry"
 
+#: src/routes/onboarding.tsx
+msgid "{pendingReviewStateCount, plural, one {Next: a quick calendar review for # state, then import your client list.} other {Next: a quick calendar review for # states, then import your client list.}}"
+msgstr "{pendingReviewStateCount, plural, one {Next: a quick calendar review for # state, then import your client list.} other {Next: a quick calendar review for # states, then import your client list.}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{previewMoreCount, plural, one {+ # more client} other {+ # more clients}}"
 msgstr "{previewMoreCount, plural, one {+ # more client} other {+ # more clients}}"
@@ -7035,6 +7039,14 @@ msgstr "Evidence to close out filing"
 msgid "Evidence to gather"
 msgstr "Evidence to gather"
 
+#: src/routes/onboarding.tsx
+msgid "Example: a filing due {exampleDueLabel} lands on your list as due {exampleWorkingLabel}."
+msgstr "Example: a filing due {exampleDueLabel} lands on your list as due {exampleWorkingLabel}."
+
+#: src/routes/onboarding.tsx
+msgid "Example: a filing due {exampleDueLabel} stays due {exampleDueLabel} on your list."
+msgstr "Example: a filing due {exampleDueLabel} stays due {exampleDueLabel} on your list."
+
 #: src/features/onboarding/welcome-offer-step.tsx
 msgid "Excel + Outlook"
 msgstr "Excel + Outlook"
@@ -8190,6 +8202,10 @@ msgstr "Hosted in US-East · ISO 27001 in progress"
 msgid "How DueDateHQ reaches your clients and your team."
 msgstr "How DueDateHQ reaches your clients and your team."
 
+#: src/features/concepts/concept-help.tsx
+msgid "How many days of buffer your practice works with. DueDateHQ keeps the official due date on record, and sets each deadline's working date this many days earlier — so your list, reminders, and urgency all run ahead of the statutory date."
+msgstr "How many days of buffer your practice works with. DueDateHQ keeps the official due date on record, and sets each deadline's working date this many days earlier — so your list, reminders, and urgency all run ahead of the statutory date."
+
 #: src/routes/practice.tsx
 msgid "How much client info is already gathered"
 msgstr "How much client info is already gathered"
@@ -8590,6 +8606,7 @@ msgstr "Internal deadline changed"
 msgid "Internal deadline changed from {previous} to {next}"
 msgstr "Internal deadline changed from {previous} to {next}"
 
+#: src/features/concepts/concept-help.tsx
 #: src/routes/onboarding.tsx
 msgid "Internal deadline offset"
 msgstr "Internal deadline offset"
@@ -10293,9 +10310,17 @@ msgstr "Next week"
 msgid "Next years"
 msgstr "Next years"
 
+#: src/routes/onboarding.tsx
+msgid "Next: import your client list — about 5 minutes."
+msgstr "Next: import your client list — about 5 minutes."
+
 #: src/routes/splash.tsx
 msgid "Next: import your clients to start tracking deadlines"
 msgstr "Next: import your clients to start tracking deadlines"
+
+#: src/routes/onboarding.tsx
+msgid "Next: the alert you came to see."
+msgstr "Next: the alert you came to see."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "No"

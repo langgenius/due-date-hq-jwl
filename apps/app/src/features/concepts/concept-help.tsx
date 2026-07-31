@@ -41,6 +41,7 @@ type ConceptId =
   | 'owner'
   | 'risk'
   | 'aiConfidence'
+  | 'internalDeadlineOffset'
 
 type ConceptCopy = {
   title: string
@@ -187,6 +188,11 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       return {
         title: t`AI confidence`,
         description: t`A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes.`,
+      }
+    case 'internalDeadlineOffset':
+      return {
+        title: t`Internal deadline offset`,
+        description: t`How many days of buffer your practice works with. DueDateHQ keeps the official due date on record, and sets each deadline's working date this many days earlier — so your list, reminders, and urgency all run ahead of the statutory date.`,
       }
     default: {
       const exhaustive: never = concept

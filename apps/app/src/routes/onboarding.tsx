@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react'
+import { useEffect, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, Loader2Icon } from 'lucide-react'
 
 import { derivePracticeName } from '@duedatehq/core/practice-name'
@@ -19,13 +19,19 @@ import { Input } from '@duedatehq/ui/components/ui/input'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { canonicalSocialAlertIntent } from '@/features/alerts/social-alert-intent'
 import { CenteredAuthScreen } from '@/features/auth/auth-chrome'
+import { ConceptHelp } from '@/features/concepts/concept-help'
 import { RuleReviewPrompt } from '@/features/onboarding/rule-review-prompt'
 import { StepDots } from '@/features/onboarding/step-dots'
 import {
   WelcomeOfferStep,
   type WelcomeOfferAnswers,
 } from '@/features/onboarding/welcome-offer-step'
-import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
+import {
+  StateRuleActivationSelector,
+  sourceDefinedCalendarReviewStates,
+} from '@/features/onboarding/state-rule-activation-selector'
+import { exampleFederalDueDate, workingDueDate } from '@/features/onboarding/offset-preview'
+import { formatDatePretty } from '@/lib/utils'
 import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timezone-select'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
@@ -82,17 +88,21 @@ function FieldHeaderRow({
   hint,
   htmlFor,
   className,
+  help,
 }: {
   label: string
   hint: string
   htmlFor: string
   className?: string
+  /** Optional ConceptHelp trigger rendered beside the label. */
+  help?: ReactNode
 }) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <FieldLabel htmlFor={htmlFor} className="text-xs font-semibold text-text-secondary">
         {label}
       </FieldLabel>
+      {help}
       <span aria-hidden className="h-px flex-1" />
       <span className="shrink-0 text-caption italic text-text-tertiary">{hint}</span>
     </div>
@@ -138,8 +148,32 @@ export function OnboardingRoute() {
   const monitoringStartDateInvalid =
     !isValidIsoDate(monitoringStartDate) || monitoringStartDate > today
 
+  // Live offset preview — a worked example under the offset input so the
+  // abstract "days early" number reads as a concrete date shift. Hidden while
+  // the typed value is out of the accepted range (submit validation covers it).
+  const offsetPreviewable =
+    Number.isFinite(internalDeadlineOffsetDays) &&
+    internalDeadlineOffsetDays >= MIN_INTERNAL_DEADLINE_OFFSET_DAYS &&
+    internalDeadlineOffsetDays <= MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+  const exampleDueLabel = formatDatePretty(exampleFederalDueDate(today))
+  const exampleWorkingLabel = formatDatePretty(
+    workingDueDate(
+      exampleFederalDueDate(today),
+      offsetPreviewable ? internalDeadlineOffsetDays : 0,
+    ),
+  )
+
+  // "Next up" line under the CTA — mirrors the submit handler's branching so
+  // the button never leads somewhere unannounced (deferred 2026-05-26 audit
+  // item). Same static rule source as the selector's review warning; the
+  // social-alert intent outranks review, matching the submit handler.
+  const pendingReviewStateCount = sourceDefinedCalendarReviewStates(selectedRuleStates).length
+
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
+  // Social-alert intent outranks the review/import branches in the submit
+  // handler, so the CTA "Next" line mirrors that priority.
+  const socialAlertNext = canonicalSocialAlertIntent(redirectTo) !== null
 
   // Reaching /onboarding means a brand-new account with no firm yet, so this is
   // the new-user funnel start. Consume the sign-in marker here → "Signed Up"
@@ -393,6 +427,7 @@ export function OnboardingRoute() {
                     label={t`Internal deadline offset`}
                     hint={t`days early`}
                     className="min-h-8 items-start"
+                    help={<ConceptHelp concept="internalDeadlineOffset" className="-my-1 size-5" />}
                   />
                   <Input
                     id="internal-deadline-offset"
@@ -402,10 +437,29 @@ export function OnboardingRoute() {
                     max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
                     step={1}
                     value={internalDeadlineOffsetDays}
+                    aria-describedby={offsetPreviewable ? 'offset-preview' : undefined}
                     onChange={(event) =>
                       setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
                     }
                   />
+                  {offsetPreviewable ? (
+                    <p
+                      id="offset-preview"
+                      className="text-caption leading-relaxed text-text-tertiary"
+                    >
+                      {internalDeadlineOffsetDays === 0 ? (
+                        <Trans>
+                          Example: a filing due {exampleDueLabel} stays due {exampleDueLabel} on
+                          your list.
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          Example: a filing due {exampleDueLabel} lands on your list as due{' '}
+                          {exampleWorkingLabel}.
+                        </Trans>
+                      )}
+                    </p>
+                  ) : null}
                 </Field>
               </motion.div>
 
@@ -459,6 +513,19 @@ export function OnboardingRoute() {
                 </>
               )}
             </Button>
+            <p className="text-caption font-medium leading-relaxed text-text-secondary">
+              {socialAlertNext ? (
+                <Trans>Next: the alert you came to see.</Trans>
+              ) : pendingReviewStateCount > 0 ? (
+                <Plural
+                  value={pendingReviewStateCount}
+                  one="Next: a quick calendar review for # state, then import your client list."
+                  other="Next: a quick calendar review for # states, then import your client list."
+                />
+              ) : (
+                <Trans>Next: import your client list — about 5 minutes.</Trans>
+              )}
+            </p>
             <p className="text-caption leading-relaxed text-text-tertiary">
               <Trans>
                 DueDateHQ schedules filing plans from the first applicable deadline on or after your

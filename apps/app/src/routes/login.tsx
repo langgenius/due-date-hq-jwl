@@ -47,8 +47,8 @@ import {
   socialAlertRefFromPath,
 } from '@/features/alerts/social-alert-intent'
 
-// /login is a full-bleed two-column split — a product-story column (left)
-// beside the sign-in card (right), with a dedicated footer. The page owns its
+// /login is a full-bleed two-column split — the sign-in column (left) beside
+// the product-story panel (right), with a dedicated footer. The page owns its
 // own chrome and is wired as a standalone route (no EntryShell parent) in
 // router.tsx, so the other entry surfaces (/onboarding, /two-factor,
 // /accept-invite) keep the shared shell.
@@ -194,15 +194,17 @@ export function LoginRoute() {
       </a>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* Sign-in — a centered, airy column on a plain panel. Email-first, SSO
-            below; brand mark + heading centered above. */}
+        {/* Sign-in — an airy column on a plain panel. Email-first, SSO below.
+            All content left-aligns on the column axis (2026-07-31 Yuqi
+            direction), matching the left-aligned heroes on /onboarding so the
+            entry surfaces read as one funnel. */}
         <main
           id="sign-in"
           className="flex w-full flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:w-[46%] lg:shrink-0 lg:px-16"
         >
           <div className="flex w-full max-w-[360px] flex-col gap-6">
-            {/* Centered brand lockup + heading */}
-            <div className="flex flex-col items-center gap-4 text-center">
+            {/* Brand lockup + heading — left-aligned like the onboarding heroes */}
+            <div className="flex flex-col items-start gap-4 text-left">
               {/* The lockup settles in on mount (calm fade + scale, not a snap).
                   Smaller move than the SuccessModal hero check. Reduced-motion
                   handled globally by the root <MotionConfig reducedMotion="user">. */}
@@ -298,10 +300,10 @@ export function LoginRoute() {
               </div>
             </div>
 
-            {/* Reassurance + magic-link recovery — centered on the column axis,
-                matching the centered hero above and the residency line below. */}
-            <div className="flex flex-col items-center gap-2.5 text-center">
-              <p className="flex items-center justify-center gap-1.5">
+            {/* Reassurance + magic-link recovery — left on the column axis,
+                matching the hero above and the residency line below. */}
+            <div className="flex flex-col items-start gap-2.5 text-left">
+              <p className="flex items-center gap-1.5">
                 <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
                 <span className="text-xs font-medium text-text-tertiary">
                   <Trans>No password — one-time links expire in 10 minutes.</Trans>
@@ -315,7 +317,7 @@ export function LoginRoute() {
               </p>
               {/* "Open it now" focuses the email field — a magic link is a URL the
                   user opens from their inbox; there's no separate paste surface. */}
-              <p className="flex items-center justify-center gap-1.5 text-sm">
+              <p className="flex items-center gap-1.5 text-sm">
                 <span className="font-medium text-text-secondary">
                   <Trans>Already have a sign-in link?</Trans>
                 </span>
@@ -330,7 +332,7 @@ export function LoginRoute() {
             </div>
 
             {/* Residency */}
-            <p className="flex items-center justify-center gap-1 text-center text-caption-xs font-medium text-text-muted">
+            <p className="flex items-center gap-1 text-left text-caption-xs font-medium text-text-muted">
               <MapPinIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Hosted in US-East · ISO 27001 in progress</Trans>
             </p>
@@ -346,7 +348,7 @@ export function LoginRoute() {
 }
 
 // ---------------------------------------------------------------------------
-// Left column — static product story. Hidden below `lg` so the sign-in card
+// Right column — static product story. Hidden below `lg` so the sign-in card
 // takes the full width on laptops/phones. All copy is marketing, not live data.
 // ---------------------------------------------------------------------------
 
@@ -777,7 +779,7 @@ function LoginEmailForm({
   return (
     <form onSubmit={handleSendSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <label htmlFor="login-email" className="text-xs font-medium text-text-secondary">
             <Trans>Work email</Trans>
           </label>

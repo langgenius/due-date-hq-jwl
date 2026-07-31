@@ -126,3 +126,15 @@ onboarding title was clipped off short viewports), the onboarding hero hierarchy
 login brand-navy showcase panel, and the rule-review "state"→"jurisdiction" copy fix
 (the review set includes Federal). See
 `docs/dev-log/2026-06-24-auth-onboarding-welcome-tour.md`.
+
+## Update — 2026-07-31 (practice-setup clarity)
+
+Three deferred clarity items from the step-6/7 audits shipped on the practice-setup
+step: a **live worked-example preview** under the internal-deadline-offset input
+(recomputes with the value; math in `features/onboarding/offset-preview.ts`), a
+**ConceptHelp** (`internalDeadlineOffset`) beside the field label, and a **"Next:"
+destination line** under the Create-practice CTA that mirrors the submit handler's
+branching (social alert → calendar review → importer). See
+`docs/dev-log/onboarding-setup-clarity-2026-07-31.md`. Still open: per-jurisdiction
+counts on the review prompt (contract-gated), the measurement funnel, and gap #6
+empty states.
