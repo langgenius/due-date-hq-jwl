@@ -1494,3 +1494,94 @@
 .ddhq--mapcover .ddhq__stateglyph svg path {
   fill: #c3c9d8;
 }
+
+/* ---- facts:轮播第 2 页 ---- */
+.ddhq--facts {
+  --ink: #16150f;
+  --ink-2: #45433c;
+  --ink-3: #5f5d56;
+  --rule: #e7e4dc;
+  padding: 0;
+  background: var(--paper);
+}
+.ddhq--facts .ddhq__card {
+  border-radius: 0;
+  padding: 76px 68px 56px;
+}
+/* 承接条:让读者知道还在同一条 alert 里 */
+.ddhq__contbar {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--rule);
+}
+.ddhq__contstate {
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.ddhq__contdate {
+  font-size: 30px;
+  color: var(--ink-3);
+}
+.ddhq__factstitle {
+  font-size: 62px;
+  font-weight: 600;
+  line-height: 1.28;
+  color: var(--ink);
+  margin-top: 52px;
+}
+.ddhq__facts {
+  margin-top: 20px;
+}
+.ddhq__fact {
+  padding: 38px 0;
+  border-bottom: 2px solid var(--rule);
+}
+.ddhq__factlab {
+  font-size: 25px;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+.ddhq__factval {
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.34;
+  color: var(--ink);
+  margin-top: 14px;
+}
+.ddhq__factnote {
+  font-size: 28px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin-top: 14px;
+  max-width: 34ch;
+}
+/* 唯一的强调块:需要主动打电话的那种情形 */
+.ddhq__callout {
+  margin-top: 44px;
+  padding: 34px 36px;
+  background: #f6f4ee;
+  border-left: 8px solid var(--red);
+}
+.ddhq__calloutlab {
+  font-size: 25px;
+  letter-spacing: 0.14em;
+  color: var(--red);
+}
+.ddhq__calloutbody {
+  font-size: 32px;
+  line-height: 1.62;
+  color: var(--ink-2);
+  margin-top: 12px;
+}
+.ddhq--facts .ddhq__ft {
+  margin-top: auto;
+  padding-top: 28px;
+  border-top: 2px solid var(--rule);
+}
+.ddhq--facts .ddhq__fl {
+  font-size: 24px;
+  color: var(--ink-3);
+}

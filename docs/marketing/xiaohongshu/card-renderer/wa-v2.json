@@ -23,23 +23,58 @@
     "photo": "photos/wa-2025-03.jpg"
   },
   {
-    "id": "v2-map-wa",
-    "kind": "mapcover",
+    "id": "v2-p2-wa",
+    "kind": "facts",
     "locale": "zh",
     "format": "xhs",
-    "title": ["今天这个州的", "报税截止日在逼近"],
-    "map": {
-      "state": "WA"
-    },
-    "badge": "1",
     "stateName": "华盛顿",
-    "countdown": {
-      "days": 2,
-      "tone": "now"
-    },
     "newDate": "8月5日",
-    "sub": "24 县 + 25 个部落领地,地址在范围内自动适用,无需申请。",
-    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
-    "footer": "美国报税不漏DDL · 2026年8月3日"
+    "title": ["覆盖谁,", "怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "24 个县 + 25 个部落领地",
+        "note": "完整名单以 irs.gov 公告 WA-2025-03 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的纳税人,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2025 年 12月9日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 灾害热线申请,不会自动适用。"
+    },
+    "footer": "来源:IRS 公告 WA-2025-03 · 美国报税不漏DDL"
+  },
+  {
+    "id": "v2-p3-wa",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "华盛顿",
+    "newDate": "8月5日",
+    "title": ["读这份公告,", "别只读正文"],
+    "rows": [
+      {
+        "label": "顶部更新横幅",
+        "value": "截止日 5月1日 → 8月5日,受灾范围同时扩大"
+      },
+      {
+        "label": "下面的正文",
+        "value": "仍写着 5月1日,受灾地只列最初 17 项",
+        "note": "IRS 改期时没有重写正文。照抄正文会差三个月、少算 9 个县。"
+      }
+    ],
+    "callout": {
+      "label": "顺带一个坑",
+      "body": "正文那 17 项里混着 Samish —— 那是 Samish 部落,华盛顿州没有 Samish 县。"
+    },
+    "footer": "来源:IRS 公告 WA-2025-03 · 美国报税不漏DDL"
   }
 ]

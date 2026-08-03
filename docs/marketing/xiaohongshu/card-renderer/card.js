@@ -294,6 +294,39 @@ export async function renderCard(data) {
     return el
   }
 
+  /* ── facts:轮播第 2 页。封面只答「谁/何时」,这页答「覆盖什么/怎么适用」。
+     定义列表版式:标签小、值大,一行一件事,和封面共用同一套字阶与留白。 ── */
+  if (kind === 'facts') {
+    const rows = (data.rows || [])
+      .map(
+        (r) => `<div class="ddhq__fact">
+          <div class="ddhq__factlab">${esc(r.label)}</div>
+          <div class="ddhq__factval">${esc(r.value)}</div>
+          ${r.note ? `<div class="ddhq__factnote">${esc(r.note)}</div>` : ''}
+        </div>`,
+      )
+      .join('')
+    el.innerHTML = `${grainLayer()}<div class="ddhq__card">
+      <div class="ddhq__contbar">
+        <span class="ddhq__contstate">${esc(data.stateName || '')}</span>
+        <span class="ddhq__contdate">${esc(data.newDate || '')} 截止</span>
+      </div>
+      <div class="ddhq__factstitle">${(Array.isArray(data.title) ? data.title : [data.title])
+        .map(esc)
+        .join('<br>')}</div>
+      <div class="ddhq__facts">${rows}</div>
+      ${
+        data.callout
+          ? `<div class="ddhq__callout">
+              <div class="ddhq__calloutlab">${esc(data.callout.label)}</div>
+              <div class="ddhq__calloutbody">${esc(data.callout.body)}</div>
+            </div>`
+          : ''
+      }
+      ${footer}</div>`
+    return el
+  }
+
   /* ── mapcover:全美方块地图作主视觉(方向 B)──
      高亮块 = 本条讲的辖区;缩略图尺寸下「是不是我的州」一眼可判。 */
   if (kind === 'mapcover') {
