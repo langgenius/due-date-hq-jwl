@@ -246,7 +246,7 @@ export async function renderCard(data) {
   el.className = `ddhq ddhq--${kind} ddhq--${locale} ddhq--${format}`
   const footer = `<div class="ddhq__ft">
       <div class="ddhq__fl">${esc(data.footer)}</div>
-      <div class="ddhq__fr">${wordmark}</div>
+      <div class="ddhq__fr">${wordmark}<span class="ddhq__tagline">for CPA firms</span></div>
     </div>`
 
   /* ── hero:实景/深色英雄图 + 悬浮信息卡(方向 A)──

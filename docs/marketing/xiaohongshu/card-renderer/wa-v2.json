@@ -29,7 +29,7 @@
     "format": "xhs",
     "stateName": "华盛顿",
     "newDate": "8月5日",
-    "title": ["覆盖谁,", "怎么适用"],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -59,7 +59,7 @@
     "format": "xhs",
     "stateName": "华盛顿",
     "newDate": "8月5日",
-    "title": ["读这份公告,", "别只读正文"],
+    "title": ["读公告别只读正文"],
     "rows": [
       {
         "label": "顶部更新横幅",

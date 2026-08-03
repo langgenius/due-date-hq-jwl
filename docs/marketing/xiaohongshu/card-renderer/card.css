@@ -1631,3 +1631,105 @@
 .ddhq__nx {
   text-wrap: pretty;
 }
+
+/* ============================================================
+   字重与字阶校准
+   ------------------------------------------------------------
+   问题:满屏都是 500/600,于是没有轻重之分,整体读起来又粗又糙。
+   规则:600 只给一页里唯一的标题;500 只给数值;其余一律 400。
+   小字要真的小 —— 标签、注释、页脚都往下压一档。
+   ============================================================ */
+
+/* 400 是默认,不再靠继承碰运气 */
+.ddhq--facts,
+.ddhq--hero,
+.ddhq--mapcover {
+  font-weight: 400;
+}
+
+/* 600:一页只有一个 —— 标题,或封面上的日期 */
+.ddhq__factstitle,
+.ddhq__mctitle {
+  font-weight: 600;
+}
+
+/* 500:数值层 */
+.ddhq--facts .ddhq__factval {
+  font-weight: 500;
+  font-size: 44px;
+}
+.ddhq__contstate {
+  font-weight: 500;
+  font-size: 32px;
+}
+
+/* 400:标签、注释、页脚 —— 并且都真的更小 */
+.ddhq--facts .ddhq__factlab {
+  font-weight: 400;
+  font-size: 23px;
+  letter-spacing: 0.12em;
+}
+.ddhq--facts .ddhq__factnote {
+  font-weight: 400;
+  font-size: 27px;
+}
+.ddhq__contdate {
+  font-weight: 400;
+  font-size: 26px;
+}
+.ddhq--facts .ddhq__fl,
+.ddhq--hero .ddhq__fl,
+.ddhq--mapcover .ddhq__fl {
+  font-weight: 400;
+  font-size: 22px;
+}
+.ddhq--facts .ddhq__fr,
+.ddhq--hero .ddhq__fr,
+.ddhq--mapcover .ddhq__fr {
+  font-weight: 400;
+}
+
+/* 强调条的标签原来是加了字距的小红字,难读。放大、去字距、加重一档 */
+.ddhq--facts .ddhq__calloutlab {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: #9e2f22;
+}
+.ddhq--facts .ddhq__calloutbody {
+  font-size: 29px;
+  font-weight: 400;
+}
+
+/* 间距:标题与列表拉开,强调条与上一条也要拉开 —— 原来贴得太近 */
+.ddhq--facts .ddhq__factstitle {
+  margin-top: 46px;
+}
+.ddhq--facts .ddhq__facts {
+  margin-top: 26px;
+}
+.ddhq--facts .ddhq__callout {
+  margin-top: 46px;
+}
+
+/* 官方 wordmark 是纯字标(1165×154),按原高度会横得压住页脚。
+   压到 24px 高,并把定位语拆成独立文本 —— 这样字重字号可控,不是烧死在图里。 */
+.ddhq--facts .ddhq__fr,
+.ddhq--hero .ddhq__fr,
+.ddhq--mapcover .ddhq__fr {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ddhq--facts .ddhq__fr svg,
+.ddhq--hero .ddhq__fr svg,
+.ddhq--mapcover .ddhq__fr svg {
+  height: 24px;
+}
+.ddhq__tagline {
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--ink-3);
+  padding-left: 16px;
+  border-left: 2px solid var(--rule);
+}
