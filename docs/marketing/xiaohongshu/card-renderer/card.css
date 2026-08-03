@@ -1605,3 +1605,29 @@
   margin-top: 24px;
   margin-bottom: 8px;
 }
+
+/* ---- 断行控制 ----
+   中文可在任意字间断行,所以「无需/申请」这种把词劈开、
+   或最后一行只剩两个字的断法会自己冒出来。统一交给排版引擎处理:
+   标题类求各行等长,正文类避免孤行,并禁止在标点前断开。 */
+.ddhq,
+.ddhq * {
+  line-break: strict;
+  overflow-wrap: normal;
+}
+.ddhq__factstitle,
+.ddhq__factval,
+.ddhq__mctitle,
+.ddhq__cvhook,
+.ddhq__statename,
+.ddhq__h {
+  text-wrap: balance;
+}
+.ddhq__factnote,
+.ddhq__blurb,
+.ddhq__calloutbody,
+.ddhq__kicker,
+.ddhq__cvsub,
+.ddhq__nx {
+  text-wrap: pretty;
+}
