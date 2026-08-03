@@ -1779,3 +1779,32 @@
   margin-top: auto;
   padding-top: var(--sp-2);
 }
+
+/* 节奏整体收紧一档:留白该来自版心边距,不是靠把每条撑开 */
+.ddhq--facts,
+.ddhq--hero,
+.ddhq--mapcover {
+  --sp-1: 12px;
+  --sp-2: 22px;
+  --sp-3: 32px;
+  --sp-4: 48px;
+}
+.ddhq--facts .ddhq__card {
+  padding: 62px 60px 48px;
+}
+.ddhq__contbar {
+  padding-bottom: 20px;
+}
+.ddhq--facts .ddhq__factstitle {
+  margin-top: 38px;
+  line-height: 1.22;
+}
+.ddhq--facts .ddhq__factval {
+  line-height: 1.28;
+}
+.ddhq--facts .ddhq__factnote {
+  line-height: 1.55;
+}
+.ddhq--facts .ddhq__calloutbody {
+  line-height: 1.55;
+}
