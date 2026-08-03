@@ -1,6 +1,6 @@
 # 灾害卡备用库(现行 9 条)
 
-想发哪条直接拿:小红书发 `-cover → -p1 → -p2` 三张轮播;LinkedIn 发**文档帖**,上传
+想发哪条直接拿:小红书发 `-p1cover → -p2facts` 两张(新版式,2026-08-03 全库重渲);LinkedIn 发**文档帖**,上传
 `-li-carousel.pdf`(3 页 4:5 轮播,`-li-1cover/-li-2data/-li-3note` 合成;横版 `-en` 仅作备用)。
 **配文全在 [`CAPTIONS.md`](CAPTIONS.md)**(每条含小红书标题+正文+LinkedIn)。
 

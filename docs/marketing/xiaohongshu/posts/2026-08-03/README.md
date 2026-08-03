@@ -5,7 +5,7 @@
 少算 9 个县。这正是监控产品该讲的话。
 
 **小红书**:3 页轮播 `-cover → -p1 → -p2`。
-**LinkedIn = 文档帖(PDF)**:上传 `wa-t2-2026-08-03-li-carousel.pdf`,链接放首条评论。
+**LinkedIn = 文档帖(PDF)**:上传 `wa-t2-2026-08-03-li-carousel.pdf`(领英 PDF 仍是旧版式,待迁移),链接放首条评论。
 
 > **佛蒙特 C-101 今天不发** —— X 队列里那条(C-101,7月31日 → 8月31日)有两个问题,见文末。
 
@@ -39,7 +39,7 @@
 
 **LinkedIn 文档标题**:`Washington IRS Deadline Aug 5, 2026 — Why the Release Body Is Wrong (WA-2025-03)`
 
-**LinkedIn 配文**(发**文档帖**:上传 `wa-t2-2026-08-03-li-carousel.pdf`)
+**LinkedIn 配文**(发**文档帖**:上传 `wa-t2-2026-08-03-li-carousel.pdf`(领英 PDF 仍是旧版式,待迁移))
 
 ```
 IRS tax deadline — Washington's postponement ends Aug 5, 2026, and the IRS release will mislead you if you read the body text.
