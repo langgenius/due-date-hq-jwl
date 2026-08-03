@@ -3,7 +3,7 @@
 
 ## Categories
 - [Tax Preparation](https://cpafieldguide.com/tax-preparation-software): Professional tax preparation software for US CPA firms: Drake, Lacerte, ProConnect, ProSeries, UltraTax CS, CCH Axcess, and ATX — what each does, who it fits, and how open it is to integration.
-- [Deadline & Compliance Tracking](https://cpafieldguide.com/deadline-monitoring-software): Due date tracking and deadline monitoring software for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — passive due-date trackers versus active monitors that watch the IRS, states, and FEMA.
+- [Deadline & Compliance Tracking](https://cpafieldguide.com/deadline-monitoring-software): Tax calendar, due date tracking, and deadline monitoring software for CPA firms: File In Time, DueDateHQ, and ONESOURCE Calendar — what separates a compliance calendar from a passive tracker from an active monitor.
 - [Practice Management](https://cpafieldguide.com/practice-management-software): Practice management and workflow software for accounting firms: Karbon, TaxDome, Canopy, Financial Cents, Jetpack Workflow, Keeper, Firm360, Pixie, Aiwyn, and Ignition — features, firm-size fit, and API openness.
 - [Accounting & Bookkeeping](https://cpafieldguide.com/accounting-software): General-ledger and bookkeeping software CPA firms use: QuickBooks Online, Xero, Bill.com, Sage, and the Intuit ProAdvisor channel — and how each connects to the rest of the firm stack.
 
