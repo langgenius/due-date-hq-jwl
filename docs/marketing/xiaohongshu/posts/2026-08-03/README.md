@@ -1,8 +1,8 @@
 # 2026-08-03(周一)发帖包
 
 **今天一条:华盛顿 8月5日(后天)截止 —— 系列收尾条。** 前面两条是「核对清单」和「倒计时」,
-今天给的是**只有真读过公告才知道的坑**:这份 IRS 公告改期后正文没重写,照抄正文会差三个月、
-少算 9 个县。这正是监控产品该讲的话。
+今天给的是**只有真读过公告才知道的坑**:这份 IRS 公告改期后正文没重写,照抄正文会差三个多月、
+少算 8 个县。这正是监控产品该讲的话。
 
 **小红书**:3 页轮播 `-cover → -p1 → -p2`。
 **LinkedIn = 文档帖(PDF)**:上传 `wa-t2-2026-08-03-li-carousel.pdf`(领英 PDF 仍是旧版式,待迁移),链接放首条评论。
@@ -24,12 +24,12 @@
 【坑在哪】
 公告顶部有条更新横幅,写明截止日由 5月1日 改为 8月5日、并扩大了受灾范围。但下面的正文一个字没改 —— 二十多处仍写着 5月1日,受灾地也只列最初的 17 项。
 
-· 只读正文 → 截止日差三个月
-· 只读正文 → 少算 9 个县(实际是 24 个县 + 25 个部落领地)
+· 只读正文 → 截止日差三个多月
+· 只读正文 → 少算 8 个县(正文里是 16 个真县,实际 24 个县 + 25 个部落领地)
 · 正文那 17 项里还混进了 Samish —— 那是 Samish 部落,华盛顿州没有 Samish 县
 
 【实务提示】
-地址在受灾范围内的自动适用,无需申请;县外但账册或记账人在内的,现在就致电 IRS 灾害热线。
+地址在受灾范围内的自动适用,无需申请;县外但账册或记账人在内的,现在就致电 IRS 特别服务专线 866-562-5227;代 10 个以上客户的可走批量请求。
 逐项覆盖范围(哪些申报与缴款在内)正文同样是改期前口径,Q2 项目是否随窗口顺延,建议向 IRS 确认后再答复客户。
 
 来源:IRS 灾害减免公告 WA-2025-03(irs.gov 可查,注意看顶部更新横幅)
@@ -43,7 +43,7 @@
 
 ```
 IRS tax deadline — Washington's postponement ends Aug 5, 2026, and the IRS release will mislead you if you read the body text.
-Disaster relief WA-2025-03 carries an update banner: the deadline moved from May 1 to Aug 5, 2026, and the covered area was expanded. The body below that banner was never rewritten — it still says May 1 in more than twenty places, and still lists only the original 17 entries, one of which (Samish) is a tribal nation, not a county. Read the body alone and you are three months stale and short 9 counties; the correct area is 24 Washington counties and 25 tribal nations. Relief is automatic for an IRS address of record. Client outside the area but records or preparer inside? That call to the IRS disaster hotline needs to happen today, not Wednesday. One caveat worth flagging to clients: the item-by-item list of postponed filings is also written to the pre-extension window, so confirm with the IRS whether Q2 items follow the new date.
+Disaster relief WA-2025-03 carries an update banner: the deadline moved from May 1 to Aug 5, 2026, and the covered area was expanded. The body below that banner was never rewritten — it still says May 1 in more than twenty places, and still lists only the original 17 entries, one of which (Samish) is a tribal nation, not a county. Read the body alone and you are just over three months stale and short eight counties; the correct area is 24 Washington counties and 25 tribal nations. Relief is automatic for an IRS address of record. Client outside the area but records or preparer inside? That call to IRS Special Services on 866-562-5227 needs to happen today, not Wednesday; firms holding records for ten or more clients can use the bulk request route. One caveat worth flagging to clients: the item-by-item list of postponed filings is also written to the pre-extension window, so confirm with the IRS whether Q2 items follow the new date.
 Which Washington clients are still open on your list? IRS source in the comments.
 #IRS #TaxDeadline #DisasterRelief #CPA #Washington
 ```
