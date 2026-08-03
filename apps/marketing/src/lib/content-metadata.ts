@@ -114,11 +114,11 @@ const CONTENT_DATES_BY_SLUG: Record<string, { publishedOn?: string; reviewedOn?:
   'state-conformity-washington': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-hawaii': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-michigan': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
-  'state-conformity-louisiana': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-louisiana': { publishedOn: '2026-07-31', reviewedOn: '2026-08-03' },
   'state-conformity-wisconsin': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-georgia': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   'state-conformity-montana': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
-  'state-conformity-mississippi': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
+  'state-conformity-mississippi': { publishedOn: '2026-07-31', reviewedOn: '2026-08-03' },
   'state-conformity-arizona': { publishedOn: '2026-07-31', reviewedOn: '2026-07-31' },
   // L5 decision/legal-background pages, published 2026-07-31 (legislation facts
   // verified against congress.gov/govinfo the same day).

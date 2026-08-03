@@ -302,11 +302,11 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     slug: 'louisiana',
     state: 'Louisiana',
     abbreviation: 'LA',
-    verifiedOn: '2026-07-31',
-    statusLabel: 'No state relief issued yet for Tropical Storm Arthur',
+    verifiedOn: '2026-08-03',
+    statusLabel: 'No state relief issued for Tropical Storm Arthur',
     statusTone: 'warn',
     directAnswer:
-      'Not automatically — and for Tropical Storm Arthur, not yet at all. As of July 31, 2026, the Louisiana Department of Revenue has issued no extension matching the IRS’s Nov. 2, 2026 postponement (LA-2026-02). When LDR does grant disaster relief, it comes as an event-specific bulletin with its own dates, applied automatically by the address on file.',
+      'Not automatically — and for Tropical Storm Arthur, not at all. As of August 3, 2026, the Louisiana Department of Revenue has issued no extension matching the IRS’s Nov. 2, 2026 postponement (LA-2026-02); its bulletin series has run past the event and skipped it. When LDR does grant disaster relief, it comes as an event-specific bulletin with its own dates, applied automatically by the address on file.',
     activeNoticeCodes: ['LA-2026-02'],
     sections: [
       {
@@ -329,8 +329,9 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
         heading: 'Where Louisiana stands on Tropical Storm Arthur (LA-2026-02)',
         body: [
           'The IRS postponed federal deadlines to Nov. 2, 2026 for six parishes — Avoyelles, Lafourche, Pointe Coupee, St. Landry, St. Tammany, and Terrebonne (Lafourche and Pointe Coupee were added by the release’s July 28 update). That relief is federal only.',
-          'As of July 31, 2026, LDR has published no matching state relief: the 2026 news archive shows no Arthur release, no Arthur RIB appears in the 2026 bulletin series, and no per-event resource page exists for Arthur (the Hurricane Francine equivalent does). Louisiana state returns and payments therefore remain on their normal schedule.',
-          'A bulletin may still come — LDR issued its Hurricane Francine relief two days after the IRS notice, but its Winter Storm Fern bulletin took about four weeks. Until one appears, do not assume any Louisiana date moved.',
+          'As of August 3, 2026, LDR has published no matching state relief: the 2026 news archive shows no Arthur release, no Arthur bulletin appears in the 2026 Revenue Information Bulletin series, and no per-event resource page exists for Arthur (the Hurricane Francine equivalent does). Louisiana state returns and payments therefore remain on their normal schedule.',
+          'This is a deliberate silence, not a publication lag. The 2026 bulletin sequence runs unbroken through RIB 26-015, and the two most recent — 26-015 on August 1 and 26-014 on August 3 — cover a sales-tax holiday and oil-and-gas prices. Both were issued weeks after the IRS notice, and neither mentions Arthur; the only 2026 disaster bulletin remains 26-008 for the January winter storm.',
+          'A bulletin could still come — LDR issued its Hurricane Francine relief two days after the IRS notice, though its Winter Storm Fern bulletin took about four weeks, and Arthur is now past seven. Until one appears, do not assume any Louisiana date moved.',
         ],
         sources: [
           {
@@ -891,11 +892,11 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     slug: 'mississippi',
     state: 'Mississippi',
     abbreviation: 'MS',
-    verifiedOn: '2026-07-31',
+    verifiedOn: '2026-08-03',
     statusLabel: 'No state notice yet for the May storms — relief waits on DOR',
     statusTone: 'warn',
     directAnswer:
-      'Not yet. Mississippi grants disaster relief by event-specific DOR notice, and as of July 31, 2026 none exists for the May 2026 storms (MS-2026-02) — the federal Nov. 2, 2026 date is federal only. When DOR has issued notices, the state deadline has matched the IRS date; but for the March 2025 storms it never issued one at all.',
+      'Not yet. Mississippi grants disaster relief by event-specific DOR notice, and as of August 3, 2026 none exists for the May 2026 storms (MS-2026-02) — the federal Nov. 2, 2026 date is federal only. When DOR has issued notices, the state deadline has matched the IRS date; but for the March 2025 storms it never issued one at all.',
     activeNoticeCodes: ['MS-2026-02'],
     sections: [
       {
@@ -920,7 +921,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
         id: 'current-position',
         heading: 'Where Mississippi stands on the May 2026 storms (MS-2026-02)',
         body: [
-          'The IRS postponed federal deadlines to Nov. 2, 2026 for Franklin, Lamar, Lawrence, Lincoln, and Wilkinson counties (FEMA 4922-DR). As of July 31, 2026, DOR has published nothing for this event: the news index’s most recent disaster item is still Winter Storm Fern (April 15, 2026), and the notices database returns no entry for the May storms. Mississippi state deadlines therefore remain unmoved.',
+          'The IRS postponed federal deadlines to Nov. 2, 2026 for Franklin, Lamar, Lawrence, Lincoln, and Wilkinson counties (FEMA 4922-DR). As of August 3, 2026, DOR has published nothing for this event: the most recent disaster item in both the news index and the notices database is still Winter Storm Fern from April 2026, and the notices published since — through July 8, 2026 — are unrelated. Mississippi state deadlines therefore remain unmoved.',
           'History cuts both ways on whether a notice will come. DOR’s Fern notice arrived roughly two and a half months after that January storm — but for the March 2025 storms (federal deadline Nov. 3, 2025), no DOR notice appears on the site at all. Do not assume state relief until a notice exists.',
         ],
         sources: [
@@ -929,7 +930,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
             href: 'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-and-flooding-in-the-state-of-mississippi-various-deadlines-postponed-to-nov-2-2026',
           },
           {
-            label: 'MS DOR — news index (no May-storms item as of 2026-07-31)',
+            label: 'MS DOR — news index (no May-storms item as of 2026-08-03)',
             href: 'https://www.dor.ms.gov/news',
           },
         ],
