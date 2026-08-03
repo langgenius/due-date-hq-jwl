@@ -1,0 +1,488 @@
+[
+  {
+    "id": "ny-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["这个州的规则", "要变了"],
+    "map": {
+      "state": "NY"
+    },
+    "badge": "1",
+    "stateName": "纽约",
+    "newDate": "9月1日",
+    "dueSuffix": "开征",
+    "sub": "替代性尼古丁产品并入烟草税,批发价 75%。真正会踩的是库存税。",
+    "footer": "美国报税不漏DDL · N-26-2",
+    "countdown": {
+      "days": 29,
+      "tone": "far"
+    }
+  },
+  {
+    "id": "ny-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "纽约",
+    "newDate": "9月1日",
+    "dueSuffix": "开征",
+    "title": ["三个日期,别记错"],
+    "rows": [
+      {
+        "label": "8月31日",
+        "value": "盘存",
+        "note": "当晚 23:59 EST 的全部库存,逐件点清。"
+      },
+      {
+        "label": "9月1日",
+        "value": "开征,批发价 75%",
+        "note": "在纽约进口或销售的,当日前须持分销 / 批发 / 零售牌照。"
+      },
+      {
+        "label": "9月21日",
+        "value": "报 Form MT-200.5 并缴清库存税",
+        "note": "多经营地点附 Schedule A,自动售货机附 Schedule B。"
+      }
+    ],
+    "callout": {
+      "label": "谁承担这笔税",
+      "body": "一般由分销商缴;但批发、零售商持有的货若未由分销商完税,该税由持货方承担。"
+    },
+    "footer": "来源:纽约州通知 N-26-2 · 美国报税不漏DDL"
+  },
+  {
+    "id": "ny-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A rule change lands", "in this state"],
+    "map": {
+      "state": "NY"
+    },
+    "badge": "1",
+    "stateName": "New York",
+    "newDate": "Sept 1",
+    "dueSuffix": "start",
+    "sub": "Alternative nicotine products enter the tobacco tax at 75% of wholesale. The floor tax is the part clients miss.",
+    "footer": "DueDateHQ · N-26-2",
+    "countdown": {
+      "days": 29,
+      "tone": "far"
+    }
+  },
+  {
+    "id": "ny-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "New York",
+    "newDate": "Sept 1",
+    "dueSuffix": "start",
+    "title": ["Three dates to diary"],
+    "rows": [
+      {
+        "label": "AUG 31",
+        "value": "Count the stock",
+        "note": "Every unit held at 11:59 pm EST."
+      },
+      {
+        "label": "SEPT 1",
+        "value": "Tax starts at 75% of wholesale",
+        "note": "Anyone importing or selling in New York must be licensed or registered by this date."
+      },
+      {
+        "label": "SEPT 21",
+        "value": "File Form MT-200.5 and pay the floor tax",
+        "note": "Schedule A for multiple locations, Schedule B for vending machines."
+      }
+    ],
+    "callout": {
+      "label": "Who owes it",
+      "body": "Generally the distributor — but wholesale and retail dealers are liable on units they hold if no distributor has paid."
+    },
+    "footer": "Source: New York notice N-26-2 · DueDateHQ"
+  },
+  {
+    "id": "al-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["这个州的规则", "要变了"],
+    "map": {
+      "state": "AL"
+    },
+    "badge": "2",
+    "stateName": "阿拉巴马",
+    "newDate": "9月1日",
+    "dueSuffix": "起",
+    "sub": "Etowah 县改由州税务局代收,Walker 县 10月1日 起改县里自征。",
+    "footer": "美国报税不漏DDL · ALDOR 通知"
+  },
+  {
+    "id": "al-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "阿拉巴马",
+    "newDate": "9月1日",
+    "dueSuffix": "起",
+    "title": ["同一张月报,两个县方向相反"],
+    "rows": [
+      {
+        "label": "9月1日",
+        "value": "Etowah 县改由州税务局代收",
+        "note": "香烟每包 $0.03,自 2026 年 9月 的月报起申报缴纳。"
+      },
+      {
+        "label": "10月1日",
+        "value": "Walker 县改由县议会自征",
+        "note": "州税务局同日停止代收,之后向县里申报。"
+      },
+      {
+        "label": "10月20日",
+        "value": "2026 年 9月 月报到期",
+        "note": "两件事都体现在这张表上;它也是 Walker 县报给州里的最后一张。"
+      }
+    ],
+    "callout": {
+      "label": "别和这件混了",
+      "body": "Act 2025-377 对可消耗蒸汽类产品按每毫升 $0.10 征税,同样 10月1日 起施行 —— 是另一回事。手上有 Walker 县未粘贴税票的,要退回州税务局。"
+    },
+    "footer": "来源:阿拉巴马州税务局通知 · 美国报税不漏DDL"
+  },
+  {
+    "id": "al-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A rule change lands", "in this state"],
+    "map": {
+      "state": "AL"
+    },
+    "badge": "2",
+    "stateName": "Alabama",
+    "newDate": "Sept 1",
+    "dueSuffix": "from",
+    "sub": "ALDOR starts collecting for Etowah County and stops for Walker on Oct 1. Same monthly return, opposite directions.",
+    "footer": "DueDateHQ · ALDOR notices"
+  },
+  {
+    "id": "al-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Alabama",
+    "newDate": "Sept 1",
+    "dueSuffix": "from",
+    "title": ["One return, two counties moving opposite ways"],
+    "rows": [
+      {
+        "label": "SEPT 1",
+        "value": "ALDOR begins collecting for Etowah County",
+        "note": "Cigarettes at $0.03 per pack, from the September 2026 return."
+      },
+      {
+        "label": "OCT 1",
+        "value": "Walker County moves to self-collection",
+        "note": "ALDOR stops collecting the same day; file with the county after that."
+      },
+      {
+        "label": "OCT 20",
+        "value": "The September 2026 return falls due",
+        "note": "It carries both changes, and it is the last Walker return filed with ALDOR."
+      }
+    ],
+    "callout": {
+      "label": "Keep this one separate",
+      "body": "Act 2025-377 levies $0.10 per millilitre on consumable vapor products from Oct 1 — a different change. Unaffixed Walker County stamps must go back to ALDOR."
+    },
+    "footer": "Source: Alabama Department of Revenue notices · DueDateHQ"
+  },
+  {
+    "id": "irs-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["这个州的规则", "要变了"],
+    "map": {
+      "state": "FED"
+    },
+    "badge": "1",
+    "stateName": "联邦",
+    "newDate": "7月9日",
+    "dueSuffix": "已生效",
+    "sub": "某些慈善剩余年金信托安排被列为 listed transaction,参与方与推介方都要披露。",
+    "footer": "美国报税不漏DDL · IR-2026-82"
+  },
+  {
+    "id": "irs-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "联邦",
+    "newDate": "7月9日",
+    "dueSuffix": "已生效",
+    "title": ["谁要报哪张表"],
+    "rows": [
+      {
+        "label": "参与的纳税人",
+        "value": "随申报表报送 Form 8886",
+        "note": "个人与信托都算参与方。"
+      },
+      {
+        "label": "材料推介方",
+        "value": "报送 Form 8918",
+        "note": "material advisor 另有单独的披露义务。"
+      },
+      {
+        "label": "仅任慈善剩余受益人",
+        "value": "不视为参与方",
+        "note": "别无其他角色或权益的组织,也不适用 §4965 消费税与相应披露。"
+      }
+    ],
+    "callout": {
+      "label": "被盯上的是哪种操作",
+      "body": "用增值资产设立名义上的 CRAT,在信托内出售该资产,再用价款购买年金,并按「信托分配规则不适用」的口径申报年金付款。未按规定披露有专门罚则。"
+    },
+    "footer": "来源:IRS IR-2026-82 · T.D. 10051 · 美国报税不漏DDL"
+  },
+  {
+    "id": "irs-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A rule change lands", "in this state"],
+    "map": {
+      "state": "FED"
+    },
+    "badge": "1",
+    "stateName": "Federal",
+    "newDate": "July 9",
+    "dueSuffix": "in force",
+    "sub": "Certain charitable remainder annuity trust arrangements are now listed transactions.",
+    "footer": "DueDateHQ · IR-2026-82"
+  },
+  {
+    "id": "irs-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Federal",
+    "newDate": "July 9",
+    "dueSuffix": "in force",
+    "title": ["Who files what"],
+    "rows": [
+      {
+        "label": "PARTICIPATING TAXPAYER",
+        "value": "Form 8886 with the return",
+        "note": "Individuals and trusts alike."
+      },
+      {
+        "label": "MATERIAL ADVISOR",
+        "value": "Form 8918",
+        "note": "A separate disclosure duty on the promoter side."
+      },
+      {
+        "label": "CHARITABLE REMAINDERMAN ONLY",
+        "value": "Not treated as a participant",
+        "note": "An organisation with no other role stays outside section 4965 and its disclosure rules."
+      }
+    ],
+    "callout": {
+      "label": "The structure being targeted",
+      "body": "Fund a purported CRAT with appreciated property, sell it inside the trust, buy an annuity with the proceeds, then report the annuity payments as if the trust distribution rules did not apply. Separate penalties apply for failure to disclose."
+    },
+    "footer": "Source: IRS IR-2026-82 · T.D. 10051 · DueDateHQ"
+  },
+  {
+    "id": "nc-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["这个州的规则", "要变了"],
+    "map": {
+      "state": "NC"
+    },
+    "badge": "1",
+    "stateName": "北卡",
+    "newDate": "7月23日",
+    "dueSuffix": "发布",
+    "sub": "Session Law 2026-31 把联邦税法典参照日从 2023年1月1日 推到 2025年7月5日。",
+    "footer": "美国报税不漏DDL · NCDOR 通知"
+  },
+  {
+    "id": "nc-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "北卡",
+    "newDate": "7月23日",
+    "dueSuffix": "发布",
+    "title": ["参照日一跳,三项调整跟着来"],
+    "rows": [
+      {
+        "label": "联邦税法典参照日",
+        "value": "2023年1月1日 → 2025年7月5日",
+        "note": "个人与企业所得税申报都受影响,涉及 D-400、CD-405、D-403。"
+      },
+      {
+        "label": "境内研发支出",
+        "value": "新增脱钩调整",
+        "note": "个人依 N.C. Gen. Stat. §105-153.6A,企业依 §105-130.5C。"
+      },
+      {
+        "label": "另外两项",
+        "value": "合格林木灾损扣除、赌博损失分项扣除"
+      }
+    ],
+    "callout": {
+      "label": "同日还有一份通知",
+      "body": "NCDOR 同日另发飓风 Helene 追加利息减免通知,涵盖特许经营税、企业所得税、个人所得税(含合伙与遗产信托)及代扣税。"
+    },
+    "footer": "来源:NCDOR 重要通知(2026 年 7月23日)· 美国报税不漏DDL"
+  },
+  {
+    "id": "nc-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A rule change lands", "in this state"],
+    "map": {
+      "state": "NC"
+    },
+    "badge": "1",
+    "stateName": "North Carolina",
+    "newDate": "July 23",
+    "dueSuffix": "notice",
+    "sub": "Session Law 2026-31 moves the state's IRC conformity date forward by two and a half years.",
+    "footer": "DueDateHQ · NCDOR notice"
+  },
+  {
+    "id": "nc-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "North Carolina",
+    "newDate": "July 23",
+    "dueSuffix": "notice",
+    "title": ["One conformity date, three adjustments"],
+    "rows": [
+      {
+        "label": "IRC CONFORMITY DATE",
+        "value": "Jan 1, 2023 → Jul 5, 2025",
+        "note": "Individual and corporate returns both feel it — D-400, CD-405, D-403."
+      },
+      {
+        "label": "DOMESTIC R&E EXPENDITURE",
+        "value": "A new decoupling adjustment",
+        "note": "N.C. Gen. Stat. § 105-153.6A for individuals, § 105-130.5C for corporations."
+      },
+      {
+        "label": "AND TWO MORE",
+        "value": "Timber casualty loss deduction, gambling loss itemised deduction"
+      }
+    ],
+    "callout": {
+      "label": "A second notice the same day",
+      "body": "NCDOR also published additional interest relief for Hurricane Helene taxpayers, covering franchise, corporate income, individual income (including partnership and estate and trust) and withholding tax."
+    },
+    "footer": "Source: NCDOR important notice, July 23, 2026 · DueDateHQ"
+  },
+  {
+    "id": "il-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["这个州的规则", "要变了"],
+    "map": {
+      "state": "IL"
+    },
+    "badge": "1",
+    "stateName": "伊利诺伊",
+    "newDate": "2026 税年",
+    "dueSuffix": "起",
+    "sub": "伊州与联邦 §168(n) 的 100% bonus 折旧脱钩,差异走 Form IL-4562。",
+    "footer": "美国报税不漏DDL · FY 2026-15"
+  },
+  {
+    "id": "il-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "伊利诺伊",
+    "newDate": "2026 税年",
+    "dueSuffix": "起",
+    "title": ["两处变动,起算年份不同"],
+    "rows": [
+      {
+        "label": "联邦侧",
+        "value": "bonus 折旧为计税基础的 100%",
+        "note": "2025 年 1月19日 之后取得并投入使用的资产。"
+      },
+      {
+        "label": "伊州侧 · 2026 税年起",
+        "value": "与联邦 §168(n) 脱钩",
+        "note": "2026 年 1月1日 或之后开始的税年,折旧差异走 Form IL-4562。"
+      },
+      {
+        "label": "Schedule M · 2025 税年起",
+        "value": "退休金改报第 14 行",
+        "note": "K-1-P 报告的付给退休合伙人的特定退休金、K-1-T 报告的受益人份额退休金,不再填 IL-1040 第 5 行。"
+      }
+    ],
+    "callout": {
+      "label": "涉及表格",
+      "body": "IL-1040、Schedule M(新增第 14、18 行)、Schedule K-1-P、Schedule K-1-T、Form IL-4562。依据 Public Act 104-0453。"
+    },
+    "footer": "来源:伊利诺伊州公告 FY 2026-15 · 美国报税不漏DDL"
+  },
+  {
+    "id": "il-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A rule change lands", "in this state"],
+    "map": {
+      "state": "IL"
+    },
+    "badge": "1",
+    "stateName": "Illinois",
+    "newDate": "TY 2026",
+    "dueSuffix": "from",
+    "sub": "Illinois decouples from the federal 100% bonus depreciation under IRC § 168(n).",
+    "footer": "DueDateHQ · Bulletin FY 2026-15"
+  },
+  {
+    "id": "il-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Illinois",
+    "newDate": "TY 2026",
+    "dueSuffix": "from",
+    "title": ["Two changes, two start years"],
+    "rows": [
+      {
+        "label": "FEDERALLY",
+        "value": "Bonus depreciation is 100% of basis",
+        "note": "Property acquired and placed in service after Jan 19, 2025."
+      },
+      {
+        "label": "ILLINOIS · FROM TY2026",
+        "value": "Decoupled from § 168(n)",
+        "note": "Tax years beginning on or after Jan 1, 2026; the difference runs through Form IL-4562."
+      },
+      {
+        "label": "SCHEDULE M · FROM TY2025",
+        "value": "Retirement pay moves to line 14",
+        "note": "Payments to retired partners on K-1-P and beneficiary shares on K-1-T leave IL-1040 line 5."
+      }
+    ],
+    "callout": {
+      "label": "Forms touched",
+      "body": "IL-1040, Schedule M (lines 14 and 18), Schedule K-1-P, Schedule K-1-T and Form IL-4562, under Public Act 104-0453."
+    },
+    "footer": "Source: Illinois bulletin FY 2026-15 · DueDateHQ"
+  }
+]

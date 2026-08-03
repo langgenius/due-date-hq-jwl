@@ -312,7 +312,7 @@ export async function renderCard(data) {
       <div class="ddhq__contbar">
         <span class="ddhq__contstate">${esc(data.stateName || '')}</span>
         <span class="ddhq__contdate">${esc(data.newDate || '')} ${esc(
-          locale === 'en' ? 'deadline' : '截止',
+          data.dueSuffix ?? (locale === 'en' ? 'deadline' : '截止'),
         )}</span>
       </div>
       <div class="ddhq__factstitle">${(Array.isArray(data.title) ? data.title : [data.title])
