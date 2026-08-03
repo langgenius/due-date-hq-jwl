@@ -16,7 +16,7 @@
 | 密西西比       | 风暴龙卷         | MS-2026-02  | 11/2 | 5 县                                | `mississippi-severe-storms-tornadoes-flooding`     |
 | 威斯康星       | 风暴龙卷         | WI-2026-02  | 11/2 | 21 县 + Oneida 保留地               | `wisconsin-severe-storms-tornadoes-flooding`       |
 | 密歇根         | 风暴龙卷         | MI-2026-02  | 11/2 | 37 县                               | `michigan-severe-storms-tornadoes-flooding`        |
-| 路易斯安那     | 热带风暴 Arthur  | LA-2026-02  | 11/2 | 4 堂区                              | `louisiana-tropical-storm-arthur`                  |
+| 路易斯安那     | 热带风暴 Arthur  | LA-2026-02  | 11/2 | 6 堂区                              | `louisiana-tropical-storm-arthur`                  |
 | 北马里亚纳群岛 | 超强台风 Sinlaku | NMI-2026-01 | 11/2 | Northern Islands/Rota/Saipan/Tinian | `northern-mariana-islands-super-typhoon-sinlaku`   |
 
 > ⚠️ 都是**现行未过期**的(截止日 8/20、9/28、11/2)。发前建议在对应 irs.gov 公告页快速核一眼受灾名单(县/堂区数),再发。已发过的(NC/GA/WA/CA)不在此库;**HI / AZ / MT Fort Peck 已进 `posts/2026-07-29/` 发帖包**,发出后从此表划掉。

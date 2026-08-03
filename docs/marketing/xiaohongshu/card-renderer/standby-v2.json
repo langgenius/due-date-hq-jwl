@@ -1,0 +1,443 @@
+[
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "HI"
+    },
+    "badge": "1",
+    "stateName": "夏威夷",
+    "countdown": {
+      "days": 17,
+      "tone": "far"
+    },
+    "newDate": "8月20日",
+    "sub": "4 个县,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · HI-2026-01"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "夏威夷",
+    "newDate": "8月20日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "4 个县",
+        "note": "完整名单以 irs.gov 公告 HI-2026-01 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 3月10日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 HI-2026-01 · 美国报税不漏DDL"
+  },
+  {
+    "id": "arizona-san-carlos-apache-severe-storms-flooding-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "AZ"
+    },
+    "badge": "1",
+    "stateName": "亚利桑那",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "9月28日",
+    "sub": "San Carlos Apache 部落,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · AZ-2026-01"
+  },
+  {
+    "id": "arizona-san-carlos-apache-severe-storms-flooding-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "亚利桑那",
+    "newDate": "9月28日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "San Carlos Apache 部落",
+        "note": "完整名单以 irs.gov 公告 AZ-2026-01 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2025 年 10月10日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 AZ-2026-01 · 美国报税不漏DDL"
+  },
+  {
+    "id": "montana-fort-peck-tribes-winter-storm-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "MT"
+    },
+    "badge": "1",
+    "stateName": "蒙大拿",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "9月28日",
+    "sub": "Fort Peck 部落,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · MT-2026-03"
+  },
+  {
+    "id": "montana-fort-peck-tribes-winter-storm-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "蒙大拿",
+    "newDate": "9月28日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "Fort Peck 部落",
+        "note": "完整名单以 irs.gov 公告 MT-2026-03 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2025 年 12月17日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 MT-2026-03 · 美国报税不漏DDL"
+  },
+  {
+    "id": "montana-crow-tribe-winter-storm-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "MT"
+    },
+    "badge": "1",
+    "stateName": "蒙大拿",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "9月28日",
+    "sub": "Crow 部落,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · MT-2026-04"
+  },
+  {
+    "id": "montana-crow-tribe-winter-storm-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "蒙大拿",
+    "newDate": "9月28日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "Crow 部落",
+        "note": "完整名单以 irs.gov 公告 MT-2026-04 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2025 年 12月17日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 MT-2026-04 · 美国报税不漏DDL"
+  },
+  {
+    "id": "louisiana-tropical-storm-arthur-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "LA"
+    },
+    "badge": "1",
+    "stateName": "路易斯安那",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "11月2日",
+    "sub": "6 个堂区,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · LA-2026-02"
+  },
+  {
+    "id": "louisiana-tropical-storm-arthur-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "路易斯安那",
+    "newDate": "11月2日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "6 个堂区",
+        "note": "完整名单以 irs.gov 公告 LA-2026-02 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 6月17日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 LA-2026-02 · 美国报税不漏DDL"
+  },
+  {
+    "id": "michigan-severe-storms-tornadoes-flooding-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "MI"
+    },
+    "badge": "1",
+    "stateName": "密歇根",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "11月2日",
+    "sub": "37 个县,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · MI-2026-02"
+  },
+  {
+    "id": "michigan-severe-storms-tornadoes-flooding-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "密歇根",
+    "newDate": "11月2日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "37 个县",
+        "note": "完整名单以 irs.gov 公告 MI-2026-02 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 4月10日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 MI-2026-02 · 美国报税不漏DDL"
+  },
+  {
+    "id": "mississippi-severe-storms-tornadoes-flooding-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "MS"
+    },
+    "badge": "1",
+    "stateName": "密西西比",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "11月2日",
+    "sub": "5 个县,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · MS-2026-02"
+  },
+  {
+    "id": "mississippi-severe-storms-tornadoes-flooding-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "密西西比",
+    "newDate": "11月2日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "5 个县",
+        "note": "完整名单以 irs.gov 公告 MS-2026-02 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 5月6日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 MS-2026-02 · 美国报税不漏DDL"
+  },
+  {
+    "id": "northern-mariana-islands-super-typhoon-sinlaku-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "MP"
+    },
+    "badge": "1",
+    "stateName": "北马里亚纳群岛",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "11月2日",
+    "sub": "受灾岛屿,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · NMI-2026-01"
+  },
+  {
+    "id": "northern-mariana-islands-super-typhoon-sinlaku-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "北马里亚纳群岛",
+    "newDate": "11月2日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "受灾岛屿",
+        "note": "完整名单以 irs.gov 公告 NMI-2026-01 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 4月11日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 NMI-2026-01 · 美国报税不漏DDL"
+  },
+  {
+    "id": "wisconsin-severe-storms-tornadoes-flooding-p1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": {
+      "state": "WI"
+    },
+    "badge": "1",
+    "stateName": "威斯康星",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "11月2日",
+    "sub": "21 个县,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · WI-2026-02"
+  },
+  {
+    "id": "wisconsin-severe-storms-tornadoes-flooding-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "威斯康星",
+    "newDate": "11月2日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "21 个县",
+        "note": "完整名单以 irs.gov 公告 WI-2026-02 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 4月13日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 WI-2026-02 · 美国报税不漏DDL"
+  }
+]

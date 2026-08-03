@@ -272,9 +272,9 @@ export async function renderCard(data) {
           <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
           ${
             cd.days != null
-              ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(
-                  cd.days,
-                )}</b> ${esc(cd.unit || '天')}</span>`
+              ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
+                  cd.label || '还剩',
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
               : ''
           }
         </div>
@@ -358,9 +358,9 @@ export async function renderCard(data) {
           <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
           ${
             cd.days != null
-              ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(
-                  cd.days,
-                )}</b> ${esc(cd.unit || '天')}</span>`
+              ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
+                  cd.label || '还剩',
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
               : ''
           }
         </div>

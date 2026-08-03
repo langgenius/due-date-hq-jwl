@@ -46,18 +46,18 @@ Which states are your clients in? Follow for the updated list each week — this
 
 图:`louisiana-tropical-storm-arthur-cover / -p1 / -p2`(小红书)· `louisiana-tropical-storm-arthur-li-carousel.pdf`(LinkedIn **文档帖**,3 页 4:5;横版 `-en` 仅作备用)
 
-**小红书标题**:`路易斯安那 4 堂区报税延到 11月2日 🗓`
+**小红书标题**:`路易斯安那 6 堂区报税延到 11月2日 🗓`
 
 **小红书配文**
 
 ```
-路易斯安那 4 堂区报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
+路易斯安那 6 堂区报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
 【前情提要】
-2026 年 6月17日 起,Avoyelles、St. Landry、St. Tammany、Terrebonne 等 4 个堂区发生热带风暴灾害。IRS 据此发布灾害减免(LA-2026-02):受灾期内原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。
+2026 年 6月17日 起,Avoyelles、Lafourche、Pointe Coupee、St. Landry、St. Tammany、Terrebonne 等 6 个堂区发生热带风暴灾害。IRS 据此发布灾害减免(LA-2026-02):受灾期内原本到期的联邦申报与缴款,统一延至 2026 年 11月2日。
 
 【覆盖范围】
-· 受灾地区:Avoyelles、St. Landry、St. Tammany、Terrebonne 等 4 个堂区
+· 受灾地区:Avoyelles、Lafourche、Pointe Coupee、St. Landry、St. Tammany、Terrebonne 等 6 个堂区
 · 延期项:季度预缴、1120-S、1065、941 等受灾期内到期的联邦申报与缴款
 · 适用方式:地址在受灾堂区内的自动适用;堂区外但账册或记账人在内的,需致电 IRS 灾害热线申请
 
@@ -72,7 +72,7 @@ Which states are your clients in? Follow for the updated list each week — this
 
 ```
 IRS tax deadline extension — Louisiana.
-The IRS has postponed federal tax deadlines to Nov 2, 2026 for Louisiana taxpayers affected by Tropical Storm Arthur under disaster relief LA-2026-02. Clients in Avoyelles, St. Landry, St. Tammany, Terrebonne parishes now have moved federal filing and payment deadlines — returns and payments due on or after Jun 17, 2026 through Nov 2, 2026 (estimated payments, Form 1120-S, Form 1065, Form 941). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
+The IRS has postponed federal tax deadlines to Nov 2, 2026 for Louisiana taxpayers affected by Tropical Storm Arthur under disaster relief LA-2026-02. Clients in Avoyelles, Lafourche, Pointe Coupee, St. Landry, St. Tammany, Terrebonne parishes now have moved federal filing and payment deadlines — returns and payments due on or after Jun 17, 2026 through Nov 2, 2026 (estimated payments, Form 1120-S, Form 1065, Form 941). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Louisiana
 ```

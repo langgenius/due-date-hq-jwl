@@ -1808,3 +1808,21 @@
 .ddhq--facts .ddhq__calloutbody {
   line-height: 1.55;
 }
+
+/* 倒计时分档:红色只留给真正来不及的。三档同时有字号差,不单靠颜色。
+   特异度要压过上面按卡型写的通用规则,否则永远是红的。 */
+.ddhq--hero .ddhq__duemeta--now b,
+.ddhq--mapcover .ddhq__duemeta--now b {
+  color: var(--red);
+  font-size: 56px;
+}
+.ddhq--hero .ddhq__duemeta--soon b,
+.ddhq--mapcover .ddhq__duemeta--soon b {
+  color: #9a5b12;
+  font-size: 52px;
+}
+.ddhq--hero .ddhq__duemeta--far b,
+.ddhq--mapcover .ddhq__duemeta--far b {
+  color: var(--navy);
+  font-size: 48px;
+}

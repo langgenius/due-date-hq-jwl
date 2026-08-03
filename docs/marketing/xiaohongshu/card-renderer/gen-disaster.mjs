@@ -178,6 +178,22 @@ const CFG = {
   },
 }
 
+/* 有没有合规照片,自动决定走方向 A(实景)还是方向 B(方块地图)。
+   photos/<code>.jpg 存在就用 hero,不存在就用 mapcover —— 不为了配图硬凑。 */
+function photoFor(code) {
+  const rel = `photos/${code}.jpg`
+  return fs.existsSync(path.join(HERE, rel)) ? rel : null
+}
+/* 倒计时口径与卡面一致:≤3 天 now,≤14 天 soon,其余 far。
+   今天由 --today 传入(脚本内不取系统时间,保证可复现)。 */
+const TODAY = (process.argv.find((a) => a.startsWith('--today=')) || '').slice(8)
+function countdown(deadlineIso) {
+  if (!TODAY) return null
+  const d = Math.round((Date.parse(deadlineIso) - Date.parse(TODAY)) / 86400000)
+  if (d < 0) return null
+  return { days: d, tone: d <= 3 ? 'now' : d <= 14 ? 'soon' : 'far' }
+}
+
 const out = []
 const caps = [
   '# 灾害卡备用库 · 配文\n\n每条:小红书标题 + 小红书配文 + LinkedIn 配文。事实取自人工核实的 `disaster-notices.ts`。\nLinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速核一眼受灾名单。\n',
@@ -235,6 +251,74 @@ for (const n of DATA) {
       ? `位于受灾岛屿的纳税人自动适用,无需申请;岛外但账册或记账人在内的,需致电 IRS 灾害热线申请。`
       : `地址在受灾${c.unit}内的自动适用,无需申请;${c.unit}外但账册或记账人在内的,需致电 IRS 灾害热线申请。`
 
+  // ── 第 1 页:有照片走 hero,没有走 mapcover ──
+  const photo = photoFor(n.code)
+  const cd = countdown(n.deadline)
+  const areaShort = isTribe ? c.tribe : isTerr ? '受灾岛屿' : `${count} 个${c.unit}`
+  out.push(
+    photo
+      ? {
+          id: `${n.slug}-p1cover`,
+          kind: 'hero',
+          locale: 'zh',
+          format: 'xhs',
+          photo,
+          heroTag: 'IRS',
+          eyebrow: '今天这个州的报税截止日在逼近',
+          map,
+          stateName: c.cn,
+          countdown: cd,
+          newDate: newZh,
+          sub: `${areaShort},地址在范围内的自动适用。`,
+          footer: `美国报税不漏DDL · ${n.code}`,
+        }
+      : {
+          id: `${n.slug}-p1cover`,
+          kind: 'mapcover',
+          locale: 'zh',
+          format: 'xhs',
+          title: ['今天这个州的', '报税截止日在逼近'],
+          map: { state: n.abbreviation },
+          badge: '1',
+          stateName: c.cn,
+          countdown: cd,
+          newDate: newZh,
+          sub: `${areaShort},地址在范围内的自动适用。`,
+          footer: `美国报税不漏DDL · ${n.code}`,
+        },
+  )
+  // ── 第 2 页:覆盖谁,怎么适用 ──
+  out.push({
+    id: `${n.slug}-p2facts`,
+    kind: 'facts',
+    locale: 'zh',
+    format: 'xhs',
+    stateName: c.cn,
+    newDate: newZh,
+    title: ['覆盖谁,怎么适用'],
+    rows: [
+      {
+        label: '受灾范围',
+        value: areaShort,
+        note: `完整名单以 irs.gov 公告 ${n.code} 为准。`,
+      },
+      {
+        label: '适用方式',
+        value: '自动适用,无需申请',
+        note: 'IRS 存档地址在受灾范围内的,不必提出申请。',
+      },
+      {
+        label: '覆盖起点',
+        value: `${incZh} 起到期的联邦申报与缴款`,
+      },
+    ],
+    callout: {
+      label: '这种情形要主动打电话',
+      body: '客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。',
+    },
+    footer: `来源:IRS 公告 ${n.code} · 美国报税不漏DDL`,
+  })
+  // ── 旧版三张(cover/p1/p2)暂留,迁移完成后删 ──
   // ── cover ──
   out.push({
     id: `${n.slug}-cover`,
