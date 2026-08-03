@@ -1733,3 +1733,49 @@
   padding-left: 16px;
   border-left: 2px solid var(--rule);
 }
+
+/* ============================================================
+   垂直节奏:固定四档,全局一致
+   ------------------------------------------------------------
+   撤掉「按高度均分」的做法 —— 那让同一种间距在两页上长得不一样,
+   行数少的页面行距被撑得离谱。内容短就早点结束,底部留白是留白,
+   不是要被填满的洞。页脚仍钉在底部。
+   ============================================================ */
+.ddhq--facts,
+.ddhq--hero,
+.ddhq--mapcover {
+  --sp-1: 16px;
+  --sp-2: 28px;
+  --sp-3: 44px;
+  --sp-4: 64px;
+}
+
+.ddhq--facts .ddhq__facts {
+  flex: 0 0 auto;
+  display: block;
+  margin-top: var(--sp-2);
+}
+.ddhq--facts .ddhq__fact {
+  padding: var(--sp-3) 0;
+}
+.ddhq--facts .ddhq__fact:first-child {
+  padding-top: var(--sp-2);
+}
+.ddhq--facts .ddhq__factval {
+  margin-top: var(--sp-1);
+}
+.ddhq--facts .ddhq__factnote {
+  margin-top: var(--sp-1);
+}
+.ddhq--facts .ddhq__factstitle {
+  margin-top: var(--sp-3);
+}
+.ddhq--facts .ddhq__callout {
+  margin-top: var(--sp-3);
+  margin-bottom: 0;
+  padding: var(--sp-2) 32px;
+}
+.ddhq--facts .ddhq__ft {
+  margin-top: auto;
+  padding-top: var(--sp-2);
+}
