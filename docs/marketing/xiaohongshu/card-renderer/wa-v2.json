@@ -1,0 +1,33 @@
+[
+  {
+    "id": "v2-hero-wa",
+    "kind": "hero",
+    "locale": "zh",
+    "format": "xhs",
+    "heroTag": "IRS",
+    "eyebrow": "今天这个州的报税截止日在逼近",
+    "map": { "state": "WA", "counties": [] },
+    "stateName": "华盛顿",
+    "countdown": { "days": 2, "tone": "now" },
+    "oldDate": "4月15日",
+    "newDate": "8月5日",
+    "sub": "因风暴洪水,IRS 把华盛顿 24 县 + 25 个部落领地的联邦报税截止日延后到 8月5日(WA-2025-03)。地址在范围内的自动适用,无需申请。",
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
+    "footer": "美国报税不漏DDL · 2026年8月3日"
+  },
+  {
+    "id": "v2-map-wa",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": ["今天这个州的", "报税截止日在逼近"],
+    "map": { "state": "WA" },
+    "badge": "1",
+    "stateName": "华盛顿",
+    "countdown": { "days": 2, "tone": "now" },
+    "newDate": "8月5日",
+    "sub": "因风暴洪水,IRS 把华盛顿 24 县 + 25 个部落领地的联邦报税截止日延后到 8月5日(WA-2025-03)。",
+    "forms": ["1040", "1120", "1120-S", "1065", "预缴"],
+    "footer": "美国报税不漏DDL · 2026年8月3日"
+  }
+]

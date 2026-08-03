@@ -2,6 +2,8 @@
    renderCard(data) -> Promise<HTMLElement>
    See samples.json for the payload shape. */
 
+import { tilegram, tileAnchor } from './tiles.js'
+
 const ICON_BASE = new URL('./icons/', import.meta.url).href
 const iconCache = new Map()
 
@@ -246,6 +248,105 @@ export async function renderCard(data) {
       <div class="ddhq__fl">${esc(data.footer)}</div>
       <div class="ddhq__fr">${wordmark}</div>
     </div>`
+
+  /* ── hero:实景/深色英雄图 + 悬浮信息卡(方向 A)──
+     差异化来自每条自己的图。没有图时退回州形深色底,版式不塌。 */
+  if (kind === 'hero') {
+    const st = (data.map && data.map.state) || ''
+    const glyph = st ? await stateIcon(st, (data.map && data.map.counties) || []) : ''
+    const heroStyle = data.photo ? `background-image:url('${esc(data.photo)}')` : ''
+    const cd = data.countdown || {}
+    el.innerHTML = `${grainLayer()}
+      <div class="ddhq__hero${data.photo ? '' : ' ddhq__hero--flat'}" style="${heroStyle}">
+        ${data.photo ? '' : `<div class="ddhq__heroglyph">${glyph}</div>`}
+        <div class="ddhq__heroveil"></div>
+        <div class="ddhq__herotag">${esc(data.heroTag || (data.source && data.source.org) || '')}</div>
+      </div>
+      <div class="ddhq__float">
+        <div class="ddhq__kicker">${esc(data.eyebrow)}</div>
+        <div class="ddhq__stateline">
+          ${glyph ? `<span class="ddhq__stateglyph">${glyph}</span>` : ''}
+          <span class="ddhq__statename">${esc(data.stateName)}</span>
+          ${
+            cd.days != null
+              ? `<span class="ddhq__cd ddhq__cd--${cd.tone || 'far'}">${esc(
+                  cd.label || '还剩',
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+              : ''
+          }
+        </div>
+        <div class="ddhq__shift">
+          ${data.oldDate ? `<span class="ddhq__was serif">${esc(data.oldDate)}</span>` : ''}
+          <span class="ddhq__now serif">${esc(data.newDate)}</span>
+          <span class="ddhq__newpill">new</span>
+        </div>
+        ${data.sub ? `<div class="ddhq__blurb">${esc(data.sub)}</div>` : ''}
+        ${
+          (data.forms || []).length
+            ? `<div class="ddhq__tags">${data.forms
+                .map(
+                  (f) =>
+                    `<span class="ddhq__tag${/^[\d-]/.test(f) ? ' mono' : ''}">${esc(f)}</span>`,
+                )
+                .join('')}</div>`
+            : ''
+        }
+        ${footer}
+      </div>`
+    return el
+  }
+
+  /* ── mapcover:全美方块地图作主视觉(方向 B)──
+     高亮块 = 本条讲的辖区;缩略图尺寸下「是不是我的州」一眼可判。 */
+  if (kind === 'mapcover') {
+    const st = (data.map && data.map.state) || ''
+    const anchor = tileAnchor(st)
+    const cd = data.countdown || {}
+    el.innerHTML = `${grainLayer()}<div class="ddhq__card">
+      <div class="ddhq__mchead">
+        <div class="ddhq__fr ddhq__mcmark">${wordmark}</div>
+        <div class="ddhq__mctitle">${(Array.isArray(data.title) ? data.title : [data.title])
+          .map(esc)
+          .join('<br>')}</div>
+      </div>
+      <div class="ddhq__mapwrap">
+        ${tilegram({ active: [st] })}
+        ${
+          anchor && data.badge
+            ? `<span class="ddhq__badge" style="left:${anchor.xPct}%;top:${anchor.yPct}%">${esc(
+                data.badge,
+              )}</span>`
+            : ''
+        }
+      </div>
+      <div class="ddhq__mcfoot">
+        <div class="ddhq__stateline">
+          <span class="ddhq__statename">${esc(data.stateName)}</span>
+          ${
+            cd.days != null
+              ? `<span class="ddhq__cd ddhq__cd--${cd.tone || 'far'}">${esc(
+                  cd.label || '还剩',
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+              : ''
+          }
+          <span class="ddhq__now ddhq__now--inline serif">${esc(data.newDate)}</span>
+        </div>
+        ${data.sub ? `<div class="ddhq__blurb">${esc(data.sub)}</div>` : ''}
+        ${
+          (data.forms || []).length
+            ? `<div class="ddhq__tags">${data.forms
+                .map(
+                  (f) =>
+                    `<span class="ddhq__tag${/^[\d-]/.test(f) ? ' mono' : ''}">${esc(f)}</span>`,
+                )
+                .join('')}</div>`
+            : ''
+        }
+        ${footer}
+      </div>
+    </div>`
+    return el
+  }
 
   if (kind === 'cover') {
     /* 小红书封面:大字钩子优先(瀑布流里靠这张拿到点击)。可选 eyebrow + sub。

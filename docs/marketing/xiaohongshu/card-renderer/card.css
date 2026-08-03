@@ -18,8 +18,8 @@
   --stamp-ink: #2b3a6b;
 
   /* neutrals */
-  --g1: #8e8c85;
-  --g2: #b6b4ac;
+  --g1: #5f5d56; /* 6.4:1 · 正文可用 */
+  --g2: #7c7970; /* 4.6:1 · 小字可用 */
   --rule: #e6e4dd;
   --chip: #f2f1ec;
   --map-off: #d3d1c8;
@@ -740,4 +740,502 @@
 /* preview scaling only — never applied on export */
 .ddhq--scaled {
   transform-origin: top left;
+}
+
+/* ============================================================
+   领英文档轮播:编辑式精修层
+   小红书封面要「吼」才能在瀑布流抢到点击;领英是专业信息流,
+   可信度来自克制。以下只作用于 .ddhq--li,不影响小红书。
+   ============================================================ */
+
+/* 纸面转暖白,墨色转柔;纯黑配纯白是「粗」的主要来源 */
+.ddhq--li {
+  --paper: #fbfaf7;
+  --ink: #1c1b18;
+  --rule: #e8e5dd;
+  --g1: #6f6d66;
+  --g2: #a5a29a;
+  padding: 30px;
+}
+.ddhq--li .ddhq__card {
+  border-radius: 26px;
+  padding: 74px 68px 56px;
+}
+
+/* 眉条:去掉荧光药丸,改小型大写 + 细线,像刊头 */
+.ddhq--li .ddhq__cveb {
+  align-self: stretch;
+  background: none;
+  color: var(--navy);
+  padding: 0 0 22px;
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* 标题:降号、减重、收字距 —— 从「喊」变成「说」 */
+.ddhq--li.ddhq--en .ddhq__cvhook {
+  font-size: 86px;
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.028em;
+}
+.ddhq--li .ddhq__cvmid {
+  margin-top: 96px;
+}
+
+/* 高亮:手绘荧光块 → 精确的细下划线 + 深蓝字。安静但更贵 */
+.ddhq--li .ddhq__cvhl {
+  padding: 0 0 6px;
+  border-bottom: 7px solid var(--lime);
+}
+.ddhq--li .ddhq__cvhl .ddhq__hl {
+  display: none;
+}
+.ddhq--li .ddhq__cvhlt {
+  color: var(--navy);
+}
+
+/* 导语:加大行距、收窄字号,给标题留呼吸 */
+.ddhq--li.ddhq--en .ddhq__cvsub {
+  font-size: 35px;
+  line-height: 1.62;
+  color: var(--g1);
+  margin-top: 52px;
+  max-width: 84%;
+}
+
+/* 内页标题同样降一档 */
+.ddhq--li.ddhq--en .ddhq__h {
+  font-size: 62px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+}
+
+/* 数据页:日期块同样去荧光块,改深蓝 + 下划线 */
+.ddhq--li .ddhq__new {
+  padding: 0 0 8px;
+  border-bottom: 8px solid var(--lime);
+}
+.ddhq--li .ddhq__new .ddhq__hl {
+  display: none;
+}
+.ddhq--li .ddhq__newtx {
+  font-size: 78px;
+  font-weight: 500;
+  color: var(--navy);
+  letter-spacing: -0.03em;
+}
+.ddhq--li .ddhq__old {
+  font-size: 34px;
+  padding-bottom: 12px;
+  text-decoration-thickness: 3px;
+}
+.ddhq--li .ddhq__arw {
+  font-size: 28px;
+  padding-bottom: 14px;
+}
+.ddhq--li .ddhq__lab {
+  font-size: 21px;
+  letter-spacing: 0.18em;
+  color: var(--g2);
+}
+
+/* 表单 chip:去圆角改方角细框,像资料卡不像按钮 */
+.ddhq--li .ddhq__tag {
+  background: none;
+  border: 2px solid var(--rule);
+  border-radius: 6px;
+  font-size: 24px;
+  padding: 8px 20px;
+  color: var(--g1);
+}
+
+/* 对照表:数值转深蓝,行距放松 */
+.ddhq--li .ddhq__r {
+  padding: 24px 0;
+  border-bottom-color: var(--rule);
+}
+.ddhq--li .ddhq__rd {
+  color: var(--navy);
+  font-weight: 500;
+}
+.ddhq--li .ddhq__rs {
+  font-size: 29px;
+}
+.ddhq--li .ddhq__rq {
+  font-size: 22px;
+}
+
+/* 日程卡:日期转深蓝,倒计时药丸改细框 */
+.ddhq--li .ddhq__agd {
+  color: var(--navy);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.ddhq--li .ddhq__agn {
+  background: none;
+  border: 2px solid var(--lime);
+  color: var(--lime-ink);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+.ddhq--li .ddhq__ags {
+  gap: 10px 34px;
+}
+.ddhq--li .ddhq__agst {
+  font-size: 29px;
+}
+.ddhq--li .ddhq__agss {
+  font-size: 24px;
+}
+
+/* 要点:编号转细框深蓝,正文放松行距 */
+.ddhq--li .ddhq__nn {
+  background: none;
+  border: 2px solid var(--navy);
+  color: var(--navy);
+  font-weight: 500;
+}
+.ddhq--li.ddhq--en .ddhq__nx {
+  font-size: 33px;
+  line-height: 1.62;
+  color: #35342f;
+}
+
+/* 页脚:细线更淡 */
+.ddhq--li .ddhq__ft {
+  border-top-color: var(--rule);
+}
+.ddhq--li .ddhq__fl {
+  font-size: 21px;
+  letter-spacing: 0.01em;
+}
+
+/* ledger 补白线在精修版里太机械,关掉 */
+.ddhq--li .ddhq__cvledger,
+.ddhq--li .ddhq__base:empty {
+  background: none;
+}
+
+/* ---- 领英构成:封面深、内页浅 ----
+   一深一浅本身就是版式决定 —— 封面在信息流里立得住,内页保持易读。
+   也顺带解决了浅色 wordmark 压在深底上的反色问题(封面直接用白版)。 */
+
+.ddhq--li.ddhq--cover .ddhq__card {
+  background: var(--navy);
+}
+.ddhq--li.ddhq--cover .ddhq__cveb {
+  color: var(--lime);
+  border-bottom-color: rgb(255 255 255 / 0.16);
+}
+.ddhq--li.ddhq--cover .ddhq__cvhook {
+  color: #fdfdfb;
+}
+.ddhq--li.ddhq--cover .ddhq__cvhl {
+  border-bottom-color: var(--lime);
+}
+.ddhq--li.ddhq--cover .ddhq__cvhlt {
+  color: var(--lime);
+}
+.ddhq--li.ddhq--cover .ddhq__cvsub {
+  color: rgb(255 255 255 / 0.7);
+}
+.ddhq--li.ddhq--cover .ddhq__ft {
+  border-top-color: rgb(255 255 255 / 0.16);
+}
+.ddhq--li.ddhq--cover .ddhq__fl {
+  color: rgb(255 255 255 / 0.5);
+}
+/* wordmark 在深底上:只把深色笔画转白,浅色块保持不动(整体 invert 会露白底) */
+.ddhq--li.ddhq--cover .ddhq__fr svg [fill='#0A2540'],
+.ddhq--li.ddhq--cover .ddhq__fr svg [fill='#1F315C'],
+.ddhq--li.ddhq--cover .ddhq__fr svg [fill='#5B6B7D'],
+.ddhq--li.ddhq--cover .ddhq__fr svg [fill='black'] {
+  fill: #fdfdfb;
+}
+/* 州形在深底上:提亮而不是压暗,且避开正文区域 */
+.ddhq--li.ddhq--cover .ddhq__cvmark {
+  right: -150px;
+  bottom: -40px;
+  width: 760px;
+  opacity: 0.07;
+}
+.ddhq--li.ddhq--cover .ddhq__cvmark svg path {
+  fill: #ffffff;
+}
+
+/* ============================================================
+   v2 版式:hero(实景/深色英雄图)与 mapcover(方块地图)
+   ------------------------------------------------------------
+   两条设计原则:
+   ① 差异化来自内容自带的变量(照片 / 高亮的州),不靠装饰;
+   ② 封面信息预算 = 5 件事,按层级排,不是全部堆平:
+      哪个州 → 还剩几天 → 新截止日 → 为什么 → 谁受影响。
+   可访问性:正文灰阶全部提到 AA 以上;紧迫度不只用颜色,
+   同时用「还剩 N 天」的字面与字号表达。
+   ============================================================ */
+
+.ddhq--hero,
+.ddhq--mapcover {
+  --ink: #16150f;
+  --ink-2: #45433c; /* 正文 · 8.6:1 */
+  --ink-3: #5f5d56; /* 次级 · 6.4:1 */
+  --rule: #e7e4dc;
+  padding: 0;
+  background: var(--paper);
+}
+
+/* ---- hero:英雄图 ---- */
+.ddhq__hero {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+.ddhq__hero--flat {
+  background: var(--navy);
+}
+.ddhq__heroglyph {
+  position: absolute;
+  right: -8%;
+  top: 4%;
+  width: 78%;
+  opacity: 0.14;
+}
+.ddhq__heroglyph svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ddhq__heroglyph svg path {
+  fill: #ffffff;
+}
+/* 面纱:保证压在图上的文字任何底图下都可读 */
+.ddhq__heroveil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(12 16 32 / 0.42) 0%, rgb(12 16 32 / 0.12) 34%);
+}
+.ddhq__herotag {
+  position: absolute;
+  left: 76px;
+  top: 74px;
+  font-size: 26px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.88);
+  padding: 10px 0;
+  border-top: 2px solid rgb(255 255 255 / 0.38);
+  border-bottom: 2px solid rgb(255 255 255 / 0.38);
+}
+
+/* ---- hero:悬浮信息卡 ---- */
+.ddhq__float {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  top: 33%;
+  z-index: 2;
+  background: var(--paper);
+  border-radius: 30px;
+  padding: 60px 60px 44px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 32px 64px -28px rgb(12 16 32 / 0.42);
+}
+.ddhq__kicker {
+  font-size: 30px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* 州名 + 倒计时:封面的第一落点 */
+.ddhq__stateline {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 40px;
+}
+.ddhq__stateglyph {
+  width: 96px;
+  flex-shrink: 0;
+}
+.ddhq__stateglyph svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ddhq__statename {
+  font-size: 76px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink);
+  line-height: 1;
+}
+.ddhq__cd {
+  font-size: 34px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.ddhq__cd b {
+  font-size: 46px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+/* 紧迫度三档:颜色 + 字号双通道,不靠颜色单独承载 */
+.ddhq__cd--now b {
+  color: var(--red);
+  font-size: 54px;
+}
+.ddhq__cd--soon b {
+  color: #a25c12;
+  font-size: 50px;
+}
+.ddhq__cd--far b {
+  color: var(--navy);
+}
+
+/* 日期变更 */
+.ddhq__shift {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-top: 34px;
+}
+.ddhq__was {
+  font-size: 40px;
+  color: var(--g2);
+  text-decoration: line-through;
+  text-decoration-color: var(--red);
+  text-decoration-thickness: 4px;
+}
+.ddhq__now {
+  font-size: 56px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.ddhq__now--inline {
+  font-size: 40px;
+  margin-left: 4px;
+}
+.ddhq__newpill {
+  font-size: 24px;
+  color: var(--lime-ink);
+  background: var(--lime);
+  border-radius: 999px;
+  padding: 6px 18px;
+  align-self: center;
+}
+
+.ddhq__blurb {
+  font-size: 31px;
+  line-height: 1.68;
+  color: var(--ink-2);
+  margin-top: 32px;
+  max-width: 40ch;
+}
+
+.ddhq--hero .ddhq__ft,
+.ddhq--mapcover .ddhq__ft {
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 2px solid var(--rule);
+}
+.ddhq--hero .ddhq__fl,
+.ddhq--mapcover .ddhq__fl {
+  font-size: 24px;
+  color: var(--ink-3);
+}
+
+/* ---- mapcover ---- */
+.ddhq--mapcover .ddhq__card {
+  border-radius: 0;
+  padding: 76px 72px 60px;
+  background: var(--paper);
+}
+.ddhq__mcmark svg {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+.ddhq__mctitle {
+  font-size: 62px;
+  font-weight: 600;
+  line-height: 1.28;
+  color: var(--ink);
+  margin-top: 52px;
+  max-width: 15ch;
+}
+.ddhq__mapwrap {
+  position: relative;
+  margin: auto 0;
+  padding: 30px 0;
+}
+.ddhq__tilegram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ddhq__tile {
+  fill: #eeece5;
+}
+.ddhq__tile--on {
+  fill: var(--navy);
+}
+.ddhq__tilelab {
+  fill: rgb(255 255 255 / 0.82);
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+.ddhq__badge {
+  position: absolute;
+  transform: translate(-46%, -52%);
+  min-width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #5eead4;
+  color: #0f3d36;
+  font-size: 28px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+.ddhq__mcfoot .ddhq__stateline {
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+
+/* ---- v2 修正 ---- */
+
+/* 州形小图:实心深蓝剪影,96px 下县界线只会糊成噪点 */
+.ddhq__stateglyph svg path {
+  fill: var(--navy);
+}
+
+/* 方块地图不得与标题相撞;整体收窄,让高亮块的相对面积更大 */
+.ddhq__mapwrap {
+  margin: 56px auto 40px;
+  padding: 0;
+  width: 86%;
+}
+.ddhq--mapcover .ddhq__mctitle {
+  max-width: 13ch;
+}
+
+/* wordmark 只出现一次:mapcover 顶部已有,页脚只留账号名与日期 */
+.ddhq--mapcover .ddhq__ft .ddhq__fr {
+  display: none;
+}
+.ddhq--mapcover .ddhq__ft {
+  justify-content: flex-start;
 }
