@@ -1,0 +1,80 @@
+[
+  {
+    "id": "wa-li-1cover",
+    "kind": "hero",
+    "locale": "en",
+    "format": "li",
+    "photo": "photos/wa-2025-03.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "A postponed federal deadline runs out this week",
+    "map": {
+      "state": "WA",
+      "counties": []
+    },
+    "stateName": "Washington",
+    "countdown": {
+      "days": 2,
+      "tone": "now",
+      "label": "in",
+      "unit": "days"
+    },
+    "newDate": "Aug 5",
+    "sub": "24 counties and 25 tribal nations. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · WA-2025-03"
+  },
+  {
+    "id": "wa-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Washington",
+    "newDate": "Aug 5",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "24 counties and 25 tribal nations",
+        "note": "The full list is the one in IRS relief notice WA-2025-03."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Dec 9, 2025"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief WA-2025-03 · DueDateHQ"
+  },
+  {
+    "id": "wa-li-3notice",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Washington",
+    "newDate": "Aug 5",
+    "title": ["Read the banner, not the body"],
+    "rows": [
+      {
+        "label": "THE UPDATE BANNER",
+        "value": "Deadline moved May 1 → Aug 5, and the area was expanded"
+      },
+      {
+        "label": "THE BODY BELOW IT",
+        "value": "Still says May 1, still lists the original 17 entries",
+        "note": "The IRS never rewrote the body. Read it alone and you are three months stale and short eight counties."
+      }
+    ],
+    "callout": {
+      "label": "One more trap",
+      "body": "Samish appears among those 17 entries. It is the Samish Indian Nation — Washington has no Samish County."
+    },
+    "footer": "Source: IRS relief WA-2025-03 · DueDateHQ"
+  }
+]

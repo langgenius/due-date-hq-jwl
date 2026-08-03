@@ -1826,3 +1826,72 @@
   color: var(--navy);
   font-size: 48px;
 }
+
+/* ============================================================
+   领英语域(li):同一套系统,更低的音量
+   ------------------------------------------------------------
+   小红书要在瀑布流里喊住人;领英是主动划的文档帖,停留时间才是
+   排序信号,喊反而像营销。所以字号整体降一档、每页容得下更多实质、
+   紧迫度收敛。词汇表不变 —— 强调方式、直角、字重与间距阶完全一致。
+   ============================================================ */
+.ddhq--li.ddhq--facts .ddhq__card,
+.ddhq--li.ddhq--mapcover .ddhq__card {
+  padding: 66px 64px 52px;
+}
+.ddhq--li .ddhq__factstitle,
+.ddhq--li .ddhq__mctitle {
+  font-size: 52px;
+  line-height: 1.24;
+}
+.ddhq--li.ddhq--facts .ddhq__factval {
+  font-size: 38px;
+}
+.ddhq--li.ddhq--facts .ddhq__factlab {
+  font-size: 21px;
+}
+.ddhq--li.ddhq--facts .ddhq__factnote {
+  font-size: 25px;
+}
+.ddhq--li.ddhq--facts .ddhq__calloutlab {
+  font-size: 25px;
+}
+.ddhq--li.ddhq--facts .ddhq__calloutbody {
+  font-size: 26px;
+}
+.ddhq--li .ddhq__contstate {
+  font-size: 28px;
+}
+.ddhq--li .ddhq__contdate {
+  font-size: 24px;
+}
+
+/* 封面:日期仍是主视觉,但不必喊到 132px */
+.ddhq--li .ddhq__duedate {
+  font-size: 104px;
+}
+.ddhq--li .ddhq__statename {
+  font-size: 46px;
+}
+.ddhq--li .ddhq__duemeta {
+  font-size: 28px;
+}
+.ddhq--li .ddhq__duemeta b {
+  font-size: 38px;
+}
+/* 紧迫度收敛:领英上红色只留给真正到期的,其余一律深蓝 */
+.ddhq--li .ddhq__duemeta--soon b,
+.ddhq--li .ddhq__duemeta--far b {
+  color: var(--navy);
+  font-size: 38px;
+}
+.ddhq--li .ddhq__blurb {
+  font-size: 27px;
+}
+.ddhq--li .ddhq__hero {
+  inset: 0;
+}
+.ddhq--li .ddhq__float {
+  left: 52px;
+  right: 52px;
+  padding: 54px 54px 40px;
+}

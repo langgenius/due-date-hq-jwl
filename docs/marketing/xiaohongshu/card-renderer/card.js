@@ -269,7 +269,9 @@ export async function renderCard(data) {
           <span class="ddhq__statename">${esc(data.stateName)}</span>
         </div>
         <div class="ddhq__due">
-          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
+          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">${esc(
+            data.dueSuffix ?? (locale === 'en' ? 'deadline' : '截止'),
+          )}</span>
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
@@ -309,7 +311,9 @@ export async function renderCard(data) {
     el.innerHTML = `${grainLayer()}<div class="ddhq__card">
       <div class="ddhq__contbar">
         <span class="ddhq__contstate">${esc(data.stateName || '')}</span>
-        <span class="ddhq__contdate">${esc(data.newDate || '')} 截止</span>
+        <span class="ddhq__contdate">${esc(data.newDate || '')} ${esc(
+          locale === 'en' ? 'deadline' : '截止',
+        )}</span>
       </div>
       <div class="ddhq__factstitle">${(Array.isArray(data.title) ? data.title : [data.title])
         .map(esc)
@@ -355,7 +359,9 @@ export async function renderCard(data) {
           <span class="ddhq__statename">${esc(data.stateName)}</span>
         </div>
         <div class="ddhq__due">
-          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
+          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">${esc(
+            data.dueSuffix ?? (locale === 'en' ? 'deadline' : '截止'),
+          )}</span>
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
