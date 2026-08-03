@@ -1487,3 +1487,10 @@
 .ddhq--hero .ddhq__ft {
   margin-top: 46px;
 }
+
+/* 州形小图退为浅色定位符 —— 深蓝实心块在 62px 下是个抢眼的重点,
+   而它承载的信息(哪个州)已经由旁边的州名说了。 */
+.ddhq--hero .ddhq__stateglyph svg path,
+.ddhq--mapcover .ddhq__stateglyph svg path {
+  fill: #c3c9d8;
+}
