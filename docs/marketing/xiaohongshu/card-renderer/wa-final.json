@@ -6,7 +6,7 @@
     "format": "xhs",
     "eyebrow": "IRS 灾害延期 · 华盛顿",
     "title": ["华盛顿报税", "后天截止", "[[8月5日]]"],
-    "sub": "今天、明天,然后就是截止日。24 县 + 25 个部落领地的联邦申报与缴款,延到 8月5日 为止,之后不会再延。",
+    "sub": "今天、明天,然后就是截止日。24 县 + 25 个部落领地。注意:IRS 公告正文仍多处写着旧的 5月1日,照抄会差三个月。",
     "footer": "WA-2025-03 · 8月5日 截止",
     "map": {
       "state": "WA",
@@ -102,12 +102,12 @@
         "53077"
       ]
     },
-    "title": ["哪些项", "延到 8月5日"],
+    "title": ["读这份公告", "别只读正文"],
     "points": [
-      "2025 年个人所得税申报,以及 2025 年 IRA / HSA 供款。",
-      "原定 2026 年 1月15日、4月15日 到期的季度预缴税。",
-      "原定 2026 年 1月31日、4月30日 到期的季度工资税与消费税申报。",
-      "范围 = 24 县 + 25 个部落领地;地址在内的自动适用,无需申请。县外但账册或记账人在内的,现在就致电 IRS 灾害热线。"
+      "截止日 = 2026 年 8月5日。这个日期只写在公告顶部的更新横幅里(5月1日 改期而来),正文有二十多处仍写着 5月1日 —— 照抄正文会差三个月。",
+      "受灾范围 = 24 个县 + 25 个部落领地。正文只列了最初的 17 项(其中 Samish 是部落不是县),扩大的 9 个县同样只在横幅里。",
+      "地址在受灾范围内的自动适用,无需申请;县外但账册或记账人在内的,现在就致电 IRS 灾害热线。",
+      "逐项覆盖范围(哪些申报与缴款在内)正文仍是改期前口径,Q2 项目是否随窗口顺延,建议直接向 IRS 确认再答复客户。"
     ],
     "footer": "来源:IRS 公告 WA-2025-03 · 8月5日 截止"
   },
@@ -118,7 +118,7 @@
     "format": "li",
     "eyebrow": "IRS disaster relief · Washington",
     "title": ["Washington filing", "closes in", "[[2 days]]"],
-    "sub": "Aug 5, 2026 — today, tomorrow, then it's the deadline. 24 Washington counties and 25 tribal nations, postponed under WA-2025-03. What to do if a client won't make it — swipe →",
+    "sub": "Aug 5, 2026 — today, tomorrow, then it's the deadline. 24 counties and 25 tribal nations. Careful: the IRS release still says May 1 in its body text. Swipe →",
     "footer": "WA-2025-03 · Source: IRS",
     "map": {
       "state": "WA",
@@ -214,12 +214,12 @@
         "53077"
       ]
     },
-    "title": ["What moved to Aug 5"],
+    "title": ["Read the banner,", "not just the body"],
     "points": [
-      "2025 individual income tax returns, and 2025 IRA and HSA contributions.",
-      "Estimated tax payments originally due Jan 15 and Apr 15, 2026.",
-      "Quarterly payroll and excise tax returns originally due Jan 31 and Apr 30, 2026.",
-      "Covers 24 Washington counties and 25 tribal nations — automatic for an IRS address of record, no application needed. Client outside the area but records or preparer inside? Call the IRS disaster hotline today, not Wednesday."
+      "The deadline is Aug 5, 2026 — stated only in the update banner (moved from May 1). The body text below it still says May 1 in more than twenty places; transcribing the body leaves you three months stale.",
+      "The covered area is 24 counties and 25 tribal nations. The body lists only the original 17 entries (one of which, Samish, is a tribal nation, not a county); the 9 added counties appear only in the banner.",
+      "Relief is automatic for an IRS address of record in the area. Client outside it but records or preparer inside? Call the IRS disaster hotline today, not Wednesday.",
+      "The item-by-item list of what's postponed is still written to the pre-extension window. Confirm with the IRS whether Q2 items follow the new date before you answer a client."
     ],
     "footer": "Source: IRS relief WA-2025-03 · Deadline Aug 5, 2026"
   }
