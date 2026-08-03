@@ -1382,3 +1382,108 @@
 .ddhq--mapcover .ddhq__duemeta b {
   font-size: 48px;
 }
+
+/* ============================================================
+   词汇表修订 ③:去掉高光。层级只用「字号 + 位置」建立,
+   颜色仅保留一处 —— 倒计时的数字。一张卡只允许一个彩色元素。
+   词汇表修订 ④:重心回到视觉中心。英雄图收到顶部三成,
+   信息卡上移并加高,底部不再留一条死掉的深色带。
+   ============================================================ */
+
+.ddhq--hero .ddhq__hero {
+  inset: 0 0 auto;
+  height: 34%;
+}
+.ddhq--hero .ddhq__heroveil {
+  background: linear-gradient(180deg, rgb(12 16 32 / 0.34) 0%, rgb(12 16 32 / 0.06) 100%);
+}
+.ddhq--hero .ddhq__heroglyph {
+  top: -18%;
+  width: 62%;
+}
+.ddhq--hero .ddhq__float {
+  top: 23%;
+  bottom: 7%;
+  left: 58px;
+  right: 58px;
+  padding: 66px 62px 46px;
+  box-shadow: 0 26px 52px -30px rgb(12 16 32 / 0.34);
+}
+
+/* 日期:全卡唯一的主视觉。靠字号站住,不靠底色 */
+.ddhq--hero .ddhq__duedate,
+.ddhq--mapcover .ddhq__duedate {
+  font-size: 132px;
+  font-weight: 600;
+  color: var(--ink);
+  background: none;
+  padding: 0;
+  letter-spacing: -0.01em;
+}
+.ddhq--hero .ddhq__due,
+.ddhq--mapcover .ddhq__due {
+  margin-top: 20px;
+  align-items: baseline;
+  gap: 20px;
+}
+.ddhq__duesuffix {
+  font-size: 38px;
+  margin-left: 0;
+}
+
+/* 州名降为第二层:身份信息,不与日期争 */
+.ddhq--hero .ddhq__statename,
+.ddhq--mapcover .ddhq__statename {
+  font-size: 56px;
+  font-weight: 500;
+}
+.ddhq--hero .ddhq__stateglyph,
+.ddhq--mapcover .ddhq__stateglyph {
+  width: 62px;
+}
+.ddhq--hero .ddhq__stateline,
+.ddhq--mapcover .ddhq__stateline {
+  margin-top: 46px;
+  gap: 16px;
+}
+
+/* 倒计时:全卡唯一的彩色元素 */
+.ddhq--hero .ddhq__duemeta,
+.ddhq--mapcover .ddhq__duemeta {
+  font-size: 36px;
+  color: var(--ink-3);
+}
+.ddhq--hero .ddhq__duemeta b,
+.ddhq--mapcover .ddhq__duemeta b {
+  font-size: 52px;
+  color: var(--red);
+}
+
+/* 正文:一句话,靠上不靠下 */
+.ddhq--hero .ddhq__blurb,
+.ddhq--mapcover .ddhq__blurb {
+  margin-top: 44px;
+  font-size: 30px;
+}
+.ddhq--hero .ddhq__ft {
+  margin-top: auto;
+}
+
+/* 卡片高度由内容决定,垂直居中 —— 拉到底会在中下部留一块死白 */
+.ddhq--hero .ddhq__hero {
+  inset: 0;
+  height: auto;
+}
+.ddhq--hero .ddhq__heroglyph {
+  top: 2%;
+  width: 68%;
+}
+.ddhq--hero .ddhq__float {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  padding: 62px 62px 44px;
+}
+.ddhq--hero .ddhq__ft {
+  margin-top: 46px;
+}
