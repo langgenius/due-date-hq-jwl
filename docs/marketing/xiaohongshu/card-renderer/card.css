@@ -1118,7 +1118,6 @@
 .ddhq__now {
   font-size: 56px;
   font-weight: 500;
-  font-style: italic;
   color: var(--ink);
   letter-spacing: -0.01em;
 }
@@ -1201,8 +1200,8 @@
   min-width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: #5eead4;
-  color: #0f3d36;
+  background: var(--lime);
+  color: var(--lime-ink);
   font-size: 28px;
   font-weight: 600;
   display: flex;
@@ -1238,4 +1237,81 @@
 }
 .ddhq--mapcover .ddhq__ft {
   justify-content: flex-start;
+}
+
+/* ============================================================
+   元素词汇表 —— 一件事只有一种做法
+   ------------------------------------------------------------
+   这份表是硬约束。新增卡型只能从表里挑,不许再发明第三种强调方式。
+   之前的问题就是每加一个元素就发明一种新做法(涂块/药丸/下划线/
+   两种 chip/两种亮色),结果没有系统只有堆积。
+
+   用途            唯一做法
+   ─────────────  ────────────────────────────────────────────
+   主强调          深蓝字 + 下方 8px lime 实线(新日期、关键数字)
+   次强调          lime 底 + lime-ink 字,圆角 999(new / 倒计时 / 计数)
+   被替代的旧值    灰字 + 红色删除线
+   分类标签        中性底、8px 圆角 chip(表号)
+   分隔            2px var(--rule) 细线,仅此一种
+   地图高亮        深蓝实心块
+   亮色            仅 lime 一种。青绿、琥珀等一律不进系统
+   字形            全部正体。CJK 无真斜体,合成倾斜是廉价感来源
+   字号阶          4 档:display / title / body / meta,档间不插值
+   ============================================================ */
+
+/* 主强调:唯一写法 */
+.ddhq__emph {
+  color: var(--navy);
+  border-bottom: 8px solid var(--lime);
+  padding-bottom: 6px;
+}
+
+/* ---- v3 封面:缩略图尺寸下只答两件事 ----
+   州名(是不是我的)+ 截止日与倒计时(急不急)。
+   说明段、表号 chip 一律下沉到第 2 页 —— 它们在瀑布流里等效 8–10px,读不到。 */
+.ddhq--hero .ddhq__blurb,
+.ddhq--mapcover .ddhq__blurb {
+  font-size: 30px;
+  line-height: 1.6;
+  margin-top: 26px;
+  max-width: 34ch;
+}
+.ddhq--hero .ddhq__tags,
+.ddhq--mapcover .ddhq__tags {
+  display: none; /* 表号属于第 2 页 */
+}
+
+/* 州名升为封面第一落点 */
+.ddhq__statename {
+  font-size: 104px;
+}
+.ddhq--mapcover .ddhq__statename {
+  font-size: 96px;
+}
+
+/* 截止日与倒计时并为一行,统一为「主强调」写法 */
+.ddhq__due {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+.ddhq__duedate {
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--navy);
+  border-bottom: 8px solid var(--lime);
+  padding-bottom: 6px;
+  line-height: 1.05;
+}
+.ddhq__duemeta {
+  font-size: 34px;
+  color: var(--ink-2);
+}
+.ddhq__duemeta b {
+  font-size: 44px;
+  font-weight: 600;
+  color: var(--red);
+  padding: 0 4px;
 }

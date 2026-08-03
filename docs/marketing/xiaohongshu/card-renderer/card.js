@@ -267,18 +267,16 @@ export async function renderCard(data) {
         <div class="ddhq__stateline">
           ${glyph ? `<span class="ddhq__stateglyph">${glyph}</span>` : ''}
           <span class="ddhq__statename">${esc(data.stateName)}</span>
+        </div>
+        <div class="ddhq__due">
+          <span class="ddhq__duedate serif">${esc(data.newDate)} 截止</span>
           ${
             cd.days != null
-              ? `<span class="ddhq__cd ddhq__cd--${cd.tone || 'far'}">${esc(
-                  cd.label || '还剩',
-                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+              ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(
+                  cd.days,
+                )}</b> ${esc(cd.unit || '天')}</span>`
               : ''
           }
-        </div>
-        <div class="ddhq__shift">
-          ${data.oldDate ? `<span class="ddhq__was serif">${esc(data.oldDate)}</span>` : ''}
-          <span class="ddhq__now serif">${esc(data.newDate)}</span>
-          <span class="ddhq__newpill">new</span>
         </div>
         ${data.sub ? `<div class="ddhq__blurb">${esc(data.sub)}</div>` : ''}
         ${
@@ -322,14 +320,16 @@ export async function renderCard(data) {
       <div class="ddhq__mcfoot">
         <div class="ddhq__stateline">
           <span class="ddhq__statename">${esc(data.stateName)}</span>
+        </div>
+        <div class="ddhq__due">
+          <span class="ddhq__duedate serif">${esc(data.newDate)} 截止</span>
           ${
             cd.days != null
-              ? `<span class="ddhq__cd ddhq__cd--${cd.tone || 'far'}">${esc(
-                  cd.label || '还剩',
-                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+              ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(
+                  cd.days,
+                )}</b> ${esc(cd.unit || '天')}</span>`
               : ''
           }
-          <span class="ddhq__now ddhq__now--inline serif">${esc(data.newDate)}</span>
         </div>
         ${data.sub ? `<div class="ddhq__blurb">${esc(data.sub)}</div>` : ''}
         ${
