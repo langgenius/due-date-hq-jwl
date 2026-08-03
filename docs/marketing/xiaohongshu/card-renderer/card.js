@@ -269,7 +269,7 @@ export async function renderCard(data) {
           <span class="ddhq__statename">${esc(data.stateName)}</span>
         </div>
         <div class="ddhq__due">
-          <span class="ddhq__duedate serif">${esc(data.newDate)} 截止</span>
+          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(
@@ -322,7 +322,7 @@ export async function renderCard(data) {
           <span class="ddhq__statename">${esc(data.stateName)}</span>
         </div>
         <div class="ddhq__due">
-          <span class="ddhq__duedate serif">${esc(data.newDate)} 截止</span>
+          <span class="ddhq__duedate serif">${esc(data.newDate)}</span><span class="ddhq__duesuffix">截止</span>
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta">${esc(cd.label || '还剩')} <b>${esc(

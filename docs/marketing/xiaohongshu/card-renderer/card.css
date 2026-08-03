@@ -1315,3 +1315,70 @@
   color: var(--red);
   padding: 0 4px;
 }
+
+/* ============================================================
+   词汇表修订 ①:主强调 = lime 实心块 + 深墨字(不再是下划线)
+   下划线太轻,和 104px 的州名放一起完全压不住。实心块是唯一强调写法。
+   词汇表修订 ②:全系统直角。圆角读起来温和、通用,像模板出图;
+   直角更接近刊物与公文,和「转录官方公告」的定位一致。
+   ============================================================ */
+
+.ddhq--hero .ddhq__float,
+.ddhq--hero .ddhq__card,
+.ddhq--mapcover .ddhq__card {
+  border-radius: 0;
+}
+.ddhq--hero .ddhq__tag,
+.ddhq--mapcover .ddhq__tag,
+.ddhq--hero .ddhq__badge,
+.ddhq--mapcover .ddhq__badge {
+  border-radius: 0;
+}
+.ddhq--hero .ddhq__tile,
+.ddhq--mapcover .ddhq__tile {
+  rx: 0;
+}
+
+/* 州名:身份;日期:行动。两者不同色不同底,不再比字号 */
+.ddhq--hero .ddhq__statename,
+.ddhq--mapcover .ddhq__statename {
+  font-size: 88px;
+}
+
+/* 州名与日期之间、日期与正文之间,都要留出真正的间距 */
+.ddhq--hero .ddhq__due,
+.ddhq--mapcover .ddhq__due {
+  margin-top: 54px;
+  align-items: center;
+  gap: 24px;
+}
+.ddhq--hero .ddhq__blurb,
+.ddhq--mapcover .ddhq__blurb {
+  margin-top: 48px;
+}
+
+/* 主强调:实心块。数字放大,「截止」降为小字后缀,不与数字争字号 */
+.ddhq--hero .ddhq__duedate,
+.ddhq--mapcover .ddhq__duedate {
+  font-size: 82px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--lime);
+  border-bottom: none;
+  padding: 10px 24px 14px;
+  line-height: 1;
+}
+.ddhq__duesuffix {
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-left: -6px;
+}
+.ddhq--hero .ddhq__duemeta,
+.ddhq--mapcover .ddhq__duemeta {
+  font-size: 34px;
+}
+.ddhq--hero .ddhq__duemeta b,
+.ddhq--mapcover .ddhq__duemeta b {
+  font-size: 48px;
+}
