@@ -45,8 +45,8 @@ for (const n of notices) {
 const topStates = [...stateCounts.entries()].toSorted((a, b) => b[1] - a[1]).slice(0, 5)
 const peakYear = years.reduce((a, b) => ((byYear.get(b)?.length ?? 0) > (byYear.get(a)?.length ?? 0) ? b : a), years[0])
 
-const title = `IRS Disaster Tax Relief History ${Math.min(...years)}–${Math.max(...years)} — Every Deadline Postponement | DueDateHQ`
-const description = `Complete archive of ${notices.length} IRS disaster-relief deadline postponements from ${Math.min(...years)} to ${Math.max(...years)}, by state and relief code, each transcribed from the official irs.gov release.`
+const title = `IRS Disaster Tax Relief History ${Math.min(...years)}–${Math.max(...years)}`
+const description = `All ${notices.length} IRS disaster-relief postponements from ${Math.min(...years)} to ${Math.max(...years)}, by state and relief code, each transcribed from the official irs.gov release.`
 
 const anchorId = (n: ArchiveNotice, i: number) =>
   n.code ? n.code.toLowerCase() : `uncoded-${n.year}-${i}`

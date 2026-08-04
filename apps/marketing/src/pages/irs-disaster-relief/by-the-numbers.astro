@@ -37,8 +37,8 @@ const maxRowLabel = r.runway.maxRow.code
   ? `${r.runway.maxRow.code} (${r.runway.maxRow.state})`
   : (r.runway.maxRow.event ?? 'an uncoded special notice')
 
-const title = `IRS Disaster Deadline Postponements ${r.fromYear}–${r.toYear}: the Numbers | DueDateHQ`
-const description = `${r.total} IRS disaster-relief postponements since ${r.fromYear} across ${r.statesAffected} states and territories — per-year counts, most-postponed states, announcement seasonality, and median runway to the new deadline. Free to cite; CSV/JSON downloads.`
+const title = `IRS Disaster Postponements ${r.fromYear}–${r.toYear}: The Numbers`
+const description = `${r.total} postponements across ${r.statesAffected} states since ${r.fromYear} — per-year counts, most-postponed states, seasonality, and the median runway to the new deadline.`
 
 const faq = [
   {

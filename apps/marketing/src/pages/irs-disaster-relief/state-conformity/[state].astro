@@ -16,6 +16,7 @@ import AlertOptin from '../../../components/AlertOptin.astro'
 import en from '../../../i18n/en'
 import { getCtaHref } from '../../../lib/app-url'
 import { DISASTER_NOTICES } from '../../../lib/disaster-notices'
+import { fitTitle } from '../../../lib/meta-copy'
 import { STATE_CONFORMITY, type StateConformityEntry } from '../../../lib/state-conformity'
 import { stateConformityStructuredData } from '../../../lib/structured-data'
 
@@ -38,7 +39,9 @@ const ctaHref = getCtaHref('en')
 const alertFormAction =
   import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/xojgdvrp'
 
-const title = `${entry.metaTitle} | DueDateHQ`
+// The brand suffix is dropped rather than allowed to push the title past what
+// Google renders — the question itself is what earns the click here.
+const title = fitTitle([`${entry.metaTitle} | DueDateHQ`, entry.metaTitle])
 
 // The federal notices this page speaks to, resolved from the ONE dataset.
 const activeNotices = entry.activeNoticeCodes

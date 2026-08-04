@@ -163,7 +163,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Washington Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved WA deadlines to Aug. 5, 2026 — Washington state did not follow. Capital gains stayed due May 1; B&O and sales-tax relief is request-only. What CPAs must file, verified against WA DOR sources.',
+      'The IRS moved WA deadlines to Aug. 5, 2026 — Washington did not follow. Capital gains stayed due May 1; B&O and sales-tax relief is request-only.',
   },
   {
     // All facts verified 2026-07-31 against the cited DOTAX / IRS / FEMA pages
@@ -293,7 +293,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Hawaii Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved Hawaii deadlines to Aug. 20, 2026 — the state did not. DOTAX only waives penalties and interest, income tax only, and requires Form L-115 by Aug. 20. Verified against DOTAX announcements.',
+      'The IRS moved Hawaii deadlines to Aug. 20, 2026 — the state did not. DOTAX waives penalties and interest only, income tax only, and wants Form L-115.',
   },
   {
     // All facts verified 2026-07-31 against the cited LDR / IRS pages (RIB PDFs
@@ -396,7 +396,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Louisiana Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved six Louisiana parishes to Nov. 2, 2026 for Tropical Storm Arthur — LDR has issued no matching state relief as of Jul 31. What LDR bulletins do when they come, verified against official sources.',
+      'The IRS moved six Louisiana parishes to Nov. 2, 2026 for Tropical Storm Arthur — LDR has issued no matching state relief. What to watch for, and where.',
   },
   {
     // All facts verified 2026-07-31 against the cited Michigan Treasury pages
@@ -517,7 +517,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Michigan Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved 37 Michigan counties to Nov. 2, 2026 — the state waiver ended May 26 and Treasury says it does not apply to federal dates. Request mechanics, county-list mismatches, verified against Treasury notices.',
+      'The IRS moved 37 Michigan counties to Nov. 2, 2026 — but the state waiver ended May 26, and Treasury says it does not apply to the federal dates.',
   },
   {
     // All facts verified 2026-07-31 against the cited WI DOR pages (Pub 401
@@ -654,7 +654,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Wisconsin Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'Yes — Wisconsin automatically extends income and franchise deadlines to the IRS disaster date (Nov. 2, 2026) with interest waived, no application needed. What to mark on the return, and which taxes are not covered. Verified against WI DOR.',
+      'Yes — Wisconsin automatically extends income and franchise deadlines to the IRS date (Nov. 2, 2026), interest waived, no application. What is not covered.',
   },
   {
     // All facts verified 2026-07-31 against the cited Governor's office / GA DOR
@@ -772,7 +772,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Georgia Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved three Georgia counties to Aug. 20, 2026 — Georgia built its own 120-day scheme instead: estimates to Oct. 13, extended returns to Feb. 2027, April payments not relieved. Verified against official releases.',
+      'The IRS moved three Georgia counties to Aug. 20, 2026 — Georgia built its own 120-day scheme: estimates to Oct. 13, extended returns to Feb. 2027.',
   },
   {
     // All facts verified 2026-07-31 against the cited Montana DOR pages (fetched
@@ -881,7 +881,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Montana Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'Yes by standing policy — Montana gives the same extensions as the IRS (Sept. 28, 2026 for the Fort Peck and Crow notices), but relief must be claimed at filing with a red-letter annotation or letter. Verified against MT DOR and MCA 15-30-2604.',
+      'Yes by standing policy — Montana matches the IRS dates (Sept. 28, 2026 for Fort Peck and Crow), but relief must be claimed at filing, in red letters.',
   },
   {
     // All facts verified 2026-07-31 against dor.ms.gov (news index pages
@@ -995,7 +995,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Mississippi Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved five Mississippi counties to Nov. 2, 2026 — DOR has issued no state notice as of Jul 31. Past notices matched federal dates, but the 2025 storms got none. Verified against dor.ms.gov.',
+      'The IRS moved five Mississippi counties to Nov. 2, 2026 — DOR has issued no state notice. Past notices matched federal dates; the 2025 storms got none.',
   },
   {
     // All facts verified 2026-07-31: azdor.gov indexes read live in a browser
@@ -1115,7 +1115,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Arizona Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'The IRS moved San Carlos Apache Tribe deadlines to Sept. 28, 2026 — Arizona has announced nothing, for this or any recent disaster. Form 290 abatement is the only path, and interest is not abatable. Verified against ADOR and azleg.gov.',
+      'The IRS moved San Carlos Apache Tribe deadlines to Sept. 28, 2026 — Arizona has announced nothing. Form 290 abatement is the only path, interest stands.',
   },
   {
     // All facts verified 2026-07-31 against TN DOR notice PDFs (26-10, 24-01,
@@ -1234,7 +1234,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Tennessee Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'Yes for franchise & excise tax — Tennessee matches the IRS disaster date automatically by address, every event since 2020. Sales and business taxes are request-only. The statute, the pattern, and the county-list caution, verified against TN DOR notices.',
+      'Yes for franchise & excise — Tennessee matches the IRS disaster date automatically by address, every event since 2020. Sales tax stays request-only.',
   },
   {
     // All facts verified 2026-07-31 against floridarevenue.com (EO 24-003 PDF
@@ -1350,7 +1350,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does Florida Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'Split answer: Florida corporate tax has followed the IRS disaster date (plus 15 days for Milton), but sales tax gets only weeks by emergency order. The §213.055 mechanism, the Milton numbers, and where orders publish — verified against FL DOR.',
+      'Split answer — Florida corporate tax has followed the IRS disaster date, plus 15 days for Milton, but sales tax gets only weeks by emergency order.',
   },
   {
     // All facts verified 2026-07-31: leginfo statute texts (R&TC 18572, 6459.5,
@@ -1465,7 +1465,7 @@ export const STATE_CONFORMITY: StateConformityEntry[] = [
     },
     metaTitle: 'Does California Conform to IRS Disaster Extensions? (2026)',
     metaDescription:
-      'FTB follows the IRS date (LA fires: exact Oct. 15 match, automatic by county) — but the Director of Finance now sets the state period, and CDTFA/EDD run on the Governor’s proclamation with 3- and 2-month clocks. Verified against leginfo, FTB, CDTFA, EDD.',
+      'FTB follows the IRS date — the LA fires matched Oct. 15 automatically by county. But Finance now sets the state period, and CDTFA and EDD run separately.',
   },
 ]
 

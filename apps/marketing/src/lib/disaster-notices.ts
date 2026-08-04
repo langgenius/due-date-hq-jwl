@@ -25,6 +25,8 @@
  * briefly "corrected" to their stale body dates on 2026-07-27 before this was understood.
  */
 
+import { fitMeta, fitTitle } from './meta-copy'
+
 /** The IRS return/payment categories a relief notice can postpone. Each maps to
  *  a plain-English "which of your clients this hits" line on the page. Only the
  *  categories the cited release actually names are listed on a given notice. */
@@ -578,15 +580,25 @@ export function getNoticeMeta(notice: DisasterNotice): DisasterNoticeMeta {
   const disambig = DUPLICATE_TITLE_KEYS.has(`${notice.state}|${notice.deadline}`)
     ? ` (${notice.code})`
     : ''
+  // Both fields are assembled to Google's rendered budget rather than trusting the
+  // source strings to be short: `affectedArea` is transcribed verbatim from the IRS
+  // and runs to 200+ characters on tribal-area notices, which used to push these
+  // descriptions to 318 characters (2026-08-03 Search Console review).
+  const area = (notice.affectedAreaShort ?? notice.affectedArea).replace(/^The /, '')
   return {
-    // Keep ~60 chars so Google doesn't truncate: front-load state + "disaster tax
-    // relief" + the postponed deadline (what a searching CPA actually needs to see
-    // in the SERP). The full event name + notice code stay in the H1, body, and
-    // structured data.
-    title: `IRS ${notice.state} Disaster Tax Relief ${yr}: Deadline ${notice.deadlineLabel}${disambig}`,
-    // `affectedAreaShort` keeps this inside ~155 chars for notices whose verbatim area is
-    // a long county list; the full area still renders on the page and in the JSON-LD.
-    description: `The IRS postponed tax deadlines to ${notice.deadlineLabel} for taxpayers in ${(notice.affectedAreaShort ?? notice.affectedArea).replace(/^The /, '')} after ${notice.event} (relief ${notice.code}). See the affected returns and which of your clients this hits.`,
+    title: fitTitle([
+      `IRS ${notice.state} Disaster Tax Relief ${yr}: Deadline ${notice.deadlineLabel}${disambig}`,
+      `${notice.state} IRS Disaster Relief: Deadline ${notice.deadlineLabel}${disambig}`,
+      `${notice.state} IRS Relief: New Deadline ${notice.deadlineLabel}${disambig}`,
+    ]),
+    description: fitMeta(
+      `IRS deadlines move to ${notice.deadlineLabel} for ${area} (${notice.code}).`,
+      [
+        'See the postponed returns and which of your clients this hits.',
+        'The postponed returns, county by county, with the IRS source.',
+        'With the official IRS release quoted.',
+      ],
+    ),
   }
 }
 

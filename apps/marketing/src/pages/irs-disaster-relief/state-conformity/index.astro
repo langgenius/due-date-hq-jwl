@@ -28,9 +28,9 @@ const reviewedOn = getContentDates(slug).reviewedOn
 const alertFormAction =
   import.meta.env.PUBLIC_ALERT_FORM_ACTION ?? 'https://formspree.io/f/xojgdvrp'
 
-const title = 'Do States Follow IRS Disaster Deadline Extensions? Verified by State | DueDateHQ'
+const title = 'Do States Follow IRS Disaster Extensions? By State'
 const description =
-  'A federal §7508A disaster postponement moves federal deadlines only — each state decides separately, and most do not simply follow. Per-state answers verified against the state tax agencies’ own announcements.'
+  'A §7508A postponement moves federal deadlines only — each state decides separately, and most do not follow. Verified answers, state by state.'
 
 const entries = STATE_CONFORMITY
 const conformingCount = entries.filter((e) => e.statusTone === 'ok').length

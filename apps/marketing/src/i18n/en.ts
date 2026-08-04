@@ -812,7 +812,7 @@ const en: LandingCopy = {
       meta: {
         title: 'DueDateHQ State Coverage — 50-state and DC filing signals',
         description:
-          'DueDateHQ monitors IRS and state rule and deadline changes across all 50 states and DC. Every change arrives with its official source URL and excerpt, routed through review.',
+          'DueDateHQ monitors IRS and state deadline changes across all 50 states and DC. Every change arrives with its official source URL and excerpt.',
         ogImage: '/og/home.en.png',
       },
       hero: {
@@ -1230,7 +1230,7 @@ const en: LandingCopy = {
       {
         slug: 'cpa-deadline-risk',
         meta: {
-          title: 'CPA Deadline Risk Guide — How firms catch deadlines before they slip',
+          title: 'CPA Deadline Risk — Catch Them Before They Slip',
           description:
             'How CPA teams decide which client deadline to touch first using migration data, evidence, ownership, readiness, and state alerts.',
           ogImage: '/og/home.en.png',
@@ -1313,9 +1313,9 @@ const en: LandingCopy = {
       {
         slug: 'evidence-backed-tax-deadline-software',
         meta: {
-          title: 'CPA Due Date Tracking Software, Evidence-Backed — DueDateHQ Guide',
+          title: 'CPA Due Date Tracking Software, Evidence-Backed',
           description:
-            'Choosing CPA due date tracking software? What a firm should prove before a deadline, alert, or migration changes client work — source and review state on every date.',
+            'What a firm should be able to prove before a deadline, alert, or migration changes client work — source and review state on every date.',
           ogImage: '/og/home.en.png',
         },
         hero: {

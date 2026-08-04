@@ -5,6 +5,7 @@ import type {
   StateCoverageCopy,
   StatePageCopy,
 } from '../i18n/types'
+import { DESCRIPTION_BUDGET, fitMeta, fitTitle, leadClause } from './meta-copy'
 
 type Locale = 'en' | 'zh-CN'
 type StateCard = StateCoverageCopy['states'][number]
@@ -836,6 +837,16 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
           valueZh: '错过 4 月 15 日自动延至 10 月 15 日——无需提交任何延期申请。',
         },
         {
+          // Added 2026-08-03 after Search Console showed "fbar reporting threshold
+          // 2026" reaching this page at position 49 with nothing on the page to
+          // answer it. Verified against the cited IRS FBAR page the same day.
+          label: 'Who has to file',
+          labelZh: '谁需要申报',
+          value:
+            'A U.S. person whose foreign financial accounts exceeded $10,000 in aggregate at any time during the calendar year reported.',
+          valueZh: '所报日历年内任一时点，境外金融账户合计余额超过 $10,000 的美国纳税人。',
+        },
+        {
           label: 'Disaster relief',
           labelZh: '灾害减免',
           value: 'A natural disaster may further extend the FBAR due date — check current relief.',
@@ -1450,10 +1461,20 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.labelZh}（2026）：什么时候到期 — DueDateHQ`,
+        title: fitTitle(
+          [
+            `${spec.labelZh}（2026）：什么时候到期 — DueDateHQ`,
+            `${spec.labelZh}（2026）：什么时候到期`,
+          ],
+          40,
+        ),
         description: spec.keyDates?.rows[0]
-          ? `${spec.labelZh}什么时候到期？${spec.keyDates.rows[0].valueZh.length > 80 ? `${spec.keyDates.rows[0].valueZh.slice(0, 77).trimEnd()}…` : spec.keyDates.rows[0].valueZh} 附官方来源 — DueDateHQ。`
-          : `${spec.labelZh}什么时候到期？2026 年到期日与官方来源 — DueDateHQ。`,
+          ? fitMeta(
+              `${spec.labelZh}：${leadClause(spec.keyDates.rows[0].valueZh)}。`,
+              ['2026 年到期日、延期规则与官方 IRS 来源。', '附官方 IRS 来源。'],
+              90,
+            )
+          : fitMeta(`${spec.labelZh}：2026 年到期日已核实。`, ['附官方 IRS 来源与延期规则。'], 90),
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -1513,10 +1534,25 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
   return {
     slug: spec.slug,
     meta: {
-      title: `${spec.label} (2026): when it's due — DueDateHQ`,
+      // Answer-first snippet: the due date is the whole reason someone clicks a
+      // rule reference, so it leads. `spec.label` keeps its casing — an earlier
+      // `.toLowerCase()` here shipped "the fbar (fincen form 114) deadline" to
+      // Google on fifteen pages (see lib/meta-copy.ts).
+      title: fitTitle([
+        `${spec.label} (2026): when it's due — DueDateHQ`,
+        `${spec.label} (2026): when it's due`,
+        `${spec.label} (2026)`,
+      ]),
       description: spec.keyDates?.rows[0]
-        ? `When is the ${spec.label.toLowerCase()}? ${spec.keyDates.rows[0].value.length > 80 ? `${spec.keyDates.rows[0].value.slice(0, 77).trimEnd()}…` : spec.keyDates.rows[0].value} Official source attached — DueDateHQ.`
-        : `When is the ${spec.label.toLowerCase()}? The 2026 due date with its official source — DueDateHQ.`,
+        ? fitMeta(`${spec.label}: ${leadClause(spec.keyDates.rows[0].value)}.`, [
+            'The 2026 date, the extension rule, and the official IRS source.',
+            'The 2026 date with its official IRS source attached.',
+            'With the official IRS source attached.',
+          ])
+        : fitMeta(`${spec.label} — the 2026 due date, verified.`, [
+            'The date, the extension rule, and the official IRS source on one page.',
+            'With the official IRS source attached.',
+          ]),
       ogImage: '/og/home.en.png',
     },
     hero: {
@@ -1609,6 +1645,46 @@ function stateDeadlineSnippet(slug: string, locale: Locale): string | undefined 
   return locale === 'zh-CN' ? `${d.labelZh}：${first}` : `${d.label}: ${first}`
 }
 
+/**
+ * SERP description for a state page — answer first, then the reason to click,
+ * assembled to fit Google's rendered snippet (see lib/meta-copy.ts). The on-page
+ * hero still carries the full sentence; only the snippet is budgeted.
+ */
+function stateMetaDescription(spec: StateSpec, locale: Locale): string {
+  const d = STATE_DEADLINES[spec.slug]
+  const zh = locale === 'zh-CN'
+  if (!d) {
+    return zh
+      ? fitMeta(
+          `DueDateHQ 监控 ${spec.agency} 官方来源，追踪 ${spec.name} 州税申报截止日。`,
+          [`${spec.signalZh}变化时附来源与人工复核。`],
+          90,
+        )
+      : fitMeta(
+          `Every ${spec.name} filing deadline DueDateHQ monitors, watched at the official ${spec.agency} source.`,
+          ['Each date carries its source and review state.', 'With the source on every date.'],
+          DESCRIPTION_BUDGET,
+        )
+  }
+  const due = leadClause(zh ? d.dueZh : d.due)
+  if (zh) {
+    return fitMeta(
+      `${spec.name}：${d.labelZh}${due}到期。`,
+      [`全部 ${spec.name} 截止日均附官方来源。`, '每个日期都附官方来源。'],
+      90,
+    )
+  }
+  // "{label} — {due}" rather than "{label} is due {due}": the labels are a mix of
+  // singular and plural ("return" vs "returns"), and a generated verb gets the
+  // agreement wrong half the time.
+  return fitMeta(`${spec.name}: ${d.label} — ${due}.`, [
+    `Every ${spec.name} deadline we monitor, with the official source on each date.`,
+    'Every deadline we monitor, with the official source on each date.',
+    'Source-monitored, with the official source on each date.',
+    'Source-monitored by DueDateHQ.',
+  ])
+}
+
 function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
   const deadlineSnippet = stateDeadlineSnippet(spec.slug, locale)
   if (locale === 'zh-CN') {
@@ -1617,10 +1693,11 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       name: spec.name,
       abbreviation: spec.abbreviation,
       meta: {
-        title: `${spec.name} 州税截止日（2026）— DueDateHQ`,
-        description: deadlineSnippet
-          ? `${spec.name} 州税截止日：${deadlineSnippet} 官方来源监控 — DueDateHQ。`
-          : `${spec.name} 州税截止日：DueDateHQ 监控 ${spec.agency} 官方来源，${spec.signalZh}变化时附来源与人工复核。`,
+        title: fitTitle(
+          [`${spec.name} 州税截止日（2026）— DueDateHQ`, `${spec.name} 州税截止日（2026）`],
+          40,
+        ),
+        description: stateMetaDescription(spec, locale),
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -1669,10 +1746,11 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
     name: spec.name,
     abbreviation: spec.abbreviation,
     meta: {
-      title: `${spec.name} Tax Deadlines (2026) — DueDateHQ`,
-      description: deadlineSnippet
-        ? `${spec.name} tax deadlines: ${deadlineSnippet} Source-monitored by DueDateHQ.`
-        : `${spec.name} tax deadlines for CPA firms, monitored from official ${spec.agency} sources — with source-backed review when rules change.`,
+      title: fitTitle([
+        `${spec.name} Tax Deadlines (2026) — DueDateHQ`,
+        `${spec.name} Tax Deadlines (2026)`,
+      ]),
+      description: stateMetaDescription(spec, locale),
       ogImage: '/og/home.en.png',
     },
     hero: {
@@ -1723,9 +1801,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'tax-deadline-weekend-holiday-rule',
       meta: {
-        title: 'Does the tax deadline move on a weekend or holiday? — DueDateHQ',
+        title: 'Tax Deadline on a Weekend or Holiday? §7503 + 2026 Dates',
         description:
-          'Yes — under §7503 a federal deadline on a Saturday, Sunday, or legal holiday moves to the next business day. Which holidays count, and where states differ.',
+          'Yes — §7503 moves it to the next business day. Which 2026 deadlines actually shift, why DC Emancipation Day counts, and where states differ.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -1824,7 +1902,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'Estimated tax due dates 2026: all four quarters — DueDateHQ',
         description:
-          'When are estimated taxes due in 2026? Q4-2025: Jan 15. Q1: April 15. Q2: June 15. Q3: Sept 15. Q4-2026: Jan 15, 2027. Form 1040-ES quarters with sources — and where corporate estimates differ.',
+          'Q1 April 15, Q2 June 15, Q3 September 15, Q4 January 15, 2027 — the Form 1040-ES quarters with sources, and where corporate estimates differ.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -1918,9 +1996,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'october-15-extension-deadline',
       meta: {
-        title: 'October 15 extension deadline (2026): what is actually due — DueDateHQ',
+        title: 'October 15 Extension Deadline 2026: What Is Actually Due',
         description:
-          'October 15, 2026 (a Thursday) is the extended deadline for Forms 1040 and 1120 — and the automatic FBAR extension. What lands Oct 15, what already landed Sept 15/30, and the payment trap.',
+          'October 15, 2026 is the extended date for Forms 1040 and 1120, plus the automatic FBAR extension. What already landed Sept 15/30, and the payment trap.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2312,7 +2390,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'multi-state-filing-deadlines',
       meta: {
-        title: 'Multi-State Filing Deadlines for CPA Firms — Federal + State Due Dates',
+        title: 'Multi-State Filing Deadlines for CPA Firms (2026)',
         description:
           'Federal filing deadlines (Forms 1065, 1120-S, 1120, 1040) for calendar-year filers, how state deadlines vary, and how firms track both.',
         ogImage: '/og/home.en.png',
@@ -2398,7 +2476,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: '2026-tax-deadline-calendar',
       meta: {
-        title: '2026 Tax Deadline Calendar for CPA Firms — Federal Filing Dates',
+        title: '2026 Tax Deadline Calendar for CPA Firms',
         description:
           'The 2026 federal filing calendar: partnership, S-corp, C-corp, individual, estimated tax, and nonprofit deadlines — with sources.',
         ogImage: '/og/home.en.png',
@@ -2514,9 +2592,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'payroll-tax-deadlines',
       meta: {
-        title: 'Payroll tax due dates (2026): 941, 940 & deposits — DueDateHQ',
+        title: 'Payroll Tax Due Dates 2026: 941, 940 & Deposits',
         description:
-          'When are payroll taxes due? Form 941: April 30, July 31, October 31, January 31. Form 940 and W-2: January 31. Plus deposit schedules, sourced.',
+          'Form 941 is due April 30, July 31, October 31, and January 31. Form 940 and W-2 land January 31, with the deposit schedules, each sourced.',
         ogImage: '/og/guide.en.png',
       },
       hero: {
@@ -2858,7 +2936,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: '2026 预缴税到期日：全部四个季度 — DueDateHQ',
         description:
-          '2026 预缴税什么时候到期？2025 Q4：1 月 15 日；Q1：4 月 15 日；Q2：6 月 15 日；Q3：9 月 15 日；2026 Q4：2027 年 1 月 15 日。Form 1040-ES 四季日程附来源，并说明公司预缴的不同。',
+          'Q1 4 月 15 日、Q2 6 月 15 日、Q3 9 月 15 日、Q4 2027 年 1 月 15 日——Form 1040-ES 四季日程附来源，并说明公司预缴的不同。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -2942,7 +3020,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: '10 月 15 日延期截止日（2026）：到底哪些到期 — DueDateHQ',
         description:
-          '2026 年 10 月 15 日（周四）是 Form 1040 与 1120 的延期截止日，也是 FBAR 自动延期的终点。哪些落在 10/15、哪些早在 9/15 与 9/30 已到期，以及付款陷阱。',
+          '2026 年 10 月 15 日是 Form 1040 与 1120 的延期截止日，也是 FBAR 自动延期终点。含 9/15、9/30 已到期项与付款陷阱。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3504,9 +3582,9 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'payroll-tax-deadlines',
       meta: {
-        title: '工资税到期日（2026）：Form 941、940、缴存与 W-2 — DueDateHQ',
+        title: '工资税到期日（2026）：941、940 与缴存',
         description:
-          '工资税什么时候到期？Form 941 季度到期日（4/30、7/31、10/31、1/31）、Form 940 FUTA（1 月 31 日）、W-2/1099-NEC，以及按月与半周的缴存日程——每一项都附 IRS 来源。',
+          'Form 941 为 4/30、7/31、10/31、1/31，Form 940 与 W-2 为 1 月 31 日，另附按月与半周缴存日程，均带 IRS 来源。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3655,7 +3733,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: '面向 QuickBooks 事务所的截止日监控 — DueDateHQ 指南',
         description:
-          'QuickBooks 管的是账，不会监控 IRS 与各州的截止日或规则变化。了解 CPA 与记账事务所如何用 DueDateHQ 在 QuickBooks 旁边加上一层带来源的规则变化监控。',
+          'QuickBooks 管账，不监控 IRS 与各州的截止日变化。看事务所如何在它旁边加一层带来源的规则变化监控。',
         ogImage: '/og/guide.zh-CN.png',
       },
       hero: {
@@ -3761,7 +3839,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
       slug: spec.slug,
       meta: {
         title: `DueDateHQ vs ${spec.product} — 截止日运营对比`,
-        description: `把 DueDateHQ 作为 ${spec.product} 的规则变化监控替代/补充来比较：CPA 截止日风险、官方来源证据、州级提醒复核、迁移成本与每周分诊——以及两者如何并用。`,
+        description: `DueDateHQ 与 ${spec.product} 对比：截止日风险、官方来源证据、州级提醒与迁移成本，以及两者如何并用。`,
         ogImage: '/og/home.zh-CN.png',
       },
       comparisonTable: {
@@ -3889,7 +3967,11 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
   return {
     slug: spec.slug,
     meta: {
-      title: `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
+      title: fitTitle([
+        `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
+        `DueDateHQ vs ${spec.product} — Deadline Operations`,
+        `DueDateHQ vs ${spec.product}`,
+      ]),
       description: `Compare DueDateHQ with ${spec.product} for CPA deadline operations: deadline risk, official-source evidence, state alerts — and how the two run together.`,
       ogImage: '/og/home.en.png',
     },
@@ -4265,7 +4347,14 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
       slug: spec.slug,
       comparisonTable: altTable,
       meta: {
-        title: `${spec.subject} 替代方案与竞品（2026）— DueDateHQ`,
+        title: fitTitle(
+          [
+            `${spec.subject} 替代方案与竞品（2026）— DueDateHQ`,
+            `${spec.subject} 替代方案与竞品（2026）`,
+            `${spec.subject} 替代方案与竞品`,
+          ],
+          40,
+        ),
         description: `${spec.subject} 替代方案与竞品：各自适合的场景与起步定价，以及 DueDateHQ 作为带来源的监控层如何补位。`,
         ogImage: '/og/guide.zh-CN.png',
       },
@@ -4349,7 +4438,11 @@ function alternativeRoundupPage(spec: AlternativeRoundupSpec, locale: Locale): G
     slug: spec.slug,
     comparisonTable: altTable,
     meta: {
-      title: `${spec.subject} alternatives & competitors (2026) — DueDateHQ`,
+      title: fitTitle([
+        `${spec.subject} alternatives & competitors (2026) — DueDateHQ`,
+        `${spec.subject} alternatives & competitors (2026)`,
+        `${spec.subject} alternatives & competitors`,
+      ]),
       description: `${spec.subject} alternatives & competitors for CPA firms: where each fits, with starting prices — plus DueDateHQ as the source-backed monitoring layer.`,
       ogImage: '/og/guide.en.png',
     },
@@ -4590,7 +4683,7 @@ function categoryRoundupPage(locale: Locale): GuidePageCopy {
     meta: {
       title: 'Best Tax Deadline Tracking Software for CPA Firms (2026)',
       description:
-        '"Deadline tracking" is three different layers: static due-date libraries, workflow suites, and change-monitoring layers. Seven tools, verified starting prices, and which layer each belongs to.',
+        'Deadline tracking is three different layers — static libraries, workflow suites, monitoring. Seven tools, verified prices, and which layer each is.',
       ogImage: '/og/guide.en.png',
     },
     hero: {
@@ -4759,7 +4852,10 @@ function vsPage(spec: VsPageSpec, locale: Locale): GuidePageCopy {
     return {
       slug: spec.slug,
       meta: {
-        title: `${pair}（2026）对比 — DueDateHQ`,
+        title: fitTitle(
+          [`${pair}（2026）对比 — DueDateHQ`, `${pair}（2026）对比`, `${pair} 对比`],
+          40,
+        ),
         description: `${a.name} 与 ${b.name} 对比：定位、适合场景与起步定价（2026 年 7 月），以及叠加在两者之上的监控层。`,
         ogImage: '/og/home.zh-CN.png',
       },
@@ -5903,6 +5999,36 @@ const RELATED_RESOURCE_LINKS: { href: string; label: string; labelZh: string }[]
   },
 ]
 
+/**
+ * Topically pinned first links for pages where rotation alone was wasting the
+ * traffic we actually have (2026-08-03 Search Console review).
+ *
+ * Two patterns the data exposed:
+ *
+ * 1. `/guides/tax-deadline-weekend-holiday-rule` carries 32% of all site
+ *    impressions at position 8 and linked on to neither the penalty calculator
+ *    nor the extension checker — yet "my deadline moved" leads directly to
+ *    "what does missing it cost" and "what is my extension".
+ * 2. Every `/guides/*-alternatives` page links to its `/compare/*` sibling, but
+ *    the compare pages never linked back — even though they rank far better
+ *    (position 10-17 vs 22-58). The equity flowed one way, into the weaker page.
+ *
+ * Pinned links are prepended; rotation still fills the remaining slots, so the
+ * long-tail spread the rotation was built for is preserved.
+ */
+const PINNED_RELATED: Record<string, string[]> = {
+  '/guides/tax-deadline-weekend-holiday-rule': ['/penalty-calculator', '/extension-checker'],
+  '/compare/jetpack-workflow-deadline-operations': ['/guides/jetpack-workflow-alternatives'],
+  '/compare/karbon-deadline-operations': ['/guides/karbon-alternatives'],
+  '/compare/taxdome-deadline-operations': ['/guides/taxdome-alternatives'],
+  '/compare/canopy-deadline-operations': ['/guides/canopy-alternatives'],
+  '/compare/file-in-time-alternative': ['/guides/file-in-time-alternatives'],
+  '/compare/keeper-deadline-operations': ['/guides/keeper-alternatives'],
+  '/compare/financial-cents-deadline-operations': ['/guides/financial-cents-alternatives'],
+  // The rule reference a searcher lands on next after a moved federal date.
+  '/rules/fbar-fincen-114-deadline': ['/extension-checker'],
+}
+
 export function getRelatedResources(
   currentPathname: string,
   locale: Locale,
@@ -5910,16 +6036,24 @@ export function getRelatedResources(
 ): ResourceLink[] {
   const prefix = locale === 'zh-CN' ? '/zh-CN' : ''
   const currentFree = currentPathname.replace(/^\/zh-CN/, '') || '/'
-  const pool = RELATED_RESOURCE_LINKS.filter((l) => l.href !== currentFree)
+  const pinnedHrefs = (PINNED_RELATED[currentFree] ?? []).filter((h) => h !== currentFree)
+  const pinned = pinnedHrefs
+    .map((href) => RELATED_RESOURCE_LINKS.find((l) => l.href === href))
+    .filter((l): l is (typeof RELATED_RESOURCE_LINKS)[number] => l !== undefined)
+  const pool = RELATED_RESOURCE_LINKS.filter(
+    (l) => l.href !== currentFree && !pinnedHrefs.includes(l.href),
+  )
   // Deterministic per-page rotation (stable across builds — no randomness):
   // each page starts at a different offset in the pool, so link equity spreads
   // across the long tail instead of every page linking the same first four.
   let hash = 0
   for (let i = 0; i < currentFree.length; i++) hash = (hash * 31 + currentFree.charCodeAt(i)) >>> 0
   const start = pool.length ? hash % pool.length : 0
-  const picked = Array.from({ length: Math.min(limit, pool.length) }, (_, k) => {
+  const remaining = Math.max(0, limit - pinned.length)
+  const rotated = Array.from({ length: Math.min(remaining, pool.length) }, (_, k) => {
     return pool[(start + k) % pool.length]
   })
+  const picked = [...pinned, ...rotated]
   return picked.map((l) => ({
     label: locale === 'zh-CN' ? l.labelZh : l.label,
     href: `${prefix}${l.href}`,
