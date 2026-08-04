@@ -17,13 +17,13 @@ X 的规则变更线一直没镜像到小红书 / LinkedIn,这里把积压的 5 
 
 ## 建议发布顺序(按时效)
 
-| 顺序 | 主题                       | 最近的行动日                    | 图前缀                  |
-| ---- | -------------------------- | ------------------------------- | ----------------------- |
-| 1    | 纽约 尼古丁新品税 + 库存税 | **8月31日 盘存 / 9月21日 申报** | `ny-nicotine-tax`       |
-| 2    | 阿拉巴马 两县换收税机关    | 9月1日 / 10月1日 / 10月20日     | `al-county-tobacco`     |
-| 3    | IRS CRAT 列名交易          | 已生效(7月9日),越早提醒越好     | `irs-crat-listed`       |
-| 4    | 北卡 IRC 参照日更新        | 影响当期申报                    | `nc-irc-conformity`     |
-| 5    | 伊利诺伊 bonus 折旧脱钩    | 2026 税年(规划期长)             | `il-bonus-depreciation` |
+| 顺序 | 主题                       | 最近的行动日                    | 图前缀 |
+| ---- | -------------------------- | ------------------------------- | ------ |
+| 1    | 纽约 尼古丁新品税 + 库存税 | **8月31日 盘存 / 9月21日 申报** | `ny`   |
+| 2    | 阿拉巴马 两县换收税机关    | 9月1日 / 10月1日 / 10月20日     | `al`   |
+| 3    | IRS CRAT 列名交易          | 已生效(7月9日),越早提醒越好     | `irs`  |
+| 4    | 北卡 IRC 参照日更新        | 影响当期申报                    | `nc`   |
+| 5    | 伊利诺伊 bonus 折旧脱钩    | 2026 税年(规划期长)             | `il`   |
 
 > 纽约排第一是因为它有**真正会被罚的近期动作**(8月31日 盘存 → 9月21日 缴库存税),
 > 而且和阿拉巴马同属「尼古丁 / 烟草税」主题,两条连着发能形成小专题。
@@ -57,7 +57,7 @@ X 的规则变更线一直没镜像到小红书 / LinkedIn,这里把积压的 5 
 
 **LinkedIn 文档标题**:`New York Alternative Nicotine Products Tax — Sept 1, 2026 and the Floor Tax (N-26-2)`
 
-**LinkedIn 配文**(文档帖,上传 `ny-nicotine-tax-li-carousel.pdf`)
+**LinkedIn 配文**(文档帖,上传 `ny-li-carousel.pdf`)
 
 ```
 New York tobacco products tax now reaches alternative nicotine products — effective Sept 1, 2026, at 75% of wholesale price.
@@ -98,7 +98,7 @@ Do you have retail or distribution clients in New York? NYS source in the commen
 
 **LinkedIn 文档标题**:`Alabama County Tobacco Tax — Etowah In Sept 1, Walker Out Oct 1, 2026 (ALDOR)`
 
-**LinkedIn 配文**(文档帖,上传 `al-county-tobacco-li-carousel.pdf`)
+**LinkedIn 配文**(文档帖,上传 `al-li-carousel.pdf`)
 
 ```
 Alabama county tobacco tax — two counties change collecting agency this autumn, in opposite directions.
@@ -140,7 +140,7 @@ Tobacco Tax」(2026-06-26),revenue.alabama.gov。电子烟税 Act 2025-377($0.10
 
 **LinkedIn 文档标题**:`Certain CRAT Arrangements Are Now Listed Transactions — Form 8886 Duty (IR-2026-82)`
 
-**LinkedIn 配文**(文档帖,上传 `irs-crat-listed-li-carousel.pdf`)
+**LinkedIn 配文**(文档帖,上传 `irs-li-carousel.pdf`)
 
 ```
 Certain charitable remainder annuity trust arrangements are now listed transactions — Treasury and IRS final regulations, effective July 9, 2026.
@@ -181,7 +181,7 @@ NCDOR 同日另发一份通知,针对飓风 Helene 受灾纳税人的追加利�
 
 **LinkedIn 文档标题**:`North Carolina IRC Conformity Moves to July 5, 2025 — Session Law 2026-31`
 
-**LinkedIn 配文**(文档帖,上传 `nc-irc-conformity-li-carousel.pdf`)
+**LinkedIn 配文**(文档帖,上传 `nc-li-carousel.pdf`)
 
 ```
 North Carolina updated its Internal Revenue Code conformity date to July 5, 2025 — Session Law 2026-31, per the NCDOR important notice of July 23, 2026.
@@ -225,7 +225,7 @@ Which North Carolina returns on your list still need revisiting? NCDOR source in
 
 **LinkedIn 文档标题**:`Illinois Decouples From Federal 100% Bonus Depreciation — TY2026 (Bulletin FY 2026-15)`
 
-**LinkedIn 配文**(文档帖,上传 `il-bonus-depreciation-li-carousel.pdf`)
+**LinkedIn 配文**(文档帖,上传 `il-li-carousel.pdf`)
 
 ```
 Illinois will not follow the federal 100% bonus depreciation — Public Act 104-0453, for tax years beginning on or after January 1, 2026.
