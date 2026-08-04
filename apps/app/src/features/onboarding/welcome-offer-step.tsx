@@ -12,10 +12,16 @@ import { StepDots } from './step-dots'
 // Welcome / launch-offer step — the questionnaire from the marketing
 // /get-started page, moved into the post-login funnel as step 1. Name + email
 // already come from sign-in and the firm name is captured in practice setup, so
-// only the three qualitative questions remain. Completing it ("Claim …") is the
-// gate to the 3-months-of-Team offer; the quiet skip forgoes it. Styled with the
-// same onboarding chrome (StepDots hero + flat card + Button/Textarea/ToggleChip
-// primitives) so it reads as the natural first beat of onboarding, not a port.
+// only the three qualitative questions remain. Styled with the same onboarding
+// chrome (StepDots hero + flat card + Button/Textarea/ToggleChip primitives) so
+// it reads as the natural first beat of onboarding, not a port.
+//
+// 2026-08-04 (Yuqi): the trial is UNCONDITIONAL — answering is no longer a gate.
+// It never really was: every question is optional, so "Claim" with all three
+// blank granted the same 3 months as a full response. The two buttons therefore
+// differed only in whether the user got a paid plan free, and the modest-looking
+// one silently cost them. Now both paths grant it and the copy says so, which
+// makes these questions what they always were: optional research.
 
 export interface WelcomeOfferAnswers {
   /** Single practice focus, if chosen. */
@@ -29,9 +35,9 @@ export interface WelcomeOfferAnswers {
 interface WelcomeOfferStepProps {
   step: number
   total: number
-  /** Accept the offer + continue into practice setup, carrying the answers. */
+  /** Continue into practice setup, carrying the answers. */
   onClaim: (answers: WelcomeOfferAnswers) => void
-  /** Continue without claiming the offer. */
+  /** Continue without answering. The trial is granted either way. */
   onSkip: () => void
 }
 
@@ -84,7 +90,8 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           </h1>
           <p className="text-base leading-normal text-text-tertiary">
             <Trans>
-              Answer a few quick questions and your trial's on us — every field is optional.
+              Your 3 months are already included — these questions just help us build the right
+              thing. Every field is optional.
             </Trans>
           </p>
         </div>
@@ -158,12 +165,10 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           </div>
         </div>
 
-        {/* Claim → continue into practice setup. Skip forgoes the offer, and
-            says so: "Skip for now" read as "skip the questions" while it
-            actually declined 3 months of a paid plan, with no way to get it
-            back later in the funnel (2026-08-04 audit). Every question is
-            optional, so claiming without answering is a legitimate path — the
-            wording no longer implies otherwise. */}
+        {/* Both paths grant the trial, so neither label may imply a cost.
+            "Claim …" would suggest the answers earn it and "Continue without
+            the free trial" would be simply false — the skip skips questions,
+            nothing more. */}
         <div className="flex flex-col items-center gap-2.5">
           <Button
             type="button"
@@ -171,11 +176,11 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
             onClick={handleClaim}
             className="w-full justify-center gap-2 rounded-lg font-semibold"
           >
-            <Trans>Claim 3 months of Team free</Trans>
+            <Trans>Continue</Trans>
             <ArrowRightIcon className="size-4" aria-hidden />
           </Button>
           <TextLink variant="muted" onClick={onSkip} className="text-sm">
-            <Trans>Continue without the free trial</Trans>
+            <Trans>Skip these questions</Trans>
           </TextLink>
         </div>
       </div>

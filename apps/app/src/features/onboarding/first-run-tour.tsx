@@ -80,7 +80,10 @@ export function FirstRunTour() {
       {
         href: '/rules/library',
         title: t`Rule library`,
-        body: t`Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself.`,
+        // "Accept", not "activate" — the library's controls are Accept /
+        // Reject, so naming the real verb keeps the tour from teaching a
+        // gesture that doesn't exist (2026-08-04 audit).
+        body: t`Rules are what generate your deadlines. Accept the ones for the states you file in, and the calendar fills itself.`,
       },
     ],
     [t],

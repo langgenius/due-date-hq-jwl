@@ -1940,11 +1940,6 @@ msgstr "Actions"
 msgid "Actions for {0}"
 msgstr "Actions for {0}"
 
-#: src/features/dashboard/sidebar-setup-card.tsx
-#: src/routes/dashboard.tsx
-msgid "Activate filing rules"
-msgstr "Activate filing rules"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activate rule"
 msgstr "Activate rule"
@@ -2862,10 +2857,6 @@ msgstr "Annual rollover created"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Annual rollover generated"
 msgstr "Annual rollover generated"
-
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Answer a few quick questions and your trial's on us — every field is optional."
-msgstr "Answer a few quick questions and your trial's on us — every field is optional."
 
 #: src/routes/readiness.tsx
 msgid "Answer each item so your CPA can confirm filing readiness."
@@ -4044,10 +4035,6 @@ msgstr "Citation {n} — open deadline"
 msgid "City"
 msgstr "City"
 
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Claim 3 months of Team free"
-msgstr "Claim 3 months of Team free"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
 msgstr "Cleaned up an imported value."
@@ -4743,6 +4730,7 @@ msgstr "Context the next preparer should read first — preferred call window, s
 
 #: src/features/dashboard/sidebar-setup-card.tsx
 #: src/features/migration/WizardShell.tsx
+#: src/features/onboarding/welcome-offer-step.tsx
 msgid "Continue"
 msgstr "Continue"
 
@@ -4766,10 +4754,6 @@ msgstr "Continue with Google"
 #: src/routes/accept-invite.tsx
 msgid "Continue with Microsoft"
 msgstr "Continue with Microsoft"
-
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Continue without the free trial"
-msgstr "Continue without the free trial"
 
 #: src/routes/billing.tsx
 msgid "contract"
@@ -8419,8 +8403,8 @@ msgid "Import undone"
 msgstr "Import undone"
 
 #: src/routes/obligations.tsx
-msgid "Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
-msgstr "Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
+msgid "Import your client book or add deadlines manually. Once your filing rules are active, we generate every deadline automatically."
+msgstr "Import your client book or add deadlines manually. Once your filing rules are active, we generate every deadline automatically."
 
 #: src/routes/migration.new.tsx
 msgid "Import your client list to generate deadlines and unlock the first Today risk view."
@@ -8450,6 +8434,11 @@ msgstr "Importance and late-filing history"
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "Imported client undone"
+
+#. placeholder {0}: requiredRolesLabel('migration.run')
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Importing clients needs {0} access. Ask a firm owner or manager to bring the book in — every deadline you're assigned shows up here automatically once it's loaded."
+msgstr "Importing clients needs {0} access. Ask a firm owner or manager to bring the book in — every deadline you're assigned shows up here automatically once it's loaded."
 
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
@@ -10522,6 +10511,14 @@ msgstr "No deadlines due in the next 7 days"
 msgid "No deadlines due in the selected window."
 msgstr "No deadlines due in the selected window."
 
+#: src/routes/dashboard.tsx
+msgid "No deadlines generated yet"
+msgstr "No deadlines generated yet"
+
+#: src/features/dashboard/merged-brief-card.tsx
+msgid "No deadlines here yet."
+msgstr "No deadlines here yet."
+
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters"
 msgstr "No deadlines match these filters"
@@ -11110,6 +11107,10 @@ msgstr "Notes saved"
 msgid "Nothing — re-enabling later issues a brand-new URL"
 msgstr "Nothing — re-enabling later issues a brand-new URL"
 
+#: src/features/dashboard/merged-brief-card.tsx
+msgid "Nothing has generated for your clients yet — see the note above."
+msgstr "Nothing has generated for your clients yet — see the note above."
+
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
 msgstr "Nothing here."
@@ -11520,6 +11521,7 @@ msgid "Open rule details for {displayTitle}"
 msgstr "Open rule details for {displayTitle}"
 
 #: src/features/onboarding/first-run-tour.tsx
+#: src/routes/dashboard.tsx
 msgid "Open Rule library"
 msgstr "Open Rule library"
 
@@ -13635,6 +13637,11 @@ msgstr "Review {highSeverityPending} high-severity rules"
 msgid "Review →"
 msgstr "Review →"
 
+#: src/features/dashboard/sidebar-setup-card.tsx
+#: src/routes/dashboard.tsx
+msgid "Review and accept your filing rules"
+msgstr "Review and accept your filing rules"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Review and edit the email, then send it to {recipientEmail}."
@@ -14138,8 +14145,8 @@ msgid "Rules are watching but no deadlines yet"
 msgstr "Rules are watching but no deadlines yet"
 
 #: src/features/onboarding/first-run-tour.tsx
-msgid "Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself."
-msgstr "Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself."
+msgid "Rules are what generate your deadlines. Accept the ones for the states you file in, and the calendar fills itself."
+msgstr "Rules are what generate your deadlines. Accept the ones for the states you file in, and the calendar fills itself."
 
 #: src/routes/rules.library.tsx
 msgid "Rules awaiting review"
@@ -15097,6 +15104,10 @@ msgstr "Skip it if the evidence, applicability, due-date logic, or extension han
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Skip materials collection?"
 msgstr "Skip materials collection?"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Skip these questions"
+msgstr "Skip these questions"
 
 #: src/components/patterns/app-shell.tsx
 #: src/routes/_entry-layout.tsx
@@ -17958,6 +17969,10 @@ msgstr "you@firm.com"
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Your 3 months are already included — these questions just help us build the right thing. Every field is optional."
+msgstr "Your 3 months are already included — these questions just help us build the right thing. Every field is optional."
+
 #: src/routes/two-factor.tsx
 msgid "Your account is protected by two-factor authentication."
 msgstr "Your account is protected by two-factor authentication."
@@ -17965,6 +17980,10 @@ msgstr "Your account is protected by two-factor authentication."
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "Your account isn't linked to a practice yet."
+
+#: src/routes/dashboard.tsx
+msgid "Your active rules didn't match any client yet — usually the jurisdictions or entity types don't line up, or the matching rules are still awaiting review."
+msgstr "Your active rules didn't match any client yet — usually the jurisdictions or entity types don't line up, or the matching rules are still awaiting review."
 
 #: src/routes/obligations.tsx
 msgid "Your assigned deadlines, in Google, Apple, or Outlook."
@@ -18038,6 +18057,10 @@ msgstr "Your personal profile and access for this practice."
 #: src/routes/onboarding.tsx
 msgid "Your practice"
 msgstr "Your practice"
+
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Your practice hasn't imported its client book yet."
+msgstr "Your practice hasn't imported its client book yet."
 
 #: src/lib/i18n-error.ts
 msgid "Your practice is suspended. Contact support to restore access."

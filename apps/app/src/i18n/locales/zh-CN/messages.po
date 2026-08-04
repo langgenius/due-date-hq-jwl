@@ -1948,11 +1948,6 @@ msgstr "操作"
 msgid "Actions for {0}"
 msgstr "{0} 的操作"
 
-#: src/features/dashboard/sidebar-setup-card.tsx
-#: src/routes/dashboard.tsx
-msgid "Activate filing rules"
-msgstr "启用申报规则"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activate rule"
 msgstr "启用规则"
@@ -2874,10 +2869,6 @@ msgstr "已创建年度滚转"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Annual rollover generated"
 msgstr "年度结转已生成"
-
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Answer a few quick questions and your trial's on us — every field is optional."
-msgstr "回答几个简单问题，试用由我们买单 —— 所有字段均为选填。"
 
 #: src/routes/readiness.tsx
 msgid "Answer each item so your CPA can confirm filing readiness."
@@ -4060,10 +4051,6 @@ msgstr "引用 {n} — 打开截止日期"
 msgid "City"
 msgstr "城市"
 
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Claim 3 months of Team free"
-msgstr "领取 3 个月 Team 版"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
 msgstr "已清理导入值。"
@@ -4763,6 +4750,7 @@ msgstr "下一位经办人应首先阅读的背景 —— 偏好的致电时段�
 
 #: src/features/dashboard/sidebar-setup-card.tsx
 #: src/features/migration/WizardShell.tsx
+#: src/features/onboarding/welcome-offer-step.tsx
 msgid "Continue"
 msgstr "继续"
 
@@ -4786,10 +4774,6 @@ msgstr "使用 Google 继续"
 #: src/routes/accept-invite.tsx
 msgid "Continue with Microsoft"
 msgstr "使用 Microsoft 继续"
-
-#: src/features/onboarding/welcome-offer-step.tsx
-msgid "Continue without the free trial"
-msgstr "不要免费试用，直接继续"
 
 #: src/routes/billing.tsx
 msgid "contract"
@@ -8447,8 +8431,8 @@ msgid "Import undone"
 msgstr "导入已撤销"
 
 #: src/routes/obligations.tsx
-msgid "Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
-msgstr "导入您的客户名册，或手动添加截止日。我们会根据您已启用的规则自动生成截止日。"
+msgid "Import your client book or add deadlines manually. Once your filing rules are active, we generate every deadline automatically."
+msgstr "导入您的客户名册，或手动添加截止日期。申报规则生效后，我们会自动生成每一个截止日期。"
 
 #: src/routes/migration.new.tsx
 msgid "Import your client list to generate deadlines and unlock the first Today risk view."
@@ -8478,6 +8462,11 @@ msgstr "重要性与迟报历史"
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "已撤销导入的客户"
+
+#. placeholder {0}: requiredRolesLabel('migration.run')
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Importing clients needs {0} access. Ask a firm owner or manager to bring the book in — every deadline you're assigned shows up here automatically once it's loaded."
+msgstr "导入客户需要 {0} 权限。请让事务所所有者或管理者导入客户名册——名册载入后，分配给您的每个截止日期都会自动出现在这里。"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
@@ -10560,6 +10549,14 @@ msgstr "未来 7 天内没有到期的截止日期"
 msgid "No deadlines due in the selected window."
 msgstr "所选时间窗内没有到期的截止事项。"
 
+#: src/routes/dashboard.tsx
+msgid "No deadlines generated yet"
+msgstr "尚未生成任何截止日期"
+
+#: src/features/dashboard/merged-brief-card.tsx
+msgid "No deadlines here yet."
+msgstr "这里还没有截止日期。"
+
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters"
 msgstr "没有符合这些筛选条件的截止任务"
@@ -11151,6 +11148,10 @@ msgstr "备注已保存"
 msgid "Nothing — re-enabling later issues a brand-new URL"
 msgstr "不会保留任何内容，之后重新启用会生成全新的 URL"
 
+#: src/features/dashboard/merged-brief-card.tsx
+msgid "Nothing has generated for your clients yet — see the note above."
+msgstr "尚未为您的客户生成任何内容——请参见上方说明。"
+
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
 msgstr "这里暂无内容。"
@@ -11564,6 +11565,7 @@ msgid "Open rule details for {displayTitle}"
 msgstr "打开 {displayTitle} 的规则详情"
 
 #: src/features/onboarding/first-run-tour.tsx
+#: src/routes/dashboard.tsx
 msgid "Open Rule library"
 msgstr "打开规则库"
 
@@ -13693,6 +13695,11 @@ msgstr "审阅 {highSeverityPending} 项高严重度规则"
 msgid "Review →"
 msgstr "查看 →"
 
+#: src/features/dashboard/sidebar-setup-card.tsx
+#: src/routes/dashboard.tsx
+msgid "Review and accept your filing rules"
+msgstr "审核并接受您的申报规则"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Review and edit the email, then send it to {recipientEmail}."
@@ -14196,8 +14203,8 @@ msgid "Rules are watching but no deadlines yet"
 msgstr "规则正在监控，但暂无截止日期"
 
 #: src/features/onboarding/first-run-tour.tsx
-msgid "Rules are what generate your deadlines. Activate the states you file in, and the calendar fills itself."
-msgstr "规则会生成你的截止日。激活你要申报的州,日历就会自动填好。"
+msgid "Rules are what generate your deadlines. Accept the ones for the states you file in, and the calendar fills itself."
+msgstr "规则是生成截止日期的依据。接受您需要申报的州的规则，日历就会自动填充。"
 
 #: src/routes/rules.library.tsx
 msgid "Rules awaiting review"
@@ -15159,6 +15166,10 @@ msgstr "如果证据、适用范围、到期日逻辑或延期处理仍需进一
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Skip materials collection?"
 msgstr "跳过材料收集？"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Skip these questions"
+msgstr "跳过这些问题"
 
 #: src/components/patterns/app-shell.tsx
 #: src/routes/_entry-layout.tsx
@@ -18028,6 +18039,10 @@ msgstr "you@firm.com"
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
 
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Your 3 months are already included — these questions just help us build the right thing. Every field is optional."
+msgstr "您的 3 个月已经包含在内——这些问题只是帮助我们做出更合适的产品。每一项均为选填。"
+
 #: src/routes/two-factor.tsx
 msgid "Your account is protected by two-factor authentication."
 msgstr "你的账户已受双重验证保护。"
@@ -18035,6 +18050,10 @@ msgstr "你的账户已受双重验证保护。"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "你的账户尚未关联任何事务所。"
+
+#: src/routes/dashboard.tsx
+msgid "Your active rules didn't match any client yet — usually the jurisdictions or entity types don't line up, or the matching rules are still awaiting review."
+msgstr "您已生效的规则尚未匹配到任何客户——通常是辖区或实体类型不一致，或者匹配的规则仍在等待审核。"
 
 #: src/routes/obligations.tsx
 msgid "Your assigned deadlines, in Google, Apple, or Outlook."
@@ -18109,6 +18128,10 @@ msgstr "你在此事务所的个人资料与访问权限。"
 #: src/routes/onboarding.tsx
 msgid "Your practice"
 msgstr "您的事务所"
+
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Your practice hasn't imported its client book yet."
+msgstr "您的事务所尚未导入客户名册。"
 
 #: src/lib/i18n-error.ts
 msgid "Your practice is suspended. Contact support to restore access."

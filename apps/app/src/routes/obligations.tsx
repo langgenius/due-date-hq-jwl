@@ -7835,9 +7835,14 @@ function ObligationQueueEmptyState({
             Try a different filter combination, or clear all filters to see the full queue.
           </Trans>
         ) : (
+          // "from the rules you activated" asserted the rules step was already
+          // done — but the most common reason this page is empty is that it
+          // ISN'T (2026-08-04 audit: /today said "activate rules" while this
+          // page said they were active). Stated as a condition, it stays true
+          // either way and points at the real prerequisite.
           <Trans>
-            Import your client book or add deadlines manually. We'll generate them automatically
-            from the rules you activated.
+            Import your client book or add deadlines manually. Once your filing rules are active, we
+            generate every deadline automatically.
           </Trans>
         )
       }

@@ -1,5 +1,6 @@
 import { CircleAlertIcon, RotateCwIcon, UserIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
+import { Link } from 'react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -221,12 +222,8 @@ export function DashboardRoute() {
   )
   // `!isError` too: a failed coverage load falls back to activeRuleTotal===0,
   // which would nudge a firm that HAS rules to "set up rules" (audit P3).
-  const needsRules =
-    clientsResolved &&
-    hasClients &&
-    !coverageQuery.isLoading &&
-    !coverageQuery.isError &&
-    activeRuleTotal === 0
+  const coverageResolved = !coverageQuery.isLoading && !coverageQuery.isError
+  const needsRules = clientsResolved && hasClients && coverageResolved && activeRuleTotal === 0
   // Firm identity for analytics — reuses the layout's `firms.listMine` cache
   // key (no extra fetch). Used only to scope the once-per-firm activation
   // milestone; null until the cache warms.
@@ -234,6 +231,24 @@ export function DashboardRoute() {
   const firmId =
     (firmsQuery.data?.find((item) => item.isCurrent) ?? firmsQuery.data?.[0])?.id ?? null
   const data = dashboardQuery.data
+
+  // Fourth first-run state (2026-08-04 audit): clients imported AND rules
+  // active, but nothing generated — the activated jurisdictions don't match the
+  // imported clients' states/entities, or the matching rules are still
+  // pending_review. `needsRules` is false here (rules exist), so the page fell
+  // through to the normal sections and greeted a brand-new firm with
+  // "All clear — nothing due or late". That is the most dangerous sentence this
+  // product can show a CPA who has verified nothing. Guarded on a resolved,
+  // non-errored dashboard so a failed load never reads as "zero deadlines".
+  const noDeadlinesGenerated =
+    clientsResolved &&
+    hasClients &&
+    coverageResolved &&
+    activeRuleTotal > 0 &&
+    !dashboardQuery.isLoading &&
+    !dashboardQuery.isError &&
+    data != null &&
+    (data.summary?.openObligationCount ?? 0) === 0
 
   const syncedAtIso =
     dashboardQuery.dataUpdatedAt > 0 ? new Date(dashboardQuery.dataUpdatedAt).toISOString() : null
@@ -513,42 +528,66 @@ export function DashboardRoute() {
           </div>
           <CreateChoiceCards />
         </div>
-      ) : needsRules ? (
-        // Onboarding gap #2 (2026-06-18): clients are in but no rules are active,
-        // so no deadlines generate and the sections below would read a misleading
-        // "all clear." Replace them with the setup-progress card (Yuqi aesthetic
-        // refs) — it reinforces the done step (clients ✓), shows how close they
-        // are, and CTAs straight to rules. Self-resolves once the first rule
-        // generates a deadline (activeRuleTotal > 0), at which point the card's
-        // own all-done guard hides it and the real dashboard takes over.
-        <div className="flex flex-1 items-start justify-center pt-8">
-          <SetupProgressCard
-            className="w-full max-w-md"
-            title={<Trans>You're almost set up</Trans>}
-            description={
-              <Trans>
-                Activate rules for your clients' jurisdictions and DueDateHQ generates every
-                deadline automatically — no manual entry.
-              </Trans>
-            }
-            steps={[
-              {
-                key: 'clients',
-                label: <Trans>Add your clients</Trans>,
-                done: hasClients,
-                href: '/clients',
-              },
-              {
-                key: 'rules',
-                label: <Trans>Activate filing rules</Trans>,
-                done: activeRuleTotal > 0,
-                href: '/rules/library',
-              },
-            ]}
-          />
-        </div>
       ) : (
         <>
+          {/* Onboarding gap #2 (2026-06-18, revisited 2026-08-04): clients are in
+          but no rules are active, so nothing generates. This used to REPLACE the
+          whole page, which also unmounted the alerts section — and firm-wide
+          regulatory alerts don't depend on rules, so a real one could land while
+          Today showed only a setup card. It now sits as a banner ABOVE the normal
+          sections. Self-resolves once rules generate the first deadline. */}
+          {needsRules ? (
+            <SetupProgressCard
+              className="w-full"
+              title={<Trans>You're almost set up</Trans>}
+              description={
+                <Trans>
+                  Activate rules for your clients' jurisdictions and DueDateHQ generates every
+                  deadline automatically — no manual entry.
+                </Trans>
+              }
+              steps={[
+                {
+                  key: 'clients',
+                  label: <Trans>Add your clients</Trans>,
+                  done: hasClients,
+                  href: '/clients',
+                },
+                {
+                  key: 'rules',
+                  label: <Trans>Review and accept your filing rules</Trans>,
+                  done: activeRuleTotal > 0,
+                  href: '/rules/library',
+                },
+              ]}
+            />
+          ) : noDeadlinesGenerated ? (
+            // Rules ARE active but matched nothing — so "All clear" below would
+            // be a lie of omission. Name the likely cause instead of celebrating.
+            <Alert>
+              <CircleAlertIcon />
+              <AlertTitle>
+                <Trans>No deadlines generated yet</Trans>
+              </AlertTitle>
+              <AlertDescription>
+                <Trans>
+                  Your active rules didn't match any client yet — usually the jurisdictions or
+                  entity types don't line up, or the matching rules are still awaiting review.
+                </Trans>{' '}
+                {/* Real <Link> so cmd/right-click keep working, matching
+                    SetupProgressCard's CTA. */}
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 align-baseline"
+                  render={<Link to="/rules/library" />}
+                >
+                  <Trans>Open Rule library</Trans>
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
@@ -615,6 +654,10 @@ export function DashboardRoute() {
             }}
             rows={data?.topRows ?? []}
             asOfDate={data?.asOfDate ?? null}
+            // Suppress the all-clear celebration when the queue is empty
+            // because nothing has ever generated — the banner above already
+            // says why, and two contradicting messages is worse than one.
+            nothingGeneratedYet={noDeadlinesGenerated}
             // The counts above follow the page scope; the card threads it into
             // its "See all N" links so a My-work count never lands on the
             // firm-wide queue (ux-flow S4).

@@ -77,13 +77,10 @@ Two problems compounded:
    The two buttons therefore differ _only_ in whether the user gets a paid plan
    for free — and the cheaper-looking one is the trap.
 
-**Partially fixed.** The link now reads **"Continue without the free trial"**,
-so the choice is disclosed. **Open for Yuqi:** the deeper question is whether a
-user who skips should forfeit the trial at all, given that answering nothing
-and clicking Claim earns it. Granting on both paths (and keeping the
-questionnaire as genuinely optional research) would remove the trap entirely —
-but that is a promo-economics decision, not a UX one, so it was not changed
-unilaterally.
+**RESOLVED in round 2.** First pass only disclosed the cost ("Continue without
+the free trial"), leaving the forfeit itself as a promo-economics call. Yuqi
+took it: the trial is now granted on **both** paths, so the trap is gone rather
+than merely labelled. See round 2 below for the resulting copy.
 
 ---
 
@@ -134,41 +131,72 @@ spending the user's first click on an unsubmittable form.
 
 ---
 
-## Open — worth doing, needs a design or product call
+## Round 2 — the four open items, all approved by Yuqi and shipped
 
-1. **Coordinators hit a fully dead first run.** All three choice cards gate on
-   `migration.run` / `client.write`; a coordinator has neither, so every control
-   on the page is disabled while the sidebar simultaneously nudges "Finish
-   setup". Needs a distinct "ask your firm owner to import the client book"
-   state. Separately, rule activation requires `owner|partner|manager`
-   server-side but the setup steps are shown ungated — preparers and
-   coordinators are sent to `/rules/library` to hit a 403.
+**Day-one "All clear" is gone.** Added the missing fourth state: clients
+imported and rules active, but nothing generated. `/today` now leads with a
+banner — "No deadlines generated yet · Your active rules didn't match any client
+yet — usually the jurisdictions or entity types don't line up, or the matching
+rules are still awaiting review" + Open Rule library. Guarded on a resolved,
+non-errored dashboard so a failed load never reads as "zero deadlines".
+`MergedBriefCard` gained a `nothingGeneratedYet` prop in the same family as its
+existing `isLoading`/`isError` guards, so the coffee celebration doesn't fire
+underneath the banner and contradict it — the queue reads "No deadlines here
+yet · Nothing has generated for your clients yet — see the note above."
+**Reproduced live** (empty seed + one WY LLC that matches no active rule) and
+verified before/after.
 
-2. **Day-one "All clear".** The three-way branch misses a fourth state: clients
-   imported, rules active, but zero deadlines generated (activated jurisdictions
-   don't match the imported clients, or rules are still `pending_review`). Those
-   firms get "All clear — nothing due or late" on day one, which is the most
-   dangerous sentence this product can show a CPA who has verified nothing.
+**`needsRules` no longer blanks the page.** It was replacing every section,
+which unmounted firm-wide regulatory alerts that don't depend on rules at all —
+a real alert could land while Today showed only a setup card. `SetupProgressCard`
+now renders as a banner above the normal sections. Confirmed live: the alerts
+section stays mounted alongside the banner.
 
-3. **`needsRules` blanks the whole page**, unmounting the alerts section — and
-   firm-wide regulatory alerts don't depend on rules. `/deadlines` in the same
-   state contradicts it, saying deadlines will generate "from the rules you
-   activated". Better as a banner above the normal sections.
+**The `/deadlines` contradiction is fixed.** It asserted deadlines generate
+"from the rules you activated" — claiming the rules step was done — while
+`/today` in the same state said to go activate them. Now stated as a condition:
+"Once your filing rules are active, we generate every deadline automatically."
 
-4. **"Activate filing rules" is vocabulary the destination doesn't use.** Three
-   surfaces say "activate"; `/rules/library` offers **Accept / Reject** and
-   blocks Accept behind a mandatory free-text audit note nobody warned the user
-   about.
+**Coordinators get a real state instead of a dead page.** `client.write` and
+`migration.run` are both `owner|partner|manager|preparer`, so a coordinator had
+no enabled control anywhere on first run. They now see "Your practice hasn't
+imported its client book yet" with what to ask for and why it matters to them,
+instead of three greyed cards. `SidebarSetupCard` renders only steps the member
+can actually complete — gated on `pulse.apply`, which is exactly the server's
+`RULE_REVIEW_ROLES`, so a preparer is no longer pointed at a 403 — and returns
+null when they can complete neither.
 
-5. **Step 2's "STEP 2 OF 3" is honest but the count is soft** — the rule-review
+**Vocabulary now matches the destination.** "Activate filing rules" → "Review
+and accept your filing rules", and the tour's "Activate the states you file in"
+→ "Accept the ones for the states you file in". `/rules/library` offers Accept /
+Reject and has no "activate" control; the old wording named a gesture that isn't
+there.
+
+**The trial is now unconditional** (Yuqi's explicit call). Both paths grant the
+3 months, so the copy no longer pretends otherwise: the CTA is "Continue", the
+skip is "Skip these questions", and the subline reads "Your 3 months are already
+included — these questions just help us build the right thing." `offerAnswers`
+still rides along for analytics; it no longer decides who pays. This closes the
+P1 above: there is no longer a cheaper-looking button that quietly costs money.
+
+---
+
+## Open — still needs a design or product call
+
+1. **`/rules/library` blocks Accept behind a mandatory free-text audit note**,
+   which nobody warns the first-run user about. The setup step now names the
+   right verb, but the destination could pre-fill a default ("Accepted during
+   setup") so the first-run path isn't gated on prose.
+
+2. **Step 2's "STEP 2 OF 3" is honest but the count is soft** — the rule-review
    sub-step is conditional, and the importer's own 4-step wizard sits inside
    step 3. Currently legible via the step names; revisit only if users report
    confusion.
 
-6. **Sample data is offered on `/clients` but not on `/today`**, which is the
+3. **Sample data is offered on `/clients` but not on `/today`**, which is the
    page a new user actually lands on.
 
-7. **Edge introduced by the P0 fix, worth tightening later:** rule activation
+4. **Edge introduced by the P0 fix, worth tightening later:** rule activation
    now runs for every new practice, so if that call fails the `.catch` shows
    "Couldn't create your practice" — while the firm actually _was_ created.
    Retrying recovers (the reuse path takes over), but the message is wrong.

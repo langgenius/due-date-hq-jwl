@@ -73,6 +73,7 @@ export function MergedBriefCard({
   scope = 'firm',
   isLoading = false,
   isError = false,
+  nothingGeneratedYet = false,
   onRetry,
   onOpenObligation,
   className,
@@ -95,6 +96,12 @@ export function MergedBriefCard({
   // so the empty branch never masquerades as "all clear" (mirrors the Alerts
   // section's error handling in needs-attention-section.tsx).
   isError?: boolean
+  // Same family of guard as `isLoading`/`isError` above: a firm whose rules
+  // have never generated a deadline has an empty queue for a reason that is
+  // NOT "you're clear". Celebrating there tells a CPA who has verified nothing
+  // that there is nothing to verify, and it contradicts the "No deadlines
+  // generated yet" banner /today shows in the same state (2026-08-04 audit).
+  nothingGeneratedYet?: boolean
   onRetry?: () => void
   onOpenObligation: (obligationId: string) => void
   // Lets /today make this section the flex-1 min-h-0 region of its desktop
@@ -430,10 +437,18 @@ export function MergedBriefCard({
           </span>
           <div className="flex max-w-md flex-col gap-1">
             <p className="text-base font-medium text-text-primary">
-              <Trans>All clear — nothing due or late.</Trans>
+              {nothingGeneratedYet ? (
+                <Trans>No deadlines here yet.</Trans>
+              ) : (
+                <Trans>All clear — nothing due or late.</Trans>
+              )}
             </p>
             <p className="text-sm text-text-tertiary">
-              <Trans>New deadlines appear here automatically.</Trans>
+              {nothingGeneratedYet ? (
+                <Trans>Nothing has generated for your clients yet — see the note above.</Trans>
+              ) : (
+                <Trans>New deadlines appear here automatically.</Trans>
+              )}
             </p>
           </div>
         </div>

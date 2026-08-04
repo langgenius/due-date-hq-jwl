@@ -233,9 +233,14 @@ export function OnboardingRoute() {
         activateOnboardingJurisdictions: (input) => activateRulesMutation.mutateAsync(input),
       },
       selectedRuleStates,
-      // Survey gates the trial: only grant Team when the welcome offer was claimed
-      // (offerAnswers set). Skipping the questionnaire leaves it null → no grant.
-      ...(offerAnswers ? { grantTeamTrialMonths: TEAM_TRIAL_MONTHS } : {}),
+      // The trial is unconditional (2026-08-04, Yuqi). It used to be gated on
+      // claiming the welcome questionnaire — but every question there is
+      // optional, so clicking "Claim" with all three blank already granted it.
+      // The gate was therefore never real: the two buttons differed only in
+      // whether the user got a paid plan free, and the modest-sounding one
+      // ("Skip for now") quietly cost them three months. `offerAnswers` still
+      // rides along for analytics; it no longer decides who pays.
+      grantTeamTrialMonths: TEAM_TRIAL_MONTHS,
     })
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })

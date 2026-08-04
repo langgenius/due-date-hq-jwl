@@ -200,6 +200,29 @@ export function CreateChoiceCards({ className }: { className?: string }) {
     }),
   )
 
+  // A coordinator has neither `migration.run` nor `client.write`
+  // (FIRM_PERMISSION_ROLES), so all three cards would render disabled and the
+  // page would offer them no enabled control anywhere — a total dead end, while
+  // the sidebar simultaneously nudged them to "Finish setup" (2026-08-04 audit).
+  // Tell them what's actually true instead: someone else has to load the book,
+  // and their work appears here when it lands.
+  if (!canRunMigration && !canCreateClient) {
+    return (
+      <div className={cn('rounded-xl border border-divider-subtle bg-bg-subtle p-6', className)}>
+        <p className="text-sm font-medium text-text-primary">
+          <Trans>Your practice hasn't imported its client book yet.</Trans>
+        </p>
+        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-text-secondary">
+          <Trans>
+            Importing clients needs {requiredRolesLabel('migration.run')} access. Ask a firm owner
+            or manager to bring the book in — every deadline you're assigned shows up here
+            automatically once it's loaded.
+          </Trans>
+        </p>
+      </div>
+    )
+  }
+
   return (
     <>
       <motion.div

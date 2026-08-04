@@ -8,6 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
+import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { SetupStepIcon } from './setup-step-icon'
 
 // Dismiss-for-session lives in sessionStorage rather than React state so the
@@ -36,7 +37,7 @@ function readDismissed(): boolean {
  * Two REAL signals, no fiction:
  *  - "Add your clients"      — done when the firm has ≥1 client
  *    (orpc.clients.listByFirm, limit:1 probe — shares /today's cache key).
- *  - "Activate filing rules" — done when active rule count > 0
+ *  - "Review and accept your filing rules" — done when active rule count > 0
  *    (orpc.rules.coverage, summing activeRuleCount — shares the dashboard's
  *    same coverage query).
  *
@@ -60,6 +61,16 @@ export function SidebarSetupCard() {
   const { pathname } = useLocation()
   const dashboardPath = pathname === '/' || pathname === '/today'
 
+  // Only nudge people who can actually finish the steps. Importing needs
+  // `migration.run` and accepting rules needs `pulse.apply` (= the server's
+  // RULE_REVIEW_ROLES); a coordinator has neither, so this card was sending
+  // them to pages where every control is disabled, and a preparer — who can
+  // import but cannot accept rules — was being pointed at a 403
+  // (2026-08-04 audit).
+  const permission = useFirmPermission()
+  const canAddClients = permission.can('client.write') || permission.can('migration.run')
+  const canReviewRules = permission.can('pulse.apply')
+
   const dismiss = useCallback(() => {
     setDismissed(true)
     try {
@@ -80,6 +91,9 @@ export function SidebarSetupCard() {
   // stays.
   if (dashboardPath) return null
 
+  // Nothing here they could complete — silence beats a checklist of dead links.
+  if (!canAddClients && !canReviewRules) return null
+
   // Wait for BOTH probes before deciding anything — rendering off a half-loaded
   // pair would flash a wrong tick count (e.g. "1 of 2" before rules resolve).
   if (clientsProbeQuery.isPending || coverageQuery.isPending) return null
@@ -91,15 +105,31 @@ export function SidebarSetupCard() {
   )
   const hasRules = activeRuleTotal > 0
 
+  // Only steps this member can actually complete. "Review and accept" is the
+  // destination's own verb — /rules/library offers Accept / Reject, never an
+  // "Activate" control, so the old label named an action that isn't there.
   const steps = [
-    { key: 'clients', label: <Trans>Add your clients</Trans>, done: hasClients, href: '/clients' },
-    {
-      key: 'rules',
-      label: <Trans>Activate filing rules</Trans>,
-      done: hasRules,
-      href: '/rules/library',
-    },
-  ] as const
+    ...(canAddClients
+      ? [
+          {
+            key: 'clients',
+            label: <Trans>Add your clients</Trans>,
+            done: hasClients,
+            href: '/clients',
+          },
+        ]
+      : []),
+    ...(canReviewRules
+      ? [
+          {
+            key: 'rules',
+            label: <Trans>Review and accept your filing rules</Trans>,
+            done: hasRules,
+            href: '/rules/library',
+          },
+        ]
+      : []),
+  ]
 
   const doneCount = steps.filter((s) => s.done).length
   // Self-dismiss: a finished setup earns no chrome.
