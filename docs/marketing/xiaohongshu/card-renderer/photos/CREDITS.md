@@ -18,3 +18,10 @@
 
 **处理**:`magick <src> -resize 2160x2880^ -gravity center -extent 2160x2880 -modulate 100,84 -quality 88 <out>.jpg`
 (`^` 是填充裁切;漏掉它会变成上下补边。降饱和是因为它只是背景。)
+
+| `HI-2026-01.jpg` | HI-2026-01 | 欧胡岛北岸 Mokuleia–Waialua 之间被淹的农田,棕色洪水与入海泥沙羽流 | 2026-03-14 | NASA 地球观测站,Lauren Dauphin 制图,数据来自 USGS Landsat 9 (OLI) | **美国政府作品 · 公有领域** | 可商用;NASA 要求署名 |
+
+**HI-2026-01 处理**:原图为横幅卫星影像,居中裁会只剩云层。定点裁到洪水羽流所在区域并让它落在白卡上方 ——
+`magick <src> -crop 1240x1653+830+700 +repage -resize 2160x2880! -modulate 100,90 -quality 88 HI-2026-01.jpg`
+
+**署名**:NASA 影像发帖时在配文或首条评论注明「Image: NASA Earth Observatory / Landsat 9 (USGS)」。

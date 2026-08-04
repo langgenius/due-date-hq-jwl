@@ -1,0 +1,114 @@
+[
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-p1cover",
+    "kind": "hero",
+    "locale": "zh",
+    "format": "xhs",
+    "photo": "photos/HI-2026-01.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "今天这个州的报税截止日在逼近",
+    "map": {
+      "state": "HI",
+      "counties": ["15001", "15003", "15007", "15009"]
+    },
+    "stateName": "夏威夷",
+    "countdown": {
+      "days": 17,
+      "tone": "far"
+    },
+    "newDate": "8月20日",
+    "sub": "4 个县,地址在范围内的自动适用。",
+    "footer": "美国报税不漏DDL · HI-2026-01"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-p2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "夏威夷",
+    "newDate": "8月20日",
+    "title": ["覆盖谁,怎么适用"],
+    "rows": [
+      {
+        "label": "受灾范围",
+        "value": "4 个县",
+        "note": "完整名单以 irs.gov 公告 HI-2026-01 为准。"
+      },
+      {
+        "label": "适用方式",
+        "value": "自动适用,无需申请",
+        "note": "IRS 存档地址在受灾范围内的,不必提出申请。"
+      },
+      {
+        "label": "覆盖起点",
+        "value": "2026 年 3月10日 起到期的联邦申报与缴款"
+      }
+    ],
+    "callout": {
+      "label": "这种情形要主动打电话",
+      "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
+    },
+    "footer": "来源:IRS 公告 HI-2026-01 · 美国报税不漏DDL"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "HI"
+    },
+    "badge": "1",
+    "stateName": "Hawaii",
+    "countdown": {
+      "days": 17,
+      "tone": "far"
+    },
+    "newDate": "Aug 20",
+    "dueSuffix": "deadline",
+    "sub": "4 Hawaii counties. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · HI-2026-01"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Hawaii",
+    "newDate": "Aug 20",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "4 Hawaii counties",
+        "note": "The full list is the one in IRS relief notice HI-2026-01."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Mar 10, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief HI-2026-01 · DueDateHQ"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · HI-2026-01",
+    "title": ["Hawaii filing", "extended to", "[[Aug 20]]"],
+    "sub": "4 Hawaii counties — federal filing and payment deadlines automatically postponed to Aug 20, 2026. Swipe for the details →",
+    "footer": "HI-2026-01 · Source: IRS"
+  }
+]

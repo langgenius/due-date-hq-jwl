@@ -1,14 +1,16 @@
 [
   {
     "id": "hawaii-severe-storms-flooding-mudslides-p1cover",
-    "kind": "mapcover",
+    "kind": "hero",
     "locale": "zh",
     "format": "xhs",
-    "title": ["今天这个州的", "报税截止日在逼近"],
+    "photo": "photos/HI-2026-01.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "今天这个州的报税截止日在逼近",
     "map": {
-      "state": "HI"
+      "state": "HI",
+      "counties": ["15001", "15003", "15007", "15009"]
     },
-    "badge": "1",
     "stateName": "夏威夷",
     "countdown": {
       "days": 17,
