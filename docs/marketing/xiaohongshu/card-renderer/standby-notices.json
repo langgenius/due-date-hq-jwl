@@ -975,14 +975,16 @@
   },
   {
     "id": "louisiana-tropical-storm-arthur-p1cover",
-    "kind": "mapcover",
+    "kind": "hero",
     "locale": "zh",
     "format": "xhs",
-    "title": ["今天这个州的", "报税截止日在逼近"],
+    "photo": "photos/LA-2026-02.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "今天这个州的报税截止日在逼近",
     "map": {
-      "state": "LA"
+      "state": "LA",
+      "counties": ["22009", "22057", "22077", "22097", "22103", "22109"]
     },
-    "badge": "1",
     "stateName": "路易斯安那",
     "countdown": {
       "days": 91,
@@ -1894,14 +1896,16 @@
   },
   {
     "id": "northern-mariana-islands-super-typhoon-sinlaku-p1cover",
-    "kind": "mapcover",
+    "kind": "hero",
     "locale": "zh",
     "format": "xhs",
-    "title": ["今天这个州的", "报税截止日在逼近"],
+    "photo": "photos/NMI-2026-01.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "今天这个州的报税截止日在逼近",
     "map": {
-      "state": "MP"
+      "state": "MP",
+      "counties": []
     },
-    "badge": "1",
     "stateName": "北马里亚纳群岛",
     "countdown": {
       "days": 91,
