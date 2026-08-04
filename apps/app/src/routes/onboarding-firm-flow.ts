@@ -55,11 +55,14 @@ export async function activateOrCreateOnboardingFirm(input: {
     ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
     ...(input.grantTeamTrialMonths ? { grantTeamTrialMonths: input.grantTeamTrialMonths } : {}),
   })
+  // Always activate — the server bundles FED as the baseline, so an untouched
+  // (optional) state selector still yields a practice that generates federal
+  // deadlines. Skipping the call here was the client half of the same bug:
+  // together they left the default path with zero active rules (2026-08-04).
   const selectedRuleStates = input.selectedRuleStates ?? []
-  const ruleActivation =
-    selectedRuleStates.length > 0
-      ? await input.gateway.activateOnboardingJurisdictions({ states: selectedRuleStates })
-      : null
+  const ruleActivation = await input.gateway.activateOnboardingJurisdictions({
+    states: selectedRuleStates,
+  })
   return { kind: 'created', firm, ruleActivation }
 }
 

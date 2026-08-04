@@ -158,7 +158,12 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
           </div>
         </div>
 
-        {/* Claim → continue into practice setup. The quiet skip forgoes the offer. */}
+        {/* Claim → continue into practice setup. Skip forgoes the offer, and
+            says so: "Skip for now" read as "skip the questions" while it
+            actually declined 3 months of a paid plan, with no way to get it
+            back later in the funnel (2026-08-04 audit). Every question is
+            optional, so claiming without answering is a legitimate path — the
+            wording no longer implies otherwise. */}
         <div className="flex flex-col items-center gap-2.5">
           <Button
             type="button"
@@ -170,7 +175,7 @@ export function WelcomeOfferStep({ step, total, onClaim, onSkip }: WelcomeOfferS
             <ArrowRightIcon className="size-4" aria-hidden />
           </Button>
           <TextLink variant="muted" onClick={onSkip} className="text-sm">
-            <Trans>Skip for now</Trans>
+            <Trans>Continue without the free trial</Trans>
           </TextLink>
         </div>
       </div>

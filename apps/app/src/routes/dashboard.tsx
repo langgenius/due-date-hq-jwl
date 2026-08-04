@@ -633,7 +633,13 @@ export function DashboardRoute() {
           />
         </>
       )}
-      <FirstRunTour />
+      {/* Not while the get-started hero is up: a zero-client user would have
+          the chooser they were just told to use dimmed under the tour's
+          spotlight, and the tour's terminal CTA ("Open Rule library") sends
+          them somewhere that generates nothing without clients. Unmounted
+          rather than skipped, so SEEN_KEY stays unwritten and the tour still
+          runs once they have clients (2026-08-04 audit). */}
+      {showFirstRun ? null : <FirstRunTour />}
     </div>
   )
 }

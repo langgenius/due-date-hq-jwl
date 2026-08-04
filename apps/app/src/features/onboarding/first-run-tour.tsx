@@ -108,10 +108,13 @@ export function FirstRunTour() {
       if (firstHref && measure(firstHref)) {
         startedRef.current = true
         setActive(true)
-      } else {
-        // Can't anchor (collapsed rail / mobile drawer) — skip silently, don't nag.
-        markSeen()
       }
+      // Can't anchor (collapsed rail / mobile drawer / slow chunk) — do nothing
+      // and leave SEEN_KEY unwritten so the tour can still run on a later mount
+      // where the rail is visible. Marking it seen here burned the product's
+      // only orientation surface for anyone who signed up on a phone or with a
+      // collapsed sidebar (2026-08-04 audit). SEEN_KEY is now written only on a
+      // real finish or skip.
     }, START_DELAY_MS)
     return () => window.clearTimeout(timer)
   }, [steps])

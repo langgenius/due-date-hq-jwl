@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, XIcon } from 'lucide-react'
@@ -10,17 +10,21 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { SetupStepIcon } from './setup-step-icon'
 
-// Dismiss-for-session lives in localStorage rather than React state so the
+// Dismiss-for-session lives in sessionStorage rather than React state so the
 // nudge stays hidden across route changes within a browser session — but it is
 // NOT a permanent dismissal: a firm that hasn't finished setup will see it
 // again next session (and the card self-deletes for good the moment both
 // signals go true, see the all-done guard below).
+//
+// 2026-08-04: this used localStorage, which made the contract above false — one
+// ✕ hid the card forever, on every firm and every account signed in on that
+// browser. sessionStorage is what "for this session" actually means.
 const DISMISS_STORAGE_KEY = 'ddhq:sidebar:setup-dismissed'
 
 function readDismissed(): boolean {
   if (typeof window === 'undefined') return false
   try {
-    return window.localStorage.getItem(DISMISS_STORAGE_KEY) === '1'
+    return window.sessionStorage.getItem(DISMISS_STORAGE_KEY) === '1'
   } catch {
     return false
   }
@@ -53,10 +57,13 @@ export function SidebarSetupCard() {
   const clientsProbeQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }))
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
 
+  const { pathname } = useLocation()
+  const dashboardPath = pathname === '/' || pathname === '/today'
+
   const dismiss = useCallback(() => {
     setDismissed(true)
     try {
-      window.localStorage.setItem(DISMISS_STORAGE_KEY, '1')
+      window.sessionStorage.setItem(DISMISS_STORAGE_KEY, '1')
     } catch {
       // Private mode / disabled storage — the in-memory flag still hides it
       // for this mount; it simply reappears on a fresh load.
@@ -64,6 +71,14 @@ export function SidebarSetupCard() {
   }, [])
 
   if (dismissed) return null
+
+  // /today owns the first-run setup surface (SetupProgressCard / the get-started
+  // hero). Rendering this rail card there too put TWO copies of the same
+  // two-step checklist on screen at once — "You're almost set up · 50%" beside
+  // "Finish setup · 50%", two names for one task competing for the same click
+  // (2026-08-04 audit). Off the dashboard this card is the only nudge, so it
+  // stays.
+  if (dashboardPath) return null
 
   // Wait for BOTH probes before deciding anything — rendering off a half-loaded
   // pair would flash a wrong tick count (e.g. "1 of 2" before rules resolve).

@@ -89,8 +89,11 @@ describe('onboarding rule activation', () => {
     return rule
   }
 
-  it('derives FED plus selected states only when at least one state is selected', () => {
-    expect(onboardingActivationJurisdictions([])).toEqual([])
+  it('always derives FED, with selected states appended and deduped', () => {
+    // An untouched (optional) state selector must still leave the practice with
+    // the federal baseline — activating nothing produced a firm that generated
+    // no deadlines at all.
+    expect(onboardingActivationJurisdictions([])).toEqual(['FED'])
     expect(onboardingActivationJurisdictions(['CA', 'TX', 'CA'])).toEqual(['FED', 'CA', 'TX'])
   })
 
@@ -275,9 +278,22 @@ describe('onboarding rule activation', () => {
     ).toBe(true)
   })
 
-  it('returns an empty summary without writes when no states are selected', async () => {
-    const { scoped, upsertPracticeRule, decideReviewTask, ensureReviewTasks, writeAudit } =
-      makeScoped()
+  it('still activates the federal baseline when no states are selected', async () => {
+    // The state selector is optional and defaults to empty, so this is the
+    // DEFAULT onboarding path. It used to return an empty summary and write
+    // nothing, leaving the practice with zero active rules — it imported
+    // clients and generated no deadlines at all. Federal is the baseline.
+    const { scoped, upsertPracticeRule, writeAudit } = makeScoped()
+    const ensureCatalog = vi.fn(async () => undefined)
+    const generateObligations = vi.fn(async () => ({
+      candidateCount: 0,
+      createdCount: 0,
+      duplicateCount: 0,
+      historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 0,
+      clientCount: 0,
+      createdObligationIds: [],
+    }))
 
     const result = await activateOnboardingJurisdictionRules({
       scoped,
@@ -285,20 +301,20 @@ describe('onboarding rule activation', () => {
       internalDeadlineOffsetDays: 14,
       states: [],
       now: REVIEWED_AT,
+      ensureCatalog,
+      generateObligations,
     })
 
-    expect(result).toEqual({
-      selectedStates: [],
-      jurisdictions: [],
-      activatedCount: 0,
-      skippedCount: 0,
-      reviewRequiredCount: 0,
-      reviewRequiredJurisdictions: [],
-      generatedObligationCount: 0,
+    expect(result.selectedStates).toEqual([])
+    expect(result.jurisdictions).toEqual(['FED'])
+    expect(result.activatedCount).toBeGreaterThan(0)
+    expect(upsertPracticeRule).toHaveBeenCalled()
+    expect(writeAudit).toHaveBeenCalled()
+    // Every activated rule is federal — an empty state selection adds none.
+    const activatedJurisdictions = upsertPracticeRule.mock.calls.map((call) => {
+      const [{ ruleJson }] = call as [{ ruleJson: { jurisdiction: string } }]
+      return ruleJson.jurisdiction
     })
-    expect(upsertPracticeRule).not.toHaveBeenCalled()
-    expect(decideReviewTask).not.toHaveBeenCalled()
-    expect(ensureReviewTasks).not.toHaveBeenCalled()
-    expect(writeAudit).not.toHaveBeenCalled()
+    expect(new Set(activatedJurisdictions)).toEqual(new Set(['FED']))
   })
 })

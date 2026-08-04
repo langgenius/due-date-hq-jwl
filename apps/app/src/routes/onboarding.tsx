@@ -29,6 +29,7 @@ import {
 import {
   StateRuleActivationSelector,
   sourceDefinedCalendarReviewStates,
+  FEDERAL_NEEDS_CALENDAR_REVIEW,
 } from '@/features/onboarding/state-rule-activation-selector'
 import { exampleFederalDueDate, workingDueDate } from '@/features/onboarding/offset-preview'
 import { formatDatePretty } from '@/lib/utils'
@@ -167,7 +168,15 @@ export function OnboardingRoute() {
   // the button never leads somewhere unannounced (deferred 2026-05-26 audit
   // item). Same static rule source as the selector's review warning; the
   // social-alert intent outranks review, matching the submit handler.
-  const pendingReviewStateCount = sourceDefinedCalendarReviewStates(selectedRuleStates).length
+  //
+  // Counts the always-on federal baseline alongside the selected states: FED is
+  // activated unconditionally (2026-08-04) and carries source-defined-calendar
+  // rules of its own, so a practice that picks NO states still lands on the
+  // review step. Counting states only would promise the importer and then
+  // deliver a review screen.
+  const pendingReviewJurisdictionCount =
+    sourceDefinedCalendarReviewStates(selectedRuleStates).length +
+    (FEDERAL_NEEDS_CALENDAR_REVIEW ? 1 : 0)
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
@@ -231,14 +240,15 @@ export function OnboardingRoute() {
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         await queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
-        // Key conversion: firm created (or reused). FED is bundled whenever any
-        // state is selected, so includes_fed tracks "any jurisdiction chosen".
+        // Key conversion: firm created (or reused). FED is the unconditional
+        // baseline (2026-08-04), so includes_fed is always true for a created
+        // firm — selected_state_count is the property that varies.
         track(ANALYTICS_EVENTS.practiceCreated, {
           path: result.kind === 'created' ? 'created' : 'reused',
           timezone,
           internal_deadline_offset_days: internalDeadlineOffsetDays,
           selected_state_count: selectedRuleStates.length,
-          includes_fed: selectedRuleStates.length > 0,
+          includes_fed: true,
           offer_claimed: offerAnswers !== null,
           offer_focus: offerAnswers?.focus,
           offer_tool_count: offerAnswers?.tools.length ?? 0,
@@ -388,6 +398,12 @@ export function OnboardingRoute() {
                     required
                     minLength={MIN_NAME_LENGTH}
                     value={name}
+                    // The default is derived from the email domain, so it is
+                    // often a mangled guess ("smithcpa.com" → "Smithcpa") in a
+                    // field whose "required" hint makes it look already
+                    // answered. Selecting on focus makes the guess replaceable
+                    // in one keystroke instead of needing a manual clear.
+                    onFocus={(event) => event.target.select()}
                     onChange={(event) => setName(event.target.value)}
                     placeholder={t`e.g. Smith & Associates CPA`}
                     aria-invalid={error ? true : undefined}
@@ -519,11 +535,14 @@ export function OnboardingRoute() {
             <p className="text-caption font-medium leading-relaxed text-text-secondary">
               {socialAlertNext ? (
                 <Trans>Next: the alert you came to see.</Trans>
-              ) : pendingReviewStateCount > 0 ? (
+              ) : pendingReviewJurisdictionCount > 0 ? (
+                // "jurisdiction", not "state" — the count includes Federal,
+                // which is not a state (same wording fix the review prompt made
+                // on 2026-06-12).
                 <Plural
-                  value={pendingReviewStateCount}
-                  one="Next: a quick calendar review for # state, then import your client list."
-                  other="Next: a quick calendar review for # states, then import your client list."
+                  value={pendingReviewJurisdictionCount}
+                  one="Next: a quick calendar review for # jurisdiction, then import your client list."
+                  other="Next: a quick calendar review for # jurisdictions, then import your client list."
                 />
               ) : (
                 <Trans>Next: import your client list — about 5 minutes.</Trans>

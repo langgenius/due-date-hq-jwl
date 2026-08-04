@@ -37,7 +37,14 @@ export function SplashRoute() {
   // clients, the splash points forward; the "Go to Today" button then lands on
   // the /today get-started hero that owns the actual import action.
   const clientsProbeQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }))
-  const needsClients = !clientsProbeQuery.isLoading && (clientsProbeQuery.data?.length ?? 0) === 0
+  // `!isError` too: a failed probe leaves `data` undefined, which would resolve
+  // to "0 clients" and tell an established firm to go import its client book.
+  // /today already guards the same probe this way (dashboard.tsx); splash was
+  // missed (2026-08-04 audit).
+  const needsClients =
+    !clientsProbeQuery.isLoading &&
+    !clientsProbeQuery.isError &&
+    (clientsProbeQuery.data?.length ?? 0) === 0
 
   const data = recapQuery.data
 

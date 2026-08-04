@@ -1296,8 +1296,8 @@ msgid "{pendingCount} active · {expiredCount} expired · invitation link, 7-day
 msgstr "{pendingCount} active · {expiredCount} expired · invitation link, 7-day expiry"
 
 #: src/routes/onboarding.tsx
-msgid "{pendingReviewStateCount, plural, one {Next: a quick calendar review for # state, then import your client list.} other {Next: a quick calendar review for # states, then import your client list.}}"
-msgstr "{pendingReviewStateCount, plural, one {Next: a quick calendar review for # state, then import your client list.} other {Next: a quick calendar review for # states, then import your client list.}}"
+msgid "{pendingReviewJurisdictionCount, plural, one {Next: a quick calendar review for # jurisdiction, then import your client list.} other {Next: a quick calendar review for # jurisdictions, then import your client list.}}"
+msgstr "{pendingReviewJurisdictionCount, plural, one {Next: a quick calendar review for # jurisdiction, then import your client list.} other {Next: a quick calendar review for # jurisdictions, then import your client list.}}"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "{previewMoreCount, plural, one {+ # more client} other {+ # more clients}}"
@@ -1656,6 +1656,10 @@ msgstr "10 seats included"
 #: src/routes/billing.tsx
 msgid "10+ seats"
 msgstr "10+ seats"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "1040, 1120, 941, and the rest apply to every practice."
+msgstr "1040, 1120, 941, and the rest apply to every practice."
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "1099 vendors"
@@ -2074,6 +2078,10 @@ msgstr "Add {0}% across factors to balance. Weights must total 100%."
 msgid "Add a client"
 msgstr "Add a client"
 
+#: src/features/dashboard/create-choice-cards.tsx
+msgid "Add a client first — every deadline belongs to one."
+msgstr "Add a client first — every deadline belongs to one."
+
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a client to this practice."
 msgstr "Add a client to this practice."
@@ -2196,10 +2204,6 @@ msgstr "Add several deadlines"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Add state"
 msgstr "Add state"
-
-#: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Add state rules alongside federal. Start with federal only and add states later from the Rule Library."
-msgstr "Add state rules alongside federal. Start with federal only and add states later from the Rule Library."
 
 #: src/features/obligations/queue/dialogs.tsx
 msgid "Add the decision or context you need."
@@ -4762,6 +4766,10 @@ msgstr "Continue with Google"
 #: src/routes/accept-invite.tsx
 msgid "Continue with Microsoft"
 msgstr "Continue with Microsoft"
+
+#: src/features/onboarding/welcome-offer-step.tsx
+msgid "Continue without the free trial"
+msgstr "Continue without the free trial"
 
 #: src/routes/billing.tsx
 msgid "contract"
@@ -7385,6 +7393,10 @@ msgstr "Federal EIN"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Federal only"
 msgstr "Federal only"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Federal rules are always included."
+msgstr "Federal rules are always included."
 
 #: src/features/rules/sources-tab.tsx
 msgid "Fetched last 24h"
@@ -12221,6 +12233,10 @@ msgstr "Pick a tax type…"
 msgid "Pick state"
 msgstr "Pick state"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Pick the states your clients file in. You can add more later from the Rule Library."
+msgstr "Pick the states your clients file in. You can add more later from the Rule Library."
+
 #: src/features/obligations/PinButton.tsx
 msgid "Pin to Today"
 msgstr "Pin to Today"
@@ -15066,7 +15082,6 @@ msgid "Skip duplicates"
 msgstr "Skip duplicates"
 
 #: src/features/migration/OnboardingSkipModal.tsx
-#: src/features/onboarding/welcome-offer-step.tsx
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
 msgstr "Skip for now"

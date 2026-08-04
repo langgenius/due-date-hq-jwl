@@ -263,8 +263,21 @@ export function CreateChoiceCards({ className }: { className?: string }) {
               </Trans>
             }
             cta={<Trans>Add a deadline</Trans>}
-            disabled={!canCreateDeadline}
-            disabledHint={<Trans>Requires {requiredRolesLabel('client.write')} access</Trans>}
+            // This hero renders ONLY when the firm has zero clients
+            // (dashboard.tsx first-run branch), and a deadline must attach to a
+            // client with a matching active rule — so the dialog opened from
+            // here could never be submitted: empty client picker, permanently
+            // greyed "Add deadline" (2026-08-04 audit). Stating the
+            // prerequisite teaches the model (deadlines belong to a client)
+            // instead of spending the user's first click on a dead form.
+            disabled
+            disabledHint={
+              !canCreateDeadline ? (
+                <Trans>Requires {requiredRolesLabel('client.write')} access</Trans>
+              ) : (
+                <Trans>Add a client first — every deadline belongs to one.</Trans>
+              )
+            }
             onAction={() => setCreateDeadlineOpen(true)}
           />
         </motion.div>

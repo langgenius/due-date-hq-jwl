@@ -69,6 +69,25 @@ export function sourceDefinedCalendarReviewStates(
   )
 }
 
+/**
+ * Does the always-on federal baseline itself carry source-defined-calendar
+ * rules? Derived from the same rule data as the state set above rather than
+ * hardcoded, so it tracks the catalog.
+ *
+ * Needed because FED became unconditional (2026-08-04): the rule-review step
+ * now fires for every new practice, including one that picked no states, so the
+ * "Next:" line under the Create-practice CTA has to count FED or it would
+ * promise the importer and then land the user on a review screen.
+ */
+export const FEDERAL_NEEDS_CALENDAR_REVIEW = listObligationRules({
+  includeCandidates: true,
+}).some(
+  (rule) =>
+    rule.status !== 'deprecated' &&
+    rule.dueDateLogic.kind === 'source_defined_calendar' &&
+    rule.jurisdiction === 'FED',
+)
+
 interface StateRuleActivationSelectorProps {
   selected: readonly RuleGenerationState[]
   onChange: (states: RuleGenerationState[]) => void
@@ -119,9 +138,22 @@ export function StateRuleActivationSelector({
         </p>
         <p className="text-sm leading-relaxed text-text-tertiary">
           <Trans>
-            Add state rules alongside federal. Start with federal only and add states later from the
-            Rule Library.
+            Pick the states your clients file in. You can add more later from the Rule Library.
           </Trans>
+        </p>
+      </div>
+
+      {/* Federal baseline — stated, not implied. Leaving the (optional) state
+          grid empty still activates federal rules, so the UI says so instead of
+          leaving "0/51" to read as "nothing is set up". Static row, not a
+          control: there is nothing here for the user to decide. */}
+      <div className="flex items-center gap-2 rounded-lg border border-state-success-border bg-state-success-hover px-3 py-2">
+        <CheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
+        <p className="text-sm leading-snug text-text-secondary">
+          <span className="font-medium text-text-primary">
+            <Trans>Federal rules are always included.</Trans>
+          </span>{' '}
+          <Trans>1040, 1120, 941, and the rest apply to every practice.</Trans>
         </p>
       </div>
       <div className="flex items-center justify-between gap-2">

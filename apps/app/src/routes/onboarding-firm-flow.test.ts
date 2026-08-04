@@ -44,10 +44,12 @@ function gateway(overrides: Partial<OnboardingFirmGateway> = {}): OnboardingFirm
         ...(monitoringStartDate ? { monitoringStartDate } : {}),
       }),
     ),
+    // Mirrors the server: FED is the unconditional baseline, so an empty state
+    // selection still activates federal rules (only states add review work).
     activateOnboardingJurisdictions: vi.fn(async ({ states }) => ({
       selectedStates: states,
-      jurisdictions: states.length > 0 ? ['FED', ...states] : [],
-      activatedCount: states.length > 0 ? 10 : 0,
+      jurisdictions: ['FED', ...states],
+      activatedCount: states.length > 0 ? 10 : 4,
       skippedCount: 0,
       reviewRequiredCount: states.length > 0 ? 3 : 0,
       reviewRequiredJurisdictions: states.length > 0 ? states : [],
@@ -80,10 +82,21 @@ describe('activateOrCreateOnboardingFirm', () => {
 
     const result = await activateOrCreateOnboardingFirm({ gateway: api, name: 'New Practice' })
 
+    // No states picked (the default path) must STILL activate the federal
+    // baseline — skipping activation entirely left the practice generating no
+    // deadlines at all.
     expect(result).toEqual({
       kind: 'created',
       firm: firm({ id: 'firm_new', name: 'New Practice' }),
-      ruleActivation: null,
+      ruleActivation: {
+        selectedStates: [],
+        jurisdictions: ['FED'],
+        activatedCount: 4,
+        skippedCount: 0,
+        reviewRequiredCount: 0,
+        reviewRequiredJurisdictions: [],
+        generatedObligationCount: 0,
+      },
     })
     expect(api.create).toHaveBeenCalledWith({
       name: 'New Practice',
@@ -91,7 +104,7 @@ describe('activateOrCreateOnboardingFirm', () => {
       internalDeadlineOffsetDays: 14,
     })
     expect(api.switchActive).not.toHaveBeenCalled()
-    expect(api.activateOnboardingJurisdictions).not.toHaveBeenCalled()
+    expect(api.activateOnboardingJurisdictions).toHaveBeenCalledWith({ states: [] })
   })
 
   it('activates selected state and federal rules after creating a new firm', async () => {

@@ -691,11 +691,21 @@ export function isOnboardingActivatableRule(rule: Pick<CoreObligationRule, 'stat
   return rule.status !== 'deprecated'
 }
 
+// FED is the unconditional baseline, not a bonus for picking a state.
+//
+// 2026-08-04: this previously returned `[]` for an empty state selection, so a
+// practice created with the (optional) state selector untouched — the DEFAULT
+// path — activated ZERO rules, not even federal. That firm then imported
+// clients and generated no deadlines at all, which is why `/today` needed a
+// "clients but no rules" empty state to catch it. The onboarding copy has
+// always promised the opposite ("Start with federal only and add states
+// later"), and federal filings (1040/1120/941/…) apply to essentially every US
+// practice. The selector is about STATE coverage; leaving it empty means "no
+// extra states", never "no rules".
 export function onboardingActivationJurisdictions(
   states: readonly RuleGenerationState[],
 ): RuleJurisdiction[] {
-  const selectedStates = uniqueRuleGenerationStates(states)
-  return selectedStates.length === 0 ? [] : ['FED', ...selectedStates]
+  return ['FED', ...uniqueRuleGenerationStates(states)]
 }
 
 export async function activateOnboardingJurisdictionRules(input: {
