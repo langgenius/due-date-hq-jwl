@@ -49,6 +49,67 @@
     "footer": "来源:IRS 公告 HI-2026-01 · 美国报税不漏DDL"
   },
   {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "HI"
+    },
+    "badge": "1",
+    "stateName": "Hawaii",
+    "countdown": {
+      "days": 17,
+      "tone": "far"
+    },
+    "newDate": "Aug 20",
+    "dueSuffix": "deadline",
+    "sub": "4 Hawaii counties. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · HI-2026-01"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Hawaii",
+    "newDate": "Aug 20",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "4 Hawaii counties",
+        "note": "The full list is the one in IRS relief notice HI-2026-01."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Mar 10, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief HI-2026-01 · DueDateHQ"
+  },
+  {
+    "id": "hawaii-severe-storms-flooding-mudslides-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · HI-2026-01",
+    "title": ["Hawaii filing", "extended to", "[[Aug 20]]"],
+    "sub": "4 Hawaii counties — federal filing and payment deadlines automatically postponed to Aug 20, 2026. Swipe for the details →",
+    "footer": "HI-2026-01 · Source: IRS"
+  },
+  {
     "id": "arizona-san-carlos-apache-severe-storms-flooding-p1cover",
     "kind": "mapcover",
     "locale": "zh",
@@ -96,6 +157,67 @@
       "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
     },
     "footer": "来源:IRS 公告 AZ-2026-01 · 美国报税不漏DDL"
+  },
+  {
+    "id": "arizona-san-carlos-apache-severe-storms-flooding-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "AZ"
+    },
+    "badge": "1",
+    "stateName": "Arizona",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "sub": "the San Carlos Apache Tribe area. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · AZ-2026-01"
+  },
+  {
+    "id": "arizona-san-carlos-apache-severe-storms-flooding-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Arizona",
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "the San Carlos Apache Tribe area",
+        "note": "The full list is the one in IRS relief notice AZ-2026-01."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Oct 10, 2025"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief AZ-2026-01 · DueDateHQ"
+  },
+  {
+    "id": "arizona-san-carlos-apache-severe-storms-flooding-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · AZ-2026-01",
+    "title": ["San Carlos", "Apache relief:", "[[Sep 28]]"],
+    "sub": "San Carlos Apache Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
+    "footer": "AZ-2026-01 · Source: IRS"
   },
   {
     "id": "montana-fort-peck-tribes-winter-storm-p1cover",
@@ -147,6 +269,67 @@
     "footer": "来源:IRS 公告 MT-2026-03 · 美国报税不漏DDL"
   },
   {
+    "id": "montana-fort-peck-tribes-winter-storm-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "MT"
+    },
+    "badge": "1",
+    "stateName": "Montana",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "sub": "the Fort Peck Tribe area. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · MT-2026-03"
+  },
+  {
+    "id": "montana-fort-peck-tribes-winter-storm-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Montana",
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "the Fort Peck Tribe area",
+        "note": "The full list is the one in IRS relief notice MT-2026-03."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Dec 17, 2025"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief MT-2026-03 · DueDateHQ"
+  },
+  {
+    "id": "montana-fort-peck-tribes-winter-storm-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · MT-2026-03",
+    "title": ["Fort Peck MT", "deadlines to", "[[Sep 28]]"],
+    "sub": "Fort Peck Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
+    "footer": "MT-2026-03 · Source: IRS"
+  },
+  {
     "id": "montana-crow-tribe-winter-storm-p1cover",
     "kind": "mapcover",
     "locale": "zh",
@@ -194,6 +377,67 @@
       "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
     },
     "footer": "来源:IRS 公告 MT-2026-04 · 美国报税不漏DDL"
+  },
+  {
+    "id": "montana-crow-tribe-winter-storm-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "MT"
+    },
+    "badge": "1",
+    "stateName": "Montana",
+    "countdown": {
+      "days": 56,
+      "tone": "far"
+    },
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "sub": "the Crow Tribe area. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · MT-2026-04"
+  },
+  {
+    "id": "montana-crow-tribe-winter-storm-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Montana",
+    "newDate": "Sep 28",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "the Crow Tribe area",
+        "note": "The full list is the one in IRS relief notice MT-2026-04."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Dec 17, 2025"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief MT-2026-04 · DueDateHQ"
+  },
+  {
+    "id": "montana-crow-tribe-winter-storm-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · MT-2026-04",
+    "title": ["Crow Tribe MT", "deadlines to", "[[Sep 28]]"],
+    "sub": "Crow Tribe — federal filing and payment deadlines automatically postponed to Sep 28, 2026. Swipe for the details →",
+    "footer": "MT-2026-04 · Source: IRS"
   },
   {
     "id": "louisiana-tropical-storm-arthur-p1cover",
@@ -245,6 +489,67 @@
     "footer": "来源:IRS 公告 LA-2026-02 · 美国报税不漏DDL"
   },
   {
+    "id": "louisiana-tropical-storm-arthur-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "LA"
+    },
+    "badge": "1",
+    "stateName": "Louisiana",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "sub": "6 Louisiana parishes. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · LA-2026-02"
+  },
+  {
+    "id": "louisiana-tropical-storm-arthur-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Louisiana",
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "6 Louisiana parishes",
+        "note": "The full list is the one in IRS relief notice LA-2026-02."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Jun 17, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief LA-2026-02 · DueDateHQ"
+  },
+  {
+    "id": "louisiana-tropical-storm-arthur-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · LA-2026-02",
+    "title": ["Louisiana", "deadlines to", "[[Nov 2]]"],
+    "sub": "6 Louisiana parishes — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
+    "footer": "LA-2026-02 · Source: IRS"
+  },
+  {
     "id": "michigan-severe-storms-tornadoes-flooding-p1cover",
     "kind": "mapcover",
     "locale": "zh",
@@ -292,6 +597,67 @@
       "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
     },
     "footer": "来源:IRS 公告 MI-2026-02 · 美国报税不漏DDL"
+  },
+  {
+    "id": "michigan-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "MI"
+    },
+    "badge": "1",
+    "stateName": "Michigan",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "sub": "37 Michigan counties. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · MI-2026-02"
+  },
+  {
+    "id": "michigan-severe-storms-tornadoes-flooding-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Michigan",
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "37 Michigan counties",
+        "note": "The full list is the one in IRS relief notice MI-2026-02."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Apr 10, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief MI-2026-02 · DueDateHQ"
+  },
+  {
+    "id": "michigan-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · MI-2026-02",
+    "title": ["Michigan", "deadlines to", "[[Nov 2]]"],
+    "sub": "37 Michigan counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
+    "footer": "MI-2026-02 · Source: IRS"
   },
   {
     "id": "mississippi-severe-storms-tornadoes-flooding-p1cover",
@@ -343,6 +709,67 @@
     "footer": "来源:IRS 公告 MS-2026-02 · 美国报税不漏DDL"
   },
   {
+    "id": "mississippi-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "MS"
+    },
+    "badge": "1",
+    "stateName": "Mississippi",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "sub": "5 Mississippi counties. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · MS-2026-02"
+  },
+  {
+    "id": "mississippi-severe-storms-tornadoes-flooding-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Mississippi",
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "5 Mississippi counties",
+        "note": "The full list is the one in IRS relief notice MS-2026-02."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after May 6, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief MS-2026-02 · DueDateHQ"
+  },
+  {
+    "id": "mississippi-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · MS-2026-02",
+    "title": ["Mississippi", "deadlines to", "[[Nov 2]]"],
+    "sub": "5 Mississippi counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
+    "footer": "MS-2026-02 · Source: IRS"
+  },
+  {
     "id": "northern-mariana-islands-super-typhoon-sinlaku-p1cover",
     "kind": "mapcover",
     "locale": "zh",
@@ -392,6 +819,67 @@
     "footer": "来源:IRS 公告 NMI-2026-01 · 美国报税不漏DDL"
   },
   {
+    "id": "northern-mariana-islands-super-typhoon-sinlaku-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "MP"
+    },
+    "badge": "1",
+    "stateName": "Northern Mariana Islands",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "sub": "the affected islands. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · NMI-2026-01"
+  },
+  {
+    "id": "northern-mariana-islands-super-typhoon-sinlaku-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Northern Mariana Islands",
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "the affected islands",
+        "note": "The full list is the one in IRS relief notice NMI-2026-01."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Apr 11, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief NMI-2026-01 · DueDateHQ"
+  },
+  {
+    "id": "northern-mariana-islands-super-typhoon-sinlaku-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · NMI-2026-01",
+    "title": ["N. Mariana Is.", "deadlines to", "[[Nov 2]]"],
+    "sub": "Northern Islands, Rota, Saipan and Tinian — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
+    "footer": "NMI-2026-01 · Source: IRS"
+  },
+  {
     "id": "wisconsin-severe-storms-tornadoes-flooding-p1cover",
     "kind": "mapcover",
     "locale": "zh",
@@ -439,5 +927,66 @@
       "body": "客户地址在受灾范围外,但账册或记账人在范围内 —— 需致电 IRS 特别服务专线 866-562-5227 申请,不会自动适用。代 10 个以上客户申请的,可走批量请求。"
     },
     "footer": "来源:IRS 公告 WI-2026-02 · 美国报税不漏DDL"
+  },
+  {
+    "id": "wisconsin-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": ["A federal deadline", "has moved in this state"],
+    "map": {
+      "state": "WI"
+    },
+    "badge": "1",
+    "stateName": "Wisconsin",
+    "countdown": {
+      "days": 91,
+      "tone": "far"
+    },
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "sub": "21 Wisconsin counties. Automatic for an IRS address of record.",
+    "footer": "DueDateHQ · WI-2026-02"
+  },
+  {
+    "id": "wisconsin-severe-storms-tornadoes-flooding-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Wisconsin",
+    "newDate": "Nov 2",
+    "dueSuffix": "deadline",
+    "title": ["Who is covered, and how it applies"],
+    "rows": [
+      {
+        "label": "COVERED AREA",
+        "value": "21 Wisconsin counties",
+        "note": "The full list is the one in IRS relief notice WI-2026-02."
+      },
+      {
+        "label": "HOW IT APPLIES",
+        "value": "Automatic — no application",
+        "note": "The IRS identifies taxpayers whose address of record sits in the area."
+      },
+      {
+        "label": "COVERS FROM",
+        "value": "Federal returns and payments due on or after Apr 13, 2026"
+      }
+    ],
+    "callout": {
+      "label": "This case needs a phone call",
+      "body": "A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route."
+    },
+    "footer": "Source: IRS relief WI-2026-02 · DueDateHQ"
+  },
+  {
+    "id": "wisconsin-severe-storms-tornadoes-flooding-li-1cover",
+    "kind": "cover",
+    "locale": "en",
+    "format": "li",
+    "eyebrow": "IRS disaster relief · WI-2026-02",
+    "title": ["Wisconsin", "deadlines to", "[[Nov 2]]"],
+    "sub": "21 Wisconsin counties — federal filing and payment deadlines automatically postponed to Nov 2, 2026. Swipe for the details →",
+    "footer": "WI-2026-02 · Source: IRS"
   }
 ]

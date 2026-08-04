@@ -318,6 +318,60 @@ for (const n of DATA) {
     },
     footer: `来源:IRS 公告 ${n.code} · 美国报税不漏DDL`,
   })
+  // ── 领英英文两页(同一批核实过的字段,套统一句式)──
+  const areaEn = isTribe
+    ? `the ${c.tribe.replace(' 部落', ' Tribe')} area`
+    : isTerr
+      ? 'the affected islands'
+      : `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`
+  const incEn2 = incidentCNtoEN(n.incidentStart)
+  const incY = (n.incidentStart.match(/\d{4}/) || [''])[0]
+  out.push({
+    id: `${n.slug}-li-1cover`,
+    kind: 'mapcover',
+    locale: 'en',
+    format: 'li',
+    title: ['A federal deadline', 'has moved in this state'],
+    map: { state: n.abbreviation },
+    badge: '1',
+    stateName: n.state,
+    countdown: cd,
+    newDate: newEn,
+    dueSuffix: 'deadline',
+    sub: `${areaEn}. Automatic for an IRS address of record.`,
+    footer: `DueDateHQ · ${n.code}`,
+  })
+  out.push({
+    id: `${n.slug}-li-2facts`,
+    kind: 'facts',
+    locale: 'en',
+    format: 'li',
+    stateName: n.state,
+    newDate: newEn,
+    dueSuffix: 'deadline',
+    title: ['Who is covered, and how it applies'],
+    rows: [
+      {
+        label: 'COVERED AREA',
+        value: areaEn,
+        note: `The full list is the one in IRS relief notice ${n.code}.`,
+      },
+      {
+        label: 'HOW IT APPLIES',
+        value: 'Automatic — no application',
+        note: 'The IRS identifies taxpayers whose address of record sits in the area.',
+      },
+      {
+        label: 'COVERS FROM',
+        value: `Federal returns and payments due on or after ${incEn2}, ${incY}`,
+      },
+    ],
+    callout: {
+      label: 'This case needs a phone call',
+      body: 'A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route.',
+    },
+    footer: `Source: IRS relief ${n.code} · DueDateHQ`,
+  })
   // ── 旧版三张(cover/p1/p2)暂留,迁移完成后删 ──
   // ── cover ──
   out.push({
