@@ -1,0 +1,102 @@
+[
+  {
+    "id": "wa-expired-1cover",
+    "kind": "hero",
+    "locale": "zh",
+    "format": "xhs",
+    "photo": "photos/wa-2025-03.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "这个州的延期昨天到期了",
+    "map": {
+      "state": "WA",
+      "counties": []
+    },
+    "stateName": "华盛顿",
+    "newDate": "8月5日",
+    "dueSuffix": "已到期",
+    "sub": "同一周新增 8 项火灾声明 —— 但那不等于新的延期。",
+    "footer": "美国报税不漏DDL · 2026年8月6日"
+  },
+  {
+    "id": "wa-expired-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "华盛顿",
+    "newDate": "8月5日",
+    "dueSuffix": "已到期",
+    "title": ["新声明 ≠ 新延期"],
+    "rows": [
+      {
+        "label": "已经结束的",
+        "value": "WA-2025-03 于 8月5日 到期",
+        "note": "华盛顿目前没有现行的 IRS 灾害减免。"
+      },
+      {
+        "label": "8月3日 新来的",
+        "value": "EM-3650 华盛顿野火紧急状态",
+        "note": "灾情自 8月1日 起,涉及 Chelan、Ferry、Okanogan、Spokane、Stevens、Yakima 及 Colville、Spokane、Yakama 三处保留地。另有 7 项 FM 消防拨款声明。"
+      },
+      {
+        "label": "现在的状态",
+        "value": "IRS 尚未就此发布任何减免",
+        "note": "FEMA 宣布灾害与 IRS 延期是两件事、两个机关。没有 IRS 公告之前,截止日不变。"
+      }
+    ],
+    "callout": {
+      "label": "为什么值得盯,而不是忽略",
+      "body": "WA-2025-03 当初就是从一份紧急状态声明(EM)出来的,不是重大灾害声明。所以 EM-3650 有可能带来新的 IRS 减免 —— 但在公告出来之前,别按「已经延了」安排客户。"
+    },
+    "footer": "来源:IRS WA-2025-03 · FEMA EM-3650"
+  },
+  {
+    "id": "wa-expired-li-1cover",
+    "kind": "hero",
+    "locale": "en",
+    "format": "li",
+    "photo": "photos/wa-2025-03.jpg",
+    "heroTag": "IRS",
+    "eyebrow": "This state's postponement lapsed yesterday",
+    "map": {
+      "state": "WA",
+      "counties": []
+    },
+    "stateName": "Washington",
+    "newDate": "Aug 5",
+    "dueSuffix": "expired",
+    "sub": "Eight new fire declarations the same week — none of them a new postponement.",
+    "footer": "DueDateHQ · Aug 6, 2026"
+  },
+  {
+    "id": "wa-expired-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Washington",
+    "newDate": "Aug 5",
+    "dueSuffix": "expired",
+    "title": ["A new declaration is not a new postponement"],
+    "rows": [
+      {
+        "label": "WHAT ENDED",
+        "value": "WA-2025-03 expired on Aug 5",
+        "note": "Washington currently carries no live IRS disaster relief."
+      },
+      {
+        "label": "WHAT ARRIVED AUG 3",
+        "value": "EM-3650, a wildfire emergency declaration",
+        "note": "Incident from Aug 1, covering Chelan, Ferry, Okanogan, Spokane, Stevens and Yakima counties plus the Colville, Spokane and Yakama reservations. Seven fire management assistance grants sit alongside it."
+      },
+      {
+        "label": "WHERE THAT LEAVES YOU",
+        "value": "The IRS has issued nothing on it",
+        "note": "A FEMA declaration and an IRS postponement are separate acts by separate agencies. Until the IRS publishes, the deadlines stand."
+      }
+    ],
+    "callout": {
+      "label": "Why watch it rather than dismiss it",
+      "body": "WA-2025-03 itself came out of an emergency declaration, not a major disaster declaration — so EM-3650 could produce relief. Until it does, do not plan client work as though an extension exists."
+    },
+    "footer": "Sources: IRS WA-2025-03 · FEMA EM-3650"
+  }
+]
