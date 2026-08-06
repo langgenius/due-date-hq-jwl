@@ -4,21 +4,9 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "现在有 10 条",
-      "联邦报税延期在生效"
-    ],
+    "title": ["现在有 10 条", "联邦报税延期在生效"],
     "map": {
-      "states": [
-        "GA",
-        "HI",
-        "AZ",
-        "MT",
-        "LA",
-        "MI",
-        "MS",
-        "WI"
-      ]
+      "states": ["GA", "HI", "AZ", "MT", "LA", "MI", "MS", "WI"]
     },
     "stateName": "全美",
     "newDate": "8月20日",
@@ -34,9 +22,7 @@
     "stateName": "全美现行",
     "newDate": "8月20日",
     "dueSuffix": "最近一个",
-    "title": [
-      "按截止日排,10 条现行"
-    ],
+    "title": ["按截止日排,10 条现行"],
     "rows": [
       {
         "label": "8月20日 · 还剩 14 天",
@@ -64,21 +50,9 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "Ten federal postponements",
-      "are running right now"
-    ],
+    "title": ["Ten federal postponements", "are running right now"],
     "map": {
-      "states": [
-        "GA",
-        "HI",
-        "AZ",
-        "MT",
-        "LA",
-        "MI",
-        "MS",
-        "WI"
-      ]
+      "states": ["GA", "HI", "AZ", "MT", "LA", "MI", "MS", "WI"]
     },
     "stateName": "Nationwide",
     "newDate": "Aug 20",
@@ -94,9 +68,7 @@
     "stateName": "Live relief",
     "newDate": "Aug 20",
     "dueSuffix": "next up",
-    "title": [
-      "Ten open, closest first"
-    ],
+    "title": ["Ten open, closest first"],
     "rows": [
       {
         "label": "AUG 20 · 14 DAYS OUT",
