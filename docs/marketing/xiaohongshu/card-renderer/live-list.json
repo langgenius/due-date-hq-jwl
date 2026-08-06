@@ -1,0 +1,122 @@
+[
+  {
+    "id": "live-1cover",
+    "kind": "mapcover",
+    "locale": "zh",
+    "format": "xhs",
+    "title": [
+      "现在有 10 条",
+      "联邦报税延期在生效"
+    ],
+    "map": {
+      "states": [
+        "GA",
+        "HI",
+        "AZ",
+        "MT",
+        "LA",
+        "MI",
+        "MS",
+        "WI"
+      ]
+    },
+    "stateName": "全美",
+    "newDate": "8月20日",
+    "dueSuffix": "最近一个",
+    "sub": "图上 8 个州,加蒙大拿的第二条与不在图上的北马里亚纳。华盛顿昨天到期,从 11 条变 10 条。",
+    "footer": "美国报税不漏DDL · 2026年8月6日"
+  },
+  {
+    "id": "live-2facts",
+    "kind": "facts",
+    "locale": "zh",
+    "format": "xhs",
+    "stateName": "全美现行",
+    "newDate": "8月20日",
+    "dueSuffix": "最近一个",
+    "title": [
+      "按截止日排,10 条现行"
+    ],
+    "rows": [
+      {
+        "label": "8月20日 · 还剩 14 天",
+        "value": "佐治亚、夏威夷",
+        "note": "佐治亚是东南部野火,夏威夷是三月的 Kona 风暴洪水。"
+      },
+      {
+        "label": "9月28日",
+        "value": "亚利桑那、蒙大拿 ×2",
+        "note": "三条都是部落领地:San Carlos Apache、Fort Peck、Crow。蒙大拿两条是不同部落的独立公告,不是重复。"
+      },
+      {
+        "label": "11月2日",
+        "value": "路易斯安那、密歇根、密西西比、北马里亚纳、威斯康星"
+      }
+    ],
+    "callout": {
+      "label": "昨天刚掉出榜单",
+      "body": "华盛顿 WA-2025-03 于 8月5日 到期。该州同期新增 8 项火灾声明,但 IRS 尚未就此发布任何减免 —— 截止日不变。"
+    },
+    "footer": "来源:IRS 各州灾害减免公告 · 美国报税不漏DDL"
+  },
+  {
+    "id": "live-li-1cover",
+    "kind": "mapcover",
+    "locale": "en",
+    "format": "li",
+    "title": [
+      "Ten federal postponements",
+      "are running right now"
+    ],
+    "map": {
+      "states": [
+        "GA",
+        "HI",
+        "AZ",
+        "MT",
+        "LA",
+        "MI",
+        "MS",
+        "WI"
+      ]
+    },
+    "stateName": "Nationwide",
+    "newDate": "Aug 20",
+    "dueSuffix": "next up",
+    "sub": "Eight states shown, plus Montana's second notice and the Northern Marianas, which the tile map does not carry. Washington expired yesterday — eleven became ten.",
+    "footer": "DueDateHQ · Aug 6, 2026"
+  },
+  {
+    "id": "live-li-2facts",
+    "kind": "facts",
+    "locale": "en",
+    "format": "li",
+    "stateName": "Live relief",
+    "newDate": "Aug 20",
+    "dueSuffix": "next up",
+    "title": [
+      "Ten open, closest first"
+    ],
+    "rows": [
+      {
+        "label": "AUG 20 · 14 DAYS OUT",
+        "value": "Georgia, Hawaii",
+        "note": "Southeast Georgia wildfires; the March Kona storms in Hawaii."
+      },
+      {
+        "label": "SEP 28",
+        "value": "Arizona, Montana ×2",
+        "note": "All three are tribal areas — San Carlos Apache, Fort Peck, Crow. The two Montana notices are separate tribes, not a duplicate."
+      },
+      {
+        "label": "NOV 2",
+        "value": "Louisiana, Michigan, Mississippi, N. Mariana Islands, Wisconsin"
+      }
+    ],
+    "callout": {
+      "label": "Off the list as of yesterday",
+      "body": "Washington's WA-2025-03 expired Aug 5. The state drew eight fire declarations in the same window, but the IRS has published nothing on them — the deadlines stand."
+    },
+    "footer": "Sources: IRS state disaster relief notices · DueDateHQ"
+  }
+]

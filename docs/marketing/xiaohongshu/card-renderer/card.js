@@ -335,6 +335,8 @@ export async function renderCard(data) {
      高亮块 = 本条讲的辖区;缩略图尺寸下「是不是我的州」一眼可判。 */
   if (kind === 'mapcover') {
     const st = (data.map && data.map.state) || ''
+    /* 清单类卡片可以同时点亮多个辖区:map.states 传数组。 */
+    const active = (data.map && data.map.states) || (st ? [st] : [])
     const anchor = tileAnchor(st)
     const cd = data.countdown || {}
     el.innerHTML = `${grainLayer()}<div class="ddhq__card">
@@ -345,7 +347,7 @@ export async function renderCard(data) {
           .join('<br>')}</div>
       </div>
       <div class="ddhq__mapwrap">
-        ${tilegram({ active: [st] })}
+        ${tilegram({ active, label: active.length <= 3 })}
         ${
           anchor && data.badge
             ? `<span class="ddhq__badge" style="left:${anchor.xPct}%;top:${anchor.yPct}%">${esc(
