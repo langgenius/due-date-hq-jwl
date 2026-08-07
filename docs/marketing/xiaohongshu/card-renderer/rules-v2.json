@@ -111,22 +111,20 @@
   },
   {
     "id": "al-1cover",
-    "kind": "mapcover",
+    "kind": "hero",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "这个州的规则",
-      "要变了"
-    ],
     "map": {
       "state": "AL"
     },
-    "badge": "2",
     "stateName": "阿拉巴马",
     "newDate": "9月1日",
     "dueSuffix": "起",
     "sub": "Etowah 县改由州税务局代收,Walker 县 10月1日 起改县里自征。",
-    "footer": "美国报税不漏DDL · ALDOR 通知"
+    "footer": "美国报税不漏DDL · ALDOR 通知",
+    "photo": "photos/AL-tobacco.jpg",
+    "heroTag": "ALDOR",
+    "eyebrow": "这个州的收税机关要换了"
   },
   {
     "id": "al-2facts",
@@ -164,22 +162,20 @@
   },
   {
     "id": "al-li-1cover",
-    "kind": "mapcover",
+    "kind": "hero",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A rule change lands",
-      "in this state"
-    ],
     "map": {
       "state": "AL"
     },
-    "badge": "2",
     "stateName": "Alabama",
     "newDate": "Sept 1",
     "dueSuffix": "from",
     "sub": "ALDOR starts collecting for Etowah County and stops for Walker on Oct 1. Same monthly return, opposite directions.",
-    "footer": "DueDateHQ · ALDOR notices"
+    "footer": "DueDateHQ · ALDOR notices",
+    "photo": "photos/AL-tobacco.jpg",
+    "heroTag": "ALDOR",
+    "eyebrow": "The collecting agency changes in this state"
   },
   {
     "id": "al-li-2facts",
