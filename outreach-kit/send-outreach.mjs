@@ -451,8 +451,14 @@ function buildReminder(r) {
   const nowMs = TODAY_OVR ? new Date(`${TODAY_OVR}T12:00:00Z`).getTime() : Date.now()
   const dLeft = Math.round((new Date(`${n.deadline}T12:00:00Z`).getTime() - nowMs) / 864e5)
   const dOut = dLeft === 1 ? '1 day' : `${dLeft} days`
-  const formsList =
-    '1040, 1120, 1065, 1120-S, 1041, 706/709, 990, 941/940, estimates and IRA/HSA contributions'
+  // Covered forms come from the per-notice verified list (disaster-notices.json), NOT the WA
+  // wave's hardcoded string — WA's included IRA/HSA contributions, which don't apply to a
+  // disaster period starting after Apr 15 (GA's began Apr 18).
+  const formsList = n.forms
+    .join(', ')
+    .replace('706 / 709', '706/709')
+    .replace('941 / 940', '941/940')
+    .replace(/, Estimates$/, ' and estimates')
   const utm = `utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=rem_${n.abbr.toLowerCase()}`
   const noticeLink = `https://duedatehq.com/irs-disaster-relief/${n.slug}?${utm}`
   const appLink = `https://app.duedatehq.com/?lng=en&${utm}`
