@@ -220,6 +220,27 @@ export function validate(data, opts = {}) {
     }
   }
 
+  // ── 规则 13:领英卡(format=li)必须全英文 ──────────────────────
+  // LinkedIn 是英文受众;中文漏进去过两次(倒计时默认词、日期占位),
+  // 都是代码里的字面量而不是 payload,靠人眼校对挡不住,所以在这里硬拦。
+  if (data.format === 'li') {
+    if (data.locale !== 'en') E(`规则13:format=li 必须 locale=en,当前为 ${data.locale || '未设'}`)
+    const CJK = /[\u4e00-\u9fff]/
+    const walk = (v, path) => {
+      if (typeof v === 'string') {
+        if (CJK.test(v)) E(`规则13:领英卡出现中文 —— ${path}: ${v.slice(0, 24)}`)
+      } else if (Array.isArray(v)) {
+        v.forEach((x, i) => walk(x, `${path}[${i}]`))
+      } else if (v && typeof v === 'object') {
+        for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`)
+      }
+    }
+    for (const [k, v] of Object.entries(data)) {
+      if (k === 'id' || k === 'photo') continue
+      walk(v, k)
+    }
+  }
+
   return { ok: errors.length === 0, errors, warnings }
 }
 

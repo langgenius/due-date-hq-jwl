@@ -188,7 +188,7 @@ export async function renderCard(data) {
   } else {
     const newSlot =
       kind === 'pending'
-        ? `<span class="ddhq__pend serif">${esc(data.newDate || '日期待公布')}</span>`
+        ? `<span class="ddhq__pend serif">${esc(data.newDate || (locale === 'en' ? 'date not yet announced' : '日期待公布'))}</span>`
         : `<span class="ddhq__new">${highlighter(
             isCorrection ? 'var(--red-pale)' : 'var(--lime)',
           )}<span class="ddhq__newtx serif">${esc(data.newDate)}</span></span>`
