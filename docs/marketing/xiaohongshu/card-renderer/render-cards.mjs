@@ -97,6 +97,22 @@ for (let i = 0; i < items.length; i++) {
     }
   }
 
+  // 规则 13:领英卡必须全英文 —— 扫渲染后的实际文字,而不是 payload。
+  // 中文两次漏进英文卡都来自渲染器里的字面量(倒计时默认词、日期占位),
+  // 校验 payload 永远看不到它们,只有读 DOM 才拦得住。
+  if (!noValidate && items[i].format === 'li') {
+    const cjk = await pg.evaluate(() => {
+      const t = document.querySelector('.ddhq')?.innerText || ''
+      const m = t.match(/[\u4e00-\u9fff]+/g)
+      return m ? m.slice(0, 3).join(' / ') : null
+    })
+    if (cjk) {
+      console.error(`✕ ${name}: 规则13:领英卡渲染出中文 —— ${cjk} — 跳过,不出图`)
+      renderErrors++
+      continue
+    }
+  }
+
   await pg.locator('.ddhq').screenshot({ path: path.join(outDir, `${name}.png`) })
   const h =
     items[i].format === 'wide'
