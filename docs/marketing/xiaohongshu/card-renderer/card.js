@@ -275,8 +275,8 @@ export async function renderCard(data) {
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
-                  cd.label || '还剩',
-                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+                  cd.label ?? (locale === 'en' ? 'in' : '还剩'),
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit ?? (locale === 'en' ? 'days' : '天'))}</span>`
               : ''
           }
         </div>
@@ -367,8 +367,8 @@ export async function renderCard(data) {
           ${
             cd.days != null
               ? `<span class="ddhq__duemeta ddhq__duemeta--${cd.tone || 'far'}">${esc(
-                  cd.label || '还剩',
-                )} <b>${esc(cd.days)}</b> ${esc(cd.unit || '天')}</span>`
+                  cd.label ?? (locale === 'en' ? 'in' : '还剩'),
+                )} <b>${esc(cd.days)}</b> ${esc(cd.unit ?? (locale === 'en' ? 'days' : '天'))}</span>`
               : ''
           }
         </div>

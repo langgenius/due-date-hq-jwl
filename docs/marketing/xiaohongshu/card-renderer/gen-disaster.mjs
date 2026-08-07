@@ -326,21 +326,42 @@ for (const n of DATA) {
       : `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`
   const incEn2 = incidentCNtoEN(n.incidentStart)
   const incY = (n.incidentStart.match(/\d{4}/) || [''])[0]
-  out.push({
-    id: `${n.slug}-li-1cover`,
-    kind: 'mapcover',
-    locale: 'en',
-    format: 'li',
-    title: ['A federal deadline', 'has moved in this state'],
-    map: { state: n.abbreviation },
-    badge: '1',
-    stateName: n.state,
-    countdown: cd,
-    newDate: newEn,
-    dueSuffix: 'deadline',
-    sub: `${areaEn}. Automatic for an IRS address of record.`,
-    footer: `DueDateHQ · ${n.code}`,
-  })
+  /* 领英封面与中文页同一判断:有照片就用实景,没有才退回方块地图 —— 
+     同一条帖在两个平台长得不一样,是最容易被看出来的破绽。 */
+  out.push(
+    photo
+      ? {
+          id: `${n.slug}-li-1cover`,
+          kind: 'hero',
+          locale: 'en',
+          format: 'li',
+          photo,
+          heroTag: 'IRS',
+          eyebrow: 'A federal deadline has moved in this state',
+          map,
+          stateName: n.state,
+          countdown: cd,
+          newDate: newEn,
+          dueSuffix: 'deadline',
+          sub: `${areaEn}. Automatic for an IRS address of record.`,
+          footer: `DueDateHQ · ${n.code}`,
+        }
+      : {
+          id: `${n.slug}-li-1cover`,
+          kind: 'mapcover',
+          locale: 'en',
+          format: 'li',
+          title: ['A federal deadline', 'has moved in this state'],
+          map: { state: n.abbreviation },
+          badge: '1',
+          stateName: n.state,
+          countdown: cd,
+          newDate: newEn,
+          dueSuffix: 'deadline',
+          sub: `${areaEn}. Automatic for an IRS address of record.`,
+          footer: `DueDateHQ · ${n.code}`,
+        },
+  )
   out.push({
     id: `${n.slug}-li-2facts`,
     kind: 'facts',
@@ -371,137 +392,6 @@ for (const n of DATA) {
       body: 'A client outside the area whose records or preparer are inside it is not covered automatically — call IRS Special Services on 866-562-5227. Firms holding records for ten or more clients can use the bulk request route.',
     },
     footer: `Source: IRS relief ${n.code} · DueDateHQ`,
-  })
-  // ── 旧版三张(cover/p1/p2)暂留,迁移完成后删 ──
-  // ── cover ──
-  out.push({
-    id: `${n.slug}-cover`,
-    kind: 'cover',
-    locale: 'zh',
-    format: 'xhs',
-    eyebrow: `IRS 灾害延期 · ${c.cn}${c.tag ? ' ' + c.tag : ''}`,
-    title: [c.cover, '报税延到', `[[${newZh}]]`],
-    sub: `${isTribe ? c.tribe : isTerr ? '受灾岛屿' : `${count} 个受灾${c.unit}`},IRS 自动延期到 ${newZh}。有客户在灾区的会计师先收藏。`,
-    footer: `${n.code} · 来源 IRS`,
-  })
-  // ── p1 数据 ──
-  out.push({
-    id: `${n.slug}-p1`,
-    kind: 'delay',
-    locale: 'zh',
-    format: 'xhs',
-    source: source('zh'),
-    reason: isTribe ? `${c.tribe} · 灾害减免` : c.reason,
-    map,
-    title: [titleLoc, '报税延期'],
-    dateLabel: '联邦报税截止日',
-    oldDate: c.old,
-    newDate: newZh,
-    forms: c.forms,
-    footer: `${newZh} 截止 · IRS 灾害减免`,
-  })
-  // ── p2 实务提示 ──
-  out.push({
-    id: `${n.slug}-p2`,
-    kind: 'note',
-    locale: 'zh',
-    format: 'xhs',
-    source: source('zh'),
-    reason: isTribe ? `${c.tribe} · 灾害减免` : c.reason,
-    map,
-    title: ['实务提示'],
-    points: [
-      `受灾期(${incZh} 起)原本到期的联邦申报与缴款,统一延至 2026 年 ${newZh}。`,
-      applyPoint,
-      `覆盖 ${coverList} 等受灾期内到期的联邦申报与缴款。`,
-      `完整受灾${isTerr ? '范围' : isTribe ? '范围' : '名单'}以 irs.gov 公告 ${n.code} 为准${c.areaTail ? `(${c.areaTail})` : ''}。`,
-    ],
-    footer: `来源:IRS 公告 ${n.code} · ${newZh} 截止`,
-  })
-  const incEnLi = incidentCNtoEN(n.incidentStart)
-  const incYear = (n.incidentStart.match(/\d{4}/) || [''])[0]
-  // ── en 横版 ──
-  out.push({
-    id: `${n.slug}-en`,
-    kind: 'delay',
-    locale: 'en',
-    format: 'wide',
-    source: source('en'),
-    reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
-    map,
-    title: isTribe
-      ? [`${n.state} tribal area`, 'Filing postponed']
-      : isTerr
-        ? [n.state, 'Filing postponed']
-        : [
-            `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`,
-            'Filing postponed',
-          ],
-    dateLabel: 'FEDERAL FILING DEADLINE',
-    oldDate: c.oldEn,
-    newDate: newEn,
-    forms: enForms,
-    tip: {
-      label: 'PRACTITIONER NOTE',
-      body: `Covers federal returns and payments due on or after ${incEnLi}, ${incYear} through ${newEn}, 2026 — automatic for affected taxpayers. If a client is outside the area but their records or preparer are inside it, call the IRS disaster hotline.`,
-    },
-    footer: `Postponed to ${newEn}, 2026 · IRS disaster relief`,
-  })
-
-  // ── LinkedIn 4:5 文档轮播(3 页:封面钩子 → 数据 → 实务提示) ──
-  const liArea = isTribe
-    ? c.tribe.replace(' 部落', ' Tribe')
-    : isTerr
-      ? 'Northern Islands, Rota, Saipan and Tinian'
-      : `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`
-  out.push({
-    id: `${n.slug}-li-1cover`,
-    kind: 'cover',
-    locale: 'en',
-    format: 'li',
-    eyebrow: `IRS disaster relief · ${n.code}`,
-    title: c.coverEn,
-    sub: `${liArea} — federal filing and payment deadlines automatically postponed to ${newEn}, 2026. Swipe for the details →`,
-    footer: `${n.code} · Source: IRS`,
-  })
-  out.push({
-    id: `${n.slug}-li-2data`,
-    kind: 'delay',
-    locale: 'en',
-    format: 'li',
-    source: source('en'),
-    reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
-    map,
-    title: isTribe
-      ? [`${n.state} tribal area`, 'Filing postponed']
-      : isTerr
-        ? [n.state, 'Filing postponed']
-        : [
-            `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`,
-            'Filing postponed',
-          ],
-    dateLabel: 'FEDERAL FILING DEADLINE',
-    oldDate: c.oldEn,
-    newDate: newEn,
-    forms: enForms,
-    footer: `Postponed to ${newEn}, 2026 · IRS disaster relief`,
-  })
-  out.push({
-    id: `${n.slug}-li-3note`,
-    kind: 'note',
-    locale: 'en',
-    format: 'li',
-    source: source('en'),
-    reason: `${isTribe ? c.tribe.replace(' 部落', ' Tribe') : n.event} · Disaster relief`,
-    map,
-    title: ['Practitioner note'],
-    points: [
-      `The IRS postponed federal deadlines to ${newEn}, 2026 for ${liArea} (relief ${n.code}).`,
-      `Covers federal returns and payments due on or after ${incEnLi}, ${incYear} — ${enForms.join(', ')} included.`,
-      `Automatic for an IRS address of record in the area — no application needed. Records or preparer inside but client outside? Call the IRS disaster hotline.`,
-      `Full affected ${isTribe || isTerr ? 'area' : 'list'}: irs.gov relief notice ${n.code}.`,
-    ],
-    footer: `Source: IRS relief ${n.code} · Deadline ${newEn}, 2026`,
   })
 }
 
