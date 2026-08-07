@@ -2,6 +2,10 @@
 # plain-text email can show a clean short URL (Primary-safe) yet still attribute in Amplitude.
 /r/wa https://duedatehq.com/irs-disaster-relief/washington-severe-storms-flooding-landslides?utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_wa 301
 /r/wa-app https://app.duedatehq.com/?lng=en&utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=alert_wa 301
+/r/ga https://duedatehq.com/irs-disaster-relief/georgia-southeast-wildfires?utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=rem_ga 301
+/r/ga-app https://app.duedatehq.com/?lng=en&utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=rem_ga 301
+/r/hi https://duedatehq.com/irs-disaster-relief/hawaii-severe-storms-flooding-mudslides?utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=rem_hi 301
+/r/hi-app https://app.duedatehq.com/?lng=en&utm_source=cold_outreach&utm_medium=email&utm_campaign=disaster_alert&utm_content=rem_hi 301
 
 # Cloudflare Static Assets otherwise canonicalizes Astro's file-format HTML
 # with temporary 307 responses. Historical .html URLs are permanently moved
