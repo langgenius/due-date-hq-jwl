@@ -9,12 +9,7 @@
     "eyebrow": "今天这个州的报税截止日在逼近",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
     "stateName": "夏威夷",
     "countdown": {
@@ -32,9 +27,7 @@
     "format": "xhs",
     "stateName": "夏威夷",
     "newDate": "8月20日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -67,12 +60,7 @@
     "eyebrow": "A federal deadline has moved in this state",
     "map": {
       "state": "HI",
-      "counties": [
-        "15001",
-        "15003",
-        "15007",
-        "15009"
-      ]
+      "counties": ["15001", "15003", "15007", "15009"]
     },
     "stateName": "Hawaii",
     "countdown": {
@@ -92,9 +80,7 @@
     "stateName": "Hawaii",
     "newDate": "Aug 20",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -122,10 +108,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "AZ"
     },
@@ -146,9 +129,7 @@
     "format": "xhs",
     "stateName": "亚利桑那",
     "newDate": "9月28日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -176,10 +157,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "AZ"
     },
@@ -202,9 +180,7 @@
     "stateName": "Arizona",
     "newDate": "Sep 28",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -232,10 +208,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "MT"
     },
@@ -256,9 +229,7 @@
     "format": "xhs",
     "stateName": "蒙大拿",
     "newDate": "9月28日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -286,10 +257,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "MT"
     },
@@ -312,9 +280,7 @@
     "stateName": "Montana",
     "newDate": "Sep 28",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -342,10 +308,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "MT"
     },
@@ -366,9 +329,7 @@
     "format": "xhs",
     "stateName": "蒙大拿",
     "newDate": "9月28日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -396,10 +357,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "MT"
     },
@@ -422,9 +380,7 @@
     "stateName": "Montana",
     "newDate": "Sep 28",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -457,14 +413,7 @@
     "eyebrow": "今天这个州的报税截止日在逼近",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22057",
-        "22077",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22057", "22077", "22097", "22103", "22109"]
     },
     "stateName": "路易斯安那",
     "countdown": {
@@ -482,9 +431,7 @@
     "format": "xhs",
     "stateName": "路易斯安那",
     "newDate": "11月2日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -517,14 +464,7 @@
     "eyebrow": "A federal deadline has moved in this state",
     "map": {
       "state": "LA",
-      "counties": [
-        "22009",
-        "22057",
-        "22077",
-        "22097",
-        "22103",
-        "22109"
-      ]
+      "counties": ["22009", "22057", "22077", "22097", "22103", "22109"]
     },
     "stateName": "Louisiana",
     "countdown": {
@@ -544,9 +484,7 @@
     "stateName": "Louisiana",
     "newDate": "Nov 2",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -574,10 +512,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "MI"
     },
@@ -598,9 +533,7 @@
     "format": "xhs",
     "stateName": "密歇根",
     "newDate": "11月2日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -628,10 +561,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "MI"
     },
@@ -654,9 +584,7 @@
     "stateName": "Michigan",
     "newDate": "Nov 2",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -684,10 +612,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "MS"
     },
@@ -708,9 +633,7 @@
     "format": "xhs",
     "stateName": "密西西比",
     "newDate": "11月2日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -738,10 +661,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "MS"
     },
@@ -764,9 +684,7 @@
     "stateName": "Mississippi",
     "newDate": "Nov 2",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -817,9 +735,7 @@
     "format": "xhs",
     "stateName": "北马里亚纳群岛",
     "newDate": "11月2日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -872,9 +788,7 @@
     "stateName": "Northern Mariana Islands",
     "newDate": "Nov 2",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",
@@ -902,10 +816,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "今天这个州的",
-      "报税截止日在逼近"
-    ],
+    "title": ["今天这个州的", "报税截止日在逼近"],
     "map": {
       "state": "WI"
     },
@@ -926,9 +837,7 @@
     "format": "xhs",
     "stateName": "威斯康星",
     "newDate": "11月2日",
-    "title": [
-      "覆盖谁,怎么适用"
-    ],
+    "title": ["覆盖谁,怎么适用"],
     "rows": [
       {
         "label": "受灾范围",
@@ -956,10 +865,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A federal deadline",
-      "has moved in this state"
-    ],
+    "title": ["A federal deadline", "has moved in this state"],
     "map": {
       "state": "WI"
     },
@@ -982,9 +888,7 @@
     "stateName": "Wisconsin",
     "newDate": "Nov 2",
     "dueSuffix": "deadline",
-    "title": [
-      "Who is covered, and how it applies"
-    ],
+    "title": ["Who is covered, and how it applies"],
     "rows": [
       {
         "label": "COVERED AREA",

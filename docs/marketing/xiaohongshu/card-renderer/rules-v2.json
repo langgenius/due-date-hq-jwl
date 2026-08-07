@@ -28,9 +28,7 @@
     "stateName": "纽约",
     "newDate": "9月1日",
     "dueSuffix": "开征",
-    "title": [
-      "三个日期,别记错"
-    ],
+    "title": ["三个日期,别记错"],
     "rows": [
       {
         "label": "8月31日",
@@ -83,9 +81,7 @@
     "stateName": "New York",
     "newDate": "Sept 1",
     "dueSuffix": "start",
-    "title": [
-      "Three dates to diary"
-    ],
+    "title": ["Three dates to diary"],
     "rows": [
       {
         "label": "AUG 31",
@@ -134,9 +130,7 @@
     "stateName": "阿拉巴马",
     "newDate": "9月1日",
     "dueSuffix": "起",
-    "title": [
-      "同一张月报,两个县方向相反"
-    ],
+    "title": ["同一张月报,两个县方向相反"],
     "rows": [
       {
         "label": "9月1日",
@@ -185,9 +179,7 @@
     "stateName": "Alabama",
     "newDate": "Sept 1",
     "dueSuffix": "from",
-    "title": [
-      "One return, two counties moving opposite ways"
-    ],
+    "title": ["One return, two counties moving opposite ways"],
     "rows": [
       {
         "label": "SEPT 1",
@@ -216,10 +208,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "这个州的规则",
-      "要变了"
-    ],
+    "title": ["这个州的规则", "要变了"],
     "map": {
       "state": "FED"
     },
@@ -238,9 +227,7 @@
     "stateName": "联邦",
     "newDate": "7月9日",
     "dueSuffix": "已生效",
-    "title": [
-      "谁要报哪张表"
-    ],
+    "title": ["谁要报哪张表"],
     "rows": [
       {
         "label": "参与的纳税人",
@@ -269,10 +256,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A rule change lands",
-      "in this state"
-    ],
+    "title": ["A rule change lands", "in this state"],
     "map": {
       "state": "FED"
     },
@@ -291,9 +275,7 @@
     "stateName": "Federal",
     "newDate": "July 9",
     "dueSuffix": "in force",
-    "title": [
-      "Who files what"
-    ],
+    "title": ["Who files what"],
     "rows": [
       {
         "label": "PARTICIPATING TAXPAYER",
@@ -322,10 +304,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "这个州的规则",
-      "要变了"
-    ],
+    "title": ["这个州的规则", "要变了"],
     "map": {
       "state": "NC"
     },
@@ -344,9 +323,7 @@
     "stateName": "北卡",
     "newDate": "7月23日",
     "dueSuffix": "发布",
-    "title": [
-      "参照日一跳,三项调整跟着来"
-    ],
+    "title": ["参照日一跳,三项调整跟着来"],
     "rows": [
       {
         "label": "联邦税法典参照日",
@@ -374,10 +351,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A rule change lands",
-      "in this state"
-    ],
+    "title": ["A rule change lands", "in this state"],
     "map": {
       "state": "NC"
     },
@@ -396,9 +370,7 @@
     "stateName": "North Carolina",
     "newDate": "July 23",
     "dueSuffix": "notice",
-    "title": [
-      "One conformity date, three adjustments"
-    ],
+    "title": ["One conformity date, three adjustments"],
     "rows": [
       {
         "label": "IRC CONFORMITY DATE",
@@ -426,10 +398,7 @@
     "kind": "mapcover",
     "locale": "zh",
     "format": "xhs",
-    "title": [
-      "这个州的规则",
-      "要变了"
-    ],
+    "title": ["这个州的规则", "要变了"],
     "map": {
       "state": "IL"
     },
@@ -448,9 +417,7 @@
     "stateName": "伊利诺伊",
     "newDate": "2026 税年",
     "dueSuffix": "起",
-    "title": [
-      "两处变动,起算年份不同"
-    ],
+    "title": ["两处变动,起算年份不同"],
     "rows": [
       {
         "label": "联邦侧",
@@ -479,10 +446,7 @@
     "kind": "mapcover",
     "locale": "en",
     "format": "li",
-    "title": [
-      "A rule change lands",
-      "in this state"
-    ],
+    "title": ["A rule change lands", "in this state"],
     "map": {
       "state": "IL"
     },
@@ -501,9 +465,7 @@
     "stateName": "Illinois",
     "newDate": "TY 2026",
     "dueSuffix": "from",
-    "title": [
-      "Two changes, two start years"
-    ],
+    "title": ["Two changes, two start years"],
     "rows": [
       {
         "label": "FEDERALLY",

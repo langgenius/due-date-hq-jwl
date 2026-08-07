@@ -3,7 +3,6 @@
 每条:小红书标题 + 小红书配文 + LinkedIn 配文。事实取自人工核实的 `disaster-notices.ts`。
 LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速核一眼受灾名单。
 
-
 ---
 
 ## Hawaii · 风暴洪水(HI-2026-01) —— 截止 8月20日
@@ -13,6 +12,7 @@ LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速�
 **小红书标题**:`夏威夷 4 县报税延到 8月20日 🗓`
 
 **小红书配文**
+
 ```
 夏威夷 4 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 8月20日。有客户在灾区的会计师注意。
 
@@ -32,13 +32,13 @@ LinkedIn 链接放首条评论。发前建议在 irs.gov 对应公告页快速�
 **LinkedIn 配文**(发**文档帖**:上传 `hawaii-severe-storms-flooding-mudslides-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Hawaii · Aug 20, 2026 (HI-2026-01)`
+
 ```
 IRS tax deadline extension — Hawaii.
 The IRS has postponed federal tax deadlines to Aug 20, 2026 for Hawaii taxpayers affected by Severe storms, flooding and mudslides under disaster relief HI-2026-01. Clients in Hawaii, Honolulu, Kauai, Maui counties now have moved federal filing and payment deadlines — returns and payments due on or after Mar 10, 2026 through Aug 20, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Hawaii
 ```
-
 
 ---
 
@@ -49,6 +49,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`亚利桑那 San Carlos Apache 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 亚利桑那 San Carlos Apache 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -68,13 +69,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `arizona-san-carlos-apache-severe-storms-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Arizona · Sep 28, 2026 (AZ-2026-01)`
+
 ```
 IRS tax deadline extension — Arizona.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Arizona taxpayers affected by Severe storms and flooding (San Carlos Apache Tribe) under disaster relief AZ-2026-01. Clients in the San Carlos Apache Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Oct 10, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Arizona
 ```
-
 
 ---
 
@@ -85,6 +86,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`蒙大拿 Fort Peck 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 蒙大拿 Fort Peck 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -104,13 +106,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `montana-fort-peck-tribes-winter-storm-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Montana Fort Peck · Sep 28, 2026 (MT-2026-03)`
+
 ```
 IRS tax deadline extension — Montana.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Montana taxpayers affected by Severe Winter Storm and Straight-line Winds (Fort Peck Assiniboine and Sioux Tribes) under disaster relief MT-2026-03. Clients in the Fort Peck Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Montana
 ```
-
 
 ---
 
@@ -121,6 +123,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`蒙大拿 Crow 部落报税延到 9月28日 🗓`
 
 **小红书配文**
+
 ```
 蒙大拿 Crow 部落报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 9月28日。有客户在灾区的会计师注意。
 
@@ -140,13 +143,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `montana-crow-tribe-winter-storm-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Montana Crow · Sep 28, 2026 (MT-2026-04)`
+
 ```
 IRS tax deadline extension — Montana.
 The IRS has postponed federal tax deadlines to Sep 28, 2026 for Montana taxpayers affected by Severe Winter Storm and Straight-line Winds (Crow Tribe) under disaster relief MT-2026-04. Clients in the Crow Tribe area now have moved federal filing and payment deadlines — returns and payments due on or after Dec 17, 2025 through Sep 28, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Montana
 ```
-
 
 ---
 
@@ -157,6 +160,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`路易斯安那 6 堂区报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 路易斯安那 6 堂区报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -176,13 +180,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `louisiana-tropical-storm-arthur-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Louisiana · Nov 2, 2026 (LA-2026-02)`
+
 ```
 IRS tax deadline extension — Louisiana.
 The IRS has postponed federal tax deadlines to Nov 2, 2026 for Louisiana taxpayers affected by Tropical Storm Arthur under disaster relief LA-2026-02. Clients in Avoyelles, Lafourche, Pointe Coupee, St. Landry, St. Tammany, Terrebonne parishes now have moved federal filing and payment deadlines — returns and payments due on or after Jun 17, 2026 through Nov 2, 2026 (estimated payments, Form 1120-S, Form 1065, Form 941). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Louisiana
 ```
-
 
 ---
 
@@ -193,6 +197,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`密歇根 37 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 密歇根 37 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -212,13 +217,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `michigan-severe-storms-tornadoes-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Michigan · Nov 2, 2026 (MI-2026-02)`
+
 ```
 IRS tax deadline extension — Michigan.
 The IRS has postponed federal tax deadlines to Nov 2, 2026 for Michigan taxpayers affected by Severe Storms, Tornadoes and Flooding under disaster relief MI-2026-02. Clients in 37 counties (see MI-2026-02 for the full list) now have moved federal filing and payment deadlines — returns and payments due on or after Apr 10, 2026 through Nov 2, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Michigan
 ```
-
 
 ---
 
@@ -229,6 +234,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`密西西比 5 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 密西西比 5 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -248,13 +254,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `mississippi-severe-storms-tornadoes-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Mississippi · Nov 2, 2026 (MS-2026-02)`
+
 ```
 IRS tax deadline extension — Mississippi.
 The IRS has postponed federal tax deadlines to Nov 2, 2026 for Mississippi taxpayers affected by Severe storms, straight-line winds, tornadoes and flooding under disaster relief MS-2026-02. Clients in Franklin, Lamar, Lawrence, Lincoln, Wilkinson counties now have moved federal filing and payment deadlines — returns and payments due on or after May 6, 2026 through Nov 2, 2026 (estimated payments, Form 941, Form 990). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #Mississippi
 ```
-
 
 ---
 
@@ -265,6 +271,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`北马里亚纳群岛报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 北马里亚纳群岛报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -284,13 +291,13 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `northern-mariana-islands-super-typhoon-sinlaku-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Northern Mariana Islands · Nov 2, 2026 (NMI-2026-01)`
+
 ```
 IRS tax deadline extension — Northern Mariana Islands.
 The IRS has postponed federal tax deadlines to Nov 2, 2026 for Northern Mariana Islands taxpayers affected by Super Typhoon Sinlaku under disaster relief NMI-2026-01. Clients in Northern Islands, Rota, Saipan, and Tinian now have moved federal filing and payment deadlines — returns and payments due on or after Apr 11, 2026 through Nov 2, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.
 Which of your clients does this affect? IRS source in the comments.
 #IRS #DisasterRelief #TaxDeadline #CPA #StateAndLocalTax #NorthernMarianaIslands
 ```
-
 
 ---
 
@@ -301,6 +308,7 @@ Which of your clients does this affect? IRS source in the comments.
 **小红书标题**:`威斯康星 21 县报税延到 11月2日 🗓`
 
 **小红书配文**
+
 ```
 威斯康星 21 县报税延期!IRS 把受灾地区的联邦报税与缴款截止日延到 11月2日。有客户在灾区的会计师注意。
 
@@ -320,6 +328,7 @@ Which of your clients does this affect? IRS source in the comments.
 **LinkedIn 配文**(发**文档帖**:上传 `wisconsin-severe-storms-tornadoes-flooding-li-carousel.pdf`;首行=搜索磁石;链接放首条评论)
 
 **LinkedIn 文档标题**(上传时必填,参与搜索):`IRS Tax Deadline Extension — Wisconsin · Nov 2, 2026 (WI-2026-02)`
+
 ```
 IRS tax deadline extension — Wisconsin.
 The IRS has postponed federal tax deadlines to Nov 2, 2026 for Wisconsin taxpayers affected by Severe Storms, Tornadoes and Flooding under disaster relief WI-2026-02. Clients in 21 counties (see WI-2026-02 for the full list) now have moved federal filing and payment deadlines — returns and payments due on or after Apr 13, 2026 through Nov 2, 2026 (Form 1040, Form 1120, Form 1120-S, Form 1065, estimated payments). Relief is automatic for an address of record in the area; if a client is outside but their records or preparer are inside, they must call the IRS disaster hotline.

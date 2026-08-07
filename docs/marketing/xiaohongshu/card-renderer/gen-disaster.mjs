@@ -209,7 +209,7 @@ for (const n of DATA) {
     incZh = incidentCN(n.incidentStart)
   const isTribe = Boolean(c.tribe),
     isTerr = Boolean(c.territory)
-  const enForms = c.forms.map((f) => (f === '预缴' ? 'Estimated' : f))
+  const _enForms = c.forms.map((f) => (f === '预缴' ? 'Estimated' : f))
 
   // 县/堂区:解析 FIPS + 数量;部落/领地:无县,地图纯轮廓。
   let fips = [],
@@ -227,7 +227,7 @@ for (const n of DATA) {
   }
 
   // 部落卡:有短标签(Fort Peck / Crow)就写进标题以区分同州多条;否则退回「州+部落区」。
-  const titleLoc = isTribe
+  const _titleLoc = isTribe
     ? c.tag
       ? `${c.cn} ${c.tag}`
       : `${c.cn}部落区`
@@ -235,7 +235,7 @@ for (const n of DATA) {
       ? c.cn
       : `${c.cn} ${count} ${c.unit}`
   const map = { state: n.abbreviation, counties: fips }
-  const source = (loc) => ({
+  const _source = (loc) => ({
     level: loc === 'en' ? 'Federal' : '联邦',
     org: 'IRS',
     noticeId: n.code,
@@ -243,9 +243,9 @@ for (const n of DATA) {
   })
 
   // 覆盖表单中文串(note 用)
-  const coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join(' / ')
+  const _coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join(' / ')
 
-  const applyPoint = isTribe
+  const _applyPoint = isTribe
     ? `位于该部落领地内的纳税人自动适用,无需申请;领地外但账册或记账人在内的,需致电 IRS 灾害热线申请。`
     : isTerr
       ? `位于受灾岛屿的纳税人自动适用,无需申请;岛外但账册或记账人在内的,需致电 IRS 灾害热线申请。`
@@ -326,7 +326,7 @@ for (const n of DATA) {
       : `${count} ${n.state} ${c.unit === '堂区' ? 'parishes' : 'counties'}`
   const incEn2 = incidentCNtoEN(n.incidentStart)
   const incY = (n.incidentStart.match(/\d{4}/) || [''])[0]
-  /* 领英封面与中文页同一判断:有照片就用实景,没有才退回方块地图 —— 
+  /* 领英封面与中文页同一判断:有照片就用实景,没有才退回方块地图 ——
      同一条帖在两个平台长得不一样,是最容易被看出来的破绽。 */
   out.push(
     photo
@@ -411,8 +411,10 @@ for (const n of DATA) {
   const isTribe = Boolean(c.tribe),
     isTerr = Boolean(c.territory)
   const eventCN = c.reason.split(' · ')[0]
-  const coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join('、')
-  const enForms = c.forms.map((f) => (f === '预缴' ? 'estimated payments' : `Form ${f}`)).join(', ')
+  const _coverList = c.forms.map((f) => (f === '预缴' ? '季度预缴' : f)).join('、')
+  const _enForms = c.forms
+    .map((f) => (f === '预缴' ? 'estimated payments' : `Form ${f}`))
+    .join(', ')
   let count = 0,
     unit = c.unit || '县',
     areaDescZh,
