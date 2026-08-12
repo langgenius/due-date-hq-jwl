@@ -78,6 +78,7 @@ export interface FillXDraftBufferInput {
   now: Date
   bufferSize: number
   randomRefToken?: () => string
+  priorityForCandidate?: (candidate: SocialAlertCandidate) => SocialAlertPriority
 }
 
 export interface XDraftBufferFillResult {
@@ -98,6 +99,8 @@ export async function fillXDraftBuffer(
 
 - `export type XDraftBufferRepo` is a `Pick<ReturnType<typeof makeSocialOpsRepo>,
 'listEligibleCandidates' | 'listDraftPostsForQueuePreview' | 'createDraftIfBufferBelow'>`.
+- `priorityForCandidate` defaults to `normal`; the scheduler supplies its existing urgent-window
+  classifier so extraction does not change automatic priority metadata.
 
 - [ ] **Step 1: Write the failing partial-buffer test**
 

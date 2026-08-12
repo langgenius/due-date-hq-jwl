@@ -3,7 +3,6 @@ import {
   createDb,
   isValidXPostId,
   makeSocialOpsRepo,
-  type SocialAlertPost,
   type SocialAlertPriority,
   type SocialAlertPostStatus,
   type SocialQueuePost,
@@ -12,6 +11,7 @@ import {
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
 import { buildXAlertPost, buildXAlertThread, validateSocialCandidate } from '../jobs/social/content'
+import { fillXDraftBuffer } from '../jobs/social/draft-buffer'
 import { buildXQueuePreview } from '../jobs/social/queue-preview'
 import {
   addLocalCalendarDays,
@@ -289,83 +289,14 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       limit: SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT,
       now,
     })
-    const existingDrafts = await repo.listDraftPostsForQueuePreview({ channel: 'x', limit: count })
-    const posts: SocialAlertPost[] = []
-    let skipped = 0
-    let bufferFull = existingDrafts.length >= count
-    let before: { createdAt: Date; pulseId: string } | undefined
-
-    while (!bufferFull && existingDrafts.length + posts.length < count) {
-      // eslint-disable-next-line no-await-in-loop
-      const candidatePage = await repo.listEligibleCandidates({
-        channel: 'x',
-        since,
-        now,
-        limit: SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT,
-        ...(before ? { before } : {}),
-      })
-      const candidates = candidatePage.toSorted(
-        (left, right) =>
-          right.createdAt.getTime() - left.createdAt.getTime() ||
-          right.pulseId.localeCompare(left.pulseId),
-      )
-      if (candidates.length === 0) break
-
-      for (const candidate of candidates) {
-        if (existingDrafts.length + posts.length >= count) break
-        const validation = validateSocialCandidate(candidate)
-        if (!validation.eligible) {
-          skipped += 1
-          continue
-        }
-
-        const refToken = crypto.randomUUID().replaceAll('-', '')
-        const built = buildXAlertPost(candidate, { appUrl: c.env.APP_URL, refToken })
-        // Keep this bounded operator mutation sequential so a partial D1 failure
-        // returns the exact prefix that was durably seeded instead of fanning out
-        // up to 14 competing read-then-insert operations.
-        // eslint-disable-next-line no-await-in-loop
-        const result = await repo.createDraftIfBufferBelow({
-          channel: 'x',
-          pulseId: candidate.pulseId,
-          refToken,
-          postText: built.text,
-          targetUrl: built.targetUrl,
-          teaser: built.teaser,
-          agency: built.agency,
-          priority: 'normal',
-          since,
-          bufferSize: count,
-          now,
-        })
-        if (result.status === 'created') {
-          posts.push(result.post)
-        } else if (result.status === 'buffer_full') {
-          bufferFull = true
-          break
-        }
-      }
-
-      if (bufferFull || candidates.length < SOCIAL_DRAFT_SEED_CANDIDATE_LIMIT) break
-      const lastCandidate = candidates.at(-1)
-      if (!lastCandidate) break
-      before = { createdAt: lastCandidate.createdAt, pulseId: lastCandidate.pulseId }
-    }
-
-    const finalDrafts = await repo.listDraftPostsForQueuePreview({ channel: 'x', limit: count })
-    const total = finalDrafts.length
-    const targetReached = total >= count
-    const result = {
-      requested: count,
-      existing: existingDrafts.length,
-      created: posts.length,
-      total,
-      targetReached,
-      bufferFull: bufferFull || targetReached,
-      skipped,
-      posts,
-    }
-    return posts.length > 0 ? c.json(result, 201) : c.json(result)
+    const result = await fillXDraftBuffer({
+      repo,
+      appUrl: c.env.APP_URL,
+      since,
+      now,
+      bufferSize: count,
+    })
+    return result.created > 0 ? c.json(result, 201) : c.json(result)
   })
   .post('/social/candidates', async (c) => {
     if (!hasSocialOpsAccess(c)) return c.notFound()
