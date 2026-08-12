@@ -89,7 +89,6 @@ export interface SocialPublishPayload {
   xPostId: string | null
 }
 
-export type SocialDraftCreateResult = 'created' | 'daily_slot_filled' | 'candidate_conflict'
 export type SocialDraftBufferCreateResult =
   | { status: 'created'; post: SocialAlertPost }
   | { status: 'buffer_full' | 'candidate_conflict' }
@@ -582,94 +581,6 @@ export function makeSocialOpsRepo(db: Db) {
         .limit(1)
       if (!existing) throw new SocialOpsRepoError('conflict')
       return existing
-    },
-
-    async createDailyDraft(
-      input: CreateSocialDraftInput & {
-        since: Date
-        dailyWindowStart: Date
-        dailyWindowEnd: Date
-      },
-    ): Promise<SocialDraftCreateResult> {
-      validateDraftInput(input)
-      if (
-        Number.isNaN(input.since.getTime()) ||
-        Number.isNaN(input.dailyWindowStart.getTime()) ||
-        Number.isNaN(input.dailyWindowEnd.getTime()) ||
-        input.dailyWindowStart.getTime() >= input.dailyWindowEnd.getTime()
-      ) {
-        throw new SocialOpsRepoError('invalid')
-      }
-      const candidate = await getEligibleCandidate(input.pulseId)
-      if (!candidate) return 'candidate_conflict'
-
-      const channel = input.channel ?? 'x'
-      const now = input.now ?? new Date()
-      const postId = crypto.randomUUID()
-      const result = await db.run(sql`
-        insert into ${socialAlertPost} (
-          id,
-          channel,
-          pulse_id,
-          ref_token,
-          post_text,
-          target_url,
-          teaser,
-          agency,
-          jurisdiction,
-          change_kind,
-          status,
-          priority,
-          created_at,
-          updated_at
-        )
-        select
-          ${postId},
-          ${channel},
-          ${candidate.pulseId},
-          ${input.refToken},
-          ${input.postText},
-          ${input.targetUrl},
-          ${input.teaser},
-          ${input.agency},
-          ${candidate.jurisdiction},
-          ${candidate.changeKind},
-          'draft',
-          ${input.priority ?? 'normal'},
-          ${now.getTime()},
-          ${now.getTime()}
-        from ${pulse}
-        where ${pulse.id} = ${candidate.pulseId}
-          and ${candidateConditions(input.since)}
-          and not exists (
-            select 1
-            from ${socialAlertPost}
-            where ${socialAlertPost.channel} = ${channel}
-              and ${socialAlertPost.createdAt} >= ${input.dailyWindowStart.getTime()}
-              and ${socialAlertPost.createdAt} < ${input.dailyWindowEnd.getTime()}
-          )
-          and not exists (
-            select 1
-            from ${socialAlertPost}
-            where ${socialAlertPost.channel} = ${channel}
-              and ${socialAlertPost.pulseId} = ${candidate.pulseId}
-          )
-        on conflict do nothing
-      `)
-      if (result.meta.changes > 0) return 'created'
-
-      const [existingDailyPost] = await db
-        .select({ id: socialAlertPost.id })
-        .from(socialAlertPost)
-        .where(
-          and(
-            eq(socialAlertPost.channel, channel),
-            gte(socialAlertPost.createdAt, input.dailyWindowStart),
-            lt(socialAlertPost.createdAt, input.dailyWindowEnd),
-          ),
-        )
-        .limit(1)
-      return existingDailyPost ? 'daily_slot_filled' : 'candidate_conflict'
     },
 
     async createDraftIfBufferBelow(

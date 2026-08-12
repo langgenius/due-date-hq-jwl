@@ -61,7 +61,6 @@ export { SOCIAL_URGENT_WINDOW_MS }
 export type {
   SocialAlertCandidateRow,
   SocialDraftBufferCreateResult,
-  SocialDraftCreateResult,
   SocialOpsRepo,
   SocialPublishPayload,
   SocialQueuePost,
