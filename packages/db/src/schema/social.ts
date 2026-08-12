@@ -115,12 +115,12 @@ export const socialAlertPost = sqliteTable(
  * One immutable ET-local per-date publishing slot.
  *
  * The `(channel, localDate)` unique key is the hard single-date cap. The
- * automatic scheduler separately checks the previous ET date to enforce its
- * every-other-day cadence. A draft-only
- * shadow run does not consume the post permanently; the post returns to draft
- * and must be explicitly approved before a future live run. The partial live
- * uniqueness guard prevents one post from being sent in two live slots while
- * still allowing that prior shadow record to remain auditable.
+ * automatic scheduler separately checks the preceding two ET dates to enforce
+ * its three-day cadence. A draft-only shadow run does not consume the post
+ * permanently; the post returns to draft and must be explicitly approved before
+ * a future live run. The partial live uniqueness guard prevents one post from
+ * being sent in two live slots while still allowing that prior shadow record to
+ * remain auditable.
  */
 export const socialPublishRun = sqliteTable(
   'social_publish_run',

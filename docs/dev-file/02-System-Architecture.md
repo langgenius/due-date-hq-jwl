@@ -181,7 +181,7 @@ run_worker_first = ["/rpc/*", "/api/*"]
 
 **同一 Worker 的非 HTTP 入口**（`apps/server/src/index.ts`，单 Worker 导出四个 handler）：
 
-- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X watchdog 每 tick 检查积压/unknown，发布与 draft 补充只在 `America/New_York` 09:00–09:29 运行，并在前一 ET 自然日已占用发布槽时暂停，因此自动发布至少间隔一个空白日；运行日抢当天唯一发布槽位后、live enqueue 前（或 idle / shadow 时），以 D1 条件插入为当前 ET 自然日补充至多一条最新未入列 Alert 草稿；同一运行日的重复 Cron 不能重复补充；其他 tick 不批量生成；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
+- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离各分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、X social outbox、deadline reminders、morning digests、annual rollover、email flush；X watchdog 每 tick 检查积压/unknown，发布与 draft 补充只在 `America/New_York` 09:00–09:29 运行。X 自动 claim 会检查前两个 ET 自然日，只要任一天已有占槽 run 就暂停，因此两次自动发布之间保留两个空白日；暂停日仍会清理失效草稿，并通过共享 D1 条件插入把当前有效待审核 draft buffer 补到 3。符合 cadence 的日期先抢当天唯一发布槽，shadow 返回的 draft 计入 buffer，live enqueue 前也完成同一补充；重复 Cron 和并发写入不能把 buffer 补过目标，且不创建未来 run 预约；其他 tick 不补充；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
 - `queue()`（`jobs/queue.ts`）：消费 EMAIL / PULSE / DASHBOARD / AUDIT / SOCIAL 五条队列 + pulse/social DLQ（见 §2.1）
 - `email()`：Cloudflare Email Routing 入站 → `jobs/pulse/govdelivery.ts`，承接 `email_subscription` 类 Pulse 源（GovDelivery 订阅邮件 → raw 归档 → `pulse.extract`）
 
@@ -331,15 +331,15 @@ SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 
 
 ---
 
-### 4.4 X every-other-day Alert acquisition loop
+### 4.4 X three-day Alert acquisition loop
 
 ```text
 approved, externally useful global Pulse
   -> eligible, not-yet-outboxed candidate pool
-  -> 09:00 ET scheduler checks that the previous ET day has no occupied publish run
+  -> 09:00 ET scheduler checks that neither of the preceding two ET days has an occupied publish run
   -> eligible run day claims today's ready Post (D1 unique per-date slot)
-  -> atomically create at most one deterministic review draft for this ET day
-     from the newest not-yet-outboxed Pulse
+  -> every daily pass, including cadence pauses, atomically fills the valid review buffer to three
+     from the newest not-yet-outboxed Pulses through the shared buffer helper
      with full state names in public header copy (D1 social_alert_post)
   -> GET /api/ops/social/queue shows the rolling draft without creating it
      -> GitHub Actions read-only snapshot -> one public GitHub review issue
@@ -375,9 +375,9 @@ runtime validation 同时执行该闸门；
 候选读取先按 `Pulse.created_at DESC, id DESC` 在 SQL 中排序，并在完整 PII/runtime 校验跳过整页时
 用同一复合键继续 keyset 翻页；因此 100 条较新的无效候选不会永久饿死后面的有效 Alert。
 
-单日上限由 `UNIQUE(channel, local_date)` 保证；调度器另用前一 ET 自然日的 publish run
-作为持久化 cadence guard，因此一次自动发布/影子运行/失败占槽后，下一自然日不会再自动 claim，
-最早在后天恢复。候选草稿、`ready` backlog、
+单日上限由 `UNIQUE(channel, local_date)` 保证；调度器另用前两个 ET 自然日的 publish run
+作为持久化 cadence guard，因此一次自动发布/影子运行/失败占槽后，接下来两个自然日不会再自动
+claim，最早在第三天恢复。暂停 claim 不暂停 draft 补充；候选草稿、`ready` backlog、
 真实 claim 和 queue 预览全部按关联 Pulse 的 `created_at DESC, id DESC` 排序，因此后来进入系统的
 Alert 会先进入审核并先发布；`priority` 只保留为人工审核元数据，显式 `publish-now` 是唯一的人工
 顺序例外。主帖 create 前，X 返回明确 4xx 时当天记 failed 且不换发；timeout、网络中断、5xx 或
@@ -389,13 +389,13 @@ write 丢失都记 unknown 并告警，不能走 `not_published -> draft`；人�
 
 Social Ops 通过 `GET /api/ops/social/queue` 提供只读的等待序列，CLI 对应
 `pnpm social:x -- queue`，固定展示未来 14 个 ET 自然日。它使用真实 claim 的最新 Pulse 优先规则，
-把当前 eligible `ready` Post 按 `cadenceDays=2` 映射到预计日期，并在同一输出的 `drafts` 区块
+把当前 eligible `ready` Post 按 `cadenceDays=3` 映射到预计日期，并在同一输出的 `drafts` 区块
 展示自动补充的待审核候选，无需先运行 `candidates --pulse`。`nextAutomaticLocalDate` 明确给出
-下一次可用自动槽位：若今天已有发布 run，则它是后天而不是明天。`draft` 没有锁定日期，批准后才
+下一次可用自动槽位：若今天已有发布 run，则它是三天后。`draft` 没有锁定日期，批准后才
 进入 `ready` 序列。这个 GET 视图本身不写 `social_alert_post`、不提前创建未来
 `social_publish_run`，也不提前向 `SOCIAL_QUEUE` 投递消息。预计日期不是锁定排期：更新的 Alert
 被批准、取消/失去资格、`publish-now` 或 failed/unknown 都会使后续位置变化。唯一真实排期动作
-仍是 Worker 在符合两天 cadence 的自然日 09:00 ET claim 一条。
+仍是 Worker 在符合三天 cadence 的自然日 09:00 ET claim 一条。
 
 `.github/workflows/x-draft-review.yml` 在 09:00 ET 日槽之后两次 best-effort 读取同一个 queue
 projection，并把当前可见的未同步 draft revision 镜像为公开 GitHub Issue comment。它同时用

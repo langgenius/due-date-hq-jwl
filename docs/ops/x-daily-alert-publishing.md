@@ -4,11 +4,12 @@
 
 The SaaS Worker is the only scheduling authority. Its publishing/replenishment branch runs only in
 the 09:00 America/New_York window; the separate social watchdog still runs on every 30-minute Cron
-tick. If the previous ET calendar day has an occupied publish run, the automatic branch pauses for
-the day. On an eligible run day, after claiming today's slot and before a live Queue enqueue, the
-branch atomically creates at most one eligible draft from the newest not-yet-outboxed Alert. A
-separate serialized `SOCIAL_QUEUE` creates a link-free main Post, durably checkpoints its X ID, and
-then creates the tracked DueDateHQ URL as the first reply.
+tick. If either of the preceding two ET calendar days has an occupied publish run, the automatic
+claim pauses for the day. Every daily 09:00 pass still removes ineligible drafts and atomically fills
+the valid review buffer to three from the newest not-yet-outboxed Alerts. On an eligible run day,
+the same fill happens after today's claim and before a live Queue enqueue; a shadowed Post returned
+to draft counts toward the target. A separate serialized `SOCIAL_QUEUE` creates a link-free main
+Post, durably checkpoints its X ID, and then creates the tracked DueDateHQ URL as the first reply.
 The `pnpm social:x` script is an operator control plane; do not schedule that script with Codex,
 launchd, GitHub Actions, or another cron.
 `.github/workflows/x-draft-review.yml` is the narrow exception for visibility only: it reads the
@@ -21,8 +22,9 @@ Hard invariants:
 
 - `UNIQUE(social_alert_post.channel, pulse_id)` prevents the same Alert entering the outbox twice.
 - `UNIQUE(social_publish_run.channel, local_date)` caps every ET calendar day at one attempt.
-- An occupied publish run blocks the following ET calendar day from automatic claim and
-  replenishment. Automatic Posts therefore have at least one empty calendar day between them.
+- An occupied publish run blocks automatic claim on each of the following two ET calendar days.
+  Automatic Posts therefore have two empty calendar days between them; pause days still replenish
+  review drafts.
 - An explicitly re-approved Post may promote its own same-day `draft_only` shadow row to `queued`;
   that row cannot be reused for a different Post, channel, or ET date.
 - A failed or unknown attempt consumes that day; no replacement is sent.
@@ -40,15 +42,16 @@ Hard invariants:
   change.
 - Public header copy expands two-letter state codes to full state names. Official form identifiers
   and `utm_content` keep their stable state codes.
-- Normal live operation uses an eligible 09:00 ET slot every other day and publishes at most one
+- Normal live operation uses an eligible 09:00 ET slot every three days and publishes at most one
   previously approved `ready` Post. `publish-now` is reserved for an explicit operator exception.
 - Draft generation, ready projection, and the normal automatic claim order by the source Pulse's
   `created_at DESC, id DESC`. A newer Alert therefore enters review and publishes before an older
   Alert once both are approved. The stored `urgent` label does not overtake a newer Alert;
   `publish-now` is the explicit operator override.
-- The automatic branch generates at most one review candidate on each eligible run day. A D1
-  conditional insert uses exact DST-aware day bounds, so duplicate Cron deliveries cannot add two
-  candidates that day. A consumed slot pauses the whole branch on the following ET day.
+- The automatic branch targets three valid review drafts on every daily pass, including cadence
+  pauses. The shared D1 conditional insert checks `draft_count < 3` for each candidate, so duplicate
+  Cron deliveries and concurrent fills cannot exceed the target. This buffer has no reserved dates
+  and never bypasses approval.
 - Full runtime/PII validation runs before a candidate is drafted. If an entire 100-row newest-first
   page is rejected, the scheduler continues with a `(Pulse.createdAt, Pulse.id)` keyset cursor so
   older valid Alerts are not permanently starved.
@@ -72,6 +75,9 @@ Hard invariants:
 - X API success handling, operator reconciliation, and the repository terminal write all require
   `xPostId` to contain 1–30 decimal digits. An invalid ID cannot enter the published projection and
   block unrelated Issue updates.
+
+Cadence example: Monday automatic Post -> Tuesday pause -> Wednesday pause -> Thursday next
+eligible automatic Post. The Tuesday and Wednesday passes still refill the review buffer to three.
 
 ## Configuration
 
@@ -148,7 +154,7 @@ pnpm social:x -- candidates --pulse '<pulse id>'
 Ensure that the current review buffer contains three drafts, filling any missing positions from the
 newest eligible Alerts. This is useful immediately after the first deployment. It is an explicit
 operator mutation and may deliberately backfill Alerts from before `X_SOCIAL_START_AT`; normal
-operation relies on the every-other-day scheduler and continues to enforce that cutover:
+operation relies on the three-day scheduler and continues to enforce that cutover:
 
 ```bash
 pnpm social:x -- seed-drafts
@@ -207,9 +213,9 @@ lists them under `drafts` with
 Posts receive an estimated date. Use `candidates --status draft` only when you want the focused
 approval view. A draft has no place or date in the publishing sequence until it is approved. A
 newer Alert approved later can move ahead of older ready Posts; cancellation, `publish-now`, and
-failed/unknown attempts can also change a date. The response includes `cadenceDays: 2` and
-`nextAutomaticLocalDate`; if today already has a publish run, that next automatic date is the day
-after tomorrow.
+failed/unknown attempts can also change a date. The response includes `cadenceDays: 3` and
+`nextAutomaticLocalDate`; if today already has a publish run, that next automatic date is three
+days later.
 
 For unusually large backlogs, `readyBacklogTruncated` or `draftBacklogTruncated` indicates that the
 JSON omits additional rows outside the fixed horizon/view cap. Both visible sequences are ordered
@@ -219,7 +225,7 @@ The displayed dates are a projection, not reserved appointments. A newly approve
 cancellation or loss of Pulse eligibility, `publish-now`, or a failed or unknown attempt can
 change later positions and dates. Run the command again for the current view. The preview performs
 no write, does not consume the per-date unique slot, and does not enqueue X work ahead of time. The
-Worker claims at most one item at 09:00 ET every other calendar day; weekends are included.
+Worker claims at most one item at 09:00 ET every three calendar days; weekends are included.
 
 ## Public GitHub lifecycle mirror
 
@@ -287,7 +293,7 @@ an operator has manually completed the first reply and reconciled the main ID, a
 `status=published`, `xPostId`, and `publishedAt` in D1. In particular, the HTTP 202 returned by
 `publish-now` means only that the message was queued; the next probe continues to show the
 approved/non-published state until D1 confirms publication. If `draftBacklogTruncated=true`, the
-workflow reports the truncation in its run result; the newest daily draft remains in the visible
+workflow reports the truncation in its run result; the newest buffer drafts remain in the visible
 newest-first slice, but the Issue is not a complete historical backlog.
 
 ## Immediate live publish
@@ -321,12 +327,12 @@ For seven consecutive ET publishing days:
 
 1. Leave `X_POSTING_MODE=draft`.
 2. Inspect candidate facts, deterministic copy, weighted length, CTA, ref token URL, and priority.
-3. Confirm the daily branch exposes its review candidate through `queue`, approve
-   it, then rerun the queue preview to review its tentative ET publication date.
+3. Confirm the daily branch exposes up to three review candidates through `queue`, approve the
+   intended Post, then rerun the queue preview to review its tentative ET publication date.
 4. Confirm exactly one `draft_only` run for the local date and no X post.
 5. Exercise the first-reply link through logged-out login, Email OTP and OAuth, new-firm onboarding, and an
    existing firm. Confirm the final URL is that firm's `/alerts?alert=<id>`.
-6. Confirm a same-day batch remains in the backlog and advances one item per later day.
+6. Confirm the approved backlog advances at most one item per eligible three-day cadence slot.
 
 A shadowed draft returns to `draft`; shadow approval never silently carries into live. After day 7,
 review and approve the intended live backlog again, configure all credentials, then change
@@ -368,8 +374,10 @@ draft age through the queue/D1 checks below, along with
 failed/unknown runs, landing visits, completed registrations, and Alert opens. `unknown` and a ready
 backlog older than seven days emit ops alerts when `OPS_ALERT_EMAIL` is configured. A replenishment
 failure also emits `social.x.draft_replenish_failed` while allowing today's already-claimed live Post
-to continue to Queue. A stale draft is still an approval/cancellation decision, but it does not
-block the next ET day's newest eligible draft from appearing.
+to continue to Queue. Fewer than three valid drafts is healthy only when the eligible candidate pool
+is exhausted; otherwise look for that replenishment alert. A stale draft is still an
+approval/cancellation decision, but it does not block the next daily pass from adding a newer
+eligible draft.
 
 Also monitor the `X Draft Review Issue` workflow for a failed run, no successful run for 24 hours,
 or `draftBacklogTruncated=true`. These are review-notification failures, not X publishing failures;

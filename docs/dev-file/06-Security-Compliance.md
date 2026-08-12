@@ -470,6 +470,9 @@ per-plan `aiDailyRunLimit` + `AI_SYSTEM_DAILY_LIMIT` 预算层兜底（`packages
 - **X social**：`X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET` 必须四项
   all-or-none；`X_POSTING_MODE=live` 时四项必填。`SOCIAL_OPS_TOKEN` 独立生成、独立轮换，不复用
   `AUTH_SECRET`、`E2E_SEED_TOKEN` 或 X token；默认 `draft` 无 X credential 也可影子运行。
+  每日最多展示 3 条待审核 draft 只扩大同一确定性 public-copy allowlist 的 review buffer，不增加
+  返回字段、tenant 数据或审批权限；所有条目仍经过 source/runtime/PII 校验，只有带真实 Better Auth
+  reviewer 的 Social Ops approve 路径能执行 `draft -> ready`，scheduler 和 GitHub Issue 都不能审批。
 - **X GitHub review mirror**：只在 default branch 的 schedule / workflow dispatch / scoped
   main push 运行，无 PR trigger；从受保护的 `due-date-hq-staging` environment 读取
   `SOCIAL_OPS_TOKEN`，并严格只向 production queue GET 发送该 bearer。短时 `GITHUB_TOKEN`
