@@ -1,14 +1,22 @@
 import { describe, expect, it, vi } from 'vitest'
+import type {
+  SocialAlertCandidateRow,
+  SocialAlertPost,
+  SocialPublishRun,
+  SocialQueuePost,
+} from '@duedatehq/db'
 import type { Env } from '../../env'
 import { runXSocialCron, runXSocialWatchdog, type XPublishQueueMessage } from './scheduler'
-import type { SocialAlertCandidate } from './content'
+
+const NOW = new Date('2026-07-21T13:00:00.000Z')
 
 function candidate(
   id: string,
-  overrides: Partial<SocialAlertCandidate> = {},
-): SocialAlertCandidate {
+  overrides: Partial<SocialAlertCandidateRow> = {},
+): SocialAlertCandidateRow {
   return {
     pulseId: id,
+    sourceId: 'irs.newsroom',
     status: 'approved',
     isSample: false,
     agency: 'Internal Revenue Service',
@@ -28,6 +36,64 @@ function candidate(
   }
 }
 
+function draftPost(id: string, pulseId = `pulse-${id}`): SocialAlertPost {
+  const now = new Date('2026-07-21T13:00:00.000Z')
+  return {
+    id,
+    channel: 'x',
+    pulseId,
+    refToken: `ref-token-${id.padEnd(16, 'x')}`,
+    postText: `Post copy for ${id}`,
+    targetUrl: `https://app.duedatehq.com/alerts?ref=${id}`,
+    teaser: `Teaser for ${id}`,
+    agency: 'Internal Revenue Service',
+    jurisdiction: 'Federal',
+    changeKind: 'deadline_shift',
+    status: 'draft',
+    priority: 'normal',
+    readyAt: null,
+    approvedBy: null,
+    approvedAt: null,
+    xPostId: null,
+    xReplyPostId: null,
+    publishedAt: null,
+    cancelledAt: null,
+    cancellationReason: null,
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+function claimResult(
+  runId: string,
+  postId: string,
+): { run: SocialPublishRun; post: SocialAlertPost } {
+  const now = new Date('2026-07-21T13:00:00.000Z')
+  return {
+    run: {
+      id: runId,
+      channel: 'x',
+      localDate: '2026-07-21',
+      postId,
+      status: 'queued',
+      attemptCount: 0,
+      lastAttemptAt: null,
+      leaseExpiresAt: null,
+      responseHttpStatus: null,
+      failureReason: null,
+      xPostId: null,
+      xReplyPostId: null,
+      queuedAt: now,
+      sendingAt: null,
+      publishedAt: null,
+      failedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    },
+    post: draftPost(postId),
+  }
+}
+
 function schedulerEnv(overrides: Partial<Env> = {}): Env {
   return {
     APP_URL: 'https://app.duedatehq.com',
@@ -38,16 +104,44 @@ function schedulerEnv(overrides: Partial<Env> = {}): Env {
 }
 
 function schedulerRepo(input: {
-  candidates?: SocialAlertCandidate[]
-  claim?: { run: { id: string }; post: { id: string } } | null
-  draftResult?: 'created' | 'daily_slot_filled' | 'candidate_conflict'
+  candidates?: SocialAlertCandidateRow[]
+  claim?: { run: SocialPublishRun; post: SocialAlertPost } | null
+  existingDraftCount?: number
+  claimReturnsToDraft?: boolean
+  draftCreateError?: Error
 }) {
+  const drafts: SocialQueuePost[] = Array.from(
+    { length: input.existingDraftCount ?? 0 },
+    (_, index) =>
+      Object.assign(draftPost(`existing-${index + 1}`), {
+        pulseCreatedAt: new Date(`2026-07-${String(20 - index).padStart(2, '0')}T00:00:00.000Z`),
+      }),
+  )
   return {
     cancelIneligiblePosts: vi.fn().mockResolvedValue(0),
     listEligibleCandidates: vi.fn().mockResolvedValue(input.candidates ?? []),
+    listDraftPostsForQueuePreview: vi.fn(async (request?: { limit?: number }) =>
+      drafts.slice(0, request?.limit ?? 50),
+    ),
+    createDraftIfBufferBelow: vi.fn(
+      async ({ pulseId, bufferSize }: { pulseId: string; bufferSize: number }) => {
+        if (input.draftCreateError) throw input.draftCreateError
+        if (drafts.length >= bufferSize) return { status: 'buffer_full' as const }
+        const post = draftPost(`post-${pulseId}`, pulseId)
+        drafts.push(Object.assign({}, post, { pulseCreatedAt: post.createdAt }))
+        return { status: 'created' as const, post }
+      },
+    ),
     listOccupiedPublishDates: vi.fn().mockResolvedValue([]),
-    createDailyDraft: vi.fn().mockResolvedValue(input.draftResult ?? 'created'),
-    claimDailyReadyPost: vi.fn().mockResolvedValue(input.claim ?? null),
+    claimDailyReadyPost: vi.fn(async ({ mode }: { mode: 'draft' | 'live' }) => {
+      const claim = input.claim ?? null
+      if (claim && mode === 'draft' && input.claimReturnsToDraft) {
+        drafts.push(
+          Object.assign({}, claim.post, { status: 'draft' as const, pulseCreatedAt: NOW }),
+        )
+      }
+      return claim
+    }),
     markFailed: vi.fn().mockResolvedValue(true),
   }
 }
@@ -63,31 +157,35 @@ describe('runXSocialCron', () => {
     ).resolves.toEqual({ status: 'outside_slot' })
     expect(repo.cancelIneligiblePosts).not.toHaveBeenCalled()
     expect(repo.listEligibleCandidates).not.toHaveBeenCalled()
-    expect(repo.createDailyDraft).not.toHaveBeenCalled()
+    expect(repo.createDraftIfBufferBelow).not.toHaveBeenCalled()
     expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
   })
 
-  it('pauses the automatic scheduler when the previous ET day consumed a publish slot', async () => {
-    const repo = schedulerRepo({ candidates: [candidate('pulse-1')] })
-    repo.listOccupiedPublishDates.mockResolvedValue(['2026-07-20'])
+  it.each(['2026-07-19', '2026-07-20'])(
+    'fills the review buffer but does not claim when %s occupied one of the preceding two ET days',
+    async (occupiedDate) => {
+      const repo = schedulerRepo({ candidates: [candidate('pulse-1')] })
+      repo.listOccupiedPublishDates.mockResolvedValue([occupiedDate])
 
-    await expect(
-      runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), {
-        repo,
-      }),
-    ).resolves.toEqual({ status: 'cadence_pause', localDate: '2026-07-21' })
-    expect(repo.listOccupiedPublishDates).toHaveBeenCalledWith({
-      channel: 'x',
-      fromLocalDate: '2026-07-20',
-      limit: 1,
-    })
-    expect(repo.cancelIneligiblePosts).not.toHaveBeenCalled()
-    expect(repo.listEligibleCandidates).not.toHaveBeenCalled()
-    expect(repo.createDailyDraft).not.toHaveBeenCalled()
-    expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
-  })
+      await expect(
+        runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
+      ).resolves.toEqual({
+        status: 'cadence_pause',
+        localDate: '2026-07-21',
+        draftsCreated: 1,
+      })
+      expect(repo.listOccupiedPublishDates).toHaveBeenCalledWith({
+        channel: 'x',
+        fromLocalDate: '2026-07-19',
+        limit: 3,
+      })
+      expect(repo.cancelIneligiblePosts).toHaveBeenCalledOnce()
+      expect(repo.createDraftIfBufferBelow).toHaveBeenCalledOnce()
+      expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
+    },
+  )
 
-  it('creates only one rolling draft from many candidates when an eligible slot is idle', async () => {
+  it('fills the review buffer to three when an eligible slot is idle', async () => {
     const candidates = Array.from({ length: 10 }, (_, index) => candidate(`pulse-${index}`))
     const repo = schedulerRepo({ candidates })
 
@@ -99,15 +197,14 @@ describe('runXSocialCron', () => {
     ).resolves.toEqual({
       status: 'idle',
       localDate: '2026-07-21',
-      draftsCreated: 1,
+      draftsCreated: 3,
     })
-    expect(repo.createDailyDraft).toHaveBeenCalledOnce()
-    expect(repo.createDailyDraft).toHaveBeenCalledWith(
+    expect(repo.createDraftIfBufferBelow).toHaveBeenCalledTimes(3)
+    expect(repo.createDraftIfBufferBelow).toHaveBeenCalledWith(
       expect.objectContaining({
-        pulseId: 'pulse-0',
+        pulseId: 'pulse-9',
         since: new Date('2026-07-21T00:00:00.000Z'),
-        dailyWindowStart: new Date('2026-07-21T04:00:00.000Z'),
-        dailyWindowEnd: new Date('2026-07-22T04:00:00.000Z'),
+        bufferSize: 3,
       }),
     )
     expect(repo.cancelIneligiblePosts).toHaveBeenCalledWith({
@@ -124,94 +221,39 @@ describe('runXSocialCron', () => {
     })
   })
 
-  it('skips an invalid first candidate and drafts the next eligible Alert', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+  it('does not create when the valid review buffer already contains three drafts', async () => {
     const repo = schedulerRepo({
-      candidates: [
-        candidate('invalid', { summary: 'Contact reviewer@example.com for details.' }),
-        candidate('eligible'),
-      ],
-    })
-
-    await expect(
-      runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
-    ).resolves.toEqual({ status: 'idle', localDate: '2026-07-21', draftsCreated: 1 })
-    expect(repo.createDailyDraft).toHaveBeenCalledOnce()
-    expect(repo.createDailyDraft).toHaveBeenCalledWith(
-      expect.objectContaining({ pulseId: 'eligible' }),
-    )
-    warn.mockRestore()
-  })
-
-  it('does not create twice when this ET day already received a draft', async () => {
-    const repo = schedulerRepo({
-      candidates: [candidate('pulse-1')],
-      draftResult: 'daily_slot_filled',
+      candidates: [candidate('unused')],
+      existingDraftCount: 3,
     })
 
     await expect(
       runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
     ).resolves.toEqual({ status: 'idle', localDate: '2026-07-21', draftsCreated: 0 })
-    expect(repo.createDailyDraft).toHaveBeenCalledOnce()
+    expect(repo.listEligibleCandidates).not.toHaveBeenCalled()
+    expect(repo.createDraftIfBufferBelow).not.toHaveBeenCalled()
   })
 
-  it('continues to the next candidate after a concurrent candidate conflict', async () => {
-    const repo = schedulerRepo({
-      candidates: [candidate('pulse-raced'), candidate('pulse-next')],
-    })
-    repo.createDailyDraft
-      .mockResolvedValueOnce('candidate_conflict')
-      .mockResolvedValueOnce('created')
+  it('allows an automatic claim when the most recent occupied date is three ET days old', async () => {
+    const repo = schedulerRepo({})
+    repo.listOccupiedPublishDates.mockResolvedValue(['2026-07-18'])
 
     await expect(
       runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
-    ).resolves.toEqual({ status: 'idle', localDate: '2026-07-21', draftsCreated: 1 })
-    expect(repo.createDailyDraft).toHaveBeenCalledTimes(2)
-    expect(repo.createDailyDraft.mock.calls[1]?.[0]).toEqual(
-      expect.objectContaining({ pulseId: 'pulse-next' }),
-    )
-  })
-
-  it('pages past 100 newer invalid candidates to draft the next valid Alert', async () => {
-    const invalidCandidates = Array.from({ length: 100 }, (_, index) =>
-      candidate(`invalid-${String(index).padStart(3, '0')}`, {
-        summary: `Contact reviewer-${index}@example.com`,
-        createdAt: new Date(1_800_000_000_000 - index),
-      }),
-    )
-    const eligible = candidate('eligible-older', {
-      createdAt: new Date('2026-07-20T00:00:00.000Z'),
-    })
-    const repo = schedulerRepo({ candidates: [] })
-    repo.listEligibleCandidates
-      .mockResolvedValueOnce(invalidCandidates)
-      .mockResolvedValueOnce([eligible])
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-
-    await expect(
-      runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
-    ).resolves.toEqual({ status: 'idle', localDate: '2026-07-21', draftsCreated: 1 })
-
-    expect(repo.listEligibleCandidates).toHaveBeenCalledTimes(2)
-    expect(repo.listEligibleCandidates.mock.calls[1]?.[0]).toEqual(
-      expect.objectContaining({
-        before: {
-          createdAt: invalidCandidates[99]!.createdAt,
-          pulseId: invalidCandidates[99]!.pulseId,
-        },
-      }),
-    )
-    expect(repo.createDailyDraft).toHaveBeenCalledOnce()
-    expect(repo.createDailyDraft).toHaveBeenCalledWith(
-      expect.objectContaining({ pulseId: 'eligible-older' }),
-    )
-    warn.mockRestore()
+    ).resolves.toEqual({ status: 'idle', localDate: '2026-07-21', draftsCreated: 0 })
+    expect(repo.claimDailyReadyPost).toHaveBeenCalledOnce()
   })
 
   it('queues one live claim and marks a near deadline urgent', async () => {
     const repo = schedulerRepo({
-      candidates: [candidate('pulse-1', { agency: 'CO tax agency', jurisdiction: 'CO' })],
-      claim: { run: { id: 'run-live' }, post: { id: 'post-live' } },
+      candidates: [
+        candidate('pulse-1', {
+          sourceId: 'CO tax agency',
+          agency: 'CO tax agency',
+          jurisdiction: 'CO',
+        }),
+      ],
+      claim: claimResult('run-live', 'post-live'),
     })
     const sent: XPublishQueueMessage[] = []
     const queue = { send: vi.fn(async (message: XPublishQueueMessage) => void sent.push(message)) }
@@ -239,7 +281,7 @@ describe('runXSocialCron', () => {
       draftsCreated: 1,
       runId: 'run-live',
     })
-    expect(repo.createDailyDraft).toHaveBeenCalledWith(
+    expect(repo.createDraftIfBufferBelow).toHaveBeenCalledWith(
       expect.objectContaining({
         pulseId: 'pulse-1',
         priority: 'urgent',
@@ -247,7 +289,7 @@ describe('runXSocialCron', () => {
       }),
     )
     expect(sent).toEqual([{ type: 'social.x.publish', runId: 'run-live' }])
-    expect(repo.createDailyDraft.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(repo.createDraftIfBufferBelow.mock.invocationCallOrder[0]).toBeLessThan(
       queue.send.mock.invocationCallOrder[0]!,
     )
   })
@@ -259,7 +301,7 @@ describe('runXSocialCron', () => {
 
     await runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo })
 
-    expect(repo.createDailyDraft).toHaveBeenCalledWith(
+    expect(repo.createDraftIfBufferBelow).toHaveBeenCalledWith(
       expect.objectContaining({ pulseId: 'pulse-stale', priority: 'normal' }),
     )
   })
@@ -268,9 +310,9 @@ describe('runXSocialCron', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const repo = schedulerRepo({
       candidates: [candidate('pulse-next')],
-      claim: { run: { id: 'run-live' }, post: { id: 'post-live' } },
+      claim: claimResult('run-live', 'post-live'),
+      draftCreateError: new Error('D1 unavailable'),
     })
-    repo.createDailyDraft.mockRejectedValue(new Error('D1 unavailable'))
     const queue = { send: vi.fn().mockResolvedValue(undefined) }
 
     await expect(
@@ -297,11 +339,12 @@ describe('runXSocialCron', () => {
     error.mockRestore()
   })
 
-  it('does not add another draft after this ET day already received one', async () => {
+  it('counts a shadowed ready Post toward the three-draft target', async () => {
     const repo = schedulerRepo({
       candidates: [candidate('pulse-2')],
-      claim: { run: { id: 'run-shadow' }, post: { id: 'post-shadow' } },
-      draftResult: 'daily_slot_filled',
+      claim: claimResult('run-shadow', 'post-shadow'),
+      existingDraftCount: 2,
+      claimReturnsToDraft: true,
     })
 
     await expect(
@@ -312,12 +355,33 @@ describe('runXSocialCron', () => {
       draftsCreated: 0,
       runId: 'run-shadow',
     })
+    expect(repo.createDraftIfBufferBelow).not.toHaveBeenCalled()
+  })
+
+  it('keeps a cadence pause when draft replenishment fails', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const repo = schedulerRepo({
+      candidates: [candidate('pulse-next')],
+      draftCreateError: new Error('D1 unavailable'),
+    })
+    repo.listOccupiedPublishDates.mockResolvedValue(['2026-07-20'])
+
+    await expect(
+      runXSocialCron(schedulerEnv(), new Date('2026-07-21T13:00:00.000Z'), { repo }),
+    ).resolves.toEqual({
+      status: 'cadence_pause',
+      localDate: '2026-07-21',
+      draftsCreated: 0,
+    })
+    expect(repo.claimDailyReadyPost).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('social.x.draft_replenish_failed'))
+    error.mockRestore()
   })
 
   it('fails the reserved day instead of silently losing an enqueue error', async () => {
     const repo = schedulerRepo({
       candidates: [candidate('pulse-next')],
-      claim: { run: { id: 'run-live' }, post: { id: 'post-live' } },
+      claim: claimResult('run-live', 'post-live'),
     })
     const queue = { send: vi.fn().mockRejectedValue(new Error('queue unavailable')) }
     const env = schedulerEnv({
@@ -340,7 +404,7 @@ describe('runXSocialCron', () => {
       reason: 'queue unavailable',
       now: new Date('2026-07-21T13:00:00.000Z'),
     })
-    expect(repo.createDailyDraft).toHaveBeenCalledOnce()
+    expect(repo.createDraftIfBufferBelow).toHaveBeenCalledOnce()
   })
 
   it('alerts on unknown runs and a ready backlog older than seven days', async () => {

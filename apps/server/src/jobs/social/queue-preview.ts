@@ -6,7 +6,7 @@ import {
 } from './time'
 
 export const X_QUEUE_DAILY_SLOT = '09:00' as const
-export const X_AUTOMATIC_PUBLISH_INTERVAL_DAYS = 2 as const
+export const X_AUTOMATIC_PUBLISH_INTERVAL_DAYS = 3 as const
 
 export interface XQueuePreviewPost {
   id: string
@@ -55,7 +55,7 @@ export interface BuildXQueuePreviewInput<TPost extends XQueuePreviewPost = XQueu
 }
 
 /**
- * Produce a read-only snapshot of the normal every-other-day X queue.
+ * Produce a read-only snapshot of the normal every-three-days X queue.
  *
  * No future run rows are reserved here. Ready and draft rows use the same
  * newest-Pulse-first order as the D1 claim, so the projection matches the
@@ -92,11 +92,7 @@ export function buildXQueuePreview<TPost extends XQueuePreviewPost>(
       occupiedInWindow.push(localDate)
       continue
     }
-    const previousLocalDate = addLocalCalendarDays(localDate, -1)
-    const nextLocalDate = addLocalCalendarDays(localDate, 1)
-    if (occupiedOrProjected.has(previousLocalDate) || occupiedOrProjected.has(nextLocalDate)) {
-      continue
-    }
+    if (!isAutomaticDateAvailable(localDate, occupiedOrProjected)) continue
     if (remaining.length === 0) continue
 
     const projectedAt = xDailySlotInstant(localDate)
@@ -133,18 +129,25 @@ function nextAvailableAutomaticLocalDate(
   fromLocalDate: string,
   occupied: ReadonlySet<string>,
 ): string {
-  const searchDays = occupied.size * X_AUTOMATIC_PUBLISH_INTERVAL_DAYS + 2
+  const searchDays = occupied.size * X_AUTOMATIC_PUBLISH_INTERVAL_DAYS + 3
   for (let offset = 0; offset < searchDays; offset += 1) {
     const localDate = addLocalCalendarDays(fromLocalDate, offset)
-    if (
-      !occupied.has(localDate) &&
-      !occupied.has(addLocalCalendarDays(localDate, -1)) &&
-      !occupied.has(addLocalCalendarDays(localDate, 1))
-    ) {
-      return localDate
-    }
+    if (isAutomaticDateAvailable(localDate, occupied)) return localDate
   }
   throw new Error('Unable to find the next automatic X publish date.')
+}
+
+function isAutomaticDateAvailable(localDate: string, occupied: ReadonlySet<string>): boolean {
+  if (occupied.has(localDate)) return false
+  for (let distance = 1; distance < X_AUTOMATIC_PUBLISH_INTERVAL_DAYS; distance += 1) {
+    if (
+      occupied.has(addLocalCalendarDays(localDate, -distance)) ||
+      occupied.has(addLocalCalendarDays(localDate, distance))
+    ) {
+      return false
+    }
+  }
+  return true
 }
 
 function compareNewestPulseFirst(left: XQueuePreviewPost, right: XQueuePreviewPost): number {

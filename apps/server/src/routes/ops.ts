@@ -12,7 +12,7 @@ import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
 import { buildXAlertPost, buildXAlertThread, validateSocialCandidate } from '../jobs/social/content'
 import { fillXDraftBuffer } from '../jobs/social/draft-buffer'
-import { buildXQueuePreview } from '../jobs/social/queue-preview'
+import { buildXQueuePreview, X_AUTOMATIC_PUBLISH_INTERVAL_DAYS } from '../jobs/social/queue-preview'
 import {
   addLocalCalendarDays,
   easternTimeParts,
@@ -206,7 +206,8 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     const repo = makeSocialOpsRepo(createDb(c.env.DB))
     const readLimit = days + 1
     const fromLocalDate = nextXDailySlotLocalDate(now)
-    const cadenceLookbackDate = addLocalCalendarDays(fromLocalDate, -1)
+    const cadenceLookbackDays = X_AUTOMATIC_PUBLISH_INTERVAL_DAYS - 1
+    const cadenceLookbackDate = addLocalCalendarDays(fromLocalDate, -cadenceLookbackDays)
     const [readyRows, draftRows, occupiedLocalDates, publishedRows] = await Promise.all([
       repo.listReadyPostsForProjection({
         channel: 'x',
@@ -216,7 +217,7 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
       repo.listOccupiedPublishDates({
         channel: 'x',
         fromLocalDate: cadenceLookbackDate,
-        limit: days + 1,
+        limit: days + cadenceLookbackDays,
       }),
       includePublished
         ? repo.listRecentPublishedPostsForReview({

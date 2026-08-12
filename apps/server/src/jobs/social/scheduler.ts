@@ -1,27 +1,21 @@
 import { createDb, makeSocialOpsRepo, SOCIAL_URGENT_WINDOW_MS } from '@duedatehq/db'
 import type { Env } from '../../env'
 import { dispatchOpsAlert } from '../ops-alerts'
-import { buildXAlertPost, validateSocialCandidate, type SocialAlertCandidate } from './content'
-import {
-  addLocalCalendarDays,
-  easternDayBounds,
-  easternTimeParts,
-  shouldRunXDailySlot,
-} from './time'
+import type { SocialAlertCandidate } from './content'
+import { fillXDraftBuffer, type XDraftBufferRepo } from './draft-buffer'
+import { X_AUTOMATIC_PUBLISH_INTERVAL_DAYS } from './queue-preview'
+import { addLocalCalendarDays, easternTimeParts, shouldRunXDailySlot } from './time'
 
-const SOCIAL_CANDIDATE_BATCH_SIZE = 100
+const SOCIAL_CANDIDATE_RECONCILE_LIMIT = 100
+const X_AUTOMATIC_DRAFT_BUFFER_SIZE = 3
 const BACKLOG_ALERT_MS = 7 * 24 * 60 * 60 * 1000
 
 type SocialOpsRepo = ReturnType<typeof makeSocialOpsRepo>
 type SocialSchedulerRepo = Pick<
   SocialOpsRepo,
-  | 'cancelIneligiblePosts'
-  | 'listEligibleCandidates'
-  | 'listOccupiedPublishDates'
-  | 'createDailyDraft'
-  | 'claimDailyReadyPost'
-  | 'markFailed'
->
+  'cancelIneligiblePosts' | 'listOccupiedPublishDates' | 'claimDailyReadyPost' | 'markFailed'
+> &
+  XDraftBufferRepo
 interface SocialWatchdogRepo {
   listPosts(input: {
     channel: 'x'
@@ -33,7 +27,7 @@ interface SocialWatchdogRepo {
 export type XSocialCronResult =
   | { status: 'outside_slot' }
   | { status: 'disabled'; reason: 'missing_cutover' }
-  | { status: 'cadence_pause'; localDate: string }
+  | { status: 'cadence_pause'; localDate: string; draftsCreated: number }
   | { status: 'draft_only'; localDate: string; draftsCreated: number; runId: string }
   | { status: 'queued'; localDate: string; draftsCreated: number; runId: string }
   | { status: 'idle'; localDate: string; draftsCreated: number }
@@ -55,43 +49,62 @@ export async function runXSocialCron(
 
   const repo = dependencies.repo ?? makeSocialOpsRepo(createDb(env.DB))
   const { localDate } = easternTimeParts(now)
-  const previousLocalDate = addLocalCalendarDays(localDate, -1)
+  const cadenceLookbackDays = X_AUTOMATIC_PUBLISH_INTERVAL_DAYS - 1
+  const cadenceStartLocalDate = addLocalCalendarDays(localDate, -cadenceLookbackDays)
   const recentPublishDates = await repo.listOccupiedPublishDates({
     channel: 'x',
-    fromLocalDate: previousLocalDate,
-    limit: 1,
+    fromLocalDate: cadenceStartLocalDate,
+    limit: X_AUTOMATIC_PUBLISH_INTERVAL_DAYS,
   })
-  if (recentPublishDates.includes(previousLocalDate)) {
-    return { status: 'cadence_pause', localDate }
-  }
+  const guardedLocalDates = new Set(
+    Array.from({ length: cadenceLookbackDays }, (_, index) =>
+      addLocalCalendarDays(localDate, -(index + 1)),
+    ),
+  )
+  const cadencePaused = recentPublishDates.some((date) => guardedLocalDates.has(date))
 
-  await repo.cancelIneligiblePosts({ channel: 'x', limit: SOCIAL_CANDIDATE_BATCH_SIZE, now })
+  await repo.cancelIneligiblePosts({
+    channel: 'x',
+    limit: SOCIAL_CANDIDATE_RECONCILE_LIMIT,
+    now,
+  })
   const randomRefToken =
     dependencies.randomRefToken ?? (() => crypto.randomUUID().replaceAll('-', ''))
 
-  const dailyWindow = easternDayBounds(localDate)
-  const mode = env.X_POSTING_MODE === 'live' ? 'live' : 'draft'
-  const claim = await repo.claimDailyReadyPost({ channel: 'x', localDate, now, mode })
-  if (!claim) {
-    const draftsCreated = await replenishReviewBuffer(
+  if (cadencePaused) {
+    const draftsCreated = await tryReplenishReviewBuffer(
       env,
       repo,
       since,
       now,
-      dailyWindow,
       randomRefToken,
+      localDate,
+    )
+    return { status: 'cadence_pause', localDate, draftsCreated }
+  }
+
+  const mode = env.X_POSTING_MODE === 'live' ? 'live' : 'draft'
+  const claim = await repo.claimDailyReadyPost({ channel: 'x', localDate, now, mode })
+  if (!claim) {
+    const draftsCreated = await tryReplenishReviewBuffer(
+      env,
+      repo,
+      since,
+      now,
+      randomRefToken,
+      localDate,
     )
     return { status: 'idle', localDate, draftsCreated }
   }
 
   if (mode === 'draft') {
-    const draftsCreated = await replenishReviewBuffer(
+    const draftsCreated = await tryReplenishReviewBuffer(
       env,
       repo,
       since,
       now,
-      dailyWindow,
       randomRefToken,
+      localDate,
     )
     return { status: 'draft_only', localDate, draftsCreated, runId: claim.run.id }
   }
@@ -110,7 +123,6 @@ export async function runXSocialCron(
     repo,
     since,
     now,
-    dailyWindow,
     randomRefToken,
     localDate,
   )
@@ -137,12 +149,20 @@ async function tryReplenishReviewBuffer(
   repo: SocialSchedulerRepo,
   since: Date,
   now: Date,
-  dailyWindow: { start: Date; end: Date },
   randomRefToken: () => string,
   localDate: string,
 ): Promise<number> {
   try {
-    return await replenishReviewBuffer(env, repo, since, now, dailyWindow, randomRefToken)
+    const result = await fillXDraftBuffer({
+      repo,
+      appUrl: env.APP_URL,
+      since,
+      now,
+      bufferSize: X_AUTOMATIC_DRAFT_BUFFER_SIZE,
+      randomRefToken,
+      priorityForCandidate: (candidate) => candidatePriority(candidate, now),
+    })
+    return result.created
   } catch (error) {
     const reason =
       error instanceof Error ? error.message : 'Unable to replenish the X review draft.'
@@ -152,66 +172,6 @@ async function tryReplenishReviewBuffer(
     )
     await dispatchOpsAlert(env, 'social.x.draft_replenish_failed', fields)
     return 0
-  }
-}
-
-async function replenishReviewBuffer(
-  env: Env,
-  repo: SocialSchedulerRepo,
-  since: Date,
-  now: Date,
-  dailyWindow: { start: Date; end: Date },
-  randomRefToken: () => string,
-): Promise<number> {
-  let before: { createdAt: Date; pulseId: string } | undefined
-
-  while (true) {
-    const candidates = await repo.listEligibleCandidates({
-      since,
-      now,
-      limit: SOCIAL_CANDIDATE_BATCH_SIZE,
-      channel: 'x',
-      ...(before ? { before } : {}),
-    })
-    if (candidates.length === 0) return 0
-
-    for (const candidate of candidates) {
-      const validation = validateSocialCandidate(candidate)
-      if (!validation.eligible) {
-        console.warn(
-          JSON.stringify({
-            type: 'social.candidate_skipped',
-            pulseId: candidate.pulseId,
-            reasons: validation.reasons,
-          }),
-        )
-        continue
-      }
-
-      const refToken = randomRefToken()
-      const built = buildXAlertPost(candidate, { appUrl: env.APP_URL, refToken })
-      const result = await repo.createDailyDraft({
-        channel: 'x',
-        pulseId: candidate.pulseId,
-        refToken,
-        postText: built.text,
-        targetUrl: built.targetUrl,
-        teaser: built.teaser,
-        agency: built.agency,
-        priority: candidatePriority(candidate, now),
-        since,
-        dailyWindowStart: dailyWindow.start,
-        dailyWindowEnd: dailyWindow.end,
-        now,
-      })
-      if (result === 'created') return 1
-      if (result === 'daily_slot_filled') return 0
-    }
-
-    if (candidates.length < SOCIAL_CANDIDATE_BATCH_SIZE) return 0
-    const lastCandidate = candidates.at(-1)
-    if (!lastCandidate) return 0
-    before = { createdAt: lastCandidate.createdAt, pulseId: lastCandidate.pulseId }
   }
 }
 

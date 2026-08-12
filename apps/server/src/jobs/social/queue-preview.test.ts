@@ -19,10 +19,10 @@ function post(
 }
 
 describe('buildXQueuePreview', () => {
-  it('projects one ready Post every other ET calendar day without skipping weekends', () => {
+  it('projects one ready Post every three ET calendar days without skipping weekends', () => {
     const preview = buildXQueuePreview({
       now: new Date('2026-07-24T12:00:00.000Z'), // Friday 08:00 ET
-      days: 3,
+      days: 6,
       posts: [
         post('post-1', { readyAt: new Date('2026-07-20T12:00:00.000Z') }),
         post('post-2', { readyAt: new Date('2026-07-21T12:00:00.000Z') }),
@@ -32,42 +32,42 @@ describe('buildXQueuePreview', () => {
 
     expect(preview.ready.map((item) => [item.post.id, item.projectedLocalDate])).toEqual([
       ['post-3', '2026-07-24'],
-      ['post-2', '2026-07-26'],
+      ['post-2', '2026-07-27'],
     ])
     expect(preview.ready.map((item) => item.projectedAt.toISOString())).toEqual([
       '2026-07-24T13:00:00.000Z',
-      '2026-07-26T13:00:00.000Z',
+      '2026-07-27T13:00:00.000Z',
     ])
     expect(preview).toMatchObject({
       tentative: true,
       timeZone: 'America/New_York',
       dailySlot: '09:00',
-      cadenceDays: 2,
+      cadenceDays: 3,
       fromLocalDate: '2026-07-24',
-      throughLocalDate: '2026-07-26',
+      throughLocalDate: '2026-07-29',
       nextAutomaticLocalDate: '2026-07-24',
       visibleReadyBeyondWindowCount: 1,
     })
   })
 
-  it('keeps projected Posts at least one empty day away from occupied dates', () => {
+  it('keeps projected Posts at least two empty days away from occupied dates', () => {
     const preview = buildXQueuePreview({
       now: new Date('2026-07-24T12:00:00.000Z'),
-      days: 5,
+      days: 7,
       posts: [post('post-1'), post('post-2')],
-      occupiedLocalDates: ['2026-07-24', '2026-07-26', '2026-08-10'],
+      occupiedLocalDates: ['2026-07-24', '2026-07-27', '2026-08-10'],
     })
 
-    expect(preview.occupiedLocalDates).toEqual(['2026-07-24', '2026-07-26'])
+    expect(preview.occupiedLocalDates).toEqual(['2026-07-24', '2026-07-27'])
     expect(preview.ready.map((item) => [item.post.id, item.projectedLocalDate])).toEqual([
-      ['post-2', '2026-07-28'],
+      ['post-2', '2026-07-30'],
     ])
   })
 
   it('publishes newer Alerts before older Alerts regardless of approval age or priority', () => {
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T12:00:00.000Z'), // 08:00 ET
-      days: 5,
+      days: 7,
       posts: [
         post('old-urgent', {
           priority: 'urgent',
@@ -96,7 +96,7 @@ describe('buildXQueuePreview', () => {
     const pulseCreatedAt = new Date('2026-07-20T00:00:00.000Z')
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T12:00:00.000Z'),
-      days: 5,
+      days: 7,
       posts: [
         post('post-a', { pulseId: 'pulse-a', pulseCreatedAt }),
         post('post-b', { pulseId: 'pulse-b', pulseCreatedAt }),
@@ -145,17 +145,17 @@ describe('buildXQueuePreview', () => {
     expect(preview.ready[0]?.projectedLocalDate).toBe('2026-07-22')
   })
 
-  it('starts the day after tomorrow when today already consumed a publish slot', () => {
+  it('starts three days later when today already consumed a publish slot', () => {
     const preview = buildXQueuePreview({
       now: new Date('2026-07-21T13:00:00.000Z'),
-      days: 2,
+      days: 3,
       posts: [post('ready-1')],
       occupiedLocalDates: ['2026-07-21'],
     })
 
     expect(preview.fromLocalDate).toBe('2026-07-22')
-    expect(preview.nextAutomaticLocalDate).toBe('2026-07-23')
-    expect(preview.ready[0]?.projectedLocalDate).toBe('2026-07-23')
+    expect(preview.nextAutomaticLocalDate).toBe('2026-07-24')
+    expect(preview.ready[0]?.projectedLocalDate).toBe('2026-07-24')
   })
 
   it('rejects invalid inputs instead of returning a misleading projection', () => {

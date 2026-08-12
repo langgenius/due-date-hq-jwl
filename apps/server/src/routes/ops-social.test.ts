@@ -323,8 +323,8 @@ describe('social ops routes', () => {
     })
     expect(dbMocks.listOccupiedPublishDates).toHaveBeenCalledWith({
       channel: 'x',
-      fromLocalDate: '2026-07-23',
-      limit: 15,
+      fromLocalDate: '2026-07-22',
+      limit: 16,
     })
   })
 
@@ -359,7 +359,7 @@ describe('social ops routes', () => {
     dbMocks.listDraftPostsForQueuePreview.mockResolvedValue([draft])
     dbMocks.listOccupiedPublishDates.mockResolvedValue(['2026-07-24'])
 
-    const response = await opsRoute.request('/social/queue?days=3', authorizedInit(), env())
+    const response = await opsRoute.request('/social/queue?days=4', authorizedInit(), env())
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toMatchObject({
@@ -367,17 +367,17 @@ describe('social ops routes', () => {
       tentative: true,
       timeZone: 'America/New_York',
       dailySlot: '09:00',
-      cadenceDays: 2,
-      days: 3,
-      nextAutomaticLocalDate: '2026-07-26',
+      cadenceDays: 3,
+      days: 4,
+      nextAutomaticLocalDate: '2026-07-27',
       readyBacklogTruncated: false,
       draftBacklogTruncated: false,
       occupiedLocalDates: ['2026-07-24'],
       ready: [
         {
           position: 1,
-          projectedLocalDate: '2026-07-26',
-          projectedAt: '2026-07-26T13:00:00.000Z',
+          projectedLocalDate: '2026-07-27',
+          projectedAt: '2026-07-27T13:00:00.000Z',
           post: {
             id: 'ready-1',
             postText:
@@ -403,12 +403,12 @@ describe('social ops routes', () => {
     })
     expect(dbMocks.listReadyPostsForProjection).toHaveBeenCalledWith({
       channel: 'x',
-      limit: 4,
+      limit: 5,
     })
     expect(dbMocks.listOccupiedPublishDates).toHaveBeenCalledWith({
       channel: 'x',
-      fromLocalDate: '2026-07-23',
-      limit: 4,
+      fromLocalDate: '2026-07-22',
+      limit: 6,
     })
     expect(dbMocks.createDraft).not.toHaveBeenCalled()
     expect(dbMocks.claimExactDailyReadyPost).not.toHaveBeenCalled()
