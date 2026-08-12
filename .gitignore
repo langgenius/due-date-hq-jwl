@@ -71,6 +71,9 @@ logs/
 tmp/
 temp/
 
+# ─────────── Local Git worktrees ───────────
+.worktrees/
+
 # ─────────── Misc ───────────
 .eslintcache
 .stylelintcache
