@@ -10,6 +10,8 @@ import {
 
 const X_MAX_WEIGHTED_LENGTH = 280
 const X_SHORT_URL_LENGTH = 23
+const X_FIRST_REPLY_CTA = 'Open the source-backed DueDateHQ alert in the first reply.'
+const X_LINK_REPLY_PREFIX = 'Review the source-backed alert in DueDateHQ: '
 const EXCLUDED_CHANGE_KINDS = new Set(['source_status', 'rule_source_drift', 'threshold_advisory'])
 
 const URL_PATTERN = /https?:\/\/[^\s]+/giu
@@ -44,6 +46,7 @@ export interface SocialAlertCandidate {
 
 export interface BuiltXAlertPost {
   text: string
+  replyText: string
   targetUrl: string
   teaser: string
   agency: string
@@ -169,21 +172,46 @@ export function buildXAlertPost(
   const change = truncateWeighted(humanizeChangeKind(candidate.changeKind), 26)
   const dateChange = formatDateChange(candidate)
   const teaser = `${scope} · ${change}: ${dateChange}.`
-  const text = [
+  const draftText = [
     `${agency} · ${jurisdiction} alert`,
     '',
     teaser,
     '',
     'Which client deadlines may be affected?',
-    `Review the source-backed alert in DueDateHQ: ${targetUrl}`,
+    X_FIRST_REPLY_CTA,
   ].join('\n')
+  const { mainText: text, replyText } = buildXAlertThread(draftText, targetUrl)
   const weightedLength = weightedPostLength(text)
 
   if (weightedLength > X_MAX_WEIGHTED_LENGTH) {
     throw new Error(`Generated X post is ${weightedLength} weighted characters; maximum is 280.`)
   }
 
-  return { text, targetUrl, teaser, agency, weightedLength }
+  return { text, replyText, targetUrl, teaser, agency, weightedLength }
+}
+
+export function buildXAlertThread(
+  frozenPostText: string,
+  targetUrl: string,
+): { mainText: string; replyText: string } {
+  if (!isPublicHttpUrl(targetUrl)) {
+    throw new Error('The social alert target URL must use HTTP or HTTPS.')
+  }
+
+  const legacyLinkLine = `${X_LINK_REPLY_PREFIX}${targetUrl}`
+  const mainText = frozenPostText.endsWith(legacyLinkLine)
+    ? `${frozenPostText.slice(0, -legacyLinkLine.length)}${X_FIRST_REPLY_CTA}`
+    : frozenPostText
+  const replyText = `${X_LINK_REPLY_PREFIX}${targetUrl}`
+
+  if (weightedPostLength(mainText) > X_MAX_WEIGHTED_LENGTH) {
+    throw new Error('The frozen X main Post exceeds the 280 weighted-character limit.')
+  }
+  if (weightedPostLength(replyText) > X_MAX_WEIGHTED_LENGTH) {
+    throw new Error('The X link reply exceeds the 280 weighted-character limit.')
+  }
+
+  return { mainText, replyText }
 }
 
 function socialAlertTargetUrl(

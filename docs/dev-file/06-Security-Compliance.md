@@ -92,13 +92,15 @@
 - 生产 CLI 只在 approve 已成功后，用参数数组调用固定仓库/main 的 workflow；input 只有
   `postId + draftUpdatedAt`，child process 显式移除 Social bearer 与 reviewer。workflow 再从
   token-gated 单 Post endpoint 读取
-  `id/status/postText/approvedAt/xPostId/publishedAt/updatedAt` allowlist，不信任本地传入的文案
+  `id/status/postText/replyText/approvedAt/xPostId/publishedAt/updatedAt` allowlist，不信任本地传入的文案
   或状态，不公开 `approvedBy`。scheduled/push/manual probe 可用
   `queue?includePublished=true` 读取最多 100 条相同窄字段的 D1 `published` projection；只有
   `status=published` 且同时具有 `xPostId / publishedAt` 才能渲染 X 链接和发布时间。`xPostId`
   在 X response、operator reconcile 和 repository terminal-write 边界都必须为 1–30 位纯数字，
   才可持久化并拼入 `x.com/i/web/status/`。状态 marker 只在 `github-actions[bot]` 创建的
-  Issue/comment 上生效，公开用户伪造 marker 不能抑制或劫持同步。
+  Issue/comment 上生效，公开用户伪造 marker 不能抑制或劫持同步。`replyText` 只由冻结
+  `target_url` 确定性构造，审核镜像分别用 code block 展示无链接主帖和带 tracked ref 的首条回复；
+  不直接暴露 `targetUrl` 字段名或任何 tenant/source 数据。
 - `verify-account` 与 `publish-now` 的 preflight 使用 OAuth 1.0a 签名读取 X `/2/users/me`；响应
   只回传 user id / username。`publish-now` 在 Post/Pulse 校验和账号核验都通过后才 claim D1
   日槽，远端写操作仍由 `SOCIAL_QUEUE` 执行。

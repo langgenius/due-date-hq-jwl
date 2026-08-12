@@ -1,7 +1,13 @@
 import { createDb, makeSocialOpsRepo } from '@duedatehq/db'
 import type { Env } from '../../env'
 import { dispatchOpsAlert } from '../ops-alerts'
-import { createXPost, type XCreatePostResult, type XOAuthCredentials } from './x-client'
+import { buildXAlertThread } from './content'
+import {
+  createXPost,
+  type XCreatePostOptions,
+  type XCreatePostResult,
+  type XOAuthCredentials,
+} from './x-client'
 import type { XPublishQueueMessage } from './scheduler'
 import { easternTimeParts } from './time'
 
@@ -12,6 +18,7 @@ type SocialPublishRepo = Pick<
   SocialOpsRepo,
   | 'getPublishPayload'
   | 'markSending'
+  | 'recordMainPost'
   | 'markPublished'
   | 'markFailed'
   | 'markUnknown'
@@ -21,7 +28,12 @@ type SocialPublishRepo = Pick<
 export type XPublishConsumerResult =
   | { status: 'ignored' }
   | { status: 'cancelled'; runId: string }
-  | { status: 'published'; runId: string; externalPostId: string }
+  | {
+      status: 'published'
+      runId: string
+      externalPostId: string
+      replyPostId: string
+    }
   | { status: 'failed'; runId: string; reason: string }
   | { status: 'unknown'; runId: string; reason: string }
 
@@ -41,7 +53,11 @@ export async function consumeXPublish(
   dependencies: {
     repo?: SocialPublishRepo
     now?: Date
-    createPost?: (text: string, credentials: XOAuthCredentials) => Promise<XCreatePostResult>
+    createPost?: (
+      text: string,
+      credentials: XOAuthCredentials,
+      options?: Pick<XCreatePostOptions, 'replyToPostId'>,
+    ) => Promise<XCreatePostResult>
   } = {},
 ): Promise<XPublishConsumerResult> {
   const repo = dependencies.repo ?? makeSocialOpsRepo(createDb(env.DB))
@@ -57,14 +73,16 @@ export async function consumeXPublish(
   if (payload.runStatus !== 'queued') return { status: 'ignored' }
 
   const currentLocalDate = easternTimeParts(now).localDate
-  if (payload.localDate !== currentLocalDate) {
+  if (!payload.xPostId && payload.localDate !== currentLocalDate) {
     const reason = `X publishing slot ${payload.localDate} expired before dispatch on ${currentLocalDate}.`
     await repo.markFailed({ runId: payload.runId, reason, now })
     return { status: 'failed', runId: payload.runId, reason }
   }
 
-  const cancelled = await repo.cancelIfPulseIneligible(payload.postId, now)
-  if (cancelled) return { status: 'cancelled', runId: payload.runId }
+  if (!payload.xPostId) {
+    const cancelled = await repo.cancelIfPulseIneligible(payload.postId, now)
+    if (cancelled) return { status: 'cancelled', runId: payload.runId }
+  }
 
   const claimed = await repo.markSending({
     runId: payload.runId,
@@ -75,12 +93,20 @@ export async function consumeXPublish(
 
   if (env.X_POSTING_MODE !== 'live') {
     const reason = 'X live publishing is disabled.'
+    if (payload.xPostId) {
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
     await repo.markFailed({ runId: payload.runId, reason, now })
     return { status: 'failed', runId: payload.runId, reason }
   }
 
   if (!env.SOCIAL_OPS_TOKEN) {
     const reason = 'X live publishing is missing SOCIAL_OPS_TOKEN.'
+    if (payload.xPostId) {
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
     await repo.markFailed({ runId: payload.runId, reason, now })
     return { status: 'failed', runId: payload.runId, reason }
   }
@@ -88,32 +114,124 @@ export async function consumeXPublish(
   const credentials = xCredentials(env)
   if (!credentials) {
     const reason = 'X live publishing is missing OAuth credentials.'
+    if (payload.xPostId) {
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
     await repo.markFailed({ runId: payload.runId, reason, now })
     return { status: 'failed', runId: payload.runId, reason }
   }
 
-  let result: XCreatePostResult
+  let thread: ReturnType<typeof buildXAlertThread>
   try {
-    result = await (dependencies.createPost ?? createXPost)(payload.postText, credentials)
+    thread = buildXAlertThread(payload.postText, payload.targetUrl)
   } catch (error) {
     const reason =
-      error instanceof Error ? error.message : 'X create failed before a response was classified.'
+      error instanceof Error ? error.message : 'The frozen X thread payload is invalid.'
+    if (payload.xPostId) {
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
+    await repo.markFailed({ runId: payload.runId, reason, now })
+    return { status: 'failed', runId: payload.runId, reason }
+  }
+
+  const createPost = dependencies.createPost ?? createXPost
+  let mainPostId = payload.xPostId
+  if (!mainPostId) {
+    let mainResult: XCreatePostResult
+    try {
+      mainResult = await createPost(thread.mainText, credentials)
+    } catch (error) {
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'X main Post create failed before a response was classified.'
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
+
+    if (mainResult.kind === 'definite_failure') {
+      await repo.markFailed({
+        runId: payload.runId,
+        reason: mainResult.reason,
+        httpStatus: mainResult.httpStatus,
+        now,
+      })
+      return { status: 'failed', runId: payload.runId, reason: mainResult.reason }
+    }
+    if (mainResult.kind === 'unknown') {
+      await markAndAlertUnknown(repo, env, {
+        runId: payload.runId,
+        reason: mainResult.reason,
+        ...(mainResult.httpStatus === undefined ? {} : { httpStatus: mainResult.httpStatus }),
+        now,
+      })
+      return { status: 'unknown', runId: payload.runId, reason: mainResult.reason }
+    }
+
+    mainPostId = mainResult.externalPostId
+    let mainPersisted = false
+    try {
+      mainPersisted = await repo.recordMainPost({
+        runId: payload.runId,
+        externalPostId: mainPostId,
+        now,
+      })
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          type: 'social.x.persist_main_post_failed',
+          runId: payload.runId,
+          externalPostId: mainPostId,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      )
+    }
+    if (!mainPersisted) {
+      const reason = `X created main Post ${mainPostId}, but its reply checkpoint was not persisted.`
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
+
+    const replyClaimed = await repo.markSending({
+      runId: payload.runId,
+      now,
+      leaseExpiresAt: new Date(now.getTime() + PUBLISH_LEASE_MS),
+    })
+    if (!replyClaimed) {
+      const reason = `X created main Post ${mainPostId}, but its link reply attempt was not claimed.`
+      await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
+      return { status: 'unknown', runId: payload.runId, reason }
+    }
+  }
+
+  let replyResult: XCreatePostResult
+  try {
+    replyResult = await createPost(thread.replyText, credentials, { replyToPostId: mainPostId })
+  } catch (error) {
+    const reason =
+      error instanceof Error
+        ? error.message
+        : `X link reply for main Post ${mainPostId} failed before a response was classified.`
     await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
     return { status: 'unknown', runId: payload.runId, reason }
   }
 
-  if (result.kind === 'published') {
+  if (replyResult.kind === 'published') {
     try {
       const persisted = await repo.markPublished({
         runId: payload.runId,
-        externalPostId: result.externalPostId,
+        externalPostId: mainPostId,
+        replyPostId: replyResult.externalPostId,
         now,
       })
       if (persisted) {
         return {
           status: 'published',
           runId: payload.runId,
-          externalPostId: result.externalPostId,
+          externalPostId: mainPostId,
+          replyPostId: replyResult.externalPostId,
         }
       }
     } catch (error) {
@@ -121,34 +239,29 @@ export async function consumeXPublish(
         JSON.stringify({
           type: 'social.x.persist_published_failed',
           runId: payload.runId,
-          externalPostId: result.externalPostId,
+          externalPostId: mainPostId,
+          replyPostId: replyResult.externalPostId,
           error: error instanceof Error ? error.message : String(error),
         }),
       )
     }
 
-    const reason = `X created Post ${result.externalPostId}, but its terminal state was not persisted.`
+    const reason = `X created main Post ${mainPostId} and link reply ${replyResult.externalPostId}, but their terminal state was not persisted.`
     await markAndAlertUnknown(repo, env, { runId: payload.runId, reason, now })
     return { status: 'unknown', runId: payload.runId, reason }
   }
 
-  if (result.kind === 'definite_failure') {
-    await repo.markFailed({
-      runId: payload.runId,
-      reason: result.reason,
-      httpStatus: result.httpStatus,
-      now,
-    })
-    return { status: 'failed', runId: payload.runId, reason: result.reason }
-  }
-
+  const replyReason =
+    replyResult.kind === 'definite_failure'
+      ? `X created main Post ${mainPostId}, but its DueDateHQ link reply was rejected: ${replyResult.reason}`
+      : `X created main Post ${mainPostId}, but its DueDateHQ link reply is ambiguous: ${replyResult.reason}`
   await markAndAlertUnknown(repo, env, {
     runId: payload.runId,
-    reason: result.reason,
-    ...(result.httpStatus === undefined ? {} : { httpStatus: result.httpStatus }),
+    reason: replyReason,
+    ...(replyResult.httpStatus === undefined ? {} : { httpStatus: replyResult.httpStatus }),
     now,
   })
-  return { status: 'unknown', runId: payload.runId, reason: result.reason }
+  return { status: 'unknown', runId: payload.runId, reason: replyReason }
 }
 
 export async function markXPublishDeadLetter(

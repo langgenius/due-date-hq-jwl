@@ -57,13 +57,16 @@ export function buildDraftReviewComment(draft, queue) {
   const post = requiredObject(draft?.post, 'Queue draft post')
   const postId = requiredString(post.id, 'Queue draft post ID')
   const postText = requiredText(post.postText, 'Queue draft post text')
+  const replyText = requiredText(post.replyText, 'Queue draft reply text')
   const updatedAt = requiredDate(post.updatedAt, 'Queue draft update time')
   const nextAutomaticLocalDate = requiredLocalDate(
     queue?.nextAutomaticLocalDate ?? queue?.fromLocalDate,
   )
   const timeZone = requiredString(queue?.timeZone, 'Queue time zone')
   const normalizedPostText = postText.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+  const normalizedReplyText = replyText.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
   const fence = markdownFenceFor(normalizedPostText)
+  const replyFence = markdownFenceFor(normalizedReplyText)
 
   return [
     draftCommentMarker(postId, updatedAt.toISOString()),
@@ -77,6 +80,12 @@ export function buildDraftReviewComment(draft, queue) {
     fence,
     normalizedPostText,
     fence,
+    '',
+    '### Exact first reply copy',
+    '',
+    replyFence,
+    normalizedReplyText,
+    replyFence,
     '',
     '### Approve after review',
     '',
@@ -97,6 +106,7 @@ export function buildApprovedReviewComment(review, queue, previousDraftMarker) {
   }
   const postId = requiredString(post.id, 'Approved Social Post ID')
   const postText = requiredText(post.postText, 'Approved Social Post text')
+  const replyText = requiredText(post.replyText, 'Approved Social Post reply text')
   const approvedAt = requiredDate(post.approvedAt, 'Social Post approval time')
   const isPublished = post.status === 'published'
   const publishedAt = isPublished
@@ -107,7 +117,9 @@ export function buildApprovedReviewComment(review, queue, previousDraftMarker) {
   const position = optionalPositiveInteger(review?.position, 'Queue position')
   const timeZone = requiredString(queue?.timeZone, 'Queue time zone')
   const normalizedPostText = postText.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+  const normalizedReplyText = replyText.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
   const fence = markdownFenceFor(normalizedPostText)
+  const replyFence = markdownFenceFor(normalizedReplyText)
   const preservedMarker = previousDraftMarker
     ? requiredDraftMarker(previousDraftMarker, postId)
     : undefined
@@ -145,6 +157,12 @@ export function buildApprovedReviewComment(review, queue, previousDraftMarker) {
     fence,
     normalizedPostText,
     fence,
+    '',
+    '### Exact frozen first reply copy',
+    '',
+    replyFence,
+    normalizedReplyText,
+    replyFence,
     '',
     '_No further approval action is required. This issue is public; do not reply with credentials,',
     'tokens, reviewer details, or tenant data._',

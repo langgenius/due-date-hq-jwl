@@ -27,7 +27,8 @@ const DRAFT_POST = {
   id: 'post-1',
   pulseId: 'pulse-1',
   status: 'draft',
-  postText: 'Internal Revenue Service · Federal alert\n\nReview: https://example.com',
+  postText: 'Internal Revenue Service · Federal alert\n\nDetails in the first reply.',
+  replyText: 'Review the source-backed alert in DueDateHQ: https://example.com',
   createdAt: '2026-07-23T13:00:00.000Z',
   updatedAt: '2026-07-23T13:00:00.000Z',
   pulseCreatedAt: '2026-07-23T12:00:00.000Z',
@@ -35,7 +36,8 @@ const DRAFT_POST = {
 const READY_POST = {
   ...DRAFT_POST,
   status: 'ready',
-  postText: 'Final frozen X copy\n\nReview: https://example.com/final',
+  postText: 'Final frozen X copy\n\nDetails in the first reply.',
+  replyText: 'Review the source-backed alert in DueDateHQ: https://example.com/final',
   approvedAt: '2026-07-23T14:00:00.000Z',
   readyAt: '2026-07-23T14:00:00.000Z',
   updatedAt: '2026-07-23T14:00:00.000Z',
@@ -104,6 +106,8 @@ describe('X draft GitHub review mirror', () => {
 
     assert.match(comment, new RegExp(draftCommentMarker('post-1', DRAFT_POST.updatedAt), 'u'))
     assert.match(comment, /```\nInternal Revenue Service · Federal alert/u)
+    assert.match(comment, /### Exact first reply copy/u)
+    assert.match(comment, /DueDateHQ: https:\/\/example\.com/u)
     assert.match(comment, /2026-07-26 09:00 America\/New_York/u)
     assert.match(comment, /SOCIAL_OPS_REVIEWER/u)
     assert.match(comment, /pnpm social:x -- approve 'post-1'/u)
@@ -270,6 +274,7 @@ describe('X draft GitHub review mirror', () => {
     assert.equal(result.commentsCreated, 0)
     assert.match(body, /approved · ready/u)
     assert.match(body, /Final frozen X copy/u)
+    assert.match(body, /DueDateHQ: https:\/\/example\.com\/final/u)
     assert.match(body, new RegExp(approvedCommentMarker('post-1', READY_POST.approvedAt), 'u'))
     assert.match(body, new RegExp(draftCommentMarker('post-1', DRAFT_POST.updatedAt), 'u'))
     assert.doesNotMatch(body, /approve 'post-1'|approvedBy|user-1|pulse-1/u)

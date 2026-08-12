@@ -16,7 +16,7 @@ function liveEnv(overrides: Partial<Env> = {}): Env {
   } as Env
 }
 
-function publishPayload(runStatus = 'queued') {
+function publishPayload(runStatus = 'queued', overrides: { xPostId?: string | null } = {}) {
   return {
     runId: 'run-1',
     runStatus,
@@ -25,14 +25,17 @@ function publishPayload(runStatus = 'queued') {
     pulseId: 'pulse-1',
     postText: 'frozen post text',
     targetUrl: 'https://app.duedatehq.com/alerts?ref=token',
+    xPostId: null,
+    ...overrides,
   }
 }
 
-function repo(runStatus = 'queued') {
+function repo(runStatus = 'queued', overrides: { xPostId?: string | null } = {}) {
   return {
-    getPublishPayload: vi.fn().mockResolvedValue(publishPayload(runStatus)),
+    getPublishPayload: vi.fn().mockResolvedValue(publishPayload(runStatus, overrides)),
     cancelIfPulseIneligible: vi.fn().mockResolvedValue(false),
     markSending: vi.fn().mockResolvedValue(true),
+    recordMainPost: vi.fn().mockResolvedValue(true),
     markPublished: vi.fn().mockResolvedValue(true),
     markFailed: vi.fn().mockResolvedValue(true),
     markUnknown: vi.fn().mockResolvedValue(true),
@@ -51,11 +54,18 @@ describe('isXPublishQueueMessage', () => {
 describe('consumeXPublish', () => {
   it('publishes once and persists the external Post ID', async () => {
     const socialRepo = repo()
-    const createPost = vi.fn().mockResolvedValue({
-      kind: 'published',
-      externalPostId: '2012345678901234567',
-      text: 'frozen post text',
-    })
+    const createPost = vi
+      .fn()
+      .mockResolvedValueOnce({
+        kind: 'published',
+        externalPostId: '2012345678901234567',
+        text: 'frozen post text',
+      })
+      .mockResolvedValueOnce({
+        kind: 'published',
+        externalPostId: '2012345678901234568',
+        text: 'Review the source-backed alert in DueDateHQ',
+      })
     const now = NOW
 
     await expect(
@@ -68,17 +78,98 @@ describe('consumeXPublish', () => {
       status: 'published',
       runId: 'run-1',
       externalPostId: '2012345678901234567',
+      replyPostId: '2012345678901234568',
     })
-    expect(createPost).toHaveBeenCalledOnce()
-    expect(socialRepo.markSending).toHaveBeenCalledWith({
+    expect(createPost).toHaveBeenCalledTimes(2)
+    expect(createPost).toHaveBeenNthCalledWith(1, 'frozen post text', expect.any(Object))
+    expect(createPost).toHaveBeenNthCalledWith(
+      2,
+      'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=token',
+      expect.any(Object),
+      { replyToPostId: '2012345678901234567' },
+    )
+    expect(socialRepo.markSending).toHaveBeenCalledTimes(2)
+    expect(socialRepo.markSending).toHaveBeenNthCalledWith(1, {
       runId: 'run-1',
       now,
       leaseExpiresAt: new Date('2026-07-21T13:06:00.000Z'),
     })
-    expect(socialRepo.markPublished).toHaveBeenCalledWith({
+    expect(socialRepo.recordMainPost).toHaveBeenCalledWith({
       runId: 'run-1',
       externalPostId: '2012345678901234567',
       now,
+    })
+    expect(socialRepo.markPublished).toHaveBeenCalledWith({
+      runId: 'run-1',
+      externalPostId: '2012345678901234567',
+      replyPostId: '2012345678901234568',
+      now,
+    })
+  })
+
+  it('resumes only the link reply when the main Post ID is already durable', async () => {
+    const socialRepo = repo('queued', { xPostId: '2012345678901234567' })
+    const createPost = vi.fn().mockResolvedValue({
+      kind: 'published',
+      externalPostId: '2012345678901234568',
+      text: 'link reply',
+    })
+
+    await expect(
+      consumeXPublish({ type: 'social.x.publish', runId: 'run-1' }, liveEnv(), {
+        repo: socialRepo,
+        createPost,
+        now: NOW,
+      }),
+    ).resolves.toEqual({
+      status: 'published',
+      runId: 'run-1',
+      externalPostId: '2012345678901234567',
+      replyPostId: '2012345678901234568',
+    })
+    expect(createPost).toHaveBeenCalledOnce()
+    expect(createPost).toHaveBeenCalledWith(
+      'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=token',
+      expect.any(Object),
+      { replyToPostId: '2012345678901234567' },
+    )
+    expect(socialRepo.recordMainPost).not.toHaveBeenCalled()
+  })
+
+  it('marks a rejected link reply unknown without returning the main Post to draft', async () => {
+    const socialRepo = repo()
+    const createPost = vi
+      .fn()
+      .mockResolvedValueOnce({
+        kind: 'published',
+        externalPostId: '2012345678901234567',
+        text: 'frozen post text',
+      })
+      .mockResolvedValueOnce({
+        kind: 'definite_failure',
+        httpStatus: 429,
+        reason: 'rate limited',
+      })
+
+    await expect(
+      consumeXPublish({ type: 'social.x.publish', runId: 'run-1' }, liveEnv(), {
+        repo: socialRepo,
+        createPost,
+        now: NOW,
+      }),
+    ).resolves.toEqual({
+      status: 'unknown',
+      runId: 'run-1',
+      reason:
+        'X created main Post 2012345678901234567, but its DueDateHQ link reply was rejected: rate limited',
+    })
+    expect(socialRepo.markFailed).not.toHaveBeenCalled()
+    expect(socialRepo.markUnknown).toHaveBeenCalledWith({
+      runId: 'run-1',
+      reason:
+        'X created main Post 2012345678901234567, but its DueDateHQ link reply was rejected: rate limited',
+      httpStatus: 429,
+      now: NOW,
     })
   })
 

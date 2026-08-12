@@ -51,6 +51,34 @@ describe('createXPost', () => {
     expect(init?.body).toBe(JSON.stringify({ text: 'hello' }))
   })
 
+  it('creates a reply attached to the supplied main Post ID', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ data: { id: '2012345678901234568', text: 'details' } }), {
+        status: 201,
+      }),
+    )
+
+    await expect(
+      createXPost('details', CREDENTIALS, {
+        fetch: fetcher,
+        now: new Date('2026-07-21T13:00:00.000Z'),
+        nonce: 'reply-nonce',
+        replyToPostId: '2012345678901234567',
+      }),
+    ).resolves.toMatchObject({
+      kind: 'published',
+      externalPostId: '2012345678901234568',
+    })
+
+    const [, init] = fetcher.mock.calls[0]!
+    expect(init?.body).toBe(
+      JSON.stringify({
+        text: 'details',
+        reply: { in_reply_to_tweet_id: '2012345678901234567' },
+      }),
+    )
+  })
+
   it.each([400, 401, 429])(
     'classifies an HTTP %s response as a definite failure',
     async (status) => {

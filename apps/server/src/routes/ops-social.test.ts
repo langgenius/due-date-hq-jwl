@@ -210,6 +210,8 @@ describe('social ops routes', () => {
         id: POST_ID,
         status: 'ready',
         postText: 'Frozen public copy',
+        replyText:
+          'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=must-not-leak',
         approvedAt: '2026-07-23T02:30:00.000Z',
         xPostId: null,
         publishedAt: null,
@@ -246,6 +248,8 @@ describe('social ops routes', () => {
         id: POST_ID,
         status: 'published',
         postText: 'Frozen public copy',
+        replyText:
+          'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=must-not-leak',
         approvedAt: '2026-07-23T02:30:00.000Z',
         xPostId: '2068886465254150144',
         publishedAt: '2026-07-24T13:00:03.000Z',
@@ -285,6 +289,8 @@ describe('social ops routes', () => {
           id: POST_ID,
           status: 'published',
           postText: 'Frozen public copy',
+          replyText:
+            'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=must-not-leak',
           approvedAt: '2026-07-23T02:30:00.000Z',
           xPostId: '2068886465254150144',
           publishedAt: '2026-07-24T13:00:03.000Z',
@@ -333,7 +339,8 @@ describe('social ops routes', () => {
       readyAt: new Date('2026-07-20T12:00:00.000Z'),
       createdAt: new Date('2026-07-20T11:00:00.000Z'),
       pulseCreatedAt: new Date('2026-07-20T10:00:00.000Z'),
-      postText: 'Ready public copy',
+      postText:
+        'Ready public copy\nReview the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=ready',
       targetUrl: 'https://app.duedatehq.com/alerts?ref=ready',
     }
     const draft = {
@@ -344,7 +351,8 @@ describe('social ops routes', () => {
       readyAt: null,
       createdAt: new Date('2026-07-21T11:00:00.000Z'),
       pulseCreatedAt: new Date('2026-07-21T10:00:00.000Z'),
-      postText: 'Draft public copy',
+      postText:
+        'Draft public copy\nReview the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=draft',
       targetUrl: 'https://app.duedatehq.com/alerts?ref=draft',
     }
     dbMocks.listReadyPostsForProjection.mockResolvedValue([ready])
@@ -370,14 +378,26 @@ describe('social ops routes', () => {
           position: 1,
           projectedLocalDate: '2026-07-26',
           projectedAt: '2026-07-26T13:00:00.000Z',
-          post: { id: 'ready-1', postText: 'Ready public copy' },
+          post: {
+            id: 'ready-1',
+            postText:
+              'Ready public copy\nOpen the source-backed DueDateHQ alert in the first reply.',
+            replyText:
+              'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=ready',
+          },
         },
       ],
       drafts: [
         {
           projectedLocalDate: null,
           reason: 'approval_required',
-          post: { id: 'draft-1', postText: 'Draft public copy' },
+          post: {
+            id: 'draft-1',
+            postText:
+              'Draft public copy\nOpen the source-backed DueDateHQ alert in the first reply.',
+            replyText:
+              'Review the source-backed alert in DueDateHQ: https://app.duedatehq.com/alerts?ref=draft',
+          },
         },
       ],
     })

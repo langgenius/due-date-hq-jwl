@@ -86,6 +86,7 @@ export interface SocialPublishPayload {
   pulseId: string
   postText: string
   targetUrl: string
+  xPostId: string | null
 }
 
 export type SocialDraftCreateResult = 'created' | 'daily_slot_filled' | 'candidate_conflict'
@@ -101,6 +102,7 @@ export interface SocialReviewPost {
   id: string
   status: SocialAlertPostStatus
   postText: string
+  targetUrl: string
   approvedAt: Date | null
   xPostId: string | null
   publishedAt: Date | null
@@ -143,6 +145,7 @@ const socialReviewPostSelection = {
   id: socialAlertPost.id,
   status: socialAlertPost.status,
   postText: socialAlertPost.postText,
+  targetUrl: socialAlertPost.targetUrl,
   approvedAt: socialAlertPost.approvedAt,
   xPostId: socialAlertPost.xPostId,
   publishedAt: socialAlertPost.publishedAt,
@@ -293,6 +296,7 @@ export function makeSocialOpsRepo(db: Db) {
     if (!run) return false
     if (run.status === 'failed') return true
     if (!['queued', 'sending', 'unknown'].includes(run.status)) return false
+    if (run.xPostId) return false
 
     const now = input.now ?? new Date()
     const [updatedRuns] = await db.batch([
@@ -337,7 +341,7 @@ export function makeSocialOpsRepo(db: Db) {
     return updatedRuns.length > 0
   }
 
-  async function markPublished(input: {
+  async function recordMainPost(input: {
     runId: string
     externalPostId: string
     httpStatus?: number | null
@@ -346,8 +350,52 @@ export function makeSocialOpsRepo(db: Db) {
     if (!isValidXPostId(input.externalPostId)) throw new SocialOpsRepoError('invalid')
     const run = await getRun(input.runId)
     if (!run) return false
-    if (run.status === 'published') return run.xPostId === input.externalPostId
+    if (run.status === 'queued' && run.xPostId === input.externalPostId) return true
+    if (run.status !== 'sending' || run.xPostId) return false
+
+    const now = input.now ?? new Date()
+    const rows = await db
+      .update(socialPublishRun)
+      .set({
+        status: 'queued',
+        xPostId: input.externalPostId,
+        responseHttpStatus: input.httpStatus ?? 201,
+        failureReason: null,
+        leaseExpiresAt: null,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(socialPublishRun.id, input.runId),
+          eq(socialPublishRun.status, 'sending'),
+          isNull(socialPublishRun.xPostId),
+        ),
+      )
+      .returning({ id: socialPublishRun.id })
+    return rows.length > 0
+  }
+
+  async function markPublished(input: {
+    runId: string
+    externalPostId: string
+    replyPostId?: string
+    httpStatus?: number | null
+    now?: Date
+  }): Promise<boolean> {
+    if (!isValidXPostId(input.externalPostId)) throw new SocialOpsRepoError('invalid')
+    if (input.replyPostId && !isValidXPostId(input.replyPostId)) {
+      throw new SocialOpsRepoError('invalid')
+    }
+    const run = await getRun(input.runId)
+    if (!run) return false
+    if (run.status === 'published') {
+      return (
+        run.xPostId === input.externalPostId &&
+        (!input.replyPostId || run.xReplyPostId === input.replyPostId)
+      )
+    }
     if (run.status !== 'sending' && run.status !== 'unknown') return false
+    if (run.xPostId && run.xPostId !== input.externalPostId) return false
 
     const now = input.now ?? new Date()
     const [updatedRuns] = await db.batch([
@@ -356,6 +404,7 @@ export function makeSocialOpsRepo(db: Db) {
         .set({
           status: 'published',
           xPostId: input.externalPostId,
+          ...(input.replyPostId ? { xReplyPostId: input.replyPostId } : {}),
           responseHttpStatus: input.httpStatus ?? 201,
           failureReason: null,
           publishedAt: now,
@@ -374,6 +423,7 @@ export function makeSocialOpsRepo(db: Db) {
         .set({
           status: 'published',
           xPostId: input.externalPostId,
+          ...(input.replyPostId ? { xReplyPostId: input.replyPostId } : {}),
           publishedAt: now,
           updatedAt: now,
         })
@@ -1170,6 +1220,7 @@ export function makeSocialOpsRepo(db: Db) {
           pulseId: socialAlertPost.pulseId,
           postText: socialAlertPost.postText,
           targetUrl: socialAlertPost.targetUrl,
+          xPostId: socialPublishRun.xPostId,
         })
         .from(socialPublishRun)
         .innerJoin(socialAlertPost, eq(socialPublishRun.postId, socialAlertPost.id))
@@ -1212,6 +1263,7 @@ export function makeSocialOpsRepo(db: Db) {
       return rows.length > 0
     },
 
+    recordMainPost,
     markPublished,
     markFailed,
 

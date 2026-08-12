@@ -26,6 +26,7 @@ describe('social Alert outbox schema', () => {
     }
 
     expect(status.enumValues).toEqual(SOCIAL_ALERT_POST_STATUSES)
+    expect(column(socialAlertPost, 'x_reply_post_id')).toBeDefined()
     const pulseFk = config.foreignKeys.find((foreignKey) =>
       foreignKey.reference().columns.some((candidate) => candidate.name === 'pulse_id'),
     )
@@ -55,6 +56,7 @@ describe('social Alert outbox schema', () => {
     }
 
     expect(status.enumValues).toEqual(SOCIAL_PUBLISH_RUN_STATUSES)
+    expect(column(socialPublishRun, 'x_reply_post_id')).toBeDefined()
     const postFk = config.foreignKeys.find((foreignKey) =>
       foreignKey.reference().columns.some((candidate) => candidate.name === 'post_id'),
     )

@@ -350,8 +350,11 @@ approved, externally useful global Pulse
   -> GET /api/ops/social/queue projects future ET dates without writes or reservations
   -> next 09:00 ET scheduler or exact-post publish-now control
   -> read-only OAuth 1.0a /2/users/me preflight before a manual live claim
-  -> draft_only shadow OR SOCIAL_QUEUE -> X POST /2/tweets
-     -> Queue consumer records published + xPostId + publishedAt in D1
+  -> draft_only shadow OR SOCIAL_QUEUE
+     -> X POST /2/tweets creates a link-free main Post
+     -> D1 checkpoints xPostId before any reply attempt
+     -> X POST /2/tweets creates the tracked DueDateHQ URL as the first reply
+     -> Queue consumer records published + xPostId + xReplyPostId + publishedAt in D1
      -> later GitHub Actions read-only probe -> same bot comment becomes published with X link
   -> /alerts?ref=<opaque token>
   -> login / firm onboarding keeps intent
@@ -377,8 +380,12 @@ runtime validation 同时执行该闸门；
 最早在后天恢复。候选草稿、`ready` backlog、
 真实 claim 和 queue 预览全部按关联 Pulse 的 `created_at DESC, id DESC` 排序，因此后来进入系统的
 Alert 会先进入审核并先发布；`priority` 只保留为人工审核元数据，显式 `publish-now` 是唯一的人工
-顺序例外。X 返回明确 4xx 时当天记 failed 且不换发；timeout、网络中断、5xx 或成功响应缺 Post ID
-时记 unknown 并停止自动重试，等待人工在 X 核对后执行 reconcile。
+顺序例外。主帖 create 前，X 返回明确 4xx 时当天记 failed 且不换发；timeout、网络中断、5xx 或
+成功响应缺 Post ID 时记 unknown 并停止自动重试。主帖成功后，consumer 先把 `xPostId` 持久化并
+把 run CAS 回 `queued`，下一次 `sending` lease 只代表首条回复尝试；因此 checkpoint 后的 Worker
+中断可以安全续发回复，不会重复主帖。回复 create 一旦开始，任何明确拒绝、模糊响应或 terminal
+write 丢失都记 unknown 并告警，不能走 `not_published -> draft`；人工必须先在 X 核对主帖和回复，
+必要时补回复，再 reconcile。
 
 Social Ops 通过 `GET /api/ops/social/queue` 提供只读的等待序列，CLI 对应
 `pnpm social:x -- queue`，固定展示未来 14 个 ET 自然日。它使用真实 claim 的最新 Pulse 优先规则，
@@ -397,7 +404,7 @@ bot comment，就把同一条评论更新为 `published`，展示 `publishedAt` 
 链接，不为从未镜像的历史 published Post 补建评论。draft 旁路按 `postId + updatedAt` 幂等，
 approved 用 `postId + approvedAt` 定位稳定 bot comment，并在 queue position / tentative slot
 变化时只 PATCH 正文；正文完全相同则不写。published 按 `postId + publishedAt` 终态幂等；评论正文
-只取确定性 X copy、公开 lifecycle 字段、非锁定的最早 automatic slot 和人工 approve 命令，不
+只取确定性 X 主帖 copy、确定性首条回复 copy、公开 lifecycle 字段、非锁定的最早 automatic slot 和人工 approve 命令，不
 dump Social row，也不写 D1。Issue comment / reaction / label / open-close 没有任何箭头回到 `ready`，
 Actions 延迟或失败也不阻断 Worker。公开镜像是刻意新增的 pre-publication surface：tracked ref
 URL 会提前出现在不可点击的 code block 中，但 ref 不是授权凭证，完整 Alert 仍经过登录、firm 与
@@ -406,7 +413,7 @@ tenant 边界。Social Queue/D1 继续是唯一事实来源和发布调度权威
 生产 CLI 的 approve 成功后，响应带回原 draft 的 `postId + draftUpdatedAt`，随后 best-effort
 触发同一 default-branch workflow。workflow 不信任本地文案，而是调用 token-gated
 `GET /api/ops/social/:postId/review-status`；该接口只返回 ID、当前状态、最终冻结 public copy、
-`approvedAt / xPostId / publishedAt / updatedAt`。脚本按 exact draft revision 找到由
+`replyText / approvedAt / xPostId / publishedAt / updatedAt`。脚本按 exact draft revision 找到由
 `github-actions[bot]` 创建的评论，以 `postId + approvedAt` PATCH 为 `approved · ready`；后续
 普通 probe 继续用该 marker 刷新 tentative slot / queue position，只有正文变化才写。原评论缺失时
 新增 approved snapshot，不误改同一 Post 的旧 revision。发布接口的 HTTP 202 只代表

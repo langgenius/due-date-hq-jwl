@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { STATE_RULE_SOURCE_SEEDS } from '@duedatehq/core/rules'
 import {
   buildXAlertPost,
+  buildXAlertThread,
   validateSocialCandidate,
   weightedPostLength,
   type SocialAlertCandidate,
@@ -107,13 +108,19 @@ describe('buildXAlertPost', () => {
     expect(result.text).toContain('Form 1040, Form 4868 · Deadline shift')
     expect(result.text).toContain('Apr 15, 2026 → Oct 15, 2026')
     expect(result.text).toContain('Which client deadlines may be affected?')
+    expect(result.text).toContain('first reply')
+    expect(result.text).not.toContain('https://')
     expect(result.targetUrl).toBe(
       'https://app.duedatehq.com/alerts?ref=opaque-token-1234&utm_source=x&utm_medium=organic_social&utm_campaign=daily_alerts&utm_content=federal_deadline_shift',
     )
+    expect(result.replyText).toBe(
+      `Review the source-backed alert in DueDateHQ: ${result.targetUrl}`,
+    )
+    expect(weightedPostLength(result.replyText)).toBeLessThanOrEqual(280)
     expect(result.weightedLength).toBeLessThanOrEqual(280)
   })
 
-  it('bounds long public fields without losing the CTA or URL', () => {
+  it('bounds long public fields without losing the first-reply CTA', () => {
     const result = buildXAlertPost(
       candidate({
         agency: 'Department of Revenue and Taxation for an Extremely Long Official Agency Name',
@@ -125,7 +132,33 @@ describe('buildXAlertPost', () => {
 
     expect(result.text).toContain('…')
     expect(result.text).toContain('Which client deadlines may be affected?')
+    expect(result.text).not.toContain(result.targetUrl)
+    expect(result.replyText).toContain(result.targetUrl)
     expect(result.weightedLength).toBeLessThanOrEqual(280)
+  })
+
+  it('moves a legacy frozen body URL into the first reply at publish time', () => {
+    const targetUrl = 'https://app.duedatehq.com/alerts?ref=opaque-token-legacy'
+    const thread = buildXAlertThread(
+      [
+        'Internal Revenue Service · Federal alert',
+        '',
+        'Which client deadlines may be affected?',
+        `Review the source-backed alert in DueDateHQ: ${targetUrl}`,
+      ].join('\n'),
+      targetUrl,
+    )
+
+    expect(thread.mainText).toBe(
+      [
+        'Internal Revenue Service · Federal alert',
+        '',
+        'Which client deadlines may be affected?',
+        'Open the source-backed DueDateHQ alert in the first reply.',
+      ].join('\n'),
+    )
+    expect(thread.mainText).not.toContain(targetUrl)
+    expect(thread.replyText).toBe(`Review the source-backed alert in DueDateHQ: ${targetUrl}`)
   })
 
   it('turns adapter source IDs into public agency copy', () => {

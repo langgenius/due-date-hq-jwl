@@ -11,7 +11,7 @@ import {
 } from '@duedatehq/db'
 import type { ContextVars, Env } from '../env'
 import { seedBackfillFromBaselineSnapshots } from '../jobs/pulse/backfill'
-import { buildXAlertPost, validateSocialCandidate } from '../jobs/social/content'
+import { buildXAlertPost, buildXAlertThread, validateSocialCandidate } from '../jobs/social/content'
 import { buildXQueuePreview } from '../jobs/social/queue-preview'
 import {
   addLocalCalendarDays,
@@ -106,14 +106,25 @@ function isQueuePreviewPost(
 
 function socialReviewPostPayload(post: SocialReviewPost) {
   const isPublished = post.status === 'published'
+  const thread = buildXAlertThread(post.postText, post.targetUrl)
   return {
     id: post.id,
     status: post.status,
-    postText: post.postText,
+    postText: thread.mainText,
+    replyText: thread.replyText,
     approvedAt: post.approvedAt?.toISOString() ?? null,
     xPostId: isPublished ? (post.xPostId ?? null) : null,
     publishedAt: isPublished ? (post.publishedAt?.toISOString() ?? null) : null,
     updatedAt: post.updatedAt.toISOString(),
+  }
+}
+
+function socialQueuePostPayload(post: SocialQueuePost) {
+  const thread = buildXAlertThread(post.postText, post.targetUrl)
+  return {
+    ...post,
+    postText: thread.mainText,
+    replyText: thread.replyText,
   }
 }
 
@@ -218,6 +229,12 @@ export const opsRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>()
     const preview = buildXQueuePreview({ now, days, posts, occupiedLocalDates })
     return c.json({
       ...preview,
+      ready: preview.ready.map((entry) =>
+        Object.assign({}, entry, { post: socialQueuePostPayload(entry.post) }),
+      ),
+      drafts: preview.drafts.map((entry) =>
+        Object.assign({}, entry, { post: socialQueuePostPayload(entry.post) }),
+      ),
       ...(includePublished
         ? { published: publishedRows.map((post) => socialReviewPostPayload(post)) }
         : {}),

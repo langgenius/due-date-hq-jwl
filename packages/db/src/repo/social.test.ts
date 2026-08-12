@@ -50,6 +50,7 @@ const POST: SocialAlertPost = {
   approvedBy: 'user-1',
   approvedAt: NOW,
   xPostId: null,
+  xReplyPostId: null,
   publishedAt: null,
   cancelledAt: null,
   cancellationReason: null,
@@ -69,6 +70,7 @@ const RUN: SocialPublishRun = {
   responseHttpStatus: null,
   failureReason: null,
   xPostId: null,
+  xReplyPostId: null,
   queuedAt: NOW,
   sendingAt: null,
   publishedAt: null,
@@ -237,6 +239,7 @@ describe('makeSocialOpsRepo', () => {
       id: POST.id,
       status: 'published' as const,
       postText: POST.postText,
+      targetUrl: POST.targetUrl,
       approvedAt: NOW,
       xPostId: '2068886465254150144',
       publishedAt: NOW,
@@ -255,6 +258,7 @@ describe('makeSocialOpsRepo', () => {
       'id',
       'status',
       'postText',
+      'targetUrl',
       'approvedAt',
       'xPostId',
       'publishedAt',
@@ -664,6 +668,72 @@ describe('makeSocialOpsRepo', () => {
 
     expect(result).toBe(true)
     expect(updatedValues[0]).toMatchObject({ status: 'sending', lastAttemptAt: NOW })
+  })
+
+  it('durably records the main Post before queueing the link reply attempt', async () => {
+    const sendingRun = { ...RUN, status: 'sending' as const }
+    const { db, updatedValues } = fakeDb({
+      selectResponses: [[sendingRun]],
+      updateResponses: [[{ id: RUN.id }]],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).recordMainPost({
+        runId: RUN.id,
+        externalPostId: '2012345678901234567',
+        now: NOW,
+      }),
+    ).resolves.toBe(true)
+    expect(updatedValues[0]).toMatchObject({
+      status: 'queued',
+      xPostId: '2012345678901234567',
+      responseHttpStatus: 201,
+      leaseExpiresAt: null,
+    })
+  })
+
+  it('persists both thread Post IDs only after the link reply succeeds', async () => {
+    const sendingRun = {
+      ...RUN,
+      status: 'sending' as const,
+      xPostId: '2012345678901234567',
+    }
+    const { db, updatedValues } = fakeDb({
+      selectResponses: [[sendingRun]],
+      updateResponses: [[{ id: RUN.id }], []],
+    })
+
+    await expect(
+      makeSocialOpsRepo(db).markPublished({
+        runId: RUN.id,
+        externalPostId: '2012345678901234567',
+        replyPostId: '2012345678901234568',
+        now: NOW,
+      }),
+    ).resolves.toBe(true)
+    expect(updatedValues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: 'published',
+          xPostId: '2012345678901234567',
+          xReplyPostId: '2012345678901234568',
+        }),
+      ]),
+    )
+  })
+
+  it('does not return a partially published thread to draft', async () => {
+    const partialRun = { ...RUN, status: 'unknown' as const, xPostId: '2012345678901234567' }
+    const { db, raw } = fakeDb({ selectResponses: [[partialRun]] })
+
+    await expect(
+      makeSocialOpsRepo(db).markFailed({
+        runId: RUN.id,
+        reason: 'operator_confirmed_not_published',
+        now: NOW,
+      }),
+    ).resolves.toBe(false)
+    expect(raw.update).not.toHaveBeenCalled()
   })
 
   it('rejects a non-decimal X Post ID before reading or writing publication state', async () => {

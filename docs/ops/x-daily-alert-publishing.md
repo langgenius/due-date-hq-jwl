@@ -7,7 +7,8 @@ the 09:00 America/New_York window; the separate social watchdog still runs on ev
 tick. If the previous ET calendar day has an occupied publish run, the automatic branch pauses for
 the day. On an eligible run day, after claiming today's slot and before a live Queue enqueue, the
 branch atomically creates at most one eligible draft from the newest not-yet-outboxed Alert. A
-separate serialized `SOCIAL_QUEUE` performs the remote X create.
+separate serialized `SOCIAL_QUEUE` creates a link-free main Post, durably checkpoints its X ID, and
+then creates the tracked DueDateHQ URL as the first reply.
 The `pnpm social:x` script is an operator control plane; do not schedule that script with Codex,
 launchd, GitHub Actions, or another cron.
 `.github/workflows/x-draft-review.yml` is the narrow exception for visibility only: it reads the
@@ -25,11 +26,13 @@ Hard invariants:
 - An explicitly re-approved Post may promote its own same-day `draft_only` shadow row to `queued`;
   that row cannot be reused for a different Post, channel, or ET date.
 - A failed or unknown attempt consumes that day; no replacement is sent.
-- A queued message is sent only while its reserved ET `local_date` is still current. A delayed
-  prior-day delivery becomes `failed` and returns to review, preventing two actual Posts on the new
-  ET date.
+- A queued message without a main `xPostId` is sent only while its reserved ET `local_date` is still
+  current. A delayed prior-day delivery becomes `failed` and returns to review. Once the main ID is
+  checkpointed, a redelivery may finish only the missing reply even after that date; it cannot
+  create another main Post.
 - `unknown` never retries automatically. Check the DueDateHQ X account, then reconcile.
-- X links go to protected `/alerts?ref=...`; there is no public Alert detail page.
+- Main X Posts contain no URL. Their first reply contains the tracked protected
+  `/alerts?ref=...` URL; there is no public Alert detail page.
 - Approved, non-sample, source-backed Pulses are eligible unless their source is explicitly marked
   as signal-only. FEMA declarations and generic GovDelivery inbound Alerts provide early signals
   that have not yet been attributed to a tax filing or deadline change, so they never enter the
@@ -50,10 +53,10 @@ Hard invariants:
   page is rejected, the scheduler continues with a `(Pulse.createdAt, Pulse.id)` keyset cursor so
   older valid Alerts are not permanently starved.
   Draft creation never bypasses the explicit `draft -> ready` approval gate.
-- If a live enqueue or later Queue delivery definitely fails, the attempted Post returns to
-  `draft`. It may sit beside the newly replenished review candidate; both remain visible and require
-  an explicit approval or cancellation. This safe failure state does not create a second X Post or
-  reuse the consumed ET slot.
+- If enqueue or the main-Post create definitely fails before a main ID exists, the attempted Post
+  returns to `draft`. Once a main ID exists, no failure path may return it to draft: a rejected or
+  ambiguous first reply becomes `unknown` and emits an ops alert so reconciliation cannot duplicate
+  the public main Post.
 - The future queue is a read-only projection of the current `ready` backlog. Viewing it never
   creates a draft, reserves a future `social_publish_run`, or sends a future `SOCIAL_QUEUE` message.
 - A GitHub issue snapshot is public visibility, not editorial approval. A comment, reaction, label,
@@ -64,7 +67,7 @@ Hard invariants:
   token-gated, public-field allowlist and updates the bot-owned draft comment. GitHub failure never
   rolls back or reclassifies an already-committed D1 approval.
 - A Post is shown as published in the Issue only after Social Ops returns the authoritative D1
-  `published` state with both `xPostId` and `publishedAt`. An HTTP 202 enqueue response is still
+  `published` state after both main and first reply succeed, with `xPostId` and `publishedAt`. An HTTP 202 enqueue response is still
   `queued`; it never makes the Issue claim that the Post is live.
 - X API success handling, operator reconciliation, and the repository terminal write all require
   `xPostId` to contain 1–30 decimal digits. An invalid ID cannot enter the published projection and
@@ -128,8 +131,8 @@ pnpm social:x -- verify-account
 
 ## Review commands
 
-List drafts and their current preview copy/URL. Approval rebuilds the deterministic copy from the
-current Pulse and freezes the resulting `ready` Post:
+List drafts and their current preview main/reply copy. Approval rebuilds the deterministic main
+copy and tracked first reply from the current Pulse and freezes the resulting `ready` Post:
 
 ```bash
 pnpm social:x -- candidates --status draft --limit 50
@@ -230,18 +233,20 @@ The workflow creates one stable issue on its first successful run, reopens that 
 closed, and adds one comment for every unseen draft revision in the visible queue response. The
 comment contains a strict allowlist:
 
-- the exact deterministic X copy in a Markdown code block;
+- the exact deterministic link-free X main copy and tracked first-reply copy in separate Markdown
+  code blocks;
 - the earliest automatic slot and the fact that no publication date is reserved;
 - the exact `pnpm social:x -- approve '<post id>'` command;
 - an opaque hidden marker derived from Post ID plus `updatedAt`.
 
 After approval, the targeted workflow queries
 `GET /api/ops/social/:postId/review-status`, whose response is restricted to Post ID, status,
-frozen public copy, `approvedAt`, `xPostId`, `publishedAt`, and `updatedAt`. It updates the exact
+frozen public main copy, deterministic `replyText`, `approvedAt`, `xPostId`, `publishedAt`, and
+`updatedAt`. It updates the exact
 bot-owned draft comment in place with:
 
 - `approved` plus the current non-published lifecycle state;
-- the final frozen X copy rebuilt at the approval boundary;
+- the final frozen X main and first-reply copy rebuilt at the approval boundary;
 - `approvedAt`, and a tentative slot/position only when visible in the queue projection;
 - an idempotency marker derived from `postId + approvedAt`.
 
@@ -258,7 +263,7 @@ preview does not include this history. If a published row matches an existing bo
 approved comment, the workflow PATCHes that same comment with:
 
 - `published` as the X lifecycle status;
-- the exact frozen copy, without a tentative slot or queue position;
+- the exact frozen main and first-reply copy, without a tentative slot or queue position;
 - `approvedAt` and `publishedAt`;
 - a numeric-ID-validated `https://x.com/i/web/status/<xPostId>` link;
 - an idempotency marker derived from `postId + publishedAt`.
@@ -277,8 +282,9 @@ client data, or email addresses. Cancelling a draft does not erase its already-p
 
 The issue is a snapshot, not the source of truth. Approval rebuilds the deterministic copy from the
 current Pulse; the targeted approval refresh replaces the comment with that final frozen copy.
-Publication appears only after the Queue consumer or an explicit reconciliation has persisted
-`status=published`, `xPostId`, and `publishedAt` to D1. In particular, the HTTP 202 returned by
+Publication appears only after the Queue consumer has persisted the successful two-Post thread, or
+an operator has manually completed the first reply and reconciled the main ID, as
+`status=published`, `xPostId`, and `publishedAt` in D1. In particular, the HTTP 202 returned by
 `publish-now` means only that the message was queued; the next probe continues to show the
 approved/non-published state until D1 confirms publication. If `draftBacklogTruncated=true`, the
 workflow reports the truncation in its run result; the newest daily draft remains in the visible
@@ -318,7 +324,7 @@ For seven consecutive ET publishing days:
 3. Confirm the daily branch exposes its review candidate through `queue`, approve
    it, then rerun the queue preview to review its tentative ET publication date.
 4. Confirm exactly one `draft_only` run for the local date and no X post.
-5. Exercise the link through logged-out login, Email OTP and OAuth, new-firm onboarding, and an
+5. Exercise the first-reply link through logged-out login, Email OTP and OAuth, new-firm onboarding, and an
    existing firm. Confirm the final URL is that firm's `/alerts?alert=<id>`.
 6. Confirm a same-day batch remains in the backlog and advances one item per later day.
 
@@ -328,19 +334,24 @@ review and approve the intended live backlog again, configure all credentials, t
 
 ## Failure and unknown handling
 
-- `published`: verify `x_post_id` and the expected public Post.
+- `published`: verify `x_post_id`, `x_reply_post_id`, the link-free main Post, and its tracked first
+  reply.
 - `failed`: authentication, validation, 429, another explicit 4xx, or an expired prior-day Queue
-  slot. Fix the cause and approve for a future day; do not send a substitute on the failed date.
-- `unknown`: timeout, network interruption, X 5xx, or a success response without a Post ID. Search the
-  fixed DueDateHQ X account for the exact frozen text before doing anything.
+  slot before the main Post is created. Fix the cause and approve for a future day; do not send a
+  substitute on the failed date.
+- `unknown`: timeout, network interruption, X 5xx, a success response without a Post ID, or any
+  failure after the main Post ID was checkpointed. Search the fixed DueDateHQ X account for both the
+  exact frozen main text and its reply before doing anything.
 
-If the Post exists:
+If the main Post exists, ensure the tracked URL is present as its first reply (add it manually if
+needed), then reconcile with the main Post ID:
 
 ```bash
 pnpm social:x -- reconcile '<social post id>' --outcome published --x-post-id '<X Post ID>'
 ```
 
-If it definitely does not exist:
+Use `not_published` only if D1 has no checkpointed main `x_post_id` and the main Post definitely does
+not exist:
 
 ```bash
 pnpm social:x -- reconcile '<social post id>' --outcome not_published \

@@ -46,7 +46,7 @@ packages/db/
 │   ├── evidence-writer.ts
 │   ├── reminder-linkage.ts
 │   └── types.ts
-├── migrations/                   ← 手写 SQL 为主（0000–0025 由 drizzle-kit 生成），wrangler d1 apply；当前至 0082
+├── migrations/                   ← 手写 SQL 为主（0000–0025 由 drizzle-kit 生成），wrangler d1 apply；当前至 0083
 ```
 
 **约束：**
@@ -492,7 +492,7 @@ snapshot）。所有可监控变化都以 `pulse_source_snapshot` 进入 extract
 temporary_announcements 多源、`{year}` token、WAF/browser 需求等）**不在 D1**，由
 `rule_source_template` + 代码内 catalog 承载：详见 [`11-Pulse-Ingest-Source-Catalog.md`](./11-Pulse-Ingest-Source-Catalog.md)（2026-06-08）。
 
-### 2.3.b Social Alert outbox（migration `0082`）
+### 2.3.b Social Alert outbox（migrations `0082`–`0083`）
 
 只有 `status='approved' AND is_sample=0` 且具备公开 source、scope 与日期事实的 Pulse 可以进入
 Social candidate。共享 source policy 在数据库查询与发布前校验两层排除
@@ -504,24 +504,31 @@ Social candidate。共享 source policy 在数据库查询与发布前校验两�
 
 **social_alert_post** 是 X channel 的全局冻结文案，不带 `firm_id`：
 
-| 字段                                                                              | 约束 / 语义                                                                      |
-| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `id` / `channel='x'` / `pulse_id`                                                 | `UNIQUE(channel, pulse_id)`；同一 Pulse 永不重复建帖                             |
-| `ref_token`                                                                       | 16–128 位 base64url-safe opaque token，global unique；不编码 Pulse / firm / user |
-| `post_text` / `target_url` / `teaser` / `agency` / `jurisdiction` / `change_kind` | ready 时冻结的公开字段；teaser API 只返回其中三项                                |
-| `status`                                                                          | `draft / ready / scheduled / published / unknown / cancelled`                    |
-| `priority` / `ready_at`                                                           | 保留审核标签与批准时间；自动选取按关联 Pulse 的 `created_at DESC, id DESC`       |
-| `approved_by` / `approved_at`                                                     | reviewer user FK；Social Ops approve 必须提供 reviewer                           |
-| `x_post_id` / `published_at`                                                      | X 成功确认后写；`UNIQUE(channel, x_post_id)`                                     |
+| 字段                                                                              | 约束 / 语义                                                                                      |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `id` / `channel='x'` / `pulse_id`                                                 | `UNIQUE(channel, pulse_id)`；同一 Pulse 永不重复建帖                                             |
+| `ref_token`                                                                       | 16–128 位 base64url-safe opaque token，global unique；不编码 Pulse / firm / user                 |
+| `post_text` / `target_url` / `teaser` / `agency` / `jurisdiction` / `change_kind` | ready 时冻结的公开字段；teaser API 只返回其中三项                                                |
+| `status`                                                                          | `draft / ready / scheduled / published / unknown / cancelled`                                    |
+| `priority` / `ready_at`                                                           | 保留审核标签与批准时间；自动选取按关联 Pulse 的 `created_at DESC, id DESC`                       |
+| `approved_by` / `approved_at`                                                     | reviewer user FK；Social Ops approve 必须提供 reviewer                                           |
+| `x_post_id` / `x_reply_post_id` / `published_at`                                  | 主帖 + 首条链接回复都成功后进入 published；历史单帖 reply ID 可为空；两类 ID 分别 channel unique |
 
 **social_publish_run** 是 ET 自然日发布槽位：
 
-| 字段                                                 | 约束 / 语义                                                                                                                                                  |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `channel / local_date / post_id`                     | `UNIQUE(channel, local_date)` 是单个 ET 日期最多一条的数据库硬闸；自动调度另检查前一日 run，以保证中间至少空一天；live post 另有 partial unique 防止跨日重复 |
-| `status`                                             | `draft_only / queued / sending / published / failed / unknown`                                                                                               |
-| `attempt_count / last_attempt_at / lease_expires_at` | Queue claim 与 redelivery 状态条件；remote create 已开始后不盲重试                                                                                           |
-| `response_http_status / failure_reason / x_post_id`  | 明确失败和模糊结果的对账证据；不保存 OAuth secret 或响应中的用户数据                                                                                         |
+| 字段                                                                  | 约束 / 语义                                                                                                                                                  |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `channel / local_date / post_id`                                      | `UNIQUE(channel, local_date)` 是单个 ET 日期最多一条的数据库硬闸；自动调度另检查前一日 run，以保证中间至少空一天；live post 另有 partial unique 防止跨日重复 |
+| `status`                                                              | `draft_only / queued / sending / published / failed / unknown`                                                                                               |
+| `attempt_count / last_attempt_at / lease_expires_at`                  | Queue claim 与 redelivery 状态条件；remote create 已开始后不盲重试                                                                                           |
+| `response_http_status / failure_reason / x_post_id / x_reply_post_id` | 主帖 checkpoint、回复终态和失败/模糊结果的对账证据；不保存 OAuth secret 或响应中的用户数据                                                                   |
+
+live consumer 使用两次 `sending` lease：第一次创建无链接主帖，成功后先写 `x_post_id` 并把 run
+CAS 回 `queued`；第二次只创建带 `target_url` 的首条回复。主帖 checkpoint 已存在时，
+`markFailed/not_published` 不得把 Post 退回 draft；回复拒绝或结果不明统一进入 `unknown`，避免重复
+主帖。migration `0083` 只增加 reply ID 字段与唯一索引，不改写 active queue，避免 migration
+先于 Worker deploy 时旧 consumer 误发无链接单帖。review projection 与新 consumer 都兼容旧冻结
+正文，在各自输出/发送边界把尾部 URL 移入首条回复；下一次 approval 会按新模板重新冻结正文。
 
 `publish-now` 不增加第二种 ledger：它创建普通 `queued` run，或在 Post 已重新 approve 且
 `channel / local_date / post_id` 全部相同时，将当天 `draft_only` 原位 CAS 为 `queued`。run claim、

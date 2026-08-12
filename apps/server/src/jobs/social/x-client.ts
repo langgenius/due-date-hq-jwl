@@ -19,6 +19,7 @@ export interface XCreatePostOptions {
   fetch?: typeof fetch
   now?: Date
   nonce?: string
+  replyToPostId?: string
   timeoutMs?: number
 }
 
@@ -94,6 +95,9 @@ export async function createXPost(
   credentials: XOAuthCredentials,
   options: XCreatePostOptions = {},
 ): Promise<XCreatePostResult> {
+  if (options.replyToPostId && !X_POST_ID_PATTERN.test(options.replyToPostId)) {
+    throw new Error('An X reply target must be a valid decimal Post ID.')
+  }
   const fetcher = options.fetch ?? fetch
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS)
@@ -113,7 +117,12 @@ export async function createXPost(
           authorization,
           'content-type': 'application/json; charset=utf-8',
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          ...(options.replyToPostId
+            ? { reply: { in_reply_to_tweet_id: options.replyToPostId } }
+            : {}),
+        }),
         signal: controller.signal,
       })
     } catch (error) {

@@ -59,6 +59,7 @@ export const socialAlertPost = sqliteTable(
     approvedBy: text('approved_by').references(() => user.id, { onDelete: 'set null' }),
     approvedAt: integer('approved_at', { mode: 'timestamp_ms' }),
     xPostId: text('x_post_id'),
+    xReplyPostId: text('x_reply_post_id'),
     publishedAt: integer('published_at', { mode: 'timestamp_ms' }),
     cancelledAt: integer('cancelled_at', { mode: 'timestamp_ms' }),
     cancellationReason: text('cancellation_reason'),
@@ -74,6 +75,7 @@ export const socialAlertPost = sqliteTable(
     uniqueIndex('uq_social_alert_post_channel_pulse').on(table.channel, table.pulseId),
     uniqueIndex('uq_social_alert_post_ref_token').on(table.refToken),
     uniqueIndex('uq_social_alert_post_channel_x_post').on(table.channel, table.xPostId),
+    uniqueIndex('uq_social_alert_post_channel_x_reply').on(table.channel, table.xReplyPostId),
     index('idx_social_alert_post_backlog').on(
       table.channel,
       table.status,
@@ -136,6 +138,7 @@ export const socialPublishRun = sqliteTable(
     responseHttpStatus: integer('response_http_status'),
     failureReason: text('failure_reason'),
     xPostId: text('x_post_id'),
+    xReplyPostId: text('x_reply_post_id'),
     queuedAt: integer('queued_at', { mode: 'timestamp_ms' }),
     sendingAt: integer('sending_at', { mode: 'timestamp_ms' }),
     publishedAt: integer('published_at', { mode: 'timestamp_ms' }),
