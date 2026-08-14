@@ -517,6 +517,102 @@ export const DISASTER_NOTICES: DisasterNotice[] = [
     sourceHref:
       'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-tornadoes-and-flooding-in-the-state-of-wisconsin-various-deadlines-postponed-to-nov-2-2026',
   },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-tropical-storm-arthur-in-mississippi-various-deadlines-postponed-to-feb-1-2027
+    // Verified 2026-08-14 against the release: code MS-2026-03 (issued Aug. 7, 2026);
+    // deadline Feb. 1, 2027; incident June 18, 2026; FEMA 4930-DR. Distinct from
+    // MS-2026-02 (Nov. 2, 2026 — five inland counties); the two coexist. Same-named
+    // storm as LA-2026-02 but a separate relief with its own dates.
+    slug: 'mississippi-tropical-storm-arthur',
+    code: 'MS-2026-03',
+    state: 'Mississippi',
+    abbreviation: 'MS',
+    event: 'Tropical Storm Arthur',
+    issuedOn: 'Aug. 7, 2026',
+    deadline: '2027-02-01',
+    deadlineLabel: 'Feb. 1, 2027',
+    incidentStart: 'June 18, 2026',
+    affectedArea:
+      'Covington, George, Greene, Hancock, Harrison, Pearl River, Stone, and Wayne counties',
+    affectedReturns: [
+      'individual',
+      'corporate',
+      's-corp',
+      'partnership',
+      'estate-trust',
+      'estate-gift',
+      'tax-exempt',
+      'payroll-excise',
+      'estimated',
+    ],
+    femaDeclaration: '4930-DR',
+    sourceHref:
+      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-tropical-storm-arthur-in-mississippi-various-deadlines-postponed-to-feb-1-2027',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-flooding-landslides-and-mudslides-in-west-virginia-various-deadlines-postponed-to-feb-1-2027
+    // Verified 2026-08-14 against the release: code WV-2026-01 (issued Aug. 7, 2026);
+    // deadline Feb. 1, 2027; incident July 21, 2026; FEMA 4932-DR.
+    // UPDATE BANNER (same trap as WA-2025-03/LA-2026-02): "Updated on 8/11/2026" ADDED
+    // Pleasants and Ritchie — the four counties below are the post-update set.
+    slug: 'west-virginia-severe-storms-flooding-landslides',
+    code: 'WV-2026-01',
+    state: 'West Virginia',
+    abbreviation: 'WV',
+    event: 'Severe storms, straight-line winds, tornadoes, flooding, landslides and mudslides',
+    issuedOn: 'Aug. 7, 2026',
+    deadline: '2027-02-01',
+    deadlineLabel: 'Feb. 1, 2027',
+    incidentStart: 'July 21, 2026',
+    affectedArea: 'Lewis, Pleasants, Ritchie, and Upshur counties',
+    affectedReturns: [
+      'individual',
+      'corporate',
+      's-corp',
+      'partnership',
+      'estate-trust',
+      'estate-gift',
+      'tax-exempt',
+      'payroll-excise',
+      'estimated',
+    ],
+    femaDeclaration: '4932-DR',
+    sourceHref:
+      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-flooding-landslides-and-mudslides-in-west-virginia-various-deadlines-postponed-to-feb-1-2027',
+  },
+  {
+    // Source: https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-bavi-in-the-northern-mariana-islands-various-deadlines-postponed-to-feb-1-2027
+    // Verified 2026-08-14 against the release: code NMI-2026-02 (issued Aug. 7, 2026);
+    // deadline Feb. 1, 2027; incident July 4, 2026; FEMA 4931-DR. Bavi covers Rota,
+    // Saipan and Tinian only — NOT the Northern Islands, which NMI-2026-01 (Sinlaku)
+    // covers; the two reliefs coexist. Release oddity (reported, not "fixed"): its
+    // estimated-tax paragraph says "on or after July 21, 2026" — WV's incident date,
+    // an apparent IRS copy-paste — so no July-21 cutoff is asserted anywhere here.
+    slug: 'northern-mariana-islands-super-typhoon-bavi',
+    code: 'NMI-2026-02',
+    state: 'Northern Mariana Islands',
+    abbreviation: 'MP',
+    event: 'Super Typhoon Bavi',
+    issuedOn: 'Aug. 7, 2026',
+    deadline: '2027-02-01',
+    deadlineLabel: 'Feb. 1, 2027',
+    incidentStart: 'July 4, 2026',
+    affectedArea: 'the islands of Rota, Saipan and Tinian',
+    affectedReturns: [
+      'individual',
+      'corporate',
+      's-corp',
+      'partnership',
+      'estate-trust',
+      'estate-gift',
+      'tax-exempt',
+      'payroll-excise',
+      'estimated',
+    ],
+    femaDeclaration: '4931-DR',
+    sourceHref:
+      'https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-bavi-in-the-northern-mariana-islands-various-deadlines-postponed-to-feb-1-2027',
+  },
 ]
 
 /** True while the notice's postponed deadline is on/after `today` (default now). */

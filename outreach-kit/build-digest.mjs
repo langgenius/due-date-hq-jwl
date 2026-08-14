@@ -38,7 +38,11 @@ const daysOut = (n) => Math.round((new Date(`${n.deadline}T12:00:00Z`) - todayNo
 const fresh = live.filter((n) => {
   if (!n.issuedOn) return false
   const d = new Date(n.issuedOn)
-  return !Number.isNaN(d) && (TODAY - d) / 864e5 <= DAYS
+  if (Number.isNaN(d.getTime())) return false
+  // Calendar-day diff at UTC noon — raw ms math let the host timezone offset push an
+  // exactly-DAYS-old release out of the window (BST parsing hid all 3 Aug-7 notices on 08-14).
+  const dNoon = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12)
+  return Math.round((todayNoon - dNoon) / 864e5) <= DAYS
 })
 const soon = live.filter((n) => daysOut(n) <= 30)
 // Urgency tiers drive the information hierarchy: act-now (≤14d) > this-month (15–30d) > further out.
@@ -105,15 +109,22 @@ const block = (n, urgent) =>
   `</div>`
 
 // Opening line — orient the reader with tier counts; the blocks below carry the detail.
+// When the subject leads with fresh relief, the lead must deliver on it too.
+const freshClause = fresh.length
+  ? ` — and ${spell(fresh.length).toLowerCase()} new relief${fresh.length === 1 ? '' : 's'} just landed`
+  : ''
 const openHook = urgent.length
-  ? `${spell(urgent.length)} IRS deadline${urgent.length === 1 ? '' : 's'} need${urgent.length === 1 ? 's' : ''} your attention in the next two weeks${thisMonth.length ? ` — ${spell(thisMonth.length).toLowerCase()} more land${thisMonth.length === 1 ? 's' : ''} this month` : ''}.`
+  ? `${spell(urgent.length)} IRS deadline${urgent.length === 1 ? '' : 's'} need${urgent.length === 1 ? 's' : ''} your attention in the next two weeks${thisMonth.length ? ` — ${spell(thisMonth.length).toLowerCase()} more land${thisMonth.length === 1 ? 's' : ''} this month` : ''}${freshClause}.`
   : soon.length
-    ? `${spell(soon.length)} IRS deadline${soon.length === 1 ? '' : 's'} come${soon.length === 1 ? 's' : ''} due this month.`
+    ? `${spell(soon.length)} IRS deadline${soon.length === 1 ? '' : 's'} come${soon.length === 1 ? 's' : ''} due this month${freshClause}.`
     : fresh.length
       ? `The IRS postponed deadlines in ${fresh.map((n) => n.state).join(', ')} this week.`
       : `A quiet week — nothing new, and nothing federal due in the next 30 days.`
 
-const rest = live.filter((n) => !soon.includes(n)) // further out (>30 days)
+// Fresh notices whose deadline is >30d out get their own section (a fresh notice due
+// sooner already sits in the urgent/this-month blocks above).
+const freshRest = fresh.filter((n) => !soon.includes(n))
+const rest = live.filter((n) => !soon.includes(n) && !freshRest.includes(n)) // further out (>30 days)
 // "Also active" grouped by deadline: "Arizona, Montana — Sept. 28" per line.
 const restByDate = []
 for (const n of rest) {
@@ -136,6 +147,8 @@ let html =
 
 if (urgent.length) html += eyebrow('Next two weeks') + urgent.map((n) => block(n, true)).join('')
 if (thisMonth.length) html += eyebrow('This month') + thisMonth.map((n) => block(n, false)).join('')
+if (freshRest.length)
+  html += eyebrow('New this week') + freshRest.map((n) => block(n, false)).join('')
 if (restByDate.length)
   html +=
     eyebrow('Further out') +
@@ -169,6 +182,7 @@ let text = `FOR CPAs WITH US CLIENTS\nThis week in IRS deadline changes — ${da
 if (urgent.length)
   text += `NEXT TWO WEEKS\n${urgent.map((n) => `${tLine(n)}\n  ${yourMove(n)}`).join('\n')}\n\n`
 if (thisMonth.length) text += `Also coming due this month\n${thisMonth.map(tLine).join('\n')}\n\n`
+if (freshRest.length) text += `New this week\n${freshRest.map(tLine).join('\n')}\n\n`
 if (restByDate.length)
   text += `Active, further out\n${restByDate.map((g) => `${g.states.join(', ')} — ${g.date}`).join('\n')}\n\n`
 text += `You run the firm; DueDateHQ catches the rule change — the moment the IRS, a state, or FEMA moves a deadline — and names the clients in your book it hits, with the source on every date.\nSee your affected clients: https://app.duedatehq.com/?lng=en\n\n—\nGigi\nCo-Founder of DueDateHQ\nDueDateHQ · a new product from Dify (dify.ai)\n\nYou're getting this because you're a US CPA firm and IRS deadline changes hit your clients' filings. Reply "no thanks" and we won't write again.\nDueDateHQ · 548 Market St PMB 60083, San Francisco, CA 94104\n`

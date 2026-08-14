@@ -252,5 +252,74 @@
     "issuedOn": "July 13, 2026",
     "fema": "4925-DR",
     "slug": "michigan-severe-storms-tornadoes-flooding"
+  },
+  {
+    "abbr": "MS",
+    "state": "Mississippi",
+    "code": "MS-2026-03",
+    "event": "Tropical Storm Arthur",
+    "deadline": "2027-02-01",
+    "deadlineLabel": "Feb. 1, 2027",
+    "affectedArea": "Covington, George, Greene, Hancock, Harrison, Pearl River, Stone, and Wayne counties",
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-tropical-storm-arthur-in-mississippi-various-deadlines-postponed-to-feb-1-2027",
+    "issuedOn": "Aug. 7, 2026",
+    "slug": "mississippi-tropical-storm-arthur",
+    "forms": [
+      "1040",
+      "1120",
+      "1120-S",
+      "1065",
+      "1041",
+      "706 / 709",
+      "990",
+      "941 / 940",
+      "Estimates"
+    ]
+  },
+  {
+    "abbr": "WV",
+    "state": "West Virginia",
+    "code": "WV-2026-01",
+    "event": "Severe storms, straight-line winds, tornadoes, flooding, landslides and mudslides",
+    "deadline": "2027-02-01",
+    "deadlineLabel": "Feb. 1, 2027",
+    "affectedArea": "Lewis, Pleasants, Ritchie, and Upshur counties",
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-severe-storms-straight-line-winds-tornadoes-flooding-landslides-and-mudslides-in-west-virginia-various-deadlines-postponed-to-feb-1-2027",
+    "issuedOn": "Aug. 7, 2026",
+    "slug": "west-virginia-severe-storms-flooding-landslides",
+    "forms": [
+      "1040",
+      "1120",
+      "1120-S",
+      "1065",
+      "1041",
+      "706 / 709",
+      "990",
+      "941 / 940",
+      "Estimates"
+    ]
+  },
+  {
+    "abbr": "MP",
+    "state": "Northern Mariana Islands",
+    "code": "NMI-2026-02",
+    "event": "Super Typhoon Bavi",
+    "deadline": "2027-02-01",
+    "deadlineLabel": "Feb. 1, 2027",
+    "affectedArea": "the islands of Rota, Saipan and Tinian",
+    "sourceHref": "https://www.irs.gov/newsroom/irs-announces-tax-relief-for-taxpayers-impacted-by-super-typhoon-bavi-in-the-northern-mariana-islands-various-deadlines-postponed-to-feb-1-2027",
+    "issuedOn": "Aug. 7, 2026",
+    "slug": "northern-mariana-islands-super-typhoon-bavi",
+    "forms": [
+      "1040",
+      "1120",
+      "1120-S",
+      "1065",
+      "1041",
+      "706 / 709",
+      "990",
+      "941 / 940",
+      "Estimates"
+    ]
   }
 ]
